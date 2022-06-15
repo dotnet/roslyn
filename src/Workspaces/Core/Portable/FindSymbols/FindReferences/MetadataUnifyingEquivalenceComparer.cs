@@ -50,6 +50,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static bool IsInSource(ISymbol symbol)
-            => symbol.Locations.Any(l => l.IsInSource);
+            => symbol.Locations.Any(static l => l.IsInSource);
     }
 }

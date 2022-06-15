@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     var lineSpan = diagnostic.Location.GetLineSpan();
 
                     var documentIds = targetTextDocument.Project.Solution.GetDocumentIdsWithFilePath(lineSpan.Path);
-                    return documentIds.Any(id => id == targetTextDocument.Id);
+                    return documentIds.Any(static (id, targetTextDocument) => id == targetTextDocument.Id, targetTextDocument);
                 }
 
                 return false;

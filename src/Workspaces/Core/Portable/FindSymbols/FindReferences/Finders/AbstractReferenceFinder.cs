@@ -550,7 +550,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     deconstructMethods = semanticFacts.GetDeconstructionForEachMethods(semanticModel, node);
                 }
 
-                if (deconstructMethods.Any(m => Matches(m, symbol)))
+                if (deconstructMethods.Any(static (m, symbol) => Matches(m, symbol), symbol))
                 {
                     var location = syntaxFacts.GetDeconstructionReferenceLocation(node);
                     var symbolUsageInfo = GetSymbolUsageInfo(node, semanticModel, syntaxFacts, semanticFacts, cancellationToken);

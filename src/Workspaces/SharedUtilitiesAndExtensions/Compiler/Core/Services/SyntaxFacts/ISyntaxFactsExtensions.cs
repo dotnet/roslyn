@@ -818,6 +818,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public static bool IsRangeExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.RangeExpression;
 
+        public static bool IsRefExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == syntaxFacts.SyntaxKinds.RefExpression;
+
         public static bool IsSimpleMemberAccessExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.SimpleMemberAccessExpression;
 
@@ -852,7 +855,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public static bool IsLockStatement(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.LockStatement;
 
-        public static bool IsReturnStatement(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode node)
+        public static bool IsReturnStatement(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.ReturnStatement;
 
         public static bool IsThrowStatement(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
@@ -860,6 +863,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         public static bool IsUsingStatement(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.UsingStatement;
+
+        public static bool IsYieldReturnStatement(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == syntaxFacts.SyntaxKinds.YieldReturnStatement;
 
         #endregion
 

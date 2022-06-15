@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 // ok, we have a record constructor.  This might be the primary constructor or not.
                 var parameterSyntax = parameter.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
                 var constructorSyntax = constructor.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
-                if (containingType.DeclaringSyntaxReferences.Any(r => r.GetSyntax(cancellationToken) == constructorSyntax))
+                if (containingType.DeclaringSyntaxReferences.Any(static (r, arg) => r.GetSyntax(arg.cancellationToken) == arg.constructorSyntax, (constructorSyntax, cancellationToken)))
                 {
                     // this was a primary constructor. see if we can map this parameter to a corresponding synthesized property 
                     foreach (var member in containingType.GetMembers(parameter.Name))

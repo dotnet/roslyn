@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SymbolMapping;
@@ -20,7 +21,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InheritanceMargin
 {
-    using SymbolKeyAndLineNumberArray = ImmutableArray<(SymbolKey, int lineNumber)>;
+    using SymbolAndLineNumberArray = ImmutableArray<(ISymbol symbol, int lineNumber)>;
 
     internal abstract partial class AbstractInheritanceMarginService : IInheritanceMarginService
     {
@@ -42,72 +43,39 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             Document document,
             TextSpan spanToSearch,
             bool includeGlobalImports,
+            bool frozenPartialSemantics,
             CancellationToken cancellationToken)
         {
-            var (remappedProject, symbolKeyAndLineNumbers) = await GetMemberSymbolKeysAsync(document, spanToSearch, cancellationToken).ConfigureAwait(false);
-
-            // if we didn't remap the symbol to another project (e.g. remapping from a metadata-as-source symbol back to
-            // the originating project), then we're in teh same project and we should try to get global import
-            // information to display.
-            var remapped = remappedProject != document.Project;
-
-            using var _ = ArrayBuilder<InheritanceMarginItem>.GetInstance(out var result);
-
-            if (includeGlobalImports && !remapped)
-                result.AddRange(await GetGlobalImportItemsAsync(document, spanToSearch, frozenPartialSemantics: true, cancellationToken).ConfigureAwait(false));
-
-            if (!symbolKeyAndLineNumbers.IsEmpty)
+            var solution = document.Project.Solution;
+            var remoteClient = await RemoteHostClient.TryGetClientAsync(solution.Workspace.Services, cancellationToken).ConfigureAwait(false);
+            if (remoteClient != null)
             {
-                result.AddRange(await GetSymbolItemsAsync(
-                    remappedProject,
-                    document: remapped ? null : document,
-                    symbolKeyAndLineNumbers,
-                    frozenPartialSemantics: true,
-                    cancellationToken).ConfigureAwait(false));
-            }
+                // Also, make it clear to the remote side that they should be using frozen semantics, just like we are.
+                // we want results quickly, without waiting for the entire source generator pass to run.  The user will still get
+                // accurate results in the future because taggers are set to recompute when compilations are fully
+                // available on the OOP side.
+                var result = await remoteClient.TryInvokeAsync<IRemoteInheritanceMarginService, ImmutableArray<InheritanceMarginItem>>(
+                    solution,
+                    (service, solutionInfo, cancellationToken) =>
+                        service.GetInheritanceMarginItemsAsync(solutionInfo, document.Id, spanToSearch, includeGlobalImports: includeGlobalImports, frozenPartialSemantics: frozenPartialSemantics, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
 
-            return result.ToImmutable();
-        }
-
-        private async ValueTask<(Project remapped, SymbolKeyAndLineNumberArray symbolKeyAndLineNumbers)> GetMemberSymbolKeysAsync(
-            Document document,
-            TextSpan spanToSearch,
-            CancellationToken cancellationToken)
-        {
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var allDeclarationNodes = GetMembers(root.DescendantNodes(spanToSearch));
-            if (!allDeclarationNodes.IsEmpty)
-            {
-                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-                var mappingService = document.Project.Solution.Workspace.Services.GetRequiredService<ISymbolMappingService>();
-                using var _ = ArrayBuilder<(SymbolKey symbolKey, int lineNumber)>.GetInstance(out var builder);
-
-                Project? project = null;
-
-                foreach (var memberDeclarationNode in allDeclarationNodes)
+                if (!result.HasValue)
                 {
-                    var member = semanticModel.GetDeclaredSymbol(memberDeclarationNode, cancellationToken);
-                    if (member == null || !CanHaveInheritanceTarget(member))
-                        continue;
-
-                    // Use mapping service to find correct solution & symbol. (e.g. metadata symbol)
-                    var mappingResult = await mappingService.MapSymbolAsync(document, member, cancellationToken).ConfigureAwait(false);
-                    if (mappingResult == null)
-                        continue;
-
-                    // All the symbols here are declared in the same document, they should belong to the same project.
-                    // So here it is enough to get the project once.
-                    project ??= mappingResult.Project;
-                    builder.Add((mappingResult.Symbol.GetSymbolKey(cancellationToken), sourceText.Lines.GetLineFromPosition(GetDeclarationToken(memberDeclarationNode).SpanStart).LineNumber));
+                    return ImmutableArray<InheritanceMarginItem>.Empty;
                 }
 
-                if (project != null)
-                    return (project, builder.ToImmutable());
+                return result.Value;
             }
-
-            return (document.Project, SymbolKeyAndLineNumberArray.Empty);
+            else
+            {
+                return await GetInheritanceMarginItemsInProcessAsync(
+                    document,
+                    spanToSearch,
+                    includeGlobalImports: includeGlobalImports,
+                    frozenPartialSemantics: frozenPartialSemantics,
+                    cancellationToken).ConfigureAwait(false);
+            }
         }
 
         private static bool CanHaveInheritanceTarget(ISymbol symbol)

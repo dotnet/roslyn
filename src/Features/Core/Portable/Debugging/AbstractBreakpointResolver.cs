@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.Debugging
 
             // Finally, check to make sure we have source, and if we've got a method symbol, make sure it
             // has a body to set a breakpoint on.
-            if ((methodOrProperty.Language == _language) && methodOrProperty.Locations.Any(location => location.IsInSource))
+            if ((methodOrProperty.Language == _language) && methodOrProperty.Locations.Any(static location => location.IsInSource))
             {
                 if (methodOrProperty.IsKind(SymbolKind.Method))
                 {

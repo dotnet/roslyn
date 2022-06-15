@@ -593,8 +593,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers">
-        <source>The interface '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. The constraint interface '{1}' or its base interface has static abstract or virtual members.</source>
-        <target state="translated">'{3}' arabirimi '{2}' tür parametresi olarak '{0}' genel türünde veya metodunda kullanılamaz. '{1}' kısıtlama arabirimi veya onun temel arabirimi, statik soyut veya sanal üyelere sahip.</target>
+        <source>The interface '{0}' cannot be used as type argument. Static member '{1}' does not have a most specific implementation in the interface.</source>
+        <target state="new">The interface '{0}' cannot be used as type argument. Static member '{1}' does not have a most specific implementation in the interface.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GlobalUsingInNamespace">
@@ -635,6 +635,11 @@
       <trans-unit id="ERR_ImplicitConversionOperatorCantBeChecked">
         <source>An 'implicit' user-defined conversion operator cannot be declared checked</source>
         <target state="translated">'Örtük' kullanıcı tanımlı bir dönüştürme işleci işaretlenmiş olarak bildirilemiyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitImplementationOfInaccessibleInterfaceMember">
+        <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement an inaccessible member.</source>
+        <target state="new">'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement an inaccessible member.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitIndexIndexerWithName">
@@ -812,6 +817,11 @@
         <target state="translated">Öznitelikleri olan bir lambda ifadesi bir ifade ağacına dönüştürülemez</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember">
+        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</source>
+        <target state="new">'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_LineContainsDifferentWhitespace">
         <source>Line contains different whitespace than the closing line of the raw string literal: '{0}' versus '{1}'</source>
         <target state="translated">Satır, ham dize sabit değerinin kapanış satırından farklı boşluk içeriyor: '{0}' şuna karşı: '{1}'</target>
@@ -830,6 +840,11 @@
       <trans-unit id="ERR_LineSpanDirectiveInvalidValue">
         <source>The #line directive value is missing or out of range</source>
         <target state="translated">#line yönerge değeri eksik veya aralık dışı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_LineSpanDirectiveRequiresSpace">
+        <source>The #line span directive requires space before the first parenthesis, before the character offset, and before the file name</source>
+        <target state="new">The #line span directive requires space before the first parenthesis, before the character offset, and before the file name</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ListPatternRequiresLength">
@@ -1272,6 +1287,11 @@
         <target state="translated">Hedef çalışma zamanı, genişletilebilir veya çalışma zamanı ortamı varsayılanı çağırma kurallarını desteklemiyor.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers">
+        <source>Required members are not allowed on the top level of a script or submission.</source>
+        <target state="new">Required members are not allowed on the top level of a script or submission.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SealedAPIInRecord">
         <source>'{0}' cannot be sealed because containing record is not sealed.</source>
         <target state="translated">Kapsayan kayıt mühürlü olmadığından '{0}' mühürlenemez.</target>
@@ -1570,11 +1590,6 @@
       <trans-unit id="IDS_FeatureLambdaReturnType">
         <source>lambda return type</source>
         <target state="translated">lambda dönüş türü</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_FeatureLineSpanDirective">
-        <source>line span directive</source>
-        <target state="translated">satır aralığı yönergesi</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureListPattern">
@@ -11680,11 +11695,6 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
       <trans-unit id="ERR_MostSpecificImplementationIsNotFound">
         <source>Interface member '{0}' does not have a most specific implementation. Neither '{1}', nor '{2}' are most specific.</source>
         <target state="translated">'{0}' arabirim üyesinin en belirgin bir uygulaması yok. Ne '{1} ', ne de '{2}' en belirgin değil.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember">
-        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</source>
-        <target state="translated">'{3}' özelliği C# {4} sürümünde kullanılamadığından '{0}', '{2}' türündeki '{1}' arabirim üyesini uygulayamaz. Lütfen '{5}' veya daha yüksek bir dil sürümü kullanın.</target>
         <note />
       </trans-unit>
     </body>

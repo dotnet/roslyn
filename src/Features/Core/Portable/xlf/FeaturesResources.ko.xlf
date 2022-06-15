@@ -585,6 +585,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">디스크에서 PDB를 찾거나 포함된 PDB 또는 기호 서버에서 PDB를 찾을 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Could_not_find_implementation_of_symbol_0">
+        <source>Could not find implementation of symbol '{0}'</source>
+        <target state="new">Could not find implementation of symbol '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Create_and_assign_field_0">
         <source>Create and assign field '{0}'</source>
         <target state="translated">'{0}' 필드 만들기 및 할당</target>
@@ -728,6 +733,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Fix_typo_0">
         <source>Fix typo '{0}'</source>
         <target state="translated">오타 '{0}' 수정</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fixing_0">
+        <source>Fixing '{0}'</source>
+        <target state="new">Fixing '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_document">
@@ -2508,6 +2518,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Replace_0_with_1">
         <source>Replace '{0}' with '{1}' </source>
         <target state="translated">'{0}'을(를) '{1}'(으)로 바꾸기</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Replace_conditional_expression_with_statements">
+        <source>Replace conditional expression with statements</source>
+        <target state="new">Replace conditional expression with statements</target>
         <note />
       </trans-unit>
       <trans-unit id="Resolve_conflict_markers">

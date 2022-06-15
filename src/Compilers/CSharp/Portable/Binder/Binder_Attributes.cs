@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     boundConstructorArguments = analyzedArguments.ConstructorArguments.Arguments.ToImmutable();
                     ReportDiagnosticsIfObsolete(diagnostics, attributeConstructor, node, hasBaseReceiver: false);
 
-                    if (attributeConstructor.Parameters.Any(p => p.RefKind == RefKind.In))
+                    if (attributeConstructor.Parameters.Any(static p => p.RefKind == RefKind.In))
                     {
                         Error(diagnostics, ErrorCode.ERR_AttributeCtorInParameter, node, attributeConstructor.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
                     }

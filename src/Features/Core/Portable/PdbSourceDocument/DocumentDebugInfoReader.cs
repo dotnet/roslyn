@@ -32,9 +32,9 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             _pdbReader = _pdbReaderProvider.GetMetadataReader();
         }
 
-        public ImmutableArray<SourceDocument> FindSourceDocuments(ISymbol symbol)
+        public ImmutableArray<SourceDocument> FindSourceDocuments(EntityHandle entityHandle)
         {
-            var documentHandles = SymbolSourceDocumentFinder.FindDocumentHandles(symbol, _dllReader, _pdbReader);
+            var documentHandles = SymbolSourceDocumentFinder.FindDocumentHandles(entityHandle, _dllReader, _pdbReader);
 
             using var _ = ArrayBuilder<SourceDocument>.GetInstance(out var sourceDocuments);
 

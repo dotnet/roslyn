@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             this ITypeSymbol type, ITypeSymbol interfaceType)
         {
             var originalInterfaceType = interfaceType.OriginalDefinition;
-            return type.AllInterfaces.Any(t => SymbolEquivalenceComparer.Instance.Equals(t.OriginalDefinition, originalInterfaceType));
+            return type.AllInterfaces.Any(static (t, originalInterfaceType) => SymbolEquivalenceComparer.Instance.Equals(t.OriginalDefinition, originalInterfaceType), originalInterfaceType);
         }
 
         public static bool Implements(
@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static bool CanSupportCollectionInitializer(this ITypeSymbol typeSymbol, ISymbol within)
         {
             return
-                typeSymbol.AllInterfaces.Any(i => i.SpecialType == SpecialType.System_Collections_IEnumerable) &&
+                typeSymbol.AllInterfaces.Any(static i => i.SpecialType == SpecialType.System_Collections_IEnumerable) &&
                 typeSymbol.GetBaseTypesAndThis()
                     .Union(typeSymbol.GetOriginalInterfacesAndTheirBaseInterfaces())
                     .SelectAccessibleMembers<IMethodSymbol>(WellKnownMemberNames.CollectionInitializerAddMethodName, within ?? typeSymbol)

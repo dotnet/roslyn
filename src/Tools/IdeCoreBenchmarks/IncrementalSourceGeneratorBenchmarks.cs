@@ -122,10 +122,19 @@ namespace IdeCoreBenchmarks
                     (ctx, _) =>
                     {
                         var node = (ClassDeclarationSyntax)ctx.Node;
+                        //var symbol = ctx.SemanticModel.GetDeclaredSymbol(node);
+                        //foreach (var attribute in symbol.GetAttributes())
+                        //{
+                        //    if (attribute.AttributeClass.ToDisplayString() == "System.Text.Json.Serialization.JsonSerializationAttribute")
+                        //    {
+
+                        //    }
+                        //}
                         return node;
                     });
 #else
-                var input = ctx.ForAttributeWithMetadataName<ClassDeclarationSyntax>("System.Text.Json.Serialization.JsonSerializableAttribute");
+                // var input = ctx.ForAttributeWithMetadataName<ClassDeclarationSyntax>("System.Text.Json.Serialization.JsonSerializableAttribute");
+                // var input = ctx.ForAttributeWithSimpleName<ClassDeclarationSyntax>("JsonSerializableAttribute");
 #endif
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             })).AsSourceGenerator();
@@ -152,7 +161,7 @@ namespace IdeCoreBenchmarks
             Console.WriteLine("Start profiling now");
 
             var totalIncrementalTime = TimeSpan.Zero;
-            for (var i = 0; i < 10000; i++)
+            for (var i = 0; i < 1000; i++)
             {
                 var changedText = sourceText.WithChanges(new TextChange(new TextSpan(0, 0), $"// added text{i}\r\n"));
                 var changedTree = syntaxTree.WithChangedText(changedText);

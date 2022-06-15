@@ -1063,9 +1063,9 @@ public interface I1
     protected void M01();
 }
 
-class C1 : [|I1|]
+class C1 : I1
 {
-    public void M01() {}
+    public void [|M01|]() {}
 }
 ",
                 expected: LanguageVersion.CSharp10,

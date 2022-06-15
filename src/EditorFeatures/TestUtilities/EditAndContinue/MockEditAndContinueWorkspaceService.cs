@@ -26,7 +26,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public Func<Solution, IManagedHotReloadService, ImmutableArray<DocumentId>, bool, bool, DebuggingSessionId>? StartDebuggingSessionImpl;
 
         public ActionOut<ImmutableArray<DocumentId>>? EndDebuggingSessionImpl;
-        public Func<Solution, ActiveStatementSpanProvider, string?, bool>? HasChangesImpl;
         public Func<Solution, ActiveStatementSpanProvider, EmitSolutionUpdateResults>? EmitSolutionUpdateImpl;
         public Func<Solution, ManagedInstructionId, bool?>? IsActiveStatementInExceptionRegionImpl;
         public Action<Document>? OnSourceFileUpdatedImpl;
@@ -76,9 +75,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         public ValueTask<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, ActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
             => new((GetDocumentDiagnosticsImpl ?? throw new NotImplementedException()).Invoke(document, activeStatementSpanProvider));
-
-        public ValueTask<bool> HasChangesAsync(DebuggingSessionId sessionId, Solution solution, ActiveStatementSpanProvider activeStatementSpanProvider, string? sourceFilePath, CancellationToken cancellationToken)
-            => new((HasChangesImpl ?? throw new NotImplementedException()).Invoke(solution, activeStatementSpanProvider, sourceFilePath));
 
         public ValueTask<bool?> IsActiveStatementInExceptionRegionAsync(DebuggingSessionId sessionId, Solution solution, ManagedInstructionId instructionId, CancellationToken cancellationToken)
             => new((IsActiveStatementInExceptionRegionImpl ?? throw new NotImplementedException()).Invoke(solution, instructionId));
