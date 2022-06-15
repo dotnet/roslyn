@@ -10,12 +10,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServer.Client;
@@ -27,114 +25,75 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Newtonsoft.Json.Linq;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     /// <summary>
     /// Interaction logic for SampleToolboxUserControl.xaml
     /// </summary>
     internal partial class SampleToolboxUserControl : UserControl, IOleCommandTarget
     {
-        public SampleToolboxUserControl(Workspace workspace, IDocumentTrackingService documentTrackingService, ILanguageServiceBroker2 languageServiceBroker, IThreadingContext threadingContext)
-        {
-            InitializeComponent();
-            InitializeIfNeeded(workspace, documentTrackingService, languageServiceBroker, threadingContext);
-        }
-
-        private Workspace? workspace { get; set; }
-        private DocumentId? lastDocumentId { get; set; }
-
         [MemberNotNullWhen(true, nameof(symbolsTreeItemsSource))]
         private bool symbolTreeInitialized { get; set; }
         private ObservableCollection<DocumentSymbolViewModel>? symbolsTreeItemsSource { get; set; }
 
         private ITextSnapshot? snapshot { get; set; }
-        private IWpfTextView? textView { get; set; }
+        private IWpfTextView textView { get; set; }
 
-        private void InitializeIfNeeded(Workspace workspace, IDocumentTrackingService documentTrackingService, ILanguageServiceBroker2 languageServiceBroker, IThreadingContext threadingContext)
+        public SampleToolboxUserControl(ILanguageServiceBroker2 languageServiceBroker, IThreadingContext threadingContext)
         {
-            this.workspace = workspace;
-            documentTrackingService.ActiveDocumentChanged += DocumentTrackingService_ActiveDocumentChanged;
+            InitializeComponent();
 
-            this.textView = GetActiveTextView();
-            if (this.textView is not null)
+            var textView = GetActiveTextView();
+            RoslynDebug.AssertNotNull(textView);
+            this.textView = textView;
+            this.textView.Caret.PositionChanged += FollowCursor;
+            //this.textView.TextBuffer.Changed += TextBuffer_Changed;
+
+            /*void TextBuffer_Changed(object sender, TextContentChangedEventArgs e)
             {
-                this.textView.Caret.PositionChanged += FollowCursor;
-            }
+            }*/
 
-            searchBox.GotFocus += RemoveText;
-            searchBox.LostFocus += AddText;
-
-            void DocumentTrackingService_ActiveDocumentChanged(object sender, DocumentId? documentId)
+            threadingContext.JoinableTaskFactory.RunAsync(async () =>
             {
-                threadingContext.JoinableTaskFactory.RunAsync(async () =>
+                this.symbolTreeInitialized = false;
+                var textBuffer = this.textView.TextBuffer;
+                this.snapshot = textBuffer.CurrentSnapshot;
+                var isCSharpContentType = textBuffer.ContentType.IsOfType(ContentTypeNames.CSharpContentType);
+                var isVisualBasicContentType = textBuffer.ContentType.IsOfType(ContentTypeNames.VisualBasicContentType);
+
+                // Check required since ActiveDocumentChanged is called for many content types
+                if (!isCSharpContentType && !isVisualBasicContentType)
                 {
-                    this.symbolTreeInitialized = false;
-                    if (documentId is null)
-                    {
-                        symbolTree.ItemsSource = new List<DocumentSymbolViewModel>();
-                        return;
-                    }
+                    symbolTree.ItemsSource = new List<DocumentSymbolViewModel>();
+                    return;
+                }
 
-                    if (documentId == this.lastDocumentId)
-                    {
-                        return;
-                    }
-
-                    this.lastDocumentId = documentId;
-                    var document = workspace.CurrentSolution.GetDocument(documentId);
-                    if (document is null)
-                    {
-                        symbolTree.ItemsSource = new List<DocumentSymbolViewModel>();
-                        return;
-                    }
-
-                    document.TryGetText(out var text);
-                    if (text is null)
-                    {
-                        symbolTree.ItemsSource = new List<DocumentSymbolViewModel>();
-                        return;
-                    }
-
-                    var textBuffer = text.Container.GetTextBuffer();
-                    this.snapshot = textBuffer.CurrentSnapshot;
-                    var isCSharpContentType = textBuffer.ContentType.IsOfType(ContentTypeNames.CSharpContentType);
-                    var isVisualBasicContentType = textBuffer.ContentType.IsOfType(ContentTypeNames.VisualBasicContentType);
-
-                    // Check required since ActiveDocumentChanged is called for many content types
-                    if (!isCSharpContentType && !isVisualBasicContentType)
-                    {
-                        symbolTree.ItemsSource = new List<DocumentSymbolViewModel>();
-                        return;
-                    }
-
-                    var response = await DocumentSymbolsRequestAsync(document, textBuffer, languageServiceBroker).ConfigureAwait(false);
-                    if (response is not null && response.Response is not null)
-                    {
-                        await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(CancellationToken.None);
-                        var responseBody = response.Response.ToObject<DocumentSymbol[]>();
-                        var documentSymbolModels = DocumentOutlineHelper.GetDocumentSymbols(responseBody);
-                        this.symbolTreeInitialized = true;
-                        this.symbolsTreeItemsSource = documentSymbolModels;
-                        symbolTree.ItemsSource = documentSymbolModels;
-                    }
-                    else
-                    {
-                        symbolTree.ItemsSource = new List<DocumentSymbolViewModel>();
-                    }
-                }).FileAndForget("Document Outline: Active Document Changed");
-            }
+                var response = await DocumentSymbolsRequestAsync(textBuffer, languageServiceBroker).ConfigureAwait(false);
+                if (response is not null && response.Response is not null)
+                {
+                    await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(CancellationToken.None);
+                    var responseBody = response.Response.ToObject<DocumentSymbol[]>();
+                    var documentSymbolModels = DocumentOutlineHelper.GetDocumentSymbols(responseBody);
+                    this.symbolTreeInitialized = true;
+                    this.symbolsTreeItemsSource = documentSymbolModels;
+                    symbolTree.ItemsSource = documentSymbolModels;
+                }
+                else
+                {
+                    symbolTree.ItemsSource = new List<DocumentSymbolViewModel>();
+                }
+            }).FileAndForget("Document Outline: Active Document Changed");
         }
 
-        private async Task<ManualInvocationResponse?> DocumentSymbolsRequestAsync(Document document, ITextBuffer textBuffer, ILanguageServiceBroker2 languageServiceBroker)
+        private async Task<ManualInvocationResponse?> DocumentSymbolsRequestAsync(ITextBuffer textBuffer, ILanguageServiceBroker2 languageServiceBroker)
         {
             var parameterFactory = new DocumentSymbolParams()
             {
                 TextDocument = new TextDocumentIdentifier()
                 {
-                    Uri = document.GetURI()
+                    Uri = new Uri(GetFilePath(this.textView))
                 }
             };
 
@@ -152,6 +111,19 @@ namespace Microsoft.VisualStudio.LanguageServices
                 languageServerName: WellKnownLspServerKinds.AlwaysActiveVSLspServer.ToUserVisibleString(),
                 parameterFactory: ParameterFactory,
                 cancellationToken: CancellationToken.None).ConfigureAwait(false);
+        }
+
+        private static string? GetFilePath(IWpfTextView textView)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+            if (textView.TextBuffer.Properties.TryGetProperty(typeof(IVsTextBuffer), out IVsTextBuffer bufferAdapter) &&
+                bufferAdapter is IPersistFileFormat persistFileFormat &&
+                ErrorHandler.Succeeded(persistFileFormat.GetCurFile(out var filePath, out _)))
+            {
+                return filePath;
+            }
+
+            return null;
         }
 
         private void ExpandAll(object sender, RoutedEventArgs e)
@@ -253,17 +225,16 @@ namespace Microsoft.VisualStudio.LanguageServices
             }
         }
 
-        // When node clicked, selects corresponding code
+        // When symbol node clicked, selects corresponding code
         private void JumpToContent(object sender, EventArgs e)
         {
-            if (this.textView is not null && this.snapshot is not null &&
-                sender is StackPanel panel && panel.DataContext is DocumentSymbolViewModel symbol)
+            RoslynDebug.AssertNotNull(this.snapshot);
+            if (sender is StackPanel panel && panel.DataContext is DocumentSymbolViewModel symbol)
             {
-                var snapshot = this.snapshot;
-                if (symbol.StartLine >= 0 && symbol.StartLine < snapshot.LineCount)
+                if (symbol.StartLine >= 0 && symbol.StartLine < this.snapshot.LineCount)
                 {
-                    var position = snapshot.GetLineFromLineNumber(symbol.StartLine).Start.Position;
-                    if (position >= 0 && position <= snapshot.Length)
+                    var position = this.snapshot.GetLineFromLineNumber(symbol.StartLine).Start.Position;
+                    if (position >= 0 && position <= this.snapshot.Length)
                     {
                         this.textView.Caret.PositionChanged -= FollowCursor;
                         var point = new SnapshotPoint(this.snapshot, position);

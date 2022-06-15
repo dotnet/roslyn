@@ -239,9 +239,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             {
                 var languageServiceBroker = _languageService.Package.ComponentModel.GetService<ILanguageServiceBroker2>();
                 var threadingContext = _languageService.Package.ComponentModel.GetService<IThreadingContext>();
-                var workspace = _languageService.Workspace;
-                var documentTrackingService = workspace.Services.GetRequiredService<IDocumentTrackingService>();
-                _documentOutlineView = new SampleToolboxUserControl(workspace, documentTrackingService, languageServiceBroker, threadingContext);
+                _documentOutlineView = new SampleToolboxUserControl(languageServiceBroker, threadingContext);
 
                 _documentOutlineViewHost = new ElementHost
                 {
