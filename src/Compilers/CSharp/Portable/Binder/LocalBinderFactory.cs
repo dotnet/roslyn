@@ -614,6 +614,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitCheckedExpression(CheckedExpressionSyntax node)
         {
             Binder binder = _enclosing.WithCheckedOrUncheckedRegion(@checked: node.Kind() == SyntaxKind.CheckedExpression);
+            AddToMap(node, binder);
             Visit(node.Expression, binder);
         }
 
