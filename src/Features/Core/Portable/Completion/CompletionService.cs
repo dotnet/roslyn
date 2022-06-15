@@ -59,19 +59,22 @@ namespace Microsoft.CodeAnalysis.Completion
         protected virtual ImmutableArray<CompletionProvider> GetBuiltInProviders()
             => ImmutableArray<CompletionProvider>.Empty;
 
+        /// <summary>
+        /// Don't call. Used for pre-populating MEF providers only.
+        /// </summary>
         internal IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> GetImportedProviders()
             => _providerManager.GetImportedProviders();
 
+        /// <summary>
+        /// Don't call. Used for pre-populating NuGet providers only.
+        /// </summary>
         internal static ImmutableArray<CompletionProvider> GetProjectCompletionProviders(Project? project)
             => ProviderManager.GetProjectCompletionProviders(project);
 
         protected ImmutableArray<CompletionProvider> GetProviders(ImmutableHashSet<string>? roles)
             => _providerManager.GetProviders(roles);
 
-        protected virtual ImmutableArray<CompletionProvider> GetProviders(ImmutableHashSet<string>? roles, CompletionTrigger trigger)
-            => GetProviders(roles);
-
-        protected internal CompletionProvider? GetProvider(CompletionItem item)
+        internal CompletionProvider? GetProvider(CompletionItem item)
             => _providerManager.GetProvider(item);
 
         /// <summary>
