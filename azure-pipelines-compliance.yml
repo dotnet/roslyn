@@ -1,5 +1,5 @@
 # Name: DotNet-Roslyn-Compliance
-# URL: 
+# URL: https://devdiv.visualstudio.com/DevDiv/_build?definitionId=16722
 #
 # Responsible for running compliance checks.
 
@@ -14,7 +14,7 @@ queue:
 variables:
   BuildConfiguration: Release
   TeamName: DotNet-Roslyn
-  BuildPlatform: any cpu
+  SignType: test
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
 
 steps:
@@ -44,16 +44,11 @@ steps:
                -officialBuildId $(Build.BuildNumber)
                -officialSkipTests=true
                -officialSkipApplyOptimizationData=true
-               -officialSourceBranchName $(SourceBranchName)
-               -officialIbcDrop $(IbcDrop)
                /p:RepositoryName=$(Build.Repository.Name)
                /p:VisualStudioDropName=$(VisualStudio.DropName)
                /p:DotNetSignType=$(SignType)
                /p:DotNetPublishToBlobFeed=false
                /p:PublishToSymbolServer=false
-               /p:DotNetSymbolServerTokenMsdl=$(microsoft-symbol-server-pat)
-               /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
-               /p:DotNetArtifactsCategory=$(_DotNetArtifactsCategory)
                /p:DotnetPublishUsingPipelines=false
                /p:PreReleaseVersionLabel=compliance
                /p:IgnoreIbcMergeErrors=true
