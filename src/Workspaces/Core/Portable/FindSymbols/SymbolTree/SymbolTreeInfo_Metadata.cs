@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -43,7 +41,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        public static MetadataId GetMetadataIdNoThrow(PortableExecutableReference reference)
+        public static MetadataId? GetMetadataIdNoThrow(PortableExecutableReference reference)
         {
             try
             {
@@ -55,7 +53,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private static Metadata GetMetadataNoThrow(PortableExecutableReference reference)
+        private static Metadata? GetMetadataNoThrow(PortableExecutableReference reference)
         {
             try
             {
@@ -67,7 +65,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        public static ValueTask<SymbolTreeInfo> GetInfoForMetadataReferenceAsync(
+        public static ValueTask<SymbolTreeInfo?> GetInfoForMetadataReferenceAsync(
             Solution solution, PortableExecutableReference reference,
             bool loadOnly, CancellationToken cancellationToken)
         {
@@ -82,7 +80,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Note:  will never return null;
         /// </summary>
         [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1224834", OftenCompletesSynchronously = true)]
-        public static async ValueTask<SymbolTreeInfo> GetInfoForMetadataReferenceAsync(
+        public static async ValueTask<SymbolTreeInfo?> GetInfoForMetadataReferenceAsync(
             Solution solution,
             PortableExecutableReference reference,
             Checksum checksum,
@@ -114,13 +112,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 solution.Workspace.Services, SolutionKey.ToSolutionKey(solution), reference, checksum, metadata, cancellationToken).ConfigureAwait(false);
         }
 
-        public static Task<SymbolTreeInfo> TryGetCachedInfoForMetadataReferenceIgnoreChecksumAsync(PortableExecutableReference reference, CancellationToken cancellationToken)
+        public static async Task<SymbolTreeInfo?> TryGetCachedInfoForMetadataReferenceIgnoreChecksumAsync(PortableExecutableReference reference, CancellationToken cancellationToken)
         {
             var metadataId = GetMetadataIdNoThrow(reference);
-            if (metadataId != null && s_metadataIdToInfo.TryGetValue(metadataId, out var infoTask))
-                return infoTask.GetValueAsync(cancellationToken);
+            if (metadataId == null || !s_metadataIdToInfo.TryGetValue(metadataId, out var infoTask))
+                return null;
 
-            return SpecializedTasks.Null<SymbolTreeInfo>();
+            return await infoTask.GetValueAsync(cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<SymbolTreeInfo> GetInfoForMetadataReferenceSlowAsync(
@@ -139,7 +137,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var asyncLazy = s_metadataIdToInfo.GetValue(
                 metadata.Id,
                 id => new AsyncLazy<SymbolTreeInfo>(
-                    c => TryCreateMetadataSymbolTreeInfoAsync(services, solutionKey, reference, checksum, c),
+                    c => CreateMetadataSymbolTreeInfoAsync(services, solutionKey, reference, checksum, c),
                     cacheResult: true));
 
             return await asyncLazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
@@ -165,7 +163,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             return ChecksumCache.GetOrCreate(reference, _ =>
             {
-                var serializer = solution.Workspace.Services.GetService<ISerializerService>();
+                var serializer = solution.Workspace.Services.GetRequiredService<ISerializerService>();
                 var checksum = serializer.CreateChecksum(reference, cancellationToken);
 
                 // Include serialization format version in our checksum.  That way if the 
@@ -175,14 +173,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             });
         }
 
-        private static Task<SymbolTreeInfo> TryCreateMetadataSymbolTreeInfoAsync(
+        private static Task<SymbolTreeInfo> CreateMetadataSymbolTreeInfoAsync(
             HostWorkspaceServices services,
             SolutionKey solutionKey,
             PortableExecutableReference reference,
             Checksum checksum,
             CancellationToken cancellationToken)
         {
-            var filePath = reference.FilePath;
+            var filePath = reference.FilePath ?? "";
 
             var result = TryLoadOrCreateAsync(
                 services,
@@ -219,7 +217,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             private readonly MetadataNode _rootNode;
 
             // The metadata reader for the current metadata in the PEReference.
-            private MetadataReader _metadataReader;
+            private MetadataReader? _metadataReader;
 
             // The set of type definitions we've read out of the current metadata reader.
             private readonly List<MetadataDefinition> _allTypeDefinitions = new();
@@ -249,7 +247,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 _rootNode = MetadataNode.Allocate(name: "");
             }
 
-            private static ImmutableArray<ModuleMetadata> GetModuleMetadata(Metadata metadata)
+            private static ImmutableArray<ModuleMetadata> GetModuleMetadata(Metadata? metadata)
             {
                 try
                 {
@@ -304,7 +302,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var unsortedNodes = GenerateUnsortedNodes(receiverTypeNameToExtensionMethodMap);
 
                 return CreateSymbolTreeInfo(
-                    _services, _solutionKey, _checksum, _reference.FilePath, unsortedNodes, _inheritanceMap, receiverTypeNameToExtensionMethodMap);
+                    _services, _solutionKey, _checksum, _reference.FilePath ?? "", unsortedNodes, _inheritanceMap, receiverTypeNameToExtensionMethodMap);
             }
 
             public void Dispose()
@@ -325,6 +323,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             private void GenerateMetadataNodes()
             {
+                Contract.ThrowIfNull(_metadataReader);
                 var globalNamespace = _metadataReader.GetNamespaceDefinitionRoot();
                 var definitionMap = OrderPreservingMultiDictionary<string, MetadataDefinition>.GetInstance();
                 try
