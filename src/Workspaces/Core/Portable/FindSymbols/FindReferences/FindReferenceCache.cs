@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             foreach (var trivia in token.LeadingTrivia)
                             {
                                 if (trivia.HasStructure)
-                                    Recurse(trivia.GetStructure());
+                                    Recurse(trivia.GetStructure()!);
                             }
                         }
                     }
