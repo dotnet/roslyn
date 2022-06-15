@@ -59,5 +59,6 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public const string ValueTracking = nameof(ValueTracking);
         public const string Workspace = nameof(Workspace);
         public const string AddImportsOnPaste = nameof(AddImportsOnPaste);
+        public const string Format = nameof(Format);
     }
 }

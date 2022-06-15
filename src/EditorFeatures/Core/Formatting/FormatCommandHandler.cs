@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -15,6 +16,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
@@ -45,6 +47,8 @@ namespace Microsoft.CodeAnalysis.Formatting
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
         private readonly IGlobalOptionService _globalOptions;
+        private readonly IThreadingContext _threadingContext;
+        private readonly IAsynchronousOperationListener _listener;
 
         public string DisplayName => EditorFeaturesResources.Automatic_Formatting;
 
@@ -53,11 +57,15 @@ namespace Microsoft.CodeAnalysis.Formatting
         public FormatCommandHandler(
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService,
-            IGlobalOptionService globalOptions)
+            IGlobalOptionService globalOptions,
+            IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
+            IThreadingContext threadingContext)
         {
             _undoHistoryRegistry = undoHistoryRegistry;
             _editorOperationsFactoryService = editorOperationsFactoryService;
             _globalOptions = globalOptions;
+            _threadingContext = threadingContext;
+            _listener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.Format);
         }
 
         private void Format(ITextView textView, Document document, TextSpan? selectionOpt, CancellationToken cancellationToken)
@@ -78,8 +86,29 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
         }
 
-        private static void ApplyChanges(Document document, IList<TextChange> changes, TextSpan? selectionOpt, CancellationToken cancellationToken)
+        private async Task FormatAsync(ITextView textView, Document document, TextSpan? selectionOpt, CancellationToken cancellationToken)
         {
+            var formattingService = document.GetRequiredLanguageService<IFormattingInteractionService>();
+
+            using (Logger.LogBlock(FunctionId.CommandHandler_FormatCommand, KeyValueLogMessage.Create(LogType.UserAction, m => m["Span"] = selectionOpt?.Length ?? -1), cancellationToken))
+            using (var transaction = CreateEditTransaction(textView, EditorFeaturesResources.Formatting))
+            {
+                var changes = await formattingService.GetFormattingChangesAsync(document, selectionOpt, cancellationToken).ConfigureAwait(false);
+                if (changes.IsEmpty)
+                {
+                    return;
+                }
+
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                ApplyChanges(document, changes, selectionOpt, cancellationToken);
+                transaction.Complete();
+            }
+        }
+
+        private void ApplyChanges(Document document, IList<TextChange> changes, TextSpan? selectionOpt, CancellationToken cancellationToken)
+        {
+            _threadingContext.ThrowIfNotOnUIThread();
+
             if (selectionOpt.HasValue)
             {
                 var ruleFactory = document.Project.Solution.Workspace.Services.GetRequiredService<IHostDependentFormattingRuleFactoryService>();
