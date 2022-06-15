@@ -60,21 +60,6 @@ namespace Microsoft.CodeAnalysis.Completion
             => ImmutableArray<CompletionProvider>.Empty;
 
         /// <summary>
-        /// Don't call. Used for pre-populating MEF providers only.
-        /// </summary>
-        internal IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> GetImportedProviders()
-            => _providerManager.GetImportedProviders();
-
-        /// <summary>
-        /// Don't call. Used for pre-populating NuGet providers only.
-        /// </summary>
-        internal static ImmutableArray<CompletionProvider> GetProjectCompletionProviders(Project? project)
-            => ProviderManager.GetProjectCompletionProviders(project);
-
-        internal CompletionProvider? GetProvider(CompletionItem item)
-            => _providerManager.GetProvider(item);
-
-        /// <summary>
         /// The language from <see cref="LanguageNames"/> this service corresponds to.
         /// </summary>
         public abstract string Language { get; }
@@ -399,6 +384,20 @@ namespace Microsoft.CodeAnalysis.Completion
             }
         }
 
+        /// <summary>
+        /// Don't call. Used for pre-populating MEF providers only.
+        /// </summary>
+        internal IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> GetImportedProviders()
+            => _providerManager.GetImportedProviders();
+
+        /// <summary>
+        /// Don't call. Used for pre-populating NuGet providers only.
+        /// </summary>
+        internal static ImmutableArray<CompletionProvider> GetProjectCompletionProviders(Project? project)
+            => ProviderManager.GetProjectCompletionProviders(project);
+
+        internal CompletionProvider? GetProvider(CompletionItem item)
+            => _providerManager.GetProvider(item);
 
         internal TestAccessor GetTestAccessor()
             => new(this);
