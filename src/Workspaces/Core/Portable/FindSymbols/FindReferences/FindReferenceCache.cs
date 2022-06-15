@@ -27,8 +27,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public static SymbolInfo GetSymbolInfo(SemanticModel model, SyntaxNode node, CancellationToken cancellationToken)
         {
-            var entry = GetEntry(model);
-            var nodeCache = entry.SymbolInfoCache;
+            var nodeCache = GetEntry(model).SymbolInfoCache;
 
             return nodeCache.GetOrAdd(node, static (n, arg) => arg.model.GetSymbolInfo(n, arg.cancellationToken), (model, cancellationToken));
         }
