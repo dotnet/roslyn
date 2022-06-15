@@ -57,6 +57,36 @@ steps:
     TargetFolder: '$(Agent.TempDirectory)\APIScanFiles'
   continueOnError: true
 
+- task: CopyFiles@2
+  displayName: Copy csc assemblies for APIScan
+  inputs:
+    SourceFolder: '$(Build.SourcesDirectory)\artifacts\bin\csc\$(BuildConfiguration)\net472'
+    Contents: |
+      csc.dll
+      csc.pdb
+    TargetFolder: '$(Agent.TempDirectory)\APIScanFiles'
+  continueOnError: true
+
+- task: CopyFiles@2
+  displayName: Copy vbc assemblies for APIScan
+  inputs:
+    SourceFolder: '$(Build.SourcesDirectory)\artifacts\bin\vbc\$(BuildConfiguration)\net472'
+    Contents: |
+      vbc.dll
+      vbc.pdb
+    TargetFolder: '$(Agent.TempDirectory)\APIScanFiles'
+  continueOnError: true
+
+- task: CopyFiles@2
+  displayName: Copy VBCSCompiler assemblies for APIScan
+  inputs:
+    SourceFolder: '$(Build.SourcesDirectory)\artifacts\bin\VBCSCompiler\$(BuildConfiguration)\net472'
+    Contents: |
+      VBCSCompiler.dll
+      VBCSCompiler.pdb
+    TargetFolder: '$(Agent.TempDirectory)\APIScanFiles'
+  continueOnError: true
+
 - task: APIScan@2
   # Scan for the use of undocumented APIs.
   displayName: Run APIScan
