@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.Completion
         {
             // Default implementation just drops the pattern matches and builder, and
             // calls the public overload of FilterItems instead for compatibility.
-            FilterItems(document, itemsWithPatternMatch.SelectAsArray(item => item.Item1), filterText);
+            builder.AddRange(FilterItems(document, itemsWithPatternMatch.SelectAsArray(item => item.Item1), filterText));
         }
 
         // The FilterItems method might need to handle a large list of items when import completion is enabled and filter text is
