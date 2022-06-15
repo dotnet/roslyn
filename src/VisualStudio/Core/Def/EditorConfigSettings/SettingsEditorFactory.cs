@@ -21,8 +21,6 @@ using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     [Export(typeof(SettingsEditorFactory))]
     [Guid(SettingsEditorFactoryGuidString)]
     internal sealed class SettingsEditorFactory : IVsEditorFactory, IVsEditorFactory4, IDisposable

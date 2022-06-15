@@ -24,8 +24,6 @@ using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     /// <summary>
     /// A singleton that tracks the open IVsWindowFrames and can report which documents are visible or active in a given <see cref="Workspace"/>.
     /// Can be accessed via the <see cref="IDocumentTrackingService"/> as a workspace service.

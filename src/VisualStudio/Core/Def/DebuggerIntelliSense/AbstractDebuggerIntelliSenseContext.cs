@@ -18,8 +18,6 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelliSense
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     internal abstract class AbstractDebuggerIntelliSenseContext : IDisposable
     {
         private readonly IWpfTextView _textView;

@@ -14,8 +14,6 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     [Export(typeof(IAttachedCollectionSourceProvider))]
     [Name(nameof(SourceGeneratedFileItemSourceProvider))]
     [Order]

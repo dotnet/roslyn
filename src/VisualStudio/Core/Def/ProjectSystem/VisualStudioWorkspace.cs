@@ -16,8 +16,6 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     /// <summary>
     /// A Workspace specific to Visual Studio.
     /// </summary>

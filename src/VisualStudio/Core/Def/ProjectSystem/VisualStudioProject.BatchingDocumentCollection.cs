@@ -19,8 +19,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     internal sealed partial class VisualStudioProject
     {
         /// <summary>

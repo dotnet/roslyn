@@ -17,8 +17,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     /// <summary>
     /// Base implementation of ITableEntriesSnapshot
     /// </summary>

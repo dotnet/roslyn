@@ -18,8 +18,6 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     /// <summary>
     /// Interaction logic for InheritanceMarginContextMenu.xaml
     /// </summary>

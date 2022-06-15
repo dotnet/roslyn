@@ -31,8 +31,6 @@ using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     /// <summary>
     /// Provides the support for opening files pointing to source generated documents, and keeping the content updated accordingly.
     /// </summary>

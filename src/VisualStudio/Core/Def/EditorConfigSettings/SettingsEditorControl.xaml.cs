@@ -16,8 +16,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     /// <summary>
     /// Interaction logic for SettingsEditorControl.xaml
     /// </summary>

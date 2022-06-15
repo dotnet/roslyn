@@ -9,8 +9,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     /// <summary>
     /// Base implementation of new platform table. this knows how to create various ITableDataSource and connect
     /// them to ITableManagerProvider

@@ -20,8 +20,6 @@ using Microsoft.VisualStudio.Shell.TableManager;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     [ExportEventListener(WellKnownEventListeners.DiagnosticService, WorkspaceKind.Host), Shared]
     internal partial class VisualStudioDiagnosticListTableWorkspaceEventListener : IEventListener<IDiagnosticService>
     {

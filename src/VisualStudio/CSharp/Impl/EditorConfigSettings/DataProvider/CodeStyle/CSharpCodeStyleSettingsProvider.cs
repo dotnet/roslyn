@@ -15,8 +15,6 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.DataProvider.CodeStyle
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     internal class CSharpCodeStyleSettingsProvider : SettingsProviderBase<CodeStyleSetting, OptionUpdater, IOption2, object>
     {
         public CSharpCodeStyleSettingsProvider(string fileName, OptionUpdater settingsUpdater, Workspace workspace)

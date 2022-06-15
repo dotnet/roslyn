@@ -12,8 +12,6 @@ using Microsoft.VisualStudio.Text.Classification;
 
 namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     internal class StackTraceExplorerTab
     {
         private readonly StackTraceExplorerViewModel _stackExplorerVM;

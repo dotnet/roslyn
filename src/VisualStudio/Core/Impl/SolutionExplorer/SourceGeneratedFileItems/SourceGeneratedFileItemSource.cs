@@ -19,8 +19,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     internal class SourceGeneratedFileItemSource : Shell.IAttachedCollectionSource, ISupportExpansionEvents
     {
         private readonly SourceGeneratorItem _parentGeneratorItem;

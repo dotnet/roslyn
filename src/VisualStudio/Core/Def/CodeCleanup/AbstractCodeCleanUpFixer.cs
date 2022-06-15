@@ -31,8 +31,6 @@ using IVsHierarchyItemManager = Microsoft.VisualStudio.Shell.IVsHierarchyItemMan
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     /// <summary>
     /// Roslyn implementations of <see cref="ICodeCleanUpFixer"/> extend this class. Since other extensions could also
     /// be implementing the <see cref="ICodeCleanUpFixer"/> interface, this abstract base class allows Roslyn to operate

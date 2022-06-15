@@ -46,8 +46,6 @@ using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     internal abstract class AbstractSnippetExpansionClient : ForegroundThreadAffinitizedObject, IVsExpansionClient
     {
         /// <summary>
