@@ -89,7 +89,6 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <param name="roles">Optional set of roles associated with the editor state.</param>
         /// <param name="options">Optional options that override the default options.</param>
         /// <remarks>
-        /// Backward compatibility only.
         /// This API uses SourceText instead of Document so implementations can only be based on text, not syntax or semantics.
         /// </remarks>
         public bool ShouldTriggerCompletion(
@@ -128,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <see cref="WorkspaceKind"/> and <see cref="Project.Language"/> which are fast operations.
         /// It should not be used for syntactic or semantic operations.
         /// </remarks>
-        internal bool ShouldTriggerCompletion(
+        internal virtual bool ShouldTriggerCompletion(
             Project? project, HostLanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, CompletionOptions options, OptionSet passThroughOptions, ImmutableHashSet<string>? roles = null)
         {
             if (!options.TriggerOnTyping)
@@ -173,8 +172,6 @@ namespace Microsoft.CodeAnalysis.Completion
             CompletionItem item,
             CancellationToken cancellationToken = default)
         {
-            Debug.Fail("For backwards API compat only, should not be called");
-
             // Publicly available options do not affect this API.
             return GetDescriptionAsync(document, item, CompletionOptions.Default, SymbolDescriptionOptions.Default, cancellationToken);
         }
@@ -259,9 +256,10 @@ namespace Microsoft.CodeAnalysis.Completion
            string filterText,
            IList<CompletionItem> builder)
         {
-            // Default implementation just drops the pattern matches and builder, and
-            // calls the public overload of FilterItems instead for compatibility.
-            FilterItems(document, itemsWithPatternMatch.SelectAsArray(item => item.Item1), filterText);
+#pragma warning disable RS0030 // Do not used banned APIs
+            // Default implementation just drops the pattern matches and builder, and calls the public overload of FilterItems instead for compatibility.
+            builder.AddRange(FilterItems(document, itemsWithPatternMatch.SelectAsArray(item => item.Item1), filterText));
+#pragma warning restore RS0030 // Do not used banned APIs
         }
 
         // The FilterItems method might need to handle a large list of items when import completion is enabled and filter text is
