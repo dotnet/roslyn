@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
             if (!targetsForBaseSymbols.IsEmpty || !targetsForDerivedSymbols.IsEmpty)
             {
-                var item = CreateInheritanceMemberItem(
+                var item = CreateInheritanceMarginItem(
                     memberSymbol,
                     lineNumber,
                     targetsForBaseSymbols.Concat(targetsForDerivedSymbols));
@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
                 if (!targetsForimplementingSymbols.IsEmpty)
                 {
-                    var item = CreateInheritanceMemberItem(memberSymbol, lineNumber, targetsForimplementingSymbols);
+                    var item = CreateInheritanceMarginItem(memberSymbol, lineNumber, targetsForimplementingSymbols);
                     builder.AddIfNotNull(item);
                 }
             }
@@ -410,7 +410,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
                 if (!targetsForOverriddenSymbols.IsEmpty || !targetsForImplementedSymbols.IsEmpty || !targetsForOverridingSymbols.IsEmpty)
                 {
-                    var item = CreateInheritanceMemberItem(
+                    var item = CreateInheritanceMarginItem(
                         memberSymbol,
                         lineNumber,
                         targetsForOverriddenSymbols.Concat(targetsForImplementedSymbols).Concat(targetsForOverridingSymbols));
@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             }
         }
 
-        private static InheritanceMarginItem CreateInheritanceMemberItem(
+        private static InheritanceMarginItem CreateInheritanceMarginItem(
             ISymbol memberSymbol,
             int lineNumber,
             ImmutableArray<InheritanceTargetItem> targetItems)
