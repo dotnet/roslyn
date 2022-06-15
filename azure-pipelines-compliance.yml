@@ -16,19 +16,14 @@ variables:
   TeamName: DotNet-Roslyn
   SignType: test
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  _DevDivDropAccessToken: $(System.AccessToken)
 
 steps:
 - template: eng/pipelines/checkout-windows-task.yml
 
-- task: ms-vseng.MicroBuildTasks.30666190-6959-11e5-9f96-f56098202fef.MicroBuildSigningPlugin@1
-  displayName: Install Signing Plugin
-  inputs:
-    signType: $(SignType)
-    esrpSigning: true
-  condition: and(succeeded(), ne(variables['SignType'], ''))
-
-- task: ms-vseng.MicroBuildTasks.32f78468-e895-4f47-962c-58a699361df8.MicroBuildSwixPlugin@1
-  displayName: Install Swix Plugin
+- powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
+  displayName: Setting SourceBranchName variable
+  condition: succeeded()
 
 - task: PowerShell@2
   displayName: Build
@@ -38,10 +33,12 @@ steps:
                -restore
                -build
                -pack
-               -sign
                -configuration $(BuildConfiguration)
-               /p:DotNetSignType=$(SignType)
-               /p:PreReleaseVersionLabel=compliance
+               -officialBuildId $(Build.BuildNumber)
+               -officialSkipTests=true
+               -officialSkipApplyOptimizationData=true
+               -officialSourceBranchName $(SourceBranchName)
+               -officialVisualStudioDropAccessToken $(_DevDivDropAccessToken)
 
 - task: CopyFiles@2
   # APIScan can take a long time, so here we copy (mostly) just the product binaries and related .pdbs
@@ -51,7 +48,9 @@ steps:
     SourceFolder: '$(Build.SourcesDirectory)\artifacts\bin\Roslyn.VisualStudio.Setup\$(BuildConfiguration)\net472'  # Limit to (mostly) product binaries
     Contents: |
       Microsoft.CodeAnalysis*.dll
+      Microsoft.CodeAnalysis*.pdb
       Microsoft.VisualStudio.LanguageServices*.dll
+      Microsoft.VisualStudio.LanguageServices*.pdb
     TargetFolder: '$(Agent.TempDirectory)\APIScanFiles'
   continueOnError: true
 
