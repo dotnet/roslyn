@@ -46,7 +46,7 @@ internal class ExperimentalWorkspacePullDiagnosticsHandler : AbstractPullDiagnos
     protected override WorkspaceDiagnosticReport CreateRemovedReport(TextDocumentIdentifier identifier)
         => new WorkspaceDiagnosticReport(new[]
         {
-            new WorkspaceDocumentDiagnosticReport(new WorkspaceFullDocumentDiagnosticReport(identifier.Uri, Array.Empty<VisualStudio.LanguageServer.Protocol.Diagnostic>(), version: null, resultId: null)) 
+            new WorkspaceDocumentDiagnosticReport(new WorkspaceFullDocumentDiagnosticReport(identifier.Uri, Array.Empty<VisualStudio.LanguageServer.Protocol.Diagnostic>(), version: null, resultId: null))
         });
 
     protected override WorkspaceDiagnosticReport CreateUnchangedReport(TextDocumentIdentifier identifier, string resultId)
