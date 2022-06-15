@@ -14,6 +14,8 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Telemetry;
 using System.Windows;
+using Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 #if !COCOA
 using System.Linq;
@@ -36,8 +38,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RenameCommandHandler(IThreadingContext threadingContext, InlineRenameService renameService)
-            : base(threadingContext, renameService)
+        public RenameCommandHandler(
+            IThreadingContext threadingContext,
+            InlineRenameService renameService,
+            IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider)
+            : base(threadingContext, renameService, asynchronousOperationListenerProvider)
         {
         }
 
@@ -131,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         }
 #else
         protected override bool AdornmentShouldReceiveKeyboardNavigation(ITextView textView)
-            => false;
+        => false;
 
         protected override void SetFocusToTextView(ITextView textView)
         {
