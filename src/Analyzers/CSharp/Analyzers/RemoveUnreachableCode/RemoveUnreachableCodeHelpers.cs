@@ -14,15 +14,15 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
     {
         public static ImmutableArray<ImmutableArray<StatementSyntax>> GetSubsequentUnreachableSections(StatementSyntax firstUnreachableStatement)
         {
-            StatementSyntax[] siblingStatements;
+            ImmutableArray<StatementSyntax> siblingStatements;
             switch (firstUnreachableStatement.Parent)
             {
                 case BlockSyntax block:
-                    siblingStatements = block.Statements.ToArray();
+                    siblingStatements = ImmutableArray.CreateRange(block.Statements);
                     break;
 
                 case SwitchSectionSyntax switchSection:
-                    siblingStatements = switchSection.Statements.ToArray();
+                    siblingStatements = ImmutableArray.CreateRange(switchSection.Statements);
                     break;
 
                 case GlobalStatementSyntax globalStatement:
@@ -31,18 +31,22 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
                         return ImmutableArray<ImmutableArray<StatementSyntax>>.Empty;
                     }
 
-                    var builder = ArrayBuilder<StatementSyntax>.GetInstance();
-                    foreach (var member in compilationUnit.Members)
                     {
-                        if (member is not GlobalStatementSyntax currentGlobalStatement)
+                        // Can't use `SyntaxList<TNode>` here since the retrieving the added node will result
+                        // in a different reference.
+                        using var _ = ArrayBuilder<StatementSyntax>.GetInstance(out var builder);
+                        foreach (var member in compilationUnit.Members)
                         {
-                            continue;
+                            if (member is not GlobalStatementSyntax currentGlobalStatement)
+                            {
+                                continue;
+                            }
+
+                            builder.Add(currentGlobalStatement.Statement);
                         }
 
-                        builder.Add(currentGlobalStatement.Statement);
+                        siblingStatements = builder.ToImmutable();
                     }
-
-                    siblingStatements = builder.ToArrayAndFree();
                     break;
 
                 default:
@@ -53,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
             var sections = ArrayBuilder<ImmutableArray<StatementSyntax>>.GetInstance();
 
             var currentSection = ArrayBuilder<StatementSyntax>.GetInstance();
-            var firstUnreachableStatementIndex = Array.IndexOf<StatementSyntax>(siblingStatements, firstUnreachableStatement);
+            var firstUnreachableStatementIndex = siblingStatements.IndexOf(firstUnreachableStatement);
 
             for (int i = firstUnreachableStatementIndex + 1, n = siblingStatements.Length; i < n; i++)
             {

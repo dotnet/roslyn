@@ -911,5 +911,88 @@ throw new System.Exception();
                 LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
+        [WorkItem(61810, "https://github.com/dotnet/roslyn/issues/61810")]
+        public async Task TestTopLevel_MultipleUnreachableStatements_HasClassDeclarationInBetween()
+        {
+            var code = @"
+throw new System.Exception();
+[|System.Console.ReadLine();
+|]
+
+public class C { }
+[|
+{|CS8803:System.Console.ReadLine();|}|]";
+            var fixedCode = @"
+throw new System.Exception();
+
+
+public class C { }
+";
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    OutputKind = OutputKind.ConsoleApplication,
+                },
+                TestCode = code,
+                FixedCode = fixedCode,
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
+        [WorkItem(61810, "https://github.com/dotnet/roslyn/issues/61810")]
+        public async Task TestTopLevel_MultipleUnreachableStatements_AfterClassDeclaration1()
+        {
+            var code = @"
+throw new System.Exception();
+
+public class C { }
+[|
+{|CS8803:System.Console.ReadLine();|}|]";
+            var fixedCode = @"
+throw new System.Exception();
+
+public class C { }
+";
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    OutputKind = OutputKind.ConsoleApplication,
+                },
+                TestCode = code,
+                FixedCode = fixedCode,
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
+        [WorkItem(61810, "https://github.com/dotnet/roslyn/issues/61810")]
+        public async Task TestTopLevel_MultipleUnreachableStatements_AfterClassDeclaration2()
+        {
+            var code = @"
+public class C { }
+
+{|CS8803:throw new System.Exception();|}
+[|System.Console.ReadLine();|]";
+            var fixedCode = @"
+public class C { }
+
+{|CS8803:throw new System.Exception();|}
+";
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    OutputKind = OutputKind.ConsoleApplication,
+                },
+                TestCode = code,
+                FixedCode = fixedCode,
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
     }
 }
