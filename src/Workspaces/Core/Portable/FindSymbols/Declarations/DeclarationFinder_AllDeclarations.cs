@@ -27,14 +27,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Contract.ThrowIfTrue(query.Kind == SearchKind.Custom, "Custom queries are not supported in this API");
 
             if (project == null)
-            {
                 throw new ArgumentNullException(nameof(project));
-            }
 
-            if (query.Name != null && string.IsNullOrWhiteSpace(query.Name))
-            {
+            Contract.ThrowIfNull(query.Name);
+            if (string.IsNullOrWhiteSpace(query.Name))
                 return ImmutableArray<ISymbol>.Empty;
-            }
 
             var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
             if (client != null)
