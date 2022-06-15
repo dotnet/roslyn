@@ -24,17 +24,7 @@ namespace Microsoft.CodeAnalysis.Options
         /// <summary>
         /// Gets the current value of the specific option.
         /// </summary>
-        T GetOption<T>(Option<T> option);
-
-        /// <summary>
-        /// Gets the current value of the specific option.
-        /// </summary>
         T GetOption<T>(Option2<T> option);
-
-        /// <summary>
-        /// Gets the current value of the specific option.
-        /// </summary>
-        T GetOption<T>(PerLanguageOption<T> option, string? languageName);
 
         /// <summary>
         /// Gets the current value of the specific option.
@@ -73,11 +63,6 @@ namespace Microsoft.CodeAnalysis.Options
         /// Does not update any workspace (since this option is not a solution option).
         /// </summary>
         void SetGlobalOptions(ImmutableArray<OptionKey> optionKeys, ImmutableArray<object?> values);
-
-        /// <summary>
-        /// Returns the set of all registered options.
-        /// </summary>
-        IEnumerable<IOption> GetRegisteredOptions();
 
         event EventHandler<OptionChangedEventArgs>? OptionChanged;
 

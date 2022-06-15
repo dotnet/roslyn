@@ -26,7 +26,6 @@ namespace Microsoft.CodeAnalysis.Options
     internal sealed class GlobalOptionService : IGlobalOptionService
     {
         private readonly IWorkspaceThreadingService? _workspaceThreadingService;
-        private readonly Lazy<ImmutableHashSet<IOption>> _lazyAllOptions;
         private readonly ImmutableArray<Lazy<IOptionPersisterProvider>> _optionPersisterProviders;
 
         // access is interlocked
@@ -48,13 +47,11 @@ namespace Microsoft.CodeAnalysis.Options
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public GlobalOptionService(
             [Import(AllowDefault = true)] IWorkspaceThreadingService? workspaceThreadingService,
-            [ImportMany] IEnumerable<Lazy<IOptionProvider, LanguageMetadata>> optionProviders,
             [ImportMany] IEnumerable<Lazy<IOptionPersisterProvider>> optionPersisters)
         {
             _getOption = GetOption;
 
             _workspaceThreadingService = workspaceThreadingService;
-            _lazyAllOptions = new Lazy<ImmutableHashSet<IOption>>(() => optionProviders.SelectMany(p => p.Value.Options).ToImmutableHashSet());
             _optionPersisterProviders = optionPersisters.ToImmutableArray();
             _registeredWorkspaces = ImmutableArray<Workspace>.Empty;
 
@@ -118,17 +115,8 @@ namespace Microsoft.CodeAnalysis.Options
             return optionKey.Option.DefaultValue;
         }
 
-        public IEnumerable<IOption> GetRegisteredOptions()
-            => _lazyAllOptions.Value;
-
-        public T GetOption<T>(Option<T> option)
-            => OptionsHelpers.GetOption(option, _getOption);
-
         public T GetOption<T>(Option2<T> option)
             => OptionsHelpers.GetOption(option, _getOption);
-
-        public T GetOption<T>(PerLanguageOption<T> option, string? language)
-            => OptionsHelpers.GetOption(option, language, _getOption);
 
         public T GetOption<T>(PerLanguageOption2<T> option, string? language)
             => OptionsHelpers.GetOption(option, language, _getOption);
