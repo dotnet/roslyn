@@ -75,33 +75,33 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (sourceText != null)
             {
                 // identifier is not escaped
-                Func<SyntaxToken, ISyntaxFactsService, string, bool> isCandidate = static (t, syntaxFacts, text) => IsCandidate(t, syntaxFacts, text);
-                return GetTokensFromText(syntaxFacts, root, sourceText, text, isCandidate, cancellationToken);
+                return GetTokensFromText(syntaxFacts, root, sourceText, text, cancellationToken);
             }
             else
             {
-                // identifier is escaped
-                using var _ = PooledDelegates.GetPooledFunction<SyntaxToken, (ISyntaxFactsService syntaxFacts, string text), bool>(
-                    static (t, arg) => IsCandidate(t, arg.syntaxFacts, arg.text),
-                    (syntaxFacts, text),
-                    out var isCandidate);
+                // identifier is escaped.  Have to actually walk the entire tree to find matching tokens.
 
-                return root.DescendantTokens(descendIntoTrivia: true).Where(isCandidate).ToImmutableArray();
+                using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var result);
+                foreach (var token in root.DescendantTokens(descendIntoTrivia: true))
+                {
+                    if (IsCandidate(syntaxFacts, token, text))
+                        result.Add(token);
+                }
+
+                return result.ToImmutable();
             }
-
-            static bool IsCandidate(SyntaxToken t, ISyntaxFactsService syntaxFacts, string text)
-                => syntaxFacts.IsIdentifier(t) && syntaxFacts.TextMatch(t.ValueText, text);
         }
 
+        private static bool IsCandidate(ISyntaxFactsService syntaxFacts, SyntaxToken token, string text)
+            => syntaxFacts.IsIdentifier(token) && syntaxFacts.TextMatch(token.ValueText, text);
+
         private static ImmutableArray<SyntaxToken> GetTokensFromText(
-            ISyntaxFactsService syntaxFacts, SyntaxNode root, SourceText content, string text, Func<SyntaxToken, ISyntaxFactsService, string, bool> candidate, CancellationToken cancellationToken)
+            ISyntaxFactsService syntaxFacts, SyntaxNode root, SourceText content, string text, CancellationToken cancellationToken)
         {
             if (text.Length == 0)
-            {
                 return ImmutableArray<SyntaxToken>.Empty;
-            }
 
-            var result = ImmutableArray.CreateBuilder<SyntaxToken>();
+            using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var result);
 
             var index = 0;
             while ((index = content.IndexOf(text, index, syntaxFacts.IsCaseSensitive)) >= 0)
@@ -112,10 +112,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 var token = root.FindToken(index, findInsideTrivia: true);
                 var span = token.Span;
-                if (!token.IsMissing && span.Start == index && span.Length == text.Length && candidate(token, syntaxFacts, text))
-                {
+                if (!token.IsMissing && span.Start == index && span.Length == text.Length && IsCandidate(syntaxFacts, token, text))
                     result.Add(token);
-                }
 
                 nextIndex = Math.Max(nextIndex, token.SpanStart);
                 index = nextIndex;
