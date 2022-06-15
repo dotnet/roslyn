@@ -35,8 +35,8 @@ steps:
                -pack
                -configuration $(BuildConfiguration)
                -officialBuildId $(Build.BuildNumber)
-               -officialSkipTests=true
-               -officialSkipApplyOptimizationData=true
+               -officialSkipTests true
+               -officialSkipApplyOptimizationData true
                -officialSourceBranchName $(SourceBranchName)
                -officialVisualStudioDropAccessToken $(_DevDivDropAccessToken)
 
