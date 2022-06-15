@@ -47,6 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
 
                         siblingStatements = builder.ToImmutable();
                     }
+
                     break;
 
                 default:
