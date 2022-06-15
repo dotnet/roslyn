@@ -16,6 +16,7 @@
 #>
 [CmdletBinding()]
 Param(
+    [ValidateSet('Debug', 'Release')]
     [string]$Configuration='Debug',
     [string]$Agent='Local',
     [switch]$PublishResults,
