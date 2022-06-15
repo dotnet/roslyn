@@ -49,16 +49,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             public ValueTask OnCompletedAsync(CancellationToken cancellationToken)
                 => _progress.OnCompletedAsync(cancellationToken);
 
-            public ValueTask OnFindInDocumentStartedAsync(DocumentId documentId, CancellationToken cancellationToken)
+            public async ValueTask OnFindInDocumentStartedAsync(DocumentId documentId, CancellationToken cancellationToken)
             {
-                var document = _solution.GetRequiredDocument(documentId);
-                return _progress.OnFindInDocumentStartedAsync(document, cancellationToken);
+                var document = await _solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+                await _progress.OnFindInDocumentStartedAsync(document, cancellationToken).ConfigureAwait(false);
             }
 
-            public ValueTask OnFindInDocumentCompletedAsync(DocumentId documentId, CancellationToken cancellationToken)
+            public async ValueTask OnFindInDocumentCompletedAsync(DocumentId documentId, CancellationToken cancellationToken)
             {
-                var document = _solution.GetRequiredDocument(documentId);
-                return _progress.OnFindInDocumentCompletedAsync(document, cancellationToken);
+                var document = await _solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+                await _progress.OnFindInDocumentCompletedAsync(document, cancellationToken).ConfigureAwait(false);
             }
 
             public async ValueTask OnDefinitionFoundAsync(SerializableSymbolGroup dehydrated, CancellationToken cancellationToken)
