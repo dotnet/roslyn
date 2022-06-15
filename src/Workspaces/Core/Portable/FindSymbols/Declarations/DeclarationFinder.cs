@@ -90,8 +90,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static async Task AddMetadataDeclarationsWithNormalQueryAsync(
-            Project project, IAssemblySymbol assembly, PortableExecutableReference referenceOpt,
-            SearchQuery query, SymbolFilter filter, ArrayBuilder<ISymbol> list,
+            Project project,
+            IAssemblySymbol assembly,
+            PortableExecutableReference? reference,
+            SearchQuery query,
+            SymbolFilter filter,
+            ArrayBuilder<ISymbol> list,
             CancellationToken cancellationToken)
         {
             // All entrypoints to this function are Find functions that are only searching
@@ -100,16 +104,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             using (Logger.LogBlock(FunctionId.SymbolFinder_Assembly_AddDeclarationsAsync, cancellationToken))
             {
-                if (referenceOpt != null)
+                if (reference != null)
                 {
                     var info = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
-                        project.Solution, referenceOpt, loadOnly: false, cancellationToken).ConfigureAwait(false);
+                        project.Solution, reference, loadOnly: false, cancellationToken).ConfigureAwait(false);
 
                     // We must have an index since we passed in loadOnly: false here.
                     Contract.ThrowIfNull(info);
 
-                    var symbols = await info.FindAsync(
-                            query, assembly, filter, cancellationToken).ConfigureAwait(false);
+                    var symbols = await info.FindAsync(query, assembly, filter, cancellationToken).ConfigureAwait(false);
                     list.AddRange(symbols);
                 }
             }
