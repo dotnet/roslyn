@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             var services = solution.Workspace.Services;
             var formattingRuleService = services.GetService<IHostDependentFormattingRuleFactoryService>();
-            if (formattingRuleService != null && formattingRuleService.ShouldNotFormatOrCommitOnPaste(document))
+            if (formattingRuleService != null && formattingRuleService.ShouldNotFormatOrCommitOnPaste(document.Id))
             {
                 return;
             }

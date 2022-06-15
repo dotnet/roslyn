@@ -38,8 +38,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         {
             Contract.ThrowIfFalse(document.Project.Language is LanguageNames.CSharp);
             var formattingService = document.GetRequiredLanguageService<ISyntaxFormattingService>();
+            var documentSyntax = await DocumentSyntax.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
-            if (!await formattingService.ShouldFormatOnTypedCharacterAsync(document, typedChar, position, cancellationToken).ConfigureAwait(false))
+            if (!formattingService.ShouldFormatOnTypedCharacter(documentSyntax, typedChar, position, cancellationToken))
             {
                 return ImmutableArray<TextChange>.Empty;
             }
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
                 AutoFormattingOptions = globalOptions.GetAutoFormattingOptions(languageServices)
             };
 
-            return await formattingService.GetFormattingChangesOnTypedCharacterAsync(document, position, indentationOptions, cancellationToken).ConfigureAwait(false);
+            return formattingService.GetFormattingChangesOnTypedCharacter(documentSyntax, position, indentationOptions, cancellationToken);
         }
 
         /// <summary>
@@ -77,8 +78,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         {
             Contract.ThrowIfFalse(document.Project.Language is LanguageNames.CSharp);
             var formattingService = document.GetRequiredLanguageService<ISyntaxFormattingService>();
+            var documentSyntax = await DocumentSyntax.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
-            if (!await formattingService.ShouldFormatOnTypedCharacterAsync(document, typedChar, position, cancellationToken).ConfigureAwait(false))
+            if (!formattingService.ShouldFormatOnTypedCharacter(documentSyntax, typedChar, position, cancellationToken))
             {
                 return ImmutableArray<TextChange>.Empty;
             }
@@ -90,7 +92,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
                 IndentStyle = (FormattingOptions2.IndentStyle)indentStyle
             };
 
-            return await formattingService.GetFormattingChangesOnTypedCharacterAsync(document, position, roslynIndentationOptions, cancellationToken).ConfigureAwait(false);
+            return formattingService.GetFormattingChangesOnTypedCharacter(documentSyntax, position, roslynIndentationOptions, cancellationToken);
         }
 
         public static IList<TextChange> GetFormattedTextChanges(

@@ -107,7 +107,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             var fallbackOptions = _globalOptions.GetCSharpSyntaxFormattingOptions();
             var options = await _indentationManager.GetInferredFormattingOptionsAsync(document, fallbackOptions, explicitFormat: true, cancellationToken).ConfigureAwait(false);
             var service = document.GetRequiredLanguageService<ISyntaxFormattingService>();
-            return await service.GetFormattingChangesOnPasteAsync(document, textSpan, options, cancellationToken).ConfigureAwait(false);
+            var documentSyntax = await DocumentSyntax.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+            return service.GetFormattingChangesOnPaste(documentSyntax, textSpan, options, cancellationToken);
         }
 
         Task<ImmutableArray<TextChange>> IFormattingInteractionService.GetFormattingChangesOnReturnAsync(
@@ -117,8 +118,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public async Task<ImmutableArray<TextChange>> GetFormattingChangesAsync(Document document, char typedChar, int position, CancellationToken cancellationToken)
         {
             var service = document.GetRequiredLanguageService<ISyntaxFormattingService>();
+            var documentSyntax = await DocumentSyntax.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
-            if (await service.ShouldFormatOnTypedCharacterAsync(document, typedChar, position, cancellationToken).ConfigureAwait(false))
+            if (service.ShouldFormatOnTypedCharacter(documentSyntax, typedChar, position, cancellationToken))
             {
                 var fallbackOptions = _globalOptions.GetCSharpSyntaxFormattingOptions();
                 var formattingOptions = await _indentationManager.GetInferredFormattingOptionsAsync(document, fallbackOptions, explicitFormat: false, cancellationToken).ConfigureAwait(false);
@@ -129,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     IndentStyle = _globalOptions.GetOption(IndentationOptionsStorage.SmartIndent, LanguageNames.CSharp)
                 };
 
-                return await service.GetFormattingChangesOnTypedCharacterAsync(document, position, indentationOptions, cancellationToken).ConfigureAwait(false);
+                return service.GetFormattingChangesOnTypedCharacter(documentSyntax, position, indentationOptions, cancellationToken);
             }
 
             return ImmutableArray<TextChange>.Empty;

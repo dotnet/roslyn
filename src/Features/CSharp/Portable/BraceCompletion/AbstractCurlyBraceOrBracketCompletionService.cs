@@ -213,8 +213,10 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             // Annotate the original closing brace so we can find it after formatting.
             document = await GetDocumentWithAnnotatedClosingBraceAsync(document, closingPoint, cancellationToken).ConfigureAwait(false);
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var documentSyntax = await DocumentSyntax.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+
+            var text = documentSyntax.Text;
+            var root = documentSyntax.Root;
 
             var startPoint = openingPoint;
             var endPoint = AdjustFormattingEndPoint(text, root, startPoint, closingPoint);
@@ -238,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             }
 
             var spanToFormat = TextSpan.FromBounds(Math.Max(startPoint, 0), endPoint);
-            var rules = document.GetFormattingRules(spanToFormat, braceFormattingIndentationRules);
+            var rules = FormattingRuleUtilities.GetFormattingRules(documentSyntax, document.Project.LanguageServices, spanToFormat, braceFormattingIndentationRules);
             var services = document.Project.Solution.Workspace.Services;
             var result = Formatter.GetFormattingResult(
                 root, SpecializedCollections.SingletonEnumerable(spanToFormat), services, options.FormattingOptions, rules, cancellationToken);
