@@ -2,14 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -19,36 +18,28 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    // TODO : this can be all moved down to compiler side.
     internal static class FindReferenceCache
     {
-        private static readonly ReaderWriterLockSlim s_gate = new();
-        private static readonly Dictionary<SemanticModel, Entry> s_cache = new();
+        private static readonly ConditionalWeakTable<SemanticModel, Entry> s_cache = new();
+
+        private static Entry GetEntry(SemanticModel model)
+            => s_cache.GetValue(model, static _ => new());
 
         public static SymbolInfo GetSymbolInfo(SemanticModel model, SyntaxNode node, CancellationToken cancellationToken)
         {
-            var nodeCache = GetNodeCache(model);
-            if (nodeCache == null)
-            {
-                return model.GetSymbolInfo(node, cancellationToken);
-            }
+            var entry = GetEntry(model);
+            var nodeCache = entry.SymbolInfoCache;
 
             return nodeCache.GetOrAdd(node, static (n, arg) => arg.model.GetSymbolInfo(n, arg.cancellationToken), (model, cancellationToken));
         }
 
-        public static IAliasSymbol GetAliasInfo(
+        public static IAliasSymbol? GetAliasInfo(
             ISemanticFactsService semanticFacts, SemanticModel model, SyntaxToken token, CancellationToken cancellationToken)
         {
             if (semanticFacts == null)
-            {
-                return model.GetAliasInfo(token.Parent, cancellationToken);
-            }
+                return model.GetAliasInfo(token.GetRequiredParent(), cancellationToken);
 
-            var entry = GetCachedEntry(model);
-            if (entry == null)
-            {
-                return model.GetAliasInfo(token.Parent, cancellationToken);
-            }
+            var entry = GetEntry(model);
 
             if (entry.AliasNameSet == null)
             {
@@ -57,9 +48,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             if (entry.AliasNameSet.Contains(token.ValueText))
-            {
-                return model.GetAliasInfo(token.Parent, cancellationToken);
-            }
+                return model.GetAliasInfo(token.GetRequiredParent(), cancellationToken);
 
             return null;
         }
@@ -73,12 +62,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             CancellationToken cancellationToken)
         {
             var normalized = syntaxFacts.IsCaseSensitive ? text : text.ToLowerInvariant();
-
-            var entry = GetCachedEntry(model);
-            if (entry == null)
-            {
-                return GetIdentifierOrGlobalNamespaceTokensWithText(syntaxFacts, root, sourceText, normalized, cancellationToken);
-            }
+            var entry = GetEntry(model);
 
             return entry.IdentifierCache.GetOrAdd(normalized,
                 key => GetIdentifierOrGlobalNamespaceTokensWithText(
@@ -87,7 +71,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1224834", AllowCaptures = false)]
         private static ImmutableArray<SyntaxToken> GetIdentifierOrGlobalNamespaceTokensWithText(
-            ISyntaxFactsService syntaxFacts, SyntaxNode root, SourceText sourceText,
+            ISyntaxFactsService syntaxFacts, SyntaxNode root, SourceText? sourceText,
             string text, CancellationToken cancellationToken)
         {
             if (sourceText != null)
@@ -147,11 +131,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             // this one will only get called when we know given document contains constructor initializer.
             // no reason to use text to check whether it exist first.
-            var entry = GetCachedEntry(model);
-            if (entry == null)
-            {
-                return GetConstructorInitializerTokens(syntaxFacts, root, cancellationToken);
-            }
+            var entry = GetEntry(model);
 
             if (entry.ConstructorInitializerCache == null)
             {
@@ -182,70 +162,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return initializers;
         }
 
-        private static ConcurrentDictionary<SyntaxNode, SymbolInfo> GetNodeCache(SemanticModel model)
+        private sealed class Entry
         {
-            var entry = GetCachedEntry(model);
-            if (entry == null)
-            {
-                return null;
-            }
-
-            return entry.SymbolInfoCache;
-        }
-
-        private static Entry GetCachedEntry(SemanticModel model)
-        {
-            using (s_gate.DisposableRead())
-            {
-                if (s_cache.TryGetValue(model, out var entry))
-                {
-                    return entry;
-                }
-
-                return null;
-            }
-        }
-
-        private static readonly Func<SemanticModel, Entry> s_entryCreator = _ => new Entry();
-
-        public static void Start(SemanticModel model)
-        {
-            Debug.Assert(model != null);
-
-            using (s_gate.DisposableWrite())
-            {
-                var entry = s_cache.GetOrAdd(model, s_entryCreator);
-                entry.Count++;
-            }
-        }
-
-        public static void Stop(SemanticModel model)
-        {
-            if (model == null)
-            {
-                return;
-            }
-
-            using (s_gate.DisposableWrite())
-            {
-                if (!s_cache.TryGetValue(model, out var entry))
-                {
-                    return;
-                }
-
-                entry.Count--;
-                if (entry.Count == 0)
-                {
-                    s_cache.Remove(model);
-                }
-            }
-        }
-
-        private class Entry
-        {
-            public int Count;
-            public ImmutableHashSet<string> AliasNameSet;
-            public List<SyntaxToken> ConstructorInitializerCache;
+            public ImmutableHashSet<string>? AliasNameSet;
+            public List<SyntaxToken>? ConstructorInitializerCache;
 
             public readonly ConcurrentDictionary<string, ImmutableArray<SyntaxToken>> IdentifierCache = new();
             public readonly ConcurrentDictionary<SyntaxNode, SymbolInfo> SymbolInfoCache = new();
