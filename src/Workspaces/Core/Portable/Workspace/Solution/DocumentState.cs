@@ -607,8 +607,8 @@ namespace Microsoft.CodeAnalysis
                 // its okay to use a strong cached AsyncLazy here because the compiler layer SyntaxTree will also keep the text alive once its built.
                 lazyTextAndVersion = new TreeTextSource(
                     new AsyncLazy<SourceText>(
-                        c => tree.GetTextAsync(c),
-                        c => tree.GetText(c),
+                        tree.GetTextAsync,
+                        tree.GetText,
                         cacheResult: true),
                     textVersion,
                     filePath);

@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     receiverTypeSymbol = syntaxContext.SemanticModel.GetTypeInfo(expressionNode, cancellationToken).Type;
                     if (receiverTypeSymbol is IErrorTypeSymbol errorTypeSymbol)
                     {
-                        receiverTypeSymbol = errorTypeSymbol.CandidateSymbols.Select(s => GetSymbolType(s)).FirstOrDefault(s => s != null);
+                        receiverTypeSymbol = errorTypeSymbol.CandidateSymbols.Select(GetSymbolType).FirstOrDefault(s => s != null);
                     }
 
                     return receiverTypeSymbol != null;

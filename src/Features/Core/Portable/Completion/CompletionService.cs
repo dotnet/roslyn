@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Completion
         public virtual TextSpan GetDefaultCompletionListSpan(SourceText text, int caretPosition)
         {
             return CommonCompletionUtilities.GetWordSpan(
-                text, caretPosition, c => char.IsLetter(c), c => char.IsLetterOrDigit(c));
+                text, caretPosition, char.IsLetter, char.IsLetterOrDigit);
         }
 
         /// <summary>

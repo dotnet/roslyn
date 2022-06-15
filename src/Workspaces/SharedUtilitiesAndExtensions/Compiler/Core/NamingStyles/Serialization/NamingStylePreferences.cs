@@ -108,9 +108,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         public static NamingStylePreferences ReadFrom(ObjectReader reader)
         {
             return new NamingStylePreferences(
-                reader.ReadArray(r => SymbolSpecification.ReadFrom(r)),
-                reader.ReadArray(r => NamingStyle.ReadFrom(r)),
-                reader.ReadArray(r => SerializableNamingRule.ReadFrom(r)));
+                reader.ReadArray(SymbolSpecification.ReadFrom),
+                reader.ReadArray(NamingStyle.ReadFrom),
+                reader.ReadArray(SerializableNamingRule.ReadFrom));
         }
 
         public override bool Equals(object obj)

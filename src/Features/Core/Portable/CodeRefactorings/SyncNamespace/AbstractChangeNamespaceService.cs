@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
                 return syntaxRoot
                     .DescendantNodes(n => !syntaxFacts.IsDeclaration(n))
-                    .Where(n => syntaxFacts.IsBaseNamespaceDeclaration(n))
+                    .Where(syntaxFacts.IsBaseNamespaceDeclaration)
                     .ToImmutableArray();
             }
         }
@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             // those documents, then we know we can't make a proper code change. We will return null and the check 
             // will return false. We use span of namespace declaration found in each document to decide if they are identical.            
 
-            var documents = ids.SelectAsArray(id => solution.GetRequiredDocument(id));
+            var documents = ids.SelectAsArray(solution.GetRequiredDocument);
             using var containersDisposer = ArrayBuilder<(DocumentId, SyntaxNode)>.GetInstance(ids.Length, out var containers);
             using var spanForContainersDisposer = PooledHashSet<TextSpan>.GetInstance(out var spanForContainers);
 
