@@ -169,11 +169,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             // If the query has a specific string provided, then call into the SymbolTreeInfo
             // helpers optimized for lookup based on an exact name.
+
+            var queryName = query.Name;
+            Contract.ThrowIfNull(queryName);
+
             return query.Kind switch
             {
-                SearchKind.Exact => this.FindAsync(lazyAssembly, query.Name, ignoreCase: false, cancellationToken: cancellationToken),
-                SearchKind.ExactIgnoreCase => this.FindAsync(lazyAssembly, query.Name, ignoreCase: true, cancellationToken: cancellationToken),
-                SearchKind.Fuzzy => this.FuzzyFindAsync(lazyAssembly, query.Name, cancellationToken),
+                SearchKind.Exact => this.FindAsync(lazyAssembly, queryName, ignoreCase: false, cancellationToken: cancellationToken),
+                SearchKind.ExactIgnoreCase => this.FindAsync(lazyAssembly, queryName, ignoreCase: true, cancellationToken: cancellationToken),
+                SearchKind.Fuzzy => this.FuzzyFindAsync(lazyAssembly, queryName, cancellationToken),
                 _ => throw new InvalidOperationException(),
             };
         }
