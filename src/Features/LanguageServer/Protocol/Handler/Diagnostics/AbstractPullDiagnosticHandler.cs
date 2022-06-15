@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using CommonLanguageServerProtocol.Framework;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host;
@@ -17,6 +18,13 @@ using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler
+{
+    internal interface IRoslynRequestHandler<RequestType, ResponseType> : ILspService, IRequestHandler<RequestType, ResponseType, RequestContext>
+    {
+    }
+}
+
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
     /// <summary>
@@ -25,7 +33,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
     /// <typeparam name="TDiagnosticsParams">The LSP input param type</typeparam>
     /// <typeparam name="TReport">The LSP type that is reported via IProgress</typeparam>
     /// <typeparam name="TReturn">The LSP type that is returned on completion of the request.</typeparam>
-    internal abstract class AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn> : IRequestHandler<TDiagnosticsParams, TReturn?> where TDiagnosticsParams : IPartialResultParams<TReport[]>
+    internal abstract class AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn> : IRoslynRequestHandler<TDiagnosticsParams, TReturn?> where TDiagnosticsParams : IPartialResultParams<TReport[]>
     {
         /// <summary>
         /// Diagnostic mode setting for Razor.  This should always be <see cref="DiagnosticMode.Pull"/> as there is no push support in Razor.
@@ -230,10 +238,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
         private DiagnosticMode GetDiagnosticMode(RequestContext context)
         {
-            var diagnosticModeOption = context.ServerKind switch
+            var serverKindEnum = WellKnownLspServerExtensions.WellKnownLspServerKindsFromString(context.ServerKind);
+            var diagnosticModeOption = serverKindEnum switch
             {
                 WellKnownLspServerKinds.LiveShareLspServer => s_liveShareDiagnosticMode,
-                WellKnownLspServerKinds.RazorLspServer => s_razorDiagnosticMode,
+                WellKnownLspServerKinds.RoslynRazorLspServer => s_razorDiagnosticMode,
                 _ => InternalDiagnosticsOptions.NormalDiagnosticMode,
             };
 

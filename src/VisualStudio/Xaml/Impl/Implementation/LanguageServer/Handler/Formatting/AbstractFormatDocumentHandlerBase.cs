@@ -15,7 +15,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
-    internal abstract class AbstractFormatDocumentHandlerBase<RequestType, ResponseType> : IRequestHandler<RequestType, ResponseType>
+    internal abstract class AbstractFormatDocumentHandlerBase<RequestType, ResponseType> : IRoslynRequestHandler<RequestType, ResponseType>
     {
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;

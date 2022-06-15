@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportCSharpVisualBasicStatelessLspService(typeof(GetTextDocumentWithContextHandler)), Shared]
     [Method(VSMethods.GetProjectContextsName)]
-    internal class GetTextDocumentWithContextHandler : IRequestHandler<VSGetProjectContextsParams, VSProjectContextList?>
+    internal class GetTextDocumentWithContextHandler : IRoslynRequestHandler<VSGetProjectContextsParams, VSProjectContextList?>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

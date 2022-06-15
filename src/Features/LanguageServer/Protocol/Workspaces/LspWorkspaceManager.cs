@@ -10,6 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using CommonLanguageServerProtocol.Framework;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges;
@@ -19,7 +20,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.LanguageServer.Handler.RequestExecutionQueue;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
@@ -53,7 +53,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     /// The forkedFromVersion is not null when the solution was created from a fork of the workspace with LSP text applied on top.
     /// It is null when LSP reuses the workspace solution (the LSP text matches the contents of the workspace).
     /// 
-    /// Access to this is gauranteed to be serial by the <see cref="RequestExecutionQueue"/>
+    /// Access to this is gauranteed to be serial by the <see cref="RequestExecutionQueue{RequestContextType}"/>
     /// </summary>
     private readonly Dictionary<Workspace, (int? forkedFromVersion, Solution solution)> _cachedLspSolutions = new();
 
@@ -65,7 +65,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     /// Note that the text here is tracked regardless of whether or not we found a matching roslyn document
     /// for the URI.
     /// 
-    /// Access to this is gauranteed to be serial by the <see cref="RequestExecutionQueue"/>
+    /// Access to this is gauranteed to be serial by the <see cref="RequestExecutionQueue{RequestContextType}"/>
     /// </summary>
     private ImmutableDictionary<Uri, SourceText> _trackedDocuments = ImmutableDictionary<Uri, SourceText>.Empty;
 
@@ -95,7 +95,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     /// <summary>
     /// Called by the <see cref="DidOpenHandler"/> when a document is opened in LSP.
     /// 
-    /// <see cref="DidOpenHandler.MutatesSolutionState"/> is true which means this runs serially in the <see cref="RequestExecutionQueue"/>
+    /// <see cref="DidOpenHandler.MutatesSolutionState"/> is true which means this runs serially in the <see cref="RequestExecutionQueue{RequestContextType}"/>
     /// </summary>
     public void StartTracking(Uri uri, SourceText documentText)
     {
@@ -110,7 +110,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     /// <summary>
     /// Called by the <see cref="DidCloseHandler"/> when a document is closed in LSP.
     /// 
-    /// <see cref="DidCloseHandler.MutatesSolutionState"/> is true which means this runs serially in the <see cref="RequestExecutionQueue"/>
+    /// <see cref="DidCloseHandler.MutatesSolutionState"/> is true which means this runs serially in the <see cref="RequestExecutionQueue{RequestContextType}"/>
     /// </summary>
     public void StopTracking(Uri uri)
     {
@@ -128,7 +128,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     /// <summary>
     /// Called by the <see cref="DidChangeHandler"/> when a document's text is updated in LSP.
     /// 
-    /// <see cref="DidChangeHandler.MutatesSolutionState"/> is true which means this runs serially in the <see cref="RequestExecutionQueue"/>
+    /// <see cref="DidChangeHandler.MutatesSolutionState"/> is true which means this runs serially in the <see cref="RequestExecutionQueue{RequestContextType}"/>
     /// </summary>
     public void UpdateTrackedDocument(Uri uri, SourceText newSourceText)
     {
@@ -150,7 +150,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     /// Returns the LSP solution associated with the workspace with the specified <see cref="_hostWorkspaceKind"/>.
     /// This is the solution used for LSP requests that pertain to the entire workspace, for example code search or workspace diagnostics.
     /// 
-    /// This is always called serially in the <see cref="RequestExecutionQueue"/> when creating the <see cref="RequestContext"/>.
+    /// This is always called serially in the <see cref="RequestExecutionQueue{RequestContextType}"/> when creating the <see cref="RequestContext"/>.
     /// </summary>
     public async Task<Solution?> TryGetHostLspSolutionAsync(CancellationToken cancellationToken)
     {
@@ -166,7 +166,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     /// <summary>
     /// Returns a document with the LSP tracked text forked from the appropriate workspace solution.
     /// 
-    /// This is always called serially in the <see cref="RequestExecutionQueue"/> when creating the <see cref="RequestContext"/>.
+    /// This is always called serially in the <see cref="RequestExecutionQueue{RequestContextType}"/> when creating the <see cref="RequestContext"/>.
     /// </summary>
     public async Task<Document?> GetLspDocumentAsync(TextDocumentIdentifier textDocumentIdentifier, CancellationToken cancellationToken)
     {

@@ -11,10 +11,58 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Options;
+using CommonLanguageServerProtocol.Framework;
+
+#nullable enable
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
+    internal class RoslynRequestExecutionQueue : RequestExecutionQueue<RequestContext>
+    {
+        public RoslynRequestExecutionQueue(ImmutableArray<string> supportedLanguages, string serverKind, ILspServices services, ILspLogger logger)
+            : base(supportedLanguages, serverKind, services, logger)
+        {
+        }
+
+        public override Task<RequestContext?> CreateRequestContextAsync(IQueueItem<RequestContext> queueItem, CancellationToken cancellationToken)
+        {
+            return RequestContext.CreateAsync(
+                queueItem.RequiresLSPSolution,
+                queueItem.MutatesSolutionState,
+                queueItem.TextDocument,
+                _serverKind,
+                queueItem.ClientCapabilities,
+                _supportedLanguages,
+                _lspServices,
+                _logger,
+                queueCancellationToken: this.CancellationToken,
+                requestCancellationToken: cancellationToken);
+        }
+
+        public override (IQueueItem<RequestContext>, Task<TResponseType>) CreateQueueItem<TRequestType, TResponseType>(
+            bool mutatesSolutionState,
+            bool requiresLSPSolution,
+            ClientCapabilities clientCapabilities,
+            string methodName,
+            TextDocumentIdentifier? textDocument,
+            TRequestType request,
+            IRequestHandler<TRequestType, TResponseType, RequestContext> handler,
+            CancellationToken cancellationToken)
+        {
+            return QueueItem<TRequestType, TResponseType>.Create(mutatesSolutionState,
+                requiresLSPSolution,
+                clientCapabilities,
+                methodName,
+                textDocument,
+                request,
+                handler,
+                Trace.CorrelationManager.ActivityId,
+                _logger,
+                _lspServices,
+                cancellationToken);
+        }
+    }
+
     /// <summary>
     /// Coordinates the exectution of LSP messages to ensure correct results are sent back.
     /// </summary>
@@ -35,7 +83,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </para>
     /// <para>
     /// Regardless of whether a request is mutating or not, or blocking or not, is an implementation detail of this class
-    /// and any consumers observing the results of the task returned from <see cref="ExecuteAsync{TRequestType, TResponseType}(bool, bool, IRequestHandler{TRequestType, TResponseType}, TRequestType, ClientCapabilities, string, CancellationToken)"/>
+    /// and any consumers observing the results of the task returned from <see cref="ExecuteAsync{TRequestType, TResponseType}(bool, bool, IRequestHandler{TRequestType, TResponseType, RequestContextType}, TRequestType, ClientCapabilities, string, CancellationToken)"/>
     /// will see the results of the handling of the request, whenever it occurred.
     /// </para>
     /// <para>
@@ -48,18 +96,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// more messages, and a new queue will need to be created.
     /// </para>
     /// </remarks>
-    internal partial class RequestExecutionQueue
+    public abstract partial class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<RequestContextType> where RequestContextType : struct
     {
-        private readonly WellKnownLspServerKinds _serverKind;
-        private readonly ImmutableArray<string> _supportedLanguages;
-        private readonly ILspLogger _logger;
-        private readonly LspServices _lspServices;
+        internal readonly string _serverKind;
+        internal readonly ImmutableArray<string> _supportedLanguages;
+        protected readonly ILspLogger _logger;
+        protected readonly ILspServices _lspServices;
 
         /// <summary>
         /// The queue containing the ordered LSP requests along with a combined cancellation token
         /// representing the queue's cancellation token and the individual request cancellation token.
         /// </summary>
-        private readonly AsyncQueue<(IQueueItem queueItem, CancellationToken cancellationToken)> _queue = new();
+        private readonly AsyncQueue<(IQueueItem<RequestContextType> queueItem, CancellationToken cancellationToken)> _queue = new();
         private readonly CancellationTokenSource _cancelSource = new();
 
         /// <summary>
@@ -80,15 +128,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// </remarks>
         public event EventHandler<RequestShutdownEventArgs>? RequestServerShutdown;
 
-        public RequestExecutionQueue(
+        protected RequestExecutionQueue(
             ImmutableArray<string> supportedLanguages,
-            WellKnownLspServerKinds serverKind,
-            LspServices services)
+            string serverKind,
+            ILspServices services,
+            ILspLogger logger)
         {
             _supportedLanguages = supportedLanguages;
             _serverKind = serverKind;
             _lspServices = services;
-            _logger = _lspServices.GetRequiredService<ILspLogger>();
+            _logger = logger;
 
             // Start the queue processing
             _queueProcessingTask = ProcessQueueAsync();
@@ -128,12 +177,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public Task<TResponseType?> ExecuteAsync<TRequestType, TResponseType>(
             bool mutatesSolutionState,
             bool requiresLSPSolution,
-            IRequestHandler<TRequestType, TResponseType> handler,
+            IRequestHandler<TRequestType, TResponseType, RequestContextType> handler,
             TRequestType request,
             ClientCapabilities clientCapabilities,
             string methodName,
             CancellationToken requestCancellationToken)
-            where TRequestType : class
         {
             // Note: If the queue is not accepting any more items then TryEnqueue below will fail.
 
@@ -143,8 +191,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // shutting down cancels the request.
             var combinedTokenSource = _cancelSource.Token.CombineWith(requestCancellationToken);
             var combinedCancellationToken = combinedTokenSource.Token;
-
-            var (item, resultTask) = QueueItem<TRequestType, TResponseType>.Create(
+            var (item, resultTask) = CreateQueueItem(
                 mutatesSolutionState,
                 requiresLSPSolution,
                 clientCapabilities,
@@ -152,9 +199,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 textDocument,
                 request,
                 handler,
-                Trace.CorrelationManager.ActivityId,
-                _logger,
-                _lspServices,
                 combinedCancellationToken);
 
             // Run a continuation to ensure the cts is disposed of.
@@ -168,11 +212,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // The queue itself is threadsafe (_queue.TryEnqueue and _queue.Complete use the same lock).
             if (!didEnqueue)
             {
-                return Task.FromException<TResponseType?>(new InvalidOperationException($"{_serverKind.ToUserVisibleString()} was requested to shut down."));
+                return Task.FromException<TResponseType?>(new InvalidOperationException($"{_serverKind} was requested to shut down."));
             }
 
             return resultTask;
         }
+
+        public abstract (IQueueItem<RequestContextType>, Task<TResponseType?>) CreateQueueItem<TRequestType, TResponseType>(
+            bool mutatesSolutionState,
+            bool requiresLSPSolution,
+            ClientCapabilities clientCapabilities,
+            string methodName,
+            TextDocumentIdentifier? textDocument,
+            TRequestType request,
+            IRequestHandler<TRequestType, TResponseType, RequestContextType> handler,
+            CancellationToken cancellationToken);
 
         private async Task ProcessQueueAsync()
         {
@@ -182,7 +236,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 {
                     // First attempt to de-queue the work item in its own try-catch.
                     // This is because before we de-queue we do not have access to the queue item's linked cancellation token.
-                    (IQueueItem work, CancellationToken cancellationToken) queueItem;
+                    (IQueueItem<RequestContextType> work, CancellationToken cancellationToken) queueItem;
                     try
                     {
                         queueItem = await _queue.DequeueAsync(_cancelSource.Token).ConfigureAwait(false);
@@ -234,7 +288,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 // We encountered an unexpected exception in processing the queue or in a mutating request.
                 // Log it, shutdown the queue, and exit the loop.
                 _logger.TraceException(ex);
-                OnRequestServerShutdown($"Error occurred processing queue in {_serverKind.ToUserVisibleString()}: {ex.Message}.");
+                OnRequestServerShutdown($"Error occurred processing queue in {_serverKind}: {ex.Message}.");
                 return;
             }
         }
@@ -246,19 +300,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             Shutdown();
         }
 
-        private Task<RequestContext?> CreateRequestContextAsync(IQueueItem queueItem, CancellationToken cancellationToken)
-        {
-            return RequestContext.CreateAsync(
-                queueItem.RequiresLSPSolution,
-                queueItem.MutatesSolutionState,
-                queueItem.TextDocument,
-                _serverKind,
-                queueItem.ClientCapabilities,
-                _supportedLanguages,
-                _lspServices,
-                queueCancellationToken: this.CancellationToken,
-                requestCancellationToken: cancellationToken);
-        }
+        public abstract Task<Nullable<RequestContextType>> CreateRequestContextAsync(IQueueItem<RequestContextType> queueItem, CancellationToken cancellationToken);
 
         #region Test Accessor
         internal TestAccessor GetTestAccessor()
@@ -266,9 +308,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         internal readonly struct TestAccessor
         {
-            private readonly RequestExecutionQueue _queue;
+            private readonly RequestExecutionQueue<RequestContextType> _queue;
 
-            public TestAccessor(RequestExecutionQueue queue)
+            public TestAccessor(RequestExecutionQueue<RequestContextType> queue)
                 => _queue = queue;
 
             public bool IsComplete() => _queue._queue.IsCompleted && _queue._queue.IsEmpty;

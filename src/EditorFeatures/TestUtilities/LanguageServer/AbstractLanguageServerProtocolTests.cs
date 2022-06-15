@@ -480,7 +480,7 @@ namespace Roslyn.Test.Utilities
         {
             public readonly TestWorkspace TestWorkspace;
             private readonly Dictionary<string, IList<LSP.Location>> _locations;
-            private readonly LanguageServerTarget _languageServer;
+            private readonly LanguageServerTarget<RequestContext> _languageServer;
             private readonly JsonRpc _clientRpc;
 
             public LSP.ClientCapabilities ClientCapabilities { get; }
@@ -506,7 +506,7 @@ namespace Roslyn.Test.Utilities
                 TestWorkspace testWorkspace,
                 Dictionary<string, IList<LSP.Location>> locations,
                 LSP.ClientCapabilities clientCapabilities,
-                LanguageServerTarget target,
+                LanguageServerTarget<RequestContext> target,
                 Stream clientStream)
             {
                 TestWorkspace = testWorkspace;
@@ -551,7 +551,7 @@ namespace Roslyn.Test.Utilities
                 return server;
             }
 
-            internal static async Task<TestLspServer> CreateAsync(TestWorkspace testWorkspace, LSP.ClientCapabilities clientCapabilities, LanguageServerTarget target, Stream clientStream)
+            internal static async Task<TestLspServer> CreateAsync(TestWorkspace testWorkspace, LSP.ClientCapabilities clientCapabilities, LanguageServerTarget<RequestContext> target, Stream clientStream)
             {
                 var locations = await GetAnnotatedLocationsAsync(testWorkspace, testWorkspace.CurrentSolution);
                 var server = new TestLspServer(testWorkspace, locations, clientCapabilities, target, clientStream);
@@ -564,7 +564,7 @@ namespace Roslyn.Test.Utilities
                 return server;
             }
 
-            private static LanguageServerTarget CreateLanguageServer(Stream inputStream, Stream outputStream, TestWorkspace workspace, WellKnownLspServerKinds serverKind)
+            private static LanguageServerTarget<RequestContext> CreateLanguageServer(Stream inputStream, Stream outputStream, TestWorkspace workspace, WellKnownLspServerKinds serverKind)
             {
                 var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
                 var capabilitiesProvider = workspace.ExportProvider.GetExportedValue<ExperimentalCapabilitiesProvider>();
@@ -575,13 +575,18 @@ namespace Roslyn.Test.Utilities
                     ExceptionStrategy = ExceptionProcessing.ISerializable,
                 };
 
-                var languageServer = new LanguageServerTarget(
+                var logger = NoOpLspLogger.Instance;
+                var clientCapabilitiesProvider = new ClientCapabilityProvider();
+                var baseServices = RoslynLanguageServerTarget.GetBaseServices(jsonRpc, logger, clientCapabilitiesProvider);
+                var languageServer = new RoslynLanguageServerTarget(
                     servicesProvider, jsonRpc,
                     capabilitiesProvider,
                     listenerProvider,
-                    NoOpLspLogger.Instance,
+                    logger,
                     ProtocolConstants.RoslynLspLanguages,
-                    serverKind);
+                    serverKind,
+                    clientCapabilitiesProvider,
+                    baseServices);
 
                 jsonRpc.StartListening();
                 return languageServer;
@@ -652,13 +657,13 @@ namespace Roslyn.Test.Utilities
                 await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync();
             }
 
-            internal RequestExecutionQueue.TestAccessor GetQueueAccessor() => _languageServer.GetTestAccessor().GetQueueAccessor();
+            internal RequestExecutionQueue<RequestContext>.TestAccessor GetQueueAccessor() => _languageServer.GetTestAccessor().GetQueueAccessor();
 
             internal LspWorkspaceManager.TestAccessor GetManagerAccessor() => GetRequiredLspService<LspWorkspaceManager>().GetTestAccessor();
 
             internal LspWorkspaceManager GetManager() => GetRequiredLspService<LspWorkspaceManager>();
 
-            internal LanguageServerTarget.TestAccessor GetServerAccessor() => _languageServer.GetTestAccessor();
+            internal LanguageServerTarget<RequestContext>.TestAccessor GetServerAccessor() => _languageServer.GetTestAccessor();
 
             internal T GetRequiredLspService<T>() where T : class, ILspService => _languageServer.GetTestAccessor().GetRequiredLspService<T>();
 

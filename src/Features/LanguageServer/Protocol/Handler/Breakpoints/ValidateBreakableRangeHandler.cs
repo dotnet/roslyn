@@ -12,12 +12,13 @@ using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Linq;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportCSharpVisualBasicStatelessLspService(typeof(ValidateBreakableRangeHandler)), Shared]
     [Method(LSP.VSInternalMethods.TextDocumentValidateBreakableRangeName)]
-    internal sealed class ValidateBreakableRangeHandler : IRequestHandler<LSP.VSInternalValidateBreakableRangeParams, LSP.Range?>
+    internal sealed class ValidateBreakableRangeHandler : IRoslynRequestHandler<LSP.VSInternalValidateBreakableRangeParams, LSP.Range?>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

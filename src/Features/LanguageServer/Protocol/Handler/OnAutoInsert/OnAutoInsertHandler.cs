@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportCSharpVisualBasicStatelessLspService(typeof(OnAutoInsertHandler)), Shared]
     [Method(LSP.VSInternalMethods.OnAutoInsertName)]
-    internal sealed class OnAutoInsertHandler : IRequestHandler<LSP.VSInternalDocumentOnAutoInsertParams, LSP.VSInternalDocumentOnAutoInsertResponseItem?>
+    internal sealed class OnAutoInsertHandler : IRoslynRequestHandler<LSP.VSInternalDocumentOnAutoInsertParams, LSP.VSInternalDocumentOnAutoInsertResponseItem?>
     {
         private readonly ImmutableArray<IBraceCompletionService> _csharpBraceCompletionServices;
         private readonly ImmutableArray<IBraceCompletionService> _visualBasicBraceCompletionServices;
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // Only support this for razor as LSP doesn't support overtype yet.
             // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1165179/
             // Once LSP supports overtype we can move all of brace completion to LSP.
-            if (request.Character == "\n" && context.ServerKind == WellKnownLspServerKinds.RazorLspServer)
+            if (request.Character == "\n" && context.ServerKind == WellKnownLspServerKinds.RoslynRazorLspServer.ToConvertableString())
             {
                 var indentationOptions = new IndentationOptions(formattingOptions)
                 {

@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
-internal interface ILspServiceFactory
+public interface ILspServiceFactory
 {
     /// <summary>
     /// Some LSP services need to know the client capabilities on construction or

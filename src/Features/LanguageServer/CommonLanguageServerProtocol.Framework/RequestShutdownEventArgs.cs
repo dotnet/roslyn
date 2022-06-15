@@ -4,9 +4,14 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.Shared.TestHooks
+namespace CommonLanguageServerProtocol.Framework;
+
+public class RequestShutdownEventArgs : EventArgs
 {
-    public interface IAsyncToken : IDisposable
+    public string Message { get; }
+
+    public RequestShutdownEventArgs(string message)
     {
+        this.Message = message;
     }
 }

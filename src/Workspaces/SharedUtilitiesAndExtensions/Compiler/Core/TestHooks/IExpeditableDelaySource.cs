@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Shared.TestHooks
 {
-    internal interface IExpeditableDelaySource
+    public interface IExpeditableDelaySource
     {
         /// <summary>
         /// Creates a task that will complete after a time delay, but can be expedited if an operation is waiting for

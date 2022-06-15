@@ -5,14 +5,18 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using CommonLanguageServerProtocol.Framework;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
-internal class AbstractLspServiceProvider
+
+public class AbstractLspServiceProvider : ILspServiceProvider
 {
     private readonly ImmutableArray<Lazy<ILspService, LspServiceMetadataView>> _lspServices;
     private readonly ImmutableArray<Lazy<ILspServiceFactory, LspServiceMetadataView>> _lspServiceFactories;
+
+    private ImmutableArray<Lazy<ILspService, LspServiceMetadataView>>? _baseServices;
+
+    private ImmutableArray<Lazy<ILspService, LspServiceMetadataView>> BaseServices => _baseServices ?? throw new InvalidOperationException($"{nameof(BaseServices)} called before {nameof(SetBaseServices)}");
 
     public AbstractLspServiceProvider(
         IEnumerable<Lazy<ILspService, LspServiceMetadataView>> lspServices,
@@ -22,8 +26,14 @@ internal class AbstractLspServiceProvider
         _lspServiceFactories = lspServiceFactories.ToImmutableArray();
     }
 
-    public LspServices CreateServices(WellKnownLspServerKinds serverKind, ImmutableArray<Lazy<ILspService, LspServiceMetadataView>> baseServices)
+    public void SetBaseServices(ImmutableArray<Lazy<ILspService, LspServiceMetadataView>> baseServices)
     {
-        return new LspServices(_lspServices, _lspServiceFactories, serverKind, baseServices);
+        _baseServices = baseServices;
+    }
+
+    public ILspServices CreateServices(string serverKind)
+    {
+        var serverEnum = WellKnownLspServerExtensions.WellKnownLspServerKindsFromString(serverKind);
+        return new LspServices(_lspServices, _lspServiceFactories, serverEnum, BaseServices);
     }
 }

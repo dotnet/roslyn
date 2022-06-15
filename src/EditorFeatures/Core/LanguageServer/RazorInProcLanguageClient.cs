@@ -95,6 +95,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         /// </summary>
         public override bool ShowNotificationOnInitializeFailed => true;
 
-        public override WellKnownLspServerKinds ServerKind => WellKnownLspServerKinds.RazorLspServer;
+        public override WellKnownLspServerKinds ServerKind => WellKnownLspServerKinds.RoslynRazorLspServer;
     }
 }

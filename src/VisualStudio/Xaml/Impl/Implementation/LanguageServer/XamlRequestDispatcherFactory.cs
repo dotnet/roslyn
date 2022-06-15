@@ -8,6 +8,7 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using CommonLanguageServerProtocol.Framework;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Xaml;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -21,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
     /// <summary>
     /// Implements the Language Server Protocol for XAML
     /// </summary>
-    [ExportLspServiceFactory(typeof(RequestDispatcher), StringConstants.XamlLspLanguagesContract), Shared]
+    [ExportLspServiceFactory(typeof(RequestDispatcher<>), StringConstants.XamlLspLanguagesContract), Shared]
     internal sealed class XamlRequestDispatcherFactory : RequestDispatcherFactory
     {
         private readonly XamlProjectService _projectService;
@@ -42,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
             return new XamlRequestDispatcher(_projectService, lspServices, _feedbackService);
         }
 
-        private class XamlRequestDispatcher : RequestDispatcher
+        private class XamlRequestDispatcher : RequestDispatcher<RequestContext>
         {
             private readonly XamlProjectService _projectService;
             private readonly IXamlLanguageServerFeedbackService? _feedbackService;
@@ -56,10 +57,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
                 _feedbackService = feedbackService;
             }
 
-            protected override async Task<TResponseType?> ExecuteRequestAsync<TRequestType, TResponseType>(
-                RequestExecutionQueue queue, bool mutatesSolutionState, bool requiresLSPSolution, IRequestHandler<TRequestType, TResponseType> handler, TRequestType request, ClientCapabilities clientCapabilities, string methodName, CancellationToken cancellationToken)
-                where TRequestType : class
-                where TResponseType : default
+            protected override async Task<TResponseType> ExecuteRequestAsync<TRequestType, TResponseType>(
+                IRequestExecutionQueue<RequestContext> queue, bool mutatesSolutionState, bool requiresLSPSolution,
+                IRequestHandler<TRequestType, TResponseType, RequestContext> handler, TRequestType request, ClientCapabilities clientCapabilities, string methodName, CancellationToken cancellationToken)
             {
                 var textDocument = handler.GetTextDocumentIdentifier(request);
 

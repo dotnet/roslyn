@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     [ExportCSharpVisualBasicStatelessLspService(typeof(WorkspaceSymbolsHandler)), Shared]
     [Method(Methods.WorkspaceSymbolName)]
-    internal class WorkspaceSymbolsHandler : IRequestHandler<WorkspaceSymbolParams, SymbolInformation[]?>
+    internal class WorkspaceSymbolsHandler : IRoslynRequestHandler<WorkspaceSymbolParams, SymbolInformation[]?>
     {
         private static readonly IImmutableSet<string> s_supportedKinds =
             ImmutableHashSet.Create(

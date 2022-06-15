@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Indentation;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions;
 /// </summary>
 [ExportCSharpVisualBasicStatelessLspService(typeof(InlineCompletionsHandler)), Shared]
 [Method(VSInternalMethods.TextDocumentInlineCompletionName)]
-internal partial class InlineCompletionsHandler : IRequestHandler<VSInternalInlineCompletionRequest, VSInternalInlineCompletionList?>
+internal partial class InlineCompletionsHandler : IRoslynRequestHandler<VSInternalInlineCompletionRequest, VSInternalInlineCompletionList?>
 {
     /// <summary>
     /// The set of built in snippets from, typically found in

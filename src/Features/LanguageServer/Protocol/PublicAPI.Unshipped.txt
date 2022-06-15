@@ -1,1 +1,94 @@
-
+abstract Microsoft.CodeAnalysis.LanguageServer.LanguageServerTarget<RequestContextType>.GetRequestExecutionQueue(System.Collections.Immutable.ImmutableArray<string> supportedlanguages, Microsoft.CodeAnalysis.LanguageServer.WellKnownLspServerKinds serverKind, Microsoft.CodeAnalysis.LanguageServer.LspServices lspServices) -> Microsoft.CodeAnalysis.LanguageServer.Handler.RequestExecutionQueue<RequestContextType>
+Microsoft.CodeAnalysis.LanguageServer.AbstractLspServiceProvider
+Microsoft.CodeAnalysis.LanguageServer.AbstractLspServiceProvider.AbstractLspServiceProvider(System.Collections.Generic.IEnumerable<System.Lazy<Microsoft.CodeAnalysis.LanguageServer.ILspService, Microsoft.CodeAnalysis.LanguageServer.LspServiceMetadataView>> lspServices, System.Collections.Generic.IEnumerable<System.Lazy<Microsoft.CodeAnalysis.LanguageServer.ILspServiceFactory, Microsoft.CodeAnalysis.LanguageServer.LspServiceMetadataView>> lspServiceFactories) -> void
+Microsoft.CodeAnalysis.LanguageServer.AbstractLspServiceProvider.CreateServices(Microsoft.CodeAnalysis.LanguageServer.WellKnownLspServerKinds serverKind, System.Collections.Immutable.ImmutableArray<System.Lazy<Microsoft.CodeAnalysis.LanguageServer.ILspService, Microsoft.CodeAnalysis.LanguageServer.LspServiceMetadataView>> baseServices) -> Microsoft.CodeAnalysis.LanguageServer.LspServices
+Microsoft.CodeAnalysis.LanguageServer.ExportStatelessLspServiceAttribute
+Microsoft.CodeAnalysis.LanguageServer.ExportStatelessLspServiceAttribute.ExportStatelessLspServiceAttribute(System.Type type, string contractName, Microsoft.CodeAnalysis.LanguageServer.WellKnownLspServerKinds serverKind = Microsoft.CodeAnalysis.LanguageServer.WellKnownLspServerKinds.Any) -> void
+Microsoft.CodeAnalysis.LanguageServer.ExportStatelessLspServiceAttribute.IsStateless.get -> bool
+Microsoft.CodeAnalysis.LanguageServer.ExportStatelessLspServiceAttribute.ServerKind.get -> Microsoft.CodeAnalysis.LanguageServer.WellKnownLspServerKinds?
+Microsoft.CodeAnalysis.LanguageServer.ExportStatelessLspServiceAttribute.Type.get -> System.Type
+Microsoft.CodeAnalysis.LanguageServer.Handler.IDocumentChangeTracker
+Microsoft.CodeAnalysis.LanguageServer.Handler.IDocumentChangeTracker.StartTracking(System.Uri documentUri, Microsoft.CodeAnalysis.Text.SourceText initialText) -> void
+Microsoft.CodeAnalysis.LanguageServer.Handler.IDocumentChangeTracker.StopTracking(System.Uri documentUri) -> void
+Microsoft.CodeAnalysis.LanguageServer.Handler.IDocumentChangeTracker.UpdateTrackedDocument(System.Uri documentUri, Microsoft.CodeAnalysis.Text.SourceText text) -> void
+Microsoft.CodeAnalysis.LanguageServer.Handler.IRequestHandler<RequestContextType>
+Microsoft.CodeAnalysis.LanguageServer.Handler.IRequestHandler<RequestContextType>.MutatesSolutionState.get -> bool
+Microsoft.CodeAnalysis.LanguageServer.Handler.IRequestHandler<RequestContextType>.RequiresLSPSolution.get -> bool
+Microsoft.CodeAnalysis.LanguageServer.Handler.IRequestHandler<RequestType, ResponseType, RequestContextType>
+Microsoft.CodeAnalysis.LanguageServer.Handler.IRequestHandler<RequestType, ResponseType, RequestContextType>.GetTextDocumentIdentifier(RequestType request) -> Microsoft.VisualStudio.LanguageServer.Protocol.TextDocumentIdentifier
+Microsoft.CodeAnalysis.LanguageServer.Handler.IRequestHandler<RequestType, ResponseType, RequestContextType>.HandleRequestAsync(RequestType request, RequestContextType context, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<ResponseType>
+Microsoft.CodeAnalysis.LanguageServer.Handler.MethodAttribute
+Microsoft.CodeAnalysis.LanguageServer.Handler.MethodAttribute.Method.get -> string
+Microsoft.CodeAnalysis.LanguageServer.Handler.MethodAttribute.MethodAttribute(string method) -> void
+Microsoft.CodeAnalysis.LanguageServer.Handler.RequestExecutionQueue<RequestContextType>
+Microsoft.CodeAnalysis.LanguageServer.Handler.RequestExecutionQueue<RequestContextType>.CancellationToken.get -> System.Threading.CancellationToken
+Microsoft.CodeAnalysis.LanguageServer.Handler.RequestExecutionQueue<RequestContextType>.ExecuteAsync<TRequestType, TResponseType>(bool mutatesSolutionState, bool requiresLSPSolution, Microsoft.CodeAnalysis.LanguageServer.Handler.IRequestHandler<TRequestType, TResponseType, RequestContextType> handler, TRequestType request, Microsoft.VisualStudio.LanguageServer.Protocol.ClientCapabilities clientCapabilities, string methodName, System.Threading.CancellationToken requestCancellationToken) -> System.Threading.Tasks.Task<TResponseType>
+Microsoft.CodeAnalysis.LanguageServer.Handler.RequestExecutionQueue<RequestContextType>.RequestExecutionQueue(System.Collections.Immutable.ImmutableArray<string> supportedLanguages, Microsoft.CodeAnalysis.LanguageServer.WellKnownLspServerKinds serverKind, Microsoft.CodeAnalysis.LanguageServer.LspServices services) -> void
+Microsoft.CodeAnalysis.LanguageServer.Handler.RequestExecutionQueue<RequestContextType>.RequestServerShutdown -> System.EventHandler<Microsoft.CodeAnalysis.LanguageServer.Handler.RequestShutdownEventArgs>
+Microsoft.CodeAnalysis.LanguageServer.Handler.RequestExecutionQueue<RequestContextType>.Shutdown() -> void
+Microsoft.CodeAnalysis.LanguageServer.Handler.RequestShutdownEventArgs
+Microsoft.CodeAnalysis.LanguageServer.Handler.RequestShutdownEventArgs.Message.get -> string
+Microsoft.CodeAnalysis.LanguageServer.Handler.RequestShutdownEventArgs.RequestShutdownEventArgs(string message) -> void
+Microsoft.CodeAnalysis.LanguageServer.ICapabilitiesProvider
+Microsoft.CodeAnalysis.LanguageServer.ICapabilitiesProvider.GetCapabilities(Microsoft.VisualStudio.LanguageServer.Protocol.ClientCapabilities clientCapabilities) -> Microsoft.VisualStudio.LanguageServer.Protocol.ServerCapabilities
+Microsoft.CodeAnalysis.LanguageServer.IClientLanguageServerManager
+Microsoft.CodeAnalysis.LanguageServer.IClientLanguageServerManager.ClientSettings.get -> Microsoft.VisualStudio.LanguageServer.Protocol.InitializeParams
+Microsoft.CodeAnalysis.LanguageServer.IClientLanguageServerManager.SendNotificationAsync(string methodName, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask
+Microsoft.CodeAnalysis.LanguageServer.IClientLanguageServerManager.SendNotificationAsync<TParams>(string methodName, TParams params, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask
+Microsoft.CodeAnalysis.LanguageServer.IClientLanguageServerManager.SendRequestAsync<TParams, TResponse>(string methodName, TParams params, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResponse>
+Microsoft.CodeAnalysis.LanguageServer.ILanguageServer
+Microsoft.CodeAnalysis.LanguageServer.ILanguageServer.ClientSettings.get -> Microsoft.VisualStudio.LanguageServer.Protocol.InitializeParams
+Microsoft.CodeAnalysis.LanguageServer.ILanguageServer.Exit -> System.EventHandler
+Microsoft.CodeAnalysis.LanguageServer.ILanguageServer.GetService(System.Type type) -> object
+Microsoft.CodeAnalysis.LanguageServer.ILanguageServer.InitializeAsync(Microsoft.VisualStudio.LanguageServer.Protocol.InitializeParams initializeParams, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.VisualStudio.LanguageServer.Protocol.InitializeResult>
+Microsoft.CodeAnalysis.LanguageServer.ILanguageServer.Shutdown -> System.EventHandler<bool>
+Microsoft.CodeAnalysis.LanguageServer.ILspLogger
+Microsoft.CodeAnalysis.LanguageServer.ILspLogger.TraceError(string message) -> void
+Microsoft.CodeAnalysis.LanguageServer.ILspLogger.TraceException(System.Exception exception) -> void
+Microsoft.CodeAnalysis.LanguageServer.ILspLogger.TraceInformation(string message) -> void
+Microsoft.CodeAnalysis.LanguageServer.ILspLogger.TraceStart(string message) -> void
+Microsoft.CodeAnalysis.LanguageServer.ILspLogger.TraceStop(string message) -> void
+Microsoft.CodeAnalysis.LanguageServer.ILspLogger.TraceWarning(string message) -> void
+Microsoft.CodeAnalysis.LanguageServer.ILspService
+Microsoft.CodeAnalysis.LanguageServer.ILspServiceFactory
+Microsoft.CodeAnalysis.LanguageServer.ILspServiceFactory.CreateILspService(Microsoft.CodeAnalysis.LanguageServer.LspServices lspServices, Microsoft.CodeAnalysis.LanguageServer.WellKnownLspServerKinds serverKind) -> Microsoft.CodeAnalysis.LanguageServer.ILspService
+Microsoft.CodeAnalysis.LanguageServer.IOnLanguageServerStarted
+Microsoft.CodeAnalysis.LanguageServer.IOnLanguageServerStarted.OnStartedAsync(Microsoft.CodeAnalysis.LanguageServer.ILanguageServer server, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task
+Microsoft.CodeAnalysis.LanguageServer.LanguageServerTarget<RequestContextType>
+Microsoft.CodeAnalysis.LanguageServer.LanguageServerTarget<RequestContextType>.ClientSettings.get -> Microsoft.VisualStudio.LanguageServer.Protocol.InitializeParams
+Microsoft.CodeAnalysis.LanguageServer.LanguageServerTarget<RequestContextType>.DisposeAsync() -> System.Threading.Tasks.ValueTask
+Microsoft.CodeAnalysis.LanguageServer.LanguageServerTarget<RequestContextType>.ExecuteWorkspaceCommandAsync(Microsoft.VisualStudio.LanguageServer.Protocol.ExecuteCommandParams request, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<object>
+Microsoft.CodeAnalysis.LanguageServer.LanguageServerTarget<RequestContextType>.Exit -> System.EventHandler
+Microsoft.CodeAnalysis.LanguageServer.LanguageServerTarget<RequestContextType>.ExitAsync(System.Threading.CancellationToken _) -> System.Threading.Tasks.Task
+Microsoft.CodeAnalysis.LanguageServer.LanguageServerTarget<RequestContextType>.GetClientCapabilities() -> Microsoft.VisualStudio.LanguageServer.Protocol.ClientCapabilities
+Microsoft.CodeAnalysis.LanguageServer.LanguageServerTarget<RequestContextType>.GetService(System.Type type) -> object
+Microsoft.CodeAnalysis.LanguageServer.LanguageServerTarget<RequestContextType>.InitializeAsync(Microsoft.VisualStudio.LanguageServer.Protocol.InitializeParams initializeParams, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.VisualStudio.LanguageServer.Protocol.InitializeResult>
+Microsoft.CodeAnalysis.LanguageServer.LanguageServerTarget<RequestContextType>.LanguageServerTarget(Microsoft.CodeAnalysis.LanguageServer.AbstractLspServiceProvider lspServiceProvider, StreamJsonRpc.JsonRpc jsonRpc, Microsoft.CodeAnalysis.LanguageServer.ICapabilitiesProvider capabilitiesProvider, Microsoft.CodeAnalysis.Shared.TestHooks.IAsynchronousOperationListenerProvider listenerProvider, Microsoft.CodeAnalysis.LanguageServer.ILspLogger logger, System.Collections.Immutable.ImmutableArray<string> supportedLanguages, Microsoft.CodeAnalysis.LanguageServer.WellKnownLspServerKinds serverKind) -> void
+Microsoft.CodeAnalysis.LanguageServer.LanguageServerTarget<RequestContextType>.Shutdown -> System.EventHandler<bool>
+Microsoft.CodeAnalysis.LanguageServer.LanguageServerTarget<RequestContextType>.ShutdownAsync(System.Threading.CancellationToken _) -> System.Threading.Tasks.Task
+Microsoft.CodeAnalysis.LanguageServer.LspServiceMetadataView
+Microsoft.CodeAnalysis.LanguageServer.LspServiceMetadataView.IsStateless.get -> bool
+Microsoft.CodeAnalysis.LanguageServer.LspServiceMetadataView.IsStateless.set -> void
+Microsoft.CodeAnalysis.LanguageServer.LspServiceMetadataView.LspServiceMetadataView(System.Collections.Generic.IDictionary<string, object> metadata) -> void
+Microsoft.CodeAnalysis.LanguageServer.LspServiceMetadataView.LspServiceMetadataView(System.Type type) -> void
+Microsoft.CodeAnalysis.LanguageServer.LspServiceMetadataView.ServerKind.get -> Microsoft.CodeAnalysis.LanguageServer.WellKnownLspServerKinds
+Microsoft.CodeAnalysis.LanguageServer.LspServiceMetadataView.ServerKind.set -> void
+Microsoft.CodeAnalysis.LanguageServer.LspServiceMetadataView.Type.get -> System.Type
+Microsoft.CodeAnalysis.LanguageServer.LspServiceMetadataView.Type.set -> void
+Microsoft.CodeAnalysis.LanguageServer.LspServices
+Microsoft.CodeAnalysis.LanguageServer.LspServices.Dispose() -> void
+Microsoft.CodeAnalysis.LanguageServer.LspServices.GetRegisteredServices() -> System.Collections.Immutable.ImmutableArray<System.Type>
+Microsoft.CodeAnalysis.LanguageServer.LspServices.GetRequiredService<T>() -> T
+Microsoft.CodeAnalysis.LanguageServer.LspServices.GetService<T>() -> T
+Microsoft.CodeAnalysis.LanguageServer.LspServices.LspServices(System.Collections.Immutable.ImmutableArray<System.Lazy<Microsoft.CodeAnalysis.LanguageServer.ILspService, Microsoft.CodeAnalysis.LanguageServer.LspServiceMetadataView>> mefLspServices, System.Collections.Immutable.ImmutableArray<System.Lazy<Microsoft.CodeAnalysis.LanguageServer.ILspServiceFactory, Microsoft.CodeAnalysis.LanguageServer.LspServiceMetadataView>> mefLspServiceFactories, Microsoft.CodeAnalysis.LanguageServer.WellKnownLspServerKinds serverKind, System.Collections.Immutable.ImmutableArray<System.Lazy<Microsoft.CodeAnalysis.LanguageServer.ILspService, Microsoft.CodeAnalysis.LanguageServer.LspServiceMetadataView>> baseServices) -> void
+Microsoft.CodeAnalysis.LanguageServer.LspServices.TryGetService(System.Type type, out object lspService) -> bool
+Microsoft.CodeAnalysis.LanguageServer.WellKnownLspServerKinds
+Microsoft.CodeAnalysis.LanguageServer.WellKnownLspServerKinds.AlwaysActiveVSLspServer = 2 -> Microsoft.CodeAnalysis.LanguageServer.WellKnownLspServerKinds
+Microsoft.CodeAnalysis.LanguageServer.WellKnownLspServerKinds.Any = 7 -> Microsoft.CodeAnalysis.LanguageServer.WellKnownLspServerKinds
+Microsoft.CodeAnalysis.LanguageServer.WellKnownLspServerKinds.CSharpVisualBasicLspServer = 3 -> Microsoft.CodeAnalysis.LanguageServer.WellKnownLspServerKinds
+Microsoft.CodeAnalysis.LanguageServer.WellKnownLspServerKinds.LiveShareLspServer = 1 -> Microsoft.CodeAnalysis.LanguageServer.WellKnownLspServerKinds
+Microsoft.CodeAnalysis.LanguageServer.WellKnownLspServerKinds.RazorLspServer = 0 -> Microsoft.CodeAnalysis.LanguageServer.WellKnownLspServerKinds
+Microsoft.CodeAnalysis.LanguageServer.WellKnownLspServerKinds.RoslynTypeScriptLspServer = 6 -> Microsoft.CodeAnalysis.LanguageServer.WellKnownLspServerKinds
+Microsoft.CodeAnalysis.LanguageServer.WellKnownLspServerKinds.XamlLspServer = 4 -> Microsoft.CodeAnalysis.LanguageServer.WellKnownLspServerKinds
+Microsoft.CodeAnalysis.LanguageServer.WellKnownLspServerKinds.XamlLspServerDisableUX = 5 -> Microsoft.CodeAnalysis.LanguageServer.WellKnownLspServerKinds
+virtual Microsoft.CodeAnalysis.LanguageServer.LanguageServerTarget<RequestContextType>.InitializedAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task

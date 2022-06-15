@@ -4,10 +4,9 @@
 
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer
+namespace CommonLanguageServerProtocol.Framework;
+
+public interface ICapabilitiesProvider
 {
-    internal interface ICapabilitiesProvider
-    {
-        ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities);
-    }
+    ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities);
 }

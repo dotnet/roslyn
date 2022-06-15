@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// See https://github.com/dotnet/roslyn/issues/55142
     /// </summary>
     [Method(LSP.Methods.TextDocumentCompletionResolveName)]
-    internal sealed class CompletionResolveHandler : IRequestHandler<LSP.CompletionItem, LSP.CompletionItem>
+    internal sealed class CompletionResolveHandler : IRoslynRequestHandler<LSP.CompletionItem, LSP.CompletionItem>
     {
         private readonly CompletionListCache _completionListCache;
         private readonly IGlobalOptionService _globalOptions;

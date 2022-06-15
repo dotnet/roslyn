@@ -8,13 +8,14 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition.Hosting;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using CommonLanguageServerProtocol.Framework;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
-internal class LspServices : IDisposable
+public class LspServices : ILspServices
 {
     private readonly ImmutableDictionary<Type, Lazy<ILspService, LspServiceMetadataView>> _lazyLspServices;
 
@@ -44,17 +45,22 @@ internal class LspServices : IDisposable
         _lazyLspServices = services.ToImmutableDictionary(lazyService => lazyService.Metadata.Type, lazyService => lazyService);
     }
 
-    public T GetRequiredService<T>() where T : class, ILspService
+    public T GetRequiredLspService<T>() where T : class, ILspService
+    {
+        return GetRequiredService<T>();
+    }
+
+    public T GetRequiredService<T>()
     {
         var service = GetService<T>();
         Contract.ThrowIfNull(service, $"Missing required LSP service {typeof(T).FullName}");
         return service;
     }
 
-    public T? GetService<T>() where T : class, ILspService
+    public T? GetService<T>()
     {
         var type = typeof(T);
-        return TryGetService(type, out var service) ? (T)service : null;
+        return TryGetService(type, out var service) ? (T)service : default(T);
     }
 
     public bool TryGetService(Type type, [NotNullWhen(true)] out object? lspService)

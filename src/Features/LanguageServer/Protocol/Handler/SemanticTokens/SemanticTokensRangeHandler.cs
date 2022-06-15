@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Api;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -25,7 +26,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 {
     [Method(Methods.TextDocumentSemanticTokensRangeName)]
-    internal class SemanticTokensRangeHandler : IRequestHandler<LSP.SemanticTokensRangeParams, LSP.SemanticTokens>, IDisposable
+    internal class SemanticTokensRangeHandler : IRoslynRequestHandler<LSP.SemanticTokensRangeParams, LSP.SemanticTokens>, IDisposable
     {
         private readonly IGlobalOptionService _globalOptions;
         private readonly IAsynchronousOperationListener _asyncListener;
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
             LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             LspWorkspaceManager lspWorkspaceManager,
-            ILanguageServerNotificationManager notificationManager,
+            IClientLanguageServerManager notificationManager,
             ClientCapabilities clientCapabilities)
         {
             _globalOptions = globalOptions;
@@ -104,7 +105,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
         private static ValueTask FilterLspTrackedDocumentsAsync(
             LspWorkspaceManager lspWorkspaceManager,
-            ILanguageServerNotificationManager notificationManager,
+            IClientLanguageServerManager notificationManager,
             ImmutableSegmentedList<Uri?> documentUris,
             CancellationToken cancellationToken)
         {

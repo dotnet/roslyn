@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     [ExportCSharpVisualBasicStatelessLspService(typeof(CompletionHandler)), Shared]
     [Method(LSP.Methods.TextDocumentCompletionName)]
-    internal class CompletionHandler : IRequestHandler<LSP.CompletionParams, LSP.CompletionList?>
+    internal class CompletionHandler : IRoslynRequestHandler<LSP.CompletionParams, LSP.CompletionList?>
     {
         internal const string EditRangeSetting = "editRange";
 

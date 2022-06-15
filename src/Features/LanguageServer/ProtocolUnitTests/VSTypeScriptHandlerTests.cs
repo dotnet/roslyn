@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -86,7 +87,7 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
         return await TestLspServer.CreateAsync(testWorkspace, new ClientCapabilities(), languageServerTarget, clientStream);
     }
 
-    private static LanguageServerTarget CreateLanguageServer(Stream inputStream, Stream outputStream, TestWorkspace workspace)
+    private static LanguageServerTarget<RequestContext> CreateLanguageServer(Stream inputStream, Stream outputStream, TestWorkspace workspace)
     {
         var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
         var capabilitiesProvider = workspace.ExportProvider.GetExportedValue<ExperimentalCapabilitiesProvider>();
@@ -97,13 +98,19 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
             ExceptionStrategy = ExceptionProcessing.ISerializable,
         };
 
-        var languageServer = new LanguageServerTarget(
+        var logger = NoOpLspLogger.Instance;
+        var clientCapabilitiesProvider = new ClientCapabilityProvider();
+        var baseServices = RoslynLanguageServerTarget.GetBaseServices(jsonRpc, logger, clientCapabilitiesProvider);
+
+        var languageServer = new RoslynLanguageServerTarget(
             servicesProvider, jsonRpc,
             capabilitiesProvider,
             listenerProvider,
-            NoOpLspLogger.Instance,
+            logger,
             ImmutableArray.Create(InternalLanguageNames.TypeScript),
-            WellKnownLspServerKinds.RoslynTypeScriptLspServer);
+            WellKnownLspServerKinds.RoslynTypeScriptLspServer,
+            clientCapabilitiesProvider,
+            baseServices);
 
         jsonRpc.StartListening();
         return languageServer;

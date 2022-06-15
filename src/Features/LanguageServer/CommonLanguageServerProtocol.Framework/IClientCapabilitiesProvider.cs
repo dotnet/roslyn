@@ -4,10 +4,13 @@
 
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer
+namespace CommonLanguageServerProtocol.Framework;
+
+public interface IClientCapabilitiesProvider
 {
-    internal interface IClientCapabilitiesProvider : ILspService
-    {
-        ClientCapabilities GetClientCapabilities();
-    }
+    ClientCapabilities GetClientCapabilities();
+
+    bool HasBeenSet();
+
+    void SetClientCapabilities(ClientCapabilities clientCapabilities);
 }

@@ -6,6 +6,7 @@ using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using CommonLanguageServerProtocol.Framework;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -15,13 +16,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 /// <summary>
 /// Request handler type exposed to typescript.
 /// </summary>
-internal abstract class AbstractVSTypeScriptRequestHandler<TRequestType, TResponseType> : IRequestHandler<TRequestType, TResponseType>, IVSTypeScriptRequestHandler
+internal abstract class AbstractVSTypeScriptRequestHandler<TRequestType, TResponseType> : IRoslynRequestHandler<TRequestType, TResponseType>, IVSTypeScriptRequestHandler
 {
-    bool IRequestHandler.MutatesSolutionState => MutatesSolutionState;
+    bool IRequestHandler<RequestContext>.MutatesSolutionState => MutatesSolutionState;
 
-    bool IRequestHandler.RequiresLSPSolution => RequiresLSPSolution;
+    bool IRequestHandler<RequestContext>.RequiresLSPSolution => RequiresLSPSolution;
 
-    TextDocumentIdentifier? IRequestHandler<TRequestType, TResponseType>.GetTextDocumentIdentifier(TRequestType request)
+    public TextDocumentIdentifier? GetTextDocumentIdentifier(TRequestType request)
     {
         var typeScriptIdentifier = GetTypeSciptTextDocumentIdentifier(request);
         if (typeScriptIdentifier == null)
@@ -45,7 +46,7 @@ internal abstract class AbstractVSTypeScriptRequestHandler<TRequestType, TRespon
         return textDocumentIdentifier;
     }
 
-    Task<TResponseType> IRequestHandler<TRequestType, TResponseType>.HandleRequestAsync(TRequestType request, RequestContext context, CancellationToken cancellationToken)
+    public Task<TResponseType> HandleRequestAsync(TRequestType request, RequestContext context, CancellationToken cancellationToken)
     {
         return HandleRequestAsync(request, new TypeScriptRequestContext(context.Solution, context.Document), cancellationToken);
     }

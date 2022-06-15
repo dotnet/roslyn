@@ -6,19 +6,9 @@ using System;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
-    internal interface ILspLogger : ILspService
+    internal class NoOpLspLogger : IRoslynLspLogger
     {
-        void TraceInformation(string message);
-        void TraceWarning(string message);
-        void TraceError(string message);
-        void TraceException(Exception exception);
-        void TraceStart(string message);
-        void TraceStop(string message);
-    }
-
-    internal class NoOpLspLogger : ILspLogger
-    {
-        public static readonly ILspLogger Instance = new NoOpLspLogger();
+        public static readonly IRoslynLspLogger Instance = new NoOpLspLogger();
 
         private NoOpLspLogger() { }
 

@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
     [ExportStatelessXamlLspService(typeof(FoldingRangesHandler)), Shared]
     [Method(Methods.TextDocumentFoldingRangeName)]
-    internal class FoldingRangesHandler : IRequestHandler<FoldingRangeParams, FoldingRange[]>
+    internal class FoldingRangesHandler : IRoslynRequestHandler<FoldingRangeParams, FoldingRange[]>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

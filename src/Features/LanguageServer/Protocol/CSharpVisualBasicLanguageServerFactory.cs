@@ -3,8 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
+using System.IO;
 using System.Linq;
+using CommonLanguageServerProtocol.Framework;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -28,18 +31,28 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             _listenerProvider = listenerProvider;
         }
 
-        public ILanguageServerTarget Create(
+        public ILanguageServer Create(
             JsonRpc jsonRpc,
             ICapabilitiesProvider capabilitiesProvider,
-            ILspLogger logger)
+            IRoslynLspLogger logger)
         {
-            return new LanguageServerTarget(
+            var clientCapabilityProvider = new ClientCapabilityProvider();
+
+            return new RoslynLanguageServerTarget(
                 _lspServiceProvider, jsonRpc,
                 capabilitiesProvider,
                 _listenerProvider,
                 logger,
                 ProtocolConstants.RoslynLspLanguages,
-                WellKnownLspServerKinds.CSharpVisualBasicLspServer);
+                WellKnownLspServerKinds.CSharpVisualBasicLspServer,
+                clientCapabilityProvider,
+                RoslynLanguageServerTarget.GetBaseServices(jsonRpc, logger, clientCapabilityProvider));
+        }
+
+        public ILanguageServer Create(Stream input, Stream output, ICapabilitiesProvider capabilitiesProvider, IRoslynLspLogger logger)
+        {
+            var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(output, input));
+            return Create(jsonRpc, capabilitiesProvider, logger);
         }
     }
 }

@@ -6,16 +6,16 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using CommonLanguageServerProtocol.Framework;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.LanguageServer.Handler.RequestExecutionQueue;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     /// <summary>
-    /// Context for requests handled by <see cref="IRequestHandler"/>
+    /// Context for requests handled by <see cref="IRequestHandler{TResponseContextType}"/>
     /// </summary>
     internal readonly struct RequestContext
     {
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// </remarks>
         private readonly ImmutableDictionary<Uri, SourceText> _trackedDocuments;
 
-        private readonly LspServices _lspServices;
+        private readonly ILspServices _lspServices;
 
         /// <summary>
         /// The solution state that the request should operate on, if the handler requires an LSP solution, or <see langword="null"/> otherwise
@@ -49,10 +49,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// <summary>
         /// The LSP server handling the request.
         /// </summary>
-        public readonly WellKnownLspServerKinds ServerKind;
+        public readonly string ServerKind;
 
         /// <summary>
-        /// The document that the request is for, if applicable. This comes from the <see cref="TextDocumentIdentifier"/> returned from the handler itself via a call to <see cref="IRequestHandler{RequestType, ResponseType}.GetTextDocumentIdentifier(RequestType)"/>.
+        /// The document that the request is for, if applicable. This comes from the <see cref="TextDocumentIdentifier"/> returned from the handler itself via a call to <see cref="IRequestHandler{RequestType, ResponseType, TResponseContextType}.GetTextDocumentIdentifier(RequestType)"/>.
         /// </summary>
         public readonly Document? Document;
 
@@ -72,12 +72,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             Solution? solution,
             ILspLogger logger,
             ClientCapabilities clientCapabilities,
-            WellKnownLspServerKinds serverKind,
+            string serverKind,
             Document? document,
             IDocumentChangeTracker documentChangeTracker,
             ImmutableDictionary<Uri, SourceText> trackedDocuments,
             ImmutableArray<string> supportedLanguages,
-            LspServices lspServices,
+            ILspServices lspServices,
             CancellationToken queueCancellationToken)
         {
             Document = document;
@@ -96,15 +96,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             bool requiresLSPSolution,
             bool mutatesSolutionState,
             TextDocumentIdentifier? textDocument,
-            WellKnownLspServerKinds serverKind,
+            string serverKind,
             ClientCapabilities clientCapabilities,
             ImmutableArray<string> supportedLanguages,
-            LspServices lspServices,
+            ILspServices lspServices,
+            ILspLogger logger,
             CancellationToken queueCancellationToken,
             CancellationToken requestCancellationToken)
         {
             var lspWorkspaceManager = lspServices.GetRequiredService<LspWorkspaceManager>();
-            var logger = lspServices.GetRequiredService<ILspLogger>();
             var documentChangeTracker = mutatesSolutionState ? (IDocumentChangeTracker)lspWorkspaceManager : new NonMutatingDocumentChangeTracker();
 
             // Retrieve the current LSP tracked text as of this request.

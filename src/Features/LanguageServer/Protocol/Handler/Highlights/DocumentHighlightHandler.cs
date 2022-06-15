@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportCSharpVisualBasicStatelessLspService(typeof(DocumentHighlightsHandler)), Shared]
     [Method(Methods.TextDocumentDocumentHighlightName)]
-    internal class DocumentHighlightsHandler : IRequestHandler<TextDocumentPositionParams, DocumentHighlight[]?>
+    internal class DocumentHighlightsHandler : IRoslynRequestHandler<TextDocumentPositionParams, DocumentHighlight[]?>
     {
         private readonly IHighlightingService _highlightingService;
         private readonly IGlobalOptionService _globalOptions;

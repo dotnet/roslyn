@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     [ExportCSharpVisualBasicStatelessLspService(typeof(HoverHandler)), Shared]
     [Method(Methods.TextDocumentHoverName)]
-    internal sealed class HoverHandler : IRequestHandler<TextDocumentPositionParams, Hover?>
+    internal sealed class HoverHandler : IRoslynRequestHandler<TextDocumentPositionParams, Hover?>
     {
         private readonly IGlobalOptionService _globalOptions;
 

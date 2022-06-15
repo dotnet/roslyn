@@ -7,6 +7,7 @@ using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using CommonLanguageServerProtocol.Framework;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
@@ -42,10 +43,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             _threadingContext = threadingContext;
         }
 
-        public async Task<ILspLogger> CreateLoggerAsync(string serverTypeName, JsonRpc jsonRpc, CancellationToken cancellationToken)
+        public async Task<IRoslynLspLogger> CreateLoggerAsync(string serverTypeName, JsonRpc jsonRpc, CancellationToken cancellationToken)
         {
             var logName = $"Roslyn.{serverTypeName}.{Interlocked.Increment(ref s_logHubSessionId)}";
-            var logId = new LogId(logName, new ServiceMoniker(typeof(LanguageServerTarget).FullName));
+            var logId = new LogId(logName, new ServiceMoniker(typeof(LanguageServerTarget<>).FullName));
 
             var serviceContainer = await _asyncServiceProvider.GetServiceAsync<SVsBrokeredServiceContainer, IBrokeredServiceContainer>(_threadingContext.JoinableTaskFactory).ConfigureAwait(false);
             var service = serviceContainer.GetFullAccessServiceBroker();

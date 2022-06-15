@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportCSharpVisualBasicStatelessLspService(typeof(SignatureHelpHandler)), Shared]
     [Method(LSP.Methods.TextDocumentSignatureHelpName)]
-    internal class SignatureHelpHandler : IRequestHandler<LSP.TextDocumentPositionParams, LSP.SignatureHelp?>
+    internal class SignatureHelpHandler : IRoslynRequestHandler<LSP.TextDocumentPositionParams, LSP.SignatureHelp?>
     {
         private readonly IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> _allProviders;
         private readonly IGlobalOptionService _globalOptions;

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportCSharpVisualBasicStatelessLspService(typeof(FoldingRangesHandler)), Shared]
     [Method(Methods.TextDocumentFoldingRangeName)]
-    internal sealed class FoldingRangesHandler : IRequestHandler<FoldingRangeParams, FoldingRange[]?>
+    internal sealed class FoldingRangesHandler : IRoslynRequestHandler<FoldingRangeParams, FoldingRange[]?>
     {
         private readonly IGlobalOptionService _globalOptions;
 

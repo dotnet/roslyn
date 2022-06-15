@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Commands
 {
-    internal abstract class AbstractExecuteWorkspaceCommandHandler : IRequestHandler<ExecuteCommandParams, object>
+    internal abstract class AbstractExecuteWorkspaceCommandHandler : IRoslynRequestHandler<ExecuteCommandParams, object>
     {
         public abstract string Command { get; }
 

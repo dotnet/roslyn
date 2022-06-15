@@ -2,15 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Threading;
+using System;
+using System.Collections.Generic;
+using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 using CommonLanguageServerProtocol.Framework;
-using StreamJsonRpc;
 
-namespace Microsoft.CodeAnalysis.LanguageServer
+namespace Microsoft.CodeAnalysis.LanguageServer;
+
+public interface IOnLanguageServerStarted
 {
-    internal interface ILspLoggerFactory
-    {
-        Task<IRoslynLspLogger> CreateLoggerAsync(string serverTypeName, JsonRpc jsonRpc, CancellationToken cancellationToken);
-    }
+    Task OnStartedAsync(ILanguageServer server, CancellationToken cancellationToken);
 }

@@ -8,11 +8,11 @@ using System.Composition;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [MetadataAttribute]
-    [AttributeUsage(AttributeTargets.Class)]
-    internal class MethodAttribute : Attribute
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface)]
+    public class MethodAttribute : Attribute
     {
         /// <summary>
-        /// Contains the method that this <see cref="IRequestHandler"/> implements.
+        /// Contains the method that this <see cref="IRequestHandler{RequestContextType}"/> implements.
         /// </summary>
         public string Method { get; }
 

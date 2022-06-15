@@ -16,8 +16,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
-    [ExportCSharpVisualBasicLspServiceFactory(typeof(RequestDispatcher)), Shared]
-    internal class RequestDispatcherFactory : ILspServiceFactory
+    [ExportCSharpVisualBasicLspServiceFactory(typeof(RequestDispatcher<RequestContext>)), Shared]
+    public class RequestDispatcherFactory : ILspServiceFactory
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public virtual ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
         {
-            return new RequestDispatcher(lspServices);
+            return new RequestDispatcher<RequestContext>(lspServices);
         }
     }
 }

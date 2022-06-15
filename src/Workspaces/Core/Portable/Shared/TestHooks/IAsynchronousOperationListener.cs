@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.Shared.TestHooks
 {
-    internal interface IAsynchronousOperationListener : IExpeditableDelaySource
+    public interface IAsynchronousOperationListener : IExpeditableDelaySource
     {
         IAsyncToken BeginAsyncOperation(string name, object? tag = null, [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0);
     }

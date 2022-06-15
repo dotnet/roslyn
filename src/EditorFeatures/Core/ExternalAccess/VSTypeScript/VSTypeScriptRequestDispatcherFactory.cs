@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.LanguageServer;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 
-[ExportLspServiceFactory(typeof(RequestDispatcher), ProtocolConstants.TypeScriptLanguageContract), Shared]
+[ExportLspServiceFactory(typeof(RequestDispatcher<>), ProtocolConstants.TypeScriptLanguageContract), Shared]
 internal class VSTypeScriptRequestDispatcherFactory : RequestDispatcherFactory
 {
     [ImportingConstructor]

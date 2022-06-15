@@ -8,9 +8,10 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics;
+using CommonLanguageServerProtocol.Framework;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Client;
@@ -36,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         /// <summary>
         /// Created when <see cref="ActivateAsync"/> is called.
         /// </summary>
-        private LanguageServerTarget? _languageServer;
+        private LanguageServerTarget<RequestContext>? _languageServer;
 
         /// <summary>
         /// Gets the name of the language client (displayed to the user).
@@ -157,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
 
-            _languageServer = (LanguageServerTarget)await CreateAsync(
+            _languageServer = (LanguageServerTarget<RequestContext>)await CreateAsync<RequestContext>(
                 this,
                 serverStream,
                 serverStream,
@@ -190,12 +191,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             return Task.CompletedTask;
         }
 
-        internal static async Task<ILanguageServerTarget> CreateAsync(
+        internal static async Task<ILanguageServer> CreateAsync<RequestContextType>(
             AbstractInProcLanguageClient languageClient,
             Stream inputStream,
             Stream outputStream,
             ILspLoggerFactory lspLoggerFactory,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken) where RequestContextType : struct
         {
             var jsonMessageFormatter = new JsonMessageFormatter();
             VSInternalExtensionUtilities.AddVSInternalExtensionConverters(jsonMessageFormatter.JsonSerializer);
@@ -208,29 +209,38 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             var serverTypeName = languageClient.GetType().Name;
 
             var logger = await lspLoggerFactory.CreateLoggerAsync(serverTypeName, jsonRpc, cancellationToken).ConfigureAwait(false);
+            
+            if (logger is not IRoslynLspLogger roslynLogger)
+            {
+                throw new NotImplementedException();
+            }
 
             var server = languageClient.Create(
                 jsonRpc,
                 languageClient,
-                logger);
+                roslynLogger);
 
             jsonRpc.StartListening();
             return server;
         }
 
-        public ILanguageServerTarget Create(
+        public ILanguageServer Create(
             JsonRpc jsonRpc,
             ICapabilitiesProvider capabilitiesProvider,
-            ILspLogger logger)
+            IRoslynLspLogger logger)
         {
-            return new LanguageServerTarget(
+            var clientCapabilitiesProvider = new ClientCapabilityProvider();
+
+            return new RoslynLanguageServerTarget(
                 _lspServiceProvider,
                 jsonRpc,
                 capabilitiesProvider,
                 _listenerProvider,
                 logger,
                 SupportedLanguages,
-                ServerKind);
+                ServerKind,
+                clientCapabilitiesProvider,
+                RoslynLanguageServerTarget.GetBaseServices(jsonRpc, logger, clientCapabilitiesProvider));
         }
 
         public abstract ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities);
