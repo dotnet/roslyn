@@ -432,8 +432,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             var dependencyGraph = solution.GetProjectDependencyGraph();
             var projectsThatTransitivelyDependOnThisProject = dependencyGraph.GetProjectsThatTransitivelyDependOnThisProject(project.Id);
 
-            viableProjects.RemoveAll(projectsThatTransitivelyDependOnThisProject.Select(id =>
-                solution.GetRequiredProject(id)));
+            viableProjects.RemoveAll(projectsThatTransitivelyDependOnThisProject.Select(solution.GetRequiredProject));
 
             // We also aren't interested in any projects we're already directly referencing.
             viableProjects.RemoveAll(project.ProjectReferences.Select(r => solution.GetRequiredProject(r.ProjectId)));
