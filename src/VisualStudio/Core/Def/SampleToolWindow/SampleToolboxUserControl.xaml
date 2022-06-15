@@ -104,9 +104,6 @@
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" MouseDown="JumpToContent">
                         <imaging:CrispImage Moniker="{Binding ImgMoniker}" Margin="0, 0, 5, 0" />
                         <TextBlock Text="{Binding Name}" />
-                        <TextBlock Text=" [" />
-                        <TextBlock Text="{Binding Children.Count}" />
-                        <TextBlock Text="]" />
                     </StackPanel>
                 </HierarchicalDataTemplate>
                 <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}"
