@@ -16,8 +16,6 @@ using Microsoft.CodeAnalysis.Editor.Host;
 
 namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     internal class StackTraceExplorerViewModel : ViewModelBase
     {
         private readonly IThreadingContext _threadingContext;

@@ -23,8 +23,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetry
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
     internal class VisualStudioProjectTelemetryService
         : ForegroundThreadAffinitizedObject, IProjectTelemetryListener, IEventListener<object>, IDisposable

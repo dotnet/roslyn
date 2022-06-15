@@ -9,8 +9,6 @@ using Microsoft.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     internal class OpenDocumentTracker<TItem>
         where TItem : TableItem
     {

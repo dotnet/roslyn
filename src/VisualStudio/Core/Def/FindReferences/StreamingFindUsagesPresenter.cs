@@ -32,8 +32,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     [Export(typeof(IStreamingFindUsagesPresenter)), Shared]
     internal partial class StreamingFindUsagesPresenter :
         ForegroundThreadAffinitizedObject, IStreamingFindUsagesPresenter

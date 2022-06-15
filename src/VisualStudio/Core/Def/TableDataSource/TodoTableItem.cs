@@ -11,8 +11,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     internal sealed class TodoTableItem : TableItem
     {
         public readonly TodoCommentData Data;

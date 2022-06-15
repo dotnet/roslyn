@@ -13,8 +13,6 @@ using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     internal static class VsTextSpanExtensions
     {
         public static async Task<VsTextSpan?> MapSpanFromSecondaryBufferToPrimaryBufferAsync(

@@ -31,8 +31,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     [Export(typeof(IViewTaggerProvider))]
     [TagType(typeof(InheritanceMarginTag))]
     [ContentType(ContentTypeNames.RoslynContentType)]

@@ -20,8 +20,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     internal sealed class ValueTrackedTreeItemViewModel : TreeItemViewModel
     {
         private bool _childrenCalculated;
