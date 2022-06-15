@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             Func<SyntaxToken, SemanticModel, ValueTask<(bool matched, CandidateReason reason)>> symbolsMatchAsync,
             CancellationToken cancellationToken)
         {
-            var tokens = await GetIdentifierTokensWithTextAsync(document, semanticModel, identifier, cancellationToken).ConfigureAwait(false);
+            var tokens = await FindMatchingIdentifierTokensAsync(document, semanticModel, identifier, cancellationToken).ConfigureAwait(false);
 
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
@@ -202,27 +202,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 cancellationToken).ConfigureAwait(false);
         }
 
-        protected static async Task<ImmutableArray<SyntaxToken>> GetIdentifierTokensWithTextAsync(Document document, SemanticModel semanticModel, string identifier, CancellationToken cancellationToken)
-        {
-            // It's very costly to walk an entire tree.  So if the tree is simple and doesn't contain
-            // any unicode escapes in it, then we do simple string matching to find the tokens.
-            var info = await SyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
-            if (!info.ProbablyContainsIdentifier(identifier))
-                return ImmutableArray<SyntaxToken>.Empty;
-
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            if (syntaxFacts == null)
-                return ImmutableArray<SyntaxToken>.Empty;
-
-            var root = await semanticModel.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-
-            SourceText? text = null;
-            if (!info.ProbablyContainsEscapedIdentifier(identifier))
-                text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-            return FindReferenceCache.GetIdentifierTokensWithText(
-                syntaxFacts, semanticModel, root, text, identifier, cancellationToken);
-        }
+        protected static Task<ImmutableArray<SyntaxToken>> FindMatchingIdentifierTokensAsync(Document document, SemanticModel semanticModel, string identifier, CancellationToken cancellationToken)
+            => FindReferenceCache.FindMatchingIdentifierTokensAsync(document, semanticModel, identifier, cancellationToken);
 
         protected static Func<SyntaxToken, SyntaxNode>? GetNamedTypeOrConstructorFindParentNodeFunction(Document document, ISymbol searchSymbol)
         {
