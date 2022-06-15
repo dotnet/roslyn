@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.FlowAnalysis
 {
-    public class PatternMatchingTest5 : CSharpTestBase
+    public class PatternMatchingTest5
     {
         public class FlowAnalysisTests : FlowTestBase
         {
