@@ -23,7 +23,9 @@ steps:
 
 - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
   displayName: Setting SourceBranchName variable
-  condition: succeeded()
+
+- powershell: Write-Host "##vso[task.setvariable variable=VisualStudio.DropName]Products/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)"
+  displayName: Setting VisualStudio.DropName variable
 
 - task: PowerShell@2
   displayName: Build
@@ -32,13 +34,14 @@ steps:
     arguments: -ci
                -restore
                -build
-               -pack
                -configuration $(BuildConfiguration)
                -officialBuildId $(Build.BuildNumber)
                -officialSkipTests true
                -officialSkipApplyOptimizationData true
                -officialSourceBranchName $(SourceBranchName)
                -officialVisualStudioDropAccessToken $(_DevDivDropAccessToken)
+               /p:RepositoryName=$(Build.Repository.Name)
+               /p:VisualStudioDropName=$(VisualStudio.DropName)
 
 - task: CopyFiles@2
   # APIScan can take a long time, so here we copy (mostly) just the product binaries and related .pdbs
