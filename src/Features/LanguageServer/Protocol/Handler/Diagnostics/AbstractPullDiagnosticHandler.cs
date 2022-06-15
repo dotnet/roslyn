@@ -89,10 +89,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         protected abstract ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Creates the <see cref="VSInternalDiagnosticReport"/> instance we'll report back to clients to let them know our
-        /// progress.  Subclasses can fill in data specific to their needs as appropriate.
+        /// Creates the appropriate LSP type to report a new set of diagnostics and resultId.
         /// </summary>
-        protected abstract TReport CreateReport(TextDocumentIdentifier identifier, LSP.Diagnostic[]? diagnostics, string? resultId);
+        protected abstract TReport CreateReport(TextDocumentIdentifier identifier, LSP.Diagnostic[] diagnostics, string resultId);
+
+        /// <summary>
+        /// Creates the appropriate LSP type to report unchanged diagnostics.
+        /// </summary>
+        protected abstract TReport CreateUnchangedReport(TextDocumentIdentifier identifier, string resultId);
+
+        /// <summary>
+        /// Creates the appropriate LSP type to report a removed file.
+        /// </summary>
+        protected abstract TReport CreateRemovedReport(TextDocumentIdentifier identifier);
 
         protected abstract TReturn? CreateReturn(BufferedProgress<TReport> progress);
 
@@ -157,7 +166,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     // same-result-id) response to the client as that means they should just preserve the current
                     // diagnostics they have for this file.
                     var previousParams = documentToPreviousDiagnosticParams[diagnosticSource.GetId()];
-                    progress.Report(CreateReport(previousParams.TextDocument, diagnostics: null, previousParams.PreviousResultId));
+                    progress.Report(CreateUnchangedReport(previousParams.TextDocument, previousParams.PreviousResultId));
                 }
             }
 
@@ -209,6 +218,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     return new ProjectOrDocumentId(project.Id);
                 }
 
+                var additionalDocument = solution.GetAdditionalDocument(textDocumentIdentifier);
+                if (additionalDocument != null)
+                {
+                    return new ProjectOrDocumentId(additionalDocument.Id);
+                }
+
                 return null;
             }
         }
@@ -254,7 +269,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 // the workspace). Report a (null-diagnostics, null-result-id) response to the client as that
                 // means they should just consider the file deleted and should remove all diagnostics
                 // information they've cached for it.
-                progress.Report(CreateReport(removedResult.TextDocument, diagnostics: null, resultId: null));
+                progress.Report(CreateRemovedReport(removedResult.TextDocument));
             }
         }
 
