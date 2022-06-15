@@ -145,6 +145,56 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+        public async Task ConvertIfToSwitchStatement_Nested_FixAllInDocument()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int M(int i, int j)
+    {
+        {|FixAllInDocument:|}if (i == 3)
+        {
+            return 0;
+        }
+        else
+        {
+            if (j == 6)
+            {
+                if (i == 6) return 1;
+                if (i == 7) return 2;
+                return 3;
+            }
+        }
+    }
+}",
+@"class C
+{
+    int M(int i, int j)
+    {
+        switch (i)
+        {
+            case 3:
+                return 0;
+            default:
+                if (j == 6)
+                {
+                    switch (i)
+                    {
+                        case 6:
+                            return 1;
+                        case 7:
+                            return 2;
+                        default:
+                            return 3;
+                    }
+                }
+                break;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task ConvertIfToSwitchStatement_FixAllInProject()
         {
             await TestInRegularAndScriptAsync(
