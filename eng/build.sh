@@ -36,6 +36,7 @@ usage()
   echo "  --prepareMachine           Prepare machine for CI run, clean up processes after build"
   echo "  --warnAsError              Treat all warnings as errors"
   echo "  --sourceBuild              Simulate building for source-build"
+  echo "  --build-full-solution      Build Roslyn.sln instead of Compilers.sln"
   echo ""
   echo "Command line arguments starting with '/p:' are passed through to MSBuild."
 }
@@ -74,7 +75,7 @@ prepare_machine=false
 warn_as_error=false
 properties=""
 source_build=false
-
+build_full_solution=false
 args=""
 
 if [[ $# = 0 ]]
@@ -99,6 +100,9 @@ while [[ $# > 0 ]]; do
       verbosity=$2
       args="$args $1"
       shift
+      ;;
+    --build-full-solution)
+      build_full_solution=true
       ;;
     --binarylog|-bl)
       binary_log=true
@@ -204,7 +208,11 @@ function MakeBootstrapBuild {
 
 function BuildSolution {
   local solution="Compilers.sln"
+  if [[ "$build_full_solution"  = true ]]; then
+    solution="Roslyn.sln"
+  fi
   echo "$solution:"
+  
 
   InitializeToolset
   local toolset_build_proj=$_InitializeToolset
