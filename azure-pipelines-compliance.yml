@@ -34,29 +34,29 @@ steps:
 - task: PowerShell@2
   displayName: Build
   inputs:
-  filePath: eng/build.ps1
-  arguments: -ci
-              -restore
-              -build
-              -pack
-              -sign
-              -configuration $(BuildConfiguration)
-              -officialBuildId $(Build.BuildNumber)
-              -officialSkipTests=true
-              -officialSkipApplyOptimizationData=true
-              -officialSourceBranchName $(SourceBranchName)
-              -officialIbcDrop $(IbcDrop)
-              /p:RepositoryName=$(Build.Repository.Name)
-              /p:VisualStudioDropName=$(VisualStudio.DropName)
-              /p:DotNetSignType=$(SignType)
-              /p:DotNetPublishToBlobFeed=false
-              /p:PublishToSymbolServer=false
-              /p:DotNetSymbolServerTokenMsdl=$(microsoft-symbol-server-pat)
-              /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
-              /p:DotNetArtifactsCategory=$(_DotNetArtifactsCategory)
-              /p:DotnetPublishUsingPipelines=false
-              /p:PreReleaseVersionLabel=compliance
-              /p:IgnoreIbcMergeErrors=true
+    filePath: eng/build.ps1
+    arguments: -ci
+               -restore
+               -build
+               -pack
+               -sign
+               -configuration $(BuildConfiguration)
+               -officialBuildId $(Build.BuildNumber)
+               -officialSkipTests=true
+               -officialSkipApplyOptimizationData=true
+               -officialSourceBranchName $(SourceBranchName)
+               -officialIbcDrop $(IbcDrop)
+               /p:RepositoryName=$(Build.Repository.Name)
+               /p:VisualStudioDropName=$(VisualStudio.DropName)
+               /p:DotNetSignType=$(SignType)
+               /p:DotNetPublishToBlobFeed=false
+               /p:PublishToSymbolServer=false
+               /p:DotNetSymbolServerTokenMsdl=$(microsoft-symbol-server-pat)
+               /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
+               /p:DotNetArtifactsCategory=$(_DotNetArtifactsCategory)
+               /p:DotnetPublishUsingPipelines=false
+               /p:PreReleaseVersionLabel=compliance
+               /p:IgnoreIbcMergeErrors=true
 
 - task: CopyFiles@2
   # APIScan can take a long time, so here we copy (mostly) just the product binaries and related .pdbs
