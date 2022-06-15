@@ -3149,5 +3149,39 @@ public static readonly string F = ""a""
             Assert.Empty(result.GeneratedSources);
             Assert.Empty(result.Diagnostics);
         }
+
+        [Fact]
+        public void Post_Init_Trees_Are_Reparsed_When_ParseOptions_Change()
+        {
+            var source = "class C{}";
+            var postInitSource = "class D {  (int, bool) _field; }";
+
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var generator = new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterPostInitializationOutput(c => c.AddSource("D", postInitSource));
+            }).AsSourceGenerator();
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out var diagnostics);
+            Assert.Empty(diagnostics);
+
+            // change the parse options so that the tree is no longer accepted
+            parseOptions = parseOptions.WithLanguageVersion(LanguageVersion.CSharp1);
+            compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            driver = driver.WithUpdatedParseOptions(parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out diagnostics);
+            diagnostics.Verify();
+
+            // change them back to something where it is supported
+            parseOptions = parseOptions.WithLanguageVersion(LanguageVersion.CSharp8);
+            compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            driver = driver.WithUpdatedParseOptions(parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out diagnostics);
+            Assert.Empty(diagnostics);
+        }
     }
 }

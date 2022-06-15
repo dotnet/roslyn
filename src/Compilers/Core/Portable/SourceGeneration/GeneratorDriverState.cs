@@ -21,7 +21,8 @@ namespace Microsoft.CodeAnalysis
                                       SyntaxStore syntaxStore,
                                       IncrementalGeneratorOutputKind disabledOutputs,
                                       TimeSpan runtime,
-                                      bool trackIncrementalGeneratorSteps)
+                                      bool trackIncrementalGeneratorSteps,
+                                      bool parseOptionsChanged)
         {
             Generators = sourceGenerators;
             IncrementalGenerators = incrementalGenerators;
@@ -34,6 +35,7 @@ namespace Microsoft.CodeAnalysis
             DisabledOutputs = disabledOutputs;
             RunTime = runtime;
             TrackIncrementalSteps = trackIncrementalGeneratorSteps;
+            ParseOptionsChanged = parseOptionsChanged;
             Debug.Assert(Generators.Length == GeneratorStates.Length);
             Debug.Assert(IncrementalGenerators.Length == GeneratorStates.Length);
         }
@@ -93,6 +95,8 @@ namespace Microsoft.CodeAnalysis
 
         internal readonly bool TrackIncrementalSteps;
 
+        internal readonly bool ParseOptionsChanged;
+
         internal GeneratorDriverState With(
             ImmutableArray<ISourceGenerator>? sourceGenerators = null,
             ImmutableArray<IIncrementalGenerator>? incrementalGenerators = null,
@@ -116,7 +120,8 @@ namespace Microsoft.CodeAnalysis
                 syntaxStore ?? this.SyntaxStore,
                 disabledOutputs ?? this.DisabledOutputs,
                 runTime ?? this.RunTime,
-                this.TrackIncrementalSteps
+                this.TrackIncrementalSteps,
+                parseOptions is not null
                 );
         }
     }
