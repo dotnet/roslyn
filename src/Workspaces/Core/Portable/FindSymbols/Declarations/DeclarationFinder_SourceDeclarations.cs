@@ -179,14 +179,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             using var query = SearchQuery.Create(name, ignoreCase);
 
-            var result = ArrayBuilder<ISymbol>.GetInstance();
+            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var result);
             foreach (var project in solution.Projects)
             {
                 await AddCompilationDeclarationsWithNormalQueryAsync(
                     project, query, criteria, result, cancellationToken).ConfigureAwait(false);
             }
 
-            return result.ToImmutableAndFree();
+            return result.ToImmutable();
         }
 
         internal static async Task<ImmutableArray<ISymbol>> FindSourceDeclarationsWithNormalQueryInCurrentProcessAsync(
