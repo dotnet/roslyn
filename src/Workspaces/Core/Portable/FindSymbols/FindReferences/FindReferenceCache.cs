@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             public ImmutableHashSet<string>? AliasNameSet;
             public ImmutableArray<SyntaxToken> ConstructorInitializerCache;
 
-            public readonly ConcurrentDictionary<string, ImmutableArray<SyntaxToken>> IdentifierCache = new();
+            public readonly ConcurrentDictionary<string, ImmutableArray<SyntaxToken>> IdentifierCache;
             public readonly ConcurrentDictionary<SyntaxNode, SymbolInfo> SymbolInfoCache = new();
 
             public Entry(SemanticModel semanticModel)
