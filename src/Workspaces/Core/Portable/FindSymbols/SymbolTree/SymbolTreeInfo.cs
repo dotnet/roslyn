@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             ImmutableArray<Node> sortedNodes,
             Task<SpellChecker> spellCheckerTask,
             OrderPreservingMultiDictionary<string, string> inheritanceMap,
-            MultiDictionary<string, ExtensionMethodInfo> receiverTypeNameToExtensionMethodMap)
+            MultiDictionary<string, ExtensionMethodInfo>? receiverTypeNameToExtensionMethodMap)
             : this(checksum, sortedNodes, spellCheckerTask,
                    CreateIndexBasedInheritanceMap(sortedNodes, inheritanceMap),
                    receiverTypeNameToExtensionMethodMap)
@@ -496,14 +496,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             HostWorkspaceServices services, SolutionKey solutionKey, Checksum checksum,
             string filePath, ImmutableArray<BuilderNode> unsortedNodes,
             OrderPreservingMultiDictionary<string, string> inheritanceMap,
-            MultiDictionary<string, ExtensionMethodInfo> simpleMethods)
+            MultiDictionary<string, ExtensionMethodInfo>? receiverTypeNameToExtensionMethodMap)
         {
             SortNodes(unsortedNodes, out var sortedNodes);
             var createSpellCheckerTask = GetSpellCheckerAsync(
                 services, solutionKey, checksum, filePath, sortedNodes);
 
             return new SymbolTreeInfo(
-                checksum, sortedNodes, createSpellCheckerTask, inheritanceMap, simpleMethods);
+                checksum, sortedNodes, createSpellCheckerTask, inheritanceMap, receiverTypeNameToExtensionMethodMap);
         }
 
         private static OrderPreservingMultiDictionary<int, int> CreateIndexBasedInheritanceMap(

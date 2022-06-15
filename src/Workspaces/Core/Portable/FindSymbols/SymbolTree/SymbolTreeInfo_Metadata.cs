@@ -300,11 +300,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     }
                 }
 
-                var extensionMethodsMap = new MultiDictionary<string, ExtensionMethodInfo>();
-                var unsortedNodes = GenerateUnsortedNodes(extensionMethodsMap);
+                var receiverTypeNameToExtensionMethodMap = new MultiDictionary<string, ExtensionMethodInfo>();
+                var unsortedNodes = GenerateUnsortedNodes(receiverTypeNameToExtensionMethodMap);
 
                 return CreateSymbolTreeInfo(
-                    _services, _solutionKey, _checksum, _reference.FilePath, unsortedNodes, _inheritanceMap, extensionMethodsMap);
+                    _services, _solutionKey, _checksum, _reference.FilePath, unsortedNodes, _inheritanceMap, receiverTypeNameToExtensionMethodMap);
             }
 
             public void Dispose()
