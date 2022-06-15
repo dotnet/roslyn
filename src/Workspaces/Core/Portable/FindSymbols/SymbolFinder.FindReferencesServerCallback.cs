@@ -2,14 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -52,13 +51,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             public ValueTask OnFindInDocumentStartedAsync(DocumentId documentId, CancellationToken cancellationToken)
             {
-                var document = _solution.GetDocument(documentId);
+                var document = _solution.GetRequiredDocument(documentId);
                 return _progress.OnFindInDocumentStartedAsync(document, cancellationToken);
             }
 
             public ValueTask OnFindInDocumentCompletedAsync(DocumentId documentId, CancellationToken cancellationToken)
             {
-                var document = _solution.GetDocument(documentId);
+                var document = _solution.GetRequiredDocument(documentId);
                 return _progress.OnFindInDocumentCompletedAsync(document, cancellationToken);
             }
 
@@ -94,8 +93,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 SerializableReferenceLocation reference,
                 CancellationToken cancellationToken)
             {
-                SymbolGroup symbolGroup;
-                ISymbol symbol;
+                SymbolGroup? symbolGroup;
+                ISymbol? symbol;
                 lock (_gate)
                 {
                     // The definition may not be in the map if we failed to map it over using TryRehydrateAsync in OnDefinitionFoundAsync.
