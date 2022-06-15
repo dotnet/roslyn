@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
 
         protected abstract ImmutableArray<AbstractFormattingRule> GetBraceFormattingIndentationRulesAfterReturn(IndentationOptions options);
 
-        protected abstract int AdjustFormattingEndPoint(DocumentSyntax document, int startPoint, int endPoint);
+        protected abstract int AdjustFormattingEndPoint(ParsedDocument document, int startPoint, int endPoint);
 
         public sealed override async Task<BraceCompletionResult?> GetTextChangesAfterCompletionAsync(BraceCompletionContext context, IndentationOptions options, CancellationToken cancellationToken)
         {
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 return null;
             }
 
-            var documentSyntax = await DocumentSyntax.CreateAsync(context.Document, cancellationToken).ConfigureAwait(false);
+            var documentSyntax = await ParsedDocument.CreateAsync(context.Document, cancellationToken).ConfigureAwait(false);
 
             var (formattingChanges, finalCurlyBraceEnd) = FormatTrackingSpan(
                 documentSyntax,
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 closingPoint += newLineString.Length;
             }
 
-            var documentSyntax = await DocumentSyntax.CreateAsync(document.WithText(textToFormat), cancellationToken).ConfigureAwait(false);
+            var documentSyntax = await ParsedDocument.CreateAsync(document.WithText(textToFormat), cancellationToken).ConfigureAwait(false);
 
             // Format the text that contains the newly inserted line.
             var (formattingChanges, newClosingPoint) = FormatTrackingSpan(
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
         /// get the formatted text and the end of the close curly brace in the formatted text.
         /// </summary>
         private (ImmutableArray<TextChange> textChanges, int finalBraceEnd) FormatTrackingSpan(
-            DocumentSyntax document,
+            ParsedDocument document,
             HostLanguageServices languageServices,
             int openingPoint,
             int closingPoint,

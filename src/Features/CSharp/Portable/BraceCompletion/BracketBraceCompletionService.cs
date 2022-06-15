@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
 
         protected override bool IsValidClosingBraceToken(SyntaxToken token) => token.IsKind(SyntaxKind.CloseBracketToken);
 
-        protected override int AdjustFormattingEndPoint(DocumentSyntax document, int startPoint, int endPoint)
+        protected override int AdjustFormattingEndPoint(ParsedDocument document, int startPoint, int endPoint)
             => endPoint;
 
         protected override ImmutableArray<AbstractFormattingRule> GetBraceFormattingIndentationRulesAfterReturn(IndentationOptions options)

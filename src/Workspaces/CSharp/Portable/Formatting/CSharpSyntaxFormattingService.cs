@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             => _services = languageServices;
 
         public bool ShouldFormatOnTypedCharacter(
-            DocumentSyntax documentSyntax,
+            ParsedDocument documentSyntax,
             char typedChar,
             int caretPosition,
             CancellationToken cancellationToken)
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         public ImmutableArray<TextChange> GetFormattingChangesOnTypedCharacter(
-            DocumentSyntax document,
+            ParsedDocument document,
             int caretPosition,
             IndentationOptions indentationOptions,
             CancellationToken cancellationToken)
@@ -167,14 +167,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         private static IList<TextChange> FormatToken(
-            DocumentSyntax document, IndentationOptions options, SyntaxToken token, ImmutableArray<AbstractFormattingRule> formattingRules, CancellationToken cancellationToken)
+            ParsedDocument document, IndentationOptions options, SyntaxToken token, ImmutableArray<AbstractFormattingRule> formattingRules, CancellationToken cancellationToken)
         {
             var formatter = new CSharpSmartTokenFormatter(options, formattingRules, (CompilationUnitSyntax)document.Root, document.Text);
             return formatter.FormatToken(token, cancellationToken);
         }
 
         private static ImmutableArray<TextChange> FormatRange(
-            DocumentSyntax document,
+            ParsedDocument document,
             IndentationOptions options,
             SyntaxToken endToken,
             ImmutableArray<AbstractFormattingRule> formattingRules,
@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                    token.IsKind(SyntaxKind.EndOfFileToken);
         }
 
-        private ImmutableArray<AbstractFormattingRule> GetFormattingRules(DocumentSyntax document, int position, SyntaxToken tokenBeforeCaret)
+        private ImmutableArray<AbstractFormattingRule> GetFormattingRules(ParsedDocument document, int position, SyntaxToken tokenBeforeCaret)
         {
             var formattingRuleFactory = _services.WorkspaceServices.GetRequiredService<IHostDependentFormattingRuleFactoryService>();
             return ImmutableArray.Create(formattingRuleFactory.CreateRule(document, position))
@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                                  .AddRange(Formatter.GetDefaultFormattingRules(_services));
         }
 
-        public ImmutableArray<TextChange> GetFormattingChangesOnPaste(DocumentSyntax document, TextSpan textSpan, SyntaxFormattingOptions options, CancellationToken cancellationToken)
+        public ImmutableArray<TextChange> GetFormattingChangesOnPaste(ParsedDocument document, TextSpan textSpan, SyntaxFormattingOptions options, CancellationToken cancellationToken)
         {
             var formattingSpan = CommonFormattingHelpers.GetFormattingSpan(document.Root, textSpan);
             var service = _services.GetRequiredService<ISyntaxFormattingService>();

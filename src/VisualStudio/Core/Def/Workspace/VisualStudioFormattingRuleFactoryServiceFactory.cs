@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private static bool IsContainedDocument(DocumentId documentId)
             => ContainedDocument.TryGetContainedDocument(documentId) != null;
 
-        public AbstractFormattingRule CreateRule(DocumentSyntax document, int position)
+        public AbstractFormattingRule CreateRule(ParsedDocument document, int position)
         {
             var containedDocument = ContainedDocument.TryGetContainedDocument(document.Id);
             if (containedDocument == null)

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         public bool ShouldUseBaseIndentation(DocumentId documentId)
             => false;
 
-        public AbstractFormattingRule CreateRule(DocumentSyntax document, int position)
+        public AbstractFormattingRule CreateRule(ParsedDocument document, int position)
             => NoOpFormattingRule.Instance;
 
         public IEnumerable<TextChange> FilterFormattedChanges(DocumentId document, TextSpan span, IList<TextChange> changes)

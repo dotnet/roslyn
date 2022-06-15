@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 return VSConstants.E_FAIL;
             }
 
-            var documentSyntax = DocumentSyntax.CreateSynchronously(document, cancellationToken);
+            var documentSyntax = ParsedDocument.CreateSynchronously(document, cancellationToken);
             var text = documentSyntax.Text;
             var root = documentSyntax.Root;
             var formattingOptions = document.GetSyntaxFormattingOptionsAsync(GlobalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken);

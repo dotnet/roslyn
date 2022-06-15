@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         {
             Contract.ThrowIfFalse(document.Project.Language is LanguageNames.CSharp);
             var formattingService = document.GetRequiredLanguageService<ISyntaxFormattingService>();
-            var documentSyntax = await DocumentSyntax.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+            var documentSyntax = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
             if (!formattingService.ShouldFormatOnTypedCharacter(documentSyntax, typedChar, position, cancellationToken))
             {
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         {
             Contract.ThrowIfFalse(document.Project.Language is LanguageNames.CSharp);
             var formattingService = document.GetRequiredLanguageService<ISyntaxFormattingService>();
-            var documentSyntax = await DocumentSyntax.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+            var documentSyntax = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
             if (!formattingService.ShouldFormatOnTypedCharacter(documentSyntax, typedChar, position, cancellationToken))
             {

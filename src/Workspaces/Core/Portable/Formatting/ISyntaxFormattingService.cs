@@ -14,8 +14,8 @@ namespace Microsoft.CodeAnalysis.Formatting
 {
     internal interface ISyntaxFormattingService : ISyntaxFormatting, ILanguageService
     {
-        bool ShouldFormatOnTypedCharacter(DocumentSyntax document, char typedChar, int caretPosition, CancellationToken cancellationToken);
-        ImmutableArray<TextChange> GetFormattingChangesOnTypedCharacter(DocumentSyntax document, int caretPosition, IndentationOptions indentationOptions, CancellationToken cancellationToken);
-        ImmutableArray<TextChange> GetFormattingChangesOnPaste(DocumentSyntax document, TextSpan textSpan, SyntaxFormattingOptions options, CancellationToken cancellationToken);
+        bool ShouldFormatOnTypedCharacter(ParsedDocument document, char typedChar, int caretPosition, CancellationToken cancellationToken);
+        ImmutableArray<TextChange> GetFormattingChangesOnTypedCharacter(ParsedDocument document, int caretPosition, IndentationOptions indentationOptions, CancellationToken cancellationToken);
+        ImmutableArray<TextChange> GetFormattingChangesOnPaste(ParsedDocument document, TextSpan textSpan, SyntaxFormattingOptions options, CancellationToken cancellationToken);
     }
 }

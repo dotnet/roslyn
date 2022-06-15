@@ -3576,7 +3576,7 @@ class Program{
             var position = testDocument.CursorPosition.Value;
 
             var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
-            var documentSyntax = await DocumentSyntax.CreateAsync(document, CancellationToken.None);
+            var documentSyntax = await ParsedDocument.CreateAsync(document, CancellationToken.None);
             var rules = Formatter.GetDefaultFormattingRules(document);
 
             var root = (CompilationUnitSyntax)await document.GetSyntaxRootAsync();

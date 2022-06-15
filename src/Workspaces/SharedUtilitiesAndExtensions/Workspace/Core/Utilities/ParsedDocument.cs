@@ -9,23 +9,23 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis;
 
-internal readonly record struct DocumentSyntax(DocumentId Id, SourceText Text, SyntaxNode Root)
+internal readonly record struct ParsedDocument(DocumentId Id, SourceText Text, SyntaxNode Root)
 {
     public SyntaxTree SyntaxTree => Root.SyntaxTree;
 
-    public static async ValueTask<DocumentSyntax> CreateAsync(Document document, CancellationToken cancellationToken)
+    public static async ValueTask<ParsedDocument> CreateAsync(Document document, CancellationToken cancellationToken)
     {
         var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        return new DocumentSyntax(document.Id, text, root);
+        return new ParsedDocument(document.Id, text, root);
     }
 
 #if !CODE_STYLE
-    public static DocumentSyntax CreateSynchronously(Document document, CancellationToken cancellationToken)
+    public static ParsedDocument CreateSynchronously(Document document, CancellationToken cancellationToken)
     {
         var text = document.GetTextSynchronously(cancellationToken);
         var root = document.GetRequiredSyntaxRootSynchronously(cancellationToken);
-        return new DocumentSyntax(document.Id, text, root);
+        return new ParsedDocument(document.Id, text, root);
     }
 #endif
 }

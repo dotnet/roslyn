@@ -44,9 +44,9 @@ namespace Microsoft.CodeAnalysis.Indentation
             var syntaxFormatting = this.SyntaxFormatting;
 
 #if CODE_STYLE
-            var documentSyntax = DocumentSyntax.CreateAsync(document, cancellationToken).AsTask().WaitAndGetResult_CanCallOnBackground(cancellationToken);
+            var documentSyntax = ParsedDocument.CreateAsync(document, cancellationToken).AsTask().WaitAndGetResult_CanCallOnBackground(cancellationToken);
 #else
-            var documentSyntax = DocumentSyntax.CreateSynchronously(document, cancellationToken);
+            var documentSyntax = ParsedDocument.CreateSynchronously(document, cancellationToken);
 #endif
 
             var lineToBeIndented = documentSyntax.Text.Lines[lineNumber];

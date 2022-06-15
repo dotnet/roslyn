@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             public bool ShouldNotFormatOrCommitOnPaste(DocumentId documentId)
                 => UseBaseIndentation;
 
-            public AbstractFormattingRule CreateRule(DocumentSyntax document, int position)
+            public AbstractFormattingRule CreateRule(ParsedDocument document, int position)
             {
                 if (BaseIndentation == 0)
                 {

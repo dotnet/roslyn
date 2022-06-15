@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
         protected override bool IsValidClosingBraceToken(SyntaxToken token)
             => token.IsKind(SyntaxKind.CloseBraceToken);
 
-        protected override int AdjustFormattingEndPoint(DocumentSyntax document, int startPoint, int endPoint)
+        protected override int AdjustFormattingEndPoint(ParsedDocument document, int startPoint, int endPoint)
         {
             // Only format outside of the completed braces if they're on the same line for array/collection/object initializer expressions.
             // Example:   `var x = new int[]{}`:

@@ -21,15 +21,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Public Sub New()
         End Sub
 
-        Public Function ShouldFormatOnTypedCharacter(document As DocumentSyntax, typedChar As Char, caretPosition As Integer, cancellationToken As CancellationToken) As Boolean Implements ISyntaxFormattingService.ShouldFormatOnTypedCharacter
+        Public Function ShouldFormatOnTypedCharacter(document As ParsedDocument, typedChar As Char, caretPosition As Integer, cancellationToken As CancellationToken) As Boolean Implements ISyntaxFormattingService.ShouldFormatOnTypedCharacter
             Return False
         End Function
 
-        Public Function GetFormattingChangesOnTypedCharacter(document As DocumentSyntax, caretPosition As Integer, indentationOptions As IndentationOptions, cancellationToken As CancellationToken) As ImmutableArray(Of TextChange) Implements ISyntaxFormattingService.GetFormattingChangesOnTypedCharacter
+        Public Function GetFormattingChangesOnTypedCharacter(document As ParsedDocument, caretPosition As Integer, indentationOptions As IndentationOptions, cancellationToken As CancellationToken) As ImmutableArray(Of TextChange) Implements ISyntaxFormattingService.GetFormattingChangesOnTypedCharacter
             Throw ExceptionUtilities.Unreachable
         End Function
 
-        Public Function GetFormattingChangesOnPaste(document As DocumentSyntax, textSpan As TextSpan, options As SyntaxFormattingOptions, cancellationToken As CancellationToken) As ImmutableArray(Of TextChange) Implements ISyntaxFormattingService.GetFormattingChangesOnPaste
+        Public Function GetFormattingChangesOnPaste(document As ParsedDocument, textSpan As TextSpan, options As SyntaxFormattingOptions, cancellationToken As CancellationToken) As ImmutableArray(Of TextChange) Implements ISyntaxFormattingService.GetFormattingChangesOnPaste
             Throw ExceptionUtilities.Unreachable
         End Function
     End Class

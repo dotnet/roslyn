@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 return;
             }
 
-            var documentSyntax = DocumentSyntax.CreateSynchronously(document, cancellationToken);
+            var documentSyntax = ParsedDocument.CreateSynchronously(document, cancellationToken);
             var rules = FormattingRuleUtilities.GetFormattingRules(documentSyntax, document.Project.LanguageServices, span, additionalRules: null);
 
             var formatter = document.GetRequiredLanguageService<ISyntaxFormattingService>();

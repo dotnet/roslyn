@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
             var buffer = hostdoc.GetTextBuffer();
 
             var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
-            var documentSyntax = await DocumentSyntax.CreateAsync(document, CancellationToken.None).ConfigureAwait(false);
+            var documentSyntax = await ParsedDocument.CreateAsync(document, CancellationToken.None).ConfigureAwait(false);
 
             // create new buffer with cloned content
             var clonedBuffer = EditorFactory.CreateBuffer(
