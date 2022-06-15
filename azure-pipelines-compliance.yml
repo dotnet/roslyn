@@ -45,7 +45,6 @@ steps:
                -officialSkipTests=true
                -officialSkipApplyOptimizationData=true
                /p:RepositoryName=$(Build.Repository.Name)
-               /p:VisualStudioDropName=$(VisualStudio.DropName)
                /p:DotNetSignType=$(SignType)
                /p:DotNetPublishToBlobFeed=false
                /p:PublishToSymbolServer=false
