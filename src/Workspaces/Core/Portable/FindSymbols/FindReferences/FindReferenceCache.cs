@@ -131,39 +131,35 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // no reason to use text to check whether it exist first.
             var entry = GetEntry(model);
 
-            if (entry.ConstructorInitializerCache == null)
+            if (entry.ConstructorInitializerCache.IsDefault)
             {
                 var initializers = GetConstructorInitializerTokens(syntaxFacts, root, cancellationToken);
-                Interlocked.CompareExchange(ref entry.ConstructorInitializerCache, initializers, null);
+                ImmutableInterlocked.InterlockedInitialize(ref entry.ConstructorInitializerCache, initializers);
             }
 
             return entry.ConstructorInitializerCache;
         }
 
-        private static List<SyntaxToken> GetConstructorInitializerTokens(
+        private static ImmutableArray<SyntaxToken> GetConstructorInitializerTokens(
             ISyntaxFactsService syntaxFacts, SyntaxNode root, CancellationToken cancellationToken)
         {
-            var initializers = new List<SyntaxToken>();
+            using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var initializers);
             foreach (var constructor in syntaxFacts.GetConstructors(root, cancellationToken))
             {
                 foreach (var token in constructor.DescendantTokens(descendIntoTrivia: false))
                 {
-                    if (!syntaxFacts.IsThisConstructorInitializer(token) && !syntaxFacts.IsBaseConstructorInitializer(token))
-                    {
-                        continue;
-                    }
-
-                    initializers.Add(token);
+                    if (syntaxFacts.IsThisConstructorInitializer(token) || syntaxFacts.IsBaseConstructorInitializer(token))
+                        initializers.Add(token);
                 }
             }
 
-            return initializers;
+            return initializers.ToImmutable();
         }
 
         private sealed class Entry
         {
             public ImmutableHashSet<string>? AliasNameSet;
-            public List<SyntaxToken>? ConstructorInitializerCache;
+            public ImmutableArray<SyntaxToken> ConstructorInitializerCache;
 
             public readonly ConcurrentDictionary<string, ImmutableArray<SyntaxToken>> IdentifierCache = new();
             public readonly ConcurrentDictionary<SyntaxNode, SymbolInfo> SymbolInfoCache = new();
