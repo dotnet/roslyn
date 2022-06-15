@@ -36,9 +36,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static IAliasSymbol? GetAliasInfo(
             ISemanticFactsService semanticFacts, SemanticModel model, SyntaxToken token, CancellationToken cancellationToken)
         {
-            if (semanticFacts == null)
-                return model.GetAliasInfo(token.GetRequiredParent(), cancellationToken);
-
             var entry = GetEntry(model);
 
             if (entry.AliasNameSet == null)
