@@ -31,11 +31,6 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         internal static ObservableCollection<DocumentSymbolViewModel> Sort(ObservableCollection<DocumentSymbolViewModel> documentSymbolModels, SortOption sortOption)
         {
-            if (documentSymbolModels.Count <= 1)
-            {
-                return documentSymbolModels;
-            }
-
             var sortedDocumentSymbolModels = sortOption switch
             {
 

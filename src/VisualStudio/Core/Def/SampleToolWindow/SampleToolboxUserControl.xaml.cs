@@ -82,7 +82,8 @@ namespace Microsoft.VisualStudio.LanguageServices
                 }
                 else
                 {
-                    symbolTree.ItemsSource = new List<DocumentSymbolViewModel>();
+                    symbolTree.ItemsSource = new ObservableCollection<DocumentSymbolViewModel>();
+                    this.symbolsTreeItemsSource = new ObservableCollection<DocumentSymbolViewModel>();
                 }
             }).FileAndForget("Document Outline: Active Document Changed");
         }
@@ -130,9 +131,14 @@ namespace Microsoft.VisualStudio.LanguageServices
         {
             if (this.symbolTreeInitialized)
             {
-                var expandedNodes = SetIsExpanded(this.symbolsTreeItemsSource, true);
-                this.symbolsTreeItemsSource = expandedNodes;
-                symbolTree.ItemsSource = expandedNodes;
+                var documentSymbolModels = new ObservableCollection<DocumentSymbolViewModel>();
+                foreach (var documentSymbolModel in this.symbolsTreeItemsSource)
+                {
+                    documentSymbolModels.Add(SetIsExpanded(documentSymbolModel, true));
+                }
+
+                this.symbolsTreeItemsSource = documentSymbolModels;
+                symbolTree.ItemsSource = documentSymbolModels;
             }
         }
 
@@ -140,21 +146,28 @@ namespace Microsoft.VisualStudio.LanguageServices
         {
             if (this.symbolTreeInitialized)
             {
-                var collapsedNodes = SetIsExpanded(this.symbolsTreeItemsSource, false);
-                this.symbolsTreeItemsSource = collapsedNodes;
-                symbolTree.ItemsSource = collapsedNodes;
+                var documentSymbolModels = new ObservableCollection<DocumentSymbolViewModel>();
+                foreach (var documentSymbolModel in this.symbolsTreeItemsSource)
+                {
+                    documentSymbolModels.Add(SetIsExpanded(documentSymbolModel, false));
+                }
+
+                this.symbolsTreeItemsSource = documentSymbolModels;
+                symbolTree.ItemsSource = documentSymbolModels;
             }
         }
 
-        private ObservableCollection<DocumentSymbolViewModel> SetIsExpanded(ObservableCollection<DocumentSymbolViewModel> documentSymbolModels, bool isExpanded)
+        private DocumentSymbolViewModel SetIsExpanded(DocumentSymbolViewModel documentSymbolModel, bool isExpanded)
         {
-            foreach (var documentSymbolModel in documentSymbolModels)
+            documentSymbolModel.IsExpanded = isExpanded;
+            var documentSymbolModelChildren = new ObservableCollection<DocumentSymbolViewModel>();
+            foreach (var documentSymbolModelChild in documentSymbolModel.Children)
             {
-                documentSymbolModel.IsExpanded = isExpanded;
-                documentSymbolModel.Children = SetIsExpanded(documentSymbolModel.Children, isExpanded);
+                documentSymbolModelChildren.Add(SetIsExpanded(documentSymbolModelChild, isExpanded));
             }
 
-            return documentSymbolModels;
+            documentSymbolModel.Children = documentSymbolModelChildren;
+            return documentSymbolModel;
         }
 
         private void RemoveText(object sender, EventArgs e)
