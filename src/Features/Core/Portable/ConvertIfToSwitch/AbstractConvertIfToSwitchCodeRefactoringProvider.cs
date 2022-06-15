@@ -195,7 +195,42 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             // care about so we can find them across each edit.
             document = document.WithSyntaxRoot(editor.OriginalRoot.TrackNodes(ifStatements));
 
-            // Process the if statements.
+            // Process the if statements from outermost if to innermost if.
+            // Note that we need to process in this order because this refactoring
+            // can fold the inner if statements into the switch statement/expression
+            // generated for the outer if.
+            // For example, consider the following input:
+            //      if (i == 3)
+            //      {
+            //          return 0;
+            //      }
+            //      else
+            //      {
+            //          if (i == 6) return 1;
+            //          if (i == 7) return 1;
+            //          return 0;
+            //      }
+            // Processing the outer if leads to converting even the inner
+            // if statements into a single switch statement/expression:
+            //      return i switch
+            //      {
+            //          3 => 0,
+            //          6 => 1,
+            //          7 => 1,
+            //          _ => 0
+            //      };
+            // We would get an undesirable outcome if we processed the inner
+            // if statement before the outer if and converted the inner if
+            // statement into a separate switch statement/expression.
+            //
+            // Additionally, because of the fact that processing outer if
+            // can lead to inner if statements also getting removed from the
+            // converted code, we need to process all the if statements one
+            // at a time, recomputing the current root, document and semantic
+            // model after each if to switch conversion in the below loop.
+            // This is slightly slower compared to processing all if statements
+            // in parallel, but unavoidable given the prior example and requirements.
+
             foreach (var originalIfStatement in ifStatements)
             {
                 // Only process if statements fully within a fixAllSpan
