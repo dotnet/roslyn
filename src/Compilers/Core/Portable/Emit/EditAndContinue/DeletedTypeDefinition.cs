@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using Microsoft.Cci;
@@ -15,6 +16,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
     /// </summary>
     internal class DeletedTypeDefinition : ITypeDefinition
     {
+        [return: NotNullIfNotNull("typeReference")]
         public static ITypeReference? TryCreate(ITypeReference? typeReference, Dictionary<ITypeDefinition, DeletedTypeDefinition> cache)
         {
             if (typeReference is ITypeDefinition typeDef)
