@@ -53,28 +53,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             {
                 var document = scope.First();
                 if (document.Project == project)
-                {
                     return scope.ToImmutableArray();
-                }
 
                 return ImmutableArray<Document>.Empty;
             }
 
-            var documents = ArrayBuilder<Document>.GetInstance();
+            using var _ = ArrayBuilder<Document>.GetInstance(out var documents);
             foreach (var document in await project.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false))
             {
                 if (scope != null && !scope.Contains(document))
-                {
                     continue;
-                }
 
                 if (await predicateAsync(document, cancellationToken).ConfigureAwait(false))
-                {
                     documents.Add(document);
-                }
             }
 
-            return documents.ToImmutableAndFree();
+            return documents.ToImmutable();
         }
 
         /// <summary>
@@ -115,9 +109,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CancellationToken cancellationToken)
         {
             if (predefinedType == PredefinedType.None)
-            {
                 return SpecializedTasks.EmptyImmutableArray<Document>();
-            }
 
             return FindDocumentsWithPredicateAsync(project, documents, index => index.ContainsPredefinedType(predefinedType), cancellationToken);
         }
