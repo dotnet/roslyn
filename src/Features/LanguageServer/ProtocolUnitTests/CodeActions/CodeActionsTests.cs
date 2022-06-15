@@ -90,7 +90,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
                 applicableRange: new LSP.Range { Start = new Position { Line = 4, Character = 12 }, End = new Position { Line = 4, Character = 12 } },
                 diagnostics: null);
 
-
             var results = await RunGetCodeActionsAsync(testLspServer, CreateCodeActionParams(caretLocation));
 
             var topLevelAction = Assert.Single(results.Where(action => action.Title == FeaturesResources.Introduce_constant));
