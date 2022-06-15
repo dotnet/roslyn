@@ -18,8 +18,7 @@ variables:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
 
 steps:
-- checkout: self
-  clean: true
+- template: eng/pipelines/checkout-windows-task.yml
 
 - task: ms-vseng.MicroBuildTasks.30666190-6959-11e5-9f96-f56098202fef.MicroBuildSigningPlugin@1
   displayName: Install Signing Plugin
@@ -41,16 +40,8 @@ steps:
                -pack
                -sign
                -configuration $(BuildConfiguration)
-               -officialBuildId $(Build.BuildNumber)
-               -officialSkipTests=true
-               -officialSkipApplyOptimizationData=true
-               /p:RepositoryName=$(Build.Repository.Name)
                /p:DotNetSignType=$(SignType)
-               /p:DotNetPublishToBlobFeed=false
-               /p:PublishToSymbolServer=false
-               /p:DotnetPublishUsingPipelines=false
                /p:PreReleaseVersionLabel=compliance
-               /p:IgnoreIbcMergeErrors=true
 
 - task: CopyFiles@2
   # APIScan can take a long time, so here we copy (mostly) just the product binaries and related .pdbs
