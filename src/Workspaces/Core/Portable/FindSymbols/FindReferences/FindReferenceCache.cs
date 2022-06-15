@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             static bool IsCandidate(SyntaxToken t, ISyntaxFactsService syntaxFacts, string text)
-                => syntaxFacts.IsGlobalNamespaceKeyword(t) || (syntaxFacts.IsIdentifier(t) && syntaxFacts.TextMatch(t.ValueText, text));
+                => syntaxFacts.IsIdentifier(t) && syntaxFacts.TextMatch(t.ValueText, text);
         }
 
         private static ImmutableArray<SyntaxToken> GetTokensFromText(
