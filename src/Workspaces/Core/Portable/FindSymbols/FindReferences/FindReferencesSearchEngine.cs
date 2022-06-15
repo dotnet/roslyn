@@ -268,13 +268,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             await _progress.OnFindInDocumentStartedAsync(document, cancellationToken).ConfigureAwait(false);
 
-            SemanticModel? model = null;
             try
             {
-                model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-                // start cache for this semantic model
-                FindReferenceCache.Start(model);
+                var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
                 foreach (var symbol in symbols)
                 {
@@ -284,8 +280,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
             finally
             {
-                FindReferenceCache.Stop(model);
-
                 await _progress.OnFindInDocumentCompletedAsync(document, cancellationToken).ConfigureAwait(false);
             }
         }
