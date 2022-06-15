@@ -17,8 +17,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
     internal class NamespaceSymbolReferenceFinder : AbstractReferenceFinder<INamespaceSymbol>
     {
-        private static readonly SymbolDisplayFormat s_globalNamespaceFormat = new(SymbolDisplayGlobalNamespaceStyle.Included);
-
         protected override bool CanFind(INamespaceSymbol symbol)
             => true;
 
