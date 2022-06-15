@@ -762,13 +762,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private class MetadataNode
         {
+            private static readonly ObjectPool<MetadataNode> s_pool = SharedPools.Default<MetadataNode>();
+
             /// <summary>
             /// Represent this as non-null because that will be true when this is not in a pool and it is being used by
             /// other services.
             /// </summary>
             public string Name { get; private set; } = null!;
-
-            private static readonly ObjectPool<MetadataNode> s_pool = SharedPools.Default<MetadataNode>();
 
             public static MetadataNode Allocate(string name)
             {
@@ -793,7 +793,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Member,
         }
 
-        private struct MetadataDefinition
+        private readonly struct MetadataDefinition
         {
             public string Name { get; }
             public MetadataDefinitionKind Kind { get; }
@@ -803,15 +803,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             /// </summary>
             public ParameterTypeInfo ReceiverTypeInfo { get; }
 
-            public NamespaceDefinition Namespace { get; private set; }
-            public TypeDefinition Type { get; private set; }
+            public NamespaceDefinition Namespace { get; }
+            public TypeDefinition Type { get; }
 
-            public MetadataDefinition(MetadataDefinitionKind kind, string name, ParameterTypeInfo receiverTypeInfo = default)
-                : this()
+            public MetadataDefinition(
+                MetadataDefinitionKind kind,
+                string name,
+                ParameterTypeInfo receiverTypeInfo = default,
+                NamespaceDefinition @namespace = default,
+                TypeDefinition type = default)
             {
                 Kind = kind;
                 Name = name;
                 ReceiverTypeInfo = receiverTypeInfo;
+                Namespace = @namespace;
+                Type = type;
             }
 
             public static MetadataDefinition Create(
@@ -820,21 +826,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var definition = reader.GetNamespaceDefinition(namespaceHandle);
                 return new MetadataDefinition(
                     MetadataDefinitionKind.Namespace,
-                    reader.GetString(definition.Name))
-                {
-                    Namespace = definition
-                };
+                    reader.GetString(definition.Name),
+                    @namespace: definition);
             }
 
             public static MetadataDefinition Create(
                 MetadataReader reader, TypeDefinition definition)
             {
                 var typeName = GetMetadataNameWithoutBackticks(reader, definition.Name);
-
-                return new MetadataDefinition(MetadataDefinitionKind.Type, typeName)
-                {
-                    Type = definition
-                };
+                return new MetadataDefinition(MetadataDefinitionKind.Type, typeName, type: definition);
             }
         }
     }
