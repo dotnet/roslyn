@@ -607,18 +607,13 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         /// </summary>
         private static DefinitionItem? ToSlimDefinitionItem(ISymbol symbol, Solution solution)
         {
-            if (!IsNavigableSymbol(symbol))
-            {
-                return null;
-            }
-
             var locations = symbol.Locations;
             if (locations.Length > 1)
             {
                 return symbol.ToNonClassifiedDefinitionItem(
                     solution,
                     FindReferencesSearchOptions.Default with { UnidirectionalHierarchyCascade = true },
-                    includeHiddenLocations: false);
+                    includeHiddenLocations: true);
             }
 
             if (locations.Length == 1)
@@ -633,7 +628,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                         solution,
                         symbol);
                 }
-                else if (location.IsInSource && location.IsVisibleSourceLocation())
+                else if (location.IsInSource)
                 {
                     var document = solution.GetDocument(location.SourceTree);
                     if (document != null)
@@ -649,18 +644,6 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             }
 
             return null;
-
-            static bool IsNavigableSymbol(ISymbol symbol)
-            {
-                var locations = symbol.Locations;
-                if (locations.Length == 1)
-                {
-                    var location = locations[0];
-                    return location.IsInMetadata || (location.IsInSource && location.IsVisibleSourceLocation());
-                }
-
-                return !locations.IsEmpty;
-            }
         }
 
         private static (ImmutableArray<T> trueItems, ImmutableArray<T> falseItems) DivideIntoSubArrays<T>(ImmutableArray<T> items, Func<T, bool> predicate)
