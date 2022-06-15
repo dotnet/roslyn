@@ -2284,16 +2284,35 @@ using System.Collections;";
         [Theory, CombinatorialData]
         public async Task TestHiddenLocationSymbol(TestHost testHost)
         {
-            await VerifyNoItemForDocumentAsync(@"
-public class B : C
+            var itemForB = new TestInheritanceMemberItem(
+                lineNumber: 2,
+                memberName: "class B",
+                ImmutableArray.Create(new TargetInfo(
+                    targetSymbolDisplayName: "C",
+                    locationTag: "target1",
+                    relationship: InheritanceRelationship.BaseType)));
+
+            var itemForC = new TestInheritanceMemberItem(
+                lineNumber: 7,
+                memberName: "class C",
+                ImmutableArray.Create(new TargetInfo(
+                    targetSymbolDisplayName: "B",
+                    locationTag: "target2",
+                    relationship: InheritanceRelationship.DerivedType)));
+
+            await VerifyInSingleDocumentAsync(@"
+public class {|target2:B|} : C
 {
 }
 
 #line hidden
-public class C
+public class {|target1:C|}
 {
 }",
-LanguageNames.CSharp, testHost);
+                LanguageNames.CSharp,
+                testHost,
+                itemForB,
+                itemForC);
         }
     }
 }
