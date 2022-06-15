@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
@@ -179,9 +180,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             using var query = SearchQuery.Create(name, ignoreCase);
 
             var result = ArrayBuilder<ISymbol>.GetInstance();
-            foreach (var projectId in solution.ProjectIds)
+            foreach (var project in solution.Projects)
             {
-                var project = solution.GetProject(projectId);
                 await AddCompilationDeclarationsWithNormalQueryAsync(
                     project, query, criteria, result, cancellationToken).ConfigureAwait(false);
             }
@@ -192,13 +192,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         internal static async Task<ImmutableArray<ISymbol>> FindSourceDeclarationsWithNormalQueryInCurrentProcessAsync(
             Project project, string name, bool ignoreCase, SymbolFilter filter, CancellationToken cancellationToken)
         {
-            var list = ArrayBuilder<ISymbol>.GetInstance();
-
+            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var result);
             using var query = SearchQuery.Create(name, ignoreCase);
 
             await AddCompilationDeclarationsWithNormalQueryAsync(
-                project, query, filter, list, cancellationToken).ConfigureAwait(false);
-            return list.ToImmutableAndFree();
+                project, query, filter, result, cancellationToken).ConfigureAwait(false);
+
+            return result.ToImmutable();
         }
 
         private static async Task<ImmutableArray<ISymbol>> FindSourceDeclarationsWithPatternInCurrentProcessAsync(
