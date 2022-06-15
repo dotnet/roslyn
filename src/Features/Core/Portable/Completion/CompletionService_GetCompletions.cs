@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <param name="roles">Optional set of roles associated with the editor state.</param>
         /// <param name="options">Optional options that override the default options.</param>
         /// <param name="cancellationToken"></param>
-        public virtual Task<CompletionList> GetCompletionsAsync(
+        public Task<CompletionList> GetCompletionsAsync(
             Document document,
             int caretPosition,
             CompletionTrigger trigger = default,
