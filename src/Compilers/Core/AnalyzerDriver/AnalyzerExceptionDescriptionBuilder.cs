@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (exception is AggregateException aggregateException)
             {
                 var flattened = aggregateException.Flatten();
-                return string.Join(s_separator, flattened.InnerExceptions.Select(GetExceptionMessage));
+                return string.Join(s_separator, flattened.InnerExceptions.Select(e => GetExceptionMessage(e)));
             }
 
             if (exception != null)
