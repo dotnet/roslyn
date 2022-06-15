@@ -24,7 +24,8 @@ namespace Microsoft.CodeAnalysis.Completion
 {
     /// <summary>
     /// A per language service for constructing context dependent list of completions that 
-    /// can be presented to a user during typing in an editor.
+    /// can be presented to a user during typing in an editor. It aggregates completions from
+    /// one or more <see cref="CompletionProvider"/>s.
     /// </summary>
     public abstract partial class CompletionService : ILanguageService
     {
@@ -42,8 +43,16 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// Gets the current presentation and behavior rules.
         /// </summary>
-        public virtual CompletionRules GetRules()
-            => CompletionRules.Default;
+        /// <remarks>
+        /// Backward compatibility only.
+        /// </remarks>
+        public CompletionRules GetRules()
+        {
+            Debug.Fail("For backwards API compat only, should not be called");
+
+            // Publicly available options do not affect this API.
+            return GetRules(CompletionOptions.Default);
+        }
 
         internal abstract CompletionRules GetRules(CompletionOptions options);
 
@@ -56,16 +65,24 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <param name="roles">Optional set of roles associated with the editor state.</param>
         /// <param name="options">Optional options that override the default options.</param>
         /// <remarks>
+        /// Backward compatibility only.
         /// This API uses SourceText instead of Document so implementations can only be based on text, not syntax or semantics.
         /// </remarks>
-        public virtual bool ShouldTriggerCompletion(
+        public bool ShouldTriggerCompletion(
             SourceText text,
             int caretPosition,
             CompletionTrigger trigger,
             ImmutableHashSet<string>? roles = null,
             OptionSet? options = null)
         {
-            return false;
+            var document = text.GetOpenDocumentInCurrentContextWithChanges();
+            var languageServices = document?.Project.LanguageServices ?? _workspace.Services.GetLanguageServices(Language);
+
+            // Publicly available options do not affect this API.
+            var completionOptions = CompletionOptions.Default;
+            var passThroughOptions = options ?? document?.Project.Solution.Options ?? OptionValueSet.Empty;
+
+            return ShouldTriggerCompletion(document?.Project, languageServices, text, caretPosition, trigger, completionOptions, passThroughOptions, roles);
         }
 
         /// <summary>
@@ -84,18 +101,21 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <see cref="WorkspaceKind"/> and <see cref="Project.Language"/> which are fast operations.
         /// It should not be used for syntactic or semantic operations.
         /// </remarks>
-        internal virtual bool ShouldTriggerCompletion(
-            Project? project,
-            HostLanguageServices languageServices,
-            SourceText text,
-            int caretPosition,
-            CompletionTrigger trigger,
-            CompletionOptions options,
-            OptionSet passThroughOptions,
-            ImmutableHashSet<string>? roles = null)
+        internal bool ShouldTriggerCompletion(
+            Project? project, HostLanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, CompletionOptions options, OptionSet passThroughOptions, ImmutableHashSet<string>? roles = null)
         {
-            Debug.Fail("Backward compat only, should not be called");
-            return ShouldTriggerCompletion(text, caretPosition, trigger, roles, passThroughOptions);
+            if (!options.TriggerOnTyping)
+            {
+                return false;
+            }
+
+            if (trigger.Kind == CompletionTriggerKind.Deletion && SupportsTriggerOnDeletion(options))
+            {
+                return char.IsLetterOrDigit(trigger.Character) || trigger.Character == '.';
+            }
+
+            var providers = _providerManager.GetFilteredProviders(project, roles, trigger, options);
+            return providers.Any(p => p.ShouldTriggerCompletion(languageServices, text, caretPosition, trigger, options, passThroughOptions));
         }
 
         /// <summary>
@@ -123,13 +143,20 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <param name="roles">Optional set of roles associated with the editor state.</param>
         /// <param name="options">Optional options that override the default options.</param>
         /// <param name="cancellationToken"></param>
-        public abstract Task<CompletionList?> GetCompletionsAsync(
+        public virtual Task<CompletionList> GetCompletionsAsync(
             Document document,
             int caretPosition,
             CompletionTrigger trigger = default,
             ImmutableHashSet<string>? roles = null,
             OptionSet? options = null,
-            CancellationToken cancellationToken = default);
+            CancellationToken cancellationToken = default)
+        {
+            // Publicly available options do not affect this API.
+            var completionOptions = CompletionOptions.Default;
+            var passThroughOptions = options ?? document.Project.Solution.Options;
+
+            return GetCompletionsWithAvailabilityOfExpandedItemsAsync(document, caretPosition, completionOptions, passThroughOptions, trigger, roles, cancellationToken);
+        }
 
         /// <summary>
         /// Gets the completions available at the caret position.
@@ -140,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <param name="trigger">The triggering action.</param>
         /// <param name="roles">Optional set of roles associated with the editor state.</param>
         /// <param name="cancellationToken"></param>
-        internal virtual async Task<CompletionList> GetCompletionsAsync(
+        internal virtual Task<CompletionList> GetCompletionsAsync(
              Document document,
              int caretPosition,
              CompletionOptions options,
@@ -149,9 +176,8 @@ namespace Microsoft.CodeAnalysis.Completion
              ImmutableHashSet<string>? roles = null,
              CancellationToken cancellationToken = default)
         {
-#pragma warning disable RS0030 // Do not use banned APIs
-            return await GetCompletionsAsync(document, caretPosition, trigger, roles, passThroughOptions, cancellationToken).ConfigureAwait(false) ?? CompletionList.Empty;
-#pragma warning restore
+            return GetCompletionsWithAvailabilityOfExpandedItemsAsync(document, caretPosition, options, passThroughOptions, trigger, roles, cancellationToken);
+
         }
 
         /// <summary>
@@ -181,7 +207,18 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <param name="options">Completion options</param>
         /// <param name="displayOptions">Display options</param>
         /// <param name="cancellationToken"></param>
-        internal abstract Task<CompletionDescription?> GetDescriptionAsync(Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken = default);
+        internal virtual async Task<CompletionDescription?> GetDescriptionAsync(Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken = default)
+        {
+            var provider = GetProvider(item);
+            if (provider is null)
+                return CompletionDescription.Empty;
+
+            // We don't need SemanticModel here, just want to make sure it won't get GC'd before CompletionProviders are able to get it.
+            (document, var semanticModel) = await GetDocumentWithFrozenPartialSemanticsAsync(document, cancellationToken).ConfigureAwait(false);
+            var description = await provider.GetDescriptionAsync(document, item, options, displayOptions, cancellationToken).ConfigureAwait(false);
+            GC.KeepAlive(semanticModel);
+            return description;
+        }
 
         /// <summary>
         /// Gets the change to be applied when the item is committed.
@@ -192,13 +229,25 @@ namespace Microsoft.CodeAnalysis.Completion
         /// This character may be used as part of the change. 
         /// This value is null when the commit was caused by the [TAB] or [ENTER] keys.</param>
         /// <param name="cancellationToken"></param>
-        public virtual Task<CompletionChange> GetChangeAsync(
+        public virtual async Task<CompletionChange> GetChangeAsync(
             Document document,
             CompletionItem item,
             char? commitCharacter = null,
             CancellationToken cancellationToken = default)
         {
-            return Task.FromResult(CompletionChange.Create(new TextChange(item.Span, item.DisplayText)));
+            var provider = GetProvider(item);
+            if (provider != null)
+            {
+                // We don't need SemanticModel here, just want to make sure it won't get GC'd before CompletionProviders are able to get it.
+                (document, var semanticModel) = await GetDocumentWithFrozenPartialSemanticsAsync(document, cancellationToken).ConfigureAwait(false);
+                var change = await provider.GetChangeAsync(document, item, commitCharacter, cancellationToken).ConfigureAwait(false);
+                GC.KeepAlive(semanticModel);
+                return change;
+            }
+            else
+            {
+                return CompletionChange.Create(new TextChange(item.Span, item.DisplayText));
+            }
         }
 
         /// <summary>
