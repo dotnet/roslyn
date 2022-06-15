@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices
     /// <summary>
     /// Interaction logic for SampleToolboxUserControl.xaml
     /// </summary>
-    internal partial class SampleToolboxUserControl : UserControl, IOleCommandTarget
+    internal partial class DocumentOutlineControl : UserControl, IOleCommandTarget
     {
         [MemberNotNullWhen(true, nameof(symbolsTreeItemsSource))]
         private bool symbolTreeInitialized { get; set; }
@@ -41,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         private ITextSnapshot? snapshot { get; set; }
         private IWpfTextView textView { get; set; }
 
-        public SampleToolboxUserControl(ILanguageServiceBroker2 languageServiceBroker, IThreadingContext threadingContext)
+        public DocumentOutlineControl(ILanguageServiceBroker2 languageServiceBroker, IThreadingContext threadingContext)
         {
             InitializeComponent();
 

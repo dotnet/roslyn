@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             private IDisposable? _navigationBarController;
             private IVsDropdownBarClient? _dropdownBarClient;
             private ElementHost? _documentOutlineViewHost;
-            private SampleToolboxUserControl? _documentOutlineView;
+            private DocumentOutlineControl? _documentOutlineView;
 
             public VsCodeWindowManager(TLanguageService languageService, IVsCodeWindow codeWindow)
             {
@@ -239,7 +239,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             {
                 var languageServiceBroker = _languageService.Package.ComponentModel.GetService<ILanguageServiceBroker2>();
                 var threadingContext = _languageService.Package.ComponentModel.GetService<IThreadingContext>();
-                _documentOutlineView = new SampleToolboxUserControl(languageServiceBroker, threadingContext);
+                _documentOutlineView = new DocumentOutlineControl(languageServiceBroker, threadingContext);
 
                 _documentOutlineViewHost = new ElementHost
                 {
