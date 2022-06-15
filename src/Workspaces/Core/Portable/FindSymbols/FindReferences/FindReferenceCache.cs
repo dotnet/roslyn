@@ -68,7 +68,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return ImmutableArray<SyntaxToken>.Empty;
 
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-
             var root = await semanticModel.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
             // If the identifier was escaped in the file then we'll have to do a more involved search that actually
