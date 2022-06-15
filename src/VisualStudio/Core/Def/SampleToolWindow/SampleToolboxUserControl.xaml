@@ -56,8 +56,8 @@
             </Style>
 
             <Style TargetType="TextBox" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTextBoxStyleKey}}" >
-                <Setter Property="FontFamily" Value="{DynamicResource {x:Static vsshell:VsFonts.EnvironmentFontFamilyKey}}" />
-                <Setter Property="FontSize" Value="{DynamicResource {x:Static vsshell:VsFonts.Environment90PercentFontSizeKey}}" />
+                <Setter Property="FontFamily" Value="Segoe UI" />
+                <Setter Property="FontSize" Value="12" />
             </Style>
         </ResourceDictionary>
     </UserControl.Resources>
@@ -91,13 +91,27 @@
                 <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.SortByType}" />
             </Button>
         </Grid>
-        <TextBox Grid.Row="1" 
-                 Name="searchBox" 
-                 Text="Search Document Outline" 
-                 TextChanged="Search" 
-                 VerticalContentAlignment="Center"
-                 GotFocus="RemoveText"
-                 LostFocus="AddText" />
+        <TextBox Grid.Row="1" x:Name="searchBox" TextChanged="Search" VerticalContentAlignment="Center">
+            <TextBox.Style>
+                <Style TargetType="TextBox">
+                    <Setter Property="Background" Value="{StaticResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}" />
+                    <Setter Property="Foreground" Value="LightGray" />
+                    <Setter Property="Padding" Value="3, 0, 0, 0" />
+                    <Style.Resources>
+                        <VisualBrush x:Key="CueBannerBrush" AlignmentX="Left" AlignmentY="Center" Stretch="None">
+                            <VisualBrush.Visual>
+                                <Label Content="Search Document Outline" Foreground="LightGray" />
+                            </VisualBrush.Visual>
+                        </VisualBrush>
+                    </Style.Resources>
+                    <Style.Triggers>
+                        <Trigger Property="Text" Value="">
+                            <Setter Property="Background" Value="{StaticResource CueBannerBrush}" />
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </TextBox.Style>
+        </TextBox>
         <TreeView Grid.Row="2" Name="symbolTree">
             <TreeView.Resources>
                 <HierarchicalDataTemplate DataType="{x:Type self:DocumentSymbolViewModel}" ItemsSource="{Binding Children}">

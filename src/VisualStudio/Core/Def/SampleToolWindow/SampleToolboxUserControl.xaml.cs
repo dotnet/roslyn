@@ -170,20 +170,6 @@ namespace Microsoft.VisualStudio.LanguageServices
             return documentSymbolModel;
         }
 
-        private void RemoveText(object sender, EventArgs e)
-        {
-            if (searchBox.Text == ServicesVSResources.Search_Document_Outline)
-            {
-                searchBox.Text = string.Empty;
-            }
-        }
-
-        private void AddText(object sender, EventArgs e)
-        {
-            if (string.IsNullOrWhiteSpace(searchBox.Text))
-                searchBox.Text = ServicesVSResources.Search_Document_Outline;
-        }
-
         private void Search(object sender, EventArgs e)
         {
             if (this.symbolsTreeItemsSource is not null)
