@@ -70,70 +70,64 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var root = await semanticModel.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
+            var entry = GetEntry(semanticModel);
+
             // If the identifier was escaped in the file then we'll have to do a more involved search that actually
             // walks the root and checks all identifier tokens.
             //
             // otherwise, we can use the text of the document to quickly find candidates and test those directly.
-            var sourceText = !info.ProbablyContainsEscapedIdentifier(identifier)
-                ? await document.GetTextAsync(cancellationToken).ConfigureAwait(false)
-                : null;
-
-            var entry = GetEntry(semanticModel);
-
-            return entry.IdentifierCache.GetOrAdd(identifier,
-                _ => GetIdentifierTokensWithText());
+            if (info.ProbablyContainsEscapedIdentifier(identifier))
+            {
+                return entry.IdentifierCache.GetOrAdd(identifier, _ => FindMatchingIdentifierTokensFromTree());
+            }
+            else
+            {
+                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                return entry.IdentifierCache.GetOrAdd(identifier, _ => FindMatchingIdentifierTokensFromText(text));
+            }
 
             bool IsMatch(SyntaxToken token)
                 => !token.IsMissing && syntaxFacts.IsIdentifier(token) && syntaxFacts.TextMatch(token.ValueText, identifier);
 
-            ImmutableArray<SyntaxToken> GetIdentifierTokensWithText()
+            ImmutableArray<SyntaxToken> FindMatchingIdentifierTokensFromTree()
             {
                 using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var result);
-
-                if (sourceText == null)
-                {
-                    // identifier is escaped.  Have to actually walk the entire tree to find matching tokens.
-                    Recurse(root, result);
-                }
-                else
-                {
-                    // identifier is not escaped.  we can scan through the raw text of the file looking for matches.
-                    ScanText(sourceText, result);
-                }
-
+                Recurse(root);
                 return result.ToImmutable();
-            }
 
-            void Recurse(SyntaxNode node, ArrayBuilder<SyntaxToken> result)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                foreach (var child in node.ChildNodesAndTokens())
+                void Recurse(SyntaxNode node)
                 {
-                    if (child.IsNode)
+                    cancellationToken.ThrowIfCancellationRequested();
+                    foreach (var child in node.ChildNodesAndTokens())
                     {
-                        Recurse(child.AsNode()!);
-                    }
-                    else if (child.IsToken)
-                    {
-                        var token = child.AsToken();
-                        if (IsMatch(token))
-                            result.Add(token);
-
-                        if (token.HasStructuredTrivia)
+                        if (child.IsNode)
                         {
-                            // structured trivia can only be leading trivia
-                            foreach (var trivia in token.LeadingTrivia)
+                            Recurse(child.AsNode()!);
+                        }
+                        else if (child.IsToken)
+                        {
+                            var token = child.AsToken();
+                            if (IsMatch(token))
+                                result.Add(token);
+
+                            if (token.HasStructuredTrivia)
                             {
-                                if (trivia.HasStructure)
-                                    Recurse(trivia.GetStructure()!);
+                                // structured trivia can only be leading trivia
+                                foreach (var trivia in token.LeadingTrivia)
+                                {
+                                    if (trivia.HasStructure)
+                                        Recurse(trivia.GetStructure()!);
+                                }
                             }
                         }
                     }
                 }
             }
 
-            void ScanText(SourceText sourceText, ArrayBuilder<SyntaxToken> result)
+            ImmutableArray<SyntaxToken> FindMatchingIdentifierTokensFromText(SourceText sourceText)
             {
+                using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var result);
+
                 var index = 0;
                 while ((index = sourceText.IndexOf(identifier, index, syntaxFacts.IsCaseSensitive)) >= 0)
                 {
@@ -148,6 +142,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     nextIndex = Math.Max(nextIndex, token.SpanStart);
                     index = nextIndex;
                 }
+
+                return result.ToImmutable();
             }
         }
 
