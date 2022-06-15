@@ -422,7 +422,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         {
                             // Decode method signature to get the receiver type name (i.e. type name for the first parameter)
                             var blob = metadataReader.GetBlobReader(method.Signature);
-                            var decoder = new SignatureDecoder<ParameterTypeInfo, object>(ParameterTypeInfoProvider.Instance, metadataReader, genericContext: null!);
+                            var decoder = new SignatureDecoder<ParameterTypeInfo, object?>(ParameterTypeInfoProvider.Instance, metadataReader, genericContext: null);
                             var signature = decoder.DecodeMethodSignature(ref blob);
 
                             // It'd be good if we don't need to go through all parameters and make unnecessary allocations.

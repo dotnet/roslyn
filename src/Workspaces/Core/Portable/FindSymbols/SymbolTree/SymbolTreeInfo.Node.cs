@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private sealed class ParameterTypeInfoProvider : ISignatureTypeProvider<ParameterTypeInfo, object>
+        private sealed class ParameterTypeInfoProvider : ISignatureTypeProvider<ParameterTypeInfo, object?>
         {
             public static readonly ParameterTypeInfoProvider Instance = new();
 
@@ -168,10 +168,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return new ParameterTypeInfo(name, isComplex: false, isArray: false);
             }
 
-            public ParameterTypeInfo GetTypeFromSpecification(MetadataReader reader, object genericContext, TypeSpecificationHandle handle, byte rawTypeKind)
+            public ParameterTypeInfo GetTypeFromSpecification(MetadataReader reader, object? genericContext, TypeSpecificationHandle handle, byte rawTypeKind)
             {
                 var sigReader = reader.GetBlobReader(reader.GetTypeSpecification(handle).Signature);
-                return new SignatureDecoder<ParameterTypeInfo, object>(Instance, reader, genericContext).DecodeType(ref sigReader);
+                return new SignatureDecoder<ParameterTypeInfo, object?>(Instance, reader, genericContext).DecodeType(ref sigReader);
             }
 
             public ParameterTypeInfo GetArrayType(ParameterTypeInfo elementType, ArrayShape shape) => GetArrayTypeInfo(elementType);
@@ -185,9 +185,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             public ParameterTypeInfo GetFunctionPointerType(MethodSignature<ParameterTypeInfo> signature) => ComplexInfo;
 
-            public ParameterTypeInfo GetGenericMethodParameter(object genericContext, int index) => ComplexInfo;
+            public ParameterTypeInfo GetGenericMethodParameter(object? genericContext, int index) => ComplexInfo;
 
-            public ParameterTypeInfo GetGenericTypeParameter(object genericContext, int index) => ComplexInfo;
+            public ParameterTypeInfo GetGenericTypeParameter(object? genericContext, int index) => ComplexInfo;
 
             public ParameterTypeInfo GetModifiedType(ParameterTypeInfo modifier, ParameterTypeInfo unmodifiedType, bool isRequired) => ComplexInfo;
 
