@@ -70,67 +70,92 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             var root = await semanticModel.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-            // If the identifier was escaped in the file, we'll have to do a more involved search 
-            var lookForEscapedIdentifiers = info.ProbablyContainsEscapedIdentifier(identifier);
+            // If the identifier was escaped in the file then we'll have to do a more involved search that actually
+            // walks the root and checks all identifier tokens.
+            //
+            // otherwise, we can use the text of the document to quickly find candidates and test those directly.
+            var sourceText = !info.ProbablyContainsEscapedIdentifier(identifier)
+                ? await document.GetTextAsync(cancellationToken).ConfigureAwait(false)
+                : null;
 
             var normalizedIdentifier = syntaxFacts.IsCaseSensitive ? identifier : identifier.ToLowerInvariant();
             var entry = GetEntry(semanticModel);
 
             return entry.IdentifierCache.GetOrAdd(normalizedIdentifier,
-                key => GetIdentifierTokensWithText(syntaxFacts, root, text, key, lookForEscapedIdentifiers, cancellationToken));
+                key => GetIdentifierTokensWithText(syntaxFacts, root, sourceText, key, cancellationToken));
         }
 
+        /// <param name="sourceText">Text for the document being examined.  If not null, we are searching for an
+        /// unescaped identifier, and we can just scan the text directly looking for hits.  If null, we're searching for
+        /// escaped identifiers and we have to walk the root directly looking at every token</param>
         [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1224834", AllowCaptures = false)]
         private static ImmutableArray<SyntaxToken> GetIdentifierTokensWithText(
             ISyntaxFactsService syntaxFacts,
             SyntaxNode root,
-            SourceText sourceText,
+            SourceText? sourceText,
             string identifier,
-            bool lookForEscapedIdentifiers,
             CancellationToken cancellationToken)
         {
-            if (lookForEscapedIdentifiers)
+            using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var result);
+
+            if (sourceText == null)
             {
                 // identifier is escaped.  Have to actually walk the entire tree to find matching tokens.
-
-                using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var result);
-                foreach (var token in root.DescendantTokens(descendIntoTrivia: true))
-                {
-                    if (IsMatch(token))
-                        result.Add(token);
-                }
-
-                return result.ToImmutable();
+                Recurse(root);
             }
             else
             {
                 // identifier is not escaped.  we can scan through the raw text of the file looking for matches.
-
-                using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var result);
 
                 var index = 0;
                 while ((index = sourceText.IndexOf(identifier, index, syntaxFacts.IsCaseSensitive)) >= 0)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var nextIndex = index + identifier.Length;
-
                     var token = root.FindToken(index, findInsideTrivia: true);
                     var span = token.Span;
                     if (span.Start == index && span.Length == identifier.Length && IsMatch(token))
                         result.Add(token);
 
+                    var nextIndex = index + identifier.Length;
                     nextIndex = Math.Max(nextIndex, token.SpanStart);
                     index = nextIndex;
                 }
-
-                return result.ToImmutable();
             }
+
+            return result.ToImmutable();
 
             bool IsMatch(SyntaxToken token)
                 => !token.IsMissing && syntaxFacts.IsIdentifier(token) && syntaxFacts.TextMatch(token.ValueText, identifier);
+
+            void Recurse(SyntaxNode node)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                foreach (var child in node.ChildNodesAndTokens())
+                {
+                    if (child.IsNode)
+                    {
+                        Recurse(child.AsNode()!);
+                    }
+                    else if (child.IsToken)
+                    {
+                        var token = child.AsToken();
+                        if (IsMatch(token))
+                            result.Add(token);
+
+                        if (token.HasStructuredTrivia)
+                        {
+                            // structured trivia can only be leading trivia
+                            foreach (var trivia in token.LeadingTrivia)
+                            {
+                                if (trivia.HasStructure)
+                                    Recurse(trivia.GetStructure());
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         public static IEnumerable<SyntaxToken> GetConstructorInitializerTokens(
