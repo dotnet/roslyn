@@ -15,19 +15,7 @@ steps:
   displayName: 🔻 Download macOS code coverage results
   continueOnError: true
   condition: ${{ parameters.includeMacOS }}
-- powershell: |
-    dotnet tool install --tool-path obj dotnet-reportgenerator-globaltool --version 5.1.9 --configfile azure-pipelines/justnugetorg.nuget.config
-    Copy-Item -Recurse $(Pipeline.Workspace)/coverageResults-Windows/obj/* $(System.DefaultWorkingDirectory)/obj
-    Write-Host 'Substituting {reporoot} with $(System.DefaultWorkingDirectory)'
-    $reports = Get-ChildItem -Recurse '$(Pipeline.Workspace)/*.cobertura.xml'
-    $reports |% {
-        # In addition to replacing {reporoot}, we also normalize on one kind of slash so that the report aggregates data for a file whether data was collected on Windows or not.
-        $content = Get-Content -Path $_ |% { [Regex]::Replace($_, '{reporoot}([^"]+)', { '$(System.DefaultWorkingDirectory)' + $args[0].groups[1].value.replace([IO.Path]::AltDirectorySeparatorChar, [IO.Path]::DirectorySeparatorChar) }) }
-        Set-Content -Path $_ -Value $content -Encoding UTF8
-    }
-
-    $Inputs = [string]::join(';', ($reports |% { Resolve-Path -relative $_ }))
-    obj/reportgenerator -reports:"$Inputs" -targetdir:coveragereport -reporttypes:Cobertura
+- powershell: azure-pipelines/Merge-CodeCoverage.ps1 -Path '$(Pipeline.Workspace)' -OutputDir coveragereport -Format Cobertura -Verbose
   displayName: ⚙ Merge coverage
 - task: PublishCodeCoverageResults@1
   displayName: 📢 Publish code coverage results to Azure DevOps
