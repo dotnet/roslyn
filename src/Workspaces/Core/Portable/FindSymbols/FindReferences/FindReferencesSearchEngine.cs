@@ -282,8 +282,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 foreach (var symbol in symbols)
                 {
                     var globalAliases = TryGet(symbolToGlobalAliases, symbol);
-                    await ProcessDocumentAsync(model, root, symbol, globalAliases).ConfigureAwait(false);
+                    await ProcessDocumentAsync(model, symbol, globalAliases).ConfigureAwait(false);
                 }
+
+                GC.KeepAlive(root);
             }
             finally
             {
@@ -291,7 +293,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             async Task ProcessDocumentAsync(
-                SemanticModel semanticModel, SyntaxNode root, ISymbol symbol, HashSet<string>? globalAliases)
+                SemanticModel semanticModel, ISymbol symbol, HashSet<string>? globalAliases)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
