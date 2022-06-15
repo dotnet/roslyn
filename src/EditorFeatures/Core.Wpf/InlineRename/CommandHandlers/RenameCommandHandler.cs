@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         }
 #else
         protected override bool AdornmentShouldReceiveKeyboardNavigation(ITextView textView)
-            => false;
+        => false;
 
         protected override void SetFocusToTextView(ITextView textView)
         {
