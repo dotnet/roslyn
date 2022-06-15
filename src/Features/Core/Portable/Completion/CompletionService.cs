@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
@@ -29,11 +30,49 @@ namespace Microsoft.CodeAnalysis.Completion
     /// </summary>
     public abstract partial class CompletionService : ILanguageService
     {
+        private readonly Workspace _workspace;
+        private readonly ProviderManager _providerManager;
+
+        /// <summary>
+        /// Test-only switch.
+        /// </summary>
+        private bool _suppressPartialSemantics;
+
+        // Prevent inheritance outside of Roslyn.
+        internal CompletionService(Workspace workspace)
+        {
+            _workspace = workspace;
+            _providerManager = new(this);
+        }
+
         /// <summary>
         /// Gets the service corresponding to the specified document.
         /// </summary>
         public static CompletionService? GetService(Document? document)
             => document?.GetLanguageService<CompletionService>();
+
+        /// <summary>
+        /// Returns the providers always available to the service.
+        /// This does not included providers imported via MEF composition.
+        /// </summary>
+        [Obsolete("Built-in providers will be ignored in a future release, please make them MEF exports instead.")]
+        protected virtual ImmutableArray<CompletionProvider> GetBuiltInProviders()
+            => ImmutableArray<CompletionProvider>.Empty;
+
+        internal IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> GetImportedProviders()
+            => _providerManager.GetImportedProviders();
+
+        internal static ImmutableArray<CompletionProvider> GetProjectCompletionProviders(Project? project)
+            => ProviderManager.GetProjectCompletionProviders(project);
+
+        protected ImmutableArray<CompletionProvider> GetProviders(ImmutableHashSet<string>? roles)
+            => _providerManager.GetProviders(roles);
+
+        protected virtual ImmutableArray<CompletionProvider> GetProviders(ImmutableHashSet<string>? roles, CompletionTrigger trigger)
+            => GetProviders(roles);
+
+        protected internal CompletionProvider? GetProvider(CompletionItem item)
+            => _providerManager.GetProvider(item);
 
         /// <summary>
         /// The language from <see cref="LanguageNames"/> this service corresponds to.
@@ -85,6 +124,9 @@ namespace Microsoft.CodeAnalysis.Completion
             return ShouldTriggerCompletion(document?.Project, languageServices, text, caretPosition, trigger, completionOptions, passThroughOptions, roles);
         }
 
+        internal virtual bool SupportsTriggerOnDeletion(CompletionOptions options)
+            => options.TriggerOnDeletion == true;
+
         /// <summary>
         /// Returns true if the character recently inserted or deleted in the text should trigger completion.
         /// </summary>
@@ -132,52 +174,6 @@ namespace Microsoft.CodeAnalysis.Completion
         {
             return CommonCompletionUtilities.GetWordSpan(
                 text, caretPosition, c => char.IsLetter(c), c => char.IsLetterOrDigit(c));
-        }
-
-        /// <summary>
-        /// Gets the completions available at the caret position.
-        /// </summary>
-        /// <param name="document">The document that completion is occurring within.</param>
-        /// <param name="caretPosition">The position of the caret after the triggering action.</param>
-        /// <param name="trigger">The triggering action.</param>
-        /// <param name="roles">Optional set of roles associated with the editor state.</param>
-        /// <param name="options">Optional options that override the default options.</param>
-        /// <param name="cancellationToken"></param>
-        public virtual Task<CompletionList> GetCompletionsAsync(
-            Document document,
-            int caretPosition,
-            CompletionTrigger trigger = default,
-            ImmutableHashSet<string>? roles = null,
-            OptionSet? options = null,
-            CancellationToken cancellationToken = default)
-        {
-            // Publicly available options do not affect this API.
-            var completionOptions = CompletionOptions.Default;
-            var passThroughOptions = options ?? document.Project.Solution.Options;
-
-            return GetCompletionsWithAvailabilityOfExpandedItemsAsync(document, caretPosition, completionOptions, passThroughOptions, trigger, roles, cancellationToken);
-        }
-
-        /// <summary>
-        /// Gets the completions available at the caret position.
-        /// </summary>
-        /// <param name="document">The document that completion is occurring within.</param>
-        /// <param name="caretPosition">The position of the caret after the triggering action.</param>
-        /// <param name="options">The CompletionOptions that override the default options.</param>
-        /// <param name="trigger">The triggering action.</param>
-        /// <param name="roles">Optional set of roles associated with the editor state.</param>
-        /// <param name="cancellationToken"></param>
-        internal virtual Task<CompletionList> GetCompletionsAsync(
-             Document document,
-             int caretPosition,
-             CompletionOptions options,
-             OptionSet passThroughOptions,
-             CompletionTrigger trigger = default,
-             ImmutableHashSet<string>? roles = null,
-             CancellationToken cancellationToken = default)
-        {
-            return GetCompletionsWithAvailabilityOfExpandedItemsAsync(document, caretPosition, options, passThroughOptions, trigger, roles, cancellationToken);
-
         }
 
         /// <summary>
@@ -401,6 +397,46 @@ namespace Microsoft.CodeAnalysis.Completion
                 s_listOfItemMatchPairPool.Free(bestItems);
                 s_listOfItemMatchPairPool.Free(itemsWithCasingMismatchButHigherMatchPriority);
             }
+        }
+
+
+        internal TestAccessor GetTestAccessor()
+            => new(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly CompletionService _completionServiceWithProviders;
+
+            public TestAccessor(CompletionService completionServiceWithProviders)
+                => _completionServiceWithProviders = completionServiceWithProviders;
+
+            internal ImmutableArray<CompletionProvider> GetAllProviders(ImmutableHashSet<string> roles)
+                => _completionServiceWithProviders._providerManager.GetAllProviders(roles);
+
+            internal async Task<CompletionContext> GetContextAsync(
+                CompletionProvider provider,
+                Document document,
+                int position,
+                CompletionTrigger triggerInfo,
+                CompletionOptions options,
+                CancellationToken cancellationToken)
+            {
+                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var defaultItemSpan = _completionServiceWithProviders.GetDefaultCompletionListSpan(text, position);
+
+                return await CompletionService.GetContextAsync(
+                    provider,
+                    document,
+                    position,
+                    triggerInfo,
+                    options,
+                    defaultItemSpan,
+                    sharedContext: null,
+                    cancellationToken).ConfigureAwait(false);
+            }
+
+            public void SuppressPartialSemantics()
+                => _completionServiceWithProviders._suppressPartialSemantics = true;
         }
     }
 }
