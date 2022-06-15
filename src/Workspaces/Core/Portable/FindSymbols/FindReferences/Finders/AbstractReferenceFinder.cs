@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             if (!info.ProbablyContainsEscapedIdentifier(identifier))
                 text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-            return FindReferenceCache.GetIdentifierOrGlobalNamespaceTokensWithText(
+            return FindReferenceCache.GetIdentifierTokensWithText(
                 syntaxFacts, semanticModel, root, text, identifier, cancellationToken);
         }
 
