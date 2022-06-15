@@ -3173,6 +3173,10 @@ public static readonly string F = ""a""
             parseOptions = parseOptions.WithLanguageVersion(LanguageVersion.CSharp1);
             compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
             driver = driver.WithUpdatedParseOptions(parseOptions);
+
+            // change some other options to ensure the parseOption change tracking flows correctly
+            driver = driver.AddAdditionalTexts(ImmutableArray<AdditionalText>.Empty);
+
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out diagnostics);
             diagnostics.Verify();
 

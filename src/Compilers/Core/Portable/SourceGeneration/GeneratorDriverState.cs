@@ -95,6 +95,9 @@ namespace Microsoft.CodeAnalysis
 
         internal readonly bool TrackIncrementalSteps;
 
+        /// <summary>
+        /// Tracks if the <see cref="ParseOptions"/> have been changed meaning post init trees will need to be re-parsed.
+        /// </summary>
         internal readonly bool ParseOptionsChanged;
 
         internal GeneratorDriverState With(
@@ -107,7 +110,8 @@ namespace Microsoft.CodeAnalysis
             ParseOptions? parseOptions = null,
             AnalyzerConfigOptionsProvider? optionsProvider = null,
             IncrementalGeneratorOutputKind? disabledOutputs = null,
-            TimeSpan? runTime = null)
+            TimeSpan? runTime = null,
+            bool? parseOptionsChanged = null)
         {
             return new GeneratorDriverState(
                 parseOptions ?? this.ParseOptions,
@@ -121,7 +125,7 @@ namespace Microsoft.CodeAnalysis
                 disabledOutputs ?? this.DisabledOutputs,
                 runTime ?? this.RunTime,
                 this.TrackIncrementalSteps,
-                parseOptions is not null
+                parseOptionsChanged ?? this.ParseOptionsChanged
                 );
         }
     }
