@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var caretPoint = args.TextView.GetCaretPoint(args.SubjectBuffer);
             if (!caretPoint.HasValue)
             {
-                await ShowErrorDialogAsync(workspace, EditorFeaturesResources.You_must_rename_an_identifier, _threadingContext).ConfigureAwait(false);
+                await ShowErrorDialogAsync(workspace, EditorFeaturesResources.You_must_rename_an_identifier).ConfigureAwait(false);
                 return;
             }
 
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             if (document == null)
             {
-                await ShowErrorDialogAsync(workspace, EditorFeaturesResources.You_must_rename_an_identifier, _threadingContext).ConfigureAwait(false);
+                await ShowErrorDialogAsync(workspace, EditorFeaturesResources.You_must_rename_an_identifier).ConfigureAwait(false);
                 return;
             }
 
@@ -105,15 +105,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             // There can be zero selectedSpans in projection scenarios.
             if (selectedSpans.Count != 1)
             {
-                await ShowErrorDialogAsync(workspace, EditorFeaturesResources.You_must_rename_an_identifier, _threadingContext).ConfigureAwait(false);
+                await ShowErrorDialogAsync(workspace, EditorFeaturesResources.You_must_rename_an_identifier).ConfigureAwait(false);
                 return;
             }
 
             var sessionInfo = await _renameService.StartInlineSessionAsync(document, selectedSpans.Single().Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
             if (!sessionInfo.CanRename)
             {
-                await ShowErrorDialogAsync(workspace, sessionInfo.LocalizedErrorMessage, _threadingContext).ConfigureAwait(false);
+                await ShowErrorDialogAsync(workspace, sessionInfo.LocalizedErrorMessage).ConfigureAwait(false);
+                return;
             }
+
+            return;
 
             //
             // Local Functions
@@ -147,9 +150,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 args.SubjectBuffer.SupportsRename() && !args.SubjectBuffer.IsInLspEditorContext();
         }
 
-        private static async Task ShowErrorDialogAsync(Workspace workspace, string message, IThreadingContext threadingContext)
+        private async Task ShowErrorDialogAsync(Workspace workspace, string message)
         {
-            await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
             var notificationService = workspace.Services.GetService<INotificationService>();
             notificationService.SendNotification(message, title: EditorFeaturesResources.Rename, severity: NotificationSeverity.Error);
         }

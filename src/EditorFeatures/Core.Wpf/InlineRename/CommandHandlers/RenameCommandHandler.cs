@@ -11,10 +11,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Telemetry;
-using System.Windows;
-using Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 #if !COCOA
@@ -136,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         }
 #else
         protected override bool AdornmentShouldReceiveKeyboardNavigation(ITextView textView)
-        => false;
+            => false;
 
         protected override void SetFocusToTextView(ITextView textView)
         {
