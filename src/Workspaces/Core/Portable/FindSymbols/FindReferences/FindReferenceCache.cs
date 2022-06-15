@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static readonly ConditionalWeakTable<SemanticModel, Entry> s_cache = new();
 
         private static Entry GetEntry(SemanticModel model)
-            => s_cache.GetValue(model, static _ => new());
+            => s_cache.GetValue(model, static model => new(model));
 
         public static SymbolInfo GetSymbolInfo(SemanticModel model, SyntaxNode node, CancellationToken cancellationToken)
         {
@@ -78,57 +78,33 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 ? await document.GetTextAsync(cancellationToken).ConfigureAwait(false)
                 : null;
 
-            var normalizedIdentifier = syntaxFacts.IsCaseSensitive ? identifier : identifier.ToLowerInvariant();
             var entry = GetEntry(semanticModel);
 
-            return entry.IdentifierCache.GetOrAdd(normalizedIdentifier,
-                key => GetIdentifierTokensWithText(syntaxFacts, root, sourceText, key, cancellationToken));
-        }
-
-        /// <param name="sourceText">Text for the document being examined.  If not null, we are searching for an
-        /// unescaped identifier, and we can just scan the text directly looking for hits.  If null, we're searching for
-        /// escaped identifiers and we have to walk the root directly looking at every token</param>
-        [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1224834", AllowCaptures = false)]
-        private static ImmutableArray<SyntaxToken> GetIdentifierTokensWithText(
-            ISyntaxFactsService syntaxFacts,
-            SyntaxNode root,
-            SourceText? sourceText,
-            string identifier,
-            CancellationToken cancellationToken)
-        {
-            using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var result);
-
-            if (sourceText == null)
-            {
-                // identifier is escaped.  Have to actually walk the entire tree to find matching tokens.
-                Recurse(root);
-            }
-            else
-            {
-                // identifier is not escaped.  we can scan through the raw text of the file looking for matches.
-
-                var index = 0;
-                while ((index = sourceText.IndexOf(identifier, index, syntaxFacts.IsCaseSensitive)) >= 0)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    var token = root.FindToken(index, findInsideTrivia: true);
-                    var span = token.Span;
-                    if (span.Start == index && span.Length == identifier.Length && IsMatch(token))
-                        result.Add(token);
-
-                    var nextIndex = index + identifier.Length;
-                    nextIndex = Math.Max(nextIndex, token.SpanStart);
-                    index = nextIndex;
-                }
-            }
-
-            return result.ToImmutable();
+            return entry.IdentifierCache.GetOrAdd(identifier,
+                _ => GetIdentifierTokensWithText());
 
             bool IsMatch(SyntaxToken token)
                 => !token.IsMissing && syntaxFacts.IsIdentifier(token) && syntaxFacts.TextMatch(token.ValueText, identifier);
 
-            void Recurse(SyntaxNode node)
+            ImmutableArray<SyntaxToken> GetIdentifierTokensWithText()
+            {
+                using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var result);
+
+                if (sourceText == null)
+                {
+                    // identifier is escaped.  Have to actually walk the entire tree to find matching tokens.
+                    Recurse(root, result);
+                }
+                else
+                {
+                    // identifier is not escaped.  we can scan through the raw text of the file looking for matches.
+                    ScanText(sourceText, result);
+                }
+
+                return result.ToImmutable();
+            }
+
+            void Recurse(SyntaxNode node, ArrayBuilder<SyntaxToken> result)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 foreach (var child in node.ChildNodesAndTokens())
@@ -153,6 +129,24 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             }
                         }
                     }
+                }
+            }
+
+            void ScanText(SourceText sourceText, ArrayBuilder<SyntaxToken> result)
+            {
+                var index = 0;
+                while ((index = sourceText.IndexOf(identifier, index, syntaxFacts.IsCaseSensitive)) >= 0)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    var token = root.FindToken(index, findInsideTrivia: true);
+                    var span = token.Span;
+                    if (span.Start == index && span.Length == identifier.Length && IsMatch(token))
+                        result.Add(token);
+
+                    var nextIndex = index + identifier.Length;
+                    nextIndex = Math.Max(nextIndex, token.SpanStart);
+                    index = nextIndex;
                 }
             }
         }
@@ -196,6 +190,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             public readonly ConcurrentDictionary<string, ImmutableArray<SyntaxToken>> IdentifierCache = new();
             public readonly ConcurrentDictionary<SyntaxNode, SymbolInfo> SymbolInfoCache = new();
+
+            public Entry(SemanticModel semanticModel)
+            {
+                var comparer = semanticModel.Language switch
+                {
+                    LanguageNames.VisualBasic => StringComparer.OrdinalIgnoreCase,
+                    LanguageNames.CSharp => StringComparer.Ordinal,
+                    _ => throw ExceptionUtilities.UnexpectedValue(semanticModel.Language)
+                };
+
+                IdentifierCache = new ConcurrentDictionary<string, ImmutableArray<SyntaxToken>>(comparer);
+            }
         }
     }
 }
