@@ -15,7 +15,7 @@
     <ProjectReference Include="..\..\..\Core\Source\ExpressionCompiler\Microsoft.CodeAnalysis.ExpressionCompiler.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <VsdConfigXmlFiles Include="CSharpExpressionCompiler.vsdconfigxml" />
+    <VsdConfigXmlFiles Include="CSharpExpressionCompiler.vsdconfigxml" Condition="$([MSBuild]::IsOSPlatform('Windows'))" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ExpressionCompiler.UnitTests" />

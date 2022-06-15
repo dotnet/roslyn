@@ -48,8 +48,8 @@
     <Compile Include="..\ExpressionCompiler\DkmExceptionUtilities.cs">
       <Link>ExpressionCompiler\DkmExceptionUtilities.cs</Link>
     </Compile>
-    <VsdConfigXmlFiles Include="CSharp\FunctionResolver.vsdconfigxml" />
-    <VsdConfigXmlFiles Include="VisualBasic\FunctionResolver.vsdconfigxml" />
+    <VsdConfigXmlFiles Include="CSharp\FunctionResolver.vsdconfigxml" Condition="$([MSBuild]::IsOSPlatform('Windows'))" />
+    <VsdConfigXmlFiles Include="VisualBasic\FunctionResolver.vsdconfigxml" Condition="$([MSBuild]::IsOSPlatform('Windows'))" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExpressionEvaluator.FunctionResolver.UnitTests" />

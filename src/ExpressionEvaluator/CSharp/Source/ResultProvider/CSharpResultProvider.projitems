@@ -27,7 +27,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <VsdConfigXmlFiles Include="$(MSBuildThisFileDirectory)CSharpResultProvider.vsdconfigxml" />
-    <None Include="$(MSBuildThisFileDirectory)CSharpResultProvider.vsdconfigxml" />
+    <VsdConfigXmlFiles Include="$(MSBuildThisFileDirectory)CSharpResultProvider.vsdconfigxml" Condition="$([MSBuild]::IsOSPlatform('Windows'))" />
+    <None Include="$(MSBuildThisFileDirectory)CSharpResultProvider.vsdconfigxml" Condition="$([MSBuild]::IsOSPlatform('Windows'))" />
   </ItemGroup>
 </Project>

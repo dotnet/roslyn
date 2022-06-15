@@ -244,7 +244,7 @@
   -->
   <Target Name="_CopyPackagesToInsert"
           BeforeTargets="AfterBuild"
-          Condition="'$(Configuration)' == 'Release' and '$(ContinuousIntegrationBuild)' == 'true'"
+          Condition="'$(Configuration)' == 'Release' and '$(ContinuousIntegrationBuild)' == 'true' and $([MSBuild]::IsOSPlatform('Windows'))"
           DependsOnTargets="_CalculateDependenciesToInsert;_UnpackDependencies;ApplyOptimizations">
 
     <PropertyGroup>

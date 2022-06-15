@@ -13,7 +13,7 @@
     <ProjectReference Include="..\..\..\Core\Source\ExpressionCompiler\Microsoft.CodeAnalysis.ExpressionCompiler.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <VsdConfigXmlFiles Include="BasicExpressionCompiler.vsdconfigxml">
+    <VsdConfigXmlFiles Include="BasicExpressionCompiler.vsdconfigxml" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
       <SubType>Designer</SubType>
     </VsdConfigXmlFiles>
   </ItemGroup>
