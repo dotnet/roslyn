@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
             finally
             {
-                AsyncCompletionLogger.LogSourceInitializationTicksDataPoint((int)stopwatch.Elapsed.TotalMilliseconds);
+                AsyncCompletionLogger.LogSourceInitializationTicksDataPoint(stopwatch.Elapsed);
             }
         }
 
@@ -266,11 +266,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 // contemplate such action thus typing slower before commit and/or spending more time examining the list, which give us some opportunities
                 // to still provide those items later before they are truly required.     
 
-                var options = _globalOptions.GetCompletionOptions(document.Project.Language) with { UpdateImportCompletionCacheInBackground = true };
-                var sessionData = CompletionSessionData.GetOrCreateSessionData(session);
+                var showCompletionItemFilters = _globalOptions.GetOption(CompletionViewOptions.ShowCompletionItemFilters, document.Project.Language);
+                var options = _globalOptions.GetCompletionOptions(document.Project.Language) with
+                {
+                    UpdateImportCompletionCacheInBackground = true,
+                    TargetTypedCompletionFilter = showCompletionItemFilters // Compute targeted types if filter is enabled
+                };
 
-                // For telemetry reporting purpose
-                sessionData.TargetTypeFilterExperimentEnabled = options.TargetTypedCompletionFilter;
+                var sessionData = CompletionSessionData.GetOrCreateSessionData(session);
 
                 if (!options.ShouldShowItemsFromUnimportNamspaces())
                 {
@@ -308,7 +311,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                         // There could be a race around the usage of this stopwatch, I ignored it since we just need a rough idea:
                         // we always log the time even if the stopwatch's not started regardless of whether expand items are included intially
                         // (that number can be obtained via another property.)
-                        AsyncCompletionLogger.LogAdditionalTicksToCompleteDelayedImportCompletionDataPoint((int)stopwatch.ElapsedMilliseconds);
+                        AsyncCompletionLogger.LogAdditionalTicksToCompleteDelayedImportCompletionDataPoint(stopwatch.Elapsed);
 
                         return result;
                     }, cancellationToken);
@@ -343,7 +346,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
             finally
             {
-                AsyncCompletionLogger.LogSourceGetContextTicksDataPoint((int)totalStopWatch.Elapsed.TotalMilliseconds, isCanceled: cancellationToken.IsCancellationRequested);
+                AsyncCompletionLogger.LogSourceGetContextTicksDataPoint(totalStopWatch.Elapsed, isCanceled: cancellationToken.IsCancellationRequested);
             }
 
             static VSCompletionContext CombineCompletionContext(VSCompletionContext context1, VSCompletionContext context2)

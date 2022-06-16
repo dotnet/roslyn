@@ -19,7 +19,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SyncNamespaces
 {
-    internal abstract class AbstractSyncNamespacesSevice<TSyntaxKind, TNamespaceSyntax>
+    internal abstract class AbstractSyncNamespacesService<TSyntaxKind, TNamespaceSyntax>
         : ISyncNamespacesService
         where TSyntaxKind : struct
         where TNamespaceSyntax : SyntaxNode

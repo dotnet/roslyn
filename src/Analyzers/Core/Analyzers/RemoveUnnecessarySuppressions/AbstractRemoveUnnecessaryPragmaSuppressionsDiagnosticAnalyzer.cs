@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
         protected AbstractRemoveUnnecessaryInlineSuppressionsDiagnosticAnalyzer()
             : base(ImmutableArray.Create(s_removeUnnecessarySuppressionDescriptor), GeneratedCodeAnalysisFlags.None)
         {
-            _lazySupportedCompilerErrorCodes = new Lazy<ImmutableHashSet<int>>(() => GetSupportedCompilerErrorCodes());
+            _lazySupportedCompilerErrorCodes = new Lazy<ImmutableHashSet<int>>(GetSupportedCompilerErrorCodes);
         }
 
         protected abstract string CompilerErrorCodePrefix { get; }

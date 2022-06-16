@@ -8,30 +8,30 @@ using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Internal.Log
 {
-    internal class LogAggregator : AbstractLogAggregator<LogAggregator.Counter>
+    internal class CountLogAggregator<TKey> : AbstractLogAggregator<TKey, CountLogAggregator<TKey>.Counter>
     {
         protected override Counter CreateCounter()
             => new();
 
-        public void SetCount(object key, int count)
+        public void SetCount(TKey key, int count)
         {
             var counter = GetCounter(key);
             counter.SetCount(count);
         }
 
-        public void IncreaseCount(object key)
+        public void IncreaseCount(TKey key)
         {
             var counter = GetCounter(key);
             counter.IncreaseCount();
         }
 
-        public void IncreaseCountBy(object key, int value)
+        public void IncreaseCountBy(TKey key, int value)
         {
             var counter = GetCounter(key);
             counter.IncreaseCountBy(value);
         }
 
-        public int GetCount(object key)
+        public int GetCount(TKey key)
         {
             if (TryGetCounter(key, out var counter))
             {

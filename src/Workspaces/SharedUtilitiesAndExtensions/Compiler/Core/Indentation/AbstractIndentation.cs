@@ -21,12 +21,12 @@ namespace Microsoft.CodeAnalysis.Indentation
         /// <summary>
         /// Returns <see langword="true"/> if the language specific <see
         /// cref="ISmartTokenFormatter"/> should be deferred to figure out indentation.  If so, it
-        /// will be asked to <see cref="ISmartTokenFormatter.FormatTokenAsync"/> the resultant
+        /// will be asked to <see cref="ISmartTokenFormatter.FormatToken"/> the resultant
         /// <paramref name="token"/> provided by this method.
         /// </summary>
         protected abstract bool ShouldUseTokenIndenter(Indenter indenter, out SyntaxToken token);
         protected abstract ISmartTokenFormatter CreateSmartTokenFormatter(
-            TSyntaxRoot root, TextLine lineToBeIndented, IndentationOptions options, AbstractFormattingRule baseFormattingRule);
+            TSyntaxRoot root, SourceText text, TextLine lineToBeIndented, IndentationOptions options, AbstractFormattingRule baseFormattingRule);
 
         protected abstract IndentationResult? GetDesiredIndentationWorker(
             Indenter indenter, SyntaxToken? token, SyntaxTrivia? trivia);

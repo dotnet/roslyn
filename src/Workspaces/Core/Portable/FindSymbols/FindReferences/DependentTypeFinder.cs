@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // Finally, because we're searching metadata and source symbols, this needs to be a project
             // that actually supports compilations.
             return projectsThatCouldReferenceType.Intersect(allProjectsThatTheseProjectsDependOn)
-                                                 .Select(id => solution.GetRequiredProject(id))
+                                                 .Select(solution.GetRequiredProject)
                                                  .ToImmutableArray();
         }
 
@@ -423,6 +423,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // 'tpeMatches' to make sure the match is correct.
             var symbolTreeInfo = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
                 project.Solution, reference, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+            // This will always be non-null since we pass loadOnly: false above.
+            Contract.ThrowIfNull(symbolTreeInfo);
 
             // For each type we care about, see if we can find any derived types
             // in this index.

@@ -174,7 +174,7 @@
       </trans-unit>
       <trans-unit id="Call_Hierarchy">
         <source>Call Hierarchy</source>
-        <target state="new">Call Hierarchy</target>
+        <target state="translated">呼叫階層</target>
         <note />
       </trans-unit>
       <trans-unit id="Call_site_value">
@@ -465,6 +465,21 @@
       <trans-unit id="Fix_text_pasted_into_string_literals_experimental">
         <source>Fix text pasted into string literals (experimental)</source>
         <target state="new">Fix text pasted into string literals (experimental)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_analyzer_warnings_and_errors">
+        <source>Fix analyzer warnings and errors</source>
+        <target state="new">Fix analyzer warnings and errors</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_all_warnings_and_errors_set_in_EditorConfig">
+        <source>Fix all warnings and errors set in EditorConfig</source>
+        <target state="new">Fix all warnings and errors set in EditorConfig</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_analyzer_warnings_and_errors_set_in_EditorConfig">
+        <source>Fix analyzer warnings and errors set in EditorConfig</source>
+        <target state="new">Fix analyzer warnings and errors set in EditorConfig</target>
         <note />
       </trans-unit>
       <trans-unit id="For_non_interface_members">
@@ -1034,7 +1049,7 @@
       </trans-unit>
       <trans-unit id="Paste_valid_stack_trace">
         <source>Paste a stack trace to view and navigate its values.</source>
-        <target state="needs-review-translation">貼上有效的堆疊追蹤以檢視及瀏覽其值</target>
+        <target state="new">Paste a stack trace to view and navigate its values.</target>
         <note>"Stack Trace" is a language term and should be kept the same. </note>
       </trans-unit>
       <trans-unit id="Paused_0_tasks_in_queue">
