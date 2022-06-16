@@ -7623,10 +7623,10 @@ public class MyAttribute : System.Attribute
 
             comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics(
-                // (13,20): error CS0704: Cannot do non abstract or virtual member lookup in 'TParameter' because it is a type parameter
+                // (13,20): error CS0704: Cannot do non-virtual member lookup in 'TParameter' because it is a type parameter
                 //         [My(nameof(TParameter.Constant))] // 1
                 Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "TParameter").WithArguments("TParameter").WithLocation(13, 20),
-                // (17,16): error CS0704: Cannot do non abstract or virtual member lookup in 'TParameter' because it is a type parameter
+                // (17,16): error CS0704: Cannot do non-virtual member lookup in 'TParameter' because it is a type parameter
                 //     [My(nameof(TParameter.Constant))] // 2
                 Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "TParameter").WithArguments("TParameter").WithLocation(17, 16)
                 );
@@ -8473,7 +8473,7 @@ public class MyAttribute : System.Attribute
 ", targetFramework: TargetFramework.NetCoreApp);
 
             comp.VerifyDiagnostics(
-                // (2,5): error CS0704: Cannot do non abstract or virtual member lookup in 'TParameter' because it is a type parameter
+                // (2,5): error CS0704: Cannot do non-virtual member lookup in 'TParameter' because it is a type parameter
                 // [My(TParameter.Constant)]
                 Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "TParameter").WithArguments("TParameter").WithLocation(2, 5)
                 );
@@ -8563,7 +8563,7 @@ public class MyAttribute : System.Attribute
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (2,12): error CS0704: Cannot do non abstract or virtual member lookup in 'TParameter' because it is a type parameter
+                // (2,12): error CS0704: Cannot do non-virtual member lookup in 'TParameter' because it is a type parameter
                 // [My(nameof(TParameter.Constant))]
                 Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "TParameter").WithArguments("TParameter").WithLocation(2, 12)
                 );
@@ -8643,7 +8643,7 @@ public interface I
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (2,5): error CS0704: Cannot do non abstract or virtual member lookup in 'TParameter' because it is a type parameter
+                // (2,5): error CS0704: Cannot do non-virtual member lookup in 'TParameter' because it is a type parameter
                 // [My(TParameter.Constant)]
                 Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "TParameter").WithArguments("TParameter").WithLocation(2, 5)
                 );
