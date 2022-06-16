@@ -711,6 +711,7 @@ Regex.Grouping(")"))
         End Function
 
         <WpfTheory, CombinatorialData>
+        <WorkItem(61947, "https://github.com/dotnet/roslyn/issues/61947")>
         Public Async Function TestRegexStringSyntaxAttribute_AttributeField(testHost As TestHost) As Task
             Await TestAsync(
 "
@@ -748,6 +749,7 @@ Regex.Grouping(")"))
         End Function
 
         <WpfTheory, CombinatorialData>
+        <WorkItem(61947, "https://github.com/dotnet/roslyn/issues/61947")>
         Public Async Function TestRegexStringSyntaxAttribute_AttributeProperty(testHost As TestHost) As Task
             Await TestAsync(
 "

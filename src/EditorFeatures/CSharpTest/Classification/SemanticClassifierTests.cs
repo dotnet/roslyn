@@ -3938,8 +3938,8 @@ Regex.OtherEscape("a"),
 Regex.Comment("(?#comment)"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
+        [WorkItem(61947, "https://github.com/dotnet/roslyn/issues/61947")]
         public async Task TestRegexOnApiWithStringSyntaxAttribute_AttributeField(TestHost testHost)
         {
             await TestAsync(
@@ -3971,8 +3971,8 @@ Regex.OtherEscape("a"),
 Regex.Comment("(?#comment)"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
+        [WorkItem(61947, "https://github.com/dotnet/roslyn/issues/61947")]
         public async Task TestRegexOnApiWithStringSyntaxAttribute_AttributeProperty(TestHost testHost)
         {
             await TestAsync(
