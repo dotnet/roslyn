@@ -5069,7 +5069,7 @@ switch (new int[0])
             Punctuation.Comma,
             Punctuation.DotDot,
             Keyword("var"),
-            Identifier("end"),
+            Local("end"),
             Punctuation.CloseBracket,
             Punctuation.Colon,
             ControlKeyword("break"),
@@ -5095,11 +5095,11 @@ _ = x switch
             Punctuation.OpenCurly,
             Punctuation.OpenBracket,
             Keyword("var"),
-            Identifier("start"),
+            Local("start"),
             Punctuation.Comma,
             Punctuation.DotDot,
             Keyword("var"),
-            Identifier("end"),
+            Local("end"),
             Punctuation.CloseBracket,
             Operators.EqualsGreaterThan,
             Number("1"),
@@ -5120,7 +5120,7 @@ _ = 1 is var x;
             Number("1"),
             Keyword("is"),
             Keyword("var"),
-            Identifier("x"),
+            Local("x"),
             Punctuation.Semicolon);
         }
 
