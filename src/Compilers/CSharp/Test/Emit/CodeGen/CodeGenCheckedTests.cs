@@ -2918,6 +2918,12 @@ class C
             var nodeToSpeculate = SyntaxFactory.ParseExpression("x + y");
             Assert.Equal("System.Int32 System.Int32.op_CheckedAddition(System.Int32 left, System.Int32 right)",
                 model.GetSpeculativeSymbolInfo(xNode.Position, nodeToSpeculate, SpeculativeBindingOption.BindAsExpression).Symbol.ToTestDisplayString());
+
+            var checkedNode = tree.GetRoot().DescendantNodes().OfType<CheckedExpressionSyntax>().Single();
+            Assert.Equal("checked(x)", checkedNode.ToString());
+
+            Assert.Equal("System.Int32 System.Int32.op_Addition(System.Int32 left, System.Int32 right)",
+                model.GetSpeculativeSymbolInfo(checkedNode.Position + 2, nodeToSpeculate, SpeculativeBindingOption.BindAsExpression).Symbol.ToTestDisplayString());
         }
 
         [Fact, WorkItem(61843, "https://github.com/dotnet/roslyn/issues/61843")]

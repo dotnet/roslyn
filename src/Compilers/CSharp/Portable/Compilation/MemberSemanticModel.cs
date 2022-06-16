@@ -340,9 +340,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     binder = rootBinder.GetBinder(current);
                 }
-                else if (current is CheckedExpressionSyntax)
+                else if (current is CheckedExpressionSyntax checkedExpression)
                 {
-                    binder = rootBinder.GetBinder(current);
+                    if (LookupPosition.IsBetweenTokens(position, checkedExpression.OpenParenToken, checkedExpression.CloseParenToken))
+                    {
+                        binder = rootBinder.GetBinder(current);
+                    }
                 }
                 else
                 {
