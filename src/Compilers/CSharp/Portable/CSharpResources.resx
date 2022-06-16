@@ -2058,7 +2058,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Inconsistent accessibility: constraint type '{1}' is less accessible than '{0}'</value>
   </data>
   <data name="ERR_LookupInTypeVariable" xml:space="preserve">
-    <value>Cannot do member lookup in '{0}' because it is a type parameter</value>
+    <value>Cannot do non-virtual member lookup in '{0}' because it is a type parameter</value>
   </data>
   <data name="ERR_BadConstraintType" xml:space="preserve">
     <value>Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.</value>

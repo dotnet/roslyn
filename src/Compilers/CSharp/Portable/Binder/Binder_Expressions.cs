@@ -6525,7 +6525,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else if (lookupResult.IsClear)
                     {
-                        Error(diagnostics, ErrorCode.ERR_BadSKunknown, boundLeft.Syntax, leftType, MessageID.IDS_SK_TYVAR.Localize());
+                        Error(diagnostics, ErrorCode.ERR_LookupInTypeVariable, boundLeft.Syntax, leftType);
                         return BadExpression(node, LookupResultKind.NotAValue, boundLeft);
                     }
                 }
