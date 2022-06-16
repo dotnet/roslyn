@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
         private static JsonLanguageDetector Create(
             Compilation compilation, EmbeddedLanguageInfo info)
         {
-            var types = s_typeNamesOfInterest.Select(t => compilation.GetTypeByMetadataName(t)).WhereNotNull().ToSet();
+            var types = s_typeNamesOfInterest.Select(compilation.GetTypeByMetadataName).WhereNotNull().ToSet();
             return new JsonLanguageDetector(info, types);
         }
 

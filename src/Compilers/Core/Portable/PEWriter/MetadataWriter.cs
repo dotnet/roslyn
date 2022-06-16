@@ -69,7 +69,6 @@ namespace Microsoft.Cci
         /// </remarks>
         internal const int PdbLengthLimit = 2046; // Empirical, based on when ISymUnmanagedWriter2 methods start throwing.
 
-        private readonly int _numTypeDefsEstimate;
         private readonly bool _deterministic;
 
         internal readonly bool MetadataOnly;
@@ -108,8 +107,6 @@ namespace Microsoft.Cci
             // much of the reallocation that would occur when growing these from empty.
             _signatureIndex = new Dictionary<ISignature, KeyValuePair<BlobHandle, ImmutableArray<byte>>>(module.HintNumberOfMethodDefinitions, ReferenceEqualityComparer.Instance); //ignores field signatures
 
-            _numTypeDefsEstimate = module.HintNumberOfMethodDefinitions / 6;
-
             this.Context = context;
             this.messageProvider = messageProvider;
             _cancellationToken = cancellationToken;
@@ -119,8 +116,6 @@ namespace Microsoft.Cci
             _dynamicAnalysisDataWriterOpt = dynamicAnalysisDataWriterOpt;
             _smallMethodBodies = new Dictionary<(ImmutableArray<byte>, bool), int>(ByteSequenceBoolTupleComparer.Instance);
         }
-
-        private int NumberOfTypeDefsEstimate { get { return _numTypeDefsEstimate; } }
 
         /// <summary>
         /// Returns true if writing full metadata, false if writing delta.

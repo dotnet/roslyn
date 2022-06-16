@@ -174,7 +174,7 @@
       </trans-unit>
       <trans-unit id="Call_Hierarchy">
         <source>Call Hierarchy</source>
-        <target state="new">Call Hierarchy</target>
+        <target state="translated">Jerarquía de llamadas</target>
         <note />
       </trans-unit>
       <trans-unit id="Call_site_value">
@@ -244,17 +244,17 @@
       </trans-unit>
       <trans-unit id="Collapse_metadata_signature_files_on_open">
         <source>Collapse metadata signature files to definitions on file open</source>
-        <target state="new">Collapse metadata signature files to definitions on file open</target>
+        <target state="translated">Contraer archivos de firma de metadatos a definiciones al abrir archivos</target>
         <note />
       </trans-unit>
       <trans-unit id="Collapse_regions_on_file_open">
         <source>Collapse #regions on file open</source>
-        <target state="new">Collapse #regions on file open</target>
+        <target state="translated">Contraer #regions al abrir archivos</target>
         <note />
       </trans-unit>
       <trans-unit id="Collapse_sourcelink_embedded_decompiled_files_on_open">
         <source>Collapse Source Link, Embedded, and Decompiled source to definitions on file open</source>
-        <target state="new">Collapse Source Link, Embedded, and Decompiled source to definitions on file open</target>
+        <target state="translated">Contraer el vínculo de origen, el origen incrustado y el descompilado a las definiciones al abrir archivos</target>
         <note />
       </trans-unit>
       <trans-unit id="Color_hints">
@@ -464,7 +464,22 @@
       </trans-unit>
       <trans-unit id="Fix_text_pasted_into_string_literals_experimental">
         <source>Fix text pasted into string literals (experimental)</source>
-        <target state="new">Fix text pasted into string literals (experimental)</target>
+        <target state="translated">Corregir texto pegado en literales de cadena (experimental)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_analyzer_warnings_and_errors">
+        <source>Fix analyzer warnings and errors</source>
+        <target state="new">Fix analyzer warnings and errors</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_all_warnings_and_errors_set_in_EditorConfig">
+        <source>Fix all warnings and errors set in EditorConfig</source>
+        <target state="new">Fix all warnings and errors set in EditorConfig</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_analyzer_warnings_and_errors_set_in_EditorConfig">
+        <source>Fix analyzer warnings and errors set in EditorConfig</source>
+        <target state="new">Fix analyzer warnings and errors set in EditorConfig</target>
         <note />
       </trans-unit>
       <trans-unit id="For_non_interface_members">
@@ -484,7 +499,7 @@
       </trans-unit>
       <trans-unit id="Go_To_Definition">
         <source>Go To Definition</source>
-        <target state="new">Go To Definition</target>
+        <target state="translated">Ir a definición</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlight_related_components_under_cursor">
@@ -524,7 +539,7 @@
       </trans-unit>
       <trans-unit id="Include_global_imports">
         <source>Include global imports</source>
-        <target state="new">Include global imports</target>
+        <target state="translated">Incluir importaciones globales</target>
         <note />
       </trans-unit>
       <trans-unit id="Index">
@@ -864,7 +879,7 @@
       </trans-unit>
       <trans-unit id="Navigate_asynchronously_exerimental">
         <source>Navigate asynchronously (experimental)</source>
-        <target state="new">Navigate asynchronously (experimental)</target>
+        <target state="translated">Navegar de forma asincrónica (experimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="Navigate_to_0">
@@ -879,7 +894,7 @@
       </trans-unit>
       <trans-unit id="Navigating">
         <source>Navigating</source>
-        <target state="new">Navigating</target>
+        <target state="translated">Navegando</target>
         <note />
       </trans-unit>
       <trans-unit id="Never">
@@ -1034,7 +1049,7 @@
       </trans-unit>
       <trans-unit id="Paste_valid_stack_trace">
         <source>Paste a stack trace to view and navigate its values.</source>
-        <target state="needs-review-translation">Pegar un seguimiento de pila válido para ver y navegar sus valores</target>
+        <target state="translated">Pegar un seguimiento de pila para ver y navegar sus valores</target>
         <note>"Stack Trace" is a language term and should be kept the same. </note>
       </trans-unit>
       <trans-unit id="Paused_0_tasks_in_queue">
@@ -1054,7 +1069,7 @@
       </trans-unit>
       <trans-unit id="Prefer_UTF8_string_literals">
         <source>Prefer UTF-8 string literals</source>
-        <target state="new">Prefer UTF-8 string literals</target>
+        <target state="translated">Preferir literales de cadena UTF-8</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_compound_assignments">
@@ -1109,7 +1124,7 @@
       </trans-unit>
       <trans-unit id="Prefer_top_level_statements">
         <source>Prefer top-level statements</source>
-        <target state="new">Prefer top-level statements</target>
+        <target state="translated">Preferir instrucciones de nivel superior</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_tuple_swap">
@@ -1309,7 +1324,7 @@
       </trans-unit>
       <trans-unit id="Show_compiler_errors_and_warnings_for_colon">
         <source>Show compiler errors and warnings for:</source>
-        <target state="new">Show compiler errors and warnings for:</target>
+        <target state="translated">Mostrar errores y advertencias del compilador para:</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_completion_list">
@@ -1709,7 +1724,7 @@
       </trans-unit>
       <trans-unit id="_0_1">
         <source>{0} ({1})</source>
-        <target state="new">{0} ({1})</target>
+        <target state="translated">{0} ({1})</target>
         <note>Used to show a symbol name, followed by the project name it came from</note>
       </trans-unit>
       <trans-unit id="_0_is_inherited">

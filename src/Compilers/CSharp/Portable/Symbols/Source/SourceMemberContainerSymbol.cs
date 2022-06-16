@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private const int NullableContextSize = 3;
 
             private const int HasDeclaredRequiredMembersOffset = NullableContextOffset + NullableContextSize;
-            private const int HasDeclaredRequiredMembersSize = 2;
+            //private const int HasDeclaredRequiredMembersSize = 2;
 
             private const int SpecialTypeMask = (1 << SpecialTypeSize) - 1;
             private const int ManagedKindMask = (1 << ManagedKindSize) - 1;
@@ -395,12 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // It is an error for the same modifier to appear multiple times.
                     if (!modifierErrors)
                     {
-                        var info = ModifierUtils.CheckAccessibility(mods, this, isExplicitInterfaceImplementation: false);
-                        if (info != null)
-                        {
-                            diagnostics.Add(info, this.Locations[0]);
-                            modifierErrors = true;
-                        }
+                        modifierErrors = ModifierUtils.CheckAccessibility(mods, this, isExplicitInterfaceImplementation: false, diagnostics, Locations[0]);
                     }
                 }
 
@@ -1673,6 +1668,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckForUnmatchedOperators(diagnostics);
             CheckForRequiredMemberAttribute(diagnostics);
 
+            if (IsScriptClass || IsSubmissionClass)
+            {
+                ReportRequiredMembers(diagnostics);
+            }
+
             var location = Locations[0];
             var compilation = DeclaringCompilation;
 
@@ -2471,6 +2471,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     // The required members list for the base type '{0}' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
                     diagnostics.Add(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, method.Locations[0], BaseTypeNoUseSiteDiagnostics);
+                }
+            }
+        }
+
+        private void ReportRequiredMembers(BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(IsSubmissionClass || IsScriptClass);
+
+            foreach (var member in GetMembersUnordered())
+            {
+                if (member.IsRequired())
+                {
+                    // Required members are not allowed on the top level of a script or submission.
+                    diagnostics.Add(ErrorCode.ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers, member.Locations[0]);
                 }
             }
         }

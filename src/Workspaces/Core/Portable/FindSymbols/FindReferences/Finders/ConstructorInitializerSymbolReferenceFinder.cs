@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var tokens = await document.GetConstructorInitializerTokensAsync(semanticModel, cancellationToken).ConfigureAwait(false);
             if (semanticModel.Language == LanguageNames.VisualBasic)
             {
-                tokens = tokens.Concat(await GetIdentifierOrGlobalNamespaceTokensWithTextAsync(
+                tokens = tokens.Concat(await GetIdentifierTokensWithTextAsync(
                     document, semanticModel, "New", cancellationToken).ConfigureAwait(false)).Distinct();
             }
 

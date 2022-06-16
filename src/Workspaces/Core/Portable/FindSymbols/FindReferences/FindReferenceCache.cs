@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -36,19 +34,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return nodeCache.GetOrAdd(node, static (n, arg) => arg.model.GetSymbolInfo(n, arg.cancellationToken), (model, cancellationToken));
         }
 
-        public static IAliasSymbol GetAliasInfo(
+        public static IAliasSymbol? GetAliasInfo(
             ISemanticFactsService semanticFacts, SemanticModel model, SyntaxToken token, CancellationToken cancellationToken)
         {
             if (semanticFacts == null)
-            {
-                return model.GetAliasInfo(token.Parent, cancellationToken);
-            }
+                return model.GetAliasInfo(token.GetRequiredParent(), cancellationToken);
 
             var entry = GetCachedEntry(model);
             if (entry == null)
-            {
-                return model.GetAliasInfo(token.Parent, cancellationToken);
-            }
+                return model.GetAliasInfo(token.GetRequiredParent(), cancellationToken);
 
             if (entry.AliasNameSet == null)
             {
@@ -57,18 +51,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             if (entry.AliasNameSet.Contains(token.ValueText))
-            {
-                return model.GetAliasInfo(token.Parent, cancellationToken);
-            }
+                return model.GetAliasInfo(token.GetRequiredParent(), cancellationToken);
 
             return null;
         }
 
-        public static ImmutableArray<SyntaxToken> GetIdentifierOrGlobalNamespaceTokensWithText(
+        public static ImmutableArray<SyntaxToken> GetIdentifierTokensWithText(
             ISyntaxFactsService syntaxFacts,
             SemanticModel model,
             SyntaxNode root,
-            SourceText sourceText,
+            SourceText? sourceText,
             string text,
             CancellationToken cancellationToken)
         {
@@ -76,19 +68,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             var entry = GetCachedEntry(model);
             if (entry == null)
-            {
-                return GetIdentifierOrGlobalNamespaceTokensWithText(syntaxFacts, root, sourceText, normalized, cancellationToken);
-            }
+                return GetIdentifierTokensWithText(syntaxFacts, root, sourceText, normalized, cancellationToken);
 
             return entry.IdentifierCache.GetOrAdd(normalized,
-                key => GetIdentifierOrGlobalNamespaceTokensWithText(
-                    syntaxFacts, root, sourceText, key, cancellationToken));
+                key => GetIdentifierTokensWithText(syntaxFacts, root, sourceText, key, cancellationToken));
         }
 
         [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1224834", AllowCaptures = false)]
-        private static ImmutableArray<SyntaxToken> GetIdentifierOrGlobalNamespaceTokensWithText(
-            ISyntaxFactsService syntaxFacts, SyntaxNode root, SourceText sourceText,
-            string text, CancellationToken cancellationToken)
+        private static ImmutableArray<SyntaxToken> GetIdentifierTokensWithText(
+            ISyntaxFactsService syntaxFacts,
+            SyntaxNode root,
+            SourceText? sourceText,
+            string text,
+            CancellationToken cancellationToken)
         {
             if (sourceText != null)
             {
@@ -108,7 +100,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             static bool IsCandidate(SyntaxToken t, ISyntaxFactsService syntaxFacts, string text)
-                => syntaxFacts.IsGlobalNamespaceKeyword(t) || (syntaxFacts.IsIdentifier(t) && syntaxFacts.TextMatch(t.ValueText, text));
+                => syntaxFacts.IsIdentifier(t) && syntaxFacts.TextMatch(t.ValueText, text);
         }
 
         private static ImmutableArray<SyntaxToken> GetTokensFromText(
@@ -182,18 +174,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return initializers;
         }
 
-        private static ConcurrentDictionary<SyntaxNode, SymbolInfo> GetNodeCache(SemanticModel model)
+        private static ConcurrentDictionary<SyntaxNode, SymbolInfo>? GetNodeCache(SemanticModel model)
         {
             var entry = GetCachedEntry(model);
-            if (entry == null)
-            {
-                return null;
-            }
-
-            return entry.SymbolInfoCache;
+            return entry?.SymbolInfoCache;
         }
 
-        private static Entry GetCachedEntry(SemanticModel model)
+        private static Entry? GetCachedEntry(SemanticModel model)
         {
             using (s_gate.DisposableRead())
             {
@@ -244,8 +231,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private class Entry
         {
             public int Count;
-            public ImmutableHashSet<string> AliasNameSet;
-            public List<SyntaxToken> ConstructorInitializerCache;
+            public ImmutableHashSet<string>? AliasNameSet;
+            public List<SyntaxToken>? ConstructorInitializerCache;
 
             public readonly ConcurrentDictionary<string, ImmutableArray<SyntaxToken>> IdentifierCache = new();
             public readonly ConcurrentDictionary<SyntaxNode, SymbolInfo> SymbolInfoCache = new();

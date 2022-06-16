@@ -53,28 +53,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             {
                 var document = scope.First();
                 if (document.Project == project)
-                {
                     return scope.ToImmutableArray();
-                }
 
                 return ImmutableArray<Document>.Empty;
             }
 
-            var documents = ArrayBuilder<Document>.GetInstance();
+            using var _ = ArrayBuilder<Document>.GetInstance(out var documents);
             foreach (var document in await project.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false))
             {
                 if (scope != null && !scope.Contains(document))
-                {
                     continue;
-                }
 
                 if (await predicateAsync(document, cancellationToken).ConfigureAwait(false))
-                {
                     documents.Add(document);
-                }
             }
 
-            return documents.ToImmutableAndFree();
+            return documents.ToImmutable();
         }
 
         /// <summary>
@@ -87,15 +81,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CancellationToken cancellationToken,
             params string[] values)
         {
-            return FindDocumentsAsync(project, documents, async (d, c) =>
+            return FindDocumentsWithPredicateAsync(project, documents, index =>
             {
-                var info = await SyntaxTreeIndex.GetRequiredIndexAsync(d, c).ConfigureAwait(false);
                 foreach (var value in values)
                 {
-                    if (!info.ProbablyContainsIdentifier(value))
-                    {
+                    if (!index.ProbablyContainsIdentifier(value))
                         return false;
-                    }
                 }
 
                 return true;
@@ -106,15 +97,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// Finds all the documents in the provided project that contain a global attribute in them.
         /// </summary>
         protected static Task<ImmutableArray<Document>> FindDocumentsWithGlobalSuppressMessageAttributeAsync(
-            Project project,
-            IImmutableSet<Document>? documents,
-            CancellationToken cancellationToken)
+            Project project, IImmutableSet<Document>? documents, CancellationToken cancellationToken)
         {
-            return FindDocumentsAsync(project, documents, async (d, c) =>
-            {
-                var info = await SyntaxTreeIndex.GetRequiredIndexAsync(d, c).ConfigureAwait(false);
-                return info.ContainsGlobalSuppressMessageAttribute;
-            }, cancellationToken);
+            return FindDocumentsWithPredicateAsync(project, documents, index => index.ContainsGlobalSuppressMessageAttribute, cancellationToken);
         }
 
         protected static Task<ImmutableArray<Document>> FindDocumentsAsync(
@@ -124,15 +109,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CancellationToken cancellationToken)
         {
             if (predefinedType == PredefinedType.None)
-            {
                 return SpecializedTasks.EmptyImmutableArray<Document>();
-            }
 
-            return FindDocumentsAsync(project, documents, async (d, c) =>
-            {
-                var info = await SyntaxTreeIndex.GetRequiredIndexAsync(d, c).ConfigureAwait(false);
-                return info.ContainsPredefinedType(predefinedType);
-            }, cancellationToken);
+            return FindDocumentsWithPredicateAsync(project, documents, index => index.ContainsPredefinedType(predefinedType), cancellationToken);
         }
 
         protected static Task<ImmutableArray<Document>> FindDocumentsAsync(
@@ -144,11 +123,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             if (op == PredefinedOperator.None)
                 return SpecializedTasks.EmptyImmutableArray<Document>();
 
-            return FindDocumentsAsync(project, documents, async (d, c) =>
-            {
-                var info = await SyntaxTreeIndex.GetRequiredIndexAsync(d, c).ConfigureAwait(false);
-                return info.ContainsPredefinedOperator(op);
-            }, cancellationToken);
+            return FindDocumentsWithPredicateAsync(project, documents, index => index.ContainsPredefinedOperator(op), cancellationToken);
         }
 
         protected static bool IdentifiersMatch(ISyntaxFactsService syntaxFacts, string name, SyntaxToken token)
@@ -189,7 +164,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             Func<SyntaxToken, SemanticModel, ValueTask<(bool matched, CandidateReason reason)>> symbolsMatchAsync,
             CancellationToken cancellationToken)
         {
-            var tokens = await GetIdentifierOrGlobalNamespaceTokensWithTextAsync(document, semanticModel, identifier, cancellationToken).ConfigureAwait(false);
+            var tokens = await GetIdentifierTokensWithTextAsync(document, semanticModel, identifier, cancellationToken).ConfigureAwait(false);
 
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
@@ -202,7 +177,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 cancellationToken).ConfigureAwait(false);
         }
 
-        protected static async Task<ImmutableArray<SyntaxToken>> GetIdentifierOrGlobalNamespaceTokensWithTextAsync(Document document, SemanticModel semanticModel, string identifier, CancellationToken cancellationToken)
+        protected static async Task<ImmutableArray<SyntaxToken>> GetIdentifierTokensWithTextAsync(Document document, SemanticModel semanticModel, string identifier, CancellationToken cancellationToken)
         {
             // It's very costly to walk an entire tree.  So if the tree is simple and doesn't contain
             // any unicode escapes in it, then we do simple string matching to find the tokens.
@@ -220,7 +195,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             if (!info.ProbablyContainsEscapedIdentifier(identifier))
                 text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-            return FindReferenceCache.GetIdentifierOrGlobalNamespaceTokensWithText(
+            return FindReferenceCache.GetIdentifierTokensWithText(
                 syntaxFacts, semanticModel, root, text, identifier, cancellationToken);
         }
 
@@ -439,7 +414,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return allAliasReferences.ToImmutable();
         }
 
-        protected static Task<ImmutableArray<Document>> FindDocumentsWithPredicateAsync(Project project, IImmutableSet<Document>? documents, Func<SyntaxTreeIndex, bool> predicate, CancellationToken cancellationToken)
+        protected static Task<ImmutableArray<Document>> FindDocumentsWithPredicateAsync(
+            Project project, IImmutableSet<Document>? documents, Func<SyntaxTreeIndex, bool> predicate, CancellationToken cancellationToken)
         {
             return FindDocumentsAsync(project, documents, async (d, c) =>
             {

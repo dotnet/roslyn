@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadAbstractStaticMemberAccess">
         <source>A shared abstract or virtual interface member cannot be accessed.</source>
-        <target state="needs-review-translation">Não é possível acessar um membro da interface abstrata compartilhada.</target>
+        <target state="translated">Um membro de interface com abstrato compartilhado ou virtual não pode ser acessado.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
@@ -29,7 +29,7 @@
       </trans-unit>
       <trans-unit id="ERR_DoNotUseCompilerFeatureRequired">
         <source>'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute' is reserved for compiler usage only.</source>
-        <target state="new">'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute' is reserved for compiler usage only.</target>
+        <target state="translated">'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute' é reservado apanas para uso do compilador.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
@@ -69,7 +69,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnimplementedSharedMember">
         <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract or virtual '{2}'.</source>
-        <target state="needs-review-translation">{0} '{1}' não é possível implementar a interface '{3}' porque contém um resumo compartilhado '{2}'.</target>
+        <target state="translated">{0} '{1}' não é possível implementar a interface '{3}' porque ela contém um abstrato compartilhado ou virtual '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
@@ -79,7 +79,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnsupportedCompilerFeature">
         <source>'{0}' requires compiler feature '{1}', which is not supported by this version of the Visual Basic compiler.</source>
-        <target state="new">'{0}' requires compiler feature '{1}', which is not supported by this version of the Visual Basic compiler.</target>
+        <target state="translated">'{0}' requer o recurso de compilador '{1}', o que não é suportado por esta versão do compilador do Visual Basic.</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CallerArgumentExpression">

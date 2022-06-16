@@ -4596,7 +4596,7 @@ tryAgain:
                 GetExpectedTokenError(kind, t1.Kind));
         }
 
-        private static bool NoTriviaBetween(SyntaxToken token1, SyntaxToken token2)
+        internal static bool NoTriviaBetween(SyntaxToken token1, SyntaxToken token2)
             => token1.GetTrailingTriviaWidth() == 0 && token2.GetLeadingTriviaWidth() == 0;
 
 #nullable disable
@@ -13697,7 +13697,9 @@ tryAgain:
         }
 
         [Obsolete("Use IsIncrementalAndFactoryContextMatches")]
+#pragma warning disable IDE0051 // Remove unused private members
         private new bool IsIncremental
+#pragma warning restore IDE0051 // Remove unused private members
         {
             get { throw new Exception("Use IsIncrementalAndFactoryContextMatches"); }
         }
