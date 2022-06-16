@@ -9,13 +9,17 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using System;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Indentation;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Formating;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    [UseExportProvider]
-    public class GeneralWorkspaceTests
+    [UseExportProvider, Trait(Traits.Feature, Traits.Features.Workspace)]
+    public class WorkspaceTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestChangeDocumentContent_TryApplyChanges_Throws()
         {
             using var ws = new NoChangesAllowedWorkspace();
@@ -39,7 +43,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(WorkspacesResources.Changing_documents_is_not_supported, e.Message);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestChangeDocumentName_TryApplyChanges_Throws()
         {
             using var ws = new NoChangesAllowedWorkspace();
@@ -65,7 +69,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(WorkspacesResources.Changing_document_property_is_not_supported, e.Message);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestChangeDocumentFolders_TryApplyChanges_Throws()
         {
             using var ws = new NoChangesAllowedWorkspace();
@@ -93,7 +97,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(WorkspacesResources.Changing_document_property_is_not_supported, e.Message);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestChangeDocumentFilePath_TryApplyChanges_Throws()
         {
             using var ws = new NoChangesAllowedWorkspace();
@@ -120,7 +124,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(WorkspacesResources.Changing_document_property_is_not_supported, e.Message);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestChangeDocumentSourceCodeKind_TryApplyChanges_Throws()
         {
             using var ws = new NoChangesAllowedWorkspace();
@@ -217,6 +221,27 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 this.OnDocumentAdded(documentInfo);
 
                 return this.CurrentSolution.GetDocument(documentInfo.Id);
+            }
+        }
+
+        [Fact, Obsolete]
+        public void SetOptions_PublicGlobalOptions()
+        {
+            using var workspace1 = new AdhocWorkspace();
+            var solution = workspace1.CurrentSolution;
+
+            var newOptions = OptionsTestHelpers.GetOptionSetWithChangedOptions(solution.Options, OptionsTestHelpers.AllPublicOptionsWithNonDefaultValues);
+
+            // Sets options to global options that are shared among all workspaces:
+            workspace1.Options = newOptions;
+
+            using var workspace2 = new AdhocWorkspace();
+            foreach (var (option, value) in OptionsTestHelpers.AllPublicOptionsWithNonDefaultValues)
+            {
+                foreach (var language in OptionsTestHelpers.GetApplicableLanguages(option))
+                {
+                    Assert.Equal(value, workspace2.Options.GetOption(new OptionKey(option, language)));
+                }
             }
         }
     }

@@ -337,19 +337,19 @@ namespace Microsoft.CodeAnalysis.Remote
                 // if either solution id or file path changed, then we consider it as new solution. Otherwise,
                 // update the current solution in place.
 
-                var oldSolution = this.CurrentSolution;
+                var oldSolution = CurrentSolution;
                 var addingSolution = oldSolution.Id != newSolution.Id || oldSolution.FilePath != newSolution.FilePath;
                 if (addingSolution)
                 {
                     // We're not doing an update, we're moving to a new solution entirely.  Clear out the old one. This
                     // is necessary so that we clear out any open document information this workspace is tracking. Note:
                     // this seems suspect as the remote workspace should not be tracking any open document state.
-                    this.ClearSolutionData();
+                    ClearSolutionData();
                 }
 
                 newSolution = SetCurrentSolution(newSolution);
-                SetOptions(newSolution.Options);
-                _ = this.RaiseWorkspaceChangedEventAsync(
+
+                _ = RaiseWorkspaceChangedEventAsync(
                     addingSolution ? WorkspaceChangeKind.SolutionAdded : WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
 
                 return (newSolution, updated: true);
