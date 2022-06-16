@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                    item.DisplayParts,
                    item.NameDisplayParts,
                    item.OriginationParts,
-                   item.SourceSpans.SelectAsArray(ss => SerializableDocumentSpan.Dehydrate(ss)),
+                   item.SourceSpans.SelectAsArray(SerializableDocumentSpan.Dehydrate),
                    item.Properties,
                    item.DisplayableProperties,
                    item.DisplayIfNoReferences);
