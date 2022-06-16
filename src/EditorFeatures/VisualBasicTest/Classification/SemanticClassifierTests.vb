@@ -711,6 +711,80 @@ Regex.Grouping(")"))
         End Function
 
         <WpfTheory, CombinatorialData>
+        Public Async Function TestRegexStringSyntaxAttribute_AttributeField(testHost As TestHost) As Task
+            Await TestAsync(
+"
+imports system
+imports System.Diagnostics.CodeAnalysis
+imports System.Text.RegularExpressions
+
+<AttributeUsage(AttributeTargets.Field)>
+class RegexTestAttribute 
+    inherits Attribute
+
+    public sub new()
+    end sub
+
+    <StringSyntax(StringSyntaxAttribute.Regex)> 
+    public value as string
+end class
+
+class Program
+    [|<RegexTest(value:=""$(\b\G\z)"")>|]
+    dim field as string
+end class" & EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeVB,
+                testHost,
+[Class]("RegexTest"),
+Field("value"),
+Regex.Anchor("$"),
+Regex.Grouping("("),
+Regex.Anchor("\"),
+Regex.Anchor("b"),
+Regex.Anchor("\"),
+Regex.Anchor("G"),
+Regex.Anchor("\"),
+Regex.Anchor("z"),
+Regex.Grouping(")"))
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestRegexStringSyntaxAttribute_AttributeProperty(testHost As TestHost) As Task
+            Await TestAsync(
+"
+imports system
+imports System.Diagnostics.CodeAnalysis
+imports System.Text.RegularExpressions
+
+<AttributeUsage(AttributeTargets.Field)>
+class RegexTestAttribute 
+    inherits Attribute
+
+    public sub new()
+    end sub
+
+    <StringSyntax(StringSyntaxAttribute.Regex)> 
+    public property value as string
+end class
+
+class Program
+    [|<RegexTest(value:=""$(\b\G\z)"")>|]
+    dim field as string
+end class" & EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeVB,
+                testHost,
+[Class]("RegexTest"),
+[Property]("value"),
+Regex.Anchor("$"),
+Regex.Grouping("("),
+Regex.Anchor("\"),
+Regex.Anchor("b"),
+Regex.Anchor("\"),
+Regex.Anchor("G"),
+Regex.Anchor("\"),
+Regex.Anchor("z"),
+Regex.Grouping(")"))
+        End Function
+
+        <WpfTheory, CombinatorialData>
         Public Async Function TestRegexStringSyntaxAttribute_Property(testHost As TestHost) As Task
             Await TestAsync(
 "

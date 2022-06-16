@@ -232,7 +232,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function FindParameterForAttributeArgument(semanticModel As SemanticModel, argument As SyntaxNode, cancellationToken As CancellationToken) As IParameterSymbol Implements ISemanticFacts.FindParameterForAttributeArgument
-            Return FindParameterForArgument(semanticModel, argument, cancellationToken)
+            Return Nothing
+        End Function
+
+        Public Function FindFieldOrPropertyForArgument(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As ISymbol Implements ISemanticFacts.FindFieldOrPropertyForArgument
+            Dim argument = TryCast(node, SimpleArgumentSyntax)
+            If argument?.NameColonEquals IsNot Nothing AndAlso
+               TypeOf argument.Parent Is ArgumentListSyntax AndAlso
+               TypeOf argument.Parent.Parent Is AttributeSyntax Then
+
+                Dim symbol = semanticModel.GetSymbolInfo(argument.NameColonEquals.Name, cancellationToken).GetAnySymbol()
+                If symbol?.Kind = SymbolKind.Field OrElse symbol?.Kind = SymbolKind.Property Then
+                    Return symbol
+                End If
+            End If
+
+            Return Nothing
+        End Function
+
+        Public Function FindFieldOrPropertyForAttributeArgument(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As ISymbol Implements ISemanticFacts.FindFieldOrPropertyForAttributeArgument
+            Return Nothing
         End Function
 
         Public Function GetBestOrAllSymbols(semanticModel As SemanticModel, node As SyntaxNode, token As SyntaxToken, cancellationToken As CancellationToken) As ImmutableArray(Of ISymbol) Implements ISemanticFacts.GetBestOrAllSymbols
