@@ -181,12 +181,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             public ImmutableHashSet<string>? AliasNameSet;
             public ImmutableArray<SyntaxToken> ConstructorInitializerCache;
 
-            public readonly ConcurrentDictionary<string, ImmutableArray<SyntaxToken>> IdentifierCache;
             public readonly ConcurrentDictionary<SyntaxNode, SymbolInfo> SymbolInfoCache = new();
+            public readonly ConcurrentDictionary<string, ImmutableArray<SyntaxToken>> IdentifierCache;
 
             public Entry(SemanticModel semanticModel)
             {
-                IdentifierCache = new ConcurrentDictionary<string, ImmutableArray<SyntaxToken>>(semanticModel.Language switch
+                IdentifierCache = new(comparer: semanticModel.Language switch
                 {
                     LanguageNames.VisualBasic => StringComparer.OrdinalIgnoreCase,
                     LanguageNames.CSharp => StringComparer.Ordinal,
