@@ -122,6 +122,11 @@
         <target state="translated">Einer der Parameter eines binären Operators muss der enthaltende Typ sein oder sein zugehöriger Typparameter, der darauf beschränkt ist.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadAbstractEqualityOperatorSignature">
+        <source>One of the parameters of an equality, or inequality operator declared in interfaces must be a type parameter on the enclosing type constrained to the enclosing type</source>
+        <target state="new">One of the parameters of an equality, or inequality operator declared in interfaces must be a type parameter on the enclosing type constrained to the enclosing type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadAbstractIncDecRetType">
         <source>The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.</source>
         <target state="translated">Der Rückgabetyp für den „++“- oder „--“-Operator muss entweder mit dem Parametertyp übereinstimmen, vom Parametertyp abgeleitet werden oder der Typparameter des enthaltenden Typs sein, der beschränkt ist, sofern der Parametertyp kein anderer Typparameter ist.</target>
@@ -11673,8 +11678,8 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainConversionOrEqualityOperators">
-        <source>Conversion, equality, or inequality operators declared in interfaces must be abstract</source>
-        <target state="translated">Konvertierungs-, Gleichheits- oder Ungleichheitsoperatoren, die in Schnittstellen deklariert sind, müssen abstrakt sein.</target>
+        <source>Conversion, equality, or inequality operators declared in interfaces must be abstract or virtual</source>
+        <target state="needs-review-translation">Konvertierungs-, Gleichheits- oder Ungleichheitsoperatoren, die in Schnittstellen deklariert sind, müssen abstrakt sein.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">

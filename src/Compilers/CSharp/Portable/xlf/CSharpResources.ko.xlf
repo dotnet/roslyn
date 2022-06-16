@@ -122,6 +122,11 @@
         <target state="translated">이진 연산자의 매개 변수 중 하나는 포함하는 유형이거나 이에 제한되는 유형 매개 변수여야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadAbstractEqualityOperatorSignature">
+        <source>One of the parameters of an equality, or inequality operator declared in interfaces must be a type parameter on the enclosing type constrained to the enclosing type</source>
+        <target state="new">One of the parameters of an equality, or inequality operator declared in interfaces must be a type parameter on the enclosing type constrained to the enclosing type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadAbstractIncDecRetType">
         <source>The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.</source>
         <target state="translated">++ 또는 -- 연산자에 대한 반환 유형은 매개 변수 유형과 일치하거나 매개 변수 유형에서 파생되거나 매개 변수 유형이 다른 유형 매개 변수가 아닌 경우 포함하는 유형의 유형 매개 변수로 제한됩니다.</target>
@@ -11672,8 +11677,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainConversionOrEqualityOperators">
-        <source>Conversion, equality, or inequality operators declared in interfaces must be abstract</source>
-        <target state="translated">인터페이스에 선언된 변환, 같음 또는 부등식 연산자는 추상이어야 합니다.</target>
+        <source>Conversion, equality, or inequality operators declared in interfaces must be abstract or virtual</source>
+        <target state="needs-review-translation">인터페이스에 선언된 변환, 같음 또는 부등식 연산자는 추상이어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">

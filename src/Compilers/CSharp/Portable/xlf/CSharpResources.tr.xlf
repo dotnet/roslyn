@@ -122,6 +122,11 @@
         <target state="translated">İkili işlecin parametrelerinden biri, içeren tür veya tür parametresi ile kısıtlanmış olmalıdır.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadAbstractEqualityOperatorSignature">
+        <source>One of the parameters of an equality, or inequality operator declared in interfaces must be a type parameter on the enclosing type constrained to the enclosing type</source>
+        <target state="new">One of the parameters of an equality, or inequality operator declared in interfaces must be a type parameter on the enclosing type constrained to the enclosing type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadAbstractIncDecRetType">
         <source>The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.</source>
         <target state="translated">++ veya -- işlecinin dönüş türü parametre türüyle eşleşmeli veya parametre türünden türetilemez ya da parametre türü farklı bir tür parametresi olmadığı sürece, içeren türün tür parametresiyle kısıtlanmış olmalıdır.</target>
@@ -11673,8 +11678,8 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainConversionOrEqualityOperators">
-        <source>Conversion, equality, or inequality operators declared in interfaces must be abstract</source>
-        <target state="translated">Arabirimlerde bildirilen dönüştürme, eşitlik veya eşitsizlik işleçleri soyut olmalıdır</target>
+        <source>Conversion, equality, or inequality operators declared in interfaces must be abstract or virtual</source>
+        <target state="needs-review-translation">Arabirimlerde bildirilen dönüştürme, eşitlik veya eşitsizlik işleçleri soyut olmalıdır</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">

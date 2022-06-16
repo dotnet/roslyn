@@ -122,6 +122,11 @@
         <target state="translated">Uno dei parametri di un operatore binario deve essere il tipo che lo contiene o il relativo parametro di tipo vincolato ad esso.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadAbstractEqualityOperatorSignature">
+        <source>One of the parameters of an equality, or inequality operator declared in interfaces must be a type parameter on the enclosing type constrained to the enclosing type</source>
+        <target state="new">One of the parameters of an equality, or inequality operator declared in interfaces must be a type parameter on the enclosing type constrained to the enclosing type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadAbstractIncDecRetType">
         <source>The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.</source>
         <target state="translated">Il tipo restituito per l'operatore ++ o -- deve corrispondere al tipo di parametro, essere derivato dal tipo di parametro oppure essere il parametro di tipo del tipo che lo contiene, a meno che il tipo di parametro non sia un parametro di tipo diverso.</target>
@@ -11673,8 +11678,8 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainConversionOrEqualityOperators">
-        <source>Conversion, equality, or inequality operators declared in interfaces must be abstract</source>
-        <target state="translated">Gli operatori di conversione, uguaglianza o disuguaglianza dichiarati nelle interfacce devono essere astratti</target>
+        <source>Conversion, equality, or inequality operators declared in interfaces must be abstract or virtual</source>
+        <target state="needs-review-translation">Gli operatori di conversione, uguaglianza o disuguaglianza dichiarati nelle interfacce devono essere astratti</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">

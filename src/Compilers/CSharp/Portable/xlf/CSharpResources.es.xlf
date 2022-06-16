@@ -122,6 +122,11 @@
         <target state="translated">Uno de los parámetros de un operador binario debe ser el tipo contenedor o su parámetro de tipo restringido a él.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadAbstractEqualityOperatorSignature">
+        <source>One of the parameters of an equality, or inequality operator declared in interfaces must be a type parameter on the enclosing type constrained to the enclosing type</source>
+        <target state="new">One of the parameters of an equality, or inequality operator declared in interfaces must be a type parameter on the enclosing type constrained to the enclosing type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadAbstractIncDecRetType">
         <source>The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.</source>
         <target state="translated">El tipo de valor devuelto para el operador ++ o -- debe coincidir con el tipo de parámetro, o bien debe derivarse del tipo de parámetro, o ser el parámetro de tipo del tipo contenedor restringido a él, a menos que el tipo de parámetro sea un parámetro de tipo diferente.</target>
@@ -11673,8 +11678,8 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainConversionOrEqualityOperators">
-        <source>Conversion, equality, or inequality operators declared in interfaces must be abstract</source>
-        <target state="translated">Los operadores de conversión, igualdad o desigualdad declarados en interfaces deben ser abstractos</target>
+        <source>Conversion, equality, or inequality operators declared in interfaces must be abstract or virtual</source>
+        <target state="needs-review-translation">Los operadores de conversión, igualdad o desigualdad declarados en interfaces deben ser abstractos</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">

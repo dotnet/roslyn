@@ -122,6 +122,11 @@
         <target state="translated">Jeden z parametrů binárního operátoru musí být nadřazeného typu nebo jeho parametrem obecného typu, který se na něj omezuje.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadAbstractEqualityOperatorSignature">
+        <source>One of the parameters of an equality, or inequality operator declared in interfaces must be a type parameter on the enclosing type constrained to the enclosing type</source>
+        <target state="new">One of the parameters of an equality, or inequality operator declared in interfaces must be a type parameter on the enclosing type constrained to the enclosing type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadAbstractIncDecRetType">
         <source>The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.</source>
         <target state="translated">Návratový typ pro operátor ++ nebo -- musí odpovídat typu parametru nebo od něj musí být odvozený, nebo musí být obecným parametrem nadřazeného typu, který se na něj omezuje, pokud se nejedná o jiný parametr obecného typu.</target>
@@ -11673,8 +11678,8 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainConversionOrEqualityOperators">
-        <source>Conversion, equality, or inequality operators declared in interfaces must be abstract</source>
-        <target state="translated">Operátory převodu, rovnosti nebo nerovnosti deklarované v rozhraních musí být abstraktní.</target>
+        <source>Conversion, equality, or inequality operators declared in interfaces must be abstract or virtual</source>
+        <target state="needs-review-translation">Operátory převodu, rovnosti nebo nerovnosti deklarované v rozhraních musí být abstraktní.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
