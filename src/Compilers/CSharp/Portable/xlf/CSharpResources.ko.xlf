@@ -6500,8 +6500,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_LookupInTypeVariable">
-        <source>Cannot do member lookup in '{0}' because it is a type parameter</source>
-        <target state="translated">'{0}'은(는) 형식 매개 변수이므로 멤버를 조회할 수 없습니다.</target>
+        <source>Cannot do non abstract or virtual member lookup in '{0}' because it is a type parameter</source>
+        <target state="needs-review-translation">'{0}'은(는) 형식 매개 변수이므로 멤버를 조회할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadConstraintType">

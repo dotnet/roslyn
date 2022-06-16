@@ -6501,8 +6501,8 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
         <note />
       </trans-unit>
       <trans-unit id="ERR_LookupInTypeVariable">
-        <source>Cannot do member lookup in '{0}' because it is a type parameter</source>
-        <target state="translated">'{0}' bir tür parametresi olduğundan burada üye araması yapılamıyor</target>
+        <source>Cannot do non abstract or virtual member lookup in '{0}' because it is a type parameter</source>
+        <target state="needs-review-translation">'{0}' bir tür parametresi olduğundan burada üye araması yapılamıyor</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadConstraintType">

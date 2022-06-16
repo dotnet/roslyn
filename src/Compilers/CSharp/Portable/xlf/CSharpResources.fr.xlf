@@ -6501,8 +6501,8 @@ Si une telle classe est utilisée en tant que classe de base et si la classe dé
         <note />
       </trans-unit>
       <trans-unit id="ERR_LookupInTypeVariable">
-        <source>Cannot do member lookup in '{0}' because it is a type parameter</source>
-        <target state="translated">Impossible de rechercher un membre dans '{0}', car il s'agit d'un paramètre de type</target>
+        <source>Cannot do non abstract or virtual member lookup in '{0}' because it is a type parameter</source>
+        <target state="needs-review-translation">Impossible de rechercher un membre dans '{0}', car il s'agit d'un paramètre de type</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadConstraintType">
