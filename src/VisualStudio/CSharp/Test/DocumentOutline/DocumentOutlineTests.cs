@@ -60,16 +60,16 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             return documentSymbols;
         }
 
-        // The ObservableCollection<DocumentSymbolViewModel> equivalent of GetDocumentSymbols()
-        private static ObservableCollection<DocumentSymbolViewModel> GetDocumentSymbolViewModels()
+        // The List<DocumentSymbolViewModel> equivalent of GetDocumentSymbols()
+        private static List<DocumentSymbolViewModel> GetDocumentSymbolViewModels()
         {
             var documentSymbols = GetDocumentSymbols();
-            var documentSymbolModels = new ObservableCollection<DocumentSymbolViewModel>();
+            var documentSymbolModels = new List<DocumentSymbolViewModel>();
 
             foreach (var documentSymbol in documentSymbols)
             {
                 var documentSymbolModel = new DocumentSymbolViewModel(documentSymbol);
-                var children = new ObservableCollection<DocumentSymbolViewModel>();
+                var children = new List<DocumentSymbolViewModel>();
                 if (documentSymbol.Children is not null)
                 {
                     foreach (var child in documentSymbol.Children)
@@ -103,7 +103,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             // Test the empty case
             var documentSymbols = Array.Empty<DocumentSymbol>();
             var result = DocumentOutlineHelper.GetDocumentSymbols(documentSymbols);
-            var expectedResult = new ObservableCollection<DocumentSymbolViewModel>();
+            var expectedResult = new List<DocumentSymbolViewModel>();
             Assert.Equal(result, expectedResult);
 
             // Test using mock data
@@ -129,7 +129,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
         {
             var documentSymbolModels = GetDocumentSymbolViewModels();
 
-            static void CheckSortedByName(ObservableCollection<DocumentSymbolViewModel> sortedByName)
+            static void CheckSortedByName(List<DocumentSymbolViewModel> sortedByName)
             {
                 for (var i = 0; i < sortedByName.Count - 1; i++)
                 {
@@ -146,7 +146,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
                 CheckSortedByName(sortedByName[i].Children);
             }
 
-            static void CheckSortedByOrder(ObservableCollection<DocumentSymbolViewModel> sortedByOrder)
+            static void CheckSortedByOrder(List<DocumentSymbolViewModel> sortedByOrder)
             {
                 for (var i = 0; i < sortedByOrder.Count - 1; i++)
                 {
@@ -167,7 +167,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
                 CheckSortedByOrder(sortedByOrder[i].Children);
             }
 
-            static void CheckSortedByType(ObservableCollection<DocumentSymbolViewModel> sortedByType)
+            static void CheckSortedByType(List<DocumentSymbolViewModel> sortedByType)
             {
                 for (var i = 0; i < sortedByType.Count - 1; i++)
                 {

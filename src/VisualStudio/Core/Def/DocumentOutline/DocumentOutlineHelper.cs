@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -11,9 +12,9 @@ namespace Microsoft.VisualStudio.LanguageServices
 {
     internal static class DocumentOutlineHelper
     {
-        internal static ObservableCollection<DocumentSymbolViewModel> GetDocumentSymbols(DocumentSymbol[]? documentSymbols)
+        internal static List<DocumentSymbolViewModel> GetDocumentSymbols(DocumentSymbol[]? documentSymbols)
         {
-            var documentSymbolModels = new ObservableCollection<DocumentSymbolViewModel>();
+            var documentSymbolModels = new List<DocumentSymbolViewModel>();
             if (documentSymbols is null || documentSymbols.Length == 0)
             {
                 return documentSymbolModels;
@@ -29,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             return Sort(documentSymbolModels, SortOption.Order);
         }
 
-        internal static ObservableCollection<DocumentSymbolViewModel> Sort(ObservableCollection<DocumentSymbolViewModel> documentSymbolModels, SortOption sortOption)
+        internal static List<DocumentSymbolViewModel> Sort(List<DocumentSymbolViewModel> documentSymbolModels, SortOption sortOption)
         {
             var sortedDocumentSymbolModels = sortOption switch
             {
@@ -45,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                 documentSymbolModel.Children = Sort(documentSymbolModel.Children, sortOption);
             }
 
-            return new ObservableCollection<DocumentSymbolViewModel>(sortedDocumentSymbolModels);
+            return new List<DocumentSymbolViewModel>(sortedDocumentSymbolModels);
         }
 
         internal static bool SearchNodeTree(DocumentSymbolViewModel tree, string search)

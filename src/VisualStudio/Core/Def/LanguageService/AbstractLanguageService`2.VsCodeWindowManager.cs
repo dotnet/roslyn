@@ -239,7 +239,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             {
                 var languageServiceBroker = _languageService.Package.ComponentModel.GetService<ILanguageServiceBroker2>();
                 var threadingContext = _languageService.Package.ComponentModel.GetService<IThreadingContext>();
-                _documentOutlineView = new DocumentOutlineControl(languageServiceBroker, threadingContext);
+                var asyncListenerProvider = _languageService.Package.ComponentModel.GetService<IAsynchronousOperationListenerProvider>();
+                var asyncListener = asyncListenerProvider.GetListener("DocumentOutline");
+                _documentOutlineView = new DocumentOutlineControl(languageServiceBroker, threadingContext, asyncListener);
 
                 _documentOutlineViewHost = new ElementHost
                 {

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
@@ -15,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices
     {
         public string Name { get; }
 
-        public ObservableCollection<DocumentSymbolViewModel> Children { get; set; }
+        public List<DocumentSymbolViewModel> Children { get; set; }
 
         public int StartLine { get; }
         public int StartChar { get; }
@@ -31,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         public DocumentSymbolViewModel(DocumentSymbol documentSymbol)
         {
             this.Name = documentSymbol.Name;
-            this.Children = new ObservableCollection<DocumentSymbolViewModel>();
+            this.Children = new List<DocumentSymbolViewModel>();
             this.SymbolKind = documentSymbol.Kind;
             this.ImgMoniker = GetImageMoniker(documentSymbol.Kind);
             this.IsExpanded = true;

@@ -97,10 +97,13 @@
                     <Setter Property="Background" Value="{StaticResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}" />
                     <Setter Property="Foreground" Value="LightGray" />
                     <Setter Property="Padding" Value="3, 0, 0, 0" />
+                    <Setter Property="FontFamily" Value="Segoe UI" />
+                    <Setter Property="FontSize" Value="12" />
+                    <Setter Property="CaretBrush" Value="White" />
                     <Style.Resources>
                         <VisualBrush x:Key="CueBannerBrush" AlignmentX="Left" AlignmentY="Center" Stretch="None">
                             <VisualBrush.Visual>
-                                <Label Content="Search Document Outline" Foreground="LightGray" />
+                                <Label Content="Search Document Outline" Foreground="LightGray" FontFamily="Segoe UI" FontSize="12" />
                             </VisualBrush.Visual>
                         </VisualBrush>
                     </Style.Resources>
