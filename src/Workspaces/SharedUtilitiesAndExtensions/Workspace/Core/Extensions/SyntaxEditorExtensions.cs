@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 editor, document,
                 originalNodes,
                 selector,
-                (syntaxFacts, node) => GetExpressionSemanticBoundary(syntaxFacts, node),
+                GetExpressionSemanticBoundary,
                 canReplace,
                 updateRoot,
                 cancellationToken);
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 editor, document,
                 originalNodes,
                 t => (selector(t), Enumerable.Empty<TNode>()),
-                (syntaxFacts, node) => GetExpressionSemanticBoundary(syntaxFacts, node),
+                GetExpressionSemanticBoundary,
                 canReplace,
                 updateRoot,
                 cancellationToken);
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 editor, document,
                 originalNodes,
                 selector,
-                (syntaxFacts, node) => GetMethodBodySemanticBoundary(syntaxFacts, node),
+                GetMethodBodySemanticBoundary,
                 canReplace,
                 updateRoot,
                 cancellationToken);

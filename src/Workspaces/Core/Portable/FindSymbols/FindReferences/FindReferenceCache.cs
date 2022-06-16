@@ -186,14 +186,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             public Entry(SemanticModel semanticModel)
             {
-                var comparer = semanticModel.Language switch
+                IdentifierCache = new ConcurrentDictionary<string, ImmutableArray<SyntaxToken>>(semanticModel.Language switch
                 {
                     LanguageNames.VisualBasic => StringComparer.OrdinalIgnoreCase,
                     LanguageNames.CSharp => StringComparer.Ordinal,
                     _ => throw ExceptionUtilities.UnexpectedValue(semanticModel.Language)
-                };
-
-                IdentifierCache = new ConcurrentDictionary<string, ImmutableArray<SyntaxToken>>(comparer);
+                });
             }
         }
     }

@@ -34,22 +34,10 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// Gets the formatting rules that would be applied if left unspecified.
         /// </summary>
         internal static ImmutableArray<AbstractFormattingRule> GetDefaultFormattingRules(Document document)
-        {
-            if (document == null)
-            {
-                throw new ArgumentNullException(nameof(document));
-            }
+            => GetDefaultFormattingRules(document.Project.LanguageServices);
 
-            var service = document.GetLanguageService<ISyntaxFormattingService>();
-            if (service != null)
-            {
-                return service.GetDefaultFormattingRules();
-            }
-            else
-            {
-                return ImmutableArray<AbstractFormattingRule>.Empty;
-            }
-        }
+        internal static ImmutableArray<AbstractFormattingRule> GetDefaultFormattingRules(HostLanguageServices languageServices)
+            => languageServices.GetService<ISyntaxFormattingService>()?.GetDefaultFormattingRules() ?? ImmutableArray<AbstractFormattingRule>.Empty;
 
         /// <summary>
         /// Formats the whitespace in a document.
