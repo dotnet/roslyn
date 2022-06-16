@@ -526,11 +526,11 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             var nonNullOverridingMemberItems = GetNonNullTargetItems(overridingMemberItems);
 
             return InheritanceMarginItem.CreateOrdered(
-                    lineNumber,
-                    topLevelDisplayText: null,
-                    FindUsagesHelpers.GetDisplayParts(memberSymbol),
-                    memberSymbol.GetGlyph(),
-                    nonNullImplementedMemberItems.Concat(nonNullOverriddenMemberItems).Concat(nonNullOverridingMemberItems));
+                lineNumber,
+                topLevelDisplayText: null,
+                FindUsagesHelpers.GetDisplayParts(memberSymbol),
+                memberSymbol.GetGlyph(),
+                nonNullImplementedMemberItems.Concat(nonNullOverriddenMemberItems).Concat(nonNullOverridingMemberItems));
         }
 
         private static async ValueTask<InheritanceTargetItem?> CreateInheritanceItemAsync(
