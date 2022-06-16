@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 var ruleFactory = document.Project.Solution.Workspace.Services.GetRequiredService<IHostDependentFormattingRuleFactoryService>();
 
-                changes = ruleFactory.FilterFormattedChanges(document, selectionOpt.Value, changes).ToList();
+                changes = ruleFactory.FilterFormattedChanges(document.Id, selectionOpt.Value, changes).ToList();
                 if (changes.Count == 0)
                 {
                     return;
