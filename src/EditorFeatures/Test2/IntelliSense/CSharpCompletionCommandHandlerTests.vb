@@ -9952,5 +9952,45 @@ class Class
                 End Get
             End Property
         End Class
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NamespaceFromMetadataWithoutVisibleMembersShouldBeExcluded() As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
+<Workspace>
+    <Project Language="C#" CommonReferences="true" AssemblyName="Project1">
+        <Document FilePath="SourceDocument">
+namespace NS
+{
+    public class C
+    {
+        public void M()
+        {
+            $$
+        }
+    }
+}
+        </Document>
+        <MetadataReferenceFromSource Language="C#" CommonReferences="true" IncludeXmlDocComments="true" DocumentationMode="Diagnose">
+            <Document FilePath="ReferencedDocument">
+namespace ReferencedNamespace1
+{
+    internal class InternalClass {}
+}
+
+namespace ReferencedNamespace2
+{
+    public class PublicClass {}
+}
+            </Document>
+        </MetadataReferenceFromSource>
+    </Project>
+</Workspace>)
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("ReferencedNamespace2", "")
+                Await state.AssertCompletionItemsDoNotContainAny({"ReferencedNamespace1"})
+            End Using
+        End Function
+
     End Class
 End Namespace

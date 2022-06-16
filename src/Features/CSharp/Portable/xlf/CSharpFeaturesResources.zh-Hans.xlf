@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Add_await">
         <source>Add 'await'</source>
-        <target state="new">Add 'await'</target>
+        <target state="translated">添加 "await"</target>
         <note>{Locked="await"} "await" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Add_await_and_ConfigureAwaitFalse">
@@ -115,11 +115,6 @@
       <trans-unit id="Apply_using_statement_preferences">
         <source>Apply using statement preferences</source>
         <target state="translated">使用语句首选项应用</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Apply_utf8_string_literal_preferences">
-        <source>Apply UTF-8 string literal preferences</source>
-        <target state="new">Apply UTF-8 string literal preferences</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_var_preferences">

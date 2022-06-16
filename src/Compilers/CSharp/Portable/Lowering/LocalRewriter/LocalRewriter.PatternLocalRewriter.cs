@@ -513,7 +513,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // We share input variables if there is no when clause (because a when clause might mutate them).
                 bool anyWhenClause =
                     decisionDag.TopologicallySortedNodes
-                    .Any(node => node is BoundWhenDecisionDagNode { WhenExpression: { ConstantValue: null } });
+                    .Any(static node => node is BoundWhenDecisionDagNode { WhenExpression: { ConstantValue: null } });
 
                 var inputDagTemp = BoundDagTemp.ForOriginalInput(loweredInput);
                 if ((loweredInput.Kind == BoundKind.Local || loweredInput.Kind == BoundKind.Parameter)
@@ -553,7 +553,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     !loweredInput.Type.OriginalDefinition.Equals(_factory.Compilation.GetWellKnownType(WellKnownType.System_ValueTuple_TRest)) &&
                     loweredInput.Syntax.Kind() == SyntaxKind.TupleExpression &&
                     loweredInput is BoundObjectCreationExpression expr &&
-                    !decisionDag.TopologicallySortedNodes.Any(n => usesOriginalInput(n)))
+                    !decisionDag.TopologicallySortedNodes.Any(static n => usesOriginalInput(n)))
                 {
                     // If the switch governing expression is a tuple literal whose whole value is not used anywhere,
                     // (though perhaps its component parts are used), then we can save the component parts
@@ -580,7 +580,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     switch (node)
                     {
                         case BoundWhenDecisionDagNode n:
-                            return n.Bindings.Any(b => b.TempContainingValue.IsOriginalInput);
+                            return n.Bindings.Any(static b => b.TempContainingValue.IsOriginalInput);
                         case BoundTestDecisionDagNode t:
                             return t.Test.Input.IsOriginalInput;
                         case BoundEvaluationDecisionDagNode e:

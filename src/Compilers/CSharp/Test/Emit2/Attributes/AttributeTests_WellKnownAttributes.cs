@@ -4784,7 +4784,7 @@ delegate void D();
 
         [Fact]
         [WorkItem(3898, "https://github.com/dotnet/roslyn/issues/3898")]
-        void SerializableFromPE()
+        public void SerializableFromPE()
         {
             string lib_cs = @"
 using System;

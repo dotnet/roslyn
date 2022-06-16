@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             // If it does, we can't convert this.  There is no way to describe this anonymous type
             // in the concrete type we create.
             var fields = tupleType.TupleElements;
-            var containsAnonymousType = fields.Any(p => p.Type.ContainsAnonymousType());
+            var containsAnonymousType = fields.Any(static p => p.Type.ContainsAnonymousType());
             if (containsAnonymousType)
             {
                 return;
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 // If we captured any Method type-parameters, we can only replace the tuple types we
                 // find in the containing method.  No other tuple types in other members would be able
                 // to reference this type parameter.
-                if (!capturedTypeParameters.Any(tp => tp.TypeParameterKind == TypeParameterKind.Method))
+                if (!capturedTypeParameters.Any(static tp => tp.TypeParameterKind == TypeParameterKind.Method))
                 {
                     var containingType = tupleExprOrTypeNode.GetAncestor<TTypeBlockSyntax>();
                     if (containingType != null)
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                     // If we captured any Type type-parameters, we can only replace the tuple
                     // types we find in the containing type.  No other tuple types in other
                     // types would be able to reference this type parameter.
-                    if (!capturedTypeParameters.Any(tp => tp.TypeParameterKind == TypeParameterKind.Type))
+                    if (!capturedTypeParameters.Any(static tp => tp.TypeParameterKind == TypeParameterKind.Type))
                     {
                         // To do a global find/replace of matching tuples, we need to search for documents
                         // containing tuples *and* which have the names of the tuple fields in them.  That means

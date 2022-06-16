@@ -40,6 +40,7 @@ public class C
     {
     }
 }",
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -63,6 +64,25 @@ public class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        public async Task TestNotWhenNoReadOnlySpan()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"
+public class C
+{
+    public void M()
+    {
+        var x = new byte[] { 65, 66, 67 };
+    }
+}",
+                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net20.Default,
+                LanguageVersion = LanguageVersion.Preview
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
         public async Task TestNotWithoutInitializer()
         {
             await new VerifyCS.Test
@@ -76,6 +96,7 @@ public class C
         var x = new byte[10];
     }
 }",
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -101,6 +122,7 @@ public class C
     {
     }
 }",
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -119,6 +141,7 @@ public class C
         var x = new int[] { 65, 66, 67 };
     }
 }",
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -141,6 +164,7 @@ public class C
 [*.cs]
 csharp_style_prefer_utf8_string_literals = false
 ",
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -161,6 +185,7 @@ public class C
 
     public byte GetB() => 66;
 }",
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -179,11 +204,12 @@ public class C
         var x = new byte[,] { { 65, 66 }, { 67, 68 }, { 69, 70 } };
     }
 }",
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/61517"), Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
         public async Task TestSimpleByteArray()
         {
             await new VerifyCS.Test
@@ -203,15 +229,16 @@ public class C
 {
     public void M()
     {
-        var x = ""ABC""u8;
+        var x = ""ABC""u8.ToArray();
     }
 }",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/61517"), Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
         public async Task TestConstant()
         {
             await new VerifyCS.Test
@@ -233,15 +260,16 @@ public class C
     private const byte B = 66;
     public void M()
     {
-        var x = ""ABC""u8;
+        var x = ""ABC""u8.ToArray();
     }
 }",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/61517"), Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
         public async Task TestImplicitArray()
         {
             await new VerifyCS.Test
@@ -261,15 +289,16 @@ public class C
 {
     public void M()
     {
-        var x = ""ABC""u8;
+        var x = ""ABC""u8.ToArray();
     }
 }",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/61517"), Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
         public async Task TestExplicitCast()
         {
             await new VerifyCS.Test
@@ -289,15 +318,16 @@ public class C
 {
     public void M()
     {
-        var x = ""ABC""u8;
+        var x = ""ABC""u8.ToArray();
     }
 }",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/61517"), Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
         public async Task TestHexLiteral()
         {
             await new VerifyCS.Test
@@ -317,15 +347,16 @@ public class C
 {
     public void M()
     {
-        var x = ""ABC""u8;
+        var x = ""ABC""u8.ToArray();
     }
 }",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/61517"), Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
         public async Task TestBinaryExpression()
         {
             await new VerifyCS.Test
@@ -345,15 +376,16 @@ public class C
 {
     public void M()
     {
-        var x = ""ABC""u8;
+        var x = ""ABC""u8.ToArray();
     }
 }",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/61517"), Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
         public async Task TestEmptyArray()
         {
             await new VerifyCS.Test
@@ -373,14 +405,15 @@ public class C
 {
     public void M()
     {
-        var x = """"u8;
+        var x = """"u8.ToArray();
     }
 }",
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/61517"), Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
         public async Task TestTrivia1()
         {
             await new VerifyCS.Test
@@ -400,15 +433,16 @@ public class C
 {
     public void M()
     {
-        var x = ""ABC""u8; // I wish this byte array was easier to read
+        var x = ""ABC""u8.ToArray(); // I wish this byte array was easier to read
     }
 }",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/61517"), Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
         public async Task TestTrivia2()
         {
             await new VerifyCS.Test
@@ -428,15 +462,16 @@ public class C
 {
     public void M(byte[] b)
     {
-        M(/* arrays are */ ""ABC""u8 /* cool */);
+        M(/* arrays are */ ""ABC""u8.ToArray() /* cool */);
     }
 }",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/61517"), Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
         public async Task TestMultiple()
         {
             await new VerifyCS.Test
@@ -458,17 +493,18 @@ public class C
 {
     public void M()
     {
-        var x = ""ABC""u8;
-        var y = ""DEF""u8;
-        var z = ""GHI""u8;
+        var x = ""ABC""u8.ToArray();
+        var y = ""DEF""u8.ToArray();
+        var z = ""GHI""u8.ToArray();
     }
 }",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/61517"), Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
         public async Task TestEscapeChars()
         {
             await new VerifyCS.Test
@@ -488,15 +524,16 @@ public class C
 {
     public void M()
     {
-        var x = ""\""\\\0\a\b\f\n\r\t\v""u8;
+        var x = ""\""\\\0\a\b\f\n\r\t\v""u8.ToArray();
     }
 }",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/61517"), Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
         public async Task TestEmoji()
         {
             await new VerifyCS.Test
@@ -516,10 +553,11 @@ public class C
 {
     public void M()
     {
-        var x = ""😀""u8;
+        var x = ""😀""u8.ToArray();
     }
 }",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -539,6 +577,7 @@ public class C
     }
 }",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -558,6 +597,7 @@ public class C
     }
 }",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -577,11 +617,12 @@ public class C
     }
 }",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/61517"), Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
         public async Task TestUnicodeReplacementChar()
         {
             // The unicode replacement character is what is returned when, for example, an unpaired
@@ -604,15 +645,16 @@ public class C
 {
     public void M()
     {
-        var x = ""�""u8;
+        var x = ""�""u8.ToArray();
     }
 }",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/61517"), Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
         public async Task TestCollectionInitializer()
         {
             await new VerifyCS.Test
@@ -668,7 +710,7 @@ class C : IEnumerable<int>
             c.Add(new byte[] { 66 });
             c.Add(new byte[] { 67 });
         */
-        c = new() { ""A""u8, ""B""u8, ""C""u8 };
+        c = new() { ""A""u8.ToArray(), ""B""u8.ToArray(), ""C""u8.ToArray() };
     }
 
     public void Add(params byte[] bytes)
@@ -686,6 +728,7 @@ class C : IEnumerable<int>
     }
 }",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -712,11 +755,12 @@ ref struct S
 {
     public void Dispose(int a = 1, bool b = true, params byte[] others) { }
 }",
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
 
-        [Theory(Skip = "https://github.com/dotnet/roslyn/issues/61517"), Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
         // Various cases copied from https://github.com/dotnet/runtime/blob/main/src/libraries/Common/tests/Tests/System/Net/aspnetcore/Http3/QPackDecoderTest.cs
         [InlineData(new byte[] { 0x37, 0x02, 0x74, 0x72, 0x61, 0x6e, 0x73, 0x6c, 0x61, 0x74, 0x65 }, "7translate")]
         [InlineData(new byte[] { 0x3f, 0x01 }, "?")]
@@ -735,10 +779,11 @@ public class C
 $@"
 public class C
 {{
-    private static readonly byte[] _bytes = ""{stringValue}""u8;
+    private static readonly byte[] _bytes = ""{stringValue}""u8.ToArray();
 }}
 ",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
 
@@ -772,6 +817,7 @@ public class C
 }}
 ",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
 
@@ -782,7 +828,7 @@ public class C
             Assert.NotEqual(bytes, newBytes);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/61517"), Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
         public async Task TestParamArray1()
         {
             await new VerifyCS.Test
@@ -803,16 +849,17 @@ public class C
 {
     public void M(params byte[] b)
     {
-        M(""ABC""u8);
+        M(""ABC""u8.ToArray());
     }
 }
 ",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/61517"), Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
         public async Task TestParamArray2()
         {
             await new VerifyCS.Test
@@ -833,16 +880,17 @@ public class C
 {
     public void M(int i, params byte[] b)
     {
-        M(1, ""ABC""u8);
+        M(1, ""ABC""u8.ToArray());
     }
 }
 ",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/61517"), Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
         public async Task TestParamArray3()
         {
             await new VerifyCS.Test
@@ -863,16 +911,17 @@ public class C
 {
     public void M(params byte[] b)
     {
-        M(""A""u8);
+        M(""A""u8.ToArray());
     }
 }
 ",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/61517"), Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
         public async Task TestParamArray4()
         {
             await new VerifyCS.Test
@@ -893,16 +942,17 @@ public class C
 {
     public void M(params byte[] b)
     {
-        M(/* hi */ ""A""u8 /* there */);
+        M(/* hi */ ""A""u8.ToArray() /* there */);
     }
 }
 ",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/61517"), Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
         public async Task TestParamArray5()
         {
             await new VerifyCS.Test
@@ -923,16 +973,17 @@ public class C
 {
     public void M(params byte[] b)
     {
-        M(""ABC""u8);
+        M(""ABC""u8.ToArray());
     }
 }
 ",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/61517"), Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
         public async Task TestParamArray6()
         {
             await new VerifyCS.Test
@@ -953,11 +1004,12 @@ public class C
 {
     public void M(params byte[] b)
     {
-        M(/* hi */ ""ABC""u8 /* there */);
+        M(/* hi */ ""ABC""u8.ToArray() /* there */);
     }
 }
 ",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -977,11 +1029,12 @@ public class C
     }
 }
 ",
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/61517"), Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
         public async Task TestParamArray8()
         {
             await new VerifyCS.Test
@@ -1002,16 +1055,17 @@ public class C
 {
     public void M(int x, params byte[] b)
     {
-        M(1, ""ABC""u8);
+        M(1, ""ABC""u8.ToArray());
     }
 }
 ",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/61517"), Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
         public async Task TestParamArray9()
         {
             await new VerifyCS.Test
@@ -1032,16 +1086,17 @@ public class C
 {
     public void M(int x, params byte[] b)
     {
-        M(1, /* hi */ ""A""u8 /* there */);
+        M(1, /* hi */ ""A""u8.ToArray() /* there */);
     }
 }
 ",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/61517"), Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
         public async Task TestParamArray10()
         {
             await new VerifyCS.Test
@@ -1062,16 +1117,17 @@ public class C
 {
     public void M(int x, params byte[] b)
     {
-        M(1, /* hi */ ""ABC""u8 /* there */);
+        M(1, /* hi */ ""ABC""u8.ToArray() /* there */);
     }
 }
 ",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/61517"), Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
         public async Task TestParamArray11()
         {
             await new VerifyCS.Test
@@ -1092,16 +1148,17 @@ public class C
 {
     public void M(int x, int y, int z, params byte[] b)
     {
-        M( /* b1 */ 1 /* a1 */, /* b2 */ 2 /* a2 */, /* b3 */ 3 /* a3 */, /* b4 */ ""ABC""u8 /* a4 */);
+        M( /* b1 */ 1 /* a1 */, /* b2 */ 2 /* a2 */, /* b3 */ 3 /* a3 */, /* b4 */ ""ABC""u8.ToArray() /* a4 */);
     }
 }
 ",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/61517"), Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
         public async Task TestParamArray12()
         {
             await new VerifyCS.Test
@@ -1122,16 +1179,17 @@ public class C
 {
     public C(params byte[] b)
     {
-        new C(""ABC""u8);
+        new C(""ABC""u8.ToArray());
     }
 }
 ",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/61517"), Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
         public async Task TestParamArray13()
         {
             await new VerifyCS.Test
@@ -1162,16 +1220,17 @@ public class C
 
     public void M()
     {
-        _ = this[""ABC""u8];
+        _ = this[""ABC""u8.ToArray()];
     }
 }
 ",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/61517"), Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
         public async Task TestParamArray14()
         {
             await new VerifyCS.Test
@@ -1200,7 +1259,7 @@ namespace System.Runtime.CompilerServices
 ",
                 FixedCode =
 @"
-public record C1(int x) : B(""ABC""u8);
+public record C1(int x) : B(""ABC""u8.ToArray());
 
 public record C2(params byte[] Bytes) : B(Bytes);
 
@@ -1209,8 +1268,8 @@ public record B(params byte[] Bytes)
     public void M()
     {
         new C1(1);
-        new C2(""ABC""u8);
-        new B(""ABC""u8);
+        new C2(""ABC""u8.ToArray());
+        new B(""ABC""u8.ToArray());
     }
 }
 namespace System.Runtime.CompilerServices
@@ -1221,11 +1280,12 @@ namespace System.Runtime.CompilerServices
 }
 ",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/61517"), Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
         public async Task TestParamArray15()
         {
             await new VerifyCS.Test
@@ -1274,7 +1334,7 @@ public class B
 public class C1 : B
 {
     public C1(int x)
-        : base(""ABC""u8)
+        : base(""ABC""u8.ToArray())
     {
     }
 }
@@ -1295,25 +1355,26 @@ public class B
     }
 
     public B(int x)
-        : this(""ABC""u8)
+        : this(""ABC""u8.ToArray())
     {
     }
 
     public B(params byte[] bytes)
     {
         new C1(1);
-        new C2(""ABC""u8);
-        new B(""ABC""u8);
-        new B(""a"", ""ABC""u8);
+        new C2(""ABC""u8.ToArray());
+        new B(""ABC""u8.ToArray());
+        new B(""a"", ""ABC""u8.ToArray());
     }
 }
 ",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/61517"), Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
         public async Task TestParamArray16()
         {
             await new VerifyCS.Test
@@ -1334,16 +1395,17 @@ public class C
 {
     public void M(int[] i, byte[] b)
     {
-        M(new int[] { 1 }, ""ABC""u8);
+        M(new int[] { 1 }, ""ABC""u8.ToArray());
     }
 }
 ",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/61517"), Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
         public async Task TestParamArray17()
         {
             await new VerifyCS.Test
@@ -1364,16 +1426,17 @@ public class C
 {
     public void M(int[] i, params byte[] b)
     {
-        M(new int[] { 1 }, ""ABC""u8);
+        M(new int[] { 1 }, ""ABC""u8.ToArray());
     }
 }
 ",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/61517"), Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
         public async Task TestMultidimensionalArray()
         {
             await new VerifyCS.Test
@@ -1394,11 +1457,12 @@ public class C
 {
     public void M(byte[][] i, byte[] b)
     {
-        M(new byte[][] { ""ABC""u8, ""ABC""u8 }, ""ABC""u8);
+        M(new byte[][] { ""ABC""u8.ToArray(), ""ABC""u8.ToArray() }, ""ABC""u8.ToArray());
     }
 }
 ",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }

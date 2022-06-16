@@ -22,16 +22,12 @@ using WorkspaceDocumentDiagnosticReport = SumType<WorkspaceFullDocumentDiagnosti
 [Method(ExperimentalMethods.WorkspaceDiagnostic)]
 internal class ExperimentalWorkspacePullDiagnosticsHandler : AbstractPullDiagnosticHandler<WorkspaceDiagnosticParams, WorkspaceDiagnosticReport, WorkspaceDiagnosticReport?>
 {
-    private readonly IDiagnosticAnalyzerService _analyzerService;
-
     public ExperimentalWorkspacePullDiagnosticsHandler(
-        IDiagnosticService diagnosticService,
         IDiagnosticAnalyzerService analyzerService,
         EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource,
         IGlobalOptionService globalOptions)
-        : base(diagnosticService, editAndContinueDiagnosticUpdateSource, globalOptions)
+        : base(analyzerService, editAndContinueDiagnosticUpdateSource, globalOptions)
     {
-        _analyzerService = analyzerService;
     }
 
     public override TextDocumentIdentifier? GetTextDocumentIdentifier(WorkspaceDiagnosticParams diagnosticsParams) => null;
@@ -58,15 +54,9 @@ internal class ExperimentalWorkspacePullDiagnosticsHandler : AbstractPullDiagnos
         return null;
     }
 
-    protected override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, Document document, DiagnosticMode diagnosticMode, CancellationToken cancellationToken)
+    protected override ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
     {
-        var diagnostics = await _analyzerService.GetDiagnosticsForSpanAsync(document, range: null, cancellationToken: cancellationToken).ConfigureAwait(false);
-        return diagnostics;
-    }
-
-    protected override ValueTask<ImmutableArray<Document>> GetOrderedDocumentsAsync(RequestContext context, CancellationToken cancellationToken)
-    {
-        return WorkspacePullDiagnosticHandler.GetWorkspacePullDocumentsAsync(context, DiagnosticService.GlobalOptions, cancellationToken);
+        return WorkspacePullDiagnosticHandler.GetWorkspacePullDocumentsAsync(context, GlobalOptions, cancellationToken);
     }
 
     protected override ImmutableArray<PreviousPullResult>? GetPreviousResults(WorkspaceDiagnosticParams diagnosticsParams)
