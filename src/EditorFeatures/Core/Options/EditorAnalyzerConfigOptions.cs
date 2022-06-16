@@ -46,6 +46,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public override IEnumerable<string> Keys
-            => _options?.Keys ?? SpecializedCollections.EmptyEnumerable<string>();
+            => _options.Keys.Where(IsLowercase);
+
+        private static bool IsLowercase(string str)
+        {
+            foreach (var c in str)
+            {
+                if (!char.IsLower(c))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
     }
 }
