@@ -44,13 +44,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Private _otherPartOfPartial As SourceMemberMethodSymbol
 
-        ''' <summary>
-        ''' In case the method is an 'Async' method, stores the reference to a state machine type 
-        ''' synthesized in AsyncRewriter. Note, that this field is mutable and is being assigned  
-        ''' by calling AssignAsyncStateMachineType(...).
-        ''' </summary>
-        Private ReadOnly _asyncStateMachineType As NamedTypeSymbol = Nothing
-
         ' lazily evaluated state of the symbol (StateFlags)
         Private _lazyState As Integer
 
@@ -703,7 +696,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     witheventsPropertyInCurrentClass = witheventsProperty
                 End If
 
-                typeBinder.ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagBag, witheventsPropertyInCurrentClass, singleHandleClause.EventContainer)
+                typeBinder.ReportDiagnosticsIfObsoleteOrNotSupported(diagBag, witheventsPropertyInCurrentClass, singleHandleClause.EventContainer)
             Else
                 Binder.ReportDiagnostic(diagBag, singleHandleClause.EventContainer, ERRID.ERR_HandlesSyntaxInClass)
                 Return Nothing
@@ -733,7 +726,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return Nothing
             End If
 
-            typeBinder.ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagBag, eventSymbol, singleHandleClause.EventMember)
+            typeBinder.ReportDiagnosticsIfObsoleteOrNotSupported(diagBag, eventSymbol, singleHandleClause.EventMember)
 
             Binder.ReportUseSite(diagBag, singleHandleClause.EventMember, eventSymbol)
 

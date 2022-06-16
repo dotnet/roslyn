@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
         Public Overrides Function TrySimplify(
                 name As NameSyntax,
                 semanticModel As SemanticModel,
-                optionSet As OptionSet,
+                options As VisualBasicSimplifierOptions,
                 <Out> ByRef replacementNode As ExpressionSyntax,
                 <Out> ByRef issueSpan As TextSpan,
                 cancellationToken As CancellationToken) As Boolean
@@ -153,7 +153,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
                     ' QualifiedNames can't contain PredefinedTypeNames (although MemberAccessExpressions can).
                     ' In other words, the left side of a QualifiedName can't be a PredefinedTypeName.
                     If nameHasNoAlias AndAlso aliasInfo Is Nothing AndAlso Not name.Parent.IsKind(SyntaxKind.QualifiedName) Then
-                        Dim type = semanticModel.GetTypeInfo(name).Type
+                        Dim type = semanticModel.GetTypeInfo(name, cancellationToken).Type
                         If type IsNot Nothing Then
                             Dim keywordKind = GetPredefinedKeywordKind(type.SpecialType)
                             If keywordKind <> SyntaxKind.None Then
@@ -164,8 +164,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
                                     keywordKind,
                                     name.GetTrailingTrivia())
                                 Dim valueText = TryCast(name, IdentifierNameSyntax)?.Identifier.ValueText
-                                Dim inDeclarationContext = PreferPredefinedTypeKeywordInDeclarations(name, optionSet)
-                                Dim inMemberAccessContext = PreferPredefinedTypeKeywordInMemberAccess(name, optionSet)
+                                Dim inDeclarationContext = PreferPredefinedTypeKeywordInDeclarations(name, options)
+                                Dim inMemberAccessContext = PreferPredefinedTypeKeywordInMemberAccess(name, options)
                                 If token.Text = valueText OrElse (inDeclarationContext OrElse inMemberAccessContext) Then
 
                                     Dim codeStyleOptionName As String = Nothing
@@ -320,7 +320,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
 
         Private Shared Function TryOmitModuleName(name As QualifiedNameSyntax, semanticModel As SemanticModel, <Out()> ByRef replacementNode As ExpressionSyntax, <Out()> ByRef issueSpan As TextSpan, cancellationToken As CancellationToken) As Boolean
             If name.IsParentKind(SyntaxKind.QualifiedName) Then
-                Dim symbolForName = semanticModel.GetSymbolInfo(DirectCast(name.Parent, QualifiedNameSyntax)).Symbol
+                Dim symbolForName = semanticModel.GetSymbolInfo(DirectCast(name.Parent, QualifiedNameSyntax), cancellationToken).Symbol
 
                 ' in case this QN is used in a "New NSName.ModuleName.MemberName()" expression
                 ' the returned symbol is a constructor. Then we need to get the containing type.
@@ -390,11 +390,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
             Return False
         End Function
 
-        Private Shared Function PreferPredefinedTypeKeywordInDeclarations(name As NameSyntax, optionSet As OptionSet) As Boolean
+        Private Shared Function PreferPredefinedTypeKeywordInDeclarations(name As NameSyntax, options As VisualBasicSimplifierOptions) As Boolean
             Return (Not IsDirectChildOfMemberAccessExpression(name)) AndAlso
                    (Not InsideCrefReference(name)) AndAlso
                    (Not InsideNameOfExpression(name)) AndAlso
-                   SimplificationHelpers.PreferPredefinedTypeKeywordInDeclarations(optionSet, LanguageNames.VisualBasic)
+                   options.PreferPredefinedTypeKeywordInDeclaration.Value
         End Function
 
         Private Shared Function CanSimplifyNullable(type As INamedTypeSymbol, name As NameSyntax) As Boolean

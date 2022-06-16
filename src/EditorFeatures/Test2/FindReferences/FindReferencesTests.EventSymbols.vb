@@ -316,5 +316,150 @@ End Interface
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)
         End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestStaticAbstractEventInInterface(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
+        <Document>
+interface I3
+{
+    abstract static event System.Action {|Definition:E$$3|};
+}
+
+class C3_1 : I3
+{
+    public static event System.Action {|Definition:E3|};
+}
+
+class C3_2 : I3
+{
+    static event System.Action I3.{|Definition:E3|}
+    {
+        add { }
+        remove { }
+    }
+}        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestStaticAbstractEventViaFeature1(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
+        <Document>
+interface I3
+{
+    abstract static event System.Action {|Definition:E3|};
+}
+
+class C3_1 : I3
+{
+    public static event System.Action {|Definition:E$$3|};
+}
+
+class C3_2 : I3
+{
+    static event System.Action I3.E3
+    {
+        add { }
+        remove { }
+    }
+}        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestStaticAbstractEventViaFeature2(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
+        <Document>
+interface I3
+{
+    abstract static event System.Action {|Definition:E3|};
+}
+
+class C3_1 : I3
+{
+    public static event System.Action E3;
+}
+
+class C3_2 : I3
+{
+    static event System.Action I3.{|Definition:E$$3|}
+    {
+        add { }
+        remove { }
+    }
+}        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestStaticAbstractEventViaAPI1(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
+        <Document>
+interface I3
+{
+    abstract static event System.Action {|Definition:E3|};
+}
+
+class C3_1 : I3
+{
+    public static event System.Action {|Definition:E3|};
+}
+
+class C3_2 : I3
+{
+    static event System.Action I3.{|Definition:E$$3|}
+    {
+        add { }
+        remove { }
+    }
+}        </Document>
+    </Project>
+</Workspace>
+            Await TestAPI(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestStaticAbstractEventViaAPI2(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
+        <Document>
+interface I3
+{
+    abstract static event System.Action {|Definition:E3|};
+}
+
+class C3_1 : I3
+{
+    public static event System.Action {|Definition:E$$3|};
+}
+
+class C3_2 : I3
+{
+    static event System.Action I3.{|Definition:E3|}
+    {
+        add { }
+        remove { }
+    }
+}        </Document>
+    </Project>
+</Workspace>
+            Await TestAPI(input, host)
+        End Function
     End Class
 End Namespace

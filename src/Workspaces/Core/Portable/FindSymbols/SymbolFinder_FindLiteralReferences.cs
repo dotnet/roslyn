@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -49,9 +47,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             IStreamingFindLiteralReferencesProgress progress,
             CancellationToken cancellationToken)
         {
-            var engine = new FindLiteralsSearchEngine(
-                solution, progress, value, cancellationToken);
-            return engine.FindReferencesAsync();
+            var engine = new FindLiteralsSearchEngine(solution, progress, value);
+            return engine.FindReferencesAsync(cancellationToken);
         }
     }
 }

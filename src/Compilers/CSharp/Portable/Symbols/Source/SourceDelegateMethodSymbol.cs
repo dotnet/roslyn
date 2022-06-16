@@ -7,6 +7,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -97,12 +98,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_BadVisDelegateReturn, delegateType.Locations[0], delegateType, invoke.ReturnType);
             }
 
-            foreach (var parameter in invoke.Parameters)
+            for (int i = 0; i < invoke.Parameters.Length; i++)
             {
-                if (!parameter.TypeWithAnnotations.IsAtLeastAsVisibleAs(delegateType, ref useSiteInfo))
+                var parameterSymbol = invoke.Parameters[i];
+                if (!parameterSymbol.TypeWithAnnotations.IsAtLeastAsVisibleAs(delegateType, ref useSiteInfo))
                 {
                     // Inconsistent accessibility: parameter type '{1}' is less accessible than delegate '{0}'
-                    diagnostics.Add(ErrorCode.ERR_BadVisDelegateParam, delegateType.Locations[0], delegateType, parameter.Type);
+                    diagnostics.Add(ErrorCode.ERR_BadVisDelegateParam, delegateType.Locations[0], delegateType, parameterSymbol.Type);
                 }
             }
 
@@ -126,7 +128,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _parameters;
+                Debug.Assert(!_parameters.IsDefault, $"Expected {nameof(InitializeParameters)} prior to accessing this property.");
+                return _parameters.NullToEmpty();
             }
         }
 
@@ -236,6 +239,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // so we will keep them the same.
                 return new LexicalSortKey(this.syntaxReferenceOpt.GetLocation(), this.DeclaringCompilation);
             }
+
+            protected override bool HasSetsRequiredMembersImpl => false;
         }
 
         private sealed class InvokeMethod : SourceDelegateMethodSymbol
@@ -321,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 ParameterHelpers.EnsureIsReadOnlyAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
 
-                if (ReturnType.ContainsNativeInteger())
+                if (compilation.ShouldEmitNativeIntegerAttributes(ReturnType))
                 {
                     compilation.EnsureNativeIntegerAttributeExists(diagnostics, location, modifyCompilation: true);
                 }
@@ -353,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var parameters = ArrayBuilder<ParameterSymbol>.GetInstance();
                 foreach (SourceParameterSymbol p in invoke.Parameters)
                 {
-                    var synthesizedParam = new SourceClonedParameterSymbol(originalParam: p, newOwner: this, newOrdinal: p.Ordinal, suppressOptional: true);
+                    var synthesizedParam = new SourceDelegateClonedParameterSymbolForBeginAndEndInvoke(originalParam: p, newOwner: this, newOrdinal: p.Ordinal);
                     parameters.Add(synthesizedParam);
                 }
 
@@ -402,7 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (p.RefKind != RefKind.None)
                     {
-                        var synthesizedParam = new SourceClonedParameterSymbol(originalParam: p, newOwner: this, newOrdinal: ordinal++, suppressOptional: true);
+                        var synthesizedParam = new SourceDelegateClonedParameterSymbolForBeginAndEndInvoke(originalParam: p, newOwner: this, newOrdinal: ordinal++);
                         parameters.Add(synthesizedParam);
                     }
                 }

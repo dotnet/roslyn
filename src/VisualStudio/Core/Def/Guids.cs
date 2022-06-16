@@ -9,10 +9,6 @@ namespace Microsoft.VisualStudio.LanguageServices
 {
     internal static class Guids
     {
-        // Deprecated, and can be removed once https://github.com/dotnet/roslyn/pull/9186 is merged
-        // and the closed solution no longer depends on this.
-        public const string CSharpOptionPageFormattingIdString = "13c3bbb4-f18f-4111-9f54-a0fb010d9194";
-
         public const string CSharpPackageIdString = "13c3bbb4-f18f-4111-9f54-a0fb010d9194";
         public const string CSharpProjectIdString = "fae04ec0-301f-11d3-bf4b-00c04f79efbc";
         public const string CSharpLanguageServiceIdString = "694dd9b6-b865-4c5b-ad85-86356e9c88dc";
@@ -25,11 +21,6 @@ namespace Microsoft.VisualStudio.LanguageServices
         public const string CSharpOrganizeIconIdString = "9420a4b2-b48b-449d-a4c0-335d6e864b82";
         public const string CSharpLibraryIdString = "58F1BAD0-2288-45b9-AC3A-D56398F7781D";
         public const string CSharpReplPackageIdString = "c5edd1ee-c43b-4360-9ce4-6b993ca12897";
-
-        /// <summary>
-        /// <see cref="UIContext"/> that indicates <see cref="VisualStudioWorkspace"/> contains a project that supports Edit and Continue.
-        /// </summary>
-        public const string EncCapableProjectExistsInWorkspaceUIContextString = "0C89AE24-6D19-474C-A3AA-DC3B66FDBB5F";
 
         /// <summary>
         /// A <see cref="UIContext"/> that is set if there is a C# project in the <see cref="VisualStudioWorkspace"/>.
@@ -123,11 +114,18 @@ namespace Microsoft.VisualStudio.LanguageServices
         public const string RoslynOptionPagePerformanceLoggersIdString = "236AC96F-A60D-4BD6-A480-D315151EDC2B";
         public const string RoslynOptionPageInternalDiagnosticsIdString = "48993C4C-C619-42AD-B1C8-79378AD8BEF2";
         public const string RoslynOptionPageInternalSolutionCrawlerIdString = "9702D3BD-F06C-4A6A-974B-7D0C2BC89A72";
-        public const string RoslynOptionPageExperimentationIdString = "D5AA7ED7-85E2-42A0-9BF6-22AEF1C1ED8C";
 
         public static readonly Guid RoslynPackageId = new(RoslynPackageIdString);
         public static readonly Guid RoslynCommandSetId = new(RoslynCommandSetIdString);
         public static readonly Guid RoslynGroupId = new(RoslynGroupIdString);
+
+        public const string ValueTrackingToolWindowIdString = "60a19d42-2dd7-43f3-be90-c7a9cb7d28f4";
+        public static readonly Guid ValueTrackingToolWindowId = new(ValueTrackingToolWindowIdString);
+
+        public const string StackTraceExplorerToolWindowIdString = "7FF2AB69-0A20-4BF5-BAEF-24D9EB6969E1";
+        public static readonly Guid StackTraceExplorerToolWindowId = new(StackTraceExplorerToolWindowIdString);
+        public const string StackTraceExplorerCommandIdString = "FB190424-4DFF-43DB-8CCA-E32D1CE8A5CA";
+        public static readonly Guid StackTraceExplorerCommandId = new(StackTraceExplorerCommandIdString);
 
         // TODO: Remove pending https://github.com/dotnet/roslyn/issues/8927 .
         // Interactive guids

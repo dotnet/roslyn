@@ -3,7 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
-Imports Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
+Imports Microsoft.CodeAnalysis.EmbeddedLanguages
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.VirtualChars
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
@@ -14,9 +14,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.LanguageServices
         Inherits AbstractEmbeddedLanguagesProvider
 
         Public Shared Info As New EmbeddedLanguageInfo(
-            SyntaxKind.CharacterLiteralToken,
-            SyntaxKind.StringLiteralToken,
-            SyntaxKind.InterpolatedStringTextToken,
             VisualBasicSyntaxFacts.Instance,
             VisualBasicSemanticFactsService.Instance,
             VisualBasicVirtualCharService.Instance)

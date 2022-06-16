@@ -43,6 +43,8 @@ namespace Microsoft.CodeAnalysis.Navigation
 
             public TextSpan SourceSpan => _location.SourceSpan;
 
+            public bool IsStale => false;
+
             public ImmutableArray<INavigableItem> ChildItems => ImmutableArray<INavigableItem>.Empty;
         }
     }

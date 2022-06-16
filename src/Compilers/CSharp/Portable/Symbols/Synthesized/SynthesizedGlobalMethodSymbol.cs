@@ -167,7 +167,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (_parameters.IsEmpty)
+                Debug.Assert(!_parameters.IsDefault, $"Expected {nameof(SetParameters)} prior to accessing this property.");
+                if (_parameters.IsDefault)
                 {
                     return ImmutableArray<ParameterSymbol>.Empty;
                 }
@@ -334,5 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal sealed override bool IsNullableAnalysisEnabled() => false;
+
+        protected sealed override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable;
     }
 }

@@ -66,15 +66,16 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Progression
                     var node = nodes.Pop();
                     if (!cancellationToken.IsCancellationRequested)
                     {
-                        if (node.Kind() == SyntaxKind.ClassDeclaration ||
-                            node.Kind() == SyntaxKind.RecordDeclaration ||
-                            node.Kind() == SyntaxKind.DelegateDeclaration ||
-                            node.Kind() == SyntaxKind.EnumDeclaration ||
-                            node.Kind() == SyntaxKind.InterfaceDeclaration ||
-                            node.Kind() == SyntaxKind.StructDeclaration ||
-                            node.Kind() == SyntaxKind.VariableDeclarator ||
-                            node.Kind() == SyntaxKind.MethodDeclaration ||
-                            node.Kind() == SyntaxKind.PropertyDeclaration)
+                        if (node.Kind() is SyntaxKind.ClassDeclaration or
+                            SyntaxKind.RecordDeclaration or
+                            SyntaxKind.RecordStructDeclaration or
+                            SyntaxKind.DelegateDeclaration or
+                            SyntaxKind.EnumDeclaration or
+                            SyntaxKind.InterfaceDeclaration or
+                            SyntaxKind.StructDeclaration or
+                            SyntaxKind.VariableDeclarator or
+                            SyntaxKind.MethodDeclaration or
+                            SyntaxKind.PropertyDeclaration)
                         {
                             yield return node;
                         }
@@ -129,6 +130,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Progression
         }
 
         private static bool IncludeReturnType(IMethodSymbol f)
-            => f.MethodKind == MethodKind.Ordinary || f.MethodKind == MethodKind.ExplicitInterfaceImplementation;
+            => f.MethodKind is MethodKind.Ordinary or MethodKind.ExplicitInterfaceImplementation;
     }
 }

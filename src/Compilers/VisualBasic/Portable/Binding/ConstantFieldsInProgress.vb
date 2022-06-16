@@ -29,6 +29,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Public Function AnyDependencies() As Boolean
+            Return _dependencies.Any()
+        End Function
+
         Friend Sub AddDependency(field As SourceFieldSymbol)
             _dependencies.Add(field)
         End Sub
@@ -52,6 +56,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 #End If
                 _builder.Add(field)
             End Sub
+
+            Friend Function Any() As Boolean
+                Return _builder.Count <> 0
+            End Function
 
             <Conditional("DEBUG")>
             Friend Sub Freeze()

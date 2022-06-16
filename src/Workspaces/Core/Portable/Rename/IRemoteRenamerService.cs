@@ -2,13 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
@@ -20,64 +25,53 @@ namespace Microsoft.CodeAnalysis.Rename
 {
     internal interface IRemoteRenamerService
     {
+        // TODO https://github.com/microsoft/vs-streamjsonrpc/issues/789 
+        internal interface ICallback // : IRemoteOptionsCallback<CodeCleanupOptions>
+        {
+            ValueTask<CodeCleanupOptions> GetOptionsAsync(RemoteServiceCallbackId callbackId, string language, CancellationToken cancellationToken);
+        }
+
         /// <summary>
         /// Runs the entire rename operation OOP and returns the final result. More efficient (due to less back and
         /// forth marshaling) when the intermediary results of rename are not needed. To get the individual parts of
         /// rename remoted use <see cref="FindRenameLocationsAsync"/> and <see cref="ResolveConflictsAsync"/>.
         /// </summary>
         ValueTask<SerializableConflictResolution?> RenameSymbolAsync(
-            PinnedSolutionInfo solutionInfo,
+            Checksum solutionChecksum,
+            RemoteServiceCallbackId callbackId,
             SerializableSymbolAndProjectId symbolAndProjectId,
             string replacementText,
-            SerializableRenameOptionSet options,
+            SymbolRenameOptions options,
             ImmutableArray<SerializableSymbolAndProjectId> nonConflictSymbolIds,
             CancellationToken cancellationToken);
 
         ValueTask<SerializableRenameLocations?> FindRenameLocationsAsync(
-            PinnedSolutionInfo solutionInfo,
+            Checksum solutionChecksum,
+            RemoteServiceCallbackId callbackId,
             SerializableSymbolAndProjectId symbolAndProjectId,
-            SerializableRenameOptionSet options,
+            SymbolRenameOptions options,
             CancellationToken cancellationToken);
 
         ValueTask<SerializableConflictResolution?> ResolveConflictsAsync(
-            PinnedSolutionInfo solutionInfo,
+            Checksum solutionChecksum,
+            RemoteServiceCallbackId callbackId,
             SerializableRenameLocations renameLocationSet,
             string replacementText,
             ImmutableArray<SerializableSymbolAndProjectId> nonConflictSymbolIds,
             CancellationToken cancellationToken);
     }
 
-    [DataContract]
-    internal readonly struct SerializableRenameOptionSet
+    [ExportRemoteServiceCallbackDispatcher(typeof(IRemoteRenamerService)), Shared]
+    internal sealed class RemoteRenamerServiceCallbackDispatcher : RemoteServiceCallbackDispatcher, IRemoteRenamerService.ICallback
     {
-        [DataMember(Order = 0)]
-        public readonly bool RenameOverloads;
-
-        [DataMember(Order = 1)]
-        public readonly bool RenameInStrings;
-
-        [DataMember(Order = 2)]
-        public readonly bool RenameInComments;
-
-        [DataMember(Order = 3)]
-        public readonly bool RenameFile;
-
-        public SerializableRenameOptionSet(bool renameOverloads, bool renameInStrings, bool renameInComments, bool renameFile)
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public RemoteRenamerServiceCallbackDispatcher()
         {
-            RenameOverloads = renameOverloads;
-            RenameInStrings = renameInStrings;
-            RenameInComments = renameInComments;
-            RenameFile = renameFile;
         }
 
-        public static SerializableRenameOptionSet Dehydrate(RenameOptionSet optionSet)
-            => new(renameOverloads: optionSet.RenameOverloads,
-                   renameInStrings: optionSet.RenameInStrings,
-                   renameInComments: optionSet.RenameInComments,
-                   renameFile: optionSet.RenameFile);
-
-        public RenameOptionSet Rehydrate()
-            => new(RenameOverloads, RenameInStrings, RenameInComments, RenameFile);
+        public ValueTask<CodeCleanupOptions> GetOptionsAsync(RemoteServiceCallbackId callbackId, string language, CancellationToken cancellationToken)
+            => ((RemoteOptionsProvider<CodeCleanupOptions>)GetCallback(callbackId)).GetOptionsAsync(language, cancellationToken);
     }
 
     [DataContract]
@@ -98,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Rename
         public static SerializableSearchResult? Dehydrate(Solution solution, RenameLocations.SearchResult? result, CancellationToken cancellationToken)
             => result == null ? null : new SerializableSearchResult
             {
-                Locations = result.Locations.Select(loc => SerializableRenameLocation.Dehydrate(loc)).ToArray(),
+                Locations = result.Locations.Select(SerializableRenameLocation.Dehydrate).ToArray(),
                 ImplicitLocations = result.ImplicitLocations.IsDefault ? null : result.ImplicitLocations.Select(loc => SerializableReferenceLocation.Dehydrate(loc, cancellationToken)).ToArray(),
                 ReferencedSymbols = result.ReferencedSymbols.IsDefault ? null : result.ReferencedSymbols.Select(s => SerializableSymbolAndProjectId.Dehydrate(solution, s, cancellationToken)).ToArray(),
             };
@@ -210,10 +204,10 @@ namespace Microsoft.CodeAnalysis.Rename
         public SerializableRenameLocations Dehydrate(Solution solution, CancellationToken cancellationToken)
             => new(
                 SerializableSymbolAndProjectId.Dehydrate(solution, Symbol, cancellationToken),
-                SerializableRenameOptionSet.Dehydrate(Options),
+                Options,
                 SerializableSearchResult.Dehydrate(solution, _result, cancellationToken));
 
-        internal static async Task<RenameLocations?> TryRehydrateAsync(Solution solution, SerializableRenameLocations locations, CancellationToken cancellationToken)
+        internal static async Task<RenameLocations?> TryRehydrateAsync(Solution solution, CodeCleanupOptionsProvider fallbackOptions, SerializableRenameLocations locations, CancellationToken cancellationToken)
         {
             if (locations == null)
                 return null;
@@ -230,7 +224,8 @@ namespace Microsoft.CodeAnalysis.Rename
             return new RenameLocations(
                 symbol,
                 solution,
-                locations.Options.Rehydrate(),
+                locations.Options,
+                fallbackOptions,
                 await locations.Result.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false));
         }
     }
@@ -242,12 +237,12 @@ namespace Microsoft.CodeAnalysis.Rename
         public readonly SerializableSymbolAndProjectId? Symbol;
 
         [DataMember(Order = 1)]
-        public readonly SerializableRenameOptionSet Options;
+        public readonly SymbolRenameOptions Options;
 
         [DataMember(Order = 2)]
         public readonly SerializableSearchResult? Result;
 
-        public SerializableRenameLocations(SerializableSymbolAndProjectId? symbol, SerializableRenameOptionSet options, SerializableSearchResult? result)
+        public SerializableRenameLocations(SerializableSymbolAndProjectId? symbol, SymbolRenameOptions options, SerializableSearchResult? result)
         {
             Symbol = symbol;
             Options = options;

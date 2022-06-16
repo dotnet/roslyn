@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -18,7 +16,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.AddRequiredParentheses
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeFixProviderNames.AddRequiredParentheses), Shared]
     internal class AddRequiredParenthesesCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
@@ -30,9 +28,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.AddRequiredParenthesesDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
-        protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic, Document document, string equivalenceKey, CancellationToken cancellationToken)
+        protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic, Document document, string? equivalenceKey, CancellationToken cancellationToken)
             => diagnostic.Properties.ContainsKey(AddRequiredParenthesesConstants.IncludeInFixAll) &&
                diagnostic.Properties[AddRequiredParenthesesConstants.EquivalenceKey] == equivalenceKey;
 
@@ -40,16 +36,17 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
         {
             var firstDiagnostic = context.Diagnostics[0];
             context.RegisterCodeFix(
-                new MyCodeAction(
-                    c => FixAsync(context.Document, firstDiagnostic, c),
-                    firstDiagnostic.Properties[AddRequiredParenthesesConstants.EquivalenceKey]),
+                CodeAction.Create(
+                    AnalyzersResources.Add_parentheses_for_clarity,
+                    GetDocumentUpdater(context),
+                    firstDiagnostic.Properties[AddRequiredParenthesesConstants.EquivalenceKey]!),
                 context.Diagnostics);
             return Task.CompletedTask;
         }
 
         protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var generator = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
 
@@ -66,14 +63,6 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
             }
 
             return Task.CompletedTask;
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
-                : base(AnalyzersResources.Add_parentheses_for_clarity, createChangedDocument, equivalenceKey)
-            {
-            }
         }
     }
 }

@@ -292,6 +292,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (!isInterface)
                 {
                     allowedModifiers |= DeclarationModifiers.Override;
+
+                    if (!isIndexer)
+                    {
+                        allowedModifiers |= DeclarationModifiers.Required;
+                    }
                 }
                 else
                 {
@@ -307,10 +312,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                DeclarationModifiers.AccessibilityMask;
                 }
             }
-            else if (isInterface)
+            else
             {
                 Debug.Assert(isExplicitInterfaceImplementation);
-                allowedModifiers |= DeclarationModifiers.Abstract;
+
+                if (isInterface)
+                {
+                    allowedModifiers |= DeclarationModifiers.Abstract;
+                }
+
+                if (!isIndexer)
+                {
+                    allowedModifiers |= DeclarationModifiers.Static;
+                }
             }
 
             if (containingType.IsStructType())
@@ -320,7 +334,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             allowedModifiers |= DeclarationModifiers.Extern;
 
-            var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
+            var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(isForTypeDeclaration: false, isForInterfaceMember: isInterface,
+                                                                        modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
+
+            ModifierUtils.CheckFeatureAvailabilityForStaticAbstractMembersInInterfacesIfNeeded(mods, isExplicitInterfaceImplementation, location, diagnostics);
 
             containingType.CheckUnsafeModifier(mods, location, diagnostics);
 
@@ -338,6 +355,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (isIndexer)
             {
                 mods |= DeclarationModifiers.Indexer;
+            }
+
+            if ((mods & DeclarationModifiers.Static) != 0 && (mods & DeclarationModifiers.Required) != 0)
+            {
+                // The modifier 'required' is not valid for this item
+                diagnostics.Add(ErrorCode.ERR_BadMemberFlag, location, SyntaxFacts.GetText(SyntaxKind.RequiredKeyword));
+                mods &= ~DeclarationModifiers.Required;
             }
 
             return mods;
@@ -432,8 +456,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (type.IsVoidType())
             {
-                ErrorCode errorCode = this.IsIndexer ? ErrorCode.ERR_IndexerCantHaveVoidType : ErrorCode.ERR_PropertyCantHaveVoidType;
-                diagnostics.Add(errorCode, Location, this);
+                if (this.IsIndexer)
+                {
+                    diagnostics.Add(ErrorCode.ERR_IndexerCantHaveVoidType, Location);
+                }
+                else
+                {
+                    diagnostics.Add(ErrorCode.ERR_PropertyCantHaveVoidType, Location, this);
+                }
             }
 
             return type;

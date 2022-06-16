@@ -47,12 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
 
         public int OnBeforeLastDocumentUnlock(uint docCookie, uint dwRDTLockType, uint dwReadLocksRemaining, uint dwEditLocksRemaining)
         {
-            if (dwReadLocksRemaining == 0 && dwEditLocksRemaining == 0)
-            {
-                OnDocumentClosed(docCookie);
-            }
-
-            return VSConstants.S_OK;
+            return VSConstants.E_NOTIMPL;
         }
 
         public int OnBeforeSave(uint docCookie)

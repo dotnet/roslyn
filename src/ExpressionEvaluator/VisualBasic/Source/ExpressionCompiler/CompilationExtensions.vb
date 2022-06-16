@@ -31,19 +31,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Dim metadataDecoder = New MetadataDecoder(DirectCast(method.ContainingModule, PEModuleSymbol))
             Dim containingType = method.ContainingType
             Dim sourceMethodName As String = Nothing
-            If GeneratedNames.TryParseStateMachineTypeName(containingType.Name, sourceMethodName) Then
+            If GeneratedNameParser.TryParseStateMachineTypeName(containingType.Name, sourceMethodName) Then
                 For Each member In containingType.ContainingType.GetMembers(sourceMethodName)
                     Dim candidateMethod = TryCast(member, PEMethodSymbol)
                     If candidateMethod IsNot Nothing Then
-                        Dim [module] = metadataDecoder.Module
-                        methodHandle = candidateMethod.Handle
                         Dim stateMachineTypeName As String = Nothing
-                        If [module].HasStringValuedAttribute(methodHandle, AttributeDescription.AsyncStateMachineAttribute, stateMachineTypeName) OrElse
-                            [module].HasStringValuedAttribute(methodHandle, AttributeDescription.IteratorStateMachineAttribute, stateMachineTypeName) _
-                        Then
-                            If metadataDecoder.GetTypeSymbolForSerializedType(stateMachineTypeName).OriginalDefinition.Equals(containingType) Then
-                                Return candidateMethod
-                            End If
+                        If metadataDecoder.Module.HasStateMachineAttribute(candidateMethod.Handle, stateMachineTypeName) AndAlso
+                            metadataDecoder.GetTypeSymbolForSerializedType(stateMachineTypeName).OriginalDefinition.Equals(containingType) Then
+                            Return candidateMethod
                         End If
                     End If
                 Next

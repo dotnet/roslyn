@@ -12,4 +12,4 @@ Install __Universal Windows App Development Tools -> Tools (1.1.1)__ and __Windo
 ![image](https://cloud.githubusercontent.com/assets/1103906/10530101/dd880dfc-7358-11e5-8380-dc41c1863538.png)
 
 ## Step 4:
-Install the [.NET Compiler Platform SDK](https://visualstudiogallery.msdn.microsoft.com/2ddb7240-5249-4c8c-969e-5d05823bcb89) which gives you the Visual Studio project templates and the [Syntax Visualizer tool window](https://github.com/dotnet/roslyn/blob/master/docs/wiki/Syntax-Visualizer.md).
+Install the [.NET Compiler Platform SDK](https://visualstudiogallery.msdn.microsoft.com/2ddb7240-5249-4c8c-969e-5d05823bcb89) which gives you the Visual Studio project templates and the [Syntax Visualizer tool window](https://github.com/dotnet/roslyn/blob/main/docs/wiki/Syntax-Visualizer.md).

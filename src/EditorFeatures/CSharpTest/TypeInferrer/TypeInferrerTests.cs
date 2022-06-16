@@ -199,6 +199,13 @@ var q = s || [|Goo()|];", "global::System.Boolean", mode);
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestBinaryOperator3(TestMode mode)
+        {
+            await TestInMethodAsync(
+@"var q = x >>> [|Goo()|];", "global::System.Int32", mode);
+        }
+
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestAssignmentOperator3(TestMode mode)
         {
             await TestInMethodAsync(
@@ -3208,6 +3215,60 @@ class C
         var isRed = this switch
         {
             { Color: [||]
+    }
+}
+";
+            await TestAsync(markup, "global::Color", TestMode.Position);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestEnumInPatterns_SwitchStatement_ExtendedPropertyPattern()
+        {
+            var markup = @"
+public enum Color
+{
+    Red,
+    Green,
+}
+
+class C
+{
+    public C AnotherC { get; }
+    public Color Color { get; }
+
+    public void M()
+    {
+        switch (this)
+        {
+            case { AnotherC.Color: [||]
+    }
+}
+";
+            await TestAsync(markup, "global::Color", TestMode.Position);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestEnumInPatterns_SwitchStatement_ExtendedPropertyPattern_Field()
+        {
+            var markup = @"
+public enum Color
+{
+    Red,
+    Green,
+}
+
+class C
+{
+    public C AnotherC { get; }
+    public Color Color;
+
+    public void M()
+    {
+        switch (this)
+        {
+            case { AnotherC.Color: [||]
     }
 }
 ";

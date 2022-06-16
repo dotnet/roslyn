@@ -19,12 +19,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     {
         private static bool IsAccessible(ISymbol symbol)
         {
-            if (symbol.Locations.Any(l => l.IsInMetadata))
+            if (symbol.Locations.Any(static l => l.IsInMetadata))
             {
                 var accessibility = symbol.DeclaredAccessibility;
-                return accessibility == Accessibility.Public ||
-                    accessibility == Accessibility.Protected ||
-                    accessibility == Accessibility.ProtectedOrInternal;
+                return accessibility is Accessibility.Public or
+                    Accessibility.Protected or
+                    Accessibility.ProtectedOrInternal;
             }
 
             return true;
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         internal static async Task<bool> OriginalSymbolsMatchAsync(
             Solution solution,
-            ISymbol searchSymbol,
+            ISymbol? searchSymbol,
             ISymbol? symbolToMatch,
             CancellationToken cancellationToken)
         {
@@ -41,6 +41,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             if (searchSymbol == null || symbolToMatch == null)
                 return false;
+
+            // Avoid the expensive checks if we can fast path when the compiler just says these are equal. Also, for the
+            // purposes of symbol finding nullability of symbols doesn't affect things, so just use the default
+            // comparison.
+            if (searchSymbol.Equals(symbolToMatch))
+                return true;
 
             if (await OriginalSymbolsMatchCoreAsync(solution, searchSymbol, symbolToMatch, cancellationToken).ConfigureAwait(false))
                 return true;
@@ -72,12 +78,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             CancellationToken cancellationToken)
         {
             if (searchSymbol == null || symbolToMatch == null)
-            {
                 return false;
-            }
 
             searchSymbol = searchSymbol.GetOriginalUnreducedDefinition();
             symbolToMatch = symbolToMatch.GetOriginalUnreducedDefinition();
+
+            // Avoid the expensive checks if we can fast path when the compiler just says these are equal. Also, for the
+            // purposes of symbol finding nullability of symbols doesn't affect things, so just use the default
+            // comparison.
+            if (searchSymbol.Equals(symbolToMatch, SymbolEqualityComparer.Default))
+                return true;
 
             // We compare the given searchSymbol and symbolToMatch for equivalence using SymbolEquivalenceComparer
             // as follows:

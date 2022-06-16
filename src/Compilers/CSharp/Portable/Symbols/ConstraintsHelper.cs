@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static ImmutableArray<ImmutableArray<TypeWithAnnotations>> MakeTypeParameterConstraintTypes(
             this MethodSymbol containingSymbol,
-            Binder binder,
+            Binder withTypeParametersBinder,
             ImmutableArray<TypeParameterSymbol> typeParameters,
             TypeParameterListSyntax typeParameterList,
             SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses,
@@ -327,11 +327,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Wrap binder from factory in a generic constraints specific binder
             // to avoid checking constraints when binding type names.
-            Debug.Assert(!binder.Flags.Includes(BinderFlags.GenericConstraintsClause));
-            binder = binder.WithAdditionalFlags(BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks);
+            Debug.Assert(!withTypeParametersBinder.Flags.Includes(BinderFlags.GenericConstraintsClause));
+            withTypeParametersBinder = withTypeParametersBinder.WithAdditionalFlags(BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks);
 
             ImmutableArray<TypeParameterConstraintClause> clauses;
-            clauses = binder.BindTypeParameterConstraintClauses(containingSymbol, typeParameters, typeParameterList, constraintClauses,
+            clauses = withTypeParametersBinder.BindTypeParameterConstraintClauses(containingSymbol, typeParameters, typeParameterList, constraintClauses,
                                                                 diagnostics, performOnlyCycleSafeValidation: false);
 
             if (clauses.All(clause => clause.ConstraintTypes.IsEmpty))
@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static ImmutableArray<TypeParameterConstraintKind> MakeTypeParameterConstraintKinds(
             this MethodSymbol containingSymbol,
-            Binder binder,
+            Binder withTypeParametersBinder,
             ImmutableArray<TypeParameterSymbol> typeParameters,
             TypeParameterListSyntax typeParameterList,
             SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses)
@@ -358,18 +358,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (constraintClauses.Count == 0)
             {
-                clauses = binder.GetDefaultTypeParameterConstraintClauses(typeParameterList);
+                clauses = withTypeParametersBinder.GetDefaultTypeParameterConstraintClauses(typeParameterList);
             }
             else
             {
                 // Wrap binder from factory in a generic constraints specific binder
                 // Also, suppress type argument binding in constraint types, this helps to avoid cycles while we figure out constraint kinds. 
                 // to avoid checking constraints when binding type names.
-                Debug.Assert(!binder.Flags.Includes(BinderFlags.GenericConstraintsClause));
-                binder = binder.WithAdditionalFlags(BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks | BinderFlags.SuppressTypeArgumentBinding);
+                Debug.Assert(!withTypeParametersBinder.Flags.Includes(BinderFlags.GenericConstraintsClause));
+                withTypeParametersBinder = withTypeParametersBinder.WithAdditionalFlags(BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks | BinderFlags.SuppressTypeArgumentBinding);
 
                 // We will recompute this diagnostics more accurately later, when binding without BinderFlags.SuppressTypeArgumentBinding  
-                clauses = binder.BindTypeParameterConstraintClauses(containingSymbol, typeParameters, typeParameterList, constraintClauses,
+                clauses = withTypeParametersBinder.BindTypeParameterConstraintClauses(containingSymbol, typeParameters, typeParameterList, constraintClauses,
                                                                     BindingDiagnosticBag.Discarded, performOnlyCycleSafeValidation: true);
 
                 clauses = AdjustConstraintKindsBasedOnConstraintTypes(containingSymbol, typeParameters, clauses);
@@ -945,6 +945,8 @@ hasRelatedInterfaces:
         }
 
         // See TypeBind::CheckSingleConstraint.
+        // Any new locals added to this method are likely going to cause EndToEndTests.Constraints to overflow. Break new locals out into
+        // another function.
         private static bool CheckConstraints(
             Symbol containingSymbol,
             in CheckConstraintsArgs args,
@@ -978,10 +980,17 @@ hasRelatedInterfaces:
             // original definition of the type parameters using the map from the constructed symbol.
             var constraintTypes = ArrayBuilder<TypeWithAnnotations>.GetInstance();
             var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(args.Template);
-            ImmutableArray<TypeWithAnnotations> originalConstrintTypes = typeParameter.ConstraintTypesWithDefinitionUseSiteDiagnostics(ref useSiteInfo);
-            substitution.SubstituteConstraintTypesDistinctWithoutModifiers(typeParameter, originalConstrintTypes, constraintTypes,
+            ImmutableArray<TypeWithAnnotations> originalConstraintTypes = typeParameter.ConstraintTypesWithDefinitionUseSiteDiagnostics(ref useSiteInfo);
+            substitution.SubstituteConstraintTypesDistinctWithoutModifiers(typeParameter, originalConstraintTypes, constraintTypes,
                                                                            ignoreTypeConstraintsDependentOnTypeParametersOpt);
             bool hasError = false;
+
+            if (typeArgument.Type is NamedTypeSymbol { IsInterface: true } iface && SelfOrBaseHasStaticAbstractMember(iface, ref useSiteInfo, out Symbol member))
+            {
+                diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter,
+                    new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, iface, member))));
+                hasError = true;
+            }
 
             foreach (var constraintType in constraintTypes)
             {
@@ -995,14 +1004,34 @@ hasRelatedInterfaces:
             }
 
             // Check the constructor constraint.
-            if (typeParameter.HasConstructorConstraint && !SatisfiesConstructorConstraint(typeArgument.Type))
+            if (typeParameter.HasConstructorConstraint && errorIfNotSatisfiesConstructorConstraint(containingSymbol, typeParameter, typeArgument, diagnosticsBuilder))
             {
-                // "'{2}' must be a non-abstract type with a public parameterless constructor in order to use it as parameter '{1}' in the generic type or method '{0}'"
-                diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_NewConstraintNotSatisfied, containingSymbol.ConstructedFrom(), typeParameter, typeArgument.Type))));
                 return false;
             }
 
             return !hasError;
+
+            [MethodImpl(MethodImplOptions.NoInlining)]
+            static bool errorIfNotSatisfiesConstructorConstraint(Symbol containingSymbol, TypeParameterSymbol typeParameter, TypeWithAnnotations typeArgument, ArrayBuilder<TypeParameterDiagnosticInfo> diagnosticsBuilder)
+            {
+                var error = SatisfiesConstructorConstraint(typeArgument.Type);
+
+                switch (error)
+                {
+                    case ConstructorConstraintError.None:
+                        return false;
+                    case ConstructorConstraintError.NoPublicParameterlessConstructorOrAbstractType:
+                        // "'{2}' must be a non-abstract type with a public parameterless constructor in order to use it as parameter '{1}' in the generic type or method '{0}'"
+                        diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_NewConstraintNotSatisfied, containingSymbol.ConstructedFrom(), typeParameter, typeArgument.Type))));
+                        return true;
+                    case ConstructorConstraintError.HasRequiredMembers:
+                        // '{2}' cannot satisfy the 'new()' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.
+                        diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_NewConstraintCannotHaveRequiredMembers, containingSymbol.ConstructedFrom(), typeParameter, typeArgument.Type))));
+                        return true;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(error);
+                }
+            }
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -1071,8 +1100,22 @@ hasRelatedInterfaces:
                 errorCode = ErrorCode.ERR_GenericConstraintNotSatisfiedValType;
             }
 
-            SymbolDistinguisher distinguisher = new SymbolDistinguisher(args.CurrentCompilation, constraintType.Type, typeArgument.Type);
-            diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(errorCode, containingSymbol.ConstructedFrom(), distinguisher.First, typeParameter, distinguisher.Second))));
+            object constraintTypeErrorArgument;
+            object typeArgumentErrorArgument;
+
+            if (constraintType.Type.Equals(typeArgument.Type, TypeCompareKind.AllIgnoreOptions))
+            {
+                constraintTypeErrorArgument = constraintType.Type;
+                typeArgumentErrorArgument = typeArgument.Type;
+            }
+            else
+            {
+                SymbolDistinguisher distinguisher = new SymbolDistinguisher(args.CurrentCompilation, constraintType.Type, typeArgument.Type);
+                constraintTypeErrorArgument = distinguisher.First;
+                typeArgumentErrorArgument = distinguisher.Second;
+            }
+
+            diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(errorCode, containingSymbol.ConstructedFrom(), constraintTypeErrorArgument, typeParameter, typeArgumentErrorArgument))));
             hasError = true;
 
             static NullableFlowState getTypeArgumentState(in TypeWithAnnotations typeWithAnnotations)
@@ -1249,6 +1292,37 @@ hasRelatedInterfaces:
             return false;
         }
 
+        private static bool SelfOrBaseHasStaticAbstractMember(NamedTypeSymbol iface, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, out Symbol memberWithoutImplementation)
+        {
+            Debug.Assert(iface.IsInterfaceType());
+
+            foreach (Symbol m in iface.GetMembers())
+            {
+                if (m.IsStatic && m.IsImplementableInterfaceMember() && iface.FindImplementationForInterfaceMember(m) is null)
+                {
+                    memberWithoutImplementation = m;
+                    return true;
+                }
+            }
+
+            foreach (var baseInterface in iface.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Keys)
+            {
+                foreach (Symbol m in baseInterface.GetMembers())
+                {
+                    if (m.IsStatic && m.IsImplementableInterfaceMember() && iface.FindImplementationForInterfaceMember(m) is null)
+                    {
+                        memberWithoutImplementation = m;
+                        return true;
+                    }
+                }
+
+                baseInterface.OriginalDefinition.AddUseSiteInfo(ref useSiteInfo);
+            }
+
+            memberWithoutImplementation = null;
+            return false;
+        }
+
         private static bool IsReferenceType(TypeParameterSymbol typeParameter, ImmutableArray<TypeWithAnnotations> constraintTypes)
         {
             return typeParameter.HasReferenceTypeConstraint || TypeParameterSymbol.CalculateIsReferenceTypeFromConstraintTypes(constraintTypes);
@@ -1281,23 +1355,37 @@ hasRelatedInterfaces:
             }
         }
 
+        private enum ConstructorConstraintError
+        {
+            None,
+            NoPublicParameterlessConstructorOrAbstractType,
+            HasRequiredMembers,
+        }
+
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private static bool SatisfiesConstructorConstraint(TypeSymbol typeArgument)
+        private static ConstructorConstraintError SatisfiesConstructorConstraint(TypeSymbol typeArgument)
         {
             switch (typeArgument.TypeKind)
             {
                 case TypeKind.Struct:
+                    return SatisfiesPublicParameterlessConstructor((NamedTypeSymbol)typeArgument, synthesizedIfMissing: true);
+
                 case TypeKind.Enum:
                 case TypeKind.Dynamic:
-                    return true;
+                    return ConstructorConstraintError.None;
 
                 case TypeKind.Class:
-                    return HasPublicParameterlessConstructor((NamedTypeSymbol)typeArgument) && !typeArgument.IsAbstract;
+                    if (typeArgument.IsAbstract)
+                    {
+                        return ConstructorConstraintError.NoPublicParameterlessConstructorOrAbstractType;
+                    }
+
+                    return SatisfiesPublicParameterlessConstructor((NamedTypeSymbol)typeArgument, synthesizedIfMissing: false);
 
                 case TypeKind.TypeParameter:
                     {
                         var typeParameter = (TypeParameterSymbol)typeArgument;
-                        return typeParameter.HasConstructorConstraint || typeParameter.IsValueType;
+                        return typeParameter.HasConstructorConstraint || typeParameter.IsValueType ? ConstructorConstraintError.None : ConstructorConstraintError.NoPublicParameterlessConstructorOrAbstractType;
                     }
 
                 case TypeKind.Submission:
@@ -1305,24 +1393,41 @@ hasRelatedInterfaces:
                     throw ExceptionUtilities.UnexpectedValue(typeArgument.TypeKind);
 
                 default:
-                    return false;
+                    return ConstructorConstraintError.NoPublicParameterlessConstructorOrAbstractType;
             }
         }
 
-        /// <summary>
-        /// Return true if the class type has a public parameterless constructor.
-        /// </summary>
-        private static bool HasPublicParameterlessConstructor(NamedTypeSymbol type)
+        private static ConstructorConstraintError SatisfiesPublicParameterlessConstructor(NamedTypeSymbol type, bool synthesizedIfMissing)
         {
-            Debug.Assert(type.TypeKind == TypeKind.Class);
+            Debug.Assert(type.TypeKind is TypeKind.Class or TypeKind.Struct);
+
+            bool hasAnyRequiredMembers = type.HasAnyRequiredMembers;
+
             foreach (var constructor in type.InstanceConstructors)
             {
                 if (constructor.ParameterCount == 0)
                 {
-                    return constructor.DeclaredAccessibility == Accessibility.Public;
+                    if (constructor.DeclaredAccessibility != Accessibility.Public)
+                    {
+                        return ConstructorConstraintError.NoPublicParameterlessConstructorOrAbstractType;
+                    }
+                    else if (hasAnyRequiredMembers && constructor.ShouldCheckRequiredMembers())
+                    {
+                        return ConstructorConstraintError.HasRequiredMembers;
+                    }
+                    else
+                    {
+                        return ConstructorConstraintError.None;
+                    }
                 }
             }
-            return false;
+
+            return (synthesizedIfMissing, hasAnyRequiredMembers) switch
+            {
+                (false, _) => ConstructorConstraintError.NoPublicParameterlessConstructorOrAbstractType,
+                (true, true) => ConstructorConstraintError.HasRequiredMembers,
+                (true, false) => ConstructorConstraintError.None,
+            };
         }
 
         /// <summary>

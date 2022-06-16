@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -118,12 +117,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             return _editorInProc.IsSignatureHelpActive();
         }
 
-        public Signature[] GetSignatures()
-        {
-            WaitForSignatureHelp();
-            return _editorInProc.GetSignatures();
-        }
-
         public Signature GetCurrentSignature()
         {
             WaitForSignatureHelp();
@@ -165,13 +158,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void DeleteWinFormButton(string buttonName)
             => _editorInProc.DeleteWinFormButton(buttonName);
 
-        public void EditWinFormButtonProperty(string buttonName, string propertyName, string propertyValue, string propertyTypeName = null)
+        public void EditWinFormButtonProperty(string buttonName, string propertyName, string propertyValue, string? propertyTypeName = null)
             => _editorInProc.EditWinFormButtonProperty(buttonName, propertyName, propertyValue, propertyTypeName);
 
         public void EditWinFormButtonEvent(string buttonName, string eventName, string eventHandlerName)
             => _editorInProc.EditWinFormButtonEvent(buttonName, eventName, eventHandlerName);
 
-        public string GetWinFormButtonPropertyValue(string buttonName, string propertyName)
+        public string? GetWinFormButtonPropertyValue(string buttonName, string propertyName)
             => _editorInProc.GetWinFormButtonPropertyValue(buttonName, propertyName);
 
         /// <summary>
@@ -183,15 +176,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         {
             Activate();
             VisualStudioInstance.SendKeys.Send(keys);
-        }
-
-        public void MessageBox(string message)
-            => _editorInProc.MessageBox(message);
-
-        public IUIAutomationElement GetDialog(string dialogAutomationId)
-        {
-            var dialog = DialogHelpers.GetOpenDialogById(_instance.Shell.GetHWnd(), dialogAutomationId);
-            return dialog;
         }
 
         public void VerifyDialog(string dialogName, bool isOpen)
@@ -243,9 +227,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public ClassifiedToken[] GetLightbulbPreviewClassification(string menuText) =>
             _editorInProc.GetLightbulbPreviewClassifications(menuText);
 
-        public bool IsUseSuggestionModeOn()
-            => _editorInProc.IsUseSuggestionModeOn();
-
         public void SetUseSuggestionMode(bool value)
         {
             Assert.False(IsCompletionActive());
@@ -258,85 +239,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public string[] GetErrorTags()
             => _editorInProc.GetErrorTags();
 
-        public List<string> GetF1Keyword()
-            => _editorInProc.GetF1Keywords();
-
-        public void ExpandProjectNavBar()
-        {
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.NavigationBar);
-            _editorInProc.ExpandNavigationBar(0);
-        }
-
-        public void ExpandTypeNavBar()
-        {
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.NavigationBar);
-            _editorInProc.ExpandNavigationBar(1);
-        }
-
-        public void ExpandMemberNavBar()
-        {
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.NavigationBar);
-            _editorInProc.ExpandNavigationBar(2);
-        }
-
         public string[] GetProjectNavBarItems()
         {
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.NavigationBar);
             return _editorInProc.GetNavBarItems(0);
-        }
-
-        public string[] GetTypeNavBarItems()
-        {
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.NavigationBar);
-            return _editorInProc.GetNavBarItems(1);
-        }
-
-        public string[] GetMemberNavBarItems()
-        {
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.NavigationBar);
-            return _editorInProc.GetNavBarItems(2);
-        }
-
-        public string GetProjectNavBarSelection()
-        {
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.NavigationBar);
-            return _editorInProc.GetSelectedNavBarItem(0);
-        }
-
-        public string GetTypeNavBarSelection()
-        {
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.NavigationBar);
-            return _editorInProc.GetSelectedNavBarItem(1);
-        }
-
-        public string GetMemberNavBarSelection()
-        {
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.NavigationBar);
-            return _editorInProc.GetSelectedNavBarItem(2);
-        }
-
-        public void SelectProjectNavbarItem(string item)
-        {
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.NavigationBar);
-            _editorInProc.SelectNavBarItem(0, item);
-        }
-
-        public void SelectTypeNavBarItem(string item)
-        {
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.NavigationBar);
-            _editorInProc.SelectNavBarItem(1, item);
-        }
-
-        public void SelectMemberNavBarItem(string item)
-        {
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.NavigationBar);
-            _editorInProc.SelectNavBarItem(2, item);
-        }
-
-        public bool IsNavBarEnabled()
-        {
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.NavigationBar);
-            return _editorInProc.IsNavBarEnabled();
         }
 
         public TextSpan[] GetKeywordHighlightTags()
@@ -348,7 +254,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             return Deserialize(_editorInProc.GetOutliningSpans());
         }
 
-        private TextSpan[] Deserialize(string[] v)
+        private static TextSpan[] Deserialize(string[] v)
         {
             // returned tag looks something like 'text'[12-13]
             return v.Select(tag =>
@@ -362,13 +268,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             }).ToArray();
         }
 
-        public void GoToDefinition()
-            => _editorInProc.GoToDefinition();
-
-        public void GoToImplementation()
-            => _editorInProc.GoToImplementation();
-
         public void SendExplicitFocus()
             => _editorInProc.SendExplicitFocus();
+
+        public void WaitForEditorOperations(TimeSpan timeout)
+            => _editorInProc.WaitForEditorOperations(timeout);
     }
 }

@@ -78,20 +78,20 @@ namespace Microsoft.CodeAnalysis.Serialization
                     case WellKnownSynchronizationKind.CompilationOptions:
                     case WellKnownSynchronizationKind.ParseOptions:
                     case WellKnownSynchronizationKind.ProjectReference:
-                    case WellKnownSynchronizationKind.OptionSet:
-                        return Checksum.Create(kind, value, this);
+                    case WellKnownSynchronizationKind.SourceGeneratedDocumentIdentity:
+                        return Checksum.Create(value, this);
 
                     case WellKnownSynchronizationKind.MetadataReference:
-                        return Checksum.Create(kind, CreateChecksum((MetadataReference)value, cancellationToken));
+                        return Checksum.Create(CreateChecksum((MetadataReference)value, cancellationToken));
 
                     case WellKnownSynchronizationKind.AnalyzerReference:
-                        return Checksum.Create(kind, CreateChecksum((AnalyzerReference)value, cancellationToken));
+                        return Checksum.Create(CreateChecksum((AnalyzerReference)value, cancellationToken));
 
                     case WellKnownSynchronizationKind.SerializableSourceText:
-                        return Checksum.Create(kind, ((SerializableSourceText)value).GetChecksum());
+                        return Checksum.Create(((SerializableSourceText)value).GetChecksum());
 
                     case WellKnownSynchronizationKind.SourceText:
-                        return Checksum.Create(kind, ((SourceText)value).GetChecksum());
+                        return Checksum.Create(((SourceText)value).GetChecksum());
 
                     default:
                         // object that is not part of solution is not supported since we don't know what inputs are required to
@@ -124,6 +124,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                     case WellKnownSynchronizationKind.SolutionAttributes:
                     case WellKnownSynchronizationKind.ProjectAttributes:
                     case WellKnownSynchronizationKind.DocumentAttributes:
+                    case WellKnownSynchronizationKind.SourceGeneratedDocumentIdentity:
                         ((IObjectWritable)value).WriteTo(writer);
                         return;
 
@@ -156,10 +157,6 @@ namespace Microsoft.CodeAnalysis.Serialization
                         SerializeSourceText(new SerializableSourceText((SourceText)value), writer, context, cancellationToken);
                         return;
 
-                    case WellKnownSynchronizationKind.OptionSet:
-                        SerializeOptionSet((SerializableOptionSet)value, writer, cancellationToken);
-                        return;
-
                     default:
                         // object that is not part of solution is not supported since we don't know what inputs are required to
                         // serialize it
@@ -182,13 +179,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                     case WellKnownSynchronizationKind.SolutionState:
                     case WellKnownSynchronizationKind.ProjectState:
                     case WellKnownSynchronizationKind.DocumentState:
-                    case WellKnownSynchronizationKind.Projects:
-                    case WellKnownSynchronizationKind.Documents:
-                    case WellKnownSynchronizationKind.TextDocuments:
-                    case WellKnownSynchronizationKind.AnalyzerConfigDocuments:
-                    case WellKnownSynchronizationKind.ProjectReferences:
-                    case WellKnownSynchronizationKind.MetadataReferences:
-                    case WellKnownSynchronizationKind.AnalyzerReferences:
+                    case WellKnownSynchronizationKind.ChecksumCollection:
                         return (T)(object)DeserializeChecksumWithChildren(reader, cancellationToken);
 
                     case WellKnownSynchronizationKind.SolutionAttributes:
@@ -197,6 +188,8 @@ namespace Microsoft.CodeAnalysis.Serialization
                         return (T)(object)ProjectInfo.ProjectAttributes.ReadFrom(reader);
                     case WellKnownSynchronizationKind.DocumentAttributes:
                         return (T)(object)DocumentInfo.DocumentAttributes.ReadFrom(reader);
+                    case WellKnownSynchronizationKind.SourceGeneratedDocumentIdentity:
+                        return (T)(object)SourceGeneratedDocumentIdentity.ReadFrom(reader);
                     case WellKnownSynchronizationKind.CompilationOptions:
                         return (T)(object)DeserializeCompilationOptions(reader, cancellationToken);
                     case WellKnownSynchronizationKind.ParseOptions:
@@ -211,8 +204,6 @@ namespace Microsoft.CodeAnalysis.Serialization
                         return (T)(object)DeserializeSerializableSourceText(reader, cancellationToken);
                     case WellKnownSynchronizationKind.SourceText:
                         return (T)(object)DeserializeSourceText(reader, cancellationToken);
-                    case WellKnownSynchronizationKind.OptionSet:
-                        return (T)(object)DeserializeOptionSet(reader, cancellationToken);
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(kind);
@@ -224,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             => _lazyLanguageSerializationService.GetOrAdd(languageName, n => _workspaceServices.GetLanguageServices(n).GetRequiredService<IOptionsSerializationService>());
 
         public Checksum CreateParseOptionsChecksum(ParseOptions value)
-            => Checksum.Create(WellKnownSynchronizationKind.ParseOptions, value, this);
+            => Checksum.Create(value, this);
     }
 
     // TODO: convert this to sub class rather than using enum with if statement.

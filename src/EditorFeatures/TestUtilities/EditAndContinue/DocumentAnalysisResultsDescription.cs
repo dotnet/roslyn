@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
@@ -15,14 +16,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         /// </summary>
         public readonly ImmutableArray<SemanticEditDescription> SemanticEdits;
 
+        public readonly ImmutableArray<SequencePointUpdates> LineEdits;
+
         public readonly ImmutableArray<RudeEditDiagnosticDescription> Diagnostics;
 
         public DocumentAnalysisResultsDescription(
             ActiveStatementsDescription? activeStatements = null,
             SemanticEditDescription[]? semanticEdits = null,
+            SequencePointUpdates[]? lineEdits = null,
             RudeEditDiagnosticDescription[]? diagnostics = null)
         {
-            // The test must validate semantic edits, diagnostics or both.
+            // The test must validate semantic edits, lineEdits, diagnostics or all of the above.
             // If neither is specified then assume the expectation is that
             // the documents has no edits and no diagnostics.
             if (semanticEdits is null && diagnostics is null)
@@ -36,6 +40,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 Diagnostics = diagnostics.AsImmutableOrEmpty();
             }
 
+            LineEdits = lineEdits.AsImmutableOrNull();
             ActiveStatements = activeStatements ?? ActiveStatementsDescription.Empty;
         }
     }

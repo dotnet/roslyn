@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -11,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -18,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract class AbstractObjectInitializerCompletionProvider : LSPCompletionProvider
     {
-        protected abstract Tuple<ITypeSymbol, Location> GetInitializedType(Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken);
+        protected abstract Tuple<ITypeSymbol, Location>? GetInitializedType(Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken);
         protected abstract HashSet<string> GetInitializedMembers(SyntaxTree tree, int position, CancellationToken cancellationToken);
         protected abstract string EscapeIdentifier(ISymbol symbol);
 
@@ -29,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var cancellationToken = context.CancellationToken;
 
             var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-            if (!(GetInitializedType(document, semanticModel, position, cancellationToken) is var (type, initializerLocation)))
+            if (GetInitializedType(document, semanticModel, position, cancellationToken) is not var (type, initializerLocation))
             {
                 return;
             }
@@ -39,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 type = typeParameterSymbol.GetNamedTypeSymbolConstraint();
             }
 
-            if (!(type is INamedTypeSymbol initializedType))
+            if (type is not INamedTypeSymbol initializedType)
             {
                 return;
             }
@@ -50,6 +49,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             var enclosing = semanticModel.GetEnclosingNamedType(position, cancellationToken);
+            Contract.ThrowIfNull(enclosing);
 
             // Find the members that can be initialized. If we have a NamedTypeSymbol, also get the overridden members.
             IEnumerable<ISymbol> members = semanticModel.LookupSymbols(position, initializedType);
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var alreadyTypedMembers = GetInitializedMembers(semanticModel.SyntaxTree, position, cancellationToken);
             var uninitializedMembers = members.Where(m => !alreadyTypedMembers.Contains(m.Name));
 
-            uninitializedMembers = uninitializedMembers.Where(m => m.IsEditorBrowsable(document.ShouldHideAdvancedMembers(), semanticModel.Compilation));
+            uninitializedMembers = uninitializedMembers.Where(m => m.IsEditorBrowsable(context.CompletionOptions.HideAdvancedMembers, semanticModel.Compilation));
 
             foreach (var uninitializedMember in uninitializedMembers)
             {
@@ -76,14 +76,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
         }
 
-        protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
-            => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
+        internal override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
+            => SymbolCompletionItem.GetDescriptionAsync(item, document, displayOptions, cancellationToken);
 
         protected abstract Task<bool> IsExclusiveAsync(Document document, int position, CancellationToken cancellationToken);
 
         private static bool IsLegalFieldOrProperty(ISymbol symbol)
         {
             return symbol.IsWriteableFieldOrProperty()
+                || symbol.ContainingType.IsAnonymousType
                 || CanSupportObjectInitializer(symbol);
         }
 

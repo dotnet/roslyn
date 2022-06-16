@@ -66,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
         {
             get
             {
-                if (!(LookupSymbol() is IFieldSymbol fieldSymbol))
+                if (LookupSymbol() is not IFieldSymbol fieldSymbol)
                 {
                     return false;
                 }
@@ -104,7 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
         {
             get
             {
-                if (!(LookupSymbol() is IFieldSymbol fieldSymbol))
+                if (LookupSymbol() is not IFieldSymbol fieldSymbol)
                 {
                     return EnvDTE80.vsCMConstKind.vsCMConstKindNone;
                 }

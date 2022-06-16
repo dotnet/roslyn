@@ -2,12 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System;
+using System.Collections.Generic;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.PersistentStorage
+namespace Microsoft.CodeAnalysis.Storage
 {
     /// <summary>
     /// Handle that can be used with <see cref="IChecksummedPersistentStorage"/> to read data for a
@@ -15,15 +15,22 @@ namespace Microsoft.CodeAnalysis.PersistentStorage
     /// This is useful for cases where acquiring an entire snapshot might be expensive (for example, during 
     /// solution load), but querying the data is still desired.
     /// </summary>
-    internal readonly struct DocumentKey
+    [DataContract]
+    internal readonly struct DocumentKey : IEqualityComparer<DocumentKey>, IEquatable<DocumentKey>
     {
+        [DataMember(Order = 0)]
         public readonly ProjectKey Project;
 
+        [DataMember(Order = 1)]
         public readonly DocumentId Id;
-        public readonly string FilePath;
+
+        [DataMember(Order = 2)]
+        public readonly string? FilePath;
+
+        [DataMember(Order = 3)]
         public readonly string Name;
 
-        public DocumentKey(ProjectKey project, DocumentId id, string filePath, string name)
+        public DocumentKey(ProjectKey project, DocumentId id, string? filePath, string name)
         {
             Project = project;
             Id = id;
@@ -32,36 +39,24 @@ namespace Microsoft.CodeAnalysis.PersistentStorage
         }
 
         public static DocumentKey ToDocumentKey(Document document)
-            => new(ProjectKey.ToProjectKey(document.Project), document.Id, document.FilePath, document.Name);
+            => ToDocumentKey(ProjectKey.ToProjectKey(document.Project), document.State);
 
-        public SerializableDocumentKey Dehydrate()
-            => new(Project.Dehydrate(), Id, FilePath, Name);
-    }
+        public static DocumentKey ToDocumentKey(ProjectKey projectKey, TextDocumentState state)
+            => new(projectKey, state.Id, state.FilePath, state.Name);
 
-    [DataContract]
-    internal readonly struct SerializableDocumentKey
-    {
-        [DataMember(Order = 0)]
-        public readonly SerializableProjectKey Project;
+        public override bool Equals(object? obj)
+            => obj is DocumentKey other && Equals(other);
 
-        [DataMember(Order = 1)]
-        public readonly DocumentId Id;
+        public bool Equals(DocumentKey other)
+            => this.Id == other.Id;
 
-        [DataMember(Order = 2)]
-        public readonly string FilePath;
+        public override int GetHashCode()
+            => this.Id.GetHashCode();
 
-        [DataMember(Order = 3)]
-        public readonly string Name;
+        public bool Equals(DocumentKey x, DocumentKey y)
+            => x.Equals(y);
 
-        public SerializableDocumentKey(SerializableProjectKey project, DocumentId id, string filePath, string name)
-        {
-            Project = project;
-            Id = id;
-            FilePath = filePath;
-            Name = name;
-        }
-
-        public DocumentKey Rehydrate()
-            => new(Project.Rehydrate(), Id, FilePath, Name);
+        public int GetHashCode(DocumentKey obj)
+            => obj.GetHashCode();
     }
 }

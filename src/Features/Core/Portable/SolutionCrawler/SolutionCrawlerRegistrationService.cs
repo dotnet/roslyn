@@ -9,6 +9,7 @@ using System.Composition;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -21,8 +22,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
     {
         private const string Default = "*";
 
-        private readonly object _gate;
-        private readonly SolutionCrawlerProgressReporter _progressReporter;
+        private readonly object _gate = new();
+        private readonly SolutionCrawlerProgressReporter _progressReporter = new();
 
         private readonly IAsynchronousOperationListener _listener;
         private readonly Dictionary<Workspace, WorkCoordinator> _documentWorkCoordinatorMap;
@@ -35,15 +36,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             [ImportMany] IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> analyzerProviders,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
-            _gate = new object();
-
             _analyzerProviders = analyzerProviders.GroupBy(kv => kv.Metadata.Name).ToImmutableDictionary(g => g.Key, g => g.ToImmutableArray());
             AssertAnalyzerProviders(_analyzerProviders);
 
             _documentWorkCoordinatorMap = new Dictionary<Workspace, WorkCoordinator>(ReferenceEqualityComparer.Instance);
             _listener = listenerProvider.GetListener(FeatureAttribute.SolutionCrawler);
-
-            _progressReporter = new SolutionCrawlerProgressReporter();
         }
 
         public void Register(Workspace workspace)
@@ -65,7 +62,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         {
             Contract.ThrowIfNull(workspace.Kind);
 
-            var correlationId = LogAggregator.GetNextId();
+            var correlationId = CorrelationIdFactory.GetNextId();
 
             lock (_gate)
             {
@@ -306,7 +303,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 ProgressReporter = progressReporter;
             }
 
-            public Solution CurrentSolution => Workspace.CurrentSolution;
+            public Solution GetSolutionToAnalyze()
+                => Workspace.CurrentSolution;
         }
     }
 }

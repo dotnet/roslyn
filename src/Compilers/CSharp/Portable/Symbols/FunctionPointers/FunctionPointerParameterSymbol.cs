@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using Roslyn.Utilities;
 
@@ -15,6 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public FunctionPointerParameterSymbol(TypeWithAnnotations typeWithAnnotations, RefKind refKind, int ordinal, FunctionPointerMethodSymbol containingSymbol, ImmutableArray<CustomModifier> refCustomModifiers)
         {
+            Debug.Assert(typeWithAnnotations.HasType);
             TypeWithAnnotations = typeWithAnnotations;
             RefKind = refKind;
             Ordinal = ordinal;
@@ -76,7 +78,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool IsCallerFilePath => false;
         internal override bool IsCallerLineNumber => false;
         internal override bool IsCallerMemberName => false;
+        internal override int CallerArgumentExpressionParameterIndex => -1;
         internal override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
         internal override ImmutableHashSet<string> NotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
+        internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => ImmutableArray<int>.Empty;
+        internal override bool HasInterpolatedStringHandlerArgumentError => false;
     }
 }

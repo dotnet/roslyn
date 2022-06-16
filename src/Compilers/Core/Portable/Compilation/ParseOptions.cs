@@ -32,9 +32,8 @@ namespace Microsoft.CodeAnalysis
         public SourceCodeKind SpecifiedKind { get; protected set; }
 
         /// <summary>
-        /// Gets a value indicating whether the documentation comments are parsed.
+        /// Gets a value indicating whether the documentation comments are parsed and analyzed.
         /// </summary>
-        /// <value><c>true</c> if documentation comments are parsed, <c>false</c> otherwise.</value>
         public DocumentationMode DocumentationMode { get; protected set; }
 
         internal ParseOptions(SourceCodeKind kind, DocumentationMode documentationMode)

@@ -4,8 +4,8 @@
 param ()
 
 $branchNames = @(
-    'master',
-    'master-vs-deps')
+    'main',
+    'main-vs-deps')
 
 function Get-AzureBadge($branchName, $jobName, $configName, [switch]$integration = $false) {
     $name = if ($integration) { "roslyn-integration-CI" } else { "roslyn-CI" }

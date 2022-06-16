@@ -6,6 +6,8 @@
   -->
   <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.MapSourceRoots" AssemblyFile="$(MSBuildThisFileDirectory)Microsoft.Build.Tasks.CodeAnalysis.dll" />
 
+  <Import Project="Microsoft.Managed.Core.CurrentVersions.targets" />
+
   <Target Name="ShimReferencePathsWhenCommonTargetsDoesNotUnderstandReferenceAssemblies"
           BeforeTargets="CoreCompile"
           Condition="'@(ReferencePathWithRefAssemblies)' == ''">
@@ -50,10 +52,19 @@
     </PropertyGroup>
   </Target>
 
+  <!--
+    ========================
+    SkipAnalyzers Support
+    ========================
+    
+    -->
+  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.ShowMessageForImplicitlySkipAnalyzers" AssemblyFile="$(MSBuildThisFileDirectory)Microsoft.Build.Tasks.CodeAnalysis.dll" />
+
   <Target Name="_ComputeSkipAnalyzers" BeforeTargets="CoreCompile">
-    <!-- First, force clear non-user facing property '_SkipAnalyzers'. -->
+    <!-- First, force clear non-user facing properties '_SkipAnalyzers' and '_ImplicitlySkipAnalyzers'. -->
     <PropertyGroup>
       <_SkipAnalyzers></_SkipAnalyzers>
+      <_ImplicitlySkipAnalyzers></_ImplicitlySkipAnalyzers>
     </PropertyGroup>
 
     <!--
@@ -61,7 +72,7 @@
         If 'RunAnalyzers' is not set, then fallback to user facing property 'RunAnalyzersDuringBuild'.
         Latter property allows users to disable analyzers only for non-design time builds.
         Design time builds are background builds inside Visual Studio,
-        see details here: https://github.com/dotnet/project-system/blob/master/docs/design-time-builds.md.
+        see details here: https://github.com/dotnet/project-system/blob/main/docs/design-time-builds.md.
         Setting 'RunAnalyzersDuringBuild' to false, without setting 'RunAnalyzers', allows users to
         continue running analyzers in the background in Visual Studio while typing (i.e. intellisense),
         while disabling analyzer execution on explicitly invoked non-design time builds.
@@ -70,6 +81,44 @@
                               ('$(RunAnalyzers)' == '' and '$(RunAnalyzersDuringBuild)' == 'false')">
       <_SkipAnalyzers>true</_SkipAnalyzers>
     </PropertyGroup>
+
+    <!-- PERF: For builds which are indirectly triggered inside Visual Studio from commands 
+               such as from 'Run Tests' or 'Start Debugging', we implicitly skip analyzers and nullable analysis to speed up the build.
+               We only do so by default when 'TreatWarningsAsErrors' is not 'true'. For the scenario where
+			         'TreatWarningsAsErrors' is 'true', users can explicitly enable this functionality by setting
+			         'OptimizeImplicitlyTriggeredBuild' to 'true'.
+               NOTE: This feature is currently supported only for SDK-style projects, i.e. UsingMicrosoftNETSdk = true.
+    -->
+    <PropertyGroup Condition="'$(_SkipAnalyzers)' == '' and
+                              '$(IsImplicitlyTriggeredBuild)' == 'true' and
+                              '$(UsingMicrosoftNETSdk)' == 'true' and
+                              ('$(TreatWarningsAsErrors)' != 'true' or '$(OptimizeImplicitlyTriggeredBuild)' == 'true')">
+      <_ImplicitlySkipAnalyzers>true</_ImplicitlySkipAnalyzers>
+      <_SkipAnalyzers>true</_SkipAnalyzers>
+      <Features>run-nullable-analysis=never;$(Features)</Features>
+    </PropertyGroup>
+
+    <!-- Display a message to inform the users about us implicitly skipping analyzers for speeding up indirect builds. -->
+    <ShowMessageForImplicitlySkipAnalyzers Condition="'$(_ImplicitlySkipAnalyzers)' == 'true'"/>
+
+    <!-- Semaphore file to indicate the time stamp for last build with skipAnalyzers flag. -->
+    <PropertyGroup>
+      <_LastBuildWithSkipAnalyzers>$(IntermediateOutputPath)$(MSBuildProjectFile).BuildWithSkipAnalyzers</_LastBuildWithSkipAnalyzers>
+    </PropertyGroup>
+
+    <!-- '_LastBuildWithSkipAnalyzers' semaphore file, if exists, is passed as custom additional file input to builds without skipAnalyzers flag to ensure correct incremental builds. 
+	       Additionally, we need to pass this file as an 'UpToDateCheckInput' item with 'Kind = ImplicitBuild' for project system's fast-upto-date check to work correctly.
+		     See https://github.com/dotnet/project-system/issues/7290 for details.
+	  -->
+    <ItemGroup Condition="Exists('$(_LastBuildWithSkipAnalyzers)') and '$(_SkipAnalyzers)' != 'true'">
+      <CustomAdditionalCompileInputs Include="$(_LastBuildWithSkipAnalyzers)"/>
+      <UpToDateCheckInput Include="$(_LastBuildWithSkipAnalyzers)" Kind="ImplicitBuild"/>
+    </ItemGroup>
+  </Target>
+
+  <!-- We touch and create a semaphore file after build to indicate the time stamp for last build with skipAnalyzers flag. -->
+  <Target Name="_TouchLastBuildWithSkipAnalyzers" Condition="'$(_SkipAnalyzers)' == 'true'" AfterTargets="CoreCompile">
+    <Touch AlwaysCreate="true" Files="$(_LastBuildWithSkipAnalyzers)"/>
   </Target>
 
   <!--
@@ -140,14 +189,10 @@
     <!-- Transform the collected properties and items into an editor config file -->
     <GenerateMSBuildEditorConfig
       PropertyItems="@(_GeneratedEditorConfigProperty)"
-      MetadataItems="@(_GeneratedEditorConfigMetadata)">
-
-      <Output TaskParameter="ConfigFileContents"
-          PropertyName="_GeneratedEditorConfigFileContent" />
+      MetadataItems="@(_GeneratedEditorConfigMetadata)"
+      FileName="$(GeneratedMSBuildEditorConfigFile)">
     </GenerateMSBuildEditorConfig>
 
-    <!-- Write the output to the generated file, if it's changed -->
-    <WriteLinesToFile Lines="$(_GeneratedEditorConfigFileContent)" File="$(GeneratedMSBuildEditorConfigFile)" Overwrite="True" WriteOnlyWhenDifferent="True" />
   </Target>
 
   <!--
@@ -293,5 +338,16 @@
     <MakeDir Condition="'$(CompilerGeneratedFilesOutputPath)' != ''" 
              Directories="$(CompilerGeneratedFilesOutputPath)"  />
   </Target>
-  
+
+  <!--
+    ========================
+    Component Debugger Support
+    ========================
+    
+    Add the specified VS capability if a user indicates this project supports component debugging
+    -->
+  <ItemGroup>
+    <ProjectCapability Include="RoslynComponent" Condition="'$(IsRoslynComponent)' == 'true'"/>
+  </ItemGroup>
+
 </Project>

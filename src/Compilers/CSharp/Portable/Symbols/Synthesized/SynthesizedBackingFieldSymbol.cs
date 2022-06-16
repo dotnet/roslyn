@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool HasPointerType
             => _property.HasPointerType;
 
-        internal sealed override void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        protected sealed override void DecodeWellKnownAttributeImpl(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
             Debug.Assert(arguments.Diagnostics is BindingDiagnosticBag);
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                base.DecodeWellKnownAttribute(ref arguments);
+                base.DecodeWellKnownAttributeImpl(ref arguments);
             }
         }
 
@@ -90,7 +90,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var compilation = this.DeclaringCompilation;
 
             // do not emit CompilerGenerated attributes for fields inside compiler generated types:
-            Debug.Assert(!(this.ContainingType is SimpleProgramNamedTypeSymbol));
             if (!this.ContainingType.IsImplicitlyDeclared)
             {
                 AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
@@ -152,5 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
         }
+
+        internal override bool IsRequired => false;
     }
 }

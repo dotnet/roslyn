@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -43,7 +41,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         /// Clicks the "OK" button and waits for the Move To Namespace operation to complete.
         /// </summary>
         public void ClickOK()
-            => _inProc.ClickOK();
+        {
+            _inProc.ClickOK();
+            this.VisualStudioInstance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.LightBulb);
+        }
 
         /// <summary>
         /// Clicks the "Cancel" button and waits for the Move To Namespace operation to complete.

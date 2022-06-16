@@ -17,6 +17,11 @@
         <target state="translated">無須 Imports 陳述式。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Object_creation_can_be_simplified">
+        <source>Object creation can be simplified</source>
+        <target state="translated">可簡化物件建立</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_ByVal">
         <source>'ByVal' keyword is unnecessary and can be removed.</source>
         <target state="translated">'ByVal' 關鍵字非必要，可以移除。</target>

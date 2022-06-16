@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             }
             else if (token.Kind() == SyntaxKind.IdentifierToken)
             {
-                return GetClassificationForIdentifier(token);
+                return GetSyntacticClassificationForIdentifier(token);
             }
             else if (IsStringToken(token))
             {
@@ -141,11 +141,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         private static bool IsStringToken(SyntaxToken token)
         {
             return token.IsKind(SyntaxKind.StringLiteralToken)
+                || token.IsKind(SyntaxKind.UTF8StringLiteralToken)
                 || token.IsKind(SyntaxKind.CharacterLiteralToken)
                 || token.IsKind(SyntaxKind.InterpolatedStringStartToken)
                 || token.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken)
                 || token.IsKind(SyntaxKind.InterpolatedStringTextToken)
-                || token.IsKind(SyntaxKind.InterpolatedStringEndToken);
+                || token.IsKind(SyntaxKind.InterpolatedStringEndToken)
+                || token.IsKind(SyntaxKind.InterpolatedRawStringEndToken)
+                || token.IsKind(SyntaxKind.InterpolatedSingleLineRawStringStartToken)
+                || token.IsKind(SyntaxKind.InterpolatedMultiLineRawStringStartToken)
+                || token.IsKind(SyntaxKind.SingleLineRawStringLiteralToken)
+                || token.IsKind(SyntaxKind.UTF8SingleLineRawStringLiteralToken)
+                || token.IsKind(SyntaxKind.MultiLineRawStringLiteralToken)
+                || token.IsKind(SyntaxKind.UTF8MultiLineRawStringLiteralToken);
         }
 
         private static bool IsVerbatimStringToken(SyntaxToken token)
@@ -170,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
                 case SyntaxKind.InterpolatedStringTextToken:
                     {
-                        if (!(token.Parent is InterpolatedStringTextSyntax interpolatedStringText))
+                        if (token.Parent is not InterpolatedStringTextSyntax interpolatedStringText)
                         {
                             return false;
                         }
@@ -183,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             return false;
         }
 
-        private static string? GetClassificationForIdentifier(SyntaxToken token)
+        public static string? GetSyntacticClassificationForIdentifier(SyntaxToken token)
         {
             if (token.Parent is BaseTypeDeclarationSyntax typeDeclaration && typeDeclaration.Identifier == token)
             {
@@ -278,7 +286,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             => parentNode.Kind() switch
             {
                 SyntaxKind.ClassDeclaration => ClassificationTypeNames.ClassName,
+                SyntaxKind.InterfaceDeclaration => ClassificationTypeNames.InterfaceName,
                 SyntaxKind.RecordDeclaration => ClassificationTypeNames.RecordClassName,
+                SyntaxKind.RecordStructDeclaration => ClassificationTypeNames.RecordStructName,
                 SyntaxKind.StructDeclaration => ClassificationTypeNames.StructName,
                 _ => null
             };
@@ -288,11 +298,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             var parent = identifierSyntax.Parent;
 
             while (parent is QualifiedNameSyntax)
-            {
                 parent = parent.Parent;
-            }
 
-            return parent is NamespaceDeclarationSyntax;
+            return parent is BaseNamespaceDeclarationSyntax;
         }
 
         public static bool IsStaticallyDeclared(SyntaxToken token)
@@ -333,6 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 SyntaxKind.StructDeclaration => ClassificationTypeNames.StructName,
                 SyntaxKind.InterfaceDeclaration => ClassificationTypeNames.InterfaceName,
                 SyntaxKind.RecordDeclaration => ClassificationTypeNames.RecordClassName,
+                SyntaxKind.RecordStructDeclaration => ClassificationTypeNames.RecordStructName,
                 _ => null,
             };
 
@@ -349,9 +358,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                         // list should be classified as punctuation; otherwise, they're operators.
                         if (token.Parent != null)
                         {
-                            if (token.Parent.Kind() == SyntaxKind.TypeParameterList ||
-                                token.Parent.Kind() == SyntaxKind.TypeArgumentList ||
-                                token.Parent.Kind() == SyntaxKind.FunctionPointerParameterList)
+                            if (token.Parent.Kind() is SyntaxKind.TypeParameterList or
+                                SyntaxKind.TypeArgumentList or
+                                SyntaxKind.FunctionPointerParameterList)
                             {
                                 return ClassificationTypeNames.Punctuation;
                             }
@@ -415,7 +424,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 case SyntaxKind.LessThanLessThanEqualsToken:
                 case SyntaxKind.GreaterThanEqualsToken:
                 case SyntaxKind.GreaterThanGreaterThanToken:
+                case SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
                 case SyntaxKind.GreaterThanGreaterThanEqualsToken:
+                case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
                 case SyntaxKind.SlashEqualsToken:
                 case SyntaxKind.AsteriskEqualsToken:
                 case SyntaxKind.BarEqualsToken:

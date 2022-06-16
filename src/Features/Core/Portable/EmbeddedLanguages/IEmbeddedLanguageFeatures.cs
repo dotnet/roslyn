@@ -2,12 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
+using Microsoft.CodeAnalysis.EmbeddedLanguages;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
 {
@@ -17,18 +14,13 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
     internal interface IEmbeddedLanguageFeatures : IEmbeddedLanguage
     {
         /// <summary>
-        /// A optional highlighter that can highlight spans for an embedded language string.
-        /// </summary>
-        IDocumentHighlightsService DocumentHighlightsService { get; }
-
-        /// <summary>
-        /// An optional completion provider that can provide completion items for this
+        /// Completion provider that can provide completion items for this
         /// specific embedded language.
         /// 
-        /// <see cref="AbstractEmbeddedLanguageCompletionProvider"/> will aggregate all these
+        /// <see cref="AbstractAggregateEmbeddedLanguageCompletionProvider"/> will aggregate all these
         /// individual providers and expose them as one single completion provider to
         /// the rest of Roslyn.
         /// </summary>
-        CompletionProvider CompletionProvider { get; }
+        EmbeddedLanguageCompletionProvider? CompletionProvider { get; }
     }
 }

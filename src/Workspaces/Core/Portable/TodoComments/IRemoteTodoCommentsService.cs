@@ -21,9 +21,11 @@ namespace Microsoft.CodeAnalysis.TodoComments
         internal interface ICallback
         {
             ValueTask ReportTodoCommentDataAsync(RemoteServiceCallbackId callbackId, DocumentId documentId, ImmutableArray<TodoCommentData> data, CancellationToken cancellationToken);
+            ValueTask<TodoCommentOptions> GetOptionsAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
         }
 
         ValueTask ComputeTodoCommentsAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellation);
+        ValueTask ReanalyzeAsync(CancellationToken cancellationToken);
     }
 
     [ExportRemoteServiceCallbackDispatcher(typeof(IRemoteTodoCommentsDiscoveryService)), Shared]
@@ -35,10 +37,13 @@ namespace Microsoft.CodeAnalysis.TodoComments
         {
         }
 
-        private ITodoCommentsListener GetLogService(RemoteServiceCallbackId callbackId)
+        private ITodoCommentsListener GetListener(RemoteServiceCallbackId callbackId)
             => (ITodoCommentsListener)GetCallback(callbackId);
 
         public ValueTask ReportTodoCommentDataAsync(RemoteServiceCallbackId callbackId, DocumentId documentId, ImmutableArray<TodoCommentData> data, CancellationToken cancellationToken)
-            => GetLogService(callbackId).ReportTodoCommentDataAsync(documentId, data, cancellationToken);
+            => GetListener(callbackId).ReportTodoCommentDataAsync(documentId, data, cancellationToken);
+
+        public ValueTask<TodoCommentOptions> GetOptionsAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
+            => GetListener(callbackId).GetOptionsAsync(cancellationToken);
     }
 }

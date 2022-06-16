@@ -208,8 +208,9 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
-        Public Async Function TestMissingWithExistingInitializer() As Task
-            Await TestMissingInRegularAndScriptAsync(
+        <WorkItem(39146, "https://github.com/dotnet/roslyn/issues/39146")>
+        Public Async Function TestWithExistingInitializer() As Task
+            Await TestInRegularAndScript1Async(
 "
 Imports System.Collections.Generic
 Class C
@@ -218,6 +219,16 @@ Class C
             1
         }
         c.Add(1)
+    End Sub
+End Class",
+"
+Imports System.Collections.Generic
+Class C
+    Sub M()
+        Dim c = [||]New List(Of Integer) From {
+            1,
+            1
+        }
     End Sub
 End Class")
         End Function

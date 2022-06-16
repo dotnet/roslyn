@@ -40,11 +40,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override Imports GetImports(ConsList<TypeSymbol>? basesBeingResolved)
-        {
-            return Imports.Empty;
-        }
-
         protected override SourceLocalSymbol? LookupLocal(SyntaxToken nameToken)
         {
             return null;
@@ -58,6 +53,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override uint LocalScopeDepth => Binder.ExternalScope;
 
         protected override bool InExecutableBinder => false;
+        protected override SyntaxNode? EnclosingNameofArgument => null;
+        internal override bool IsInsideNameof => false;
 
         internal override bool IsAccessibleHelper(Symbol symbol, TypeSymbol accessThroughType, out bool failedThroughTypeCheck, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, ConsList<TypeSymbol> basesBeingResolved)
         {
@@ -196,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal override BoundSwitchExpressionArm BindSwitchExpressionArm(SwitchExpressionArmSyntax node, BindingDiagnosticBag diagnostics)
+        internal override BoundSwitchExpressionArm BindSwitchExpressionArm(SwitchExpressionArmSyntax node, TypeSymbol switchGoverningType, uint switchGoverningValEscape, BindingDiagnosticBag diagnostics)
         {
             // There's supposed to be an overrider of this method (e.g. SwitchExpressionArmBinder) for the arm in the chain.
             throw ExceptionUtilities.Unreachable;

@@ -13,6 +13,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Utilities
+Imports System.Reflection.Metadata.Ecma335
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
@@ -127,6 +128,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Public Overrides ReadOnly Property Name As String
             Get
                 Return _name
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property MetadataToken As Integer
+            Get
+                Return MetadataTokens.GetToken(_handle)
             End Get
         End Property
 
@@ -284,13 +291,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
             Dim primaryDependency As AssemblySymbol = Me.PrimaryDependency
+            Dim containingModule = _containingType.ContainingPEModule
 
             If Not _lazyCachedUseSiteInfo.IsInitialized Then
-                _lazyCachedUseSiteInfo.Initialize(primaryDependency, CalculateUseSiteInfo())
+                Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = CalculateUseSiteInfo()
+                Dim errorInfo = useSiteInfo.DiagnosticInfo
+                DeriveCompilerFeatureRequiredDiagnostic(errorInfo)
+                _lazyCachedUseSiteInfo.Initialize(primaryDependency, useSiteInfo.AdjustDiagnosticInfo(errorInfo))
             End If
 
             Return _lazyCachedUseSiteInfo.ToUseSiteInfo(primaryDependency)
         End Function
+
+        Private Sub DeriveCompilerFeatureRequiredDiagnostic(ByRef errorInfo As DiagnosticInfo)
+            If errorInfo IsNot Nothing Then
+                Return
+            End If
+
+            Dim containingModule = _containingType.ContainingPEModule
+            errorInfo = DeriveCompilerFeatureRequiredAttributeDiagnostic(
+                Me,
+                containingModule,
+                Handle,
+                CompilerFeatureRequiredFeatures.None,
+                New MetadataDecoder(containingModule, _containingType))
+
+            If errorInfo IsNot Nothing Then
+                Return
+            End If
+
+            errorInfo = _containingType.GetCompilerFeatureRequiredDiagnostic()
+        End Sub
 
         ''' <remarks>
         ''' This is for perf, not for correctness.

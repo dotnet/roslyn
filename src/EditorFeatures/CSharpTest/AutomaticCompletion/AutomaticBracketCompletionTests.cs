@@ -4,7 +4,7 @@
 
 #nullable disable
 
-using Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion;
+using Microsoft.CodeAnalysis.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -248,6 +248,45 @@ class C { }";
             Assert.NotNull(session);
 
             CheckStart(session.Session);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void ListPattern()
+        {
+            var code = @"
+class C
+{
+    void M(object o)
+    {
+        _ = o is$$
+    }
+}
+";
+            var expectedBeforeReturn = @"
+class C
+{
+    void M(object o)
+    {
+        _ = o is []
+    }
+}
+";
+            var expected = @"
+class C
+{
+    void M(object o)
+    {
+        _ = o is
+        [
+
+        ]
+    }
+}
+";
+            using var session = CreateSession(code);
+            CheckStart(session.Session);
+            CheckText(session.Session, expectedBeforeReturn);
+            CheckReturn(session.Session, 12, expected);
         }
 
         internal static Holder CreateSession(string code)

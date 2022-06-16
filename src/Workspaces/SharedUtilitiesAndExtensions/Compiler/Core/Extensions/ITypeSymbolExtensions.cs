@@ -17,8 +17,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class ITypeSymbolExtensions
     {
-        public const string DefaultParameterName = "p";
-        private const string DefaultBuiltInParameterName = "v";
+        public const string DefaultParameterName = "value";
+
+        public static bool IsIntegralType([NotNullWhen(returnValue: true)] this ITypeSymbol? type)
+            => type?.SpecialType.IsIntegralType() == true;
+
+        public static bool IsSignedIntegralType([NotNullWhen(returnValue: true)] this ITypeSymbol? type)
+            => type?.SpecialType.IsSignedIntegralType() == true;
 
         public static bool CanAddNullCheck([NotNullWhen(returnValue: true)] this ITypeSymbol? type)
         {
@@ -53,6 +58,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool IsNullable([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
             => symbol?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
+
+        public static bool IsNonNullableValueType([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
+        {
+            if (symbol?.IsValueType != true)
+                return false;
+
+            return !symbol.IsNullable();
+        }
 
         public static bool IsNullable(
             [NotNullWhen(true)] this ITypeSymbol? symbol,
@@ -207,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             this ITypeSymbol type, ITypeSymbol interfaceType)
         {
             var originalInterfaceType = interfaceType.OriginalDefinition;
-            return type.AllInterfaces.Any(t => SymbolEquivalenceComparer.Instance.Equals(t.OriginalDefinition, originalInterfaceType));
+            return type.AllInterfaces.Any(static (t, originalInterfaceType) => SymbolEquivalenceComparer.Instance.Equals(t.OriginalDefinition, originalInterfaceType), originalInterfaceType);
         }
 
         public static bool Implements(
@@ -300,28 +313,24 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool ContainsAnonymousType([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
         {
-            switch (symbol)
+            return symbol switch
             {
-                case IArrayTypeSymbol a: return ContainsAnonymousType(a.ElementType);
-                case IPointerTypeSymbol p: return ContainsAnonymousType(p.PointedAtType);
-                case INamedTypeSymbol n: return ContainsAnonymousType(n);
-                default: return false;
-            }
+                IArrayTypeSymbol a => ContainsAnonymousType(a.ElementType),
+                IPointerTypeSymbol p => ContainsAnonymousType(p.PointedAtType),
+                INamedTypeSymbol n => ContainsAnonymousType(n),
+                _ => false,
+            };
         }
 
         private static bool ContainsAnonymousType(INamedTypeSymbol type)
         {
             if (type.IsAnonymousType)
-            {
                 return true;
-            }
 
             foreach (var typeArg in type.GetAllTypeArguments())
             {
                 if (ContainsAnonymousType(typeArg))
-                {
                     return true;
-                }
             }
 
             return false;
@@ -353,11 +362,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (type == null || type.IsAnonymousType() || type.IsTupleType)
             {
                 return DefaultParameterName;
-            }
-
-            if (type.IsSpecialType() || type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
-            {
-                return DefaultBuiltInParameterName;
             }
 
             var shortName = type.GetShortName();
@@ -400,7 +404,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static bool CanSupportCollectionInitializer(this ITypeSymbol typeSymbol, ISymbol within)
         {
             return
-                typeSymbol.AllInterfaces.Any(i => i.SpecialType == SpecialType.System_Collections_IEnumerable) &&
+                typeSymbol.AllInterfaces.Any(static i => i.SpecialType == SpecialType.System_Collections_IEnumerable) &&
                 typeSymbol.GetBaseTypesAndThis()
                     .Union(typeSymbol.GetOriginalInterfacesAndTheirBaseInterfaces())
                     .SelectAccessibleMembers<IMethodSymbol>(WellKnownMemberNames.CollectionInitializerAddMethodName, within ?? typeSymbol)
@@ -542,9 +546,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // SPEC: if the element type of the first is
             // SPEC: more specific than the element type of the second.
 
-            if (t1 is IArrayTypeSymbol)
+            if (t1 is IArrayTypeSymbol arr1)
             {
-                var arr1 = (IArrayTypeSymbol)t1;
                 var arr2 = (IArrayTypeSymbol)t2;
 
                 // We should not have gotten here unless there were identity conversions
@@ -682,7 +685,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var hasPrivateField = false;
             foreach (var member in type.GetMembers())
             {
-                if (!(member is IFieldSymbol fieldSymbol))
+                if (member is not IFieldSymbol fieldSymbol)
                 {
                     continue;
                 }

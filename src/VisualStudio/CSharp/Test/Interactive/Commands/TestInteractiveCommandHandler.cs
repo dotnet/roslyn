@@ -5,7 +5,7 @@
 #nullable disable
 
 using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Interactive;
+using Microsoft.CodeAnalysis.Interactive;
 using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;

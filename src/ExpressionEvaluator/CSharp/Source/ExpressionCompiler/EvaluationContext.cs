@@ -229,7 +229,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         () => stream,
                         getPortablePdbStreamOpt: null,
                         nativePdbWriterOpt: null,
-                        pdbOptionsBlobReader: null,
                         pdbPathOpt: null,
                         metadataOnly: false,
                         isDeterministic: false,
@@ -292,7 +291,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 () => stream,
                 getPortablePdbStreamOpt: null,
                 nativePdbWriterOpt: null,
-                pdbOptionsBlobReader: null,
                 pdbPathOpt: null,
                 metadataOnly: false,
                 isDeterministic: false,
@@ -377,7 +375,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 () => stream,
                 getPortablePdbStreamOpt: null,
                 nativePdbWriterOpt: null,
-                pdbOptionsBlobReader: null,
                 pdbPathOpt: null,
                 metadataOnly: false,
                 isDeterministic: false,
@@ -426,7 +423,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     () => stream,
                     getPortablePdbStreamOpt: null,
                     nativePdbWriterOpt: null,
-                    pdbOptionsBlobReader: null,
                     pdbPathOpt: null,
                     metadataOnly: false,
                     isDeterministic: false,
@@ -497,7 +493,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     if (arguments.Count == 2 &&
                         arguments[0] is string namespaceName &&
                         arguments[1] is NamespaceSymbol containingNamespace &&
-                        containingNamespace.ConstituentNamespaces.Any(n => n.ContainingAssembly.Identity.IsWindowsAssemblyIdentity()))
+                        containingNamespace.ConstituentNamespaces.Any(static n => n.ContainingAssembly.Identity.IsWindowsAssemblyIdentity()))
                     {
                         // This is just a heuristic, but it has the advantage of being portable, particularly 
                         // across different versions of (desktop) windows.

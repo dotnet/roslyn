@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
 {
     using static SyntaxFactory;
 
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(UseSimpleUsingStatementCodeFixProvider)), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseSimpleUsingStatement), Shared]
     internal class UseSimpleUsingStatementCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
@@ -39,20 +39,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(IDEDiagnosticIds.UseSimpleUsingStatementDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(new MyCodeAction(
-                c => FixAsync(context.Document, context.Diagnostics[0], c)),
-                context.Diagnostics);
-
+            RegisterCodeFix(context, CSharpAnalyzersResources.Use_simple_using_statement, nameof(CSharpAnalyzersResources.Use_simple_using_statement));
             return Task.CompletedTask;
         }
 
         protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var topmostUsingStatements = diagnostics.Select(d => (UsingStatementSyntax)d.AdditionalLocations[0].FindNode(cancellationToken)).ToSet();
             var blocks = topmostUsingStatements.Select(u => (BlockSyntax)u.Parent);
@@ -119,8 +114,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
             {
                 case BlockSyntax blockSyntax:
                     var statements = blockSyntax.Statements;
+                    if (!statements.Any())
+                    {
+                        return blockSyntax.CloseBraceToken.LeadingTrivia;
+                    }
 
                     var openBraceTrailingTrivia = blockSyntax.OpenBraceToken.TrailingTrivia;
+                    var usingHasEndOfLineTrivia = usingStatement.CloseParenToken.TrailingTrivia
+                        .Any(SyntaxKind.EndOfLineTrivia);
+                    if (!usingHasEndOfLineTrivia)
+                    {
+                        var newFirstStatement = statements.First()
+                            .WithPrependedLeadingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed);
+                        statements = statements.Replace(statements.First(), newFirstStatement);
+                    }
+
                     if (openBraceTrailingTrivia.Any(t => t.IsSingleOrMultiLineComment()))
                     {
                         var newFirstStatement = statements.First()
@@ -150,6 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
                     result.Add(anythingElse);
                     return default;
             }
+
             return default;
         }
 
@@ -161,14 +170,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
                 modifiers: default,
                 usingStatement.Declaration,
                 Token(SyntaxKind.SemicolonToken)).WithTrailingTrivia(usingStatement.CloseParenToken.TrailingTrivia);
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Use_simple_using_statement, createChangedDocument, CSharpAnalyzersResources.Use_simple_using_statement)
-            {
-            }
         }
     }
 }

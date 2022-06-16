@@ -25,8 +25,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             Accessibility declaredAccessibility,
             DeclarationModifiers modifiers,
             string name,
-            ImmutableArray<AttributeData> returnTypeAttributes)
-            : base(containingType?.ContainingAssembly, containingType, attributes, declaredAccessibility, modifiers, name)
+            ImmutableArray<AttributeData> returnTypeAttributes,
+            string documentationCommentXml = null)
+            : base(containingType?.ContainingAssembly, containingType, attributes, declaredAccessibility, modifiers, name, documentationCommentXml)
         {
             _returnTypeAttributes = returnTypeAttributes.NullToEmpty();
         }
@@ -64,6 +65,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
             => visitor.VisitMethod(this);
+
+        public override TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
+            => visitor.VisitMethod(this, argument);
 
         public virtual MethodKind MethodKind => MethodKind.Ordinary;
 

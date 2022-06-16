@@ -140,4 +140,7 @@
     <value>Use 'IsNot' expression</value>
     <comment>{locked: IsNot}This is a Visual Basic keyword and should not be localized or have its casing changed</comment>
   </data>
+  <data name="Object_creation_can_be_simplified" xml:space="preserve">
+    <value>Object creation can be simplified</value>
+  </data>
 </root>

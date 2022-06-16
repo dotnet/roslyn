@@ -1192,13 +1192,130 @@ Namespace N
 End Namespace]]></Text>.NormalizedValue)
         End Function
 
-        <WorkItem(545964, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545964")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        Public Async Function TestImportsInPPRegionWithoutOtherMembers() As Task
+            Await TestInRegularAndScript1Async(
+"[|
+#If True
+Imports System
+#End If
+|]",
+"
+#If True
+#End If
+")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WorkItem(1323, "https://github.com/dotnet/roslyn/issues/1323")>
         Public Async Function TestMissingOnSynthesizedEventType() As Task
             Await TestMissingInRegularAndScriptAsync(
 "[|Class C
     Event E()
 End Class|]")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WorkItem(45866, "https://github.com/dotnet/roslyn/issues/45866")>
+        Public Async Function TestImportGroup_DeleteLeadingBlankLinesIfFirstGroupWasDeleted_SingleImport() As Task
+            Await TestInRegularAndScript1Async(
+"[|Imports System.Threading.Tasks
+
+Imports System|]
+
+Class C
+    Function Test()
+        Console.WriteLine()
+    End Function
+End Class
+",
+"Imports System
+
+Class C
+    Function Test()
+        Console.WriteLine()
+    End Function
+End Class
+")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WorkItem(45866, "https://github.com/dotnet/roslyn/issues/45866")>
+        Public Async Function TestImportGroup_DeleteLeadingBlankLinesIfFirstGroupWasDeleted_MultipleImports() As Task
+            Await TestInRegularAndScript1Async(
+"[|Imports System.Threading.Tasks
+Imports System.Collections.Generic
+
+Imports System|]
+
+Class C
+    Function Test()
+        Console.WriteLine()
+    End Function
+End Class
+",
+"Imports System
+
+Class C
+    Function Test()
+        Console.WriteLine()
+    End Function
+End Class
+")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WorkItem(45866, "https://github.com/dotnet/roslyn/issues/45866")>
+        Public Async Function TestImportGroup_NotAllFirstGroupIsDeleted() As Task
+            Await TestInRegularAndScript1Async(
+"[|Imports System.Threading.Tasks
+Imports System.Collections.Generic
+
+Imports System|]
+
+Class C
+    Function Test()
+        Console.WriteLine()
+        Dim list As List(Of Integer) = Nothing
+    End Function
+End Class
+",
+"Imports System.Collections.Generic
+
+Imports System
+
+Class C
+    Function Test()
+        Console.WriteLine()
+        Dim list As List(Of Integer) = Nothing
+    End Function
+End Class
+")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WorkItem(45866, "https://github.com/dotnet/roslyn/issues/45866")>
+        Public Async Function TestImportGroup_AllLastGroupIsDeleted() As Task
+            Await TestInRegularAndScript1Async(
+"[|Imports System
+
+Imports System.Threading.Tasks
+Imports System.Collections.Generic|]
+
+Class C
+    Function Test()
+        Console.WriteLine()
+    End Function
+End Class
+",
+"Imports System
+
+Class C
+    Function Test()
+        Console.WriteLine()
+    End Function
+End Class
+")
         End Function
     End Class
 End Namespace

@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -19,14 +20,10 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
     {
         private const int TriviaLocationsCount = 4;
 
-        private readonly ISyntaxFacts _syntaxFacts;
         private readonly int _endOfLineKind;
 
-        protected AbstractSyntaxTriviaService(ISyntaxFacts syntaxFacts, int endOfLineKind)
-        {
-            _syntaxFacts = syntaxFacts;
-            _endOfLineKind = endOfLineKind;
-        }
+        protected AbstractSyntaxTriviaService(int endOfLineKind)
+            => _endOfLineKind = endOfLineKind;
 
         public ITriviaSavedResult SaveTriviaAroundSelection(SyntaxNode root, TextSpan textSpan)
         {
@@ -110,20 +107,20 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             return triviaList;
         }
 
-        private Dictionary<TriviaLocation, SyntaxToken> GetTokensAtEdges(SyntaxNode root, TextSpan textSpan)
+        private static Dictionary<TriviaLocation, SyntaxToken> GetTokensAtEdges(SyntaxNode root, TextSpan textSpan)
         {
             var tokens = new Dictionary<TriviaLocation, SyntaxToken>();
-            tokens[TriviaLocation.AfterBeginningOfSpan] = _syntaxFacts.FindTokenOnRightOfPosition(root, textSpan.Start, includeSkipped: false);
+            tokens[TriviaLocation.AfterBeginningOfSpan] = root.FindTokenOnRightOfPosition(textSpan.Start, includeSkipped: false);
             tokens[TriviaLocation.BeforeBeginningOfSpan] = tokens[TriviaLocation.AfterBeginningOfSpan].GetPreviousToken(includeZeroWidth: true);
-            tokens[TriviaLocation.BeforeEndOfSpan] = _syntaxFacts.FindTokenOnLeftOfPosition(root, textSpan.End, includeSkipped: false);
+            tokens[TriviaLocation.BeforeEndOfSpan] = root.FindTokenOnLeftOfPosition(textSpan.End, includeSkipped: false);
             tokens[TriviaLocation.AfterEndOfSpan] = tokens[TriviaLocation.BeforeEndOfSpan].GetNextToken(includeZeroWidth: true);
             return tokens;
         }
 
         private static Tuple<List<SyntaxTrivia>, List<SyntaxTrivia>> SplitTrivia(
-                SyntaxToken token1,
-                SyntaxToken token2,
-                Func<SyntaxTrivia, bool> conditionToLeftAtCallSite)
+            SyntaxToken token1,
+            SyntaxToken token2,
+            Func<SyntaxTrivia, bool> conditionToLeftAtCallSite)
         {
             var triviaLeftAtCallSite = new List<SyntaxTrivia>();
             var triviaMovedToDefinition = new List<SyntaxTrivia>();

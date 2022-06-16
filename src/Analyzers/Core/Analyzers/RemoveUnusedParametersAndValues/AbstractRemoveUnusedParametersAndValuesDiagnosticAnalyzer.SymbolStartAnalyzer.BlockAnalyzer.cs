@@ -82,9 +82,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     // All operation blocks for a symbol belong to the same tree.
                     var firstBlock = context.OperationBlocks[0];
                     if (!symbolStartAnalyzer._compilationAnalyzer.TryGetOptions(firstBlock.Syntax.SyntaxTree,
-                                                                                firstBlock.Language,
                                                                                 context.Options,
-                                                                                context.CancellationToken,
                                                                                 out var options))
                     {
                         return;
@@ -124,7 +122,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         foreach (var operationBlock in context.OperationBlocks)
                         {
                             if (operationBlock.Syntax.DescendantNodes(descendIntoTrivia: true)
-                                                     .Any(n => symbolStartAnalyzer._compilationAnalyzer.IsIfConditionalDirective(n)))
+                                                     .Any(symbolStartAnalyzer._compilationAnalyzer.IsIfConditionalDirective))
                             {
                                 return true;
                             }
@@ -140,7 +138,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         if (notImplementedExceptionType == null)
                             return false;
 
-                        if (!(firstBlock is IBlockOperation block))
+                        if (firstBlock is not IBlockOperation block)
                             return false;
 
                         if (block.Operations.Length == 0)
@@ -152,9 +150,18 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         if (firstOp == null)
                             return false;
 
-                        // unwrap: { throw new NYI(); }
                         if (firstOp is IExpressionStatementOperation expressionStatement)
+                        {
+                            // unwrap: { throw new NYI(); }
                             firstOp = expressionStatement.Operation;
+                        }
+                        else if (firstOp is IReturnOperation returnOperation)
+                        {
+                            // unwrap: 'int M(int p) => throw new NYI();'
+                            // For this case, the throw operation is wrapped within a conversion operation to 'int',
+                            // which in turn is wrapped within a return operation.
+                            firstOp = returnOperation.ReturnedValue.WalkDownConversion();
+                        }
 
                         // => throw new NotImplementedOperation(...)
                         return IsThrowNotImplementedOperation(notImplementedExceptionType, firstOp);
@@ -177,7 +184,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         return firstOp;
                     }
 
-                    static bool IsThrowNotImplementedOperation(INamedTypeSymbol notImplementedExceptionType, IOperation operation)
+                    static bool IsThrowNotImplementedOperation(INamedTypeSymbol notImplementedExceptionType, IOperation? operation)
                         => operation is IThrowOperation throwOperation &&
                            UnwrapImplicitConversion(throwOperation.Exception) is IObjectCreationOperation objectCreation &&
                            notImplementedExceptionType.Equals(objectCreation.Type);
@@ -224,8 +231,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     }
 
                     //  4. Assignments, increment/decrement operations: value is actually being assigned.
-                    if (value is IAssignmentOperation ||
-                        value is IIncrementOrDecrementOperation)
+                    if (value is IAssignmentOperation or
+                        IIncrementOrDecrementOperation)
                     {
                         return;
                     }
@@ -284,7 +291,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 /// </summary>
                 private static bool IsHandledDelegateCreationOrAnonymousFunctionTreeShape(IOperation operation)
                 {
-                    Debug.Assert(operation.Kind == OperationKind.DelegateCreation || operation.Kind == OperationKind.AnonymousFunction);
+                    Debug.Assert(operation.Kind is OperationKind.DelegateCreation or OperationKind.AnonymousFunction);
 
                     // 1. Delegate creation or anonymous function variable initializer is handled.
                     //    For example, for 'Action a = () => { ... };', the lambda is the variable initializer
@@ -333,7 +340,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 /// </summary>
                 private static bool IsHandledLocalOrParameterReferenceTreeShape(IOperation operation)
                 {
-                    Debug.Assert(operation.Kind == OperationKind.LocalReference || operation.Kind == OperationKind.ParameterReference);
+                    Debug.Assert(operation.Kind is OperationKind.LocalReference or OperationKind.ParameterReference);
 
                     // 1. We are only interested in parameters or locals of delegate type.
                     if (!operation.Type.IsDelegateType())
@@ -457,7 +464,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     //     We can analyze this correctly when we do points-to-analysis.
                     if (owningSymbol is IMethodSymbol method &&
                         (method.ReturnType.IsDelegateType() ||
-                         method.Parameters.Any(p => p.IsRefOrOut() && p.Type.IsDelegateType())))
+                         method.Parameters.Any(static p => p.IsRefOrOut() && p.Type.IsDelegateType())))
                     {
                         return false;
                     }
@@ -586,7 +593,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                                     if (shouldReport)
                                     {
-                                        _symbolStartAnalyzer.ReportUnusedParameterDiagnostic(unusedParameter, hasReference, context.ReportDiagnostic, context.Options, context.CancellationToken);
+                                        _symbolStartAnalyzer.ReportUnusedParameterDiagnostic(unusedParameter, hasReference, context.ReportDiagnostic, context.Options);
                                     }
                                 }
 
@@ -613,9 +620,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         ISymbol symbol,
                         IOperation unreadWriteOperation,
                         SymbolUsageResult resultFromFlowAnalysis,
-                        out ImmutableDictionary<string, string>? properties)
+                        out ImmutableDictionary<string, string?>? properties)
                     {
-                        Debug.Assert(!(symbol is ILocalSymbol local) || !local.IsRef);
+                        Debug.Assert(symbol is not ILocalSymbol local || !local.IsRef);
 
                         properties = null;
 
@@ -735,7 +742,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     }
 
                     // 2. Report unused parameters only for method symbols.
-                    if (!(context.OwningSymbol is IMethodSymbol method))
+                    if (context.OwningSymbol is not IMethodSymbol method)
                     {
                         return;
                     }

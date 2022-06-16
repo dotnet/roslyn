@@ -42,11 +42,6 @@
         <target state="translated">스마트 들여쓰기</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_Document">
-        <source>Format Document</source>
-        <target state="translated">문서 서식</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Formatting_Document">
         <source>Formatting Document...</source>
         <target state="translated">문서 서식을 지정하는 중...</target>

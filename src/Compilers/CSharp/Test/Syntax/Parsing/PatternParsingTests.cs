@@ -2120,7 +2120,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(1, 22),
                 // (1,22): error CS1003: Syntax error, ':' expected
                 // switch (e) { case (: ; }
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(":", ";").WithLocation(1, 22)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(":").WithLocation(1, 22)
             );
             N(SyntaxKind.SwitchStatement);
             {
@@ -2169,7 +2169,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 20),
                 // (1,20): error CS1003: Syntax error, ':' expected
                 // switch (e) { case (
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":", "").WithLocation(1, 20),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":").WithLocation(1, 20),
                 // (1,20): error CS1513: } expected
                 // switch (e) { case (
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 20)
@@ -2253,7 +2253,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
             Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 18),
                 // (1,18): error CS1003: Syntax error, ':' expected
                 // switch (e) { case
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":", "").WithLocation(1, 18),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":").WithLocation(1, 18),
                 // (1,18): error CS1513: } expected
                 // switch (e) { case
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 18)
@@ -2432,7 +2432,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1 switch { a?b:c => d }").WithArguments("recursive patterns", "8.0").WithLocation(1, 1),
                 // (1,13): error CS1003: Syntax error, '=>' expected
                 // 1 switch { a?b:c => d }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments("=>", "?").WithLocation(1, 13),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments("=>").WithLocation(1, 13),
                 // (1,13): error CS1525: Invalid expression term '?'
                 // 1 switch { a?b:c => d }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "?").WithArguments("?").WithLocation(1, 13)
@@ -2569,16 +2569,16 @@ case KeyValuePair<String, DateTime>[] pairs2:
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ":").WithLocation(1, 22),
                 // (1,28): error CS1003: Syntax error, ',' expected
                 // switch (e) { case T( : Q x = n; break; } 
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments(",", "=").WithLocation(1, 28),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments(",").WithLocation(1, 28),
                 // (1,30): error CS1003: Syntax error, ',' expected
                 // switch (e) { case T( : Q x = n; break; } 
-                Diagnostic(ErrorCode.ERR_SyntaxError, "n").WithArguments(",", "").WithLocation(1, 30),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "n").WithArguments(",").WithLocation(1, 30),
                 // (1,31): error CS1026: ) expected
                 // switch (e) { case T( : Q x = n; break; } 
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(1, 31),
                 // (1,31): error CS1003: Syntax error, ':' expected
                 // switch (e) { case T( : Q x = n; break; } 
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(":", ";").WithLocation(1, 31)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(":").WithLocation(1, 31)
                 );
             N(SyntaxKind.SwitchStatement);
             {
@@ -6228,7 +6228,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
             UsingExpression("o is A[] ? b && c",
                 // (1,18): error CS1003: Syntax error, ':' expected
                 // o is A[] ? b && c
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":", "").WithLocation(1, 18),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":").WithLocation(1, 18),
                 // (1,18): error CS1733: Expected expression
                 // o is A[] ? b && c
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 18)
@@ -6576,7 +6576,7 @@ switch (e)
                 Diagnostic(ErrorCode.ERR_MissingPattern, ",").WithLocation(1, 12),
                 // (1,12): error CS1003: Syntax error, '=>' expected
                 // 1 switch { , }
-                Diagnostic(ErrorCode.ERR_SyntaxError, ",").WithArguments("=>", ",").WithLocation(1, 12),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ",").WithArguments("=>").WithLocation(1, 12),
                 // (1,12): error CS1525: Invalid expression term ','
                 // 1 switch { , }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(1, 12)
@@ -6806,7 +6806,7 @@ switch (e)
                 Diagnostic(ErrorCode.ERR_MissingPattern, ",").WithLocation(1, 19),
                 // (1,19): error CS1003: Syntax error, '=>' expected
                 // e switch { 1 => 2,, }
-                Diagnostic(ErrorCode.ERR_SyntaxError, ",").WithArguments("=>", ",").WithLocation(1, 19),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ",").WithArguments("=>").WithLocation(1, 19),
                 // (1,19): error CS1525: Invalid expression term ','
                 // e switch { 1 => 2,, }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(1, 19)
@@ -7746,7 +7746,7 @@ switch (e)
                 Diagnostic(ErrorCode.ERR_MissingPattern, ",").WithLocation(1, 12),
                 // (1,12): error CS1003: Syntax error, '=>' expected
                 // (e switch {,)
-                Diagnostic(ErrorCode.ERR_SyntaxError, ",").WithArguments("=>", ",").WithLocation(1, 12),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ",").WithArguments("=>").WithLocation(1, 12),
                 // (1,12): error CS1525: Invalid expression term ','
                 // (e switch {,)
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(1, 12),
@@ -7797,7 +7797,7 @@ switch (e)
                 Diagnostic(ErrorCode.ERR_MissingPattern, ",").WithLocation(1, 11),
                 // (1,11): error CS1003: Syntax error, '=>' expected
                 // e switch {,
-                Diagnostic(ErrorCode.ERR_SyntaxError, ",").WithArguments("=>", ",").WithLocation(1, 11),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ",").WithArguments("=>").WithLocation(1, 11),
                 // (1,11): error CS1525: Invalid expression term ','
                 // e switch {,
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(1, 11),
@@ -7877,7 +7877,7 @@ switch (e)
             UsingExpression("e switch { 1 => 1; 2 => 2 }",
                 // (1,18): error CS1003: Syntax error, ',' expected
                 // e switch { 1 => 1; 2 => 2 }
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",", ";").WithLocation(1, 18)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(1, 18)
                 );
             N(SyntaxKind.SwitchExpression);
             {
@@ -7929,7 +7929,7 @@ switch (e)
             UsingExpression("e switch { 1 => 1, 2 => 2; }",
                 // (1,26): error CS1003: Syntax error, ',' expected
                 // e switch { 1 => 1, 2 => 2; }
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",", ";").WithLocation(1, 26)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(1, 26)
                 );
             N(SyntaxKind.SwitchExpression);
             {
@@ -8581,37 +8581,37 @@ switch (e)
                 TestOptions.RegularWithPatternCombinators,
                 // (2,9): error CS1003: Syntax error, '=>' expected
                 //     < 0 < 0 => 0,
-                Diagnostic(ErrorCode.ERR_SyntaxError, "<").WithArguments("=>", "<").WithLocation(2, 9),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "<").WithArguments("=>").WithLocation(2, 9),
                 // (2,9): error CS1525: Invalid expression term '<'
                 //     < 0 < 0 => 0,
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "<").WithArguments("<").WithLocation(2, 9),
                 // (2,13): error CS1003: Syntax error, ',' expected
                 //     < 0 < 0 => 0,
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(2, 13),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(2, 13),
                 // (2,13): error CS8504: Pattern missing
                 //     < 0 < 0 => 0,
                 Diagnostic(ErrorCode.ERR_MissingPattern, "=>").WithLocation(2, 13),
                 // (3,10): error CS1003: Syntax error, '=>' expected
                 //     == 4 < 4 => 4,
-                Diagnostic(ErrorCode.ERR_SyntaxError, "<").WithArguments("=>", "<").WithLocation(3, 10),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "<").WithArguments("=>").WithLocation(3, 10),
                 // (3,10): error CS1525: Invalid expression term '<'
                 //     == 4 < 4 => 4,
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "<").WithArguments("<").WithLocation(3, 10),
                 // (3,14): error CS1003: Syntax error, ',' expected
                 //     == 4 < 4 => 4,
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(3, 14),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(3, 14),
                 // (3,14): error CS8504: Pattern missing
                 //     == 4 < 4 => 4,
                 Diagnostic(ErrorCode.ERR_MissingPattern, "=>").WithLocation(3, 14),
                 // (4,10): error CS1003: Syntax error, '=>' expected
                 //     != 5 < 5 => 5,
-                Diagnostic(ErrorCode.ERR_SyntaxError, "<").WithArguments("=>", "<").WithLocation(4, 10),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "<").WithArguments("=>").WithLocation(4, 10),
                 // (4,10): error CS1525: Invalid expression term '<'
                 //     != 5 < 5 => 5,
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "<").WithArguments("<").WithLocation(4, 10),
                 // (4,14): error CS1003: Syntax error, ',' expected
                 //     != 5 < 5 => 5,
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(4, 14),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(4, 14),
                 // (4,14): error CS8504: Pattern missing
                 //     != 5 < 5 => 5,
                 Diagnostic(ErrorCode.ERR_MissingPattern, "=>").WithLocation(4, 14)
@@ -9455,6 +9455,112 @@ switch (e)
                         }
                         N(SyntaxKind.CommaToken);
                         N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(49354, "https://github.com/dotnet/roslyn/issues/49354")]
+        public void TypePattern_07()
+        {
+            UsingStatement(@"_ = e is (int) or string;",
+                TestOptions.RegularWithPatternCombinators
+            );
+
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "_");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.IsPatternExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "e");
+                        }
+                        N(SyntaxKind.IsKeyword);
+                        N(SyntaxKind.OrPattern);
+                        {
+                            N(SyntaxKind.ParenthesizedPattern);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.TypePattern);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.OrKeyword);
+                            N(SyntaxKind.TypePattern);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.StringKeyword);
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TypePattern_08()
+        {
+            UsingStatement($"_ = e is (a) or b;",
+                TestOptions.RegularWithPatternCombinators
+            );
+
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "_");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.IsPatternExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "e");
+                        }
+                        N(SyntaxKind.IsKeyword);
+                        N(SyntaxKind.OrPattern);
+                        {
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.ParenthesizedExpression);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "a");
+                                    }
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                            }
+                            N(SyntaxKind.OrKeyword);
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "b");
+                                }
+                            }
+                        }
                     }
                 }
                 N(SyntaxKind.SemicolonToken);
@@ -10438,6 +10544,454 @@ switch (e)
                                     {
                                         N(SyntaxKind.NumericLiteralToken, "1");
                                     }
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData("or")]
+        [InlineData("and")]
+        [InlineData("not")]
+        public void CastExpressionInPattern_02(string identifier)
+        {
+            UsingStatement($"_ = e is (int){identifier};",
+                TestOptions.RegularWithPatternCombinators
+            );
+
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "_");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.IsPatternExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "e");
+                        }
+                        N(SyntaxKind.IsKeyword);
+                        N(SyntaxKind.ConstantPattern);
+                        {
+                            N(SyntaxKind.CastExpression);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, identifier);
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CastExpressionInPattern_03(
+            [CombinatorialValues("and", "or")] string left,
+            [CombinatorialValues(SyntaxKind.AndKeyword, SyntaxKind.OrKeyword)] SyntaxKind opKind,
+            [CombinatorialValues("and", "or")] string right)
+        {
+            UsingStatement($"_ = e is (int){left} {SyntaxFacts.GetText(opKind)} {right};",
+                TestOptions.RegularWithPatternCombinators
+            );
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "_");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.IsPatternExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "e");
+                        }
+                        N(SyntaxKind.IsKeyword);
+                        N(opKind == SyntaxKind.AndKeyword ? SyntaxKind.AndPattern : SyntaxKind.OrPattern);
+                        {
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.CastExpression);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.CloseParenToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, left);
+                                    }
+                                }
+                            }
+                            N(opKind);
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, right);
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void CastExpressionInPattern_04()
+        {
+            UsingStatement($"_ = e is (a)42 or b;",
+                TestOptions.RegularWithPatternCombinators
+            );
+
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "_");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.IsPatternExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "e");
+                        }
+                        N(SyntaxKind.IsKeyword);
+                        N(SyntaxKind.OrPattern);
+                        {
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.CastExpression);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "a");
+                                    }
+                                    N(SyntaxKind.CloseParenToken);
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "42");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.OrKeyword);
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "b");
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CombinatorAsConstant_00(
+            [CombinatorialValues("and", "or")] string left,
+            [CombinatorialValues(SyntaxKind.AndKeyword, SyntaxKind.OrKeyword)] SyntaxKind opKind,
+            [CombinatorialValues("and", "or")] string right)
+        {
+            UsingStatement($"_ = e is {left} {SyntaxFacts.GetText(opKind)} {right};",
+                TestOptions.RegularWithPatternCombinators
+            );
+
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "_");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.IsPatternExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "e");
+                        }
+                        N(SyntaxKind.IsKeyword);
+                        N(opKind == SyntaxKind.AndKeyword ? SyntaxKind.AndPattern : SyntaxKind.OrPattern);
+                        {
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, left);
+                                }
+                            }
+                            N(opKind);
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, right);
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CombinatorAsConstant_01(
+            [CombinatorialValues(SyntaxKind.AndKeyword, SyntaxKind.OrKeyword)] SyntaxKind opKind,
+            [CombinatorialValues("and", "or")] string right)
+        {
+            UsingStatement($"_ = e is (int) {SyntaxFacts.GetText(opKind)} {right};",
+                TestOptions.RegularWithPatternCombinators
+            );
+
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "_");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.IsPatternExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "e");
+                        }
+                        N(SyntaxKind.IsKeyword);
+                        N(opKind == SyntaxKind.AndKeyword ? SyntaxKind.AndPattern : SyntaxKind.OrPattern);
+                        {
+                            N(SyntaxKind.ParenthesizedPattern);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.TypePattern);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(opKind);
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, right);
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void CombinatorAsConstant_02()
+        {
+            UsingStatement($"_ = e is (int) or >= 0;",
+                TestOptions.RegularWithPatternCombinators
+            );
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "_");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.IsPatternExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "e");
+                        }
+                        N(SyntaxKind.IsKeyword);
+                        N(SyntaxKind.OrPattern);
+                        {
+                            N(SyntaxKind.ParenthesizedPattern);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.TypePattern);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.OrKeyword);
+                            N(SyntaxKind.RelationalPattern);
+                            {
+                                N(SyntaxKind.GreaterThanEqualsToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "0");
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void CombinatorAsConstant_03()
+        {
+            UsingStatement($"_ = e is (int)or or >= 0;",
+                TestOptions.RegularWithPatternCombinators
+            );
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "_");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.IsPatternExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "e");
+                        }
+                        N(SyntaxKind.IsKeyword);
+                        N(SyntaxKind.OrPattern);
+                        {
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.CastExpression);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.CloseParenToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "or");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.OrKeyword);
+                            N(SyntaxKind.RelationalPattern);
+                            {
+                                N(SyntaxKind.GreaterThanEqualsToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "0");
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void CombinatorAsConstant_04()
+        {
+            UsingStatement($"_ = e is (int) or or or >= 0;",
+                TestOptions.RegularWithPatternCombinators
+            );
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "_");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.IsPatternExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "e");
+                        }
+                        N(SyntaxKind.IsKeyword);
+                        N(SyntaxKind.OrPattern);
+                        {
+                            N(SyntaxKind.OrPattern);
+                            {
+                                N(SyntaxKind.ParenthesizedPattern);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.TypePattern);
+                                    {
+                                        N(SyntaxKind.PredefinedType);
+                                        {
+                                            N(SyntaxKind.IntKeyword);
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                                N(SyntaxKind.OrKeyword);
+                                N(SyntaxKind.ConstantPattern);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "or");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.OrKeyword);
+                            N(SyntaxKind.RelationalPattern);
+                            {
+                                N(SyntaxKind.GreaterThanEqualsToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "0");
                                 }
                             }
                         }
