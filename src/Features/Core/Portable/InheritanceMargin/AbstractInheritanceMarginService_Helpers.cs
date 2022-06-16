@@ -477,7 +477,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             var nonNullBaseSymbolItems = GetNonNullTargetItems(baseSymbolItems);
             var nonNullDerivedTypeItems = GetNonNullTargetItems(derivedTypeItems);
 
-            return  InheritanceMarginItem.CreateOrdered(
+            return InheritanceMarginItem.CreateOrdered(
                 lineNumber,
                 topLevelDisplayText: null,
                 FindUsagesHelpers.GetDisplayParts(memberSymbol),
