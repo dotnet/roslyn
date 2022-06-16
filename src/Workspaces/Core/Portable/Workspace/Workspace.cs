@@ -369,7 +369,6 @@ namespace Microsoft.CodeAnalysis
                 this.Services.GetService<IWorkspaceEventListenerService>()?.Stop();
             }
 
-            (_optionService as IWorkspaceOptionService)?.OnWorkspaceDisposed(this);
             _optionService.UnregisterWorkspace(this);
 
             // Directly dispose IRemoteHostClientProvider if necessary. This is a test hook to ensure RemoteWorkspace

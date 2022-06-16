@@ -352,8 +352,8 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
             // If we found a linked document which is part of a project with different project file,
             // then it's an actual linked file (i.e. not a multi-targeting project). We don't support that for now.
-            if (linkedDocumentIds.Any(id =>
-                    !PathUtilities.PathsEqual(solution.GetRequiredDocument(id).Project.FilePath!, document.Project.FilePath!)))
+            if (linkedDocumentIds.Any(static (id, arg) =>
+                    !PathUtilities.PathsEqual(arg.solution.GetRequiredDocument(id).Project.FilePath!, arg.document.Project.FilePath!), (solution, document)))
             {
                 allDocumentIds = default;
                 return false;

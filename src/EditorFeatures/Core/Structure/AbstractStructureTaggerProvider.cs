@@ -169,13 +169,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                 TaggerEventSources.OnTextChanged(subjectBuffer),
                 TaggerEventSources.OnParseOptionChanged(subjectBuffer),
                 TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptionsStorage.ShowBlockStructureGuidesForCodeLevelConstructs),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptionsStorage.ShowBlockStructureGuidesForDeclarationLevelConstructs),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptionsStorage.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptionsStorage.ShowOutliningForCodeLevelConstructs),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptionsStorage.ShowOutliningForDeclarationLevelConstructs),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptionsStorage.ShowOutliningForCommentsAndPreprocessorRegions),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptionsStorage.CollapseRegionsWhenCollapsingToDefinitions));
+                TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.ShowBlockStructureGuidesForCodeLevelConstructs),
+                TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.ShowBlockStructureGuidesForDeclarationLevelConstructs),
+                TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions),
+                TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.ShowOutliningForCodeLevelConstructs),
+                TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.ShowOutliningForDeclarationLevelConstructs),
+                TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.ShowOutliningForCommentsAndPreprocessorRegions),
+                TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.CollapseRegionsWhenCollapsingToDefinitions));
         }
 
         protected sealed override async Task ProduceTagsAsync(

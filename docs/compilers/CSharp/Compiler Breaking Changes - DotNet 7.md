@@ -1,5 +1,16 @@
 # This document lists known breaking changes in Roslyn after .NET 6 all the way to .NET 7.
 
+## Required spaces in #line span directives
+
+***Introduced in .NET SDK 6.0.400, Visual Studio 2022 version 17.3.***
+
+When the `#line` span directive was introduced in C# 10, it required no particular spacing.  
+For example, this would be valid: `#line(1,2)-(3,4)5"file.cs"`.
+
+In Visual Studio 17.3, the compiler requires spaces before the first parenthesis, the character
+offset, and the file name.  
+So the above example fails to parse unless spaces are added: `#line (1,2)-(3,4) 5 "file.cs"`.
+
 ## Checked operators on System.IntPtr and System.UIntPtr
 
 ***Introduced in .NET SDK 7.0.100, Visual Studio 2022 version 17.3.***

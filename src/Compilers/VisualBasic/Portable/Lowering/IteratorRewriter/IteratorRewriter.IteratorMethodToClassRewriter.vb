@@ -29,10 +29,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                            current As FieldSymbol,
                            hoistedVariables As IReadOnlySet(Of Symbol),
                            localProxies As Dictionary(Of Symbol, FieldSymbol),
+                           stateMachineStateDebugInfoBuilder As ArrayBuilder(Of StateMachineStateDebugInfo),
                            slotAllocatorOpt As VariableSlotAllocator,
                            diagnostics As BindingDiagnosticBag)
 
-                MyBase.New(F, state, hoistedVariables, localProxies, slotAllocatorOpt, diagnostics)
+                MyBase.New(F, state, hoistedVariables, localProxies, stateMachineStateDebugInfoBuilder, slotAllocatorOpt, diagnostics)
 
                 _current = current
             End Sub

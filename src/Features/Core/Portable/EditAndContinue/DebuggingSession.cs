@@ -1030,7 +1030,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
 
                 var oldActiveStatements = await baseActiveStatements.GetOldActiveStatementsAsync(analyzer, oldDocument, cancellationToken).ConfigureAwait(false);
-                if (oldActiveStatements.Any(s => s.Statement == activeStatement))
+                if (oldActiveStatements.Any(static (s, activeStatement) => s.Statement == activeStatement, activeStatement))
                 {
                     return documentId;
                 }
@@ -1042,7 +1042,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private static void ReportTelemetry(DebuggingSessionTelemetry.Data data)
         {
             // report telemetry (fire and forget):
-            _ = Task.Run(() => DebuggingSessionTelemetry.Log(data, Logger.Log, LogAggregator.GetNextId));
+            _ = Task.Run(() => DebuggingSessionTelemetry.Log(data, Logger.Log, CorrelationIdFactory.GetNextId));
         }
 
         internal TestAccessor GetTestAccessor()

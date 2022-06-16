@@ -890,29 +890,29 @@ internal class Outer
     {
         public required int PublicProperty { get; set; }
         internal protected required int InternalProtectedProperty { get; set; }
-        internal required int InternalProperty { get; set; } // 17
-        protected required int ProtectedProperty { get; set; } // 18
-        private protected required int PrivateProtectedProperty { get; set; } // 19
-        private required int PrivateProperty { get; set; } // 20
+        internal required int InternalProperty { get; set; }
+        protected required int ProtectedProperty { get; set; } // 17
+        private protected required int PrivateProtectedProperty { get; set; } // 18
+        private required int PrivateProperty { get; set; } // 19
         public required int PublicField;
         internal protected required int InternalProtectedField;
-        internal required int InternalField; // 21
-        protected required int ProtectedField; // 22
-        private protected required int PrivateProtectedField; // 23
-        private required int PrivateField; // 24
+        internal required int InternalField;
+        protected required int ProtectedField; // 20
+        private protected required int PrivateProtectedField; // 21
+        private required int PrivateField; // 22
     }
     protected class ProtectedClass
     {
         public required int PublicProperty { get; set; }
         internal protected required int InternalProtectedProperty { get; set; }
         internal required int InternalProperty { get; set; }
-        protected required int ProtectedProperty { get; set; }
-        private protected required int PrivateProtectedProperty { get; set; } // 25
-        private required int PrivateProperty { get; set; } // 26
+        protected required int ProtectedProperty { get; set; } // 23
+        private protected required int PrivateProtectedProperty { get; set; } // 24
+        private required int PrivateProperty { get; set; } // 25
         public required int PublicField;
         internal protected required int InternalProtectedField;
         internal required int InternalField;
-        protected required int ProtectedField;
+        protected required int ProtectedField; // 26
         private protected required int PrivateProtectedField; // 27
         private required int PrivateField; // 28
     }
@@ -921,30 +921,48 @@ internal class Outer
         public required int PublicProperty { get; set; }
         internal protected required int InternalProtectedProperty { get; set; }
         internal required int InternalProperty { get; set; }
-        protected required int ProtectedProperty { get; set; }
-        private protected required int PrivateProtectedProperty { get; set; }
-        private required int PrivateProperty { get; set; } // 29
+        protected required int ProtectedProperty { get; set; } // 29
+        private protected required int PrivateProtectedProperty { get; set; } // 30
+        private required int PrivateProperty { get; set; } // 31
         public required int PublicField;
         internal protected required int InternalProtectedField;
         internal required int InternalField;
-        protected required int ProtectedField;
-        private protected required int PrivateProtectedField;
-        private required int PrivateField; // 30
+        protected required int ProtectedField; // 32
+        private protected required int PrivateProtectedField; // 33
+        private required int PrivateField; // 34
     }
     private class PrivateClass
     {
         public required int PublicProperty { get; set; }
         internal protected required int InternalProtectedProperty { get; set; }
         internal required int InternalProperty { get; set; }
-        protected required int ProtectedProperty { get; set; }
-        private protected required int PrivateProtectedProperty { get; set; }
-        private required int PrivateProperty { get; set; }
+        protected required int ProtectedProperty { get; set; } // 35
+        private protected required int PrivateProtectedProperty { get; set; } // 36
+        private required int PrivateProperty { get; set; } // 37
         public required int PublicField;
         internal protected required int InternalProtectedField;
         internal required int InternalField;
-        protected required int ProtectedField;
-        private protected required int PrivateProtectedField;
-        private required int PrivateField;
+        protected required int ProtectedField; // 38
+        private protected required int PrivateProtectedField; // 39
+        private required int PrivateField; // 40
+    }
+}
+public class Outer2
+{
+    protected internal class ProtectedInternalClass2
+    {
+        public required int PublicProperty { get; set; }
+        internal protected required int InternalProtectedProperty { get; set; } // 41
+        internal required int InternalProperty { get; set; } // 42
+        protected required int ProtectedProperty { get; set; } // 43
+        private protected required int PrivateProtectedProperty { get; set; } // 44
+        private required int PrivateProperty { get; set; } // 45
+        public required int PublicField;
+        internal protected required int InternalProtectedField; // 46
+        internal required int InternalField; // 47
+        protected required int ProtectedField; // 48
+        private protected required int PrivateProtectedField; // 49
+        private required int PrivateField; // 50
     }
 }
 ");
@@ -998,48 +1016,108 @@ internal class Outer
             // (32,26): error CS9032: Required member 'InternalClass.PrivateField' cannot be less visible or have a setter less visible than the containing type 'InternalClass'.
             //     private required int PrivateField; // 16
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateField").WithArguments("InternalClass.PrivateField", "InternalClass").WithLocation(32, 26),
-            // (40,31): error CS9032: Required member 'Outer.ProtectedInternalClass.InternalProperty' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedInternalClass'.
-            //         internal required int InternalProperty { get; set; } // 17
-            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "InternalProperty").WithArguments("Outer.ProtectedInternalClass.InternalProperty", "Outer.ProtectedInternalClass").WithLocation(40, 31),
             // (41,32): error CS9032: Required member 'Outer.ProtectedInternalClass.ProtectedProperty' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedInternalClass'.
-            //         protected required int ProtectedProperty { get; set; } // 18
+            //         protected required int ProtectedProperty { get; set; } // 17
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "ProtectedProperty").WithArguments("Outer.ProtectedInternalClass.ProtectedProperty", "Outer.ProtectedInternalClass").WithLocation(41, 32),
             // (42,40): error CS9032: Required member 'Outer.ProtectedInternalClass.PrivateProtectedProperty' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedInternalClass'.
-            //         private protected required int PrivateProtectedProperty { get; set; } // 19
+            //         private protected required int PrivateProtectedProperty { get; set; } // 18
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProtectedProperty").WithArguments("Outer.ProtectedInternalClass.PrivateProtectedProperty", "Outer.ProtectedInternalClass").WithLocation(42, 40),
             // (43,30): error CS9032: Required member 'Outer.ProtectedInternalClass.PrivateProperty' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedInternalClass'.
-            //         private required int PrivateProperty { get; set; } // 20
+            //         private required int PrivateProperty { get; set; } // 19
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProperty").WithArguments("Outer.ProtectedInternalClass.PrivateProperty", "Outer.ProtectedInternalClass").WithLocation(43, 30),
-            // (46,31): error CS9032: Required member 'Outer.ProtectedInternalClass.InternalField' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedInternalClass'.
-            //         internal required int InternalField; // 21
-            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "InternalField").WithArguments("Outer.ProtectedInternalClass.InternalField", "Outer.ProtectedInternalClass").WithLocation(46, 31),
             // (47,32): error CS9032: Required member 'Outer.ProtectedInternalClass.ProtectedField' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedInternalClass'.
-            //         protected required int ProtectedField; // 22
+            //         protected required int ProtectedField; // 20
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "ProtectedField").WithArguments("Outer.ProtectedInternalClass.ProtectedField", "Outer.ProtectedInternalClass").WithLocation(47, 32),
             // (48,40): error CS9032: Required member 'Outer.ProtectedInternalClass.PrivateProtectedField' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedInternalClass'.
-            //         private protected required int PrivateProtectedField; // 23
+            //         private protected required int PrivateProtectedField; // 21
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProtectedField").WithArguments("Outer.ProtectedInternalClass.PrivateProtectedField", "Outer.ProtectedInternalClass").WithLocation(48, 40),
             // (49,30): error CS9032: Required member 'Outer.ProtectedInternalClass.PrivateField' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedInternalClass'.
-            //         private required int PrivateField; // 24
+            //         private required int PrivateField; // 22
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateField").WithArguments("Outer.ProtectedInternalClass.PrivateField", "Outer.ProtectedInternalClass").WithLocation(49, 30),
+            // (56,32): error CS9032: Required member 'Outer.ProtectedClass.ProtectedProperty' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedClass'.
+            //         protected required int ProtectedProperty { get; set; } // 23
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "ProtectedProperty").WithArguments("Outer.ProtectedClass.ProtectedProperty", "Outer.ProtectedClass").WithLocation(56, 32),
             // (57,40): error CS9032: Required member 'Outer.ProtectedClass.PrivateProtectedProperty' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedClass'.
-            //         private protected required int PrivateProtectedProperty { get; set; } // 25
+            //         private protected required int PrivateProtectedProperty { get; set; } // 24
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProtectedProperty").WithArguments("Outer.ProtectedClass.PrivateProtectedProperty", "Outer.ProtectedClass").WithLocation(57, 40),
             // (58,30): error CS9032: Required member 'Outer.ProtectedClass.PrivateProperty' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedClass'.
-            //         private required int PrivateProperty { get; set; } // 26
+            //         private required int PrivateProperty { get; set; } // 25
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProperty").WithArguments("Outer.ProtectedClass.PrivateProperty", "Outer.ProtectedClass").WithLocation(58, 30),
+            // (62,32): error CS9032: Required member 'Outer.ProtectedClass.ProtectedField' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedClass'.
+            //         protected required int ProtectedField; // 26
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "ProtectedField").WithArguments("Outer.ProtectedClass.ProtectedField", "Outer.ProtectedClass").WithLocation(62, 32),
             // (63,40): error CS9032: Required member 'Outer.ProtectedClass.PrivateProtectedField' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedClass'.
             //         private protected required int PrivateProtectedField; // 27
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProtectedField").WithArguments("Outer.ProtectedClass.PrivateProtectedField", "Outer.ProtectedClass").WithLocation(63, 40),
             // (64,30): error CS9032: Required member 'Outer.ProtectedClass.PrivateField' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedClass'.
             //         private required int PrivateField; // 28
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateField").WithArguments("Outer.ProtectedClass.PrivateField", "Outer.ProtectedClass").WithLocation(64, 30),
+            // (71,32): error CS9032: Required member 'Outer.PrivateProtectedClass.ProtectedProperty' cannot be less visible or have a setter less visible than the containing type 'Outer.PrivateProtectedClass'.
+            //         protected required int ProtectedProperty { get; set; } // 29
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "ProtectedProperty").WithArguments("Outer.PrivateProtectedClass.ProtectedProperty", "Outer.PrivateProtectedClass").WithLocation(71, 32),
+            // (72,40): error CS9032: Required member 'Outer.PrivateProtectedClass.PrivateProtectedProperty' cannot be less visible or have a setter less visible than the containing type 'Outer.PrivateProtectedClass'.
+            //         private protected required int PrivateProtectedProperty { get; set; } // 30
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProtectedProperty").WithArguments("Outer.PrivateProtectedClass.PrivateProtectedProperty", "Outer.PrivateProtectedClass").WithLocation(72, 40),
             // (73,30): error CS9032: Required member 'Outer.PrivateProtectedClass.PrivateProperty' cannot be less visible or have a setter less visible than the containing type 'Outer.PrivateProtectedClass'.
-            //         private required int PrivateProperty { get; set; } // 29
+            //         private required int PrivateProperty { get; set; } // 31
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProperty").WithArguments("Outer.PrivateProtectedClass.PrivateProperty", "Outer.PrivateProtectedClass").WithLocation(73, 30),
+            // (77,32): error CS9032: Required member 'Outer.PrivateProtectedClass.ProtectedField' cannot be less visible or have a setter less visible than the containing type 'Outer.PrivateProtectedClass'.
+            //         protected required int ProtectedField; // 32
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "ProtectedField").WithArguments("Outer.PrivateProtectedClass.ProtectedField", "Outer.PrivateProtectedClass").WithLocation(77, 32),
+            // (78,40): error CS9032: Required member 'Outer.PrivateProtectedClass.PrivateProtectedField' cannot be less visible or have a setter less visible than the containing type 'Outer.PrivateProtectedClass'.
+            //         private protected required int PrivateProtectedField; // 33
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProtectedField").WithArguments("Outer.PrivateProtectedClass.PrivateProtectedField", "Outer.PrivateProtectedClass").WithLocation(78, 40),
             // (79,30): error CS9032: Required member 'Outer.PrivateProtectedClass.PrivateField' cannot be less visible or have a setter less visible than the containing type 'Outer.PrivateProtectedClass'.
-            //         private required int PrivateField; // 30
-            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateField").WithArguments("Outer.PrivateProtectedClass.PrivateField", "Outer.PrivateProtectedClass").WithLocation(79, 30)
+            //         private required int PrivateField; // 34
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateField").WithArguments("Outer.PrivateProtectedClass.PrivateField", "Outer.PrivateProtectedClass").WithLocation(79, 30),
+            // (86,32): error CS9032: Required member 'Outer.PrivateClass.ProtectedProperty' cannot be less visible or have a setter less visible than the containing type 'Outer.PrivateClass'.
+            //         protected required int ProtectedProperty { get; set; } // 35
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "ProtectedProperty").WithArguments("Outer.PrivateClass.ProtectedProperty", "Outer.PrivateClass").WithLocation(86, 32),
+            // (87,40): error CS9032: Required member 'Outer.PrivateClass.PrivateProtectedProperty' cannot be less visible or have a setter less visible than the containing type 'Outer.PrivateClass'.
+            //         private protected required int PrivateProtectedProperty { get; set; } // 36
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProtectedProperty").WithArguments("Outer.PrivateClass.PrivateProtectedProperty", "Outer.PrivateClass").WithLocation(87, 40),
+            // (88,30): error CS9032: Required member 'Outer.PrivateClass.PrivateProperty' cannot be less visible or have a setter less visible than the containing type 'Outer.PrivateClass'.
+            //         private required int PrivateProperty { get; set; } // 37
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProperty").WithArguments("Outer.PrivateClass.PrivateProperty", "Outer.PrivateClass").WithLocation(88, 30),
+            // (92,32): error CS9032: Required member 'Outer.PrivateClass.ProtectedField' cannot be less visible or have a setter less visible than the containing type 'Outer.PrivateClass'.
+            //         protected required int ProtectedField; // 38
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "ProtectedField").WithArguments("Outer.PrivateClass.ProtectedField", "Outer.PrivateClass").WithLocation(92, 32),
+            // (93,40): error CS9032: Required member 'Outer.PrivateClass.PrivateProtectedField' cannot be less visible or have a setter less visible than the containing type 'Outer.PrivateClass'.
+            //         private protected required int PrivateProtectedField; // 39
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProtectedField").WithArguments("Outer.PrivateClass.PrivateProtectedField", "Outer.PrivateClass").WithLocation(93, 40),
+            // (94,30): error CS9032: Required member 'Outer.PrivateClass.PrivateField' cannot be less visible or have a setter less visible than the containing type 'Outer.PrivateClass'.
+            //         private required int PrivateField; // 40
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateField").WithArguments("Outer.PrivateClass.PrivateField", "Outer.PrivateClass").WithLocation(94, 30),
+            // (102,41): error CS9032: Required member 'Outer2.ProtectedInternalClass2.InternalProtectedProperty' cannot be less visible or have a setter less visible than the containing type 'Outer2.ProtectedInternalClass2'.
+            //         internal protected required int InternalProtectedProperty { get; set; } // 41
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "InternalProtectedProperty").WithArguments("Outer2.ProtectedInternalClass2.InternalProtectedProperty", "Outer2.ProtectedInternalClass2").WithLocation(102, 41),
+            // (103,31): error CS9032: Required member 'Outer2.ProtectedInternalClass2.InternalProperty' cannot be less visible or have a setter less visible than the containing type 'Outer2.ProtectedInternalClass2'.
+            //         internal required int InternalProperty { get; set; } // 42
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "InternalProperty").WithArguments("Outer2.ProtectedInternalClass2.InternalProperty", "Outer2.ProtectedInternalClass2").WithLocation(103, 31),
+            // (104,32): error CS9032: Required member 'Outer2.ProtectedInternalClass2.ProtectedProperty' cannot be less visible or have a setter less visible than the containing type 'Outer2.ProtectedInternalClass2'.
+            //         protected required int ProtectedProperty { get; set; } // 43
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "ProtectedProperty").WithArguments("Outer2.ProtectedInternalClass2.ProtectedProperty", "Outer2.ProtectedInternalClass2").WithLocation(104, 32),
+            // (105,40): error CS9032: Required member 'Outer2.ProtectedInternalClass2.PrivateProtectedProperty' cannot be less visible or have a setter less visible than the containing type 'Outer2.ProtectedInternalClass2'.
+            //         private protected required int PrivateProtectedProperty { get; set; } // 44
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProtectedProperty").WithArguments("Outer2.ProtectedInternalClass2.PrivateProtectedProperty", "Outer2.ProtectedInternalClass2").WithLocation(105, 40),
+            // (106,30): error CS9032: Required member 'Outer2.ProtectedInternalClass2.PrivateProperty' cannot be less visible or have a setter less visible than the containing type 'Outer2.ProtectedInternalClass2'.
+            //         private required int PrivateProperty { get; set; } // 45
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProperty").WithArguments("Outer2.ProtectedInternalClass2.PrivateProperty", "Outer2.ProtectedInternalClass2").WithLocation(106, 30),
+            // (108,41): error CS9032: Required member 'Outer2.ProtectedInternalClass2.InternalProtectedField' cannot be less visible or have a setter less visible than the containing type 'Outer2.ProtectedInternalClass2'.
+            //         internal protected required int InternalProtectedField; // 46
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "InternalProtectedField").WithArguments("Outer2.ProtectedInternalClass2.InternalProtectedField", "Outer2.ProtectedInternalClass2").WithLocation(108, 41),
+            // (109,31): error CS9032: Required member 'Outer2.ProtectedInternalClass2.InternalField' cannot be less visible or have a setter less visible than the containing type 'Outer2.ProtectedInternalClass2'.
+            //         internal required int InternalField; // 47
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "InternalField").WithArguments("Outer2.ProtectedInternalClass2.InternalField", "Outer2.ProtectedInternalClass2").WithLocation(109, 31),
+            // (110,32): error CS9032: Required member 'Outer2.ProtectedInternalClass2.ProtectedField' cannot be less visible or have a setter less visible than the containing type 'Outer2.ProtectedInternalClass2'.
+            //         protected required int ProtectedField; // 48
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "ProtectedField").WithArguments("Outer2.ProtectedInternalClass2.ProtectedField", "Outer2.ProtectedInternalClass2").WithLocation(110, 32),
+            // (111,40): error CS9032: Required member 'Outer2.ProtectedInternalClass2.PrivateProtectedField' cannot be less visible or have a setter less visible than the containing type 'Outer2.ProtectedInternalClass2'.
+            //         private protected required int PrivateProtectedField; // 49
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProtectedField").WithArguments("Outer2.ProtectedInternalClass2.PrivateProtectedField", "Outer2.ProtectedInternalClass2").WithLocation(111, 40),
+            // (112,30): error CS9032: Required member 'Outer2.ProtectedInternalClass2.PrivateField' cannot be less visible or have a setter less visible than the containing type 'Outer2.ProtectedInternalClass2'.
+            //         private required int PrivateField; // 50
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateField").WithArguments("Outer2.ProtectedInternalClass2.PrivateField", "Outer2.ProtectedInternalClass2").WithLocation(112, 30)
         );
     }
 
@@ -1068,16 +1146,16 @@ internal class Outer
     protected internal class InternalProtectedClass
     {
         public required int InternalProtected { get; internal protected set; }
-        public required int Internal { get; internal set; } // 9
-        public required int Protected { get; protected set; } // 10
-        public required int PrivateProtected { get; private protected set; } // 11
-        public required int Private { get; private set; } // 12
+        public required int Internal { get; internal set; }
+        public required int Protected { get; protected set; } // 9
+        public required int PrivateProtected { get; private protected set; } // 10
+        public required int Private { get; private set; } // 11
     }
     protected class ProtectedClass
     {
         public required int InternalProtected { get; internal protected set; }
         public required int Internal { get; internal set; }
-        public required int Protected { get; protected set; }
+        public required int Protected { get; protected set; } // 12
         public required int PrivateProtected { get; private protected set; } // 13
         public required int Private { get; private set; } // 14
     }
@@ -1085,17 +1163,28 @@ internal class Outer
     {
         public required int InternalProtected { get; internal protected set; }
         public required int Internal { get; internal set; }
-        public required int Protected { get; protected set; }
-        public required int PrivateProtected { get; private protected set; }
-        public required int Private { get; private set; } // 15
+        public required int Protected { get; protected set; } // 15
+        public required int PrivateProtected { get; private protected set; } // 16
+        public required int Private { get; private set; } // 17
     }
     private class PrivateClass
     {
         public required int InternalProtected { get; internal protected set; }
         public required int Internal { get; internal set; }
-        public required int Protected { get; protected set; }
-        public required int PrivateProtected { get; private protected set; }
-        public required int Private { get; private set; }
+        public required int Protected { get; protected set; } // 18
+        public required int PrivateProtected { get; private protected set; } // 19
+        public required int Private { get; private set; } // 20
+    }
+}
+public class Outer2
+{
+    protected internal class InternalProtectedClass2
+    {
+        public required int InternalProtected { get; internal protected set; } // 21
+        public required int Internal { get; internal set; } // 22
+        public required int Protected { get; protected set; } // 23
+        public required int PrivateProtected { get; private protected set; } // 24
+        public required int Private { get; private set; } // 25
     }
 }
 ");
@@ -1125,27 +1214,58 @@ internal class Outer
             // (16,25): error CS9032: Required member 'InternalClass.Private' cannot be less visible or have a setter less visible than the containing type 'InternalClass'.
             //     public required int Private { get; private set; } // 8
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "Private").WithArguments("InternalClass.Private", "InternalClass").WithLocation(16, 25),
-            // (23,29): error CS9032: Required member 'Outer.InternalProtectedClass.Internal' cannot be less visible or have a setter less visible than the containing type 'Outer.InternalProtectedClass'.
-            //         public required int Internal { get; internal set; } // 9
-            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "Internal").WithArguments("Outer.InternalProtectedClass.Internal", "Outer.InternalProtectedClass").WithLocation(23, 29),
             // (24,29): error CS9032: Required member 'Outer.InternalProtectedClass.Protected' cannot be less visible or have a setter less visible than the containing type 'Outer.InternalProtectedClass'.
-            //         public required int Protected { get; protected set; } // 10
+            //         public required int Protected { get; protected set; } // 9
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "Protected").WithArguments("Outer.InternalProtectedClass.Protected", "Outer.InternalProtectedClass").WithLocation(24, 29),
             // (25,29): error CS9032: Required member 'Outer.InternalProtectedClass.PrivateProtected' cannot be less visible or have a setter less visible than the containing type 'Outer.InternalProtectedClass'.
-            //         public required int PrivateProtected { get; private protected set; } // 11
+            //         public required int PrivateProtected { get; private protected set; } // 10
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProtected").WithArguments("Outer.InternalProtectedClass.PrivateProtected", "Outer.InternalProtectedClass").WithLocation(25, 29),
             // (26,29): error CS9032: Required member 'Outer.InternalProtectedClass.Private' cannot be less visible or have a setter less visible than the containing type 'Outer.InternalProtectedClass'.
-            //         public required int Private { get; private set; } // 12
+            //         public required int Private { get; private set; } // 11
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "Private").WithArguments("Outer.InternalProtectedClass.Private", "Outer.InternalProtectedClass").WithLocation(26, 29),
+            // (32,29): error CS9032: Required member 'Outer.ProtectedClass.Protected' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedClass'.
+            //         public required int Protected { get; protected set; } // 12
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "Protected").WithArguments("Outer.ProtectedClass.Protected", "Outer.ProtectedClass").WithLocation(32, 29),
             // (33,29): error CS9032: Required member 'Outer.ProtectedClass.PrivateProtected' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedClass'.
             //         public required int PrivateProtected { get; private protected set; } // 13
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProtected").WithArguments("Outer.ProtectedClass.PrivateProtected", "Outer.ProtectedClass").WithLocation(33, 29),
             // (34,29): error CS9032: Required member 'Outer.ProtectedClass.Private' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedClass'.
             //         public required int Private { get; private set; } // 14
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "Private").WithArguments("Outer.ProtectedClass.Private", "Outer.ProtectedClass").WithLocation(34, 29),
+            // (40,29): error CS9032: Required member 'Outer.PrivateProtectedClass.Protected' cannot be less visible or have a setter less visible than the containing type 'Outer.PrivateProtectedClass'.
+            //         public required int Protected { get; protected set; } // 15
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "Protected").WithArguments("Outer.PrivateProtectedClass.Protected", "Outer.PrivateProtectedClass").WithLocation(40, 29),
+            // (41,29): error CS9032: Required member 'Outer.PrivateProtectedClass.PrivateProtected' cannot be less visible or have a setter less visible than the containing type 'Outer.PrivateProtectedClass'.
+            //         public required int PrivateProtected { get; private protected set; } // 16
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProtected").WithArguments("Outer.PrivateProtectedClass.PrivateProtected", "Outer.PrivateProtectedClass").WithLocation(41, 29),
             // (42,29): error CS9032: Required member 'Outer.PrivateProtectedClass.Private' cannot be less visible or have a setter less visible than the containing type 'Outer.PrivateProtectedClass'.
-            //         public required int Private { get; private set; } // 15
-            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "Private").WithArguments("Outer.PrivateProtectedClass.Private", "Outer.PrivateProtectedClass").WithLocation(42, 29)
+            //         public required int Private { get; private set; } // 17
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "Private").WithArguments("Outer.PrivateProtectedClass.Private", "Outer.PrivateProtectedClass").WithLocation(42, 29),
+            // (48,29): error CS9032: Required member 'Outer.PrivateClass.Protected' cannot be less visible or have a setter less visible than the containing type 'Outer.PrivateClass'.
+            //         public required int Protected { get; protected set; } // 18
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "Protected").WithArguments("Outer.PrivateClass.Protected", "Outer.PrivateClass").WithLocation(48, 29),
+            // (49,29): error CS9032: Required member 'Outer.PrivateClass.PrivateProtected' cannot be less visible or have a setter less visible than the containing type 'Outer.PrivateClass'.
+            //         public required int PrivateProtected { get; private protected set; } // 19
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProtected").WithArguments("Outer.PrivateClass.PrivateProtected", "Outer.PrivateClass").WithLocation(49, 29),
+            // (50,29): error CS9032: Required member 'Outer.PrivateClass.Private' cannot be less visible or have a setter less visible than the containing type 'Outer.PrivateClass'.
+            //         public required int Private { get; private set; } // 20
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "Private").WithArguments("Outer.PrivateClass.Private", "Outer.PrivateClass").WithLocation(50, 29),
+            // (57,29): error CS9032: Required member 'Outer2.InternalProtectedClass2.InternalProtected' cannot be less visible or have a setter less visible than the containing type 'Outer2.InternalProtectedClass2'.
+            //         public required int InternalProtected { get; internal protected set; } // 21
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "InternalProtected").WithArguments("Outer2.InternalProtectedClass2.InternalProtected", "Outer2.InternalProtectedClass2").WithLocation(57, 29),
+            // (58,29): error CS9032: Required member 'Outer2.InternalProtectedClass2.Internal' cannot be less visible or have a setter less visible than the containing type 'Outer2.InternalProtectedClass2'.
+            //         public required int Internal { get; internal set; } // 22
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "Internal").WithArguments("Outer2.InternalProtectedClass2.Internal", "Outer2.InternalProtectedClass2").WithLocation(58, 29),
+            // (59,29): error CS9032: Required member 'Outer2.InternalProtectedClass2.Protected' cannot be less visible or have a setter less visible than the containing type 'Outer2.InternalProtectedClass2'.
+            //         public required int Protected { get; protected set; } // 23
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "Protected").WithArguments("Outer2.InternalProtectedClass2.Protected", "Outer2.InternalProtectedClass2").WithLocation(59, 29),
+            // (60,29): error CS9032: Required member 'Outer2.InternalProtectedClass2.PrivateProtected' cannot be less visible or have a setter less visible than the containing type 'Outer2.InternalProtectedClass2'.
+            //         public required int PrivateProtected { get; private protected set; } // 24
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProtected").WithArguments("Outer2.InternalProtectedClass2.PrivateProtected", "Outer2.InternalProtectedClass2").WithLocation(60, 29),
+            // (61,29): error CS9032: Required member 'Outer2.InternalProtectedClass2.Private' cannot be less visible or have a setter less visible than the containing type 'Outer2.InternalProtectedClass2'.
+            //         public required int Private { get; private set; } // 25
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "Private").WithArguments("Outer2.InternalProtectedClass2.Private", "Outer2.InternalProtectedClass2").WithLocation(61, 29)
+
          );
     }
 

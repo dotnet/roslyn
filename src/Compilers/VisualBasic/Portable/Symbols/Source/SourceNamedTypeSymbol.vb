@@ -1261,15 +1261,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Select
         End Function
 
-        Private Function AsPeOrRetargetingType(potentialBaseType As TypeSymbol) As NamedTypeSymbol
-            Dim peType As NamedTypeSymbol = TryCast(potentialBaseType, Symbols.Metadata.PE.PENamedTypeSymbol)
-            If peType Is Nothing Then
-                peType = TryCast(potentialBaseType, Retargeting.RetargetingNamedTypeSymbol)
-            End If
-
-            Return peType
-        End Function
-
         Friend Overrides Function MakeDeclaredBase(basesBeingResolved As BasesBeingResolved, diagnostics As BindingDiagnosticBag) As NamedTypeSymbol
             ' For types nested in a source type symbol (not in a script class): 
             ' before resolving the base type ensure that enclosing type's base type is already resolved

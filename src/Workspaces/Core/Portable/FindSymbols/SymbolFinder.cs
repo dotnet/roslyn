@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     }
                 }
             }
-            else if (!symbol.Locations.Any(loc => loc.IsInMetadata))
+            else if (!symbol.Locations.Any(static loc => loc.IsInMetadata))
             {
                 // We have a symbol that's neither in source nor metadata
                 return null;
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static bool InSource(ISymbol symbol)
         {
-            return symbol.Locations.Any(loc => loc.IsInSource);
+            return symbol.Locations.Any(static loc => loc.IsInSource);
         }
 
         /// <summary>

@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // For the purpose of construction we use original type parameters in place of type arguments that we couldn't infer from the first argument.
             ImmutableArray<TypeWithAnnotations> typeArgsForConstruct = typeArgs;
-            if (typeArgs.Any(t => !t.HasType))
+            if (typeArgs.Any(static t => !t.HasType))
             {
                 typeArgsForConstruct = typeArgs.ZipAsArray(
                     method.TypeParameters,

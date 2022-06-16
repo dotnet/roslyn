@@ -213,6 +213,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         // Left side of = assignment.
         bool IsLeftSideOfAssignment([NotNullWhen(true)] SyntaxNode? node);
 
+        bool IsAnyAssignmentStatement([NotNullWhen(true)] SyntaxNode? statement);
         bool IsSimpleAssignmentStatement([NotNullWhen(true)] SyntaxNode? statement);
         void GetPartsOfAssignmentStatement(SyntaxNode statement, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right);
         void GetPartsOfAssignmentExpressionOrStatement(SyntaxNode statement, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right);
@@ -337,6 +338,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsStatement([NotNullWhen(true)] SyntaxNode? node);
         bool IsExecutableStatement([NotNullWhen(true)] SyntaxNode? node);
         bool IsGlobalStatement([NotNullWhen(true)] SyntaxNode? node);
+        SyntaxNode GetStatementOfGlobalStatement(SyntaxNode node);
         bool AreStatementsInSameContainer(SyntaxNode firstStatement, SyntaxNode secondStatement);
 
         bool IsDeconstructionAssignment([NotNullWhen(true)] SyntaxNode? node);
@@ -549,11 +551,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         SyntaxNode GetExpressionOfAwaitExpression(SyntaxNode node);
         SyntaxNode GetExpressionOfExpressionStatement(SyntaxNode node);
+        SyntaxNode GetExpressionOfRefExpression(SyntaxNode node);
         SyntaxNode? GetExpressionOfReturnStatement(SyntaxNode node);
         SyntaxNode GetExpressionOfThrowExpression(SyntaxNode node);
 
         bool IsEqualsValueOfPropertyDeclaration([NotNullWhen(true)] SyntaxNode? node);
-        SyntaxNode? GetValueOfEqualsValueClause(SyntaxNode? node);
+        SyntaxNode GetValueOfEqualsValueClause(SyntaxNode node);
 
         SeparatedSyntaxList<SyntaxNode> GetInitializersOfObjectMemberInitializer(SyntaxNode node);
         SeparatedSyntaxList<SyntaxNode> GetExpressionsOfObjectCollectionInitializer(SyntaxNode node);

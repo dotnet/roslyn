@@ -27,8 +27,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp,
-        Name = PredefinedCodeRefactoringProviderNames.UseExpressionBody), Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.UseExpressionBody), Shared]
+    [ExtensionOrder(Before = PredefinedCodeRefactoringProviderNames.ExtractClass)]
     internal class UseExpressionBodyCodeRefactoringProvider : SyntaxEditorBasedCodeRefactoringProvider
     {
         private static readonly ImmutableArray<UseExpressionBodyHelper> _helpers = UseExpressionBodyHelper.Helpers;

@@ -134,12 +134,12 @@
       </trans-unit>
       <trans-unit id="ERR_BadAbstractShiftOperatorSignature">
         <source>The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it</source>
-        <target state="needs-review-translation">První operand přetěžovaného operátoru shift musí být stejného typu jako obsahující typ nebo jeho parametr typu omezený na něj a druhý operand musí být typu int.</target>
+        <target state="new">The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractStaticMemberAccess">
         <source>A static virtual or abstract interface member can be accessed only on a type parameter.</source>
-        <target state="needs-review-translation">Ke statickému členu abstraktního rozhraní lze přistupovat pouze přes parametr obecného typu.</target>
+        <target state="new">A static virtual or abstract interface member can be accessed only on a type parameter.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractUnaryOperatorSignature">
@@ -474,7 +474,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsAbstractStaticMemberAccess">
         <source>An expression tree may not contain an access of static virtual or abstract interface member</source>
-        <target state="needs-review-translation">Strom výrazů nesmí obsahovat přístup statického člena abstraktního rozhraní.</target>
+        <target state="new">An expression tree may not contain an access of static virtual or abstract interface member</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
@@ -593,8 +593,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers">
-        <source>The interface '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. The constraint interface '{1}' or its base interface has static abstract or virtual members.</source>
-        <target state="needs-review-translation">Rozhraní {3} nelze použít jako parametr obecného typu {2} v obecném typu nebo metodě {0}. Rozhraní s omezením {1} nebo jeho základní rozhraní má statické abstraktní členy.</target>
+        <source>The interface '{0}' cannot be used as type argument. Static member '{1}' does not have a most specific implementation in the interface.</source>
+        <target state="new">The interface '{0}' cannot be used as type argument. Static member '{1}' does not have a most specific implementation in the interface.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GlobalUsingInNamespace">
@@ -635,6 +635,11 @@
       <trans-unit id="ERR_ImplicitConversionOperatorCantBeChecked">
         <source>An 'implicit' user-defined conversion operator cannot be declared checked</source>
         <target state="new">An 'implicit' user-defined conversion operator cannot be declared checked</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitImplementationOfInaccessibleInterfaceMember">
+        <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement an inaccessible member.</source>
+        <target state="new">'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement an inaccessible member.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitIndexIndexerWithName">
@@ -812,6 +817,11 @@
         <target state="translated">Výraz lambda s atributy nejde převést na strom výrazu.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember">
+        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</source>
+        <target state="new">'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_LineContainsDifferentWhitespace">
         <source>Line contains different whitespace than the closing line of the raw string literal: '{0}' versus '{1}'</source>
         <target state="translated">Řádek obsahuje jiné prázdné znaky než ukončovací řádek literálu nezpracovaného řetězce: {0} versus {1}</target>
@@ -830,6 +840,11 @@
       <trans-unit id="ERR_LineSpanDirectiveInvalidValue">
         <source>The #line directive value is missing or out of range</source>
         <target state="translated">Hodnota direktivy #line chybí nebo je mimo rozsah.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_LineSpanDirectiveRequiresSpace">
+        <source>The #line span directive requires space before the first parenthesis, before the character offset, and before the file name</source>
+        <target state="new">The #line span directive requires space before the first parenthesis, before the character offset, and before the file name</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ListPatternRequiresLength">
@@ -1572,11 +1587,6 @@
         <target state="translated">návratový typ lambda</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureLineSpanDirective">
-        <source>line span directive</source>
-        <target state="translated">direktiva line span</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_FeatureListPattern">
         <source>list pattern</source>
         <target state="translated">vzor seznamu</target>
@@ -1909,7 +1919,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyRequiresStatic">
         <source>'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.</source>
-        <target state="needs-review-translation">UnmanagedCallersOnly se dá použít jen pro běžné statické neabstraktní metody nebo statické místní funkce.</target>
+        <target state="new">'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_UnmanagedConstraintNotSatisfied">
@@ -2185,7 +2195,7 @@
 -instrument:TestCoverage      Vytvoří sestavení instrumentované ke shromažďování
                               informací o pokrytí.
 -sourcelink:&lt;file&gt;            Informace o zdrojovém odkazu vkládané do souboru PDB..
- 
+
                        - CHYBY A UPOZORNĚNÍ -
 -warnaserror[+|-]             Hlásí všechna upozornění jako chyby.
 -warnaserror[+|-]:&lt;warn list&gt; Hlásí zadaná upozornění jako chyby.
@@ -5912,7 +5922,7 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       </trans-unit>
       <trans-unit id="ERR_BadShiftOperatorSignature">
         <source>The first operand of an overloaded shift operator must have the same type as the containing type</source>
-        <target state="needs-review-translation">První operand přetěžovaného operátoru shift musí být stejného typu jako obsahující typ a druhý operand musí být typu int.</target>
+        <target state="new">The first operand of an overloaded shift operator must have the same type as the containing type</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EnumsCantContainDefaultConstructor">
@@ -11680,11 +11690,6 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
       <trans-unit id="ERR_MostSpecificImplementationIsNotFound">
         <source>Interface member '{0}' does not have a most specific implementation. Neither '{1}', nor '{2}' are most specific.</source>
         <target state="translated">Člen rozhraní {0} nemá nejvíce specifickou implementaci. {1} ani {2} nejsou nejvíce specifické.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember">
-        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</source>
-        <target state="translated">{0} nemůže implementovat člen rozhraní {1} v typu {2}, protože funkce {3} není v jazyce C# {4} k dispozici. Použijte prosím verzi jazyka {5} nebo vyšší.</target>
         <note />
       </trans-unit>
     </body>

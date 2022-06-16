@@ -368,9 +368,6 @@
   <data name="Convert_to_top_level_statements" xml:space="preserve">
     <value>Convert to top-level statements</value>
   </data>
-  <data name="Convert_to_UTF8_string_literal" xml:space="preserve">
-    <value>Convert to UTF-8 string literal</value>
-  </data>
   <data name="Use_UTF8_string_literal" xml:space="preserve">
     <value>Use UTF-8 string literal</value>
   </data>

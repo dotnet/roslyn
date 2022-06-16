@@ -467,6 +467,21 @@
         <target state="new">Fix text pasted into string literals (experimental)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fix_analyzer_warnings_and_errors">
+        <source>Fix analyzer warnings and errors</source>
+        <target state="new">Fix analyzer warnings and errors</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_all_warnings_and_errors_set_in_EditorConfig">
+        <source>Fix all warnings and errors set in EditorConfig</source>
+        <target state="new">Fix all warnings and errors set in EditorConfig</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_analyzer_warnings_and_errors_set_in_EditorConfig">
+        <source>Fix analyzer warnings and errors set in EditorConfig</source>
+        <target state="new">Fix analyzer warnings and errors set in EditorConfig</target>
+        <note />
+      </trans-unit>
       <trans-unit id="For_non_interface_members">
         <source>For non interface members</source>
         <target state="translated">Pro členy mimo rozhraní</target>
@@ -1034,7 +1049,7 @@
       </trans-unit>
       <trans-unit id="Paste_valid_stack_trace">
         <source>Paste a stack trace to view and navigate its values.</source>
-        <target state="needs-review-translation">Pokud chcete zobrazit a procházet jeho hodnoty, vložte platné trasování zásobníku.</target>
+        <target state="new">Paste a stack trace to view and navigate its values.</target>
         <note>"Stack Trace" is a language term and should be kept the same. </note>
       </trans-unit>
       <trans-unit id="Paused_0_tasks_in_queue">
@@ -1162,9 +1177,19 @@
         <target state="translated">Odebrat nepotřebné direktivy using</target>
         <note />
       </trans-unit>
+      <trans-unit id="Rename">
+        <source>Rename</source>
+        <target state="new">Rename</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Rename_0_to_1">
         <source>Rename {0} to {1}</source>
         <target state="translated">Přejmenovat {0} na {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_asynchronously_experimental">
+        <source>Rename asynchronously experimental</source>
+        <target state="new">Rename asynchronously experimental</target>
         <note />
       </trans-unit>
       <trans-unit id="Report_invalid_JSON_strings">

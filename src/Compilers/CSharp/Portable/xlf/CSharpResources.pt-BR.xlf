@@ -134,12 +134,12 @@
       </trans-unit>
       <trans-unit id="ERR_BadAbstractShiftOperatorSignature">
         <source>The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it</source>
-        <target state="needs-review-translation">O primeiro operando de um operador de deslocamento sobrecarregado deve ser do tipo recipiente ou o parâmetro de tipo restrito a ele, enquanto o do segundo deve ser int</target>
+        <target state="new">The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractStaticMemberAccess">
         <source>A static virtual or abstract interface member can be accessed only on a type parameter.</source>
-        <target state="needs-review-translation">Um membro de interface abstrato estático só pode ser acessado em um parâmetro de tipo.</target>
+        <target state="new">A static virtual or abstract interface member can be accessed only on a type parameter.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractUnaryOperatorSignature">
@@ -474,7 +474,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsAbstractStaticMemberAccess">
         <source>An expression tree may not contain an access of static virtual or abstract interface member</source>
-        <target state="needs-review-translation">Uma árvore de expressão pode não conter um acesso de membro de interface abstrato estático</target>
+        <target state="new">An expression tree may not contain an access of static virtual or abstract interface member</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
@@ -593,8 +593,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers">
-        <source>The interface '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. The constraint interface '{1}' or its base interface has static abstract or virtual members.</source>
-        <target state="needs-review-translation">A interface '{3}' não pode ser usada como o parâmetro de tipo '{2}' no tipo ou método genérico '{0}'. A interface de restrição '{1}' ou sua interface base tem membros abstratos estáticos.</target>
+        <source>The interface '{0}' cannot be used as type argument. Static member '{1}' does not have a most specific implementation in the interface.</source>
+        <target state="new">The interface '{0}' cannot be used as type argument. Static member '{1}' does not have a most specific implementation in the interface.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GlobalUsingInNamespace">
@@ -635,6 +635,11 @@
       <trans-unit id="ERR_ImplicitConversionOperatorCantBeChecked">
         <source>An 'implicit' user-defined conversion operator cannot be declared checked</source>
         <target state="new">An 'implicit' user-defined conversion operator cannot be declared checked</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitImplementationOfInaccessibleInterfaceMember">
+        <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement an inaccessible member.</source>
+        <target state="new">'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement an inaccessible member.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitIndexIndexerWithName">
@@ -812,6 +817,11 @@
         <target state="translated">Uma expressão lambda com atributos não pode ser convertida em uma árvore de expressão</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember">
+        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</source>
+        <target state="new">'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_LineContainsDifferentWhitespace">
         <source>Line contains different whitespace than the closing line of the raw string literal: '{0}' versus '{1}'</source>
         <target state="translated">A linha contém espaços em branco diferentes dos da linha de fechamento da literal de cadeia de caracteres bruta: “{0}” x “{1}”</target>
@@ -830,6 +840,11 @@
       <trans-unit id="ERR_LineSpanDirectiveInvalidValue">
         <source>The #line directive value is missing or out of range</source>
         <target state="translated">O valor da diretiva de #line está ausente ou fora do intervalo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_LineSpanDirectiveRequiresSpace">
+        <source>The #line span directive requires space before the first parenthesis, before the character offset, and before the file name</source>
+        <target state="new">The #line span directive requires space before the first parenthesis, before the character offset, and before the file name</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ListPatternRequiresLength">
@@ -1572,11 +1587,6 @@
         <target state="translated">tipo de retorno de lambda</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureLineSpanDirective">
-        <source>line span directive</source>
-        <target state="translated">diretiva de extensão de linha</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_FeatureListPattern">
         <source>list pattern</source>
         <target state="translated">padrão de lista</target>
@@ -1909,7 +1919,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyRequiresStatic">
         <source>'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.</source>
-        <target state="needs-review-translation">'UnmanagedCallersOnly' só pode ser aplicado a métodos estáticos não abstratos comuns ou funções locais estáticas.</target>
+        <target state="new">'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_UnmanagedConstraintNotSatisfied">
@@ -2148,7 +2158,7 @@
                               curinga
 -reference:&lt;alias&gt;=&lt;file&gt;     Metadados de referência do arquivo de assembly
                               especificado usando o alias fornecido (Forma abreviada: -r)
--reference:&lt;file list&gt;        Metadados de referência dos arquivos de assembly 
+-reference:&lt;file list&gt;        Metadados de referência dos arquivos de assembly
                               especificados (Forma abreviada: -r)
 -addmodule:&lt;file list&gt;        Vincular o módulo especificado a este assembly
 -link:&lt;file list&gt;             Inserir os metadados dos arquivos de assembly de
@@ -2176,7 +2186,7 @@
 -debug:{full|pdbonly|portable|embedded}
                               Especificar o tipo de depuração ('full' é o padrão,
                               'portable' é um formato multiplataforma,
-                              'embedded' é um formato multiplataforma inserido no 
+                              'embedded' é um formato multiplataforma inserido no
                               .dll ou no .exe de destino)
 -optimize[+|-]                Habilitar as otimizações (Forma abreviada: -o)
 -deterministic                Produzir um assembly determinístico
@@ -2210,7 +2220,7 @@
 -define:&lt;symbol list&gt;         Definir os símbolos de compilação condicional (Forma
                               abreviada: -d)
 -langversion:?                Exibir os valores permitidos para a versão da linguagem
--langversion:&lt;string&gt;         Especificar a versão da linguagem, como 
+-langversion:&lt;string&gt;         Especificar a versão da linguagem, como
                               `latest` (última versão, incluindo as versões secundárias),
                               `default` (igual a `latest`),
                               `latestmajor` (última versão, excluindo as versões secundárias),
@@ -2227,7 +2237,7 @@
                               da chave de nome forte
 -keyfile:&lt;file&gt;               Especificar a arquivo de chave de nome forte
 -keycontainer:&lt;string&gt;        Especificar o contêiner de chave de nome forte
--highentropyva[+|-]           Habilitar a ASLR de alta entropia 
+-highentropyva[+|-]           Habilitar a ASLR de alta entropia
 
                        – DIVERSOS –
 @&lt;file&gt;                       Ler o arquivo de resposta de mais opções
@@ -5912,7 +5922,7 @@ Se tal classe for usada como uma classe base e se a classe derivada definir um d
       </trans-unit>
       <trans-unit id="ERR_BadShiftOperatorSignature">
         <source>The first operand of an overloaded shift operator must have the same type as the containing type</source>
-        <target state="needs-review-translation">O primeiro operando de um operador de deslocamento sobrecarregado deve ser do tipo recipiente, enquanto o do segundo deve ser int</target>
+        <target state="new">The first operand of an overloaded shift operator must have the same type as the containing type</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EnumsCantContainDefaultConstructor">
@@ -11680,11 +11690,6 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
       <trans-unit id="ERR_MostSpecificImplementationIsNotFound">
         <source>Interface member '{0}' does not have a most specific implementation. Neither '{1}', nor '{2}' are most specific.</source>
         <target state="translated">O membro de interface '{0}' não tem uma implementação mais específica. Nem '{1}' nem '{2}' são mais específicos.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember">
-        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</source>
-        <target state="translated">'{0}' não pode implementar o membro de interface '{1}' no tipo '{2}' porque o recurso '{3}' não está disponível no C# {4}. Use a versão de linguagem '{5}' ou superior.</target>
         <note />
       </trans-unit>
     </body>

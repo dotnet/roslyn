@@ -120,7 +120,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 
                 Dim service = GetCompletionService(document.Project)
                 Dim completionList = Await GetCompletionListAsync(service, document, position, RoslynCompletion.CompletionTrigger.Invoke)
-                Dim item = completionList.Items.First(Function(i) i.DisplayText.StartsWith(textTypedSoFar))
+                Dim item = completionList.ItemsList.First(Function(i) i.DisplayText.StartsWith(textTypedSoFar))
 
                 Assert.Equal(expected, CommitManager.SendEnterThroughToEditor(service.GetRules(CompletionOptions.Default), item, textTypedSoFar))
             End Using
