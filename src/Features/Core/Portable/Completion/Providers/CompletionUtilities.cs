@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             Contract.ThrowIfNull(solution);
-            return projectIds.Select(id => solution.GetProject(id)).WhereNotNull().ToImmutableArray();
+            return projectIds.Select(solution.GetProject).WhereNotNull().ToImmutableArray();
         }
     }
 }

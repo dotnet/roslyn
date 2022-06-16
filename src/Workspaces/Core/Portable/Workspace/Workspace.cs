@@ -1658,16 +1658,16 @@ namespace Microsoft.CodeAnalysis
                 project.OutputFilePath,
                 project.CompilationOptions,
                 project.ParseOptions,
-                project.Documents.Select(d => CreateDocumentInfoWithText(d)),
+                project.Documents.Select(CreateDocumentInfoWithText),
                 project.ProjectReferences,
                 project.MetadataReferences,
                 project.AnalyzerReferences,
-                project.AdditionalDocuments.Select(d => CreateDocumentInfoWithText(d)),
+                project.AdditionalDocuments.Select(CreateDocumentInfoWithText),
                 project.IsSubmission,
                 project.State.HostObjectType,
                 project.OutputRefFilePath)
                 .WithDefaultNamespace(project.DefaultNamespace)
-                .WithAnalyzerConfigDocuments(project.AnalyzerConfigDocuments.Select(d => CreateDocumentInfoWithText(d)));
+                .WithAnalyzerConfigDocuments(project.AnalyzerConfigDocuments.Select(CreateDocumentInfoWithText));
         }
 
         private static DocumentInfo CreateDocumentInfoWithText(TextDocument doc)
