@@ -66,7 +66,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return;
             }
 
-            using var context = GetContext();
+            var backgroundWorkIndicatorFactory = workspace.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
+            using var context = backgroundWorkIndicatorFactory.Create(
+                    args.TextView,
+                    args.TextView.GetTextElementSpan(caretPoint.Value),
+                    EditorFeaturesResources.Finding_token_to_rename);
 
             // If there is already an active session, commit it first
             if (_renameService.ActiveSession != null)
@@ -114,32 +118,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 await ShowErrorDialogAsync(workspace, sessionInfo.LocalizedErrorMessage).ConfigureAwait(false);
                 return;
-            }
-
-            return;
-
-            //
-            // Local Functions
-            //
-            IUIThreadOperationContext GetContext()
-            {
-                var backgroundWorkIndicatorFactory = workspace.Services.GetService<IBackgroundWorkIndicatorFactory>();
-
-                // Rename command handler builds for hosts that don't necessarily
-                // have an implementation for IBackgroundWorkIndicatorFactory
-                if (backgroundWorkIndicatorFactory is null)
-                {
-                    // If using the traditional OperationContext then 
-                    // add a new scope, but it will be disposed with the OperationContext
-                    // instead of disposed directly
-                    _ = commandExecutionContext.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Finding_token_to_rename);
-                    return commandExecutionContext.OperationContext;
-                }
-
-                return backgroundWorkIndicatorFactory.Create(
-                    args.TextView,
-                    args.TextView.GetTextElementSpan(caretPoint.Value),
-                    EditorFeaturesResources.Finding_token_to_rename);
             }
         }
 
