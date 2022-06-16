@@ -128,7 +128,14 @@ namespace Microsoft.CodeAnalysis.Completion
         /// It should not be used for syntactic or semantic operations.
         /// </remarks>
         internal virtual bool ShouldTriggerCompletion(
-            Project? project, HostLanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, CompletionOptions options, OptionSet passThroughOptions, ImmutableHashSet<string>? roles = null)
+            Project? project,
+            HostLanguageServices languageServices,
+            SourceText text,
+            int caretPosition,
+            CompletionTrigger trigger,
+            CompletionOptions options,
+            OptionSet passThroughOptions,
+            ImmutableHashSet<string>? roles = null)
         {
             if (!options.TriggerOnTyping)
             {
