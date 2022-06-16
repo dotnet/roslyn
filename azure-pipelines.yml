@@ -30,19 +30,19 @@ pr:
 
 # Windows Build and Test Jobs
 jobs:
-- template: eng/pipelines/build-windows-job.yml
+- template: eng/pipelines/build-windows-on-unix-job.yml
   parameters:
     jobName: Build_Windows_Debug
     testArtifactName: Transport_Artifacts_Windows_Debug
     configuration: Debug
-    queueName: Build.Windows.Amd64.VS2022.Pre.Open
+    queueName: Build.Ubuntu.1804.Amd64.Open
 
-- template: eng/pipelines/build-windows-job.yml
+- template: eng/pipelines/build-windows-on-unix-job.yml
   parameters:
     jobName: Build_Windows_Release
     testArtifactName: Transport_Artifacts_Windows_Release
     configuration: Release
-    queueName: Build.Windows.Amd64.VS2022.Pre.Open
+    queueName: Build.Ubuntu.1804.Amd64.Open
 
 - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
   - template: eng/pipelines/test-windows-job.yml
