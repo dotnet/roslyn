@@ -413,14 +413,12 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             var nonNullBaseSymbolItems = GetNonNullTargetItems(baseSymbolItems);
             var nonNullDerivedTypeItems = GetNonNullTargetItems(derivedTypeItems);
 
-            return nonNullBaseSymbolItems.IsEmpty && nonNullDerivedTypeItems.IsEmpty
-                ? null
-                : InheritanceMarginItem.CreateOrdered(
-                    lineNumber,
-                    topLevelDisplayText: null,
-                    FindUsagesHelpers.GetDisplayParts(interfaceSymbol),
-                    interfaceSymbol.GetGlyph(),
-                    nonNullBaseSymbolItems.Concat(nonNullDerivedTypeItems));
+            return InheritanceMarginItem.CreateOrdered(
+                lineNumber,
+                topLevelDisplayText: null,
+                FindUsagesHelpers.GetDisplayParts(interfaceSymbol),
+                interfaceSymbol.GetGlyph(),
+                nonNullBaseSymbolItems.Concat(nonNullDerivedTypeItems));
         }
 
         private static async ValueTask<InheritanceMarginItem?> CreateInheritanceMemberItemForInterfaceMemberAsync(
@@ -440,14 +438,12 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     cancellationToken), cancellationToken).ConfigureAwait(false);
 
             var nonNullImplementedMemberItems = GetNonNullTargetItems(implementedMemberItems);
-            return nonNullImplementedMemberItems.IsEmpty
-                ? null
-                : InheritanceMarginItem.CreateOrdered(
-                    lineNumber,
-                    topLevelDisplayText: null,
-                    FindUsagesHelpers.GetDisplayParts(memberSymbol),
-                    memberSymbol.GetGlyph(),
-                    nonNullImplementedMemberItems);
+            return InheritanceMarginItem.CreateOrdered(
+                lineNumber,
+                topLevelDisplayText: null,
+                FindUsagesHelpers.GetDisplayParts(memberSymbol),
+                memberSymbol.GetGlyph(),
+                nonNullImplementedMemberItems);
         }
 
         private static async ValueTask<InheritanceMarginItem?> CreateInheritanceItemForClassAndStructureAsync(
@@ -481,14 +477,12 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             var nonNullBaseSymbolItems = GetNonNullTargetItems(baseSymbolItems);
             var nonNullDerivedTypeItems = GetNonNullTargetItems(derivedTypeItems);
 
-            return nonNullBaseSymbolItems.IsEmpty && nonNullDerivedTypeItems.IsEmpty
-                ? null
-                : InheritanceMarginItem.CreateOrdered(
-                    lineNumber,
-                    topLevelDisplayText: null,
-                    FindUsagesHelpers.GetDisplayParts(memberSymbol),
-                    memberSymbol.GetGlyph(),
-                    nonNullBaseSymbolItems.Concat(nonNullDerivedTypeItems));
+            return  InheritanceMarginItem.CreateOrdered(
+                lineNumber,
+                topLevelDisplayText: null,
+                FindUsagesHelpers.GetDisplayParts(memberSymbol),
+                memberSymbol.GetGlyph(),
+                nonNullBaseSymbolItems.Concat(nonNullDerivedTypeItems));
         }
 
         private static async ValueTask<InheritanceMarginItem?> CreateInheritanceMemberItemForClassOrStructMemberAsync(
@@ -531,9 +525,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             var nonNullOverriddenMemberItems = GetNonNullTargetItems(overriddenMemberItems);
             var nonNullOverridingMemberItems = GetNonNullTargetItems(overridingMemberItems);
 
-            return nonNullImplementedMemberItems.IsEmpty && nonNullOverriddenMemberItems.IsEmpty && nonNullOverridingMemberItems.IsEmpty
-                ? null
-                : InheritanceMarginItem.CreateOrdered(
+            return InheritanceMarginItem.CreateOrdered(
                     lineNumber,
                     topLevelDisplayText: null,
                     FindUsagesHelpers.GetDisplayParts(memberSymbol),
