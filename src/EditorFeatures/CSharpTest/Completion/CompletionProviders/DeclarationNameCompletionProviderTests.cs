@@ -2902,6 +2902,42 @@ public class MyClass
 
         [WorkItem(61747, "https://github.com/dotnet/roslyn/issues/61747")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NotAfterThisMember1()
+        {
+            var markup = @"
+public class MyClass
+{
+    private event System.EventHandler Test;
+
+    void M()
+    {
+        this.Test $$
+    }
+}";
+            await VerifyNoItemsExistAsync(markup);
+        }
+
+        [WorkItem(61747, "https://github.com/dotnet/roslyn/issues/61747")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NotAfterThisMember2()
+        {
+            var markup = @"
+class Test { }
+
+public class MyClass
+{
+    private event System.EventHandler Test;
+
+    void M()
+    {
+        this.Test $$
+    }
+}";
+            await VerifyNoItemsExistAsync(markup);
+        }
+
+        [WorkItem(61747, "https://github.com/dotnet/roslyn/issues/61747")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/pull/61807#discussion_r895030913"), Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotAfterEventName()
         {
             var markup = @"
@@ -2915,6 +2951,28 @@ public class MyClass
     }
 }";
             await VerifyNoItemsExistAsync(markup);
+        }
+
+        [WorkItem(61747, "https://github.com/dotnet/roslyn/issues/61747")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/pull/61807#discussion_r895030913"), Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AfterIdentifierWithSeveralMeanings()
+        {
+            var markup = @"
+class Test { }
+
+public class MyClass
+{
+    private event System.EventHandler Test;
+
+    void M()
+    {
+        Test $$
+    }
+}";
+            await VerifyItemExistsAsync(markup, "test");
+            await VerifyItemIsAbsentAsync(markup, "eventHandler");
+            await VerifyItemIsAbsentAsync(markup, "@event");
+            await VerifyItemIsAbsentAsync(markup, "handler");
         }
 
         private static NamingStylePreferences MultipleCamelCaseLocalRules()

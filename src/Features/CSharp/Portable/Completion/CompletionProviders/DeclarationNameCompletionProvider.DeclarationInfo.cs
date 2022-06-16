@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     || IsPropertyDeclaration(token, semanticModel, cancellationToken, out result)
                     || IsPossibleOutVariableDeclaration(token, semanticModel, typeInferenceService, cancellationToken, out result)
                     || IsTupleLiteralElement(token, semanticModel, cancellationToken, out result)
-                    || IsPossibleVariableOrLocalMethodDeclaration(token, semanticModel, cancellationToken, out result)
+                    || IsPossibleVariableOrLocalFunctionDeclaration(token, semanticModel, cancellationToken, out result)
                     || IsPatternMatching(token, semanticModel, cancellationToken, out result))
                 {
                     return result;
@@ -154,14 +154,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return false;
             }
 
-            private static bool IsPossibleVariableOrLocalMethodDeclaration(
+            private static bool IsPossibleVariableOrLocalFunctionDeclaration(
                 SyntaxToken token, SemanticModel semanticModel,
                 CancellationToken cancellationToken, out NameDeclarationInfo result)
             {
-                // Incomplete statements like "SomeSymbol " or "SomeEvent " are syntactically equal.
-                // However you cannot declare a variable or local function with event being a return type,
-                // so we need to filter this case here
-                if (semanticModel.GetSymbolInfo(token).Symbol is IEventSymbol)
+                // It is impossible to declare a variable or local function after an expression like:
+                // this.SomeMember $$
+                if (token.GetAncestor<ExpressionStatementSyntax>() is { Expression: MemberAccessExpressionSyntax { Expression: ThisExpressionSyntax } })
                 {
                     result = default;
                     return false;
