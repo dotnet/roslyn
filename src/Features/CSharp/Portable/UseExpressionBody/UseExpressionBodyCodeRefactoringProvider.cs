@@ -247,13 +247,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 bool useExpressionBody,
                 CancellationToken cancellationToken)
             {
-                // Process all declaration nodes in reverse to handle nested declaration updates properly.
-                declarationsToFix = declarationsToFix.Reverse().ToImmutableArray();
-
                 // Track all the declaration nodes to be fixed so we can get the latest declaration node in the current root during updates.
                 var currentRoot = root.TrackNodes(declarationsToFix);
 
-                foreach (var declaration in declarationsToFix)
+                // Process all declaration nodes in reverse to handle nested declaration updates properly.
+                foreach (var declaration in declarationsToFix.Reverse())
                 {
                     // Get the current document, root, semanticModel and declaration.
                     document = document.WithSyntaxRoot(currentRoot);
