@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         private static async Task SearchCachedDocumentsInCurrentProcessAsync(
             IChecksummedPersistentStorageService storageService,
             string patternName,
-            string patternContainer,
+            string? patternContainer,
             DeclaredSymbolInfoKindSet kinds,
             Func<RoslynNavigateToItem, Task> onItemFound,
             ImmutableArray<DocumentKey> documentKeys,
