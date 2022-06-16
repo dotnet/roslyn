@@ -286,7 +286,7 @@ class T
 {
     void M()
     {
-        var a = $""{(object)new object}"";
+        var a = $""{new object}"";
     }
 }");
         }
@@ -890,6 +890,35 @@ class T
     }
 }",
 @"using System;
+
+class T
+{
+    void M()
+    {
+        var a = $""{1}"";
+    }
+}");
+        }
+
+        [WorkItem(61346, "https://github.com/dotnet/roslyn/issues/61346")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestNoCastToObjectWhenNullableEnabled()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+#nullable enable
+
+class T
+{
+    void M()
+    {
+        var a = string.Format([|""{0}"", 1|]);
+    }
+}",
+@"using System;
+
+#nullable enable
 
 class T
 {
