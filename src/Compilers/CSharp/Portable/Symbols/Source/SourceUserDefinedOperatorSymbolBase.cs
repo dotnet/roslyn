@@ -749,7 +749,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!IsSelfConstrainedTypeParameter(this.GetParameterType(0).StrippedType()) &&
                 !IsSelfConstrainedTypeParameter(this.GetParameterType(1).StrippedType()))
             {
-                diagnostics.Add(ErrorCode.ERR_BadAbstractEqualityOperatorSignature, this.Locations[0]);
+                diagnostics.Add(ErrorCode.ERR_BadAbstractEqualityOperatorSignature, this.Locations[0], this.ContainingType);
             }
 
             CheckReturnIsNotVoid(diagnostics);

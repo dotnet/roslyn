@@ -8066,24 +8066,24 @@ interface I13
                 // (9,26): error CS0563: One of the parameters of a binary operator must be the containing type
                 //     static bool operator ==(T2? x, bool y) => throw null;
                 Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, op).WithLocation(9, 26),
-                // (26,39): error CS9045: One of the parameters of an equality, or inequality operator declared in interfaces must be a type parameter on the enclosing type constrained to the enclosing type
+                // (26,39): error CS9046: One of the parameters of an equality, or inequality operator declared in interface 'C5<T5>.I6' must be a type parameter on 'C5<T5>.I6' constrained to 'C5<T5>.I6'
                 //         static abstract bool operator ==(T5 x, bool y);
-                Diagnostic(ErrorCode.ERR_BadAbstractEqualityOperatorSignature, op).WithLocation(26, 39),
-                // (32,35): error CS9045: One of the parameters of an equality, or inequality operator declared in interfaces must be a type parameter on the enclosing type constrained to the enclosing type
+                Diagnostic(ErrorCode.ERR_BadAbstractEqualityOperatorSignature, op).WithArguments("C5<T5>.I6").WithLocation(26, 39),
+                // (32,35): error CS9046: One of the parameters of an equality, or inequality operator declared in interface 'I7<T71, T72>' must be a type parameter on 'I7<T71, T72>' constrained to 'I7<T71, T72>'
                 //     static abstract bool operator ==(T71 x, bool y);
-                Diagnostic(ErrorCode.ERR_BadAbstractEqualityOperatorSignature, op).WithLocation(32, 35),
-                // (37,35): error CS9045: One of the parameters of an equality, or inequality operator declared in interfaces must be a type parameter on the enclosing type constrained to the enclosing type
+                Diagnostic(ErrorCode.ERR_BadAbstractEqualityOperatorSignature, op).WithArguments("I7<T71, T72>").WithLocation(32, 35),
+                // (37,35): error CS9046: One of the parameters of an equality, or inequality operator declared in interface 'I8<T8>' must be a type parameter on 'I8<T8>' constrained to 'I8<T8>'
                 //     static abstract bool operator ==(T8 x, bool y);
-                Diagnostic(ErrorCode.ERR_BadAbstractEqualityOperatorSignature, op).WithLocation(37, 35),
-                // (44,35): error CS9045: One of the parameters of an equality, or inequality operator declared in interfaces must be a type parameter on the enclosing type constrained to the enclosing type
+                Diagnostic(ErrorCode.ERR_BadAbstractEqualityOperatorSignature, op).WithArguments("I8<T8>").WithLocation(37, 35),
+                // (44,35): error CS9046: One of the parameters of an equality, or inequality operator declared in interface 'I10<T10>' must be a type parameter on 'I10<T10>' constrained to 'I10<T10>'
                 //     static abstract bool operator ==(T10 x, bool y);
-                Diagnostic(ErrorCode.ERR_BadAbstractEqualityOperatorSignature, op).WithLocation(44, 35),
-                // (51,35): error CS9045: One of the parameters of an equality, or inequality operator declared in interfaces must be a type parameter on the enclosing type constrained to the enclosing type
+                Diagnostic(ErrorCode.ERR_BadAbstractEqualityOperatorSignature, op).WithArguments("I10<T10>").WithLocation(44, 35),
+                // (51,35): error CS9046: One of the parameters of an equality, or inequality operator declared in interface 'I12' must be a type parameter on 'I12' constrained to 'I12'
                 //     static abstract bool operator ==(int x, bool y);
-                Diagnostic(ErrorCode.ERR_BadAbstractEqualityOperatorSignature, op).WithLocation(51, 35),
-                // (56,35): error CS9045: One of the parameters of an equality, or inequality operator declared in interfaces must be a type parameter on the enclosing type constrained to the enclosing type
+                Diagnostic(ErrorCode.ERR_BadAbstractEqualityOperatorSignature, op).WithArguments("I12").WithLocation(51, 35),
+                // (56,35): error CS9046: One of the parameters of an equality, or inequality operator declared in interface 'I13' must be a type parameter on 'I13' constrained to 'I13'
                 //     static abstract bool operator ==(I13 x, bool y);
-                Diagnostic(ErrorCode.ERR_BadAbstractEqualityOperatorSignature, op).WithLocation(56, 35)
+                Diagnostic(ErrorCode.ERR_BadAbstractEqualityOperatorSignature, op).WithArguments("I13").WithLocation(56, 35)
                 );
         }
 
@@ -8163,24 +8163,24 @@ interface I13
                 // (9,26): error CS0563: One of the parameters of a binary operator must be the containing type
                 //     static bool operator ==(bool y, T2? x) => throw null;
                 Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, op).WithLocation(9, 26),
-                // (26,39): error CS9045: One of the parameters of an equality, or inequality operator declared in interfaces must be a type parameter on the enclosing type constrained to the enclosing type
+                // (26,39): error CS9046: One of the parameters of an equality, or inequality operator declared in interface 'C5<T5>.I6' must be a type parameter on 'C5<T5>.I6' constrained to 'C5<T5>.I6'
                 //         static abstract bool operator ==(bool y, T5 x);
-                Diagnostic(ErrorCode.ERR_BadAbstractEqualityOperatorSignature, op).WithLocation(26, 39),
-                // (32,35): error CS9045: One of the parameters of an equality, or inequality operator declared in interfaces must be a type parameter on the enclosing type constrained to the enclosing type
+                Diagnostic(ErrorCode.ERR_BadAbstractEqualityOperatorSignature, op).WithArguments("C5<T5>.I6").WithLocation(26, 39),
+                // (32,35): error CS9046: One of the parameters of an equality, or inequality operator declared in interface 'I7<T71, T72>' must be a type parameter on 'I7<T71, T72>' constrained to 'I7<T71, T72>'
                 //     static abstract bool operator ==(bool y, T71 x);
-                Diagnostic(ErrorCode.ERR_BadAbstractEqualityOperatorSignature, op).WithLocation(32, 35),
-                // (37,35): error CS9045: One of the parameters of an equality, or inequality operator declared in interfaces must be a type parameter on the enclosing type constrained to the enclosing type
+                Diagnostic(ErrorCode.ERR_BadAbstractEqualityOperatorSignature, op).WithArguments("I7<T71, T72>").WithLocation(32, 35),
+                // (37,35): error CS9046: One of the parameters of an equality, or inequality operator declared in interface 'I8<T8>' must be a type parameter on 'I8<T8>' constrained to 'I8<T8>'
                 //     static abstract bool operator ==(bool y, T8 x);
-                Diagnostic(ErrorCode.ERR_BadAbstractEqualityOperatorSignature, op).WithLocation(37, 35),
-                // (44,35): error CS9045: One of the parameters of an equality, or inequality operator declared in interfaces must be a type parameter on the enclosing type constrained to the enclosing type
+                Diagnostic(ErrorCode.ERR_BadAbstractEqualityOperatorSignature, op).WithArguments("I8<T8>").WithLocation(37, 35),
+                // (44,35): error CS9046: One of the parameters of an equality, or inequality operator declared in interface 'I10<T10>' must be a type parameter on 'I10<T10>' constrained to 'I10<T10>'
                 //     static abstract bool operator ==(bool y, T10 x);
-                Diagnostic(ErrorCode.ERR_BadAbstractEqualityOperatorSignature, op).WithLocation(44, 35),
-                // (51,35): error CS9045: One of the parameters of an equality, or inequality operator declared in interfaces must be a type parameter on the enclosing type constrained to the enclosing type
+                Diagnostic(ErrorCode.ERR_BadAbstractEqualityOperatorSignature, op).WithArguments("I10<T10>").WithLocation(44, 35),
+                // (51,35): error CS9046: One of the parameters of an equality, or inequality operator declared in interface 'I12' must be a type parameter on 'I12' constrained to 'I12'
                 //     static abstract bool operator ==(bool y, int x);
-                Diagnostic(ErrorCode.ERR_BadAbstractEqualityOperatorSignature, op).WithLocation(51, 35),
-                // (56,35): error CS9045: One of the parameters of an equality, or inequality operator declared in interfaces must be a type parameter on the enclosing type constrained to the enclosing type
+                Diagnostic(ErrorCode.ERR_BadAbstractEqualityOperatorSignature, op).WithArguments("I12").WithLocation(51, 35),
+                // (56,35): error CS9046: One of the parameters of an equality, or inequality operator declared in interface 'I13' must be a type parameter on 'I13' constrained to 'I13'
                 //     static abstract bool operator ==(bool y, I13 x);
-                Diagnostic(ErrorCode.ERR_BadAbstractEqualityOperatorSignature, op).WithLocation(56, 35)
+                Diagnostic(ErrorCode.ERR_BadAbstractEqualityOperatorSignature, op).WithArguments("I13").WithLocation(56, 35)
                 );
         }
 
@@ -18530,9 +18530,9 @@ interface I14 : I1
             {
                 expected = expected.Concat(
                     new[] {
-                        // (4,33): error CS9045: One of the parameters of an equality, or inequality operator declared in interfaces must be a type parameter on the enclosing type constrained to the enclosing type
+                        // (4,33): error CS9046: One of the parameters of an equality, or inequality operator declared in interface 'I1' must be a type parameter on 'I1' constrained to 'I1'
                         //     abstract static I1 operator ==(I1 x, int y);
-                        Diagnostic(ErrorCode.ERR_BadAbstractEqualityOperatorSignature, op).WithLocation(4, 33),
+                        Diagnostic(ErrorCode.ERR_BadAbstractEqualityOperatorSignature, op).WithArguments("I1").WithLocation(4, 33),
                         // (12,17): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract or virtual
                         //     I1 operator ==(I1 x, int y) => default;
                         Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, op).WithLocation(12, 17 + checkedKeyword.Length),
@@ -18542,9 +18542,9 @@ interface I14 : I1
                         // (22,20): error CS8930: Explicit implementation of a user-defined operator 'I5.operator ==(I1, int)' must be declared static
                         //     I1 I1.operator ==(I1 x, int y) => default;
                         Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, op).WithArguments("I5.operator " + op + "(I1, int)").WithLocation(22, 20),
-                        // (32,33): error CS9045: One of the parameters of an equality, or inequality operator declared in interfaces must be a type parameter on the enclosing type constrained to the enclosing type
+                        // (32,33): error CS9046: One of the parameters of an equality, or inequality operator declared in interface 'I7' must be a type parameter on 'I7' constrained to 'I7'
                         //     abstract static I1 operator ==(I1 x, int y);
-                        Diagnostic(ErrorCode.ERR_BadAbstractEqualityOperatorSignature, op).WithLocation(32, 33),
+                        Diagnostic(ErrorCode.ERR_BadAbstractEqualityOperatorSignature, op).WithArguments("I7").WithLocation(32, 33),
                         // (42,16): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract or virtual
                         //     T operator ==(T x, int y) => default;
                         Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, op).WithLocation(42, 16 + checkedKeyword.Length),
@@ -18722,9 +18722,9 @@ interface I14 : I1
             {
                 expected = expected.Concat(
                     new[] {
-                        // (4,33): error CS9045: One of the parameters of an equality, or inequality operator declared in interfaces must be a type parameter on the enclosing type constrained to the enclosing type
+                        // (4,33): error CS9046: One of the parameters of an equality, or inequality operator declared in interface 'I1' must be a type parameter on 'I1' constrained to 'I1'
                         //     virtual  static I1 operator ==(I1 x, int y);
-                        Diagnostic(ErrorCode.ERR_BadAbstractEqualityOperatorSignature, op).WithLocation(4, 33),
+                        Diagnostic(ErrorCode.ERR_BadAbstractEqualityOperatorSignature, op).WithArguments("I1").WithLocation(4, 33),
                         // (12,17): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract or virtual
                         //     I1 operator ==(I1 x, int y) => default;
                         Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, op).WithLocation(12, 17 + checkedKeyword.Length),
@@ -18734,9 +18734,9 @@ interface I14 : I1
                         // (22,20): error CS8930: Explicit implementation of a user-defined operator 'I5.operator ==(I1, int)' must be declared static
                         //     I1 I1.operator ==(I1 x, int y) => default;
                         Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, op).WithArguments("I5.operator " + op + "(I1, int)").WithLocation(22, 20),
-                        // (32,33): error CS9045: One of the parameters of an equality, or inequality operator declared in interfaces must be a type parameter on the enclosing type constrained to the enclosing type
+                        // (32,33): error CS9046: One of the parameters of an equality, or inequality operator declared in interface 'I7' must be a type parameter on 'I7' constrained to 'I7'
                         //     virtual  static I1 operator ==(I1 x, int y);
-                        Diagnostic(ErrorCode.ERR_BadAbstractEqualityOperatorSignature, op).WithLocation(32, 33),
+                        Diagnostic(ErrorCode.ERR_BadAbstractEqualityOperatorSignature, op).WithArguments("I7").WithLocation(32, 33),
                         // (42,16): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract or virtual
                         //     T operator ==(T x, int y) => default;
                         Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, op).WithLocation(42, 16 + checkedKeyword.Length),

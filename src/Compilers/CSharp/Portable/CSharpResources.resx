@@ -7131,6 +7131,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Required members are not allowed on the top level of a script or submission.</value>
   </data>
   <data name="ERR_BadAbstractEqualityOperatorSignature" xml:space="preserve">
-    <value>One of the parameters of an equality, or inequality operator declared in interfaces must be a type parameter on the enclosing type constrained to the enclosing type</value>
+    <value>One of the parameters of an equality, or inequality operator declared in interface '{0}' must be a type parameter on '{0}' constrained to '{0}'</value>
   </data>
 </root>
