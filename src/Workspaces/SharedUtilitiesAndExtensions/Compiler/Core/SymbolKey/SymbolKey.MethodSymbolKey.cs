@@ -74,9 +74,15 @@ namespace Microsoft.CodeAnalysis
                     return default;
                 }
 
-                if (constructedFrom.SymbolCount == 0 || typeArguments.IsDefault)
+                if (constructedFrom.SymbolCount == 0)
                 {
-                    failureReason = $"({nameof(ConstructedMethodSymbolKey)} {nameof(typeArguments)} failed -> 'constructedFrom.SymbolCount == 0 || typeArguments.IsDefault')";
+                    failureReason = $"({nameof(ConstructedMethodSymbolKey)} {nameof(typeArguments)} failed -> 'constructedFrom.SymbolCount == 0')";
+                    return default;
+                }
+
+                if (typeArguments.IsDefault)
+                {
+                    failureReason = $"({nameof(ConstructedMethodSymbolKey)} {nameof(typeArguments)} failed -> 'typeArguments.IsDefault')";
                     return default;
                 }
 
@@ -85,10 +91,16 @@ namespace Microsoft.CodeAnalysis
                 using var result = PooledArrayBuilder<IMethodSymbol>.GetInstance();
                 foreach (var method in constructedFrom.OfType<IMethodSymbol>())
                 {
-                    if (method.TypeParameters.Length == typeArgumentArray.Length)
-                    {
-                        result.AddIfNotNull(method.Construct(typeArgumentArray));
-                    }
+                    if (!method.Equals(method.ConstructedFrom))
+                        continue;
+
+                    if (method.Arity == 0)
+                        continue;
+
+                    if (method.TypeParameters.Length != typeArgumentArray.Length)
+                        continue;
+
+                    result.AddIfNotNull(method.Construct(typeArgumentArray));
                 }
 
                 return CreateResolution(result, $"({nameof(ConstructedMethodSymbolKey)} could not successfully construct)", out failureReason);

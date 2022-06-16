@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return null;
         }
 
-        public static ImmutableArray<SyntaxToken> GetIdentifierOrGlobalNamespaceTokensWithText(
+        public static ImmutableArray<SyntaxToken> GetIdentifierTokensWithText(
             ISyntaxFactsService syntaxFacts,
             SemanticModel model,
             SyntaxNode root,
@@ -77,16 +77,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var entry = GetCachedEntry(model);
             if (entry == null)
             {
-                return GetIdentifierOrGlobalNamespaceTokensWithText(syntaxFacts, root, sourceText, normalized, cancellationToken);
+                return GetIdentifierTokensWithText(syntaxFacts, root, sourceText, normalized, cancellationToken);
             }
 
             return entry.IdentifierCache.GetOrAdd(normalized,
-                key => GetIdentifierOrGlobalNamespaceTokensWithText(
-                    syntaxFacts, root, sourceText, key, cancellationToken));
+                key => GetIdentifierTokensWithText(syntaxFacts, root, sourceText, key, cancellationToken));
         }
 
         [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1224834", AllowCaptures = false)]
-        private static ImmutableArray<SyntaxToken> GetIdentifierOrGlobalNamespaceTokensWithText(
+        private static ImmutableArray<SyntaxToken> GetIdentifierTokensWithText(
             ISyntaxFactsService syntaxFacts, SyntaxNode root, SourceText sourceText,
             string text, CancellationToken cancellationToken)
         {
@@ -108,7 +107,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             static bool IsCandidate(SyntaxToken t, ISyntaxFactsService syntaxFacts, string text)
-                => syntaxFacts.IsGlobalNamespaceKeyword(t) || (syntaxFacts.IsIdentifier(t) && syntaxFacts.TextMatch(t.ValueText, text));
+                => syntaxFacts.IsIdentifier(t) && syntaxFacts.TextMatch(t.ValueText, text);
         }
 
         private static ImmutableArray<SyntaxToken> GetTokensFromText(

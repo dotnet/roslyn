@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             var types = await DependentTypeFinder.FindTypesAsync(
                 type, solution, projects, transitive, DependentTypesKind.DerivedClasses, cancellationToken).ConfigureAwait(false);
-            return types.WhereAsArray(t => IsAccessible(t));
+            return types.WhereAsArray(IsAccessible);
         }
 
         #endregion
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             var types = await DependentTypeFinder.FindTypesAsync(
                 type, solution, projects, transitive, DependentTypesKind.DerivedInterfaces, cancellationToken).ConfigureAwait(false);
-            return types.WhereAsArray(t => IsAccessible(t));
+            return types.WhereAsArray(IsAccessible);
         }
 
         #endregion
@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             var types = await DependentTypeFinder.FindTypesAsync(
                 type, solution, projects, transitive, DependentTypesKind.ImplementingTypes, cancellationToken).ConfigureAwait(false);
-            return types.WhereAsArray(t => IsAccessible(t));
+            return types.WhereAsArray(IsAccessible);
         }
 
         #endregion
