@@ -98,42 +98,36 @@ namespace Microsoft.CodeAnalysis
         protected override string GetPathToLoad(string fullPath)
         {
             string assemblyDirectory = CreateUniqueDirectoryForAssembly();
-            string shadowCopyPath = CopyFileAndResources(fullPath, assemblyDirectory);
-            return shadowCopyPath;
+            string pathToLoad = CopyFileAndDependencies(fullPath, assemblyDirectory);
+            return pathToLoad;
         }
 
-        private static string CopyFileAndResources(string fullPath, string assemblyDirectory)
+        private static string CopyFileAndDependencies(string fullPath, string assemblyDirectory)
         {
             string fileNameWithExtension = Path.GetFileName(fullPath);
-            string shadowCopyPath = Path.Combine(assemblyDirectory, fileNameWithExtension);
+            string shadowCopyDirectoryPath = Path.Combine(assemblyDirectory, fileNameWithExtension);
 
-            CopyFile(fullPath, shadowCopyPath);
+            CopyDirectory(Path.GetDirectoryName(fullPath)!, shadowCopyDirectoryPath);
 
-            string originalDirectory = Path.GetDirectoryName(fullPath)!;
-            string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(fileNameWithExtension);
-            string resourcesNameWithoutExtension = fileNameWithoutExtension + ".resources";
-            string resourcesNameWithExtension = resourcesNameWithoutExtension + ".dll";
+            return Path.Combine(shadowCopyDirectoryPath, fileNameWithExtension);
 
-            foreach (var directory in Directory.EnumerateDirectories(originalDirectory))
+            static void CopyDirectory(string sourceDir, string destinationDir)
             {
-                string directoryName = Path.GetFileName(directory);
+                var sourceDirectory = new DirectoryInfo(sourceDir);
+                Directory.CreateDirectory(destinationDir);
 
-                string resourcesPath = Path.Combine(directory, resourcesNameWithExtension);
-                if (File.Exists(resourcesPath))
+                foreach (var file in sourceDirectory.GetFiles("*.dll"))
                 {
-                    string resourcesShadowCopyPath = Path.Combine(assemblyDirectory, directoryName, resourcesNameWithExtension);
-                    CopyFile(resourcesPath, resourcesShadowCopyPath);
+                    string targetFilePath = Path.Combine(destinationDir, file.Name);
+                    CopyFile(file.FullName, targetFilePath);
                 }
 
-                resourcesPath = Path.Combine(directory, resourcesNameWithoutExtension, resourcesNameWithExtension);
-                if (File.Exists(resourcesPath))
+                foreach (var subDirectory in sourceDirectory.GetDirectories())
                 {
-                    string resourcesShadowCopyPath = Path.Combine(assemblyDirectory, directoryName, resourcesNameWithoutExtension, resourcesNameWithExtension);
-                    CopyFile(resourcesPath, resourcesShadowCopyPath);
+                    var newDestinationDir = Path.Combine(destinationDir, subDirectory.Name);
+                    CopyDirectory(subDirectory.FullName, newDestinationDir);
                 }
             }
-
-            return shadowCopyPath;
         }
 
         private static void CopyFile(string originalPath, string shadowCopyPath)
