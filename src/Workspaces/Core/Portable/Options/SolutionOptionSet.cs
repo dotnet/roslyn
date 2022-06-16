@@ -17,12 +17,23 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options
 {
-    internal sealed partial class SolutionOptionSet : OptionSet
+    /// <summary>
+    /// Implements in-proc only storage for <see cref="Solution.Options"/>.
+    /// Supports tracking changed options.
+    /// Options that are not set in the option set are read from global options and cached.
+    /// </summary>
+    internal sealed class SolutionOptionSet : OptionSet
     {
         private readonly ILegacyWorkspaceOptionService _globalOptions;
 
+        /// <summary>
+        /// Cached values read from global options.
+        /// </summary>
         private ImmutableDictionary<OptionKey, object?> _values;
 
+        /// <summary>
+        /// Keys of options whose current value stored in <see cref="_values"/> differs from the value originally read from global options.
+        /// </summary>
         private readonly ImmutableHashSet<OptionKey> _changedOptionKeys;
 
         private SolutionOptionSet(

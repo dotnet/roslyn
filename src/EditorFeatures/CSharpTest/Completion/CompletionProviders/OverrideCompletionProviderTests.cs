@@ -2136,7 +2136,7 @@ public class SomeClass : Base
         public async Task TestUnsafe1()
         {
             var markupBeforeCommit =
-    @"public class A
+@"public class A
 {
     public unsafe virtual void F()
     {
@@ -2149,7 +2149,7 @@ public class B : A
 }";
 
             var expectedCodeAfterCommit =
-    @"public class A
+@"public class A
 {
     public unsafe virtual void F()
     {
@@ -2172,7 +2172,7 @@ public class B : A
         public async Task TestUnsafe2()
         {
             var markupBeforeCommit =
-    @"public class A
+@"public class A
 {
     public unsafe virtual void F()
     {
@@ -2185,7 +2185,7 @@ public class B : A
 }";
 
             var expectedCodeAfterCommit =
-    @"public class A
+@"public class A
 {
     public unsafe virtual void F()
     {
@@ -2208,7 +2208,7 @@ public class B : A
         public async Task TestUnsafe3()
         {
             var markupBeforeCommit =
-    @"public class A
+@"public class A
 {
     public unsafe virtual void F()
     {
@@ -2221,7 +2221,7 @@ public class B : A
 }";
 
             var expectedCodeAfterCommit =
-    @"public class A
+@"public class A
 {
     public unsafe virtual void F()
     {
@@ -2244,7 +2244,7 @@ public class B : A
         public async Task TestUnsafe4()
         {
             var markupBeforeCommit =
-    @"public class A
+@"public class A
 {
     public virtual void F(int* i)
     {
@@ -2257,7 +2257,7 @@ public class B : A
 }";
 
             var expectedCodeAfterCommit =
-    @"public class A
+@"public class A
 {
     public virtual void F(int* i)
     {
@@ -2280,7 +2280,7 @@ public class B : A
         public async Task TestPrivateVirtualProperty()
         {
             var markupBeforeCommit =
-    @"public class B
+@"public class B
 {
     public virtual int Goo
     {
@@ -2294,7 +2294,7 @@ public class B : A
 }";
 
             var expectedCodeAfterCommit =
-    @"public class B
+@"public class B
 {
     public virtual int Goo
     {

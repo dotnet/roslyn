@@ -45,6 +45,12 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         private const int SerializationVersion = 1;
 
+        private const string XmlElement_CodeStyleOption = "CodeStyleOption";
+        private const string XmlAttribute_SerializationVersion = "SerializationVersion";
+        private const string XmlAttribute_Type = "Type";
+        private const string XmlAttribute_Value = "Value";
+        private const string XmlAttribute_DiagnosticSeverity = "DiagnosticSeverity";
+
         [DataMember(Order = 0)]
         public T Value { get; }
 
@@ -72,11 +78,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         private int EnumValueAsInt32 => (int)(object)Value!;
 
         public XElement ToXElement() =>
-            new("CodeStyleOption", // Ensure that we use "CodeStyleOption" as the name for back compat.
-                new XAttribute("SerializationVersion", SerializationVersion),
-                new XAttribute("Type", GetTypeNameForSerialization()),
-                new XAttribute("Value", GetValueForSerialization()),
-                new XAttribute("DiagnosticSeverity", Notification.Severity.ToDiagnosticSeverity() ?? DiagnosticSeverity.Hidden));
+            new(XmlElement_CodeStyleOption, // Ensure that we use "CodeStyleOption" as the name for back compat.
+                new XAttribute(XmlAttribute_SerializationVersion, SerializationVersion),
+                new XAttribute(XmlAttribute_Type, GetTypeNameForSerialization()),
+                new XAttribute(XmlAttribute_Value, GetValueForSerialization()),
+                new XAttribute(XmlAttribute_DiagnosticSeverity, Notification.Severity.ToDiagnosticSeverity() ?? DiagnosticSeverity.Hidden));
 
         private object GetValueForSerialization()
         {
@@ -123,10 +129,10 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         public static CodeStyleOption2<T> FromXElement(XElement element)
         {
-            var typeAttribute = element.Attribute("Type");
-            var valueAttribute = element.Attribute("Value");
-            var severityAttribute = element.Attribute("DiagnosticSeverity");
-            var version = (int?)element.Attribute("SerializationVersion");
+            var typeAttribute = element.Attribute(XmlAttribute_Type);
+            var valueAttribute = element.Attribute(XmlAttribute_Value);
+            var severityAttribute = element.Attribute(XmlAttribute_DiagnosticSeverity);
+            var version = (int?)element.Attribute(XmlAttribute_SerializationVersion);
 
             if (typeAttribute == null || valueAttribute == null || severityAttribute == null)
             {
