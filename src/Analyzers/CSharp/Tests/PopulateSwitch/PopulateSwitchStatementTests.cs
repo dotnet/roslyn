@@ -1224,7 +1224,7 @@ enum MyEnum
 }");
         }
 
-        [Fact, WorkItem(61281, "https://github.com/dotnet/roslyn/issues/61281")]
+        [Fact, WorkItem(61281, "https://github.com/dotnet/roslyn/pull/61809")]
         public async Task TestNotInSwitchWithUnknownType1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1237,9 +1237,15 @@ enum MyEnum
 }");
         }
 
-        [Fact, WorkItem(61281, "https://github.com/dotnet/roslyn/issues/61281")]
+        [Fact, WorkItem(61281, "https://github.com/dotnet/roslyn/pull/61809")]
         public async Task TestNotInSwitchWithUnknownType2()
         {
+            // Parser currently treats "var v = null switch" as:
+            //
+            // var v = null <- ';' is "missing"
+            // switch
+            //
+            // So switch is a statement here.
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
