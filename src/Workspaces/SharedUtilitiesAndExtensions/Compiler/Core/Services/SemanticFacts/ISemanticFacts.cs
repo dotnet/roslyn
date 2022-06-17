@@ -89,8 +89,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         IEnumerable<ISymbol> GetDeclaredSymbols(SemanticModel semanticModel, SyntaxNode memberDeclaration, CancellationToken cancellationToken);
 
-        IParameterSymbol FindParameterForArgument(SemanticModel semanticModel, SyntaxNode argument, CancellationToken cancellationToken);
-        IParameterSymbol FindParameterForAttributeArgument(SemanticModel semanticModel, SyntaxNode argument, CancellationToken cancellationToken);
+        IParameterSymbol FindParameterForArgument(SemanticModel semanticModel, SyntaxNode argument, bool allowUncertainCandidates, CancellationToken cancellationToken);
+        IParameterSymbol FindParameterForAttributeArgument(SemanticModel semanticModel, SyntaxNode argument, bool allowUncertainCandidates, CancellationToken cancellationToken);
         ISymbol FindFieldOrPropertyForArgument(SemanticModel semanticModel, SyntaxNode argument, CancellationToken cancellationToken);
         ISymbol FindFieldOrPropertyForAttributeArgument(SemanticModel semanticModel, SyntaxNode argument, CancellationToken cancellationToken);
 
