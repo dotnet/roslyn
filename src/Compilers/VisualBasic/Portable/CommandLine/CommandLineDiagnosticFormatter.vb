@@ -82,20 +82,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' normalize tabs with 4 spaces
                         sb.Append(" "c, 4)
                     Else
-                        sb.Append(" ")
+                        sb.Append(" "c)
                     End If
                 Next
 
                 ' Builds squiggles
                 If sourceSpan.IsEmpty Then
-                    sb.Append("~")
+                    sb.Append("~"c)
                 Else
                     For position = Math.Max(sourceSpanStart, line.Start) To Math.Min(If(sourceSpanEnd = sourceSpanStart, sourceSpanEnd, sourceSpanEnd - 1), line.End - 1)
                         If (text(position) = vbTab) Then
                             ' normalize tabs with 4 spaces
                             sb.Append("~"c, 4)
                         Else
-                            sb.Append("~")
+                            sb.Append("~"c)
                         End If
                     Next
                 End If
@@ -106,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' normalize tabs with 4 spaces
                         sb.Append(" "c, 4)
                     Else
-                        sb.Append(" ")
+                        sb.Append(" "c)
                     End If
                 Next
 

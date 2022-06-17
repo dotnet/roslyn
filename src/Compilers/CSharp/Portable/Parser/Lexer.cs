@@ -915,9 +915,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     if (_badTokenCount++ > 200)
                     {
                         // If we get too many characters that we cannot make sense of, absorb the rest of the input.
-                        int end = TextWindow.Text.Length;
-                        int width = end - startingPosition;
-                        info.Text = TextWindow.Text.ToString(new TextSpan(startingPosition, width));
+                        int end = TextWindow.Length;
+                        info.Text = TextWindow.GetFullText(TextSpan.FromBounds(startingPosition, end));
                         TextWindow.Reset(end);
                     }
                     else
@@ -2424,34 +2423,31 @@ LoopExit:
 
         private bool IsConflictMarkerTrivia()
         {
-            var position = TextWindow.Position;
-            var text = TextWindow.Text;
-            if (position == 0 || SyntaxFacts.IsNewLine(text[position - 1]))
+            var firstCh = TextWindow.PeekChar();
+            Debug.Assert(firstCh is '<' or '=' or '>');
+
+            for (int i = 1, n = s_conflictMarkerLength; i < n; i++)
             {
-                var firstCh = text[position];
-                Debug.Assert(firstCh == '<' || firstCh == '=' || firstCh == '>');
-
-                if ((position + s_conflictMarkerLength) <= text.Length)
+                if (TextWindow.PeekChar(i) != firstCh)
                 {
-                    for (int i = 0, n = s_conflictMarkerLength; i < n; i++)
-                    {
-                        if (text[position + i] != firstCh)
-                        {
-                            return false;
-                        }
-                    }
-
-                    if (firstCh == '=')
-                    {
-                        return true;
-                    }
-
-                    return (position + s_conflictMarkerLength) < text.Length &&
-                        text[position + s_conflictMarkerLength] == ' ';
+                    return false;
                 }
             }
 
-            return false;
+            if (firstCh != '=' && TextWindow.PeekChar(s_conflictMarkerLength) != ' ')
+            {
+                return false;
+            }
+
+            // Keep the new line check last because TextWindow.Reset might need to recopy the buffer,
+            // although that's rare in practice.
+            return TextWindow.Position == 0 || SyntaxFacts.IsNewLine(getLastChar());
+
+            char getLastChar()
+            {
+                TextWindow.Reset(TextWindow.Position - 1);
+                return TextWindow.NextChar();
+            }
         }
 
         private void LexConflictMarkerTrivia(ref SyntaxListBuilder triviaList)

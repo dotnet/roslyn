@@ -74,6 +74,12 @@ Public Class ScannerTests
         Assert.True(token.HasLeadingTrivia)
         Assert.True(token.LeadingTrivia.Single().Kind() = SyntaxKind.WhitespaceTrivia)
 
+        ' Has to be the start of a line, even when followed by a space.
+        token = SyntaxFactory.ParseTokens(" <<<<<<< ").First()
+        Assert.Equal(SyntaxKind.LessThanLessThanToken, token.Kind())
+        Assert.True(token.HasLeadingTrivia)
+        Assert.True(token.LeadingTrivia.Single().Kind() = SyntaxKind.WhitespaceTrivia)
+
         ' Has to have at least seven characters.
         token = SyntaxFactory.ParseTokens("<<<<<< ").First()
         Assert.Equal(SyntaxKind.LessThanLessThanToken, token.Kind())
@@ -96,6 +102,11 @@ Public Class ScannerTests
         Assert.Equal(SyntaxKind.LessThanLessThanToken, token.Kind())
 
         token = SyntaxFactory.ParseTokens("{" & vbCrLf & " <<<<<<<").Skip(2).First()
+        Assert.Equal(SyntaxKind.LessThanLessThanToken, token.Kind())
+        Assert.True(token.HasLeadingTrivia)
+        Assert.True(token.LeadingTrivia.Single().Kind() = SyntaxKind.WhitespaceTrivia)
+
+        token = SyntaxFactory.ParseTokens("{" & vbCrLf & " <<<<<<< ").Skip(2).First()
         Assert.Equal(SyntaxKind.LessThanLessThanToken, token.Kind())
         Assert.True(token.HasLeadingTrivia)
         Assert.True(token.LeadingTrivia.Single().Kind() = SyntaxKind.WhitespaceTrivia)
@@ -128,6 +139,12 @@ Public Class ScannerTests
         Assert.True(token.HasLeadingTrivia)
         Assert.True(token.LeadingTrivia.Single().Kind() = SyntaxKind.WhitespaceTrivia)
 
+        ' Has to be the start of a line, even when followed by a space.
+        token = SyntaxFactory.ParseTokens(" >>>>>>> ").First()
+        Assert.Equal(SyntaxKind.GreaterThanGreaterThanToken, token.Kind())
+        Assert.True(token.HasLeadingTrivia)
+        Assert.True(token.LeadingTrivia.Single().Kind() = SyntaxKind.WhitespaceTrivia)
+
         ' Has to have at least seven characters.
         token = SyntaxFactory.ParseTokens(">>>>>> ").First()
         Assert.Equal(SyntaxKind.GreaterThanGreaterThanToken, token.Kind())
@@ -150,6 +167,11 @@ Public Class ScannerTests
         Assert.Equal(SyntaxKind.GreaterThanGreaterThanToken, token.Kind())
 
         token = SyntaxFactory.ParseTokens("{" & vbCrLf & " >>>>>>>").Skip(2).First()
+        Assert.Equal(SyntaxKind.GreaterThanGreaterThanToken, token.Kind())
+        Assert.True(token.HasLeadingTrivia)
+        Assert.True(token.LeadingTrivia.Single().Kind() = SyntaxKind.WhitespaceTrivia)
+
+        token = SyntaxFactory.ParseTokens("{" & vbCrLf & " >>>>>>> ").Skip(2).First()
         Assert.Equal(SyntaxKind.GreaterThanGreaterThanToken, token.Kind())
         Assert.True(token.HasLeadingTrivia)
         Assert.True(token.LeadingTrivia.Single().Kind() = SyntaxKind.WhitespaceTrivia)
@@ -243,6 +265,26 @@ Public Class ScannerTests
         Assert.True(trivia.Kind() = SyntaxKind.DisabledTextTrivia)
         Assert.Equal(trivia.Span.Length, 34)
 
+        token = SyntaxFactory.ParseTokens("======= Trailing" & vbCrLf & "disabled text" & vbCrLf & " >>>>>>> still disabled").First()
+        Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind())
+        Assert.True(token.HasLeadingTrivia)
+        Assert.Equal(3, token.LeadingTrivia.Count)
+
+        trivia = token.LeadingTrivia(0)
+        Assert.True(trivia.Kind() = SyntaxKind.ConflictMarkerTrivia)
+        Assert.Equal(trivia.Span.Length, 16)
+
+        Assert.True(trivia.ContainsDiagnostics)
+        err = trivia.Errors().First
+        Assert.Equal(ERRID.ERR_Merge_conflict_marker_encountered, err.Code)
+
+        trivia = token.LeadingTrivia(1)
+        Assert.True(trivia.Kind() = SyntaxKind.EndOfLineTrivia)
+        Assert.Equal(trivia.Span.Length, 2)
+
+        trivia = token.LeadingTrivia(2)
+        Assert.True(trivia.Kind() = SyntaxKind.DisabledTextTrivia)
+        Assert.Equal(trivia.Span.Length, 38)
 
         token = SyntaxFactory.ParseTokens("======= Trailing" & vbCrLf & "disabled text" & vbCrLf & ">>>>>>> Actually the end").First()
         Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind())
@@ -355,6 +397,26 @@ Public Class ScannerTests
         Assert.True(trivia.Kind() = SyntaxKind.DisabledTextTrivia)
         Assert.Equal(trivia.Span.Length, 34)
 
+        token = SyntaxFactory.ParseTokens("{" & vbCrLf & "======= Trailing" & vbCrLf & "disabled text" & vbCrLf & " >>>>>>> still disabled").Skip(2).First()
+        Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind())
+        Assert.True(token.HasLeadingTrivia)
+        Assert.Equal(3, token.LeadingTrivia.Count)
+
+        trivia = token.LeadingTrivia(0)
+        Assert.True(trivia.Kind() = SyntaxKind.ConflictMarkerTrivia)
+        Assert.Equal(trivia.Span.Length, 16)
+
+        Assert.True(trivia.ContainsDiagnostics)
+        err = trivia.Errors().First
+        Assert.Equal(ERRID.ERR_Merge_conflict_marker_encountered, err.Code)
+
+        trivia = token.LeadingTrivia(1)
+        Assert.True(trivia.Kind() = SyntaxKind.EndOfLineTrivia)
+        Assert.Equal(trivia.Span.Length, 2)
+
+        trivia = token.LeadingTrivia(2)
+        Assert.True(trivia.Kind() = SyntaxKind.DisabledTextTrivia)
+        Assert.Equal(trivia.Span.Length, 38)
 
         token = SyntaxFactory.ParseTokens("{" & vbCrLf & "======= Trailing" & vbCrLf & "disabled text" & vbCrLf & ">>>>>>> Actually the end").Skip(2).First()
         Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind())
