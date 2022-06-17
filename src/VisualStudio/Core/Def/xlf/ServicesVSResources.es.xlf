@@ -1382,6 +1382,11 @@
         <target state="translated">Ordenar instrucciones Using</target>
         <note />
       </trans-unit>
+      <trans-unit id="Stack_Trace">
+        <source>Stack Trace</source>
+        <target state="new">Stack Trace</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Stack_Trace_Explorer">
         <source>Stack Trace Explorer</source>
         <target state="translated">Explorador de seguimiento de pila</target>
