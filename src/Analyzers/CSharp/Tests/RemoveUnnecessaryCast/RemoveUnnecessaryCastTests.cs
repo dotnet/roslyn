@@ -12903,11 +12903,7 @@ class C
     }
 }
 ";
-            await new VerifyCS.Test
-            {
-                TestCode = code,
-                FixedCode = fixedCode,
-            }.RunAsync();
+            await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
         }
     }
 }
