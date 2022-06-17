@@ -9,13 +9,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.OLE.Interop;
@@ -45,34 +42,20 @@ namespace Microsoft.VisualStudio.LanguageServices
         private ResettableDelay? _delay;
         private readonly IAsynchronousOperationListener _asyncListener;
 
-        public DocumentOutlineControl(ILanguageServiceBroker2 languageServiceBroker, IThreadingContext threadingContext, IAsynchronousOperationListener asyncListener)
+        public DocumentOutlineControl(IWpfTextView textView, ITextBuffer textBuffer, ILanguageServiceBroker2 languageServiceBroker, IThreadingContext threadingContext, IAsynchronousOperationListener asyncListener)
         {
             InitializeComponent();
 
             _asyncListener = asyncListener;
-            var textView = GetActiveTextView();
-            RoslynDebug.AssertNotNull(textView);
             TextView = textView;
             _filePath = GetFilePath(textView);
-
-            SymbolTreeInitialized = false;
-            var textBuffer = TextView.TextBuffer;
             Snapshot = textBuffer.CurrentSnapshot;
-            var isCSharpContentType = textBuffer.ContentType.IsOfType(ContentTypeNames.CSharpContentType);
-            var isVisualBasicContentType = textBuffer.ContentType.IsOfType(ContentTypeNames.VisualBasicContentType);
-
-            // Check required since ActiveDocumentChanged is called for many content types
-            if (!isCSharpContentType && !isVisualBasicContentType)
-            {
-                symbolTree.ItemsSource = new List<DocumentSymbolViewModel>();
-                return;
-            }
+            SymbolTreeInitialized = false;
 
             threadingContext.JoinableTaskFactory.RunAsync(async () =>
             {
                 await UpdateAsync().ConfigureAwait(false);
             }).FileAndForget("Document Outline: Active Document Changed");
-
 
             TextView.Caret.PositionChanged += FollowCursor;
             TextView.TextBuffer.Changed += TextBuffer_Changed;
@@ -382,45 +365,6 @@ namespace Microsoft.VisualStudio.LanguageServices
 
             return node;
         }*/
-
-        private static IWpfTextView? GetActiveTextView()
-        {
-            var monitorSelection = (IVsMonitorSelection)Package.GetGlobalService(typeof(SVsShellMonitorSelection));
-            if (monitorSelection == null)
-            {
-                return null;
-            }
-
-            if (ErrorHandler.Failed(monitorSelection.GetCurrentElementValue((uint)VSConstants.VSSELELEMID.SEID_DocumentFrame, out var curDocument)))
-            {
-                return null;
-            }
-
-            if (curDocument is not IVsWindowFrame frame)
-            {
-                return null;
-            }
-
-            if (ErrorHandler.Failed(frame.GetProperty((int)__VSFPROPID.VSFPROPID_DocView, out var docView)))
-            {
-                return null;
-            }
-
-            if (docView is IVsCodeWindow)
-            {
-                if (ErrorHandler.Failed(((IVsCodeWindow)docView).GetPrimaryView(out var textView)))
-                {
-                    return null;
-                }
-
-                var model = (IComponentModel)Package.GetGlobalService(typeof(SComponentModel));
-                var adapterFactory = model.GetService<IVsEditorAdaptersFactoryService>();
-                var wpfTextView = adapterFactory.GetWpfTextView(textView);
-                return wpfTextView;
-            }
-
-            return null;
-        }
 
         internal const int OLECMDERR_E_NOTSUPPORTED = unchecked((int)0x80040100);
 
