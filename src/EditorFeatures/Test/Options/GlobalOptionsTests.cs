@@ -92,9 +92,6 @@ public class GlobalOptionsTests
         {
         }
 
-        public SerializableOptionSet GetSerializableOptionsSnapshot(ImmutableHashSet<string> languages, IOptionService optionService)
-            => new(optionService, ImmutableDictionary<OptionKey, object?>.Empty, ImmutableHashSet<OptionKey>.Empty);
-
 #pragma warning disable CS0067
         public event EventHandler<OptionChangedEventArgs>? OptionChanged;
 #pragma warning restore
@@ -117,7 +114,7 @@ public class GlobalOptionsTests
         public void SetGlobalOptions(ImmutableArray<OptionKey> optionKeys, ImmutableArray<object?> values)
             => throw new NotImplementedException();
 
-        public void SetOptions(OptionSet optionSet)
+        public void SetOptions(OptionSet optionSet, IEnumerable<OptionKey> optionKeys)
             => throw new NotImplementedException();
 
         public bool TryMapEditorConfigKeyToOption(string key, string? language, [NotNullWhen(true)] out IEditorConfigStorageLocation2? storageLocation, out OptionKey optionKey)
