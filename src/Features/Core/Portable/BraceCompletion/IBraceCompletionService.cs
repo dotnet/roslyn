@@ -33,15 +33,21 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
         bool CanProvideBraceCompletion(char brace, int openingPosition, ParsedDocument document, CancellationToken cancellationToken);
 
         /// <summary>
+        /// True if <see cref="BraceCompletionResult"/> is available in the given <paramref name="context"/>.
+        /// Completes synchronously unless the service needs Semantic Model to determine the brace completion result.
+        /// </summary>
+        Task<bool> HasBraceCompletionAsync(BraceCompletionContext context, Document document, CancellationToken cancellationToken);
+
+        /// <summary>
         /// Returns the text change to add the closing brace given the context.
         /// </summary>
-        Task<BraceCompletionResult?> GetBraceCompletionAsync(BraceCompletionContext braceCompletionContext, CancellationToken cancellationToken);
+        BraceCompletionResult GetBraceCompletion(BraceCompletionContext braceCompletionContext);
 
         /// <summary>
         /// Returns any text changes that need to be made after adding the closing brace.
         /// </summary>
         /// <remarks>
-        /// This cannot be merged with <see cref="GetBraceCompletionAsync(BraceCompletionContext, CancellationToken)"/>
+        /// This cannot be merged with <see cref="GetBraceCompletion(BraceCompletionContext)"/>
         /// as we need to swap the editor tracking mode of the closing point from positive to negative
         /// in BraceCompletionSessionProvider.BraceCompletionSession.Start after completing the brace and before
         /// doing any kind of formatting on it.  So these must be two distinct steps until we fully move to LSP.
@@ -108,5 +114,11 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
             ClosingPoint = closingPoint;
             CaretLocation = caretLocation;
         }
+
+        public bool HasCompletionForOpeningBrace(char openingBrace)
+            => ClosingPoint >= 1 && Document.Text[OpeningPoint] == openingBrace;
+
+        public SyntaxToken GetOpeningToken()
+            => Document.Root.FindToken(OpeningPoint, findInsideTrivia: true);
     }
 }

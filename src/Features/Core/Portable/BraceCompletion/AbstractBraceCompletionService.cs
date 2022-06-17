@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Indentation;
@@ -37,41 +38,33 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
 
         public abstract bool AllowOverType(BraceCompletionContext braceCompletionContext, CancellationToken cancellationToken);
 
-        public async Task<BraceCompletionResult?> GetBraceCompletionAsync(BraceCompletionContext braceCompletionContext, CancellationToken cancellationToken)
+        public Task<bool> HasBraceCompletionAsync(BraceCompletionContext context, Document document, CancellationToken cancellationToken)
         {
-            var closingPoint = braceCompletionContext.ClosingPoint;
-            if (closingPoint < 1)
-                return null;
-
-            var openingPoint = braceCompletionContext.OpeningPoint;
-            var document = braceCompletionContext.Document;
-
-            var sourceText = document.Text;
-            if (sourceText[openingPoint] != OpeningBrace)
-                return null;
-
-            var token = document.Root.FindToken(openingPoint, findInsideTrivia: true);
-
-            if (NeedsSemantics)
+            if (!context.HasCompletionForOpeningBrace(OpeningBrace))
             {
-                // Pass along a document with frozen partial semantics.  Brace completion is a highly latency sensitive
-                // operation.  We don't want to wait on things like source generators to figure things out.
-                //var validOpeningPoint = await IsValidOpenBraceTokenAtPositionAsync(
-                //     document.WithFrozenPartialSemantics(cancellationToken), token, openingPoint, cancellationToken).ConfigureAwait(false);
-                //if (!validOpeningPoint)
-                //    return null;
-            }
-            else
-            {
-                var validOpeningPoint = IsValidOpenBraceTokenAtPosition(sourceText, token, openingPoint);
-                if (!validOpeningPoint)
-                    return null;
+                return Task.FromResult(false);
             }
 
+            var openingToken = context.GetOpeningToken();
+            if (!NeedsSemantics)
+            {
+                return Task.FromResult(IsValidOpenBraceTokenAtPosition(context.Document.Text, openingToken, context.OpeningPoint));
+            }
+
+            // Pass along a document with frozen partial semantics.  Brace completion is a highly latency sensitive
+            // operation.  We don't want to wait on things like source generators to figure things out.
+            return IsValidOpenBraceTokenAtPositionAsync(document.WithFrozenPartialSemantics(cancellationToken), openingToken, context.OpeningPoint, cancellationToken);
+        }
+
+        public BraceCompletionResult GetBraceCompletion(BraceCompletionContext context)
+        {
+            Debug.Assert(context.HasCompletionForOpeningBrace(OpeningBrace));
+
+            var closingPoint = context.ClosingPoint;
             var braceTextEdit = new TextChange(TextSpan.FromBounds(closingPoint, closingPoint), ClosingBrace.ToString());
 
             // The caret location should be in between the braces.
-            var originalOpeningLinePosition = sourceText.Lines.GetLinePosition(openingPoint);
+            var originalOpeningLinePosition = context.Document.Text.Lines.GetLinePosition(context.OpeningPoint);
             var caretLocation = new LinePosition(originalOpeningLinePosition.Line, originalOpeningLinePosition.Character + 1);
             return new BraceCompletionResult(ImmutableArray.Create(braceTextEdit), caretLocation);
         }
@@ -111,7 +104,7 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
         /// <summary>
         /// Only called if <see cref="NeedsSemantics"/> returns true;
         /// </summary>
-        protected virtual ValueTask<bool> IsValidOpenBraceTokenAtPositionAsync(Document document, SyntaxToken token, int position, CancellationToken cancellationToken)
+        protected virtual Task<bool> IsValidOpenBraceTokenAtPositionAsync(Document document, SyntaxToken token, int position, CancellationToken cancellationToken)
         {
             // Subclass should have overridden this.
             throw ExceptionUtilities.Unreachable;
