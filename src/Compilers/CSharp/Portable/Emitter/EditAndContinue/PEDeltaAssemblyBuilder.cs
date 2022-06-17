@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     sourceContext: context,
                     otherAssembly: previousAssembly,
                     otherContext: previousContext,
-                    otherSynthesizedMembersOpt: previousGeneration.SynthesizedMembers,
+                    otherSynthesizedMembers: previousGeneration.SynthesizedMembers,
                     otherDeletedMembers: previousGeneration.DeletedMembers);
             }
 
