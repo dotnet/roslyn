@@ -15,12 +15,12 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
     {
         public readonly EmbeddedLanguageInfo Info;
 
-        private readonly AbstractEmbeddedLanguageFeaturesProvider _provider;
+        private readonly AbstractEmbeddedLanguagesProvider _provider;
 
         public EmbeddedLanguageCompletionProvider CompletionProvider { get; }
 
         public RegexEmbeddedLanguage(
-            AbstractEmbeddedLanguageFeaturesProvider provider,
+            AbstractEmbeddedLanguagesProvider provider,
             EmbeddedLanguageInfo info)
         {
             Info = info;
