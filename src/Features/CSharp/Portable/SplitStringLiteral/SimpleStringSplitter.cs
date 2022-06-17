@@ -20,9 +20,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
             private readonly SyntaxToken _token;
 
             public SimpleStringSplitter(
-                ParsedDocument document, int position,
+                ParsedDocument document,
+                int position,
                 SyntaxToken token,
-                in IndentationOptions options, CancellationToken cancellationToken)
+                in IndentationOptions options,
+                CancellationToken cancellationToken)
                 : base(document, position, options, cancellationToken)
             {
                 _token = token;

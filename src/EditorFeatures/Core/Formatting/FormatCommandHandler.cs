@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             using (Logger.LogBlock(FunctionId.CommandHandler_FormatCommand, KeyValueLogMessage.Create(LogType.UserAction, m => m["Span"] = selectionOpt?.Length ?? -1), cancellationToken))
             using (var transaction = CreateEditTransaction(textView, EditorFeaturesResources.Formatting))
             {
-                // Note: C# always completes synchronously, Type Script is async
+                // Note: C# always completes synchronously, TypeScript is async
                 var changes = formattingService.GetFormattingChangesAsync(document, textBuffer, selectionOpt, cancellationToken).WaitAndGetResult(cancellationToken);
                 if (changes.IsEmpty)
                 {
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     return;
                 }
 
-                // Note: C# always completes synchronously, Type Script is async
+                // Note: C# always completes synchronously, TypeScript is async
                 textChanges = service.GetFormattingChangesOnReturnAsync(document, caretPosition.Value, cancellationToken).WaitAndGetResult(cancellationToken);
             }
             else if (args is TypeCharCommandArgs typeCharArgs)
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     return;
                 }
 
-            // Note: C# always completes synchronously, Type Script is async
+                // Note: C# always completes synchronously, TypeScript is async
                 textChanges = service.GetFormattingChangesAsync(
                     document, typeCharArgs.SubjectBuffer, typeCharArgs.TypedChar, caretPosition.Value, cancellationToken).WaitAndGetResult(cancellationToken);
             }
