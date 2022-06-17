@@ -1382,6 +1382,11 @@
         <target state="translated">using を並べ替える</target>
         <note />
       </trans-unit>
+      <trans-unit id="Stack_Trace">
+        <source>Stack Trace</source>
+        <target state="new">Stack Trace</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Stack_Trace_Explorer">
         <source>Stack Trace Explorer</source>
         <target state="translated">スタック トレース エクスプローラー</target>

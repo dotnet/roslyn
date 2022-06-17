@@ -627,6 +627,56 @@ Regex.Anchor("^"))
         End Function
 
         <WpfTheory, CombinatorialData>
+        <WorkItem(61982, "https://github.com/dotnet/roslyn/issues/61982")>
+        Public Async Function TestRegexAmbiguity1(testHost As TestHost) As Task
+            Await TestAsync(
+"
+imports System.Diagnostics.CodeAnalysis
+imports System.Text.RegularExpressions
+
+class Program
+    sub Goo()
+        me.field = Regex.Match("""", [|""$(\b\G\z)""|]
+    end sub
+end class",
+                testHost,
+Regex.Anchor("$"),
+Regex.Grouping("("),
+Regex.Anchor("\"),
+Regex.Anchor("b"),
+Regex.Anchor("\"),
+Regex.Anchor("G"),
+Regex.Anchor("\"),
+Regex.Anchor("z"),
+Regex.Grouping(")"))
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem(61982, "https://github.com/dotnet/roslyn/issues/61982")>
+        Public Async Function TestRegexAmbiguity2(testHost As TestHost) As Task
+            Await TestAsync(
+"
+imports System.Diagnostics.CodeAnalysis
+imports System.Text.RegularExpressions
+
+class Program
+    sub Goo()
+        me.field = Regex.Match("""", [|""$(\b\G\z)""|],
+    end sub
+end class",
+                testHost,
+Regex.Anchor("$"),
+Regex.Grouping("("),
+Regex.Anchor("\"),
+Regex.Anchor("b"),
+Regex.Anchor("\"),
+Regex.Anchor("G"),
+Regex.Anchor("\"),
+Regex.Anchor("z"),
+Regex.Grouping(")"))
+        End Function
+
+        <WpfTheory, CombinatorialData>
         Public Async Function TestRegexStringSyntaxAttribute_Field(testHost As TestHost) As Task
             Await TestAsync(
 "
