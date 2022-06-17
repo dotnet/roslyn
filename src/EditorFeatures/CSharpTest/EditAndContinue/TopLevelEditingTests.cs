@@ -7138,6 +7138,44 @@ class C
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
+        [Theory]
+        [InlineData("virtual")]
+        [InlineData("abstract")]
+        [InlineData("override")]
+        public void Method_Delete_Modifiers(string modifier)
+        {
+            /* TODO: https://github.com/dotnet/roslyn/issues/59264
+
+               This should be a supported edit. Consider the following inheritance chain:
+
+                public class C { public virtual void M() => Console.WriteLine("C"); } 
+                public class D : C { public override void M() { base.M(); Console.WriteLine("D"); } } 
+                public class E : D { public override void M() { base.M(); Console.WriteLine("E"); } } 
+
+                If D.M is deleted we expect E.M to print "C E" and not throw.
+
+            */
+            var src1 = $$"""
+                class C
+                {
+                    {{modifier}} void goo() { }
+                }
+                """;
+            var src2 = """
+                class C
+                {
+                }
+                """;
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                $"Delete [{modifier} void goo() {{ }}]@16",
+                $"Delete [()]@{25 + modifier.Length}");
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Delete, "class C", DeletedSymbolDisplay(FeaturesResources.method, "goo()")));
+        }
+
         [Fact]
         public void MethodWithExpressionBody_Delete()
         {

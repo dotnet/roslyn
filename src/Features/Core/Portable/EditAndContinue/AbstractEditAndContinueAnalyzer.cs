@@ -2807,7 +2807,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                             }
 
                                             // Deleting an ordinary method is allowed, and we store the newContainingSymbol in NewSymbol for later use
-                                            if (oldSymbol is IMethodSymbol { MethodKind: MethodKind.Ordinary, IsExtern: false, ContainingType.TypeKind: TypeKind.Class or TypeKind.Struct })
+                                            // We don't currently allow deleting virtual or abstract methods, because if those are in the middle of
+                                            // an inheritance chain then throwing a missing method exception is not expected
+                                            if (oldSymbol is IMethodSymbol { MethodKind: MethodKind.Ordinary, IsExtern: false, ContainingType.TypeKind: TypeKind.Class or TypeKind.Struct } &&
+                                                oldSymbol.GetSymbolModifiers() is { IsVirtual: false, IsAbstract: false, IsOverride: false })
                                             {
                                                 semanticEdits.Add(new SemanticEditInfo(editKind, symbolKey, syntaxMap, syntaxMapTree: null, partialType: null, newSymbolKey: containingSymbolKey));
                                                 continue;
