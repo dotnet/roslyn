@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices
 {
-    internal class RegexEmbeddedLanguage : IEmbeddedLanguageFeatures
+    internal class RegexEmbeddedLanguage : IEmbeddedLanguage
     {
         public readonly EmbeddedLanguageInfo Info;
 
