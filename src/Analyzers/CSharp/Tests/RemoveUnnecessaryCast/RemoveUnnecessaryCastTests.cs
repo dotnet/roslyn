@@ -12870,11 +12870,7 @@ class C
     }
 }
 ";
-            await new VerifyCS.Test
-            {
-                TestCode = code,
-                FixedCode = fixedCode,
-            }.RunAsync();
+            await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
         }
 
         [WorkItem(64346, "https://github.com/dotnet/roslyn/issues/61346")]
