@@ -286,7 +286,7 @@ class T
 {
     void M()
     {
-        var a = $""{new object}"";
+        var a = $""{(object)new object}"";
     }
 }");
         }
