@@ -2166,6 +2166,74 @@ class C { }
             Assert.Throws<ArgumentNullException>(() => driver.WithUpdatedParseOptions(null!));
         }
 
+        [Fact, WorkItem(57455, "https://github.com/dotnet/roslyn/issues/57455")]
+        public void TODO2()
+        {
+            var source = @"
+[System.Obsolete]
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+            {
+                IncrementalValuesProvider<ClassDeclarationSyntax> classDeclarations = ctx.SyntaxProvider
+                    .CreateSyntaxProvider(static (s, t) => isSyntaxTargetForGeneration(s), static (context, ct) => getSemanticTargetForGeneration(context, ct))
+                    .Where(static c => c is not null)!;
+
+                IncrementalValueProvider<(Compilation, ImmutableArray<ClassDeclarationSyntax>)> compilationAndClasses =
+                    ctx.CompilationProvider.Combine(classDeclarations.Collect());
+
+                ctx.RegisterSourceOutput(compilationAndClasses, (context, ct) => validate(ct.Item1, ct.Item2));
+            }));
+
+            // run the generator once, and check it was passed the parse options
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(disabledOutputs: IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+            driver = driver.RunGenerators(compilation);
+            GeneratorRunResult runResult = driver.GetRunResult().Results[0];
+            //Assert.Single(runResult.TrackedSteps["ParseOptions"]);
+            //var output = runResult.TrackedSteps["ParseOptions"][0].Outputs[0].Value;
+            //Assert.Equal(parseOptions, output);
+
+            // now update the source 
+            var newSource = @"
+class C { }
+";
+            Compilation newCompilation = CreateCompilation(newSource, options: TestOptions.DebugDll, parseOptions: parseOptions);
+
+            // check we ran
+            driver = driver.RunGenerators(newCompilation);
+            runResult = driver.GetRunResult().Results[0];
+            //Assert.Single(runResult.TrackedSteps["ParseOptions"]);
+            //output = runResult.TrackedSteps["ParseOptions"][0].Outputs[0].Value;
+            return;
+
+            static void validate(Compilation compilation, ImmutableArray<ClassDeclarationSyntax> nodes)
+            {
+                foreach (var node in nodes)
+                {
+                    Assert.True(compilation.SyntaxTrees.Contains(node.SyntaxTree));
+                }
+            }
+
+            static bool isSyntaxTargetForGeneration(SyntaxNode node)
+                => node is ClassDeclarationSyntax { AttributeLists: { Count: > 0 } };
+
+            static ClassDeclarationSyntax? getSemanticTargetForGeneration(GeneratorSyntaxContext context, CancellationToken cancellationToken)
+            {
+                var classDeclarationSyntax = (ClassDeclarationSyntax)context.Node;
+                foreach (AttributeListSyntax attributeListSyntax in classDeclarationSyntax.AttributeLists)
+                {
+                    return classDeclarationSyntax;
+                }
+                return null;
+            }
+        }
+
         [Fact]
         public void AnalyzerConfig_Can_Be_Updated()
         {
