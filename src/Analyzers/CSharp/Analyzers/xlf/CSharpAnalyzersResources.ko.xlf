@@ -117,6 +117,11 @@
         <target state="translated">Null 검사를 명확히 할 수 있습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Nullable_directive_is_redundant">
+        <source>Nullable directive is redundant</source>
+        <target state="new">Nullable directive is redundant</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_null_check_over_type_check">
         <source>Prefer 'null' check over type check</source>
         <target state="translated">형식 검사보다 'null' 검사 선호</target>
@@ -130,6 +135,11 @@
       <trans-unit id="Remove_operator_preserves_semantics">
         <source>Remove operator (preserves semantics)</source>
         <target state="translated">연산자 제거(의미 체계를 유지함)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_redundant_nullable_directive">
+        <source>Remove redundant nullable directive</source>
+        <target state="new">Remove redundant nullable directive</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_suppression_operators">

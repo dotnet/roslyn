@@ -117,6 +117,11 @@
         <target state="translated">Kontrolu hodnoty null je možné upřesnit.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Nullable_directive_is_redundant">
+        <source>Nullable directive is redundant</source>
+        <target state="new">Nullable directive is redundant</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_null_check_over_type_check">
         <source>Prefer 'null' check over type check</source>
         <target state="translated">Upřednostňovat kontrolu hodnoty null před kontrolou typu</target>
@@ -130,6 +135,11 @@
       <trans-unit id="Remove_operator_preserves_semantics">
         <source>Remove operator (preserves semantics)</source>
         <target state="translated">Odebrat operátor (zachová sémantiku)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_redundant_nullable_directive">
+        <source>Remove redundant nullable directive</source>
+        <target state="new">Remove redundant nullable directive</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_suppression_operators">
