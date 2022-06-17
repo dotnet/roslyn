@@ -21,11 +21,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
     {
         private readonly ITextView _textView;
         private readonly IGlobalOptionService _globalOptions;
+        private readonly IEditorOptionsFactoryService _editorOptionsFactory;
 
-        public SmartIndent(ITextView textView, IGlobalOptionService globalOptions)
+        public SmartIndent(ITextView textView, IGlobalOptionService globalOptions, IEditorOptionsFactoryService editorOptionsFactory)
         {
             _textView = textView;
             _globalOptions = globalOptions;
+            _editorOptionsFactory = editorOptionsFactory;
         }
 
         public int? GetDesiredIndentation(ITextSnapshotLine line)
@@ -50,8 +52,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
                 if (newService == null)
                     return null;
 
-                var indentationOptions = document.GetIndentationOptionsAsync(_globalOptions, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
-                var result = newService.GetIndentation(document, line.LineNumber, indentationOptions, cancellationToken);
+                var indentationOptions = line.Snapshot.TextBuffer.GetIndentationOptions(_editorOptionsFactory, _globalOptions, document.Project.LanguageServices);
+                var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
+                var result = newService.GetIndentation(parsedDocument, line.LineNumber, indentationOptions, cancellationToken);
                 return result.GetIndentation(_textView, line);
             }
         }

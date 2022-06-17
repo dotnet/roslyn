@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -3540,8 +3541,12 @@ namespace NS
                 var point = projectedDocument.GetTextView().BufferGraph.MapDownToBuffer(indentationLine.Start, PointTrackingMode.Negative, subjectDocument.GetTextBuffer(), PositionAffinity.Predecessor);
 
                 TestIndentation(
-                    point.Value, expectedIndentation,
-                    projectedDocument.GetTextView(), subjectDocument, workspace.GlobalOptions);
+                    point.Value,
+                    expectedIndentation,
+                    projectedDocument.GetTextView(),
+                    subjectDocument,
+                    workspace.GlobalOptions,
+                    workspace.GetService<IEditorOptionsFactoryService>());
             }
         }
 

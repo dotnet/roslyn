@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -29,4 +30,22 @@ internal readonly record struct ParsedDocument(DocumentId Id, SourceText Text, S
         return new ParsedDocument(document.Id, text, root, document.Project.LanguageServices);
     }
 #endif
+
+    public ParsedDocument WithChangedText(SourceText text, CancellationToken cancellationToken)
+    {
+        var root = SyntaxTree.WithChangedText(text).GetRoot(cancellationToken);
+        return new ParsedDocument(Id, text, root, LanguageServices);
+    }
+
+    public ParsedDocument WithChangedRootSynchronous(SyntaxNode root, CancellationToken cancellationToken)
+    {
+        var text = root.SyntaxTree.GetText(cancellationToken);
+        return new ParsedDocument(Id, text, root, LanguageServices);
+    }
+
+    public async ValueTask<ParsedDocument> WithChangedRootAsync(SyntaxNode root, CancellationToken cancellationToken)
+    {
+        var text = await root.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        return new ParsedDocument(Id, text, root, LanguageServices);
+    }
 }

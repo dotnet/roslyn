@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.VisualStudio.Text
+Imports Microsoft.VisualStudio.Text.Editor
 Imports Xunit.Abstractions
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indentation
@@ -3005,9 +3006,8 @@ end class"
 
                 Dim indentationLine = projectedDocument.GetTextBuffer().CurrentSnapshot.GetLineFromPosition(projectedDocument.CursorPosition.Value)
                 Dim point = projectedDocument.GetTextView().BufferGraph.MapDownToBuffer(indentationLine.Start, PointTrackingMode.Negative, subjectDocument.GetTextBuffer(), PositionAffinity.Predecessor)
-
                 TestIndentation(
-                    point.Value, expectedIndentation, projectedDocument.GetTextView(), subjectDocument, workspace.GlobalOptions)
+                    point.Value, expectedIndentation, projectedDocument.GetTextView(), subjectDocument, workspace.GlobalOptions, workspace.GetService(Of IEditorOptionsFactoryService))
             End Using
         End Sub
 
