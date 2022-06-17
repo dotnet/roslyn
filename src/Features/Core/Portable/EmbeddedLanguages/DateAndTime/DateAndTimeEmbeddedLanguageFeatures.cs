@@ -11,8 +11,6 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
 {
     internal class DateAndTimeEmbeddedLanguageFeatures : DateAndTimeEmbeddedLanguage, IEmbeddedLanguageFeatures
     {
-        // No highlights currently for date/time literals.
-        public IDocumentHighlightsService? DocumentHighlightsService { get; }
         public EmbeddedLanguageCompletionProvider CompletionProvider { get; }
 
         public DateAndTimeEmbeddedLanguageFeatures(
