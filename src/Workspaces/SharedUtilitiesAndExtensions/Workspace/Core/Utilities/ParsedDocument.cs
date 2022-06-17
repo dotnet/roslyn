@@ -4,12 +4,13 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis;
 
-internal readonly record struct ParsedDocument(DocumentId Id, SourceText Text, SyntaxNode Root)
+internal readonly record struct ParsedDocument(DocumentId Id, SourceText Text, SyntaxNode Root, HostLanguageServices LanguageServices)
 {
     public SyntaxTree SyntaxTree => Root.SyntaxTree;
 
@@ -17,7 +18,7 @@ internal readonly record struct ParsedDocument(DocumentId Id, SourceText Text, S
     {
         var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        return new ParsedDocument(document.Id, text, root);
+        return new ParsedDocument(document.Id, text, root, document.Project.LanguageServices);
     }
 
 #if !CODE_STYLE
@@ -25,7 +26,7 @@ internal readonly record struct ParsedDocument(DocumentId Id, SourceText Text, S
     {
         var text = document.GetTextSynchronously(cancellationToken);
         var root = document.GetRequiredSyntaxRootSynchronously(cancellationToken);
-        return new ParsedDocument(document.Id, text, root);
+        return new ParsedDocument(document.Id, text, root, document.Project.LanguageServices);
     }
 #endif
 }
