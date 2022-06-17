@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.BraceCompletion
 {
-    internal interface IBraceCompletionService : ILanguageService
+    internal interface IBraceCompletionService
     {
         /// <summary>
         /// Checks if this brace completion service should be the service used to provide brace completions at
