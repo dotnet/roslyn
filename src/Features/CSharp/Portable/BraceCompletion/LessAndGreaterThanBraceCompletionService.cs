@@ -64,11 +64,11 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             if (previousToken.Parent is not IdentifierNameSyntax identifier)
                 return Task.FromResult(false);
 
-            return IsSemanticTypeArgumentAsync(document, node, cancellationToken);
+            return IsSemanticTypeArgumentAsync(document, node.SpanStart, identifier, cancellationToken);
 
-            static async Task<bool> IsSemanticTypeArgumentAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
+            static async Task<bool> IsSemanticTypeArgumentAsync(Document document, int position, IdentifierNameSyntax identifier, CancellationToken cancellationToken)
             {
-                var semanticModel = await document.ReuseExistingSpeculativeModelAsync(node.SpanStart, cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
                 var info = semanticModel.GetSymbolInfo(identifier, cancellationToken);
                 return info.CandidateSymbols.Any(static s => s.GetArity() > 0);
             }
