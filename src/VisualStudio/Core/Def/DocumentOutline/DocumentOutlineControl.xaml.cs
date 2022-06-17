@@ -211,37 +211,39 @@ namespace Microsoft.VisualStudio.LanguageServices
             }
         }
 
-        private void SortByName(object sender, EventArgs e)
+        private void Sort(SortOption sortOption, FunctionId functionId)
         {
             if (SymbolTreeInitialized)
             {
-                Logger.Log(FunctionId.DocumentOutline_SortByName);
-                var sortedDocumentSymbolModels = DocumentOutlineHelper.Sort(SymbolsTreeItemsSource, SortOption.Name);
-                SymbolsTreeItemsSource = sortedDocumentSymbolModels;
-                symbolTree.ItemsSource = sortedDocumentSymbolModels;
+                Logger.Log(functionId);
+                // If there is an active search, only sort the filtered nodes
+                if (!(searchBox.Text == ServicesVSResources.Search_Document_Outline || string.IsNullOrWhiteSpace(searchBox.Text)))
+                {
+                    symbolTree.ItemsSource = DocumentOutlineHelper.Sort(
+                        new List<DocumentSymbolViewModel>((IEnumerable<DocumentSymbolViewModel>)symbolTree.ItemsSource), sortOption);
+                }
+                else
+                {
+                    var sortedDocumentSymbolModels = DocumentOutlineHelper.Sort(SymbolsTreeItemsSource, sortOption);
+                    SymbolsTreeItemsSource = sortedDocumentSymbolModels;
+                    symbolTree.ItemsSource = sortedDocumentSymbolModels;
+                }
             }
+        }
+
+        private void SortByName(object sender, EventArgs e)
+        {
+            Sort(SortOption.Name, FunctionId.DocumentOutline_SortByName);
         }
 
         private void SortByOrder(object sender, EventArgs e)
         {
-            if (SymbolTreeInitialized)
-            {
-                Logger.Log(FunctionId.DocumentOutline_SortByOrder);
-                var sortedDocumentSymbolModels = DocumentOutlineHelper.Sort(SymbolsTreeItemsSource, SortOption.Order);
-                SymbolsTreeItemsSource = sortedDocumentSymbolModels;
-                symbolTree.ItemsSource = sortedDocumentSymbolModels;
-            }
+            Sort(SortOption.Order, FunctionId.DocumentOutline_SortByOrder);
         }
 
         private void SortByType(object sender, EventArgs e)
         {
-            if (SymbolTreeInitialized)
-            {
-                Logger.Log(FunctionId.DocumentOutline_SortByType);
-                var sortedDocumentSymbolModels = DocumentOutlineHelper.Sort(SymbolsTreeItemsSource, SortOption.Type);
-                SymbolsTreeItemsSource = sortedDocumentSymbolModels;
-                symbolTree.ItemsSource = sortedDocumentSymbolModels;
-            }
+            Sort(SortOption.Type, FunctionId.DocumentOutline_SortByType);
         }
 
         // When symbol node clicked, selects corresponding code
