@@ -91,6 +91,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         IParameterSymbol FindParameterForArgument(SemanticModel semanticModel, SyntaxNode argument, bool allowUncertainCandidates, CancellationToken cancellationToken);
         IParameterSymbol FindParameterForAttributeArgument(SemanticModel semanticModel, SyntaxNode argument, bool allowUncertainCandidates, CancellationToken cancellationToken);
+        ISymbol FindFieldOrPropertyForArgument(SemanticModel semanticModel, SyntaxNode argument, CancellationToken cancellationToken);
+        ISymbol FindFieldOrPropertyForAttributeArgument(SemanticModel semanticModel, SyntaxNode argument, CancellationToken cancellationToken);
 
 #nullable enable
         ImmutableArray<ISymbol> GetBestOrAllSymbols(SemanticModel semanticModel, SyntaxNode? node, SyntaxToken token, CancellationToken cancellationToken);

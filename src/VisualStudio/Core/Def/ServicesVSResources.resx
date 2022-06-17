@@ -1980,4 +1980,7 @@ Additional information: {1}</value>
   <data name="Fix_all_warnings_and_errors_set_in_EditorConfig" xml:space="preserve">
     <value>Fix all warnings and errors set in EditorConfig</value>
   </data>
+  <data name="Stack_Trace" xml:space="preserve">
+    <value>Stack Trace</value>
+  </data>
 </root>

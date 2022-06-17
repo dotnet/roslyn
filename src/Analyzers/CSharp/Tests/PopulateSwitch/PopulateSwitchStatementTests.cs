@@ -1223,5 +1223,31 @@ enum MyEnum
     Value1, Value2
 }");
         }
+
+        [Fact, WorkItem(61281, "https://github.com/dotnet/roslyn/issues/61281")]
+        public async Task TestNotInSwitchWithUnknownType1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        switch[||]
+    }
+}");
+        }
+
+        [Fact, WorkItem(61281, "https://github.com/dotnet/roslyn/issues/61281")]
+        public async Task TestNotInSwitchWithUnknownType2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        var v = null switch[||]
+    }
+}");
+        }
     }
 }

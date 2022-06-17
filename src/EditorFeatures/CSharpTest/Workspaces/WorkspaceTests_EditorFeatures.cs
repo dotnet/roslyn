@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Editor.Test;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -30,7 +31,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
 {
     [UseExportProvider]
-    public partial class WorkspaceTests : TestBase
+    public class WorkspaceTests_EditorFeatures : TestBase
     {
         private static TestWorkspace CreateWorkspace(
             string workspaceKind = null,
@@ -1387,34 +1388,33 @@ class D { }
         [Fact, WorkItem(19284, "https://github.com/dotnet/roslyn/issues/19284")]
         public void TestSolutionWithOptions()
         {
-            using var workspace = CreateWorkspace();
+            using var workspace1 = CreateWorkspace();
+            var solution = workspace1.CurrentSolution;
 
-            var document = new TestHostDocument("class C { }");
-
-            var project1 = new TestHostProject(workspace, document, name: "project1");
-
-            workspace.AddTestProject(project1);
-
-            var solution = workspace.CurrentSolution;
             var optionKey = new OptionKey2(FormattingOptions2.SmartIndent, LanguageNames.CSharp);
-            var optionValue = solution.Options.GetOption(optionKey);
-            Assert.Equal(FormattingOptions2.IndentStyle.Smart, optionValue);
+            var defaultValue = solution.Options.GetOption(optionKey);
+            var changedValue = FormattingOptions.IndentStyle.Block;
+            Assert.NotEqual(defaultValue, changedValue);
 
-            var newOptions = solution.Options.WithChangedOption(optionKey, FormattingOptions2.IndentStyle.Block);
+            var newOptions = solution.Options.WithChangedOption(optionKey, changedValue);
             var newSolution = solution.WithOptions(newOptions);
             var newOptionValue = newSolution.Options.GetOption(optionKey);
-            Assert.Equal(FormattingOptions2.IndentStyle.Block, newOptionValue);
+            Assert.Equal(changedValue, newOptionValue);
 
-            var applied = workspace.TryApplyChanges(newSolution);
-            Assert.True(applied);
+            Assert.True(workspace1.TryApplyChanges(newSolution));
 
-            var currentOptionValue = workspace.CurrentSolution.Options.GetOption(optionKey);
-            Assert.Equal(FormattingOptions2.IndentStyle.Block, currentOptionValue);
+            var currentOptionValue = workspace1.CurrentSolution.Options.GetOption(optionKey);
+            Assert.Equal(changedValue, currentOptionValue);
+
+            // option is set to global options that are shared among all workspaces
+            using var workspace2 = CreateWorkspace();
+            var value2 = workspace2.Options.GetOption(optionKey);
+            Assert.Equal(changedValue, value2);
         }
 
-        [CombinatorialData]
-        [Theory, WorkItem(19284, "https://github.com/dotnet/roslyn/issues/19284")]
-        public void TestOptionChangedHandlerInvokedAfterCurrentSolutionChanged(bool testDeprecatedOptionsSetter)
+        [Obsolete]
+        [Fact, WorkItem(19284, "https://github.com/dotnet/roslyn/issues/19284")]
+        public void TestOptionChangedHandlerInvokedAfterCurrentSolutionChanged()
         {
             using var primaryWorkspace = CreateWorkspace();
             using var secondaryWorkspace = CreateWorkspace();
@@ -1437,16 +1437,7 @@ class D { }
             primaryWorkspace.GlobalOptions.OptionChanged += OptionService_OptionChanged;
 
             // Change workspace options through primary workspace
-            if (testDeprecatedOptionsSetter)
-            {
-#pragma warning disable CS0618 // Type or member is obsolete - this test ensures that deprecated "Workspace.set_Options" API's functionality is preserved.
-                primaryWorkspace.Options = primaryWorkspace.Options.WithChangedOption(optionKey, FormattingOptions2.IndentStyle.Block);
-#pragma warning restore CS0618 // Type or member is obsolete
-            }
-            else
-            {
-                primaryWorkspace.SetOptions(primaryWorkspace.Options.WithChangedOption(optionKey, FormattingOptions2.IndentStyle.Block));
-            }
+            primaryWorkspace.Options = primaryWorkspace.Options.WithChangedOption(optionKey, FormattingOptions2.IndentStyle.Block);
 
             // Verify current solution and option change for both workspaces.
             VerifyCurrentSolutionAndOptionChange(primaryWorkspace, beforeSolutionForPrimaryWorkspace);
