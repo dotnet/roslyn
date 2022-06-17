@@ -62,31 +62,12 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             //
             // So if the prior token is not an identifier, this could not be a type-argument-list.
             var previousToken = token.GetPreviousToken();
-            if (previousToken.Kind() != SyntaxKind.IdentifierToken)
+            if (previousToken.Parent is not IdentifierNameSyntax identifier)
                 return false;
 
-            // use binding to see whether it is actually generic type or method 
-            // Analyze node on the left of < operator to verify if it is a generic type or method.
-            var leftNode = node.Left;
-            if (leftNode is ConditionalAccessExpressionSyntax leftConditionalAccessExpression)
-            {
-                // If node on the left is a conditional access expression, get the member binding expression 
-                // from the innermost conditional access expression, which is the left of < operator. 
-                // e.g: Case a?.b?.c< : we need to get the conditional access expression .b?.c and analyze its
-                // member binding expression (the .c) to see if it is a generic type/method.
-                // Case a?.b?.c.d< : we need to analyze .c.d
-                // Case a?.M(x => x?.P)?.M2< : We need to analyze .M2
-                var innerMostConditionalAccessExpression = leftConditionalAccessExpression.GetInnerMostConditionalAccessExpression();
-                if (innerMostConditionalAccessExpression != null)
-                    leftNode = innerMostConditionalAccessExpression.WhenNotNull;
-            }
-
-            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(leftNode.SpanStart, cancellationToken).ConfigureAwait(false);
-            var info = semanticModel.GetSymbolInfo(leftNode, cancellationToken);
-            return info.CandidateSymbols.Any(IsGenericTypeOrMethod);
+            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(node.SpanStart, cancellationToken).ConfigureAwait(false);
+            var info = semanticModel.GetSymbolInfo(identifier, cancellationToken);
+            return info.CandidateSymbols.Any(static s => s.GetArity() > 0);
         }
-
-        private static bool IsGenericTypeOrMethod(ISymbol symbol)
-            => symbol.GetArity() > 0;
     }
 }
