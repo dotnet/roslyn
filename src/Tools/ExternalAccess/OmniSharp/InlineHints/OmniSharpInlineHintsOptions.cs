@@ -38,7 +38,7 @@ internal readonly record struct OmniSharpInlineParameterHintsOptions(
             ForOtherParameters = ForOtherParameters,
             SuppressForParametersThatDifferOnlyBySuffix = SuppressForParametersThatDifferOnlyBySuffix,
             SuppressForParametersThatMatchMethodIntent = SuppressForParametersThatMatchMethodIntent,
-            SuppressForParametersThatMatchArgumentName = SuppressForParametersThatMatchArgumentName
+            SuppressForParametersThatMatchArgumentName = SuppressForParametersThatMatchArgumentName,
         };
 }
 
@@ -54,6 +54,6 @@ internal readonly record struct OmniSharpInlineTypeHintsOptions(
             EnabledForTypes = EnabledForTypes,
             ForImplicitVariableTypes = ForImplicitVariableTypes,
             ForLambdaParameterTypes = ForLambdaParameterTypes,
-            ForImplicitObjectCreation = ForImplicitObjectCreation
+            ForImplicitObjectCreation = ForImplicitObjectCreation,
         };
 }

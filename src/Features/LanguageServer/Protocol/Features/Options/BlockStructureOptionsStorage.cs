@@ -26,7 +26,7 @@ internal static class BlockStructureOptionsStorage
             CollapseEmptyMetadataImplementationsWhenFirstOpened = globalOptions.GetOption(CollapseMetadataSignatureFilesWhenFirstOpened, language),
             CollapseRegionsWhenCollapsingToDefinitions = globalOptions.GetOption(CollapseRegionsWhenCollapsingToDefinitions, language),
             MaximumBannerLength = globalOptions.GetOption(MaximumBannerLength, language),
-            IsMetadataAsSource = isMetadataAsSource
+            IsMetadataAsSource = isMetadataAsSource,
         };
 
     private const string FeatureName = "BlockStructureOptions";

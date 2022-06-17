@@ -57,7 +57,7 @@ internal sealed record class IdeAnalyzerOptions
         => new()
         {
             CleanCodeGenerationOptions = CodeGeneration.CleanCodeGenerationOptions.GetDefault(languageServices),
-            CodeStyleOptions = IdeCodeStyleOptions.GetDefault(languageServices)
+            CodeStyleOptions = IdeCodeStyleOptions.GetDefault(languageServices),
         };
 #endif
 }

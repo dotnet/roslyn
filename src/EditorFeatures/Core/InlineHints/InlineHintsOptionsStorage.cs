@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
             {
                 ParameterOptions = globalOptions.GetInlineParameterHintsOptions(language),
                 TypeOptions = globalOptions.GetInlineTypeHintsOptions(language),
-                DisplayOptions = globalOptions.GetSymbolDescriptionOptions(language)
+                DisplayOptions = globalOptions.GetSymbolDescriptionOptions(language),
             };
 
         public static InlineParameterHintsOptions GetInlineParameterHintsOptions(this IGlobalOptionService globalOptions, string language)
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
                 ForOtherParameters = globalOptions.GetOption(ForOtherParameters, language),
                 SuppressForParametersThatDifferOnlyBySuffix = globalOptions.GetOption(SuppressForParametersThatDifferOnlyBySuffix, language),
                 SuppressForParametersThatMatchMethodIntent = globalOptions.GetOption(SuppressForParametersThatMatchMethodIntent, language),
-                SuppressForParametersThatMatchArgumentName = globalOptions.GetOption(SuppressForParametersThatMatchArgumentName, language)
+                SuppressForParametersThatMatchArgumentName = globalOptions.GetOption(SuppressForParametersThatMatchArgumentName, language),
             };
 
         public static InlineTypeHintsOptions GetInlineTypeHintsOptions(this IGlobalOptionService globalOptions, string language)
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
               EnabledForTypes = globalOptions.GetOption(EnabledForTypes, language),
               ForImplicitVariableTypes = globalOptions.GetOption(ForImplicitVariableTypes, language),
               ForLambdaParameterTypes = globalOptions.GetOption(ForLambdaParameterTypes, language),
-              ForImplicitObjectCreation = globalOptions.GetOption(ForImplicitObjectCreation, language)
+              ForImplicitObjectCreation = globalOptions.GetOption(ForImplicitObjectCreation, language),
           };
 
         private const string FeatureName = "InlineHintsOptions";

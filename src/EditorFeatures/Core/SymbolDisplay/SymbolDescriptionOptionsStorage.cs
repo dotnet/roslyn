@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             => new()
             {
                 QuickInfoOptions = globalOptions.GetQuickInfoOptions(language),
-                ClassificationOptions = globalOptions.GetClassificationOptions(language)
+                ClassificationOptions = globalOptions.GetClassificationOptions(language),
             };
     }
 }

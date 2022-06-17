@@ -16,7 +16,7 @@ internal static class MetadataAsSourceOptionsStorage
         => new(GenerationOptions: globalOptions.GetCleanCodeGenerationOptions(languageServices))
         {
             NavigateToDecompiledSources = globalOptions.GetOption(NavigateToDecompiledSources),
-            AlwaysUseDefaultSymbolServers = globalOptions.GetOption(AlwaysUseDefaultSymbolServers)
+            AlwaysUseDefaultSymbolServers = globalOptions.GetOption(AlwaysUseDefaultSymbolServers),
         };
 
     public static Option2<bool> NavigateToDecompiledSources =

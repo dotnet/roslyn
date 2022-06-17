@@ -17,7 +17,7 @@ internal static class DocumentationCommentOptionsStorage
         return new()
         {
             LineFormatting = lineFormattingOptions,
-            AutoXmlDocCommentGeneration = globalOptions.GetOption(AutoXmlDocCommentGeneration, document.Project.Language)
+            AutoXmlDocCommentGeneration = globalOptions.GetOption(AutoXmlDocCommentGeneration, document.Project.Language),
         };
     }
 
@@ -25,7 +25,7 @@ internal static class DocumentationCommentOptionsStorage
       => new()
       {
           LineFormatting = lineFormatting,
-          AutoXmlDocCommentGeneration = globalOptions.GetOption(AutoXmlDocCommentGeneration, language)
+          AutoXmlDocCommentGeneration = globalOptions.GetOption(AutoXmlDocCommentGeneration, language),
       };
 
     public static readonly PerLanguageOption2<bool> AutoXmlDocCommentGeneration = new(

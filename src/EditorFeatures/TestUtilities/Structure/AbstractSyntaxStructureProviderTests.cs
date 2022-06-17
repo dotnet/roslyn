@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
             => new()
             {
                 MaximumBannerLength = 120,
-                IsMetadataAsSource = WorkspaceKind == CodeAnalysis.WorkspaceKind.MetadataAsSource
+                IsMetadataAsSource = WorkspaceKind == CodeAnalysis.WorkspaceKind.MetadataAsSource,
             };
 
         private Task<ImmutableArray<BlockSpan>> GetBlockSpansAsync(Document document, BlockStructureOptions options, int position)
