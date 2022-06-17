@@ -52,7 +52,17 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
         private static async ValueTask<bool> PossibleTypeArgumentAsync(Document document, SyntaxToken token, CancellationToken cancellationToken)
         {
             // type argument can be easily ambiguous with normal < operations
-            if (token.Parent is not BinaryExpressionSyntax node || node.Kind() != SyntaxKind.LessThanExpression || node.OperatorToken != token)
+            if (token.Parent is not BinaryExpressionSyntax(SyntaxKind.LessThanExpression) node || node.OperatorToken != token)
+                return false;
+
+            // type_argument_list only shows up in the following grammar construct:
+            //
+            // generic_name
+            //  : identifier_token type_argument_list
+            //
+            // So if the prior token is not an identifier, this could not be a type-argument-list.
+            var previousToken = token.GetPreviousToken();
+            if (previousToken.Kind() != SyntaxKind.IdentifierToken)
                 return false;
 
             // use binding to see whether it is actually generic type or method 
