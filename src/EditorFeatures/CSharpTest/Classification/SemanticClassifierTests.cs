@@ -4055,6 +4055,48 @@ Keyword("var"),
 Class("Regex"));
         }
 
+        [Theory, CombinatorialData]
+        [WorkItem(61982, "https://github.com/dotnet/roslyn/issues/61982")]
+        public async Task TestRegexAmbiguity1(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        var r = Regex.Match("""", [|@""$\a(?#comment)""|]
+",
+testHost,
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem(61982, "https://github.com/dotnet/roslyn/issues/61982")]
+        public async Task TestRegexAmbiguity2(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        var r = Regex.Match("""", [|@""$\a(?#comment)""|],
+",
+testHost,
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
         [Theory]
         [CombinatorialData]
         public async Task TestJson1(TestHost testHost)

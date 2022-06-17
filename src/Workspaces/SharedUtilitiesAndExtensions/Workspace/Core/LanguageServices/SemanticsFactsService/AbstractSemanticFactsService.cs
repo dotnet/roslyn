@@ -153,11 +153,11 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public IEnumerable<ISymbol> GetDeclaredSymbols(SemanticModel semanticModel, SyntaxNode memberDeclaration, CancellationToken cancellationToken)
             => SemanticFacts.GetDeclaredSymbols(semanticModel, memberDeclaration, cancellationToken);
 
-        public IParameterSymbol FindParameterForArgument(SemanticModel semanticModel, SyntaxNode argumentNode, CancellationToken cancellationToken)
-            => SemanticFacts.FindParameterForArgument(semanticModel, argumentNode, cancellationToken);
+        public IParameterSymbol FindParameterForArgument(SemanticModel semanticModel, SyntaxNode argumentNode, bool allowUncertainCandidates, CancellationToken cancellationToken)
+            => SemanticFacts.FindParameterForArgument(semanticModel, argumentNode, allowUncertainCandidates, cancellationToken);
 
-        public IParameterSymbol FindParameterForAttributeArgument(SemanticModel semanticModel, SyntaxNode argumentNode, CancellationToken cancellationToken)
-            => SemanticFacts.FindParameterForAttributeArgument(semanticModel, argumentNode, cancellationToken);
+        public IParameterSymbol FindParameterForAttributeArgument(SemanticModel semanticModel, SyntaxNode argumentNode, bool allowUncertainCandidates, CancellationToken cancellationToken)
+            => SemanticFacts.FindParameterForAttributeArgument(semanticModel, argumentNode, allowUncertainCandidates, cancellationToken);
 
         public ImmutableArray<ISymbol> GetBestOrAllSymbols(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken)
             => SemanticFacts.GetBestOrAllSymbols(semanticModel, node, token, cancellationToken);

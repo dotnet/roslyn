@@ -227,12 +227,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return SpecializedCollections.SingletonEnumerable(semanticModel.GetDeclaredSymbol(memberDeclaration, cancellationToken))
         End Function
 
-        Public Function FindParameterForArgument(semanticModel As SemanticModel, argument As SyntaxNode, cancellationToken As CancellationToken) As IParameterSymbol Implements ISemanticFacts.FindParameterForArgument
-            Return DirectCast(argument, ArgumentSyntax).DetermineParameter(semanticModel, allowParamArray:=False, cancellationToken)
+        Public Function FindParameterForArgument(semanticModel As SemanticModel, argument As SyntaxNode, allowUncertainCandidates As Boolean, cancellationToken As CancellationToken) As IParameterSymbol Implements ISemanticFacts.FindParameterForArgument
+            Return DirectCast(argument, ArgumentSyntax).DetermineParameter(semanticModel, allowUncertainCandidates, allowParamArray:=False, cancellationToken)
         End Function
 
-        Public Function FindParameterForAttributeArgument(semanticModel As SemanticModel, argument As SyntaxNode, cancellationToken As CancellationToken) As IParameterSymbol Implements ISemanticFacts.FindParameterForAttributeArgument
-            Return FindParameterForArgument(semanticModel, argument, cancellationToken)
+        Public Function FindParameterForAttributeArgument(semanticModel As SemanticModel, argument As SyntaxNode, allowUncertainCandidates As Boolean, cancellationToken As CancellationToken) As IParameterSymbol Implements ISemanticFacts.FindParameterForAttributeArgument
+            Return FindParameterForArgument(semanticModel, argument, allowUncertainCandidates, cancellationToken)
         End Function
 
         Public Function GetBestOrAllSymbols(semanticModel As SemanticModel, node As SyntaxNode, token As SyntaxToken, cancellationToken As CancellationToken) As ImmutableArray(Of ISymbol) Implements ISemanticFacts.GetBestOrAllSymbols

@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
             CancellationToken cancellationToken,
             [NotNullWhen(true)] out string? identifier)
         {
-            var parameter = Info.SemanticFacts.FindParameterForAttributeArgument(semanticModel, argument, cancellationToken);
+            var parameter = Info.SemanticFacts.FindParameterForAttributeArgument(semanticModel, argument, allowUncertainCandidates: true, cancellationToken);
             return HasMatchingStringSyntaxAttribute(parameter, out identifier);
         }
 
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
             CancellationToken cancellationToken,
             [NotNullWhen(true)] out string? identifier)
         {
-            var parameter = Info.SemanticFacts.FindParameterForArgument(semanticModel, argument, cancellationToken);
+            var parameter = Info.SemanticFacts.FindParameterForArgument(semanticModel, argument, allowUncertainCandidates: true, cancellationToken);
             return HasMatchingStringSyntaxAttribute(parameter, out identifier);
         }
 
