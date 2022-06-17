@@ -24,6 +24,7 @@ using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
+using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
@@ -259,6 +260,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
                     phwnd = _documentOutlineViewHost.Handle;
                     ppCmdTarget = _documentOutlineView;
+                    Logger.Log(FunctionId.DocumentOutline_WindowOpen);
                 }
 
                 return VSConstants.S_OK;

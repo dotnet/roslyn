@@ -11,6 +11,7 @@ using System.Windows;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Client;
@@ -214,6 +215,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         {
             if (SymbolTreeInitialized)
             {
+                Logger.Log(FunctionId.DocumentOutline_SortByName);
                 var sortedDocumentSymbolModels = DocumentOutlineHelper.Sort(SymbolsTreeItemsSource, SortOption.Name);
                 SymbolsTreeItemsSource = sortedDocumentSymbolModels;
                 symbolTree.ItemsSource = sortedDocumentSymbolModels;
@@ -224,6 +226,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         {
             if (SymbolTreeInitialized)
             {
+                Logger.Log(FunctionId.DocumentOutline_SortByOrder);
                 var sortedDocumentSymbolModels = DocumentOutlineHelper.Sort(SymbolsTreeItemsSource, SortOption.Order);
                 SymbolsTreeItemsSource = sortedDocumentSymbolModels;
                 symbolTree.ItemsSource = sortedDocumentSymbolModels;
@@ -234,6 +237,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         {
             if (SymbolTreeInitialized)
             {
+                Logger.Log(FunctionId.DocumentOutline_SortByType);
                 var sortedDocumentSymbolModels = DocumentOutlineHelper.Sort(SymbolsTreeItemsSource, SortOption.Type);
                 SymbolsTreeItemsSource = sortedDocumentSymbolModels;
                 symbolTree.ItemsSource = sortedDocumentSymbolModels;

@@ -548,5 +548,10 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Refactoring_FixAllOccurrencesPreviewChanges = 563,
 
         LSP_UsedForkedSolution = 571,
+
+        DocumentOutline_WindowOpen = 580,
+        DocumentOutline_SortByName = 581,
+        DocumentOutline_SortByOrder = 582,
+        DocumentOutline_SortByType = 583,
     }
 }
