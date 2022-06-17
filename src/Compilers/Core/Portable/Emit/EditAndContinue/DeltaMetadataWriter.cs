@@ -32,8 +32,8 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly List<ITypeDefinition> _changedTypeDefs;
 
         /// <summary>
-        /// Cache of type definitions used by deleted members. Used so that if a method 'C M(C c)' is deleted
-        /// we use the same DeletedTypeDefinition instance for the method return type, and the parameter type.
+        /// Cache of type definitions used in signatures of deleted members. Used so that if a method 'C M(C c)' is deleted
+        /// we use the same <see cref="DeletedTypeDefinition"/> instance for the method return type, and the parameter type.
         /// </summary>
         private readonly Dictionary<ITypeDefinition, DeletedTypeDefinition> _typesUsedByDeletedMembers;
 

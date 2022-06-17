@@ -800,9 +800,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 method = SubstituteTypeParameters(method);
                 other = SubstituteTypeParameters(other);
 
-                // When deleting a method, the return type of method and other will be the same symbol
-                // which fails the SymbolComparer check (to avoid cycles) but are obviously still equal.
-                return (_comparer.Equals(method.ReturnType, other.ReturnType) || ReferenceEquals(method.ReturnType, other.ReturnType)) &&
+                return _comparer.Equals(method.ReturnType, other.ReturnType) &&
                     method.RefKind.Equals(other.RefKind) &&
                     method.Parameters.SequenceEqual(other.Parameters, AreParametersEqual) &&
                     method.TypeParameters.SequenceEqual(other.TypeParameters, AreTypesEqual);
@@ -995,7 +993,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     members.AddRange(synthesizedMembers);
                 }
 
-                if (_otherDeletedMembers != null && _otherDeletedMembers.TryGetValue(symbol, out var deletedMembers))
+                if (_otherDeletedMembers?.TryGetValue(symbol, out var deletedMembers) == true)
                 {
                     members.AddRange(deletedMembers);
                 }
@@ -1019,6 +1017,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                 public bool Equals(TypeSymbol source, TypeSymbol other)
                 {
+                    if (ReferenceEquals(source, other))
+                    {
+                        return true;
+                    }
+
                     var visitedSource = (TypeSymbol?)_matcher.Visit(source);
                     var visitedOther = (_deepTranslator != null) ? (TypeSymbol)_deepTranslator.Visit(other) : other;
 

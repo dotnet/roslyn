@@ -563,9 +563,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 method = SubstituteTypeParameters(method)
                 other = SubstituteTypeParameters(other)
 
-                ' When deleting a method, the return type of method And other will be the same symbol
-                ' which fails the SymbolComparer check (to avoid cycles) but are obviously still equal.
-                Return (_comparer.Equals(method.ReturnType, other.ReturnType) OrElse ReferenceEquals(method.ReturnType, other.ReturnType)) AndAlso
+                Return _comparer.Equals(method.ReturnType, other.ReturnType) AndAlso
                     method.Parameters.SequenceEqual(other.Parameters, AddressOf Me.AreParametersEqual) AndAlso
                     method.TypeParameters.SequenceEqual(other.TypeParameters, AddressOf Me.AreTypesEqual)
             End Function
@@ -681,6 +679,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 End Sub
 
                 Public Overloads Function Equals(source As TypeSymbol, other As TypeSymbol) As Boolean
+                    If ReferenceEquals(source, other) Then
+                        Return True
+                    End If
+
                     Dim visitedSource = DirectCast(_matcher.Visit(source), TypeSymbol)
                     Dim visitedOther = If(_deepTranslatorOpt IsNot Nothing, DirectCast(_deepTranslatorOpt.Visit(other), TypeSymbol), other)
 

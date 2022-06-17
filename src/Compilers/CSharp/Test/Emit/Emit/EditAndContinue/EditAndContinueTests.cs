@@ -13175,7 +13175,7 @@ class C
         [InlineData("void M1<T>(T t) where T : C { }", 1)]
         [InlineData("T M1<T>() { return default; }", 0)]
         [InlineData("T M1<T>() where T : C { return default; }", 0)]
-        public void Method_Delete(string methodDef, int numParams)
+        public void Method_Delete(string methodDef, int parameterCount)
         {
             using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
                 .AddGeneration(
@@ -13217,13 +13217,12 @@ class C
                         g.VerifyEncLogDefinitions(new[]
                         {
                             Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default)
-                        }.Concat(Enumerable.Range(1, numParams).Select(i => Row(i, TableIndex.Param, EditAndContinueOperation.Default))));
+                        }.Concat(Enumerable.Range(1, parameterCount).Select(i => Row(i, TableIndex.Param, EditAndContinueOperation.Default))));
                         g.VerifyEncMapDefinitions(new[]
                         {
                             Handle(1, TableIndex.MethodDef),
-                        }.Concat(Enumerable.Range(1, numParams).Select(i => Handle(i, TableIndex.Param))));
+                        }.Concat(Enumerable.Range(1, parameterCount).Select(i => Handle(i, TableIndex.Param))));
 
-                        // TODO: This should be throwing MissingMethodException
                         var expectedIL = """
                             {
                               // Code size        6 (0x6)
@@ -13318,7 +13317,6 @@ class C
                             Handle(3, TableIndex.MethodDef),
                         });
 
-                        // TODO: This should be throwing MissingMethodException
                         var expectedIL = """
                             {
                               // Code size        6 (0x6)
@@ -13374,7 +13372,6 @@ class C
                             Handle(1, TableIndex.MethodDef),
                         });
 
-                        // TODO: This should be throwing MissingMethodException
                         var expectedIL = """
                             {
                               // Code size        6 (0x6)
@@ -13493,7 +13490,6 @@ class C
                             new CustomAttributeRow(Handle(3, TableIndex.MethodDef), Handle(6, TableIndex.MemberRef))
                         });
 
-                        // TODO: This should be throwing MissingMethodException
                         var expectedIL = """
                             {
                               // Code size        6 (0x6)
