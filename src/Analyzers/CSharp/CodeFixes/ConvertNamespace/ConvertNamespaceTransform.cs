@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
             // Replace the block namespace with the file scoped namespace.
             var annotation = new SyntaxAnnotation();
             var (updatedRoot, semicolonSpan) = ReplaceWithFileScopedNamespace(document, namespaceDeclaration, annotation);
-            var updatedDocument = document.WithChangedRootSynchronous(updatedRoot, cancellationToken);
+            var updatedDocument = document.WithChangedRoot(updatedRoot, cancellationToken);
 
             // Determine how much indentation we had inside the original block namespace. We'll attempt to remove
             // that much indentation from each applicable line after we conver the block namespace to a file scoped

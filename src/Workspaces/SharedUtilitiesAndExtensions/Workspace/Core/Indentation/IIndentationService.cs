@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Indentation
             newToken = newToken.WithLeadingTrivia(newToken.LeadingTrivia.Add(syntaxGenerator.EndOfLine(options.FormattingOptions.NewLine)));
 
             var newRoot = document.Root.ReplaceToken(token, newToken);
-            var newDocument = document.WithChangedRootSynchronous(newRoot, cancellationToken);
+            var newDocument = document.WithChangedRoot(newRoot, cancellationToken);
 
             var newTokenLine = newDocument.Text.Lines.GetLineFromPosition(newRoot.GetAnnotatedTokens(annotation).Single().SpanStart);
 

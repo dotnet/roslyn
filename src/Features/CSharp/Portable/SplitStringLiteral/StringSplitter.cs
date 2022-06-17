@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
             var indentationService = Document.LanguageServices.GetRequiredService<IIndentationService>();
             var originalLineNumber = Document.Text.Lines.GetLineFromPosition(CursorPosition).LineNumber;
 
-            var newDocument = Document.WithChangedRootSynchronous(newRoot, CancellationToken);
+            var newDocument = Document.WithChangedRoot(newRoot, CancellationToken);
             var desiredIndentation = indentationService.GetIndentation(
                 newDocument, originalLineNumber + 1, Options, CancellationToken);
 

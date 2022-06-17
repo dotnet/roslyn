@@ -37,15 +37,9 @@ internal readonly record struct ParsedDocument(DocumentId Id, SourceText Text, S
         return new ParsedDocument(Id, text, root, LanguageServices);
     }
 
-    public ParsedDocument WithChangedRootSynchronous(SyntaxNode root, CancellationToken cancellationToken)
+    public ParsedDocument WithChangedRoot(SyntaxNode root, CancellationToken cancellationToken)
     {
         var text = root.SyntaxTree.GetText(cancellationToken);
-        return new ParsedDocument(Id, text, root, LanguageServices);
-    }
-
-    public async ValueTask<ParsedDocument> WithChangedRootAsync(SyntaxNode root, CancellationToken cancellationToken)
-    {
-        var text = await root.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
         return new ParsedDocument(Id, text, root, LanguageServices);
     }
 }
