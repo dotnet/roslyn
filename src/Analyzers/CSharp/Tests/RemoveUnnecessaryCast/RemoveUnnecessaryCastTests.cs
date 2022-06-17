@@ -12901,5 +12901,34 @@ class C
 ";
             await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
         }
+
+        [WorkItem(64346, "https://github.com/dotnet/roslyn/issues/61346")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task CanRemoveCastToNullableObjectInStringInterpolation()
+        {
+            var code = @"
+#nullable enable
+
+class C
+{
+    void M()
+    {
+        var v = $""{[|(object?)|]0}"";
+    }
+}
+";
+            var fixedCode = @"
+#nullable enable
+
+class C
+{
+    void M()
+    {
+        var v = $""{0}"";
+    }
+}
+";
+            await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
+        }
     }
 }
