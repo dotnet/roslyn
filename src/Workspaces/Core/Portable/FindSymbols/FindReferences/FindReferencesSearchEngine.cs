@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
             finally
             {
-                FindReferenceCache.Stop(model);
+                FindReferenceCache.Stop(model!);
 
                 await _progress.OnFindInDocumentCompletedAsync(document, cancellationToken).ConfigureAwait(false);
             }

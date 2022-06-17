@@ -14,10 +14,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
     /// </summary>
     internal abstract class AbstractEmbeddedLanguagesProvider : IEmbeddedLanguagesProvider
     {
+        public EmbeddedLanguageInfo EmbeddedLanguageInfo { get; }
         public ImmutableArray<IEmbeddedLanguage> Languages { get; }
 
         protected AbstractEmbeddedLanguagesProvider(EmbeddedLanguageInfo info)
         {
+            EmbeddedLanguageInfo = info;
             Languages = ImmutableArray.Create<IEmbeddedLanguage>(
                 new DateAndTimeEmbeddedLanguage(info),
                 new RegexEmbeddedLanguage(this, info),

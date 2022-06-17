@@ -42,14 +42,6 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
             return tree == null ? default : (tree, token);
         }
 
-        internal async Task<RegexTree> TryGetTreeAtPositionAsync(
-            Document document, int position, CancellationToken cancellationToken)
-        {
-            var (tree, _) = await TryGetTreeAndTokenAtPositionAsync(
-                document, position, cancellationToken).ConfigureAwait(false);
-            return tree;
-        }
-
         public string EscapeText(string text, SyntaxToken token)
             => _provider.EscapeText(text, token);
     }

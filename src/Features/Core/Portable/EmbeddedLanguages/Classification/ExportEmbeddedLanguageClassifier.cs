@@ -12,14 +12,14 @@ namespace Microsoft.CodeAnalysis.Classification
     internal class ExportEmbeddedLanguageClassifierAttribute : ExportEmbeddedLanguageFeatureServiceAttribute
     {
         public ExportEmbeddedLanguageClassifierAttribute(
-            string name, string language, params string[] identifiers)
-            : this(name, language, supportsUnannotatedAPIs: false, identifiers)
+            string name, string[] languages, params string[] identifiers)
+            : this(name, languages, supportsUnannotatedAPIs: false, identifiers)
         {
         }
 
         public ExportEmbeddedLanguageClassifierAttribute(
-            string name, string language, bool supportsUnannotatedAPIs, params string[] identifiers)
-            : base(typeof(IEmbeddedLanguageClassifier), name, language, supportsUnannotatedAPIs, identifiers)
+            string name, string[] languages, bool supportsUnannotatedAPIs, params string[] identifiers)
+            : base(typeof(IEmbeddedLanguageClassifier), name, languages, supportsUnannotatedAPIs, identifiers)
         {
         }
     }

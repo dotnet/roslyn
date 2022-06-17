@@ -47,11 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected void CheckAccessibility(BindingDiagnosticBag diagnostics)
         {
-            var info = ModifierUtils.CheckAccessibility(Modifiers, this, isExplicitInterfaceImplementation: false);
-            if (info != null)
-            {
-                diagnostics.Add(new CSDiagnostic(info, this.ErrorLocation));
-            }
+            ModifierUtils.CheckAccessibility(Modifiers, this, isExplicitInterfaceImplementation: false, diagnostics, ErrorLocation);
         }
 
         protected void ReportModifiersDiagnostics(BindingDiagnosticBag diagnostics)

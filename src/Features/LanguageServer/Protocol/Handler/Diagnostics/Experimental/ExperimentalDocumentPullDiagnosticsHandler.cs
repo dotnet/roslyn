@@ -42,14 +42,14 @@ internal class ExperimentalDocumentPullDiagnosticsHandler : AbstractPullDiagnost
         return ConvertTags(diagnosticData, potentialDuplicate: false);
     }
 
-    protected override DocumentDiagnosticPartialReport CreateReport(TextDocumentIdentifier identifier, VisualStudio.LanguageServer.Protocol.Diagnostic[]? diagnostics, string? resultId)
-    {
-        // We will only report once for document pull, so we only need to return the first literal send = DocumentDiagnosticReport.
-        var report = diagnostics == null
-            ? new DocumentDiagnosticReport(new UnchangedDocumentDiagnosticReport(resultId))
-            : new DocumentDiagnosticReport(new FullDocumentDiagnosticReport(resultId, diagnostics));
-        return report;
-    }
+    protected override DocumentDiagnosticPartialReport CreateReport(TextDocumentIdentifier identifier, VisualStudio.LanguageServer.Protocol.Diagnostic[] diagnostics, string resultId)
+        => new DocumentDiagnosticReport(new FullDocumentDiagnosticReport(resultId, diagnostics));
+
+    protected override DocumentDiagnosticPartialReport CreateRemovedReport(TextDocumentIdentifier identifier)
+        => new DocumentDiagnosticReport(new FullDocumentDiagnosticReport(resultId: null, Array.Empty<VisualStudio.LanguageServer.Protocol.Diagnostic>()));
+
+    protected override DocumentDiagnosticPartialReport CreateUnchangedReport(TextDocumentIdentifier identifier, string resultId)
+        => new DocumentDiagnosticReport(new UnchangedDocumentDiagnosticReport(resultId));
 
     protected override DocumentDiagnosticReport? CreateReturn(BufferedProgress<DocumentDiagnosticPartialReport> progress)
     {
@@ -63,15 +63,7 @@ internal class ExperimentalDocumentPullDiagnosticsHandler : AbstractPullDiagnost
         return null;
     }
 
-    protected override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, Document document, DiagnosticMode diagnosticMode, CancellationToken cancellationToken)
-    {
-        // We are intentionally getting diagnostics for the up to date LSP snapshot instead of from the IDiagnosticService
-        // as the solution crawler does not run in VSCode.  When the solution crawler is removed from VS, the VS LSP diagnostics
-        // implementation will switch over to up to date calculation.
-        return DiagnosticAnalyzerService.GetDiagnosticsForSpanAsync(document, range: null, cancellationToken: cancellationToken);
-    }
-
-    protected override ValueTask<ImmutableArray<Document>> GetOrderedDocumentsAsync(RequestContext context, CancellationToken cancellationToken)
+    protected override ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
     {
         return ValueTaskFactory.FromResult(DocumentPullDiagnosticHandler.GetRequestedDocument(context));
     }
