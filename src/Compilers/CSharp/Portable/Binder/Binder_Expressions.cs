@@ -6065,9 +6065,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindCheckedExpression(CheckedExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
-            // the binder is not cached since we only cache statement level binders
-            return this.WithCheckedOrUncheckedRegion(node.Kind() == SyntaxKind.CheckedExpression).
-                BindParenthesizedExpression(node.Expression, diagnostics);
+            var binder = this.GetBinder(node);
+            return binder.BindParenthesizedExpression(node.Expression, diagnostics);
         }
 
         /// <summary>
