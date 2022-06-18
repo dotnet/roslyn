@@ -10,24 +10,21 @@ $toolsPath = & "$PSScriptRoot\Get-TempToolsPath.ps1"
 $binaryToolsPath = Join-Path $toolsPath codecov
 if (!(Test-Path $binaryToolsPath)) { $null = mkdir $binaryToolsPath }
 
-if ($IsMacOS)
-{
+if ($IsMacOS) {
     $codeCovPath = Join-Path $binaryToolsPath codecov
     $codeCovUrl = "https://uploader.codecov.io/latest/macos/codecov"
 }
-elseif ($IsLinux)
-{
+elseif ($IsLinux) {
     $codeCovPath = Join-Path $binaryToolsPath codecov
     $codeCovUrl = "https://uploader.codecov.io/latest/linux/codecov"
 }
-else
-{
+else {
     $codeCovPath = Join-Path $binaryToolsPath codecov.exe
     $codeCovUrl = "https://uploader.codecov.io/latest/windows/codecov.exe"
 }
 
 if (!(Test-Path $codeCovPath)) {
-    Write-Host "Downloading latest codeconv..." -ForegroundColor Yellow
+    Write-Host "Downloading latest codecov upload tool..." -ForegroundColor Yellow
     (New-Object System.Net.WebClient).DownloadFile($codeCovUrl, $codeCovPath)
 }
 
