@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             // This named type may end up being locally aliased as well.  If so, now find all the references
             // to the local alias.
             var symbolsMatch = GetStandardSymbolsMatchFunction(
-                namedType, findParentNode: null, state, cancellationToken);
+                namedType, findParentNode: null, cancellationToken);
 
             initialReferences.AddRange(await FindLocalAliasReferencesAsync(
                 initialReferences, state, symbolsMatch, cancellationToken).ConfigureAwait(false));
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             // associate with the type, but rather with the constructor itself.
             var findParentNode = GetNamedTypeOrConstructorFindParentNodeFunction(state, namedType);
             var symbolsMatch = GetStandardSymbolsMatchFunction(
-                namedType, findParentNode, state, cancellationToken);
+                namedType, findParentNode, cancellationToken);
 
             return FindReferencesInDocumentUsingIdentifierAsync(
                 namedType, name, state, symbolsMatch, cancellationToken);
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return FindReferencesInDocumentAsync(
                 state,
                 static (state, token, predefinedType) => IsPotentialReference(predefinedType, state.SyntaxFacts, token),
-                (t, m) => ValueTaskFactory.FromResult((matched: true, reason: CandidateReason.None)),
+                static (state, token, _) => ValueTaskFactory.FromResult((matched: true, reason: CandidateReason.None)),
                 predefinedType,
                 cancellationToken);
         }
@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CancellationToken cancellationToken)
         {
             var symbolsMatch = GetStandardSymbolsMatchFunction(
-                namedType, findParentNode: null, state, cancellationToken);
+                namedType, findParentNode: null, cancellationToken);
             var syntaxFacts = state.SyntaxFacts;
             return TryGetNameWithoutAttributeSuffix(name, syntaxFacts, out var nameWithoutSuffix)
                 ? FindReferencesInDocumentUsingIdentifierAsync(namedType, nameWithoutSuffix, state, symbolsMatch, cancellationToken)

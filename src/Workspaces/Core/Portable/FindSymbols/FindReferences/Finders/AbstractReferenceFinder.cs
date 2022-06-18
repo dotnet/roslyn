@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             Func<SyntaxToken, SyntaxNode>? findParentNode,
             CancellationToken cancellationToken)
         {
-            var symbolsMatch = GetStandardSymbolsMatchFunction(symbol, findParentNode, state, cancellationToken);
+            var symbolsMatch = GetStandardSymbolsMatchFunction(symbol, findParentNode, cancellationToken);
             return FindReferencesInDocumentUsingIdentifierAsync(
                 symbol, identifier, state, symbolsMatch, cancellationToken);
         }
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             ISymbol _,
             string identifier,
             FindReferencesDocumentState state,
-            Func<SyntaxToken, SemanticModel, ValueTask<(bool matched, CandidateReason reason)>> symbolsMatchAsync,
+            Func<FindReferencesDocumentState, SyntaxToken, CancellationToken, ValueTask<(bool matched, CandidateReason reason)>> symbolsMatchAsync,
             CancellationToken cancellationToken)
         {
             var tokens = await FindMatchingIdentifierTokensAsync(state, identifier, cancellationToken).ConfigureAwait(false);
@@ -193,21 +193,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return t => syntaxFacts.TryGetBindableParent(t) ?? t.Parent!;
         }
 
-        protected static Func<SyntaxToken, SemanticModel, ValueTask<(bool matched, CandidateReason reason)>> GetStandardSymbolsMatchFunction(
+        protected static Func<FindReferencesDocumentState, SyntaxToken, CancellationToken, ValueTask<(bool matched, CandidateReason reason)>> GetStandardSymbolsMatchFunction(
             ISymbol symbol,
             Func<SyntaxToken, SyntaxNode>? findParentNode,
-            FindReferencesDocumentState state,
             CancellationToken cancellationToken)
         {
-            var nodeMatchAsync = GetStandardSymbolsNodeMatchFunction(symbol, state, cancellationToken);
+            var nodeMatchAsync = GetStandardSymbolsNodeMatchFunction(symbol);
             findParentNode ??= t => t.Parent!;
-            return (token, model) => nodeMatchAsync(findParentNode(token), model);
+            return (state, token, CancellationToken) => nodeMatchAsync(state, findParentNode(token), cancellationToken);
         }
 
-        protected static Func<SyntaxNode, SemanticModel, ValueTask<(bool matched, CandidateReason reason)>> GetStandardSymbolsNodeMatchFunction(
-            ISymbol searchSymbol, FindReferencesDocumentState state, CancellationToken cancellationToken)
+        protected static Func<FindReferencesDocumentState, SyntaxNode, CancellationToken, ValueTask<(bool matched, CandidateReason reason)>> GetStandardSymbolsNodeMatchFunction(
+            ISymbol searchSymbol)
         {
-            return async (node, model) =>
+            return async (state, node, cancellationToken) =>
             {
                 var symbolInfo = state.Cache.GetSymbolInfo(node, cancellationToken);
 
@@ -228,7 +227,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             FindReferencesDocumentState state,
             IEnumerable<SyntaxToken> tokens,
             Func<FindReferencesDocumentState, SyntaxToken, T, bool> tokensMatch,
-            Func<SyntaxToken, SemanticModel, ValueTask<(bool matched, CandidateReason reason)>> symbolsMatchAsync,
+            Func<FindReferencesDocumentState, SyntaxToken, CancellationToken, ValueTask<(bool matched, CandidateReason reason)>> symbolsMatchAsync,
             T value,
             CancellationToken cancellationToken)
         {
@@ -242,7 +241,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 if (tokensMatch(state, token, value))
                 {
                     var semanticModel = state.SemanticModel;
-                    var (matched, reason) = await symbolsMatchAsync(token, semanticModel).ConfigureAwait(false);
+                    var (matched, reason) = await symbolsMatchAsync(state, token, cancellationToken).ConfigureAwait(false);
                     if (matched)
                     {
                         RoslynDebug.Assert(token.Parent != null);
@@ -314,7 +313,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected static async Task<ImmutableArray<FinderLocation>> FindLocalAliasReferencesAsync(
             ArrayBuilder<FinderLocation> initialReferences,
             FindReferencesDocumentState state,
-            Func<SyntaxToken, SemanticModel, ValueTask<(bool matched, CandidateReason reason)>> symbolsMatchAsync,
+            Func<FindReferencesDocumentState, SyntaxToken, CancellationToken, ValueTask<(bool matched, CandidateReason reason)>> symbolsMatchAsync,
             CancellationToken cancellationToken)
         {
             var aliasSymbols = GetLocalAliasSymbols(state, initialReferences, cancellationToken);
@@ -369,7 +368,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         private static async Task<ImmutableArray<FinderLocation>> FindReferencesThroughLocalAliasSymbolsAsync(
             FindReferencesDocumentState state,
             ImmutableArray<IAliasSymbol> localAliasSymbols,
-            Func<SyntaxToken, SemanticModel, ValueTask<(bool matched, CandidateReason reason)>> symbolsMatchAsync,
+            Func<FindReferencesDocumentState, SyntaxToken, CancellationToken, ValueTask<(bool matched, CandidateReason reason)>> symbolsMatchAsync,
             CancellationToken cancellationToken)
         {
             var syntaxFacts = state.SyntaxFacts;
@@ -925,7 +924,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CancellationToken cancellationToken)
         {
             var symbolsMatchAsync = GetStandardSymbolsMatchFunction(
-                symbol, findParentNode, state, cancellationToken);
+                symbol, findParentNode, cancellationToken);
 
             return FindReferencesInTokensAsync(
                 state,
@@ -955,14 +954,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             T value,
             CancellationToken cancellationToken)
         {
-            var symbolsMatchAsync = GetStandardSymbolsMatchFunction(symbol, findParentNode, state, cancellationToken);
+            var symbolsMatchAsync = GetStandardSymbolsMatchFunction(symbol, findParentNode, cancellationToken);
             return FindReferencesInDocumentAsync(state, tokensMatch, symbolsMatchAsync, value, cancellationToken);
         }
 
         protected static ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync<T>(
             FindReferencesDocumentState state,
             Func<FindReferencesDocumentState, SyntaxToken, T, bool> tokensMatch,
-            Func<SyntaxToken, SemanticModel, ValueTask<(bool matched, CandidateReason reason)>> symbolsMatchAsync,
+            Func<FindReferencesDocumentState, SyntaxToken, CancellationToken, ValueTask<(bool matched, CandidateReason reason)>> symbolsMatchAsync,
             T value,
             CancellationToken cancellationToken)
         {
