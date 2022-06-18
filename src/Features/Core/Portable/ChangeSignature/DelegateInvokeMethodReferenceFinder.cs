@@ -75,6 +75,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             HashSet<string>? globalAliases,
             Document document,
             SemanticModel semanticModel,
+            FindReferenceCache cache,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {

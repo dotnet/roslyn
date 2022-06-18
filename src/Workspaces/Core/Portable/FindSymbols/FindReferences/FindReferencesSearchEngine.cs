@@ -277,15 +277,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // to now see if the candidate actually matches the symbol.  This will require syntax and semantics.  So
                 // just grab those once here and hold onto them for the lifetime of this call.
                 var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var cache = FindReferenceCache.GetCache(model);
 
                 foreach (var symbol in symbols)
                 {
                     var globalAliases = TryGet(symbolToGlobalAliases, symbol);
-                    await ProcessDocumentAsync(model, symbol, globalAliases).ConfigureAwait(false);
+                    await ProcessDocumentAsync(model, cache, symbol, globalAliases).ConfigureAwait(false);
                 }
-
-                GC.KeepAlive(root);
             }
             finally
             {
@@ -293,7 +291,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             async Task ProcessDocumentAsync(
-                SemanticModel semanticModel, ISymbol symbol, HashSet<string>? globalAliases)
+                SemanticModel semanticModel,
+                FindReferenceCache cache,
+                ISymbol symbol,
+                HashSet<string>? globalAliases)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -305,7 +306,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     foreach (var finder in _finders)
                     {
                         var references = await finder.FindReferencesInDocumentAsync(
-                            symbol, globalAliases, document, semanticModel, _options, cancellationToken).ConfigureAwait(false);
+                            symbol, globalAliases, document, semanticModel, cache, _options, cancellationToken).ConfigureAwait(false);
                         foreach (var (_, location) in references)
                             await _progress.OnReferenceFoundAsync(group, symbol, location, cancellationToken).ConfigureAwait(false);
                     }

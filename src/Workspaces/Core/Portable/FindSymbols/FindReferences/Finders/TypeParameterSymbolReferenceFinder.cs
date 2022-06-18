@@ -37,10 +37,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             HashSet<string>? globalAliases,
             Document document,
             SemanticModel semanticModel,
+            FindReferenceCache cache,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            return FindReferencesInDocumentUsingSymbolNameAsync(symbol, document, semanticModel, cancellationToken);
+            return FindReferencesInDocumentUsingSymbolNameAsync(symbol, document, semanticModel, cache, cancellationToken);
         }
     }
 }

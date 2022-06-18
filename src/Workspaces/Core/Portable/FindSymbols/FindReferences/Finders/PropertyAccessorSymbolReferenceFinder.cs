@@ -65,17 +65,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             HashSet<string>? globalAliases,
             Document document,
             SemanticModel semanticModel,
+            FindReferenceCache cache,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             var references = await FindReferencesInDocumentUsingSymbolNameAsync(
-                symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
+                symbol, document, semanticModel, cache, cancellationToken).ConfigureAwait(false);
 
             if (symbol.AssociatedSymbol is IPropertySymbol property &&
                 options.AssociatePropertyReferencesWithSpecificAccessor)
             {
                 var propertyReferences = await ReferenceFinders.Property.FindReferencesInDocumentAsync(
-                    property, globalAliases, document, semanticModel,
+                    property, globalAliases, document, semanticModel, cache,
                     options with { AssociatePropertyReferencesWithSpecificAccessor = false },
                     cancellationToken).ConfigureAwait(false);
 
