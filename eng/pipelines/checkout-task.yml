@@ -1,0 +1,5 @@
+# Shallow checkout sources on Windows
+steps:
+  - checkout: self
+    clean: true
+    fetchDepth: 1 # Fetch only one commit
