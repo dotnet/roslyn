@@ -656,6 +656,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             Dictionary<SyntaxTree, (SyntaxTree NewTree,bool IsModified)> oldTreeToNewTrees = new();
             Dictionary<SyntaxTree, SyntaxTree?> newTreesToOldTrees = new();
             HashSet<SyntaxTree> addedTrees = new();
+            
+            AnalyzerConfigOptionsProvider GetMappedAnalyzerConfigOptionsProvider(AnalyzerConfigOptionsProvider optionsProvider) 
+                => CompilerAnalyzerConfigOptionsProvider.MapSyntaxTrees( 
+                    optionsProvider,
+                    oldTreeToNewTrees.Select(x => (x.Key, x.Value.NewTree)) );
+
             var inputResources = manifestResources.SelectAsArray(m => new ManagedResource(m));
             List<ManagedResource> addedResources = new();
             var diagnosticFiltersBuilder = ImmutableArray.CreateBuilder<DiagnosticFilter>();
@@ -677,12 +683,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // We source-only analyzers
+            // Execute source-only analyzers before any transformation.
             if (sourceOnlyAnalyzersOptions != null)
             {
                 // Executing the analyzers can realize most of the compilation, so we pay attention to execute them on the same compilation
                 // as the one we give as the input for transformations.
-                annotatedInputCompilation = ExecuteSourceOnlyAnalyzers(sourceOnlyAnalyzersOptions, annotatedInputCompilation, diagnostics, cancellationToken);
+                
+                // Map the options provider to the annotated syntax trees.
+                var mappedOptionProvider =
+                    GetMappedAnalyzerConfigOptionsProvider(sourceOnlyAnalyzersOptions.AnalyzerOptions
+                        .AnalyzerConfigOptionsProvider);
+                var mappedOptions = new AnalyzerOptions(sourceOnlyAnalyzersOptions.AnalyzerOptions.AdditionalFiles,
+                    mappedOptionProvider);
+                
+                annotatedInputCompilation = ExecuteSourceOnlyAnalyzers(
+                    sourceOnlyAnalyzersOptions with { AnalyzerOptions = mappedOptions}, 
+                    annotatedInputCompilation,
+                    diagnostics, 
+                    cancellationToken);
             }
 
             // Execute the transformers.
@@ -812,7 +830,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                  replacements, 
                 new DiagnosticFilters(diagnosticFiltersBuilder.ToImmutable()), 
                 addedResources.SelectAsArray( m => m.Resource),
-                CompilerAnalyzerConfigOptionsProvider.MapSyntaxTrees( analyzerConfigProvider,oldTreeToNewTrees.Select(x => (x.Key, x.Value.NewTree)) ) );
+                GetMappedAnalyzerConfigOptionsProvider(analyzerConfigProvider) );
             
     
         }

@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -27,7 +28,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public override AnalyzerConfigOptions GlobalOptions { get; }
 
         public override AnalyzerConfigOptions GetOptions(SyntaxTree tree)
-            => _treeDict.TryGetValue(tree, out var options) ? options : DictionaryAnalyzerConfigOptions.Empty;
+        {
+            if (_treeDict.TryGetValue(tree, out var options))
+            {
+                return options;
+            }
+            else
+            {
+                // Metalama: this is a good place to put a breakpoint to diagnose issues with .editorconfig not taken into account.
+                return DictionaryAnalyzerConfigOptions.Empty;
+            }
+        }
 
         public override AnalyzerConfigOptions GetOptions(AdditionalText textFile)
             => _treeDict.TryGetValue(textFile, out var options) ? options : DictionaryAnalyzerConfigOptions.Empty;
@@ -81,5 +92,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             };
         }
         // </Metalama>
+       
     }
 }
