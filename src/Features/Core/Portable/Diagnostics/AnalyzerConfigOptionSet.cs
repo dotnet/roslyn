@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public override OptionSet WithChangedOption(OptionKey optionAndLanguage, object? value)
             => throw new NotImplementedException();
 
-        private protected override AnalyzerConfigOptions CreateAnalyzerConfigOptions(IOptionService optionService, string? language)
+        private protected override AnalyzerConfigOptions CreateAnalyzerConfigOptions(ILegacyWorkspaceOptionService optionService, string? language)
         {
             if (_optionSet is null)
             {

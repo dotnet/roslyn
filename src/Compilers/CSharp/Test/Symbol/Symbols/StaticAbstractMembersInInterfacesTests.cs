@@ -8101,15 +8101,15 @@ class Test
                 // (30,9): error CS0176: Member 'I1.M04()' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         x.M04();
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "x.M04").WithArguments("I1.M04()").WithLocation(30, 9),
-                // (35,9): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                // (35,9): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         T.M03();
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(35, 9),
-                // (36,9): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(35, 9),
+                // (36,9): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         T.M04();
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(36, 9),
-                // (37,9): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(36, 9),
+                // (37,9): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         T.M00();
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(37, 9),
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(37, 9),
                 // (38,11): error CS0122: 'I1.M05()' is inaccessible due to its protection level
                 //         T.M05();
                 Diagnostic(ErrorCode.ERR_BadAccess, "M05").WithArguments("I1.M05()").WithLocation(38, 11),
@@ -8172,15 +8172,15 @@ class Test
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (35,20): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                // (35,20): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         _ = nameof(T.M03);
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(35, 20),
-                // (36,20): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(35, 20),
+                // (36,20): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         _ = nameof(T.M04);
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(36, 20),
-                // (37,20): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(36, 20),
+                // (37,20): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         _ = nameof(T.M00);
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(37, 20),
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(37, 20),
                 // (38,22): error CS0122: 'I1.M05()' is inaccessible due to its protection level
                 //         _ = nameof(T.M05);
                 Diagnostic(ErrorCode.ERR_BadAccess, "M05").WithArguments("I1.M05()").WithLocation(38, 22)
@@ -8386,7 +8386,6 @@ class Test
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
-            // https://github.com/dotnet/roslyn/issues/53796: Confirm whether we want to enable the 'from t in T' scenario.
             compilation1.VerifyDiagnostics(
                 // (11,23): error CS0119: 'T' is a type parameter, which is not valid in the given context
                 //         _ = from t in T select t + 1;
@@ -12746,15 +12745,15 @@ class Test
                 // (30,13): error CS0176: Member 'I1.P04' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         _ = x.P04;
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "x.P04").WithArguments("I1.P04").WithLocation(30, 13),
-                // (35,13): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                // (35,13): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         _ = T.P03;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(35, 13),
-                // (36,13): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(35, 13),
+                // (36,13): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         _ = T.P04;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(36, 13),
-                // (37,13): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(36, 13),
+                // (37,13): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         _ = T.P00;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(37, 13),
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(37, 13),
                 // (38,15): error CS0122: 'I1.P05' is inaccessible due to its protection level
                 //         _ = T.P05;
                 Diagnostic(ErrorCode.ERR_BadAccess, "P05").WithArguments("I1.P05").WithLocation(38, 15),
@@ -12837,15 +12836,15 @@ class Test
                 // (30,9): error CS0176: Member 'I1.P04' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         x.P04 = 1;
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "x.P04").WithArguments("I1.P04").WithLocation(30, 9),
-                // (35,9): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                // (35,9): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         T.P03 = 1;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(35, 9),
-                // (36,9): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(35, 9),
+                // (36,9): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         T.P04 = 1;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(36, 9),
-                // (37,9): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(36, 9),
+                // (37,9): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         T.P00 = 1;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(37, 9),
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(37, 9),
                 // (38,11): error CS0122: 'I1.P05' is inaccessible due to its protection level
                 //         T.P05 = 1;
                 Diagnostic(ErrorCode.ERR_BadAccess, "P05").WithArguments("I1.P05").WithLocation(38, 11),
@@ -12937,15 +12936,15 @@ class Test
                 // (30,9): error CS0176: Member 'I1.P04' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         x.P04 += 1;
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "x.P04").WithArguments("I1.P04").WithLocation(30, 9),
-                // (35,9): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                // (35,9): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         T.P03 += 1;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(35, 9),
-                // (36,9): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(35, 9),
+                // (36,9): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         T.P04 += 1;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(36, 9),
-                // (37,9): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(36, 9),
+                // (37,9): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         T.P00 += 1;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(37, 9),
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(37, 9),
                 // (38,11): error CS0122: 'I1.P05' is inaccessible due to its protection level
                 //         T.P05 += 1;
                 Diagnostic(ErrorCode.ERR_BadAccess, "P05").WithArguments("I1.P05").WithLocation(38, 11),
@@ -13023,15 +13022,15 @@ class Test
                 // (30,20): error CS0176: Member 'I1.P04' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         _ = nameof(x.P04);
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "x.P04").WithArguments("I1.P04").WithLocation(30, 20),
-                // (35,20): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                // (35,20): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         _ = nameof(T.P03);
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(35, 20),
-                // (36,20): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(35, 20),
+                // (36,20): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         _ = nameof(T.P04);
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(36, 20),
-                // (37,20): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(36, 20),
+                // (37,20): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         _ = nameof(T.P00);
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(37, 20),
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(37, 20),
                 // (38,22): error CS0122: 'I1.P05' is inaccessible due to its protection level
                 //         _ = nameof(T.P05);
                 Diagnostic(ErrorCode.ERR_BadAccess, "P05").WithArguments("I1.P05").WithLocation(38, 22)
@@ -13734,15 +13733,15 @@ class Test
                 // (30,9): error CS0176: Member 'I1.P04' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         x.P04 += null;
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "x.P04").WithArguments("I1.P04").WithLocation(30, 9),
-                // (35,9): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                // (35,9): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         T.P03 += null;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(35, 9),
-                // (36,9): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(35, 9),
+                // (36,9): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         T.P04 += null;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(36, 9),
-                // (37,9): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(36, 9),
+                // (37,9): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         T.P00 += null;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(37, 9),
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(37, 9),
                 // (38,11): error CS0122: 'I1.P05' is inaccessible due to its protection level
                 //         T.P05 += null;
                 Diagnostic(ErrorCode.ERR_BadAccess, "P05").WithArguments("I1.P05").WithLocation(38, 11),
@@ -13831,15 +13830,15 @@ class Test
                 // (30,9): error CS0176: Member 'I1.P04' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         x.P04 -= null;
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "x.P04").WithArguments("I1.P04").WithLocation(30, 9),
-                // (35,9): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                // (35,9): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         T.P03 -= null;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(35, 9),
-                // (36,9): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(35, 9),
+                // (36,9): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         T.P04 -= null;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(36, 9),
-                // (37,9): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(36, 9),
+                // (37,9): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         T.P00 -= null;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(37, 9),
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(37, 9),
                 // (38,11): error CS0122: 'I1.P05' is inaccessible due to its protection level
                 //         T.P05 -= null;
                 Diagnostic(ErrorCode.ERR_BadAccess, "P05").WithArguments("I1.P05").WithLocation(38, 11),
@@ -13914,15 +13913,15 @@ class Test
                 // (30,20): error CS0176: Member 'I1.P04' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         _ = nameof(x.P04);
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "x.P04").WithArguments("I1.P04").WithLocation(30, 20),
-                // (35,20): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                // (35,20): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         _ = nameof(T.P03);
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(35, 20),
-                // (36,20): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(35, 20),
+                // (36,20): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         _ = nameof(T.P04);
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(36, 20),
-                // (37,20): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(36, 20),
+                // (37,20): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         _ = nameof(T.P00);
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(37, 20),
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(37, 20),
                 // (38,22): error CS0122: 'I1.P05' is inaccessible due to its protection level
                 //         _ = nameof(T.P05);
                 Diagnostic(ErrorCode.ERR_BadAccess, "P05").WithArguments("I1.P05").WithLocation(38, 22)
@@ -14339,12 +14338,12 @@ class Test
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (6,9): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                // (6,9): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         T.Item[0] += 1;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(6, 9),
-                // (11,23): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(6, 9),
+                // (11,23): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         return nameof(T.Item);
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(11, 23)
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(11, 23)
                 );
 
             var source2 =
@@ -14551,15 +14550,15 @@ class Test
                 // (30,28): error CS0176: Member 'I1.M04()' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         _ = (System.Action)x.M04;
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "x.M04").WithArguments("I1.M04()").WithLocation(30, 28),
-                // (35,28): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                // (35,28): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         _ = (System.Action)T.M03;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(35, 28),
-                // (36,28): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(35, 28),
+                // (36,28): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         _ = (System.Action)T.M04;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(36, 28),
-                // (37,28): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(36, 28),
+                // (37,28): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         _ = (System.Action)T.M00;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(37, 28),
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(37, 28),
                 // (38,30): error CS0122: 'I1.M05()' is inaccessible due to its protection level
                 //         _ = (System.Action)T.M05;
                 Diagnostic(ErrorCode.ERR_BadAccess, "M05").WithArguments("I1.M05()").WithLocation(38, 30),
@@ -14979,15 +14978,15 @@ class Test
                 // (30,31): error CS0176: Member 'I1.M04()' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         _ = new System.Action(x.M04);
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "x.M04").WithArguments("I1.M04()").WithLocation(30, 31),
-                // (35,31): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                // (35,31): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         _ = new System.Action(T.M03);
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(35, 31),
-                // (36,31): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(35, 31),
+                // (36,31): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         _ = new System.Action(T.M04);
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(36, 31),
-                // (37,31): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(36, 31),
+                // (37,31): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         _ = new System.Action(T.M00);
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(37, 31),
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(37, 31),
                 // (38,33): error CS0122: 'I1.M05()' is inaccessible due to its protection level
                 //         _ = new System.Action(T.M05);
                 Diagnostic(ErrorCode.ERR_BadAccess, "M05").WithArguments("I1.M05()").WithLocation(38, 33),
@@ -15251,15 +15250,15 @@ unsafe class Test
                 // (30,13): error CS8757: No overload for 'M04' matches function pointer 'delegate*<void>'
                 //         _ = (delegate*<void>)&x.M04;
                 Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "(delegate*<void>)&x.M04").WithArguments("M04", "delegate*<void>").WithLocation(30, 13),
-                // (35,31): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                // (35,31): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         _ = (delegate*<void>)&T.M03;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(35, 31),
-                // (36,31): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(35, 31),
+                // (36,31): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         _ = (delegate*<void>)&T.M04;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(36, 31),
-                // (37,31): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(36, 31),
+                // (37,31): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         _ = (delegate*<void>)&T.M00;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(37, 31),
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(37, 31),
                 // (38,33): error CS0122: 'I1.M05()' is inaccessible due to its protection level
                 //         _ = (delegate*<void>)&T.M05;
                 Diagnostic(ErrorCode.ERR_BadAccess, "M05").WithArguments("I1.M05()").WithLocation(38, 33),

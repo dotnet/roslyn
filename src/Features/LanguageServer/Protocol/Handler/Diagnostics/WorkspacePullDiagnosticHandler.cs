@@ -49,6 +49,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 Identifier = WorkspaceDiagnosticIdentifier,
             };
 
+        protected override VSInternalWorkspaceDiagnosticReport CreateRemovedReport(TextDocumentIdentifier identifier)
+            => CreateReport(identifier, diagnostics: null, resultId: null);
+
+        protected override VSInternalWorkspaceDiagnosticReport CreateUnchangedReport(TextDocumentIdentifier identifier, string resultId)
+            => CreateReport(identifier, diagnostics: null, resultId);
+
         protected override ImmutableArray<PreviousPullResult>? GetPreviousResults(VSInternalWorkspaceDiagnosticsParams diagnosticsParams)
             => diagnosticsParams.PreviousResults?.Where(d => d.PreviousResultId != null).Select(d => new PreviousPullResult(d.PreviousResultId!, d.TextDocument!)).ToImmutableArray();
 
@@ -118,11 +124,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 }
 
                 var isFSAOn = globalOptions.IsFullSolutionAnalysisEnabled(project.Language);
-                var documents = ImmutableArray<Document>.Empty;
+                var documents = ImmutableArray<TextDocument>.Empty;
                 // If FSA is on, then add all the documents in the project.  Other analysis scopes are handled by the document pull handler.
                 if (isFSAOn)
                 {
-                    documents = documents.AddRange(project.Documents);
+                    documents = documents.AddRange(project.Documents).AddRange(project.AdditionalDocuments);
                 }
 
                 // If all features are enabled for source generated documents, make sure they are included when FSA is on or a file in the project is open.
@@ -188,7 +194,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             }
         }
 
-        private record struct WorkspaceDocumentDiagnosticSource(Document Document) : IDiagnosticSource
+        private record struct WorkspaceDocumentDiagnosticSource(TextDocument Document) : IDiagnosticSource
         {
             public ProjectOrDocumentId GetId() => new(Document.Id);
 
@@ -202,18 +208,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 DiagnosticMode diagnosticMode,
                 CancellationToken cancellationToken)
             {
-                if (Document is not SourceGeneratedDocument)
+                if (Document is SourceGeneratedDocument sourceGeneratedDocument)
+                {
+                    // Unfortunately GetDiagnosticsForIdsAsync returns nothing for source generated documents.
+                    var documentDiagnostics = await diagnosticAnalyzerService.GetDiagnosticsForSpanAsync(sourceGeneratedDocument, range: null, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    return documentDiagnostics;
+                }
+                else
                 {
                     // We call GetDiagnosticsForIdsAsync as we want to ensure we get the full set of diagnostics for this document
                     // including those reported as a compilation end diagnostic.  These are not included in document pull (uses GetDiagnosticsForSpan) due to cost.
                     // However we can include them as a part of workspace pull when FSA is on.
                     var documentDiagnostics = await diagnosticAnalyzerService.GetDiagnosticsForIdsAsync(Document.Project.Solution, Document.Project.Id, Document.Id, cancellationToken: cancellationToken).ConfigureAwait(false);
-                    return documentDiagnostics;
-                }
-                else
-                {
-                    // Unfortunately GetDiagnosticsForIdsAsync returns nothing for source generated documents.
-                    var documentDiagnostics = await diagnosticAnalyzerService.GetDiagnosticsForSpanAsync(Document, range: null, cancellationToken: cancellationToken).ConfigureAwait(false);
                     return documentDiagnostics;
                 }
             }

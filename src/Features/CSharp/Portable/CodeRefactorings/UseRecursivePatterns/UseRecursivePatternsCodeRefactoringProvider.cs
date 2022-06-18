@@ -528,7 +528,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
             CancellationToken cancellationToken)
         {
             // Get all the descendant nodes to refactor.
-            var nodes = editor.OriginalRoot.DescendantNodes().Where(IsFixableNode);
+            // NOTE: We need to realize the nodes with 'ToArray' call here
+            // to ensure we strongly hold onto the nodes so that 'TrackNodes'
+            // invoked below, which does tracking based off a ConditionalWeakTable,
+            // tracks the nodes for the entire duration of this method.
+            var nodes = editor.OriginalRoot.DescendantNodes().Where(IsFixableNode).ToArray();
 
             // We're going to be continually editing this tree. Track all the nodes we
             // care about so we can find them across each edit.
