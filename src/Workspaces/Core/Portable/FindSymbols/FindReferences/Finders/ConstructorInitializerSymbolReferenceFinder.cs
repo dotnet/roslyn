@@ -68,12 +68,23 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             }
 
             return await FindReferencesInTokensAsync(
-                 methodSymbol, state, tokens, TokensMatch, cancellationToken).ConfigureAwait(false);
+                 methodSymbol,
+                 state,
+                 tokens,
+                 TokensMatch,
+                 (typeName, cancellationToken),
+                 cancellationToken).ConfigureAwait(false);
 
             // local functions
-            bool TokensMatch(FindReferencesDocumentState state, SyntaxToken token)
+            static bool TokensMatch(
+                FindReferencesDocumentState state,
+                SyntaxToken token,
+                (string typeName, CancellationToken cancellationToken) tuple)
             {
+                var (typeName, cancellationToken) = tuple;
                 var semanticModel = state.SemanticModel;
+                var syntaxFacts = state.SyntaxFacts;
+
                 if (syntaxFacts.IsBaseConstructorInitializer(token))
                 {
                     var containingType = semanticModel.GetEnclosingNamedType(token.SpanStart, cancellationToken);

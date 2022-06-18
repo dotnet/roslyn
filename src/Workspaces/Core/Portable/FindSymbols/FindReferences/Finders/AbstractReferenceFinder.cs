@@ -168,8 +168,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return await FindReferencesInTokensAsync(
                 state,
                 tokens,
-                (state, t) => IdentifiersMatch(state.SyntaxFacts, identifier, t),
+                static (state, token, identifier) => IdentifiersMatch(state.SyntaxFacts, identifier, token),
                 symbolsMatchAsync,
+                identifier,
                 cancellationToken).ConfigureAwait(false);
         }
 
@@ -220,11 +221,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             };
         }
 
-        protected static async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInTokensAsync(
+        protected static async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInTokensAsync<T>(
             FindReferencesDocumentState state,
             IEnumerable<SyntaxToken> tokens,
-            Func<FindReferencesDocumentState, SyntaxToken, bool> tokensMatch,
+            Func<FindReferencesDocumentState, SyntaxToken, T, bool> tokensMatch,
             Func<SyntaxToken, SemanticModel, ValueTask<(bool matched, CandidateReason reason)>> symbolsMatchAsync,
+            T value,
             CancellationToken cancellationToken)
         {
             var semanticFacts = state.SemanticFacts;
@@ -234,7 +236,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (tokensMatch(state, token))
+                if (tokensMatch(state, token, value))
                 {
                     var semanticModel = state.SemanticModel;
                     var (matched, reason) = await symbolsMatchAsync(token, semanticModel).ConfigureAwait(false);
@@ -894,23 +896,25 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 symbol, symbol.Name, state, cancellationToken);
         }
 
-        protected static ValueTask<ImmutableArray<FinderLocation>> FindReferencesInTokensAsync(
+        protected static ValueTask<ImmutableArray<FinderLocation>> FindReferencesInTokensAsync<T>(
             TSymbol symbol,
             FindReferencesDocumentState state,
             IEnumerable<SyntaxToken> tokens,
-            Func<FindReferencesDocumentState, SyntaxToken, bool> tokensMatch,
+            Func<FindReferencesDocumentState, SyntaxToken, T, bool> tokensMatch,
+            T value,
             CancellationToken cancellationToken)
         {
             return FindReferencesInTokensAsync(
-                symbol, state, tokens, tokensMatch, findParentNode: null, cancellationToken);
+                symbol, state, tokens, tokensMatch, findParentNode: null, value, cancellationToken);
         }
 
-        protected static ValueTask<ImmutableArray<FinderLocation>> FindReferencesInTokensAsync(
+        protected static ValueTask<ImmutableArray<FinderLocation>> FindReferencesInTokensAsync<T>(
             TSymbol symbol,
             FindReferencesDocumentState state,
             IEnumerable<SyntaxToken> tokens,
-            Func<FindReferencesDocumentState, SyntaxToken, bool> tokensMatch,
+            Func<FindReferencesDocumentState, SyntaxToken, T, bool> tokensMatch,
             Func<SyntaxToken, SyntaxNode>? findParentNode,
+            T value,
             CancellationToken cancellationToken)
         {
             var symbolsMatchAsync = GetStandardSymbolsMatchFunction(
@@ -921,34 +925,38 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 tokens,
                 tokensMatch,
                 symbolsMatchAsync,
+                value,
                 cancellationToken);
         }
 
-        protected static ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+        protected static ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync<T>(
             TSymbol symbol,
             FindReferencesDocumentState state,
-            Func<FindReferencesDocumentState, SyntaxToken, bool> tokensMatch,
+            Func<FindReferencesDocumentState, SyntaxToken, T, bool> tokensMatch,
+            T value,
             CancellationToken cancellationToken)
         {
             return FindReferencesInDocumentAsync(
-                symbol, state, tokensMatch, findParentNode: null, cancellationToken);
+                symbol, state, tokensMatch, findParentNode: null, value, cancellationToken);
         }
 
-        protected static ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+        protected static ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync<T>(
             TSymbol symbol,
             FindReferencesDocumentState state,
-            Func<FindReferencesDocumentState, SyntaxToken, bool> tokensMatch,
+            Func<FindReferencesDocumentState, SyntaxToken, T, bool> tokensMatch,
             Func<SyntaxToken, SyntaxNode>? findParentNode,
+            T value,
             CancellationToken cancellationToken)
         {
             var symbolsMatchAsync = GetStandardSymbolsMatchFunction(symbol, findParentNode, state, cancellationToken);
-            return FindReferencesInDocumentAsync(state, tokensMatch, symbolsMatchAsync, cancellationToken);
+            return FindReferencesInDocumentAsync(state, tokensMatch, symbolsMatchAsync, value, cancellationToken);
         }
 
-        protected static ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+        protected static ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync<T>(
             FindReferencesDocumentState state,
-            Func<FindReferencesDocumentState, SyntaxToken, bool> tokensMatch,
+            Func<FindReferencesDocumentState, SyntaxToken, T, bool> tokensMatch,
             Func<SyntaxToken, SemanticModel, ValueTask<(bool matched, CandidateReason reason)>> symbolsMatchAsync,
+            T value,
             CancellationToken cancellationToken)
         {
             var root = state.Root;
@@ -956,7 +964,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             // Now that we have Doc Comments in place, We are searching for References in the Trivia as well by setting descendIntoTrivia: true
             var tokens = root.DescendantTokens(descendIntoTrivia: true);
             return FindReferencesInTokensAsync(
-                state, tokens, tokensMatch, symbolsMatchAsync, cancellationToken);
+                state, tokens, tokensMatch, symbolsMatchAsync, value, cancellationToken);
         }
 
         protected static async Task<ImmutableArray<string>> GetAllMatchingGlobalAliasNamesAsync(

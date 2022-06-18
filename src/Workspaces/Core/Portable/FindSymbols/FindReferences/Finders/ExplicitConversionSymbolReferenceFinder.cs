@@ -68,7 +68,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             return FindReferencesInDocumentAsync(
                 symbol, state,
-                static (state, t) => IsPotentialReference(state.SyntaxFacts, t),
+                static (state, token, _) => IsPotentialReference(state.SyntaxFacts, token),
+                /*unused*/(object?)null,
                 cancellationToken);
         }
 

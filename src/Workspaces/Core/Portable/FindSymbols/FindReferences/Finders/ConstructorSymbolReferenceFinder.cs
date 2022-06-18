@@ -201,7 +201,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var syntaxFacts = state.SyntaxFacts;
             return FindReferencesInDocumentAsync(
                 symbol, state,
-                (state, t) => IsPotentialReference(predefinedType, state.SyntaxFacts, t),
+                static (state, token, predefinedType) => IsPotentialReference(predefinedType, state.SyntaxFacts, token),
+                predefinedType,
                 cancellationToken);
         }
 

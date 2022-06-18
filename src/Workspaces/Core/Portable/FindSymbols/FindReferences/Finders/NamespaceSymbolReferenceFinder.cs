@@ -123,11 +123,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 symbol,
                 state,
                 tokens,
-                (state, t) =>
+                static (state, token, name) =>
                 {
-                    Debug.Assert(state.SyntaxFacts.TextMatch(t.ValueText, name));
+                    Debug.Assert(state.SyntaxFacts.TextMatch(token.ValueText, name));
                     return true;
                 },
+                name,
                 cancellationToken).ConfigureAwait(false));
         }
 
@@ -146,11 +147,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 symbol,
                 state,
                 tokens,
-                (state, t) =>
+                static (state, token, _) =>
                 {
-                    Debug.Assert(state.SyntaxFacts.IsGlobalNamespaceKeyword(t));
+                    Debug.Assert(state.SyntaxFacts.IsGlobalNamespaceKeyword(token));
                     return true;
                 },
+                /*unused*/(object?)null,
                 cancellationToken).ConfigureAwait(false));
         }
     }

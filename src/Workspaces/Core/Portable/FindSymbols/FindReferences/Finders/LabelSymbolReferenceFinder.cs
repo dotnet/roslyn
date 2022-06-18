@@ -9,10 +9,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
     internal sealed class LabelSymbolReferenceFinder : AbstractMemberScopedReferenceFinder<ILabelSymbol>
     {
-        protected override Func<FindReferencesDocumentState, SyntaxToken, bool> GetTokensMatchFunction(string name)
+        protected override Func<FindReferencesDocumentState, SyntaxToken, string, bool> GetTokensMatchFunction()
         {
             // Labels in VB can actually be numeric literals.  Wacky.
-            return (state, t) => IdentifiersMatch(state.SyntaxFacts, name, t) || state.SyntaxFacts.IsLiteral(t);
+            return static (state, token, name) => IdentifiersMatch(state.SyntaxFacts, name, token) || state.SyntaxFacts.IsLiteral(token);
         }
     }
 }
