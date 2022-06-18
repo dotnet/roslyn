@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -12,6 +13,10 @@ namespace Microsoft.CodeAnalysis
 {
     internal sealed class ShadowCopyAnalyzerAssemblyLoader : DefaultAnalyzerAssemblyLoader
     {
+
+        private static readonly ConcurrentDictionary<string, List<string>> s_registeredDependencyPaths = new(StringComparer.OrdinalIgnoreCase);
+        private static readonly ConcurrentDictionary<string, string> s_createdDirectories = new(StringComparer.OrdinalIgnoreCase);
+
         /// <summary>
         /// The base directory for shadow copies. Each instance of
         /// <see cref="ShadowCopyAnalyzerAssemblyLoader"/> gets its own
@@ -97,41 +102,71 @@ namespace Microsoft.CodeAnalysis
 
         protected override string GetPathToLoad(string fullPath)
         {
-            string assemblyDirectory = CreateUniqueDirectoryForAssembly();
-            string pathToLoad = CopyFileAndDependencies(fullPath, assemblyDirectory);
+            var info = new FileInfo(fullPath);
+            string originalDirectory = info.Directory.FullName;
+            _ = s_registeredDependencyPaths.TryGetValue(originalDirectory, out var otherPaths);
+            var assemblyDirectory = s_createdDirectories.GetOrAdd(originalDirectory, s => CreateUniqueDirectoryForAssembly());
+            string pathToLoad = CopyFileAndDependencies(info, assemblyDirectory, otherPaths);
             return pathToLoad;
         }
 
-        private static string CopyFileAndDependencies(string fullPath, string assemblyDirectory)
+        protected override void AddDependencyLocationInternal(string fullPath)
         {
-            string fileNameWithExtension = Path.GetFileName(fullPath);
-            string shadowCopyDirectoryPath = Path.Combine(assemblyDirectory, fileNameWithExtension);
+            var info = new FileInfo(fullPath);
+            string directoryPath = info.Directory.FullName;
+            _ = s_registeredDependencyPaths
+                .AddOrUpdate(
+                    directoryPath,
+                    s => new List<string>(),
+                    (s, r) => { r.Add(info.FullName); return r; });
+        }
 
-            CopyDirectory(Path.GetDirectoryName(fullPath)!, shadowCopyDirectoryPath);
+        private static string CopyFileAndDependencies(FileInfo existingFile, string assemblyDirectory, IEnumerable<string>? declaredDependentAssemblies = null)
+        {
+            string fileNameWithExtension = Path.GetFileName(existingFile.FullName);
+            string shadowCopiedFilePath = Path.Combine(assemblyDirectory, fileNameWithExtension);
 
-            return Path.Combine(shadowCopyDirectoryPath, fileNameWithExtension);
+            CopyFile(existingFile.FullName, shadowCopiedFilePath);
 
-            static void CopyDirectory(string sourceDir, string destinationDir)
+            string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(fileNameWithExtension);
+            string resourcesNameWithoutExtension = fileNameWithoutExtension + ".resources";
+            string resourcesNameWithExtension = resourcesNameWithoutExtension + ".dll";
+
+            foreach (var directory in existingFile.Directory.EnumerateDirectories())
             {
-                var sourceDirectory = new DirectoryInfo(sourceDir);
-                Directory.CreateDirectory(destinationDir);
-
-                foreach (var file in sourceDirectory.GetFiles("*.dll"))
+                string resourcesPath = Path.Combine(directory.FullName, resourcesNameWithExtension);
+                if (File.Exists(resourcesPath))
                 {
-                    string targetFilePath = Path.Combine(destinationDir, file.Name);
-                    CopyFile(file.FullName, targetFilePath);
+                    string resourcesShadowCopyPath = Path.Combine(assemblyDirectory, directory.Name, resourcesNameWithExtension);
+                    CopyFile(resourcesPath, resourcesShadowCopyPath);
                 }
 
-                foreach (var subDirectory in sourceDirectory.GetDirectories())
+                resourcesPath = Path.Combine(directory.FullName, resourcesNameWithoutExtension, resourcesNameWithExtension);
+                if (File.Exists(resourcesPath))
                 {
-                    var newDestinationDir = Path.Combine(destinationDir, subDirectory.Name);
-                    CopyDirectory(subDirectory.FullName, newDestinationDir);
+                    string resourcesShadowCopyPath = Path.Combine(assemblyDirectory, directory.Name, resourcesNameWithoutExtension, resourcesNameWithExtension);
+                    CopyFile(resourcesPath, resourcesShadowCopyPath);
                 }
             }
+
+            if (declaredDependentAssemblies is not null)
+            {
+                foreach (var declaredDependentAssembly in declaredDependentAssemblies)
+                {
+                    CopyFileAndDependencies(new FileInfo(declaredDependentAssembly), assemblyDirectory);
+                }
+            }
+
+            return shadowCopiedFilePath;
         }
 
         private static void CopyFile(string originalPath, string shadowCopyPath)
         {
+            if (File.Exists(shadowCopyPath))
+            {
+                return;
+            }
+
             var directory = Path.GetDirectoryName(shadowCopyPath);
             Directory.CreateDirectory(directory);
 

@@ -53,6 +53,13 @@ namespace Microsoft.CodeAnalysis
                     _knownAssemblyPathsBySimpleName[simpleName] = paths.Add(fullPath);
                 }
             }
+
+            AddDependencyLocationInternal(fullPath);
+        }
+
+        protected virtual void AddDependencyLocationInternal(string fullPath)
+        {
+            return;
         }
 
         public Assembly LoadFromPath(string fullPath)
