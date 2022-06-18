@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CancellationToken cancellationToken,
             params string[] values)
         {
-            return FindDocumentsWithPredicateAsync(project, documents, index =>
+            return FindDocumentsWithPredicateAsync(project, documents, static (index, values) =>
             {
                 foreach (var value in values)
                 {
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 }
 
                 return true;
-            }, cancellationToken);
+            }, values, cancellationToken);
         }
 
         /// <summary>
@@ -99,7 +99,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected static Task<ImmutableArray<Document>> FindDocumentsWithGlobalSuppressMessageAttributeAsync(
             Project project, IImmutableSet<Document>? documents, CancellationToken cancellationToken)
         {
-            return FindDocumentsWithPredicateAsync(project, documents, index => index.ContainsGlobalSuppressMessageAttribute, cancellationToken);
+            return FindDocumentsWithPredicateAsync(
+                project, documents, static (index, _) => index.ContainsGlobalSuppressMessageAttribute, /*unused*/false, cancellationToken);
         }
 
         protected static Task<ImmutableArray<Document>> FindDocumentsAsync(
@@ -111,7 +112,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             if (predefinedType == PredefinedType.None)
                 return SpecializedTasks.EmptyImmutableArray<Document>();
 
-            return FindDocumentsWithPredicateAsync(project, documents, index => index.ContainsPredefinedType(predefinedType), cancellationToken);
+            return FindDocumentsWithPredicateAsync(
+                project, documents, static (index, predefinedType) => index.ContainsPredefinedType(predefinedType), predefinedType, cancellationToken);
         }
 
         protected static Task<ImmutableArray<Document>> FindDocumentsAsync(
@@ -123,7 +125,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             if (op == PredefinedOperator.None)
                 return SpecializedTasks.EmptyImmutableArray<Document>();
 
-            return FindDocumentsWithPredicateAsync(project, documents, index => index.ContainsPredefinedOperator(op), cancellationToken);
+            return FindDocumentsWithPredicateAsync(
+                project, documents, static (index, op) => index.ContainsPredefinedOperator(op), op, cancellationToken);
         }
 
         protected static bool IdentifiersMatch(ISyntaxFactsService syntaxFacts, string name, SyntaxToken token)
@@ -389,27 +392,31 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return allAliasReferences.ToImmutable();
         }
 
-        protected static Task<ImmutableArray<Document>> FindDocumentsWithPredicateAsync(
-            Project project, IImmutableSet<Document>? documents, Func<SyntaxTreeIndex, bool> predicate, CancellationToken cancellationToken)
+        protected static Task<ImmutableArray<Document>> FindDocumentsWithPredicateAsync<T>(
+            Project project,
+            IImmutableSet<Document>? documents,
+            Func<SyntaxTreeIndex, T, bool> predicate,
+            T value,
+            CancellationToken cancellationToken)
         {
             return FindDocumentsAsync(project, documents, async (d, c) =>
             {
                 var info = await SyntaxTreeIndex.GetRequiredIndexAsync(d, c).ConfigureAwait(false);
-                return predicate(info);
+                return predicate(info, value);
             }, cancellationToken);
         }
 
         protected static Task<ImmutableArray<Document>> FindDocumentsWithForEachStatementsAsync(Project project, IImmutableSet<Document>? documents, CancellationToken cancellationToken)
-            => FindDocumentsWithPredicateAsync(project, documents, predicate: sti => sti.ContainsForEachStatement, cancellationToken);
+            => FindDocumentsWithPredicateAsync(project, documents, static (sti, _) => sti.ContainsForEachStatement, /*unused*/false, cancellationToken);
 
         protected static Task<ImmutableArray<Document>> FindDocumentsWithDeconstructionAsync(Project project, IImmutableSet<Document>? documents, CancellationToken cancellationToken)
-            => FindDocumentsWithPredicateAsync(project, documents, predicate: sti => sti.ContainsDeconstruction, cancellationToken);
+            => FindDocumentsWithPredicateAsync(project, documents, static (sti, _) => sti.ContainsDeconstruction, /*unused*/false, cancellationToken);
 
         protected static Task<ImmutableArray<Document>> FindDocumentsWithAwaitExpressionAsync(Project project, IImmutableSet<Document>? documents, CancellationToken cancellationToken)
-            => FindDocumentsWithPredicateAsync(project, documents, predicate: sti => sti.ContainsAwait, cancellationToken);
+            => FindDocumentsWithPredicateAsync(project, documents, static (sti, _) => sti.ContainsAwait, /*unused*/false, cancellationToken);
 
         protected static Task<ImmutableArray<Document>> FindDocumentsWithImplicitObjectCreationExpressionAsync(Project project, IImmutableSet<Document>? documents, CancellationToken cancellationToken)
-            => FindDocumentsWithPredicateAsync(project, documents, predicate: sti => sti.ContainsImplicitObjectCreation, cancellationToken);
+            => FindDocumentsWithPredicateAsync(project, documents, static (sti, _) => sti.ContainsImplicitObjectCreation, /*unused*/false, cancellationToken);
 
         /// <summary>
         /// If the `node` implicitly matches the `symbol`, then it will be added to `locations`.

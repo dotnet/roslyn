@@ -165,13 +165,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         private static Task<ImmutableArray<Document>> FindDocumentWithElementAccessExpressionsAsync(
             Project project, IImmutableSet<Document>? documents, CancellationToken cancellationToken)
         {
-            return FindDocumentsWithPredicateAsync(project, documents, info => info.ContainsElementAccessExpression, cancellationToken);
+            return FindDocumentsWithPredicateAsync(
+                project, documents, static (info, _) => info.ContainsElementAccessExpression, /*unused*/false, cancellationToken);
         }
 
         private static Task<ImmutableArray<Document>> FindDocumentWithIndexerMemberCrefAsync(
             Project project, IImmutableSet<Document>? documents, CancellationToken cancellationToken)
         {
-            return FindDocumentsWithPredicateAsync(project, documents, info => info.ContainsIndexerMemberCref, cancellationToken);
+            return FindDocumentsWithPredicateAsync(
+                project, documents, static (info, _) => info.ContainsIndexerMemberCref, /*unused*/false, cancellationToken);
         }
 
         private static async Task<ImmutableArray<FinderLocation>> FindIndexerReferencesAsync(

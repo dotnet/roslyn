@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     Debug.Assert(state.SyntaxFacts.IsGlobalNamespaceKeyword(token));
                     return true;
                 },
-                /*unused*/(object?)null,
+                /*unused*/false,
                 cancellationToken).ConfigureAwait(false));
         }
     }
