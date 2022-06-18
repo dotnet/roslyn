@@ -31,8 +31,12 @@ $reports = Get-ChildItem -Recurse $Path -Filter *.cobertura.xml
 if ($reports) {
     $reports |% { $_.FullName } |% {
         # In addition to replacing {reporoot}, we also normalize on one kind of slash so that the report aggregates data for a file whether data was collected on Windows or not.
-        $content = Get-Content -Path $_ |% { [Regex]::Replace($_, '{reporoot}([^"]+)', { $RepoRoot + $args[0].groups[1].value.replace([IO.Path]::AltDirectorySeparatorChar, [IO.Path]::DirectorySeparatorChar) }) }
-        Set-Content -Path $_ -Value $content -Encoding UTF8
+        $xml = [xml](Get-Content -Path $_)
+        $xml.coverage.packages.package.classes.class |? { $_.filename} |% {
+            $_.filename = $_.filename.Replace('{reporoot}', $RepoRoot).Replace([IO.Path]::AltDirectorySeparatorChar, [IO.Path]::DirectorySeparatorChar)
+        }
+
+        $xml.Save($_)
     }
 
     $Inputs = [string]::join(';', ($reports |% { Resolve-Path -relative $_.FullName }))
