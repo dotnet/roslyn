@@ -45,10 +45,16 @@ public class FileModifierTests : CSharpTestBase
         comp.VerifyDiagnostics(
             // (3,16): error CS8652: The feature 'file types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     file class C { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "C").WithArguments("file types").WithLocation(3, 16));
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "C").WithArguments("file types").WithLocation(3, 16),
+            // (3,16): error CS9303: File type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
+            //     file class C { }
+            Diagnostic(ErrorCode.ERR_FileTypeNested, "C").WithArguments("Outer.C").WithLocation(3, 16));
 
         comp = CreateCompilation(source);
-        comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (3,16): error CS9303: File type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
+            //     file class C { }
+            Diagnostic(ErrorCode.ERR_FileTypeNested, "C").WithArguments("Outer.C").WithLocation(3, 16));
     }
 
     [Fact]
@@ -94,7 +100,6 @@ public class FileModifierTests : CSharpTestBase
             }
             """;
 
-        // PROTOTYPE(ft): determine whether an inner file class within a file class is an error or if it's just fine.
         var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
         comp.VerifyDiagnostics(
             // (1,12): error CS8652: The feature 'file types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
@@ -102,10 +107,16 @@ public class FileModifierTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "Outer").WithArguments("file types").WithLocation(1, 12),
             // (3,16): error CS8652: The feature 'file types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     file class C { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "C").WithArguments("file types").WithLocation(3, 16));
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "C").WithArguments("file types").WithLocation(3, 16),
+            // (3,16): error CS9303: File type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
+            //     file class C { }
+            Diagnostic(ErrorCode.ERR_FileTypeNested, "C").WithArguments("Outer.C").WithLocation(3, 16));
 
         comp = CreateCompilation(source);
-        comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (3,16): error CS9303: File type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
+            //     file class C { }
+            Diagnostic(ErrorCode.ERR_FileTypeNested, "C").WithArguments("Outer.C").WithLocation(3, 16));
     }
 
     [Fact]
@@ -1157,7 +1168,13 @@ public class FileModifierTests : CSharpTestBase
             """;
 
         var compilation = CreateCompilation(new[] { source1, source2, source3 });
-        compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics(
+            // (3,16): error CS9303: File type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
+            //     file class C
+            Diagnostic(ErrorCode.ERR_FileTypeNested, "C").WithArguments("Outer.C").WithLocation(3, 16),
+            // (3,16): error CS9303: File type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
+            //     file class C
+            Diagnostic(ErrorCode.ERR_FileTypeNested, "C").WithArguments("Outer.C").WithLocation(3, 16));
 
         var classOuter = compilation.GetMember<NamedTypeSymbol>("Outer");
         var cs = classOuter.GetMembers("C");
@@ -1257,15 +1274,13 @@ public class FileModifierTests : CSharpTestBase
             }
             """;
 
-        var verifier = CompileAndVerify(new[] { source1 + main, source2 }, expectedOutput: "1");
-        var comp = (CSharpCompilation)verifier.Compilation;
+        var comp = CreateCompilation(new[] { source1 + main, source2 });
         var cs = comp.GetMembers("Program.C");
         var tree = comp.SyntaxTrees[0];
         var expectedSymbol = cs[0];
         verify();
 
-        verifier = CompileAndVerify(new[] { source1, source2 + main }, expectedOutput: "2");
-        comp = (CSharpCompilation)verifier.Compilation;
+        comp = CreateCompilation(new[] { source1, source2 + main });
         cs = comp.GetMembers("Program.C");
         tree = comp.SyntaxTrees[1];
         expectedSymbol = cs[1];
@@ -1273,7 +1288,7 @@ public class FileModifierTests : CSharpTestBase
 
         void verify()
         {
-            comp.VerifyDiagnostics();
+            comp.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_FileTypeNested).Verify();
             Assert.Equal(2, cs.Length);
             Assert.Equal(comp.SyntaxTrees[0], cs[0].DeclaringSyntaxReferences.Single().SyntaxTree);
             Assert.Equal(comp.SyntaxTrees[1], cs[1].DeclaringSyntaxReferences.Single().SyntaxTree);
@@ -1332,7 +1347,7 @@ public class FileModifierTests : CSharpTestBase
             """;
 
         var comp = CreateCompilation(new[] { source1 + main, source2 }, options: TestOptions.DebugExe);
-        CompileAndVerify(comp, expectedOutput: "1").VerifyDiagnostics();
+        comp.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_FileTypeNested).Verify();
         var outers = comp.GetMembers("Outer");
         var cs = outers.Select(o => ((NamedTypeSymbol)o).GetMember("C")).ToArray();
         var tree = comp.SyntaxTrees[0];
@@ -1340,7 +1355,7 @@ public class FileModifierTests : CSharpTestBase
         verify();
 
         comp = CreateCompilation(new[] { source1, source2 + main }, options: TestOptions.DebugExe);
-        CompileAndVerify(comp, expectedOutput: "2").VerifyDiagnostics();
+        comp.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_FileTypeNested).Verify();
         outers = comp.GetMembers("Outer");
         cs = outers.Select(o => ((NamedTypeSymbol)o).GetMember("C")).ToArray();
         tree = comp.SyntaxTrees[1];
@@ -2149,7 +2164,7 @@ public class FileModifierTests : CSharpTestBase
 
             class Outer
             {
-                file class C
+                file class C // 1
                 {
                     public static void M() => Console.Write(1);
                 }
@@ -2159,17 +2174,18 @@ public class FileModifierTests : CSharpTestBase
             {
                 public static void Main()
                 {
-                    Outer.C.M(); // 1
+                    Outer.C.M(); // 2
                 }
             }
             """;
 
-        // note: there's no way to make 'file class C' internal here. it's forced to be private, at least for the initial release of the feature.
-        // we access it within the same containing type in test 'Duplication_10'.
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
+            // (5,16): error CS9303: File type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
+            //     file class C // 1
+            Diagnostic(ErrorCode.ERR_FileTypeNested, "C").WithArguments("Outer.C").WithLocation(5, 16),
             // (15,15): error CS0122: 'Outer.C' is inaccessible due to its protection level
-            //         Outer.C.M(); // 1
+            //         Outer.C.M(); // 2
             Diagnostic(ErrorCode.ERR_BadAccess, "C").WithArguments("Outer.C").WithLocation(15, 15));
     }
 
@@ -2205,7 +2221,10 @@ public class FileModifierTests : CSharpTestBase
         comp.VerifyDiagnostics(
             // (5,15): error CS0117: 'Outer' does not contain a definition for 'C'
             //         Outer.C.M(); // 1
-            Diagnostic(ErrorCode.ERR_NoSuchMember, "C").WithArguments("Outer", "C").WithLocation(5, 15));
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "C").WithArguments("Outer", "C").WithLocation(5, 15),
+            // (5,16): error CS9303: File type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
+            //     file class C
+            Diagnostic(ErrorCode.ERR_FileTypeNested, "C").WithArguments("Outer.C").WithLocation(5, 16));
     }
 
     [Fact]
@@ -2466,9 +2485,20 @@ public class FileModifierTests : CSharpTestBase
             }
             """;
 
-        // 'Derived.C' is not actually accessible from 'Program', so we just bind to 'Base.C' and things work.
-        var compilation = CompileAndVerify(new[] { source, main }, expectedOutput: "1");
-        compilation.VerifyDiagnostics();
+        // 'Derived.C' is not actually accessible from 'Program', so we just bind to 'Base.C'.
+        var compilation = CreateCompilation(new[] { source, main });
+        compilation.VerifyDiagnostics(
+            // (16,20): error CS9303: File type 'Derived.C' must be defined in a top level type; 'Derived.C' is a nested type.
+            //     new file class C
+            Diagnostic(ErrorCode.ERR_FileTypeNested, "C").WithArguments("Derived.C").WithLocation(16, 20));
+
+        var expected = compilation.GetMember<MethodSymbol>("Base.C.M");
+
+        var tree = compilation.SyntaxTrees[1];
+        var model = compilation.GetSemanticModel(tree);
+        var invoked = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single().Expression;
+        var symbolInfo = model.GetSymbolInfo(invoked);
+        Assert.Equal(expected, symbolInfo.Symbol.GetSymbol());
     }
 
     [Fact]
@@ -2870,16 +2900,22 @@ public class FileModifierTests : CSharpTestBase
         var source1 = """
             using System;
 
-            C1.M();
+            C1.M("a");
 
-            file class C1
+            static file class C1
             {
-                public static void M() { }
+                public static void M(this string s) { }
             }
             """;
 
         var comp = CreateSubmission(source1, parseOptions: TestOptions.Script.WithLanguageVersion(LanguageVersion.Preview));
-        comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (5,19): error CS9303: File type 'C1' must be defined in a top level type; 'C1' is a nested type.
+            // static file class C1
+            Diagnostic(ErrorCode.ERR_FileTypeNested, "C1").WithArguments("C1").WithLocation(5, 19),
+            // (7,24): error CS1109: Extension methods must be defined in a top level static class; C1 is a nested class
+            //     public static void M(this string s) { }
+            Diagnostic(ErrorCode.ERR_ExtensionMethodsDecl, "M").WithArguments("C1").WithLocation(7, 24));
     }
 
     [Fact]
@@ -2960,6 +2996,63 @@ public class FileModifierTests : CSharpTestBase
         Assert.Equal("<>F0__C`1", metadataMember.MetadataName);
 
         var metadataType = comp2.GetTypeByMetadataName("<>F0__C`1");
+        Assert.Equal(metadataMember, metadataType);
+    }
+
+    [Fact]
+    public void GetTypeByMetadataName_03()
+    {
+        var source1 = """
+            class Outer
+            {
+                file class C { } // 1
+            }
+            """;
+
+        // from source
+        var comp = CreateCompilation(source1);
+        comp.VerifyDiagnostics(
+            // (3,16): error CS9303: File type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
+            //     file class C { } // 1
+            Diagnostic(ErrorCode.ERR_FileTypeNested, "C").WithArguments("Outer.C").WithLocation(3, 16));
+        var sourceMember = comp.GetMember<NamedTypeSymbol>("Outer.C");
+        Assert.Equal("<>F0__C", sourceMember.MetadataName);
+
+        var sourceType = comp.GetTypeByMetadataName("Outer.<>F0__C");
+        // Note: strictly speaking, it would be reasonable to return the (invalid) nested file type symbol here.
+        // However, since we don't actually support nested file types, we don't think we need the API to do the additional lookup
+        // when the requested type is nested, and so we end up giving a null here.
+        Assert.Null(sourceType);
+    }
+
+    [Fact]
+    public void GetTypeByMetadataName_04()
+    {
+        var source1 = """
+            file class C { }
+            """;
+
+        var source2 = """
+            class C { }
+            """;
+
+        // from source
+        var comp = CreateCompilation(new[] { source1, source2 });
+        comp.VerifyDiagnostics();
+        var sourceMember = comp.GetMembers("C")[0];
+        Assert.Equal("<>F0__C", sourceMember.MetadataName);
+
+        var sourceType = comp.GetTypeByMetadataName("<>F0__C");
+        Assert.Equal(sourceMember, sourceType);
+
+        // from metadata
+        var comp2 = CreateCompilation("", references: new[] { comp.EmitToImageReference() });
+        comp2.VerifyDiagnostics();
+
+        var metadataMember = comp2.GetMember<NamedTypeSymbol>("<>F0__C");
+        Assert.Equal("<>F0__C", metadataMember.MetadataName);
+
+        var metadataType = comp2.GetTypeByMetadataName("<>F0__C");
         Assert.Equal(metadataMember, metadataType);
     }
 }

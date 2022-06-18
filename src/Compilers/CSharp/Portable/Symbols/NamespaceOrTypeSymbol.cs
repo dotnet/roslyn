@@ -325,7 +325,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            // PROTOTYPE(ft): fully disallow nested file types
             if (isTopLevel && MetadataHelpers.DecodeFileType(emittedTypeName.UnmangledTypeName) is (not -1 and var ordinal, var typeName))
             {
                 // also do a lookup for file types from source.

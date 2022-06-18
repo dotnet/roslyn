@@ -1743,6 +1743,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            if (IsFile && (object?)ContainingType != null)
+            {
+                diagnostics.Add(ErrorCode.ERR_FileTypeNested, location, this);
+            }
+
             return;
 
             bool hasBaseTypeOrInterface(Func<NamedTypeSymbol, bool> predicate)
