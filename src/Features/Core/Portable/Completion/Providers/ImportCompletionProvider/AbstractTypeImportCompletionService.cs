@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 var solution = currentProject.Solution;
                 var graph = solution.GetProjectDependencyGraph();
-                var referencedProjects = graph.GetProjectsThatThisProjectTransitivelyDependsOn(currentProject.Id).Select(id => solution.GetRequiredProject(id)).Where(p => p.SupportsCompilation);
+                var referencedProjects = graph.GetProjectsThatThisProjectTransitivelyDependsOn(currentProject.Id).Select(solution.GetRequiredProject).Where(p => p.SupportsCompilation);
 
                 projectsBuilder.Add(currentProject);
                 projectsBuilder.AddRange(referencedProjects);
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         private static bool HasGlobalAlias(ImmutableArray<string> aliases)
-            => aliases.IsEmpty || aliases.Any(alias => alias == MetadataReferenceProperties.GlobalAlias);
+            => aliases.IsEmpty || aliases.Any(static alias => alias == MetadataReferenceProperties.GlobalAlias);
 
         private static string? GetPEReferenceCacheKey(PortableExecutableReference peReference)
             => peReference.FilePath ?? peReference.Display;

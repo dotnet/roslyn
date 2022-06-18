@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
         }
 
         private static bool DeclaredLocalCausesCollision(ILookup<string, ISymbol> symbolNameToExistingSymbol, ImmutableArray<ILocalSymbol> locals)
-            => locals.Any(local => symbolNameToExistingSymbol[local.Name].Any(otherLocal => !local.Equals(otherLocal)));
+            => locals.Any(static (local, symbolNameToExistingSymbol) => symbolNameToExistingSymbol[local.Name].Any(otherLocal => !local.Equals(otherLocal)), symbolNameToExistingSymbol);
 
         private static bool PreservesSemantics(
             BlockSyntax parentBlock,

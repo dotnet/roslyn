@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
         public override Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             return ComputeRefactoringsAsync(context.Document, context.Span,
-                (action, applicableToSpan) => context.RegisterRefactoring(action, applicableToSpan),
+                context.RegisterRefactoring,
                 (actions) => context.RegisterRefactorings(actions), desiredAccessibility: null,
                 context.Options, context.CancellationToken);
         }
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 priorDocument,
                 priorSelection,
                 (singleAction, applicableToSpan) => actions.Add(singleAction),
-                (multipleActions) => actions.AddRange(multipleActions),
+                actions.AddRange,
                 desiredAccessibility: accessibility,
                 intentDataProvider.FallbackOptions,
                 cancellationToken).ConfigureAwait(false);
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
             using var _ = ArrayBuilder<PickMembersOption>.GetInstance(out var pickMemberOptions);
             var canAddNullCheck = viableMembers.Any(
-                m => m.GetSymbolType().CanAddNullCheck());
+                static m => m.GetSymbolType().CanAddNullCheck());
 
             if (canAddNullCheck)
             {

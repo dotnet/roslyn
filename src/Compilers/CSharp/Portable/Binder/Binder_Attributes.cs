@@ -210,7 +210,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics,
                     out var memberResolutionResult,
                     out var candidateConstructors,
-                    allowProtectedConstructorsOfBaseType: true);
+                    allowProtectedConstructorsOfBaseType: true,
+                    suppressUnsupportedRequiredMembersError: false);
                 attributeConstructor = memberResolutionResult.Member;
                 expanded = memberResolutionResult.Resolution == MemberResolutionKind.ApplicableInExpandedForm;
                 argsToParamsOpt = memberResolutionResult.Result.ArgsToParamsOpt;
@@ -241,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     boundConstructorArguments = analyzedArguments.ConstructorArguments.Arguments.ToImmutable();
                     ReportDiagnosticsIfObsolete(diagnostics, attributeConstructor, node, hasBaseReceiver: false);
 
-                    if (attributeConstructor.Parameters.Any(p => p.RefKind == RefKind.In))
+                    if (attributeConstructor.Parameters.Any(static p => p.RefKind == RefKind.In))
                     {
                         Error(diagnostics, ErrorCode.ERR_AttributeCtorInParameter, node, attributeConstructor.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
                     }
@@ -253,6 +254,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<string?> boundConstructorArgumentNamesOpt = analyzedArguments.ConstructorArguments.GetNames();
             ImmutableArray<BoundAssignmentOperator> boundNamedArguments = analyzedArguments.NamedArguments?.ToImmutableAndFree() ?? ImmutableArray<BoundAssignmentOperator>.Empty;
             Debug.Assert(boundNamedArguments.All(arg => !arg.Right.NeedsToBeConverted()));
+
+            if (attributeConstructor is not null)
+            {
+                CheckRequiredMembersInObjectInitializer(attributeConstructor, ImmutableArray<BoundExpression>.CastUp(boundNamedArguments), node, diagnostics);
+            }
 
             analyzedArguments.ConstructorArguments.Free();
 

@@ -1163,6 +1163,8 @@ tryAgain:
                             return DeclarationModifiers.Partial;
                         case SyntaxKind.AsyncKeyword:
                             return DeclarationModifiers.Async;
+                        case SyntaxKind.RequiredKeyword:
+                            return DeclarationModifiers.Required;
                     }
 
                     goto default;
@@ -1171,8 +1173,9 @@ tryAgain:
             }
         }
 
-        private void ParseModifiers(SyntaxListBuilder tokens, bool forAccessors)
+        private void ParseModifiers(SyntaxListBuilder tokens, bool forAccessors, bool forTopLevelStatements)
         {
+            Debug.Assert(!(forAccessors && forTopLevelStatements));
             while (true)
             {
                 var newMod = GetModifier(this.CurrentToken);
@@ -1244,13 +1247,27 @@ tryAgain:
                         }
 
                     case DeclarationModifiers.Async:
-                        if (!ShouldAsyncBeTreatedAsModifier(parsingStatementNotDeclaration: false))
+                        if (!ShouldAsyncOrRequiredBeTreatedAsModifier(parsingStatementNotDeclaration: false))
                         {
                             return;
                         }
 
                         modTok = ConvertToKeyword(this.EatToken());
                         modTok = CheckFeatureAvailability(modTok, MessageID.IDS_FeatureAsync);
+                        break;
+
+                    case DeclarationModifiers.Required:
+                        // In C# 11, required in a modifier position is always a keyword if not escaped. Otherwise, we reuse the async detection
+                        // machinery to make a conservative guess as to whether the user meant required to be a keyword, so that they get a good langver
+                        // diagnostic and all the machinery to upgrade their project kicks in. The only exception to this rule is top level statements,
+                        // where the user could conceivably have a local named required. For these locations, we need to disambiguate as well.
+                        if ((!IsFeatureEnabled(MessageID.IDS_FeatureRequiredMembers) || forTopLevelStatements) && !ShouldAsyncOrRequiredBeTreatedAsModifier(parsingStatementNotDeclaration: false))
+                        {
+                            return;
+                        }
+
+                        modTok = ConvertToKeyword(this.EatToken());
+
                         break;
 
                     default:
@@ -1281,16 +1298,16 @@ tryAgain:
             }
         }
 
-        private bool ShouldAsyncBeTreatedAsModifier(bool parsingStatementNotDeclaration)
+        private bool ShouldAsyncOrRequiredBeTreatedAsModifier(bool parsingStatementNotDeclaration)
         {
-            Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.AsyncKeyword);
+            Debug.Assert(this.CurrentToken.ContextualKind is SyntaxKind.AsyncKeyword or SyntaxKind.RequiredKeyword);
 
             // Adapted from CParser::IsAsyncMethod.
 
             if (IsNonContextualModifier(PeekToken(1)))
             {
                 // If the next token is a (non-contextual) modifier keyword, then this token is
-                // definitely the async keyword
+                // definitely the async or required keyword
                 return true;
             }
 
@@ -1301,7 +1318,7 @@ tryAgain:
 
             try
             {
-                this.EatToken(); //move past contextual 'async'
+                this.EatToken(); //move past contextual 'async' or 'required'
 
                 if (!parsingStatementNotDeclaration &&
                     (this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword))
@@ -1318,6 +1335,8 @@ tryAgain:
                 // ... 'async' [partial] <typename> <membername> ...
                 // DEVNOTE: Although we parse async user defined conversions, operators, etc. here,
                 // anything other than async methods are detected as erroneous later, during the define phase
+                // The comments in general were not updated to add "async or required" everywhere to preserve
+                // history, but generally wherever async occurs, it can also be required.
 
                 if (!parsingStatementNotDeclaration)
                 {
@@ -2356,7 +2375,7 @@ tryAgain:
                 }
 
                 // All modifiers that might start an expression are processed above.
-                this.ParseModifiers(modifiers, forAccessors: false);
+                this.ParseModifiers(modifiers, forAccessors: false, forTopLevelStatements: true);
                 bool haveModifiers = (modifiers.Count > 0);
                 MemberDeclarationSyntax result;
 
@@ -2663,6 +2682,7 @@ parse_member_name:;
             if (GetModifier(this.CurrentToken) != DeclarationModifiers.None &&
                 this.CurrentToken.ContextualKind != SyntaxKind.PartialKeyword &&
                 this.CurrentToken.ContextualKind != SyntaxKind.AsyncKeyword &&
+                this.CurrentToken.ContextualKind != SyntaxKind.RequiredKeyword &&
                 IsComplete(type))
             {
                 var misplacedModifier = this.CurrentToken;
@@ -2808,7 +2828,7 @@ parse_member_name:;
             {
                 var attributes = this.ParseAttributeDeclarations();
 
-                this.ParseModifiers(modifiers, forAccessors: false);
+                this.ParseModifiers(modifiers, forAccessors: false, forTopLevelStatements: false);
 
                 // Check for constructor form
                 if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken && this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
@@ -4102,7 +4122,7 @@ parse_member_name:;
             try
             {
                 var accAttrs = this.ParseAttributeDeclarations();
-                this.ParseModifiers(accMods, forAccessors: true);
+                this.ParseModifiers(accMods, forAccessors: true, forTopLevelStatements: false);
 
                 // check availability of readonly members feature for accessors
                 CheckForVersionSpecificModifiers(accMods, SyntaxKind.ReadOnlyKeyword, MessageID.IDS_FeatureReadOnlyMembers);
@@ -4576,7 +4596,7 @@ tryAgain:
                 GetExpectedTokenError(kind, t1.Kind));
         }
 
-        private static bool NoTriviaBetween(SyntaxToken token1, SyntaxToken token2)
+        internal static bool NoTriviaBetween(SyntaxToken token1, SyntaxToken token2)
             => token1.GetTrailingTriviaWidth() == 0 && token2.GetLeadingTriviaWidth() == 0;
 
 #nullable disable
@@ -7967,7 +7987,7 @@ done:;
             tk = this.CurrentToken.ContextualKind;
 
             var isPossibleAttributeOrModifier = (IsAdditionalLocalFunctionModifier(tk) || tk == SyntaxKind.OpenBracketToken)
-                && (tk != SyntaxKind.AsyncKeyword || ShouldAsyncBeTreatedAsModifier(parsingStatementNotDeclaration: true));
+                && (tk != SyntaxKind.AsyncKeyword || ShouldAsyncOrRequiredBeTreatedAsModifier(parsingStatementNotDeclaration: true));
             if (isPossibleAttributeOrModifier)
             {
                 return true;
@@ -13677,7 +13697,9 @@ tryAgain:
         }
 
         [Obsolete("Use IsIncrementalAndFactoryContextMatches")]
+#pragma warning disable IDE0051 // Remove unused private members
         private new bool IsIncremental
+#pragma warning restore IDE0051 // Remove unused private members
         {
             get { throw new Exception("Use IsIncrementalAndFactoryContextMatches"); }
         }

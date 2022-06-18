@@ -1,5 +1,16 @@
 # This document lists known breaking changes in Roslyn after .NET 6 all the way to .NET 7.
 
+## Required spaces in #line span directives
+
+***Introduced in .NET SDK 6.0.400, Visual Studio 2022 version 17.3.***
+
+When the `#line` span directive was introduced in C# 10, it required no particular spacing.  
+For example, this would be valid: `#line(1,2)-(3,4)5"file.cs"`.
+
+In Visual Studio 17.3, the compiler requires spaces before the first parenthesis, the character
+offset, and the file name.  
+So the above example fails to parse unless spaces are added: `#line (1,2)-(3,4) 5 "file.cs"`.
+
 ## Checked operators on System.IntPtr and System.UIntPtr
 
 ***Introduced in .NET SDK 7.0.100, Visual Studio 2022 version 17.3.***
@@ -96,59 +107,6 @@ A possible workaround is to switch to using `>>>` operator:
 ``` C#
 static C1 Test1(C1 x, int y) => x >>> y;
 ``` 
-
-## UTF8 String Literal conversion
-
-***Introduced in .NET SDK 6.0.400, Visual Studio 2022 version 17.3.***
-The language added conversions between `string` constants and `byte` sequences
-where the text is converted into the equivalent UTF8 byte representation.
-Specifically the compiler allowed an implicit conversions from **`string` constants**
-to `byte[]`, `Span<byte>`, and `ReadOnlySpan<byte>` types.
-
-The conversions can lead to an overload resolution failure due to an ambiguity for a code
-that compiled successfully before. For example:
-``` C#
-Test("s"); // error CS0121: The call is ambiguous between the following methods or properties: 'C.Test(ReadOnlySpan<char>)' and 'C.Test(byte[])'
-
-static string Test(ReadOnlySpan<char> a) => "ReadOnlySpan";
-static string Test(byte[] a) => "array";
-```
-
-A possible workaround is to apply an explicit cast to the constant string argument.
-
-The conversions can lead to an invocation of a different member. For example:
-``` C#
-Test("s", (int)1); // Used to call `Test(ReadOnlySpan<char> a, long x)`, but calls `Test(byte[] a, int x)` now
-
-static string Test(ReadOnlySpan<char> a, long x) => "ReadOnlySpan";
-static string Test(byte[] a, int x) => "array";
-```
-
-A possible workaround is to apply an explicit cast to the constant string argument.
-
-The conversions can lead to an invocation of an instance member where an extension method used to be invoked.
-For example:
-``` C#
-class Program
-{
-    static void Main()
-    {
-        var p = new Program();
-        p.M(""); // Used to call E.M, but calls Program.M now
-    }
-
-    public string M(byte[] b) => "byte[]";
-}
-
-static class E
-{
-    public static string M(this object o, string s) => "string";
-}
-```
-
-Possible workarounds are:
-1. Apply an explicit cast to the constant string argument.
-2. Call the extension method by using static method invocation syntax.
 
 ## Foreach enumerator as a ref struct
 
@@ -391,3 +349,16 @@ Console.WriteLine($"{{{12:X}}}");
 The workaround is to remove the extra braces in the format string.
 
 You can learn more about this change in the associated [roslyn issue](https://github.com/dotnet/roslyn/issues/57750).
+
+## Types cannot be named `required`
+
+***Introduced in Visual Studio 2022 version 17.3.*** Starting in C# 11, types cannot be named `required`. The compiler will report an error on all such type names. To work around this, the type name and all usages must be escaped with an `@`:
+
+```csharp
+class required {} // Error CS9029
+class @required {} // No error
+```
+
+This was done as `required` is now a member modifier for properties and fields.
+
+You can learn more about this change in the associated [csharplang issue](https://github.com/dotnet/csharplang/issues/3630).

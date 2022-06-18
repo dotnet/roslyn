@@ -97,6 +97,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ThisConstructorInitializer:
                 case SyntaxKind.ConstructorDeclaration:
                 case SyntaxKind.PrimaryConstructorBaseType:
+                case SyntaxKind.CheckedExpression:
+                case SyntaxKind.UncheckedExpression:
                     return true;
 
                 case SyntaxKind.RecordDeclaration:

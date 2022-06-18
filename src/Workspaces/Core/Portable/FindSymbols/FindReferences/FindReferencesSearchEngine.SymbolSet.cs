@@ -154,8 +154,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return result;
             }
 
-            private static async Task<HashSet<ISymbol>> DetermineInitialUpSymbolsAsync(
-                FindReferencesSearchEngine engine, HashSet<ISymbol> initialSymbols, CancellationToken cancellationToken)
+            private static async Task<MetadataUnifyingSymbolHashSet> DetermineInitialUpSymbolsAsync(
+                FindReferencesSearchEngine engine,
+                MetadataUnifyingSymbolHashSet initialSymbols,
+                CancellationToken cancellationToken)
             {
                 var upSymbols = new MetadataUnifyingSymbolHashSet();
                 var workQueue = new Stack<ISymbol>();

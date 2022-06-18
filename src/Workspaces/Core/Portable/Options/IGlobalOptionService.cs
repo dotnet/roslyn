@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Options
     /// all workspaces/services).
     /// 
     /// In general you should not import this type directly, and should instead get an
-    /// <see cref="IOptionService"/> from <see cref="Workspace.Services"/>
+    /// <see cref="ILegacyWorkspaceOptionService"/> from <see cref="Workspace.Services"/>
     /// </summary>
     internal interface IGlobalOptionService
     {
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Options
         /// Applies a set of options.
         /// If any option changed its value invokes registered option persisters, updates current solutions of all registered workspaces and triggers <see cref="OptionChanged"/>.
         /// </summary>
-        void SetOptions(OptionSet optionSet);
+        void SetOptions(OptionSet optionSet, IEnumerable<OptionKey> optionKeys);
 
         /// <summary>
         /// Sets and persists the value of a global option.
@@ -73,11 +73,6 @@ namespace Microsoft.CodeAnalysis.Options
         /// Does not update any workspace (since this option is not a solution option).
         /// </summary>
         void SetGlobalOptions(ImmutableArray<OptionKey> optionKeys, ImmutableArray<object?> values);
-
-        /// <summary>
-        /// Gets force computed serializable options snapshot with prefetched values for the registered options applicable to the given <paramref name="languages"/> by quering the option persisters.
-        /// </summary>
-        SerializableOptionSet GetSerializableOptionsSnapshot(ImmutableHashSet<string> languages, IOptionService optionService);
 
         /// <summary>
         /// Returns the set of all registered options.

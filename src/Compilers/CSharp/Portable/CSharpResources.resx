@@ -2058,7 +2058,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Inconsistent accessibility: constraint type '{1}' is less accessible than '{0}'</value>
   </data>
   <data name="ERR_LookupInTypeVariable" xml:space="preserve">
-    <value>Cannot do member lookup in '{0}' because it is a type parameter</value>
+    <value>Cannot do non-virtual member lookup in '{0}' because it is a type parameter</value>
   </data>
   <data name="ERR_BadConstraintType" xml:space="preserve">
     <value>Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.</value>
@@ -6091,7 +6091,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_MostSpecificImplementationIsNotFound" xml:space="preserve">
     <value>Interface member '{0}' does not have a most specific implementation. Neither '{1}', nor '{2}' are most specific.</value>
   </data>
-  <data name="ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember" xml:space="preserve">
+  <data name="ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember" xml:space="preserve">
     <value>'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</value>
   </data>
   <data name="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember" xml:space="preserve">
@@ -6670,9 +6670,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureInferredDelegateType" xml:space="preserve">
     <value>inferred delegate type</value>
   </data>
-  <data name="IDS_FeatureLineSpanDirective" xml:space="preserve">
-    <value>line span directive</value>
-  </data>
   <data name="IDS_FeatureAutoDefaultStructs" xml:space="preserve">
     <value>auto default struct fields</value>
   </data>
@@ -6681,6 +6678,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_LineSpanDirectiveEndLessThanStart" xml:space="preserve">
     <value>The #line directive end position must be greater than or equal to the start position</value>
+  </data>
+  <data name="ERR_LineSpanDirectiveRequiresSpace" xml:space="preserve">
+    <value>The #line span directive requires space before the first parenthesis, before the character offset, and before the file name</value>
   </data>
   <data name="WRN_DoNotCompareFunctionPointers" xml:space="preserve">
     <value>Comparison of function pointers might yield an unexpected result, since pointers to the same function may be distinct.</value>
@@ -6887,7 +6887,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Target runtime doesn't support static abstract members in interfaces.</value>
   </data>
   <data name="ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers" xml:space="preserve">
-    <value>The interface '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. The constraint interface '{1}' or its base interface has static abstract or virtual members.</value>
+    <value>The interface '{0}' cannot be used as type argument. Static member '{1}' does not have a most specific implementation in the interface.</value>
   </data>
   <data name="ERR_BadAbstractUnaryOperatorSignature" xml:space="preserve">
     <value>The parameter of a unary operator must be the containing type, or its type parameter constrained to it.</value>
@@ -7031,6 +7031,39 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_LowerCaseTypeName_Title" xml:space="preserve">
     <value>The type name only contains lower-cased ascii characters. Such names may become reserved for the language.</value>
   </data>
+  <data name="ERR_RequiredNameDisallowed" xml:space="preserve">
+    <value>Types and aliases cannot be named 'required'.</value>
+  </data>
+  <data name="IDS_FeatureRequiredMembers" xml:space="preserve">
+    <value>required members</value>
+  </data>
+  <data name="ERR_OverrideMustHaveRequired" xml:space="preserve">
+    <value>'{0}' must be required because it overrides required member '{1}'</value>
+  </data>
+  <data name="ERR_RequiredMemberCannotBeHidden" xml:space="preserve">
+    <value>Required member '{0}' cannot be hidden by '{1}'.</value>
+  </data>
+  <data name="ERR_RequiredMemberCannotBeLessVisibleThanContainingType" xml:space="preserve">
+    <value>Required member '{0}' cannot be less visible or have a setter less visible than the containing type '{1}'.</value>
+  </data>
+  <data name="ERR_ExplicitRequiredMember" xml:space="preserve">
+    <value>Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.</value>
+  </data>
+  <data name="ERR_RequiredMemberMustBeSettable" xml:space="preserve">
+    <value>Required member '{0}' must be settable.</value>
+  </data>
+  <data name="ERR_RequiredMemberMustBeSet" xml:space="preserve">
+    <value>Required member '{0}' must be set in the object initializer or attribute constructor.</value>
+  </data>
+  <data name="ERR_RequiredMembersMustBeAssignedValue" xml:space="preserve">
+    <value>Required member '{0}' must be assigned a value, it cannot use a nested member or collection initializer.</value>
+  </data>
+  <data name="ERR_RequiredMembersInvalid" xml:space="preserve">
+    <value>The required members list for '{0}' is malformed and cannot be interpreted.</value>
+  </data>
+  <data name="ERR_RequiredMembersBaseTypeInvalid" xml:space="preserve">
+    <value>The required members list for the base type '{0}' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.</value>
+  </data>
   <data name="ERR_LineContainsDifferentWhitespace" xml:space="preserve">
     <value>Line contains different whitespace than the closing line of the raw string literal: '{0}' versus '{1}'</value>
   </data>
@@ -7064,13 +7097,37 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ExpressionTreeContainsUTF8StringLiterals" xml:space="preserve">
     <value>An expression tree may not contain UTF-8 string conversion or literal.</value>
   </data>
+  <data name="ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers" xml:space="preserve">
+    <value>This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.</value>
+  </data>
+  <data name="ERR_NewConstraintCannotHaveRequiredMembers" xml:space="preserve">
+    <value>'{2}' cannot satisfy the 'new()' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.</value>
+  </data>
   <data name="IDS_FeatureUnsignedRightShift" xml:space="preserve">
     <value>unsigned right shift</value>
   </data>
   <data name="IDS_FeatureRelaxedShiftOperator" xml:space="preserve">
     <value>relaxed shift operator</value>
   </data>
+  <data name="ERR_UnsupportedCompilerFeature" xml:space="preserve">
+    <value>'{0}' requires compiler feature '{1}', which is not supported by this version of the C# compiler.</value>
+  </data>
+  <data name="WRN_ObsoleteMembersShouldNotBeRequired" xml:space="preserve">
+    <value>Required member '{0}' should not be attributed with 'ObsoleteAttribute' unless the containing type is obsolete or all constructors are obsolete.</value>
+  </data>
+  <data name="WRN_ObsoleteMembersShouldNotBeRequired_Title" xml:space="preserve">
+    <value>Members attributed with 'ObsoleteAttribute' should not be required unless the containing type is obsolete or all constructors are obsolete.</value>
+  </data>
+  <data name="ERR_RefReturningPropertiesCannotBeRequired" xml:space="preserve">
+    <value>Ref returning properties cannot be required.</value>
+  </data>
   <data name="ERR_MisplacedUnchecked" xml:space="preserve">
     <value>Unexpected keyword 'unchecked'</value>
+  </data>
+  <data name="ERR_ImplicitImplementationOfInaccessibleInterfaceMember" xml:space="preserve">
+    <value>'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement an inaccessible member.</value>
+  </data>
+  <data name="ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers" xml:space="preserve">
+    <value>Required members are not allowed on the top level of a script or submission.</value>
   </data>
 </root>

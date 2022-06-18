@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
             var language = diagnostic.Location.SourceTree.Options.Language;
             return IDEDiagnosticIdToOptionMappingHelper.TryGetMappedOptions(diagnostic.Id, language, out var options) &&
                !options.IsEmpty &&
-               options.All(o => o.StorageLocations.Any(l => l is IEditorConfigStorageLocation2));
+               options.All(o => o.StorageLocations.Any(static l => l is IEditorConfigStorageLocation2));
         }
 
         public FixAllProvider GetFixAllProvider()

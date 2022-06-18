@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             var builder = new List<SymbolDisplayPart>();
             builder.AddLineBreak();
 
-            var projects = CandidateProjects.Select(p => Solution.GetRequiredProject(p)).OrderBy(p => p.Name);
+            var projects = CandidateProjects.Select(Solution.GetRequiredProject).OrderBy(p => p.Name);
             foreach (var project in projects)
             {
                 var text = string.Format(FeaturesResources._0_1, project.Name, Supported(!InvalidProjects.Contains(project.Id)));

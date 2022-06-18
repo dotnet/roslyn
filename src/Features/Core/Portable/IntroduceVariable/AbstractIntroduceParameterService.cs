@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             // Need to special case for expressions that are contained within a parameter
             // because it is technically "contained" within a method, but an expression in a parameter does not make
             // sense to introduce.
-            var parameterNode = expression.FirstAncestorOrSelf<SyntaxNode>(node => syntaxFacts.IsParameter(node));
+            var parameterNode = expression.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsParameter);
             if (parameterNode is not null)
             {
                 return;

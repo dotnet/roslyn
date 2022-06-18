@@ -1628,7 +1628,7 @@ End Module
 
             c.VerifyIL("Form1.VB$StateMachine_1_f.MoveNext", <![CDATA[
 {
-  // Code size      233 (0xe9)
+  // Code size      239 (0xef)
   .maxstack  3
   .locals init (Integer V_0,
                 Integer V_1,
@@ -1641,103 +1641,105 @@ End Module
   .try
   {
     IL_0007:  ldloc.1
-    IL_0008:  ldc.i4.1
-    IL_0009:  pop
-    IL_000a:  pop
-    IL_000b:  nop
+    IL_0008:  ldc.i4.s   -3
+    IL_000a:  beq.s      IL_000e
+    IL_000c:  ldloc.1
+    IL_000d:  pop
+    IL_000e:  nop
     .try
     {
-      IL_000c:  ldloc.1
-      IL_000d:  brfalse.s  IL_0065
       IL_000f:  ldloc.1
-      IL_0010:  ldc.i4.1
-      IL_0011:  bne.un.s   IL_0021
-      IL_0013:  ldarg.0
-      IL_0014:  ldc.i4.m1
-      IL_0015:  dup
-      IL_0016:  stloc.1
-      IL_0017:  stfld      "Form1.VB$StateMachine_1_f.$State As Integer"
-      IL_001c:  leave      IL_00e8
-      IL_0021:  ldstr      "2 "
-      IL_0026:  call       "Sub System.Console.Write(String)"
-      IL_002b:  call       "Function System.Threading.Tasks.Task.Yield() As System.Runtime.CompilerServices.YieldAwaitable"
-      IL_0030:  stloc.3
-      IL_0031:  ldloca.s   V_3
-      IL_0033:  call       "Function System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter() As System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
-      IL_0038:  stloc.2
-      IL_0039:  ldloca.s   V_2
-      IL_003b:  call       "Function System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.get_IsCompleted() As Boolean"
-      IL_0040:  brtrue.s   IL_0081
-      IL_0042:  ldarg.0
-      IL_0043:  ldc.i4.0
-      IL_0044:  dup
-      IL_0045:  stloc.1
-      IL_0046:  stfld      "Form1.VB$StateMachine_1_f.$State As Integer"
-      IL_004b:  ldarg.0
-      IL_004c:  ldloc.2
-      IL_004d:  stfld      "Form1.VB$StateMachine_1_f.$A0 As System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
-      IL_0052:  ldarg.0
-      IL_0053:  ldflda     "Form1.VB$StateMachine_1_f.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)"
-      IL_0058:  ldloca.s   V_2
-      IL_005a:  ldarg.0
-      IL_005b:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, Form1.VB$StateMachine_1_f)(ByRef System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, ByRef Form1.VB$StateMachine_1_f)"
-      IL_0060:  leave      IL_00e8
-      IL_0065:  ldarg.0
-      IL_0066:  ldc.i4.m1
-      IL_0067:  dup
-      IL_0068:  stloc.1
-      IL_0069:  stfld      "Form1.VB$StateMachine_1_f.$State As Integer"
-      IL_006e:  ldarg.0
-      IL_006f:  ldfld      "Form1.VB$StateMachine_1_f.$A0 As System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
-      IL_0074:  stloc.2
-      IL_0075:  ldarg.0
-      IL_0076:  ldflda     "Form1.VB$StateMachine_1_f.$A0 As System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
-      IL_007b:  initobj    "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
-      IL_0081:  ldloca.s   V_2
-      IL_0083:  call       "Sub System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()"
-      IL_0088:  ldloca.s   V_2
-      IL_008a:  initobj    "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
-      IL_0090:  ldstr      "3 "
-      IL_0095:  call       "Sub System.Console.Write(String)"
-      IL_009a:  ldc.i4.s   123
-      IL_009c:  stloc.0
-      IL_009d:  leave.s    IL_00d2
+      IL_0010:  ldc.i4.s   -3
+      IL_0012:  beq.s      IL_0019
+      IL_0014:  ldloc.1
+      IL_0015:  brfalse.s  IL_006b
+      IL_0017:  br.s       IL_0027
+      IL_0019:  ldarg.0
+      IL_001a:  ldc.i4.m1
+      IL_001b:  dup
+      IL_001c:  stloc.1
+      IL_001d:  stfld      "Form1.VB$StateMachine_1_f.$State As Integer"
+      IL_0022:  leave      IL_00ee
+      IL_0027:  ldstr      "2 "
+      IL_002c:  call       "Sub System.Console.Write(String)"
+      IL_0031:  call       "Function System.Threading.Tasks.Task.Yield() As System.Runtime.CompilerServices.YieldAwaitable"
+      IL_0036:  stloc.3
+      IL_0037:  ldloca.s   V_3
+      IL_0039:  call       "Function System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter() As System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
+      IL_003e:  stloc.2
+      IL_003f:  ldloca.s   V_2
+      IL_0041:  call       "Function System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.get_IsCompleted() As Boolean"
+      IL_0046:  brtrue.s   IL_0087
+      IL_0048:  ldarg.0
+      IL_0049:  ldc.i4.0
+      IL_004a:  dup
+      IL_004b:  stloc.1
+      IL_004c:  stfld      "Form1.VB$StateMachine_1_f.$State As Integer"
+      IL_0051:  ldarg.0
+      IL_0052:  ldloc.2
+      IL_0053:  stfld      "Form1.VB$StateMachine_1_f.$A0 As System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
+      IL_0058:  ldarg.0
+      IL_0059:  ldflda     "Form1.VB$StateMachine_1_f.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)"
+      IL_005e:  ldloca.s   V_2
+      IL_0060:  ldarg.0
+      IL_0061:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, Form1.VB$StateMachine_1_f)(ByRef System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, ByRef Form1.VB$StateMachine_1_f)"
+      IL_0066:  leave      IL_00ee
+      IL_006b:  ldarg.0
+      IL_006c:  ldc.i4.m1
+      IL_006d:  dup
+      IL_006e:  stloc.1
+      IL_006f:  stfld      "Form1.VB$StateMachine_1_f.$State As Integer"
+      IL_0074:  ldarg.0
+      IL_0075:  ldfld      "Form1.VB$StateMachine_1_f.$A0 As System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
+      IL_007a:  stloc.2
+      IL_007b:  ldarg.0
+      IL_007c:  ldflda     "Form1.VB$StateMachine_1_f.$A0 As System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
+      IL_0081:  initobj    "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
+      IL_0087:  ldloca.s   V_2
+      IL_0089:  call       "Sub System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()"
+      IL_008e:  ldloca.s   V_2
+      IL_0090:  initobj    "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
+      IL_0096:  ldstr      "3 "
+      IL_009b:  call       "Sub System.Console.Write(String)"
+      IL_00a0:  ldc.i4.s   123
+      IL_00a2:  stloc.0
+      IL_00a3:  leave.s    IL_00d8
     }
     finally
     {
-      IL_009f:  ldloc.1
-      IL_00a0:  ldc.i4.0
-      IL_00a1:  bge.s      IL_00ad
-      IL_00a3:  ldstr      "4 "
-      IL_00a8:  call       "Sub System.Console.Write(String)"
-      IL_00ad:  endfinally
+      IL_00a5:  ldloc.1
+      IL_00a6:  ldc.i4.0
+      IL_00a7:  bge.s      IL_00b3
+      IL_00a9:  ldstr      "4 "
+      IL_00ae:  call       "Sub System.Console.Write(String)"
+      IL_00b3:  endfinally
     }
   }
   catch System.Exception
   {
-    IL_00ae:  dup
-    IL_00af:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-    IL_00b4:  stloc.s    V_4
-    IL_00b6:  ldarg.0
-    IL_00b7:  ldc.i4.s   -2
-    IL_00b9:  stfld      "Form1.VB$StateMachine_1_f.$State As Integer"
-    IL_00be:  ldarg.0
-    IL_00bf:  ldflda     "Form1.VB$StateMachine_1_f.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)"
-    IL_00c4:  ldloc.s    V_4
-    IL_00c6:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetException(System.Exception)"
-    IL_00cb:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-    IL_00d0:  leave.s    IL_00e8
+    IL_00b4:  dup
+    IL_00b5:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_00ba:  stloc.s    V_4
+    IL_00bc:  ldarg.0
+    IL_00bd:  ldc.i4.s   -2
+    IL_00bf:  stfld      "Form1.VB$StateMachine_1_f.$State As Integer"
+    IL_00c4:  ldarg.0
+    IL_00c5:  ldflda     "Form1.VB$StateMachine_1_f.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)"
+    IL_00ca:  ldloc.s    V_4
+    IL_00cc:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetException(System.Exception)"
+    IL_00d1:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_00d6:  leave.s    IL_00ee
   }
-  IL_00d2:  ldarg.0
-  IL_00d3:  ldc.i4.s   -2
-  IL_00d5:  dup
-  IL_00d6:  stloc.1
-  IL_00d7:  stfld      "Form1.VB$StateMachine_1_f.$State As Integer"
-  IL_00dc:  ldarg.0
-  IL_00dd:  ldflda     "Form1.VB$StateMachine_1_f.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)"
-  IL_00e2:  ldloc.0
-  IL_00e3:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetResult(Integer)"
-  IL_00e8:  ret
+  IL_00d8:  ldarg.0
+  IL_00d9:  ldc.i4.s   -2
+  IL_00db:  dup
+  IL_00dc:  stloc.1
+  IL_00dd:  stfld      "Form1.VB$StateMachine_1_f.$State As Integer"
+  IL_00e2:  ldarg.0
+  IL_00e3:  ldflda     "Form1.VB$StateMachine_1_f.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)"
+  IL_00e8:  ldloc.0
+  IL_00e9:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetResult(Integer)"
+  IL_00ee:  ret
 }
 ]]>)
         End Sub
