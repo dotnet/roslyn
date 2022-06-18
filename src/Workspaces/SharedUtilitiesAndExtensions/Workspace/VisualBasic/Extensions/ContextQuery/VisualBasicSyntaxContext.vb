@@ -57,7 +57,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             targetToken As SyntaxToken,
             isAttributeNameContext As Boolean,
             isAwaitKeywordContext As Boolean,
-            isCustomEventContext As Boolean,
+            isClassInheritanceContext As Boolean,
+            isClassImplementsInterfaceContext As Boolean,
+            IsCustomEventContext As Boolean,
             isEnumTypeMemberAccessContext As Boolean,
             isAnyExpressionContext As Boolean,
             isGenericConstraintContext As Boolean,
@@ -66,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             isInImportsDirective As Boolean,
             isInLambda As Boolean,
             isInQuery As Boolean,
-            isTaskLikeTypeContext As Boolean,
+            isInterfaceInheritanceContext As Boolean,
             isNameOfContext As Boolean,
             isNamespaceContext As Boolean,
             isNamespaceDeclarationNameContext As Boolean,
@@ -76,6 +78,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             isRightOfNameSeparator As Boolean,
             isRightSideOfNumericType As Boolean,
             isStatementContext As Boolean,
+            isStructImplementsInterfaceContext As Boolean,
+            isTaskLikeTypeContext As Boolean,
             isTypeContext As Boolean,
             isWithinAsyncMethod As Boolean,
             cancellationToken As CancellationToken
@@ -91,12 +95,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 isAtStartOfPattern:=False,
                 isAttributeNameContext:=isAttributeNameContext,
                 isAwaitKeywordContext:=isAwaitKeywordContext,
+                isClassInheritanceContext:=isClassInheritanceContext,
+                isClassImplementsInterfaceContext:=isClassImplementsInterfaceContext,
                 isEnumTypeMemberAccessContext:=isEnumTypeMemberAccessContext,
                 isGenericConstraintContext:=isGenericConstraintContext,
                 isGlobalStatementContext:=isGlobalStatementContext,
                 isInImportsDirective:=isInImportsDirective,
                 isInQuery:=isInQuery,
-                isTaskLikeTypeContext:=isTaskLikeTypeContext,
+                isInterfaceInheritanceContext:=isInterfaceInheritanceContext,
                 isNameOfContext:=isNameOfContext,
                 isNamespaceContext,
                 isNamespaceDeclarationNameContext,
@@ -107,6 +113,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 isRightOfNameSeparator:=isRightOfNameSeparator,
                 isRightSideOfNumericType:=isRightSideOfNumericType,
                 isStatementContext:=isStatementContext,
+                isStructImplementsInterfaceContext:=isStructImplementsInterfaceContext,
+                isTaskLikeTypeContext:=isTaskLikeTypeContext,
                 isTypeContext:=isTypeContext,
                 isWithinAsyncMethod:=isWithinAsyncMethod,
                 cancellationToken:=cancellationToken)
@@ -129,7 +137,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             Me.IsQueryOperatorContext = syntaxTree.IsFollowingCompleteExpression(Of QueryExpressionSyntax)(position, targetToken, Function(query) query, cancellationToken)
 
             Me.EnclosingNamedType = ComputeEnclosingNamedType(cancellationToken)
-            Me.IsCustomEventContext = isCustomEventContext
+            Me.IsCustomEventContext = IsCustomEventContext
 
             Me.IsPreprocessorEndDirectiveKeywordContext = targetToken.FollowsBadEndDirective()
         End Sub
@@ -170,14 +178,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 isAnyExpressionContext:=isAnyExpressionContext,
                 isAttributeNameContext:=syntaxTree.IsAttributeNameContext(position, targetToken, cancellationToken),
                 isAwaitKeywordContext:=ComputeIsAwaitKeywordContext(targetToken, isAnyExpressionContext, isInQuery, isStatementContext),
-                isCustomEventContext:=targetToken.GetAncestor(Of EventBlockSyntax)() IsNot Nothing,
+                isClassInheritanceContext:=False, ' TODO
+                isClassImplementsInterfaceContext:=False, ' TODO
+                IsCustomEventContext:=targetToken.GetAncestor(Of EventBlockSyntax)() IsNot Nothing,
                 isEnumTypeMemberAccessContext:=syntaxTree.IsEnumTypeMemberAccessContext(position, targetToken, semanticModel, cancellationToken),
                 isGenericConstraintContext:=targetToken.Parent.IsKind(SyntaxKind.TypeParameterSingleConstraintClause, SyntaxKind.TypeParameterMultipleConstraintClause),
                 isGlobalStatementContext:=syntaxTree.IsGlobalStatementContext(position, cancellationToken),
                 isInImportsDirective:=leftToken.GetAncestor(Of ImportsStatementSyntax)() IsNot Nothing,
                 isInLambda:=leftToken.GetAncestor(Of LambdaExpressionSyntax)() IsNot Nothing,
                 isInQuery:=isInQuery,
-                isTaskLikeTypeContext:=ComputeIsTaskLikeTypeContext(targetToken),
+                isInterfaceInheritanceContext:=False, ' TODO
                 isNameOfContext:=syntaxTree.IsNameOfContext(position, cancellationToken),
                 isNamespaceContext:=syntaxTree.IsNamespaceContext(position, targetToken, cancellationToken, semanticModel),
                 isNamespaceDeclarationNameContext:=syntaxTree.IsNamespaceDeclarationNameContext(position, cancellationToken),
@@ -188,6 +198,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 isRightOfNameSeparator:=syntaxTree.IsRightOfDot(position, cancellationToken),
                 isRightSideOfNumericType:=False,
                 isStatementContext:=isStatementContext,
+                isStructImplementsInterfaceContext:=False, ' TODO
+                isTaskLikeTypeContext:=ComputeIsTaskLikeTypeContext(targetToken),
                 isTypeContext:=syntaxTree.IsTypeContext(position, targetToken, cancellationToken, semanticModel),
                 isWithinAsyncMethod:=ComputeIsWithinAsyncMethod(targetToken),
                 cancellationToken:=cancellationToken)
