@@ -2,8 +2,24 @@
 steps:
   - checkout: none
 
-  - script: |
-      @echo on
+  - pwsh: |
+      $gitCommands = Get-Command git -ErrorAction SilentlyContinue
+      if (-not $gitCommands) {
+        Invoke-WebRequest "https://netcorenativeassets.blob.core.windows.net/resource-packages/external/windows/vswhere/2.5.2/vswhere.exe" -OutFile "$(Agent.TempDirectory)\vswhere.exe"
+        foreach ($path in (& "$(Agent.TempDirectory)\vswhere.exe -prerelease -property installationPath)) {
+          $gitPath = "$path\Common7\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Git\mingw64\bin\"
+          if (Test-Path "$gitPath\git") {
+            echo "Adding '$gitPath' to PATH..."
+            $env:Path += ";$gitPath"
+            break
+          }
+        }
+        $gitCommands = Get-Command git -ErrorAction SilentlyContinue
+        if (-not $gitCommands) {
+          throw "Unable to find a git executable in PATH or under existing Visual Studio installations."
+        }
+      }
+
       git init
       git remote add origin "$(Build.Repository.Uri)"
       git fetch --progress --no-tags --depth=1 origin "$(Build.SourceVersion)"
