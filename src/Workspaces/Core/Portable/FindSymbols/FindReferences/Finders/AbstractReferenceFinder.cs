@@ -166,8 +166,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             var tokens = await FindMatchingIdentifierTokensAsync(state, identifier, cancellationToken).ConfigureAwait(false);
 
-            var syntaxFacts = state.SyntaxFacts;
-
             return await FindReferencesInTokensAsync(
                 state,
                 tokens,
@@ -240,7 +238,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
                 if (tokensMatch(state, token, value))
                 {
-                    var semanticModel = state.SemanticModel;
                     var (matched, reason) = await symbolsMatchAsync(state, token, cancellationToken).ConfigureAwait(false);
                     if (matched)
                     {

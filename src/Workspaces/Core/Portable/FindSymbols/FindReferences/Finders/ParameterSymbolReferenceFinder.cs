@@ -42,15 +42,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var symbolsMatchAsync = GetParameterSymbolsMatchFunction(
-                symbol, state, cancellationToken);
-
             return FindReferencesInDocumentUsingIdentifierAsync(
-                symbol, symbol.Name, state, symbolsMatchAsync, cancellationToken);
+                symbol, symbol.Name, state,
+                GetParameterSymbolsMatchFunction(symbol, cancellationToken),
+                cancellationToken);
         }
 
         private static Func<FindReferencesDocumentState, SyntaxToken, CancellationToken, ValueTask<(bool matched, CandidateReason reason)>> GetParameterSymbolsMatchFunction(
-            IParameterSymbol parameter, FindReferencesDocumentState state, CancellationToken cancellationToken)
+            IParameterSymbol parameter, CancellationToken cancellationToken)
         {
             // Get the standard function for comparing parameters.  This function will just 
             // directly compare the parameter symbols for SymbolEquivalence.
