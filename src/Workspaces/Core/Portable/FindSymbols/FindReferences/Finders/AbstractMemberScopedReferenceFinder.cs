@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return Task.FromResult(ImmutableArray.Create(document));
         }
 
-        protected sealed override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+        protected sealed override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             TSymbol symbol,
             FindReferencesDocumentState state,
             FindReferencesSearchOptions options,
@@ -56,22 +56,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             var container = GetContainer(symbol);
             if (container != null)
-            {
-                return await FindReferencesInContainerAsync(symbol, container, state, cancellationToken).ConfigureAwait(false);
-            }
+                return FindReferencesInContainerAsync(symbol, container, state, cancellationToken);
 
             if (symbol.ContainingType != null && symbol.ContainingType.IsScriptClass)
             {
-                var syntaxTree = state.SyntaxTree;
-                var syntaxFacts = state.SyntaxFacts;
-                var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-                var tokens = root.DescendantTokens();
-
-                return await FindReferencesInTokensWithSymbolNameAsync(
-                    symbol, state, tokens, cancellationToken).ConfigureAwait(false);
+                var tokens = state.Root.DescendantTokens();
+                return FindReferencesInTokensWithSymbolNameAsync(symbol, state, tokens, cancellationToken);
             }
 
-            return ImmutableArray<FinderLocation>.Empty;
+            return new(ImmutableArray<FinderLocation>.Empty);
         }
 
         private static ISymbol? GetContainer(ISymbol symbol)
