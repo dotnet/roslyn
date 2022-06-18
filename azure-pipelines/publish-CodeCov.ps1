@@ -23,7 +23,7 @@ Param (
 $RepoRoot = (Resolve-Path "$PSScriptRoot/..").Path
 
 Get-ChildItem -Recurse -Path $PathToCodeCoverage -Filter "*.cobertura.xml" | % {
-    $relativeFilePath = Resolve-Path -relative $_
+    $relativeFilePath = Resolve-Path -relative $_.FullName
 
     Write-Host "Uploading: $relativeFilePath" -ForegroundColor Yellow
     & (& "$PSScriptRoot/Get-CodeCovTool.ps1") -t $CodeCovToken -f $relativeFilePath -R $RepoRoot -F $Flags -n $Name
