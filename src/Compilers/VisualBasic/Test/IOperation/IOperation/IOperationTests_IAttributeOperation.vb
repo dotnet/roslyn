@@ -547,7 +547,80 @@ End Class
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
+IAttributeOperation (OperationKind.Attribute, Type: null, IsInvalid) (Syntax: 'A')
+  IObjectCreationOperation (Constructor: Sub A..ctor([x As System.Security.Permissions.SecurityAction = 0])) (OperationKind.ObjectCreation, Type: A, IsInvalid, IsImplicit) (Syntax: 'A')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, Type: null, IsInvalid, IsImplicit) (Syntax: 'A')
+          ILiteralOperation (OperationKind.Literal, Type: System.Security.Permissions.SecurityAction, Constant: 0, IsInvalid, IsImplicit) (Syntax: 'A')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
+]]>.Value
 
+            Dim expectedDiagnostics = <![CDATA[
+BC31214: SecurityAction value '0' is invalid for security attributes applied to a type or a method.
+<A>'BIND:"A"
+ ~
+BC30610: Class 'A' must either be declared 'MustInherit' or override the following inherited 'MustOverride' member(s): 
+    SecurityAttribute: Public MustOverride Overloads Function CreatePermission() As IPermission.
+Class A
+      ~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of AttributeSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
+        Public Sub InvalidAttributeParameterType()
+            Dim source = <![CDATA[
+Imports System
+
+<My>'BIND:"My"
+Class MyAttribute
+    Inherits Attribute
+
+    Public Sub New(ParamArray x As Integer()(,))
+    End Sub
+End Class
+
+]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IAttributeOperation (OperationKind.Attribute, Type: null, IsInvalid) (Syntax: 'My')
+  IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'My')
+    Children(0)
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30045: Attribute constructor has a parameter of type 'Integer()(*,*)', which is not an integral, floating-point or Enum type or one of Object, Char, String, Boolean, System.Type or 1-dimensional array of these types.
+<My>'BIND:"My"
+ ~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of AttributeSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
+        Public Sub AssemblyAttributeTarget()
+            Dim source = <![CDATA[
+Imports System
+
+<Assembly: CLSCompliant(True)>'BIND:"Assembly: CLSCompliant(True)"
+]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'Assembly: C ... liant(True)')
+  IObjectCreationOperation (Constructor: Sub System.CLSCompliantAttribute..ctor(isCompliant As System.Boolean)) (OperationKind.ObjectCreation, Type: System.CLSCompliantAttribute, IsImplicit) (Syntax: 'Assembly: C ... liant(True)')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: isCompliant) (OperationKind.Argument, Type: null) (Syntax: 'True')
+          ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'True')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
