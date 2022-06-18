@@ -10,7 +10,7 @@ steps:
           $gitPath = "$path\Common7\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Git\mingw64\bin\"
           if (Test-Path "$gitPath\git") {
             echo "Adding '$gitPath' to PATH..."
-            $env:Path += ";$gitPath"
+            $env:Path += ';' + $gitPath
             break
           }
         }
