@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return FindReferencesInTokensAsync(
                 state,
                 tokens,
-                t => IdentifiersMatch(syntaxFacts, name, t),
+                (state, t) => IdentifiersMatch(state.SyntaxFacts, name, t),
                 symbolsMatch,
                 cancellationToken);
         }
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var syntaxFacts = state.SyntaxFacts;
             var symbolsMatch = GetStandardSymbolsMatchFunction(
                 symbol, findParentNode, state, cancellationToken);
-            var tokensMatch = GetTokensMatchFunction(syntaxFacts, name);
+            var tokensMatch = GetTokensMatchFunction(name);
 
             return FindReferencesInTokensAsync(
                 state,
@@ -167,6 +167,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 cancellationToken);
         }
 
-        protected abstract Func<SyntaxToken, bool> GetTokensMatchFunction(ISyntaxFactsService syntaxFacts, string name);
+        protected abstract Func<FindReferencesDocumentState, SyntaxToken, bool> GetTokensMatchFunction(string name);
     }
 }

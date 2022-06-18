@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                  methodSymbol, state, tokens, TokensMatch, cancellationToken).ConfigureAwait(false);
 
             // local functions
-            bool TokensMatch(SyntaxToken token)
+            bool TokensMatch(FindReferencesDocumentState state, SyntaxToken token)
             {
                 var semanticModel = state.SemanticModel;
                 if (syntaxFacts.IsBaseConstructorInitializer(token))

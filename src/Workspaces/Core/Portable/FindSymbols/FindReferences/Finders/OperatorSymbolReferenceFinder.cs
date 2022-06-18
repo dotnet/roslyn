@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             var opReferences = await FindReferencesInDocumentAsync(
                 symbol, state,
-                t => IsPotentialReference(syntaxFacts, op, t),
+                (state, t) => IsPotentialReference(state.SyntaxFacts, op, t),
                 cancellationToken).ConfigureAwait(false);
             var suppressionReferences = await FindReferencesInDocumentInsideGlobalSuppressionsAsync(
                 symbol, state, cancellationToken).ConfigureAwait(false);

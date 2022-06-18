@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         /// <summary>
-        /// Finds references to <paramref name="symbol"/> in this <paramref name="document"/>, but
+        /// Finds references to <paramref name="symbol"/> in this <paramref name="state"/>, but
         /// only if it referenced though <paramref name="name"/> (which might be the actual name
         /// of the type, or a global alias to it).
         /// </summary>
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var syntaxFacts = state.SyntaxFacts;
             return FindReferencesInDocumentAsync(
                 state,
-                t => IsPotentialReference(predefinedType, syntaxFacts, t),
+                (state, t) => IsPotentialReference(predefinedType, state.SyntaxFacts, t),
                 (t, m) => ValueTaskFactory.FromResult((matched: true, reason: CandidateReason.None)),
                 cancellationToken);
         }

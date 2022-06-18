@@ -68,13 +68,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             return FindReferencesInDocumentAsync(
                 symbol, state,
-                t => IsPotentialReference(syntaxFacts, t),
+                static (state, t) => IsPotentialReference(state.SyntaxFacts, t),
                 cancellationToken);
         }
 
         private static bool IsPotentialReference(
-            ISyntaxFactsService syntaxFacts,
-            SyntaxToken token)
+            ISyntaxFactsService syntaxFacts, SyntaxToken token)
         {
             var node = token.GetRequiredParent();
             return node.GetFirstToken() == token && syntaxFacts.IsConversionExpression(node);
