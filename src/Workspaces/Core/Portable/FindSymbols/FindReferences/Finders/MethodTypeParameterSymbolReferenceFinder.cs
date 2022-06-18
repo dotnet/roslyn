@@ -70,17 +70,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         protected sealed override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             ITypeParameterSymbol symbol,
-            HashSet<string>? globalAliases,
-            Document document,
-            SemanticModel semanticModel,
-            FindReferenceCache cache,
+            FindReferencesDocumentState state,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             // TODO(cyrusn): Method type parameters are like locals.  They are only in scope in
             // the bounds of the method they're declared within.  We could improve perf by
             // limiting our search by only looking within the method body's span. 
-            return FindReferencesInDocumentUsingSymbolNameAsync(symbol, document, semanticModel, cache, cancellationToken);
+            return FindReferencesInDocumentUsingSymbolNameAsync(symbol, state, cancellationToken);
         }
     }
 }

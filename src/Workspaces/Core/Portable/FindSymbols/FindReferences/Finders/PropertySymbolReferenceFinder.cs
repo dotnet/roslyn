@@ -124,41 +124,41 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         protected sealed override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IPropertySymbol symbol,
-            HashSet<string>? globalAliases,
-            Document document,
-            SemanticModel semanticModel,
-            FindReferenceCache cache,
+            FindReferencesDocumentState state,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
+            var document = state.Document;
+            var semanticModel = state.SemanticModel;
             var nameReferences = await FindReferencesInDocumentUsingSymbolNameAsync(
-                symbol, document, semanticModel, cache, cancellationToken).ConfigureAwait(false);
+                symbol, state, cancellationToken).ConfigureAwait(false);
 
             if (options.AssociatePropertyReferencesWithSpecificAccessor)
             {
                 // We want to associate property references to a specific accessor (if an accessor
                 // is being referenced).  Check if this reference would match an accessor. If so, do
                 // not add it.  It will be added by PropertyAccessorSymbolReferenceFinder.
-                var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-                var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
+                var syntaxFacts = state.SyntaxFacts;
+                var semanticFacts = state.SemanticFacts;
 
                 nameReferences = nameReferences.WhereAsArray(loc =>
                 {
                     var accessors = GetReferencedAccessorSymbols(
-                        syntaxFacts, semanticFacts, semanticModel, symbol, loc.Node, cancellationToken);
+                        state, symbol, loc.Node, cancellationToken);
                     return accessors.IsEmpty;
                 });
             }
 
             var forEachReferences = IsForEachProperty(symbol)
-                ? await FindReferencesInForEachStatementsAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false)
+                ? await FindReferencesInForEachStatementsAsync(symbol, state, cancellationToken).ConfigureAwait(false)
                 : ImmutableArray<FinderLocation>.Empty;
 
             var indexerReferences = symbol.IsIndexer
-                ? await FindIndexerReferencesAsync(symbol, document, semanticModel, cache, options, cancellationToken).ConfigureAwait(false)
+                ? await FindIndexerReferencesAsync(symbol, state, options, cancellationToken).ConfigureAwait(false)
                 : ImmutableArray<FinderLocation>.Empty;
 
-            var suppressionReferences = await FindReferencesInDocumentInsideGlobalSuppressionsAsync(document, semanticModel, symbol, cancellationToken).ConfigureAwait(false);
+            var suppressionReferences = await FindReferencesInDocumentInsideGlobalSuppressionsAsync(
+                symbol, state, cancellationToken).ConfigureAwait(false);
             return nameReferences.Concat(forEachReferences, indexerReferences, suppressionReferences);
         }
 
@@ -176,9 +176,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         private static async Task<ImmutableArray<FinderLocation>> FindIndexerReferencesAsync(
             IPropertySymbol symbol,
-            Document document,
-            SemanticModel semanticModel,
-            FindReferenceCache cache,
+            FindReferencesDocumentState state,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
@@ -189,11 +187,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 return ImmutableArray<FinderLocation>.Empty;
             }
 
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
+            var syntaxFacts = state.SyntaxFacts;
+            var semanticFacts = state.SemanticFacts;
 
-            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxTree = state.SyntaxTree;
+            var syntaxRoot = state.Root;
 
             var indexerReferenceExpresssions = syntaxRoot.DescendantNodes(descendIntoTrivia: true)
                 .Where(node =>
@@ -207,18 +205,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var (matched, candidateReason, indexerReference) = await ComputeIndexerInformationAsync(
-                    symbol, document, semanticModel, cache, node, cancellationToken).ConfigureAwait(false);
+                    symbol, state, node, cancellationToken).ConfigureAwait(false);
                 if (!matched)
                     continue;
 
                 var location = syntaxTree.GetLocation(new TextSpan(indexerReference.SpanStart, 0));
-                var symbolUsageInfo = GetSymbolUsageInfo(
-                    node, semanticModel, syntaxFacts, semanticFacts, cancellationToken);
+                var symbolUsageInfo = GetSymbolUsageInfo(node, state, cancellationToken);
 
                 locations.Add(new FinderLocation(node,
                     new ReferenceLocation(
-                        document, alias: null, location, isImplicit: false, symbolUsageInfo,
-                        GetAdditionalFindUsagesProperties(node, semanticModel, syntaxFacts),
+                        state.Document, alias: null, location, isImplicit: false, symbolUsageInfo,
+                        GetAdditionalFindUsagesProperties(node, state),
                         candidateReason)));
             }
 
@@ -227,33 +224,28 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         private static ValueTask<(bool matched, CandidateReason reason, SyntaxNode indexerReference)> ComputeIndexerInformationAsync(
             IPropertySymbol symbol,
-            Document document,
-            SemanticModel semanticModel,
-            FindReferenceCache cache,
+            FindReferencesDocumentState state,
             SyntaxNode node,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = state.SyntaxFacts;
             var symbolsMatchAsync = GetStandardSymbolsNodeMatchFunction(
-                symbol, document.Project.Solution, cache, cancellationToken);
+                symbol, state, cancellationToken);
 
             if (syntaxFacts.IsElementAccessExpression(node))
             {
                 // The indexerReference for an element access expression will not be null
-                return ComputeElementAccessInformationAsync(
-                    semanticModel, node, syntaxFacts, symbolsMatchAsync)!;
+                return ComputeElementAccessInformationAsync(node, state, symbolsMatchAsync)!;
             }
             else if (syntaxFacts.IsConditionalAccessExpression(node))
             {
-                return ComputeConditionalAccessInformationAsync(
-                    semanticModel, node, syntaxFacts, symbolsMatchAsync);
+                return ComputeConditionalAccessInformationAsync(node, state, symbolsMatchAsync);
             }
             else
             {
                 Debug.Assert(syntaxFacts.IsIndexerMemberCRef(node));
 
-                return ComputeIndexerMemberCRefInformationAsync(
-                    semanticModel, node, symbolsMatchAsync);
+                return ComputeIndexerMemberCRefInformationAsync(state.SemanticModel, node, symbolsMatchAsync);
             }
         }
 
@@ -267,9 +259,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         private static async ValueTask<(bool matched, CandidateReason reason, SyntaxNode indexerReference)> ComputeConditionalAccessInformationAsync(
-            SemanticModel semanticModel, SyntaxNode node, ISyntaxFactsService syntaxFacts, SymbolsMatchAsync symbolsMatchAsync)
+            SyntaxNode node, FindReferencesDocumentState state, SymbolsMatchAsync symbolsMatchAsync)
         {
             // For a ConditionalAccessExpression the whenNotNull component is the indexer reference we are looking for
+            var syntaxFacts = state.SyntaxFacts;
             syntaxFacts.GetPartsOfConditionalAccessExpression(node, out _, out var indexerReference);
 
             if (syntaxFacts.IsInvocationExpression(indexerReference))
@@ -280,15 +273,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 return default;
             }
 
-            var (matched, reason) = await symbolsMatchAsync(indexerReference, semanticModel).ConfigureAwait(false);
+            var (matched, reason) = await symbolsMatchAsync(indexerReference, state.SemanticModel).ConfigureAwait(false);
             return (matched, reason, indexerReference);
         }
 
         private static async ValueTask<(bool matched, CandidateReason reason, SyntaxNode? indexerReference)> ComputeElementAccessInformationAsync(
-            SemanticModel semanticModel, SyntaxNode node,
-            ISyntaxFactsService syntaxFacts, SymbolsMatchAsync symbolsMatchAsync)
+            SyntaxNode node, FindReferencesDocumentState state, SymbolsMatchAsync symbolsMatchAsync)
         {
             // For an ElementAccessExpression the indexer we are looking for is the argumentList component.
+            var syntaxFacts = state.SyntaxFacts;
+            var semanticModel = state.SemanticModel;
+
             syntaxFacts.GetPartsOfElementAccessExpression(node, out var expression, out var indexerReference);
             if (expression != null && (await symbolsMatchAsync(expression, semanticModel).ConfigureAwait(false)).matched)
             {

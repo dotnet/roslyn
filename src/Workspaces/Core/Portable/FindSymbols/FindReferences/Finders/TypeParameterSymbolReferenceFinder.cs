@@ -34,14 +34,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         protected override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             ITypeParameterSymbol symbol,
-            HashSet<string>? globalAliases,
-            Document document,
-            SemanticModel semanticModel,
-            FindReferenceCache cache,
+            FindReferencesDocumentState state,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            return FindReferencesInDocumentUsingSymbolNameAsync(symbol, document, semanticModel, cache, cancellationToken);
+            return FindReferencesInDocumentUsingSymbolNameAsync(symbol, state, cancellationToken);
         }
     }
 }

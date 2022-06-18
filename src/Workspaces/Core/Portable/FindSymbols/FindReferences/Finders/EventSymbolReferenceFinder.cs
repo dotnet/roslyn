@@ -48,14 +48,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         protected sealed override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IEventSymbol symbol,
-            HashSet<string>? globalAliases,
-            Document document,
-            SemanticModel semanticModel,
-            FindReferenceCache cache,
+            FindReferencesDocumentState state,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            return FindReferencesInDocumentUsingSymbolNameAsync(symbol, document, semanticModel, cache, cancellationToken);
+            return FindReferencesInDocumentUsingSymbolNameAsync(symbol, state, cancellationToken);
         }
     }
 }

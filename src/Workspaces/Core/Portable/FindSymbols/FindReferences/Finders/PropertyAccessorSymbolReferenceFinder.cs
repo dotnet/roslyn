@@ -62,32 +62,29 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         protected override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol symbol,
-            HashSet<string>? globalAliases,
-            Document document,
-            SemanticModel semanticModel,
-            FindReferenceCache cache,
+            FindReferencesDocumentState state,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             var references = await FindReferencesInDocumentUsingSymbolNameAsync(
-                symbol, document, semanticModel, cache, cancellationToken).ConfigureAwait(false);
+                symbol, state, cancellationToken).ConfigureAwait(false);
 
             if (symbol.AssociatedSymbol is IPropertySymbol property &&
                 options.AssociatePropertyReferencesWithSpecificAccessor)
             {
                 var propertyReferences = await ReferenceFinders.Property.FindReferencesInDocumentAsync(
-                    property, globalAliases, document, semanticModel, cache,
+                    property, state,
                     options with { AssociatePropertyReferencesWithSpecificAccessor = false },
                     cancellationToken).ConfigureAwait(false);
 
-                var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-                var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
+                var syntaxFacts = state.SyntaxFacts;
+                var semanticFacts = state.SemanticFacts;
 
                 var accessorReferences = propertyReferences.WhereAsArray(
                     loc =>
                     {
                         var accessors = GetReferencedAccessorSymbols(
-                            syntaxFacts, semanticFacts, semanticModel, property, loc.Node, cancellationToken);
+                            state, property, loc.Node, cancellationToken);
                         return accessors.Contains(symbol);
                     });
 

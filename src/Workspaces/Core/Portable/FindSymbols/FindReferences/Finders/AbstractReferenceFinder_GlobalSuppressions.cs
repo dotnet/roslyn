@@ -52,19 +52,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// </summary>
         [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1224834", OftenCompletesSynchronously = true)]
         protected static async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentInsideGlobalSuppressionsAsync(
-            Document document,
-            SemanticModel semanticModel,
             ISymbol symbol,
+            FindReferencesDocumentState state,
             CancellationToken cancellationToken)
         {
             if (!ShouldFindReferencesInGlobalSuppressions(symbol, out var docCommentId))
                 return ImmutableArray<FinderLocation>.Empty;
 
             // Check if we have any relevant global attributes in this document.
-            var info = await SyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
+            var info = await SyntaxTreeIndex.GetRequiredIndexAsync(state.Document, cancellationToken).ConfigureAwait(false);
             if (!info.ContainsGlobalSuppressMessageAttribute)
                 return ImmutableArray<FinderLocation>.Empty;
 
+            var semanticModel = state.SemanticModel;
             var suppressMessageAttribute = semanticModel.Compilation.SuppressMessageAttributeType();
             if (suppressMessageAttribute == null)
                 return ImmutableArray<FinderLocation>.Empty;
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             if (!TryGetExpectedDocumentationCommentId(docCommentId, out var expectedDocCommentId))
                 return ImmutableArray<FinderLocation>.Empty;
 
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = state.SyntaxFacts;
 
             // We map the positions of documentation ID literals in tree to string literal tokens,
             // perform semantic checks to ensure these are valid references to the symbol
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             {
                 if (IsCandidate(token, expectedDocCommentId.Span, semanticModel, syntaxFacts, suppressMessageAttribute, cancellationToken, out var offsetOfReferenceInToken))
                 {
-                    var referenceLocation = CreateReferenceLocation(offsetOfReferenceInToken, token, root, document, syntaxFacts);
+                    var referenceLocation = CreateReferenceLocation(offsetOfReferenceInToken, token, root, state.Document, syntaxFacts);
                     locations.Add(new FinderLocation(token.GetRequiredParent(), referenceLocation));
                 }
             }

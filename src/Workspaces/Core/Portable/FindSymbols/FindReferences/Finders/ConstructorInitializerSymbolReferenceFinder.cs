@@ -53,40 +53,38 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         protected sealed override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol methodSymbol,
-            HashSet<string>? globalAliases,
-            Document document,
-            SemanticModel semanticModel,
-            FindReferenceCache cache,
+            FindReferencesDocumentState state,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var syntaxFactsService = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = state.SyntaxFacts;
             var typeName = methodSymbol.ContainingType.Name;
 
-            var tokens = await document.GetConstructorInitializerTokensAsync(semanticModel, cancellationToken).ConfigureAwait(false);
-            if (semanticModel.Language == LanguageNames.VisualBasic)
+            var tokens = state.Cache.GetConstructorInitializerTokens(syntaxFacts, state.Root, cancellationToken);
+            if (state.SemanticModel.Language == LanguageNames.VisualBasic)
             {
                 tokens = tokens.Concat(await FindMatchingIdentifierTokensAsync(
-                    document, semanticModel, cache, "New", cancellationToken).ConfigureAwait(false)).Distinct();
+                    state, "New", cancellationToken).ConfigureAwait(false)).Distinct();
             }
 
             return await FindReferencesInTokensAsync(
-                 methodSymbol, document, semanticModel, cache, tokens, TokensMatch, cancellationToken).ConfigureAwait(false);
+                 methodSymbol, state, tokens, TokensMatch, cancellationToken).ConfigureAwait(false);
 
             // local functions
-            bool TokensMatch(SyntaxToken t)
+            bool TokensMatch(SyntaxToken token)
             {
-                if (syntaxFactsService.IsBaseConstructorInitializer(t))
+                var semanticModel = state.SemanticModel;
+                if (syntaxFacts.IsBaseConstructorInitializer(token))
                 {
-                    var containingType = semanticModel.GetEnclosingNamedType(t.SpanStart, cancellationToken);
+                    var containingType = semanticModel.GetEnclosingNamedType(token.SpanStart, cancellationToken);
                     return containingType != null && containingType.BaseType != null && containingType.BaseType.Name == typeName;
                 }
-                else if (syntaxFactsService.IsThisConstructorInitializer(t))
+                else if (syntaxFacts.IsThisConstructorInitializer(token))
                 {
-                    var containingType = semanticModel.GetEnclosingNamedType(t.SpanStart, cancellationToken);
+                    var containingType = semanticModel.GetEnclosingNamedType(token.SpanStart, cancellationToken);
                     return containingType != null && containingType.Name == typeName;
                 }
-                else if (semanticModel.Language == LanguageNames.VisualBasic && t.IsPartOfStructuredTrivia())
+                else if (semanticModel.Language == LanguageNames.VisualBasic && token.IsPartOfStructuredTrivia())
                 {
                     return true;
                 }

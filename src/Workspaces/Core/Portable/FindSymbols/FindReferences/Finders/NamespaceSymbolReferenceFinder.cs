@@ -60,32 +60,27 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         protected override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             INamespaceSymbol symbol,
-            HashSet<string>? globalAliases,
-            Document document,
-            SemanticModel semanticModel,
-            FindReferenceCache cache,
+            FindReferencesDocumentState state,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = state.SyntaxFacts;
             using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var initialReferences);
 
             if (symbol.IsGlobalNamespace)
             {
                 await AddGlobalNamespaceReferencesAsync(
-                    symbol, document, semanticModel, cache,
-                    initialReferences, cancellationToken).ConfigureAwait(false);
+                    symbol, state, initialReferences, cancellationToken).ConfigureAwait(false);
             }
             else
             {
                 var namespaceName = symbol.Name;
                 await AddNamedReferencesAsync(
-                    symbol, namespaceName, document, semanticModel, cache,
-                    initialReferences, cancellationToken).ConfigureAwait(false);
+                    symbol, namespaceName, state, initialReferences, cancellationToken).ConfigureAwait(false);
 
-                if (globalAliases != null)
+                if (state.GlobalAliases != null)
                 {
-                    foreach (var globalAlias in globalAliases)
+                    foreach (var globalAlias in state.GlobalAliases)
                     {
                         // ignore the cases where the global alias might match the namespace name (i.e.
                         // global alias Collections = System.Collections).  We'll already find those references
@@ -94,45 +89,39 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                             continue;
 
                         await AddNamedReferencesAsync(
-                            symbol, globalAlias, document, semanticModel, cache,
-                            initialReferences, cancellationToken).ConfigureAwait(false);
+                            symbol, globalAlias, state, initialReferences, cancellationToken).ConfigureAwait(false);
                     }
                 }
 
                 initialReferences.AddRange(await FindLocalAliasReferencesAsync(
-                    initialReferences, symbol, document, semanticModel, cache, cancellationToken).ConfigureAwait(false));
+                    initialReferences, symbol, state, cancellationToken).ConfigureAwait(false));
 
                 initialReferences.AddRange(await FindReferencesInDocumentInsideGlobalSuppressionsAsync(
-                    document, semanticModel, symbol, cancellationToken).ConfigureAwait(false));
+                    symbol, state, cancellationToken).ConfigureAwait(false));
             }
 
             return initialReferences.ToImmutable();
         }
 
         /// <summary>
-        /// Finds references to <paramref name="symbol"/> in this <paramref name="document"/>, but
-        /// only if it referenced though <paramref name="name"/> (which might be the actual name
-        /// of the type, or a global alias to it).
+        /// Finds references to <paramref name="symbol"/> in this <paramref name="state"/>, but only if it referenced
+        /// though <paramref name="name"/> (which might be the actual name of the type, or a global alias to it).
         /// </summary>
         private static async Task AddNamedReferencesAsync(
             INamespaceSymbol symbol,
             string name,
-            Document document,
-            SemanticModel semanticModel,
-            FindReferenceCache cache,
+            FindReferencesDocumentState state,
             ArrayBuilder<FinderLocation> initialReferences,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = state.SyntaxFacts;
 
             var tokens = await FindMatchingIdentifierTokensAsync(
-                document, semanticModel, cache, name, cancellationToken).ConfigureAwait(false);
+                state, name, cancellationToken).ConfigureAwait(false);
 
             initialReferences.AddRange(await FindReferencesInTokensAsync(
                 symbol,
-                document,
-                semanticModel,
-                cache,
+                state,
                 tokens,
                 t =>
                 {
@@ -144,22 +133,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         private static async Task AddGlobalNamespaceReferencesAsync(
             INamespaceSymbol symbol,
-            Document document,
-            SemanticModel semanticModel,
-            FindReferenceCache cache,
+            FindReferencesDocumentState state,
             ArrayBuilder<FinderLocation> initialReferences,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = state.SyntaxFacts;
 
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = state.Root;
             var tokens = root.DescendantTokens().Where(syntaxFacts.IsGlobalNamespaceKeyword);
 
             initialReferences.AddRange(await FindReferencesInTokensAsync(
                 symbol,
-                document,
-                semanticModel,
-                cache,
+                state,
                 tokens,
                 t =>
                 {
