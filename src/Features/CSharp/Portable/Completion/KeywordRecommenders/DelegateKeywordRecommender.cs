@@ -43,6 +43,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             static bool ValidTypeContext(CSharpSyntaxContext context)
                 => (context.IsNonAttributeExpressionContext || context.IsTypeContext)
                    && !context.IsConstantExpressionContext
+                   && !context.IsGenericConstraintContext
+                   && !(context.IsInheritanceRequiringClassContext || context.IsInheritanceRequiringInterfaceContext)
                    && !context.LeftToken.IsTopLevelOfUsingAliasDirective();
         }
 

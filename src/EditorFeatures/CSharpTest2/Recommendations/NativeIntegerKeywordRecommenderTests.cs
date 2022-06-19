@@ -408,5 +408,19 @@ class C
             await VerifyAbsenceAsync(
 @"#$$");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInInheritanceContext1()
+        {
+            await VerifyAbsenceAsync(@"
+class C : $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInInheritanceContext2()
+        {
+            await VerifyAbsenceAsync(@"
+interface I : $$");
+        }
     }
 }
