@@ -79,7 +79,6 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             // FAR on the Delegate type and use those results to find Invoke calls
 
             var syntaxFacts = state.SyntaxFacts;
-            var semanticFacts = state.SemanticFacts;
 
             var root = state.Root;
             var nodes = root.DescendantNodes();
