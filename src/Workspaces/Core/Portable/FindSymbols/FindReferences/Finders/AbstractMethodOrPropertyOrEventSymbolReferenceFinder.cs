@@ -14,18 +14,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
     internal abstract class AbstractMethodOrPropertyOrEventSymbolReferenceFinder<TSymbol> : AbstractReferenceFinder<TSymbol>
         where TSymbol : ISymbol
     {
-        protected AbstractMethodOrPropertyOrEventSymbolReferenceFinder()
-        {
-        }
-
         protected static ImmutableArray<IMethodSymbol> GetReferencedAccessorSymbols(
             FindReferencesDocumentState state, IPropertySymbol property, SyntaxNode node, CancellationToken cancellationToken)
         {
-            var syntaxFacts = state.SyntaxFacts;
             var semanticFacts = state.SemanticFacts;
             var semanticModel = state.SemanticModel;
 
-            if (syntaxFacts.IsForEachStatement(node))
+            if (state.SyntaxFacts.IsForEachStatement(node))
             {
                 var symbols = semanticFacts.GetForEachSymbols(semanticModel, node);
 
