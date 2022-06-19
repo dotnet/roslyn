@@ -1502,6 +1502,26 @@ class CL<T> where T : A, $$", @"Test");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task BaseList_Class_PartiallyWritten()
+        {
+            await VerifyItemExistsAsync(@"
+class BaseClass {}
+
+class C : Base$$
+", "BaseClass");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NotDirectlyBaseList_Class_AsGenericArgument()
+        {
+            await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"
+class C {}
+
+class B : IEnumerable<$$
+"), "C");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task BaseList_NotStaticClass()
         {
             await VerifyItemIsAbsentAsync(@"
@@ -1556,6 +1576,28 @@ class B : $$
             await VerifyItemIsAbsentAsync(markup, "ValueType");
             await VerifyItemIsAbsentAsync(markup, "Delegate");
             await VerifyItemIsAbsentAsync(markup, "Array");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task BaseList_NotClass_AlreadyHaveOne_Class()
+        {
+            await VerifyItemIsAbsentAsync(@"
+class Base {}
+class C {}
+
+class B : Base, $$
+", "C");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task BaseList_NotClass_AlreadyHaveOne_Interface()
+        {
+            await VerifyItemIsAbsentAsync(@"
+interface I {}
+class C {}
+
+class B : I, $$
+", "C");
         }
 
         [WorkItem(60935, "https://github.com/dotnet/roslyn/issues/60935")]

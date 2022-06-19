@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 isAttributeNameContext: syntaxTree.IsAttributeNameContext(position, cancellationToken),
                 isAwaitKeywordContext: ComputeIsAwaitKeywordContext(position, leftToken, targetToken, isGlobalStatementContext, isAnyExpressionContext, isStatementContext),
                 isBaseClassContext: syntaxTree.IsBaseClassContext(targetToken),
-                isBaseInterfaceContext: syntaxTree.isBaseInterfaceContext(targetToken),
+                isBaseInterfaceContext: syntaxTree.IsBaseInterfaceContext(targetToken),
                 isCatchFilterContext: syntaxTree.IsCatchFilterContext(position, leftToken),
                 isConstantExpressionContext: isConstantExpressionContext,
                 isCrefContext: syntaxTree.IsCrefContext(position, cancellationToken) && !leftToken.IsKind(SyntaxKind.DotToken),

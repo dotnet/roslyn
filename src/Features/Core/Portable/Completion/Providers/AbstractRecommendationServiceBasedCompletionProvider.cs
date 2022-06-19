@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // If current symbol is a struct or static or sealed class then it cannot be used as a generic constraint.
             // However it can contain other valid constraint types and if this is true we should show it
             if (namedType.IsModuleType() || namedType.IsStructType() || namedType.IsStatic || namedType.IsSealed)
-                return namedType.GetTypeMembers().Any(IsValidForGenericConstraintContext);
+                return namedType.GetTypeMembers().Any(static m => IsValidForGenericConstraintContext(m));
 
             return true;
         }
