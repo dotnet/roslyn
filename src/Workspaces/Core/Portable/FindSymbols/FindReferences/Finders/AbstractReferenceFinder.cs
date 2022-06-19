@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             var semanticFacts = state.SemanticFacts;
 
-            var locations = ArrayBuilder<FinderLocation>.GetInstance();
+            using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var locations);
             foreach (var token in tokens)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 }
             }
 
-            return locations.ToImmutableAndFree();
+            return locations.ToImmutable();
         }
 
         private static IAliasSymbol? GetAliasSymbol(
