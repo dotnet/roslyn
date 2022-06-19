@@ -17,6 +17,11 @@
         <target state="translated">指定した構成ファイルの読み取り中にエラーが発生しました: {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="AsyncLazy_StaticInit_InvalidOperation">
+        <source>ValueFactory returned null.</source>
+        <target state="new">ValueFactory returned null.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CSharp_files">
         <source>C# files</source>
         <target state="translated">C# ファイル</target>

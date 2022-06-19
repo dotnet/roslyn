@@ -17,6 +17,11 @@
         <target state="translated">Ocorreu um erro ao ler o arquivo de configuração especificado: {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="AsyncLazy_StaticInit_InvalidOperation">
+        <source>ValueFactory returned null.</source>
+        <target state="new">ValueFactory returned null.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CSharp_files">
         <source>C# files</source>
         <target state="translated">Arquivos C#</target>

@@ -17,6 +17,11 @@
         <target state="translated">Belirtilen yapılandırma dosyası okunurken bir hata oluştu: {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="AsyncLazy_StaticInit_InvalidOperation">
+        <source>ValueFactory returned null.</source>
+        <target state="new">ValueFactory returned null.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CSharp_files">
         <source>C# files</source>
         <target state="translated">C# dosyalarını</target>
