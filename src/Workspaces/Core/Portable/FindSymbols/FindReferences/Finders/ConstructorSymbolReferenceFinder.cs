@@ -196,7 +196,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 return new ValueTask<ImmutableArray<FinderLocation>>(ImmutableArray<FinderLocation>.Empty);
             }
 
-            var syntaxFacts = state.SyntaxFacts;
             return FindReferencesInDocumentAsync(
                 symbol, state,
                 static (state, token, predefinedType, _) => IsPotentialReference(predefinedType, state.SyntaxFacts, token),
