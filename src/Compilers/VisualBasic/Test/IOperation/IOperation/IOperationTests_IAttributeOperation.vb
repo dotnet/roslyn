@@ -6,7 +6,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
-    ' PROTOTYPE: Port more tests from C#.
     Partial Public Class IOperationTests
         Inherits SemanticModelTestBase
 
@@ -113,6 +112,42 @@ IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'A')
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
     Initializer:
         null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of AttributeSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
+        Public Sub TestCallerMemberName_Parameter()
+            Dim source = <![CDATA[
+Imports System
+Imports System.Runtime.CompilerServices
+
+Class MyAttribute
+    Inherits Attribute
+    Public Sub New(<CallerMemberName> Optional callerName As String = "")
+    End Sub
+End Class
+
+Class Test
+    Public Sub M(<My> x As String)'BIND:"My"
+    End Sub
+End Class
+]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My')
+  IObjectCreationOperation (Constructor: Sub MyAttribute..ctor([callerName As System.String = """"])) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: callerName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'My')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: """", IsImplicit) (Syntax: 'My')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

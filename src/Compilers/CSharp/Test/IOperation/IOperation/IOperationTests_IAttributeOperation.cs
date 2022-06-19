@@ -119,6 +119,41 @@ IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My')
         }
 
         [Fact]
+        public void TestCallerMemberName_Parameter()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+public class C
+{
+    public void M([/*<bind>*/My/*</bind>*/] int x)
+    {
+    }
+}
+
+internal class MyAttribute : Attribute
+{
+    public MyAttribute([CallerMemberName] string x = null) {}
+}
+";
+            string expectedOperationTree = @"
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My')
+  IObjectCreationOperation (Constructor: MyAttribute..ctor([System.String x = null])) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'My')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""M"", IsImplicit) (Syntax: 'My')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
         public void TestNonExistingAttribute()
         {
             string source = @"

@@ -40,14 +40,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public static AttributeSemanticModel Create(SyntaxTreeSemanticModel containingSemanticModel, AttributeSyntax syntax, NamedTypeSymbol attributeType, AliasSymbol aliasOpt, Symbol? attributeTarget, Binder rootBinder, ImmutableDictionary<Symbol, Symbol> parentRemappedSymbolsOpt)
         {
-            // PROTOTYPE: There was a conflict here that I resolved "naively". It needs to be revised more carefully, and will need more tests.
-            // Basically a parameter `attributeTarget` was introduced, while I was calculating `attributedMember` here.
-            // Now we have both `attributeTarget` and `attributedMember`
-            // We need to test attribute application to types, regular methods, operators, parameters, assemblies, etc.
             rootBinder = attributeTarget is null ? rootBinder : new ContextualAttributeBinder(rootBinder, attributeTarget);
-            var attributedMember = GetAttributedMemberFromNode(syntax, containingSemanticModel);
-            Debug.Assert(SymbolEqualityComparer.ConsiderEverything.Equals(attributedMember.GetPublicSymbol(), attributeTarget.GetPublicSymbol()));
-            return new AttributeSemanticModel(syntax, attributeType, attributedMember, aliasOpt, rootBinder, containingSemanticModel, parentRemappedSymbolsOpt: parentRemappedSymbolsOpt);
+            return new AttributeSemanticModel(syntax, attributeType, attributeTarget, aliasOpt, rootBinder, containingSemanticModel, parentRemappedSymbolsOpt: parentRemappedSymbolsOpt);
         }
 
         /// <summary>
@@ -61,16 +55,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var attributedMember = GetAttributedMemberFromPosition(position, parentSemanticModel);
             return new AttributeSemanticModel(syntax, attributeType, attributedMember: attributedMember, aliasOpt, rootBinder, parentSemanticModelOpt: parentSemanticModel, parentRemappedSymbolsOpt: parentRemappedSymbolsOpt, speculatedPosition: position);
-        }
-
-        private static Symbol? GetAttributedMemberFromNode(AttributeSyntax syntax, SemanticModel model)
-        {
-            if (syntax.Parent.IsKind(SyntaxKind.AttributeList) && syntax.Parent.Parent is { } attributedNode)
-            {
-                return model.GetDeclaredSymbolForNode(attributedNode).GetSymbol();
-            }
-
-            return null;
         }
 
         private static Symbol? GetAttributedMemberFromPosition(int position, SemanticModel model)
