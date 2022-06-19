@@ -3000,7 +3000,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         }
 
         public static bool IsBaseClassContext(this SyntaxTree syntaxTree, SyntaxToken targetToken)
-            => targetToken.Parent is BaseListSyntax { Parent: ClassDeclarationSyntax, Types.Count: 1 };
+            => targetToken.IsKind(SyntaxKind.ColonToken) && targetToken.Parent is BaseListSyntax { Parent: ClassDeclarationSyntax };
 
         public static bool IsBaseInterfaceContext(this SyntaxTree syntaxTree, SyntaxToken targetToken)
             => targetToken.Parent is BaseListSyntax { Parent: ClassDeclarationSyntax or InterfaceDeclarationSyntax or StructDeclarationSyntax };

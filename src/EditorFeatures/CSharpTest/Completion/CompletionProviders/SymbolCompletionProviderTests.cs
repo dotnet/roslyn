@@ -1600,6 +1600,28 @@ class B : I, $$
 ", "C");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task BaseList_Class_BeforeOtherItems()
+        {
+            await VerifyItemExistsAsync(@"
+class Base {}
+interface I {}
+
+class B : $$, I
+", "Base");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task BaseList_Class_BeforeOtherItems_PartiallyWritten()
+        {
+            await VerifyItemExistsAsync(@"
+class BaseClass {}
+interface I {}
+
+class B : Base$$, I
+", "BaseClass");
+        }
+
         [WorkItem(60935, "https://github.com/dotnet/roslyn/issues/60935")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task BaseList_NotSelfClass()
