@@ -64,8 +64,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = state.SyntaxFacts;
-
             return FindReferencesInDocumentAsync(
                 symbol, state,
                 static (state, token, _, _) => IsPotentialReference(state.SyntaxFacts, token),
