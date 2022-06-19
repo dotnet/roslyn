@@ -8189,11 +8189,11 @@ unsafe class Program
 @"ref struct R { }
 class Program
 {
-    static void Main()
+    static void M(R r0)
     {
         scoped R r1;
         ref readonly scoped R r2 = ref r1;
-        scoped ref R r3 = ref r1;
+        scoped ref R r3 = ref r0;
     }
 }";
 

@@ -270,6 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     if (inOutFlags == ParameterAttributes.Out)
                     {
                         refKind = RefKind.Out;
+                        scope = DeclarationScope.RefScoped;
                     }
                     else if (moduleSymbol.Module.HasIsReadOnlyAttribute(handle))
                     {

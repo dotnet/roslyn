@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNativeIntegerAttribute(this, type.Type));
             }
 
-            if (Scope != DeclarationScope.Unscoped)
+            if (ParameterHelpers.RequiresLifetimeAnnotationAttribute(this))
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeLifetimeAnnotationAttribute(this, Scope));
             }

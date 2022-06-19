@@ -273,6 +273,69 @@ System.Object S.this[in System.Int32 i].get
         }
 
         [Fact]
+        public void EmitAttribute_OutParameters_01()
+        {
+            var source =
+@"ref struct R { }
+class Program
+{
+    public static void F(out int x, out R y)
+    {
+        x = default;
+        y = default;
+    }
+}";
+            var comp = CreateCompilation(source);
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                Assert.Null(GetLifetimeAnnotationType(module));
+                AssertLifetimeAnnotationAttributes(module, "");
+            });
+        }
+
+        [Fact]
+        public void EmitAttribute_OutParameters_02()
+        {
+            var source =
+@"ref struct R { }
+class Program
+{
+    public static void F(scoped out int x, scoped out R y)
+    {
+        x = default;
+        y = default;
+    }
+}";
+            var comp = CreateCompilation(source);
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                Assert.Null(GetLifetimeAnnotationType(module));
+                AssertLifetimeAnnotationAttributes(module, "");
+            });
+        }
+
+        [Fact]
+        public void EmitAttribute_OutParameters_03()
+        {
+            var source =
+@"ref struct R { }
+class Program
+{
+    public static void F(out scoped R r) { r = default; }
+}";
+            var comp = CreateCompilation(source);
+            var expected =
+@" void Program.F(out R r)
+    [LifetimeAnnotation(False, True)] out R r
+";
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                Assert.Equal("System.Runtime.CompilerServices.LifetimeAnnotationAttribute", GetLifetimeAnnotationType(module).ToTestDisplayString());
+                AssertLifetimeAnnotationAttributes(module, expected);
+            });
+        }
+
+        [Fact]
         public void EmitAttribute_DelegateParameters()
         {
             var source =

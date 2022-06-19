@@ -356,6 +356,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     scope = DeclarationScope.Unscoped;
                 }
 
+                if (refKind == RefKind.Out && scope == DeclarationScope.Unscoped)
+                {
+                    scope = DeclarationScope.RefScoped;
+                }
+
                 var attributeLists = unboundLambda.ParameterAttributes(p);
                 var name = unboundLambda.ParameterName(p);
                 var location = unboundLambda.ParameterLocation(p);

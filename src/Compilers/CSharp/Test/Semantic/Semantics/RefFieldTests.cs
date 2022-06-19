@@ -7762,6 +7762,35 @@ class Program
         }
 
         [Fact]
+        public void DelegateConversions_Out()
+        {
+            var source =
+@"ref struct R { }
+delegate void D1(out int x, scoped out int y);
+delegate void D2(out scoped R x, scoped out scoped R y);
+class Program
+{
+    static void Implicit()
+    {
+        D1 d1 = (scoped out int x, out int y) => { x = 0; y = 0; };
+        D2 d2 = (scoped out scoped R x, out scoped R y) => { x = default; y = default; };
+    }
+    static void Explicit()
+    {
+        var d1 = (D1)((scoped out int x, out int y) => { x = 0; y = 0; });
+        var d2 = (D2)((scoped out scoped R x, out scoped R y) => { x = default; y = default; });
+    }
+    static void New()
+    {
+        var d1 = new D1((scoped out int x, out int y) => { x = 0; y = 0; });
+        var d2 = new D2((scoped out scoped R x, out scoped R y) => { x = default; y = default; });
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void FunctionPointerConversions()
         {
             var source =
@@ -7804,6 +7833,26 @@ unsafe class Program
                 // (17,18): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'delegate*<in int, in int, ref readonly int>'.
                 //         var d3 = (delegate*<in int, in int, ref readonly int>)&F3;
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(delegate*<in int, in int, ref readonly int>)&F3").WithArguments("y", "delegate*<in int, in int, ref readonly int>").WithLocation(17, 18));
+        }
+
+        [Fact]
+        public void FunctionPointerConversions_Out()
+        {
+            var source =
+@"unsafe class Program
+{
+    static void F(out int x, scoped out int y) { x = 0; y = 0; }
+    static void Implicit()
+    {
+        delegate*<out int, out int, void> d = &F;
+    }
+    static void Explicit()
+    {
+        var d = (delegate*<out int, out int, void>)&F;
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -7938,6 +7987,26 @@ partial class C
 
             comp = CreateCompilation(new[] { sourceB2, sourceA });
             comp.VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void PartialMethods_Out()
+        {
+            var source =
+@"ref struct R { }
+partial class C
+{
+    private partial void F1(out int i);
+    private partial void F2(scoped out int i);
+    private partial void F3(out scoped R r);
+    private partial void F4(scoped out scoped R r);
+    private partial void F1(scoped out int i) { i = 0; }
+    private partial void F2(out int i) { i = 0; }
+    private partial void F3(scoped out scoped R r) { r = default; }
+    private partial void F4(out scoped R r) { r = default; }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
         }
 
         [CombinatorialData]
@@ -8158,6 +8227,90 @@ class C4 : I<string>
                 // (17,50): error CS8987: The 'scoped' modifier of parameter 'y' doesn't match overridden or implemented member.
                 //     object I<string>.this[int x, R<string> y] => null; // 6
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "null").WithArguments("y").WithLocation(17, 50));
+        }
+
+        [CombinatorialData]
+        [Theory]
+        public void OverridesAndInterfaceImplementations_Out_01(bool useCompilationReference)
+        {
+            var sourceA =
+@"public abstract class A<T>
+{
+    public abstract void F1(out T t);
+}
+public interface I<T>
+{
+    void F2(out T t);
+}";
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular10);
+            comp.VerifyEmitDiagnostics();
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB =
+@"class B1 : A<int>, I<int>
+{
+    public override void F1(scoped out int i) { i = 0; }
+    public void F2(scoped out int i) { i = 0; }
+}
+class B2 : I<string>
+{
+    void I<string>.F2(scoped out string s) { s = null; }
+}";
+            comp = CreateCompilation(sourceB, references: new[] { refA });
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void OverridesAndInterfaceImplementations_Out_02()
+        {
+            var source =
+@"ref struct R { }
+abstract class A
+{
+    public abstract void F1(out int i);
+    public abstract void F2(scoped out int i);
+    public abstract void F3(out scoped R r);
+    public abstract void F4(scoped out scoped R r);
+}
+class B : A
+{
+    public override void F1(scoped out int i) { i = 0; }
+    public override void F2(out int i) { i = 0; }
+    public override void F3(scoped out scoped R r) { r = default; }
+    public override void F4(out scoped R r) { r = default; }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void OverridesAndInterfaceImplementations_Out_03()
+        {
+            var source =
+@"ref struct R { }
+interface I
+{
+    void F1(out int i);
+    void F2(scoped out int i);
+    void F3(out scoped R r);
+    void F4(scoped out scoped R r);
+}
+class C1 : I
+{
+    public void F1(out int i) { i = 0; }
+    public void F2(scoped out int i) { i = 0; }
+    public void F3(scoped out scoped R r) { r = default; }
+    public void F4(out scoped R r) { r = default; }
+}
+class C2 : I
+{
+    void I.F1(out int i) { i = 0; }
+    void I.F2(scoped out int i) { i = 0; }
+    void I.F3(scoped out scoped R r) { r = default; }
+    void I.F4(out scoped R r) { r = default; }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
