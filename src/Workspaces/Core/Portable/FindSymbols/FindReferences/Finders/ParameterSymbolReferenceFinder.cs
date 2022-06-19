@@ -291,15 +291,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             if (parameter.ContainingSymbol is IMethodSymbol method)
             {
                 var ordinal = parameter.Ordinal;
-                if (method.PartialDefinitionPart != null && ordinal < method.PartialDefinitionPart.Parameters.Length)
-                {
-                    results.Add((ISymbol)method.PartialDefinitionPart.Parameters[ordinal]);
-                }
+                if (ordinal < method.PartialDefinitionPart?.Parameters.Length)
+                    results.Add(method.PartialDefinitionPart.Parameters[ordinal]);
 
-                if (method.PartialImplementationPart != null && ordinal < method.PartialImplementationPart.Parameters.Length)
-                {
-                    results.Add((ISymbol)method.PartialImplementationPart.Parameters[ordinal]);
-                }
+                if (ordinal < method.PartialImplementationPart?.Parameters.Length)
+                    results.Add(method.PartialImplementationPart.Parameters[ordinal]);
             }
         }
     }
