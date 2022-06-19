@@ -26,21 +26,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            return FindDocumentsAsync(project, documents, async (d, c) =>
+            return FindDocumentsAsync(project, documents, static async (document, name, cancellationToken) =>
             {
-                var index = await SyntaxTreeIndex.GetRequiredIndexAsync(d, c).ConfigureAwait(false);
+                var index = await SyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
                 if (index.ContainsBaseConstructorInitializer)
                 {
                     return true;
                 }
 
-                if (index.ProbablyContainsIdentifier(symbol.ContainingType.Name))
+                if (index.ProbablyContainsIdentifier(name))
                 {
                     if (index.ContainsThisConstructorInitializer)
                     {
                         return true;
                     }
-                    else if (project.Language == LanguageNames.VisualBasic && index.ProbablyContainsIdentifier("New"))
+                    else if (document.Project.Language == LanguageNames.VisualBasic && index.ProbablyContainsIdentifier("New"))
                     {
                         // "New" can be explicitly accessed in xml doc comments to reference a constructor.
                         return true;
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 }
 
                 return false;
-            }, cancellationToken);
+            }, symbol.ContainingType.Name, cancellationToken);
         }
 
         protected sealed override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(

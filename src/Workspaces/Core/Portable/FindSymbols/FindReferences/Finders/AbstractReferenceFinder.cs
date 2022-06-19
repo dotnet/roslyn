@@ -46,7 +46,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return name.TryGetWithoutAttributeSuffix(syntaxFacts.IsCaseSensitive, out result);
         }
 
-        protected static async Task<ImmutableArray<Document>> FindDocumentsAsync(Project project, IImmutableSet<Document>? scope, Func<Document, CancellationToken, Task<bool>> predicateAsync, CancellationToken cancellationToken)
+        protected static async Task<ImmutableArray<Document>> FindDocumentsAsync<T>(
+            Project project,
+            IImmutableSet<Document>? scope,
+            Func<Document, T, CancellationToken, ValueTask<bool>> predicateAsync,
+            T value,
+            CancellationToken cancellationToken)
         {
             // special case for highlight references
             if (scope != null && scope.Count == 1)
@@ -64,7 +69,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 if (scope != null && !scope.Contains(document))
                     continue;
 
-                if (await predicateAsync(document, cancellationToken).ConfigureAwait(false))
+                if (await predicateAsync(document, value, cancellationToken).ConfigureAwait(false))
                     documents.Add(document);
             }
 
@@ -390,11 +395,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             T value,
             CancellationToken cancellationToken)
         {
-            return FindDocumentsAsync(project, documents, async (d, c) =>
+            return FindDocumentsAsync(project, documents, static async (d, t, c) =>
             {
                 var info = await SyntaxTreeIndex.GetRequiredIndexAsync(d, c).ConfigureAwait(false);
-                return predicate(info, value);
-            }, cancellationToken);
+                return t.predicate(info, t.value);
+            }, (predicate, value), cancellationToken);
         }
 
         protected static Task<ImmutableArray<Document>> FindDocumentsWithForEachStatementsAsync(Project project, IImmutableSet<Document>? documents, CancellationToken cancellationToken)

@@ -37,11 +37,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             result.AddRange(!symbol.IsGlobalNamespace
                 ? await FindDocumentsAsync(project, documents, cancellationToken, symbol.Name).ConfigureAwait(false)
-                : await FindDocumentsAsync(project, documents, async (d, c) =>
+                : await FindDocumentsAsync(project, documents, static async (d, _, c) =>
                 {
                     var index = await d.GetSyntaxTreeIndexAsync(c).ConfigureAwait(false);
                     return index.ContainsGlobalKeyword;
-                }, cancellationToken).ConfigureAwait(false));
+                }, /*unused*/false, cancellationToken).ConfigureAwait(false));
 
             if (globalAliases != null)
             {
