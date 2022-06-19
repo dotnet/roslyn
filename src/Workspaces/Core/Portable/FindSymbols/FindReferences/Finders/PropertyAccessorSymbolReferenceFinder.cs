@@ -77,9 +77,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     options with { AssociatePropertyReferencesWithSpecificAccessor = false },
                     cancellationToken).ConfigureAwait(false);
 
-                var syntaxFacts = state.SyntaxFacts;
-                var semanticFacts = state.SemanticFacts;
-
                 var accessorReferences = propertyReferences.WhereAsArray(
                     loc =>
                     {

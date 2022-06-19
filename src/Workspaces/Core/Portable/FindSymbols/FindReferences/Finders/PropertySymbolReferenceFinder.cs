@@ -138,9 +138,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 // We want to associate property references to a specific accessor (if an accessor
                 // is being referenced).  Check if this reference would match an accessor. If so, do
                 // not add it.  It will be added by PropertyAccessorSymbolReferenceFinder.
-                var syntaxFacts = state.SyntaxFacts;
-                var semanticFacts = state.SemanticFacts;
-
                 nameReferences = nameReferences.WhereAsArray(loc =>
                 {
                     var accessors = GetReferencedAccessorSymbols(
