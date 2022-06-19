@@ -55,13 +55,10 @@ Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.Reversed() -> void
 Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.Count.get -> int
 Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.GetEnumerator() -> Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.Enumerator
 Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.ToImmutableArray() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation!>
-<<<<<<< HEAD
 Microsoft.CodeAnalysis.OperationKind.Attribute = 125 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.Operations.IAttributeOperation
 Microsoft.CodeAnalysis.Operations.IAttributeOperation.Operation.get -> Microsoft.CodeAnalysis.IOperation!
-=======
 Microsoft.CodeAnalysis.IPropertySymbol.IsRequired.get -> bool
->>>>>>> main
 Microsoft.CodeAnalysis.SemanticModel.GetImportScopes(int position, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IImportScope!>
 Microsoft.CodeAnalysis.ISymbol.Accept<TArgument, TResult>(Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>! visitor, TArgument argument) -> TResult
 Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>
@@ -84,7 +81,9 @@ Microsoft.CodeAnalysis.OperationKind.UTF8String = 124 -> Microsoft.CodeAnalysis.
 Microsoft.CodeAnalysis.Operations.IUTF8StringOperation
 Microsoft.CodeAnalysis.Operations.IUTF8StringOperation.Value.get -> string!
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions.Keys.get -> System.Collections.Generic.IEnumerable<string!>!
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitAttribute(Microsoft.CodeAnalysis.Operations.IAttributeOperation! operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitUTF8String(Microsoft.CodeAnalysis.Operations.IUTF8StringOperation! operation) -> void
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitAttribute(Microsoft.CodeAnalysis.Operations.IAttributeOperation! operation, TArgument argument) -> TResult?
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitUTF8String(Microsoft.CodeAnalysis.Operations.IUTF8StringOperation! operation, TArgument argument) -> TResult?
 virtual Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>.DefaultVisit(Microsoft.CodeAnalysis.ISymbol! symbol, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>.Visit(Microsoft.CodeAnalysis.ISymbol? symbol, TArgument argument) -> TResult
