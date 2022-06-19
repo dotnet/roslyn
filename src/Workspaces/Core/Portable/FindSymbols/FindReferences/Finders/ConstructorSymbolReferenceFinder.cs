@@ -108,8 +108,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = state.SyntaxFacts;
-
             using var _1 = ArrayBuilder<FinderLocation>.GetInstance(out var result);
 
             var findParentNode = GetNamedTypeOrConstructorFindParentNodeFunction(state, methodSymbol);
@@ -127,7 +125,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     // ignore the cases where the global alias might match the type name (i.e.
                     // global alias Console = System.Console).  We'll already find those references
                     // above.
-                    if (syntaxFacts.StringComparer.Equals(name, globalAlias))
+                    if (state.SyntaxFacts.StringComparer.Equals(name, globalAlias))
                         continue;
 
                     await AddReferencesInDocumentWorkerAsync(
