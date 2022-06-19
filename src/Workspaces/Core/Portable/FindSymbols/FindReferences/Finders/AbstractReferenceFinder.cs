@@ -365,7 +365,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             Func<FindReferencesDocumentState, SyntaxToken, CancellationToken, ValueTask<(bool matched, CandidateReason reason)>> symbolsMatchAsync,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = state.SyntaxFacts;
             using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var allAliasReferences);
             foreach (var aliasSymbol in localAliasSymbols)
             {
@@ -374,7 +373,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 allAliasReferences.AddRange(aliasReferences);
                 // the alias may reference an attribute and the alias name may end with an "Attribute" suffix. In this case search for the
                 // shortened name as well (e.g. using GooAttribute = MyNamespace.GooAttribute; [Goo] class C1 {})
-                if (TryGetNameWithoutAttributeSuffix(aliasSymbol.Name, syntaxFacts, out var simpleName))
+                if (TryGetNameWithoutAttributeSuffix(aliasSymbol.Name, state.SyntaxFacts, out var simpleName))
                 {
                     aliasReferences = await FindReferencesInDocumentUsingIdentifierAsync(
                         aliasSymbol, simpleName, state, symbolsMatchAsync, cancellationToken).ConfigureAwait(false);
@@ -555,10 +554,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             void CollectMatchingReferences(
                 SyntaxNode node, FindReferencesDocumentState state, ArrayBuilder<FinderLocation> locations)
             {
-                var syntaxFacts = state.SyntaxFacts;
-
                 // Avoid binding unrelated nodes
-                if (!syntaxFacts.IsImplicitObjectCreationExpression(node))
+                if (!state.SyntaxFacts.IsImplicitObjectCreationExpression(node))
                     return;
 
                 var constructor = state.SemanticModel.GetSymbolInfo(node, cancellationToken).Symbol;
