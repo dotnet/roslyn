@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             if (semanticModel.Language == LanguageNames.VisualBasic)
             {
                 tokens = tokens.Concat(await FindMatchingIdentifierTokensAsync(
-                    document, semanticModel, cache, "New", cancellationToken).ConfigureAwait(false)).Distinct();
+                    document, cache, "New", cancellationToken).ConfigureAwait(false)).Distinct();
             }
 
             return await FindReferencesInTokensAsync(

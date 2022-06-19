@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             var tokens = await FindMatchingIdentifierTokensAsync(
-                document, semanticModel, cache, name, cancellationToken).ConfigureAwait(false);
+                document, cache, name, cancellationToken).ConfigureAwait(false);
 
             initialReferences.AddRange(await FindReferencesInTokensAsync(
                 symbol,

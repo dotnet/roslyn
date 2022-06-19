@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             Func<SyntaxToken, SemanticModel, ValueTask<(bool matched, CandidateReason reason)>> symbolsMatchAsync,
             CancellationToken cancellationToken)
         {
-            var tokens = await FindMatchingIdentifierTokensAsync(document, semanticModel, cache, identifier, cancellationToken).ConfigureAwait(false);
+            var tokens = await FindMatchingIdentifierTokensAsync(document, cache, identifier, cancellationToken).ConfigureAwait(false);
 
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 cancellationToken).ConfigureAwait(false);
         }
 
-        protected static Task<ImmutableArray<SyntaxToken>> FindMatchingIdentifierTokensAsync(Document document, SemanticModel semanticModel, FindReferenceCache cache, string identifier, CancellationToken cancellationToken)
+        protected static Task<ImmutableArray<SyntaxToken>> FindMatchingIdentifierTokensAsync(Document document, FindReferenceCache cache, string identifier, CancellationToken cancellationToken)
             => cache.FindMatchingIdentifierTokensAsync(document, identifier, cancellationToken);
 
         protected static Func<SyntaxToken, SyntaxNode>? GetNamedTypeOrConstructorFindParentNodeFunction(Document document, ISymbol searchSymbol)
