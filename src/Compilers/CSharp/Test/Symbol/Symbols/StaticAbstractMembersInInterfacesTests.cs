@@ -6351,38 +6351,47 @@ class C8
                                                  targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
-            var expected = new[] {
-                // (4,22): error CS8920: The interface 'I2' cannot be used as type parameter 'T1' in the generic type or method 'C1<T1>'. The constraint interface 'I1' or its base interface has static abstract or virtual members.
-                //     void Test(C1<I2> x)
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "x").WithArguments("C1<T1>", "I1", "T1", "I2").WithLocation(4, 22),
-                // (15,11): error CS8920: The interface 'I2' cannot be used as type parameter 'T2' in the generic type or method 'C2.M<T2>()'. The constraint interface 'I1' or its base interface has static abstract or virtual members.
-                //         x.M<I2>();
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I2>").WithArguments("C2.M<T2>()", "I1", "T2", "I2").WithLocation(15, 11),
-                // (21,22): error CS8920: The interface 'I2' cannot be used as type parameter 'T3' in the generic type or method 'C3<T3>'. The constraint interface 'I2' or its base interface has static abstract or virtual members.
-                //     void Test(C3<I2> x, C3<I3> y)
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "x").WithArguments("C3<T3>", "I2", "T3", "I2").WithLocation(21, 22),
-                // (21,32): error CS8920: The interface 'I3' cannot be used as type parameter 'T3' in the generic type or method 'C3<T3>'. The constraint interface 'I2' or its base interface has static abstract or virtual members.
-                //     void Test(C3<I2> x, C3<I3> y)
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "y").WithArguments("C3<T3>", "I2", "T3", "I3").WithLocation(21, 32),
-                // (32,11): error CS8920: The interface 'I2' cannot be used as type parameter 'T4' in the generic type or method 'C4.M<T4>()'. The constraint interface 'I2' or its base interface has static abstract or virtual members.
-                //         x.M<I2>();
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I2>").WithArguments("C4.M<T4>()", "I2", "T4", "I2").WithLocation(32, 11),
-                // (33,11): error CS8920: The interface 'I3' cannot be used as type parameter 'T4' in the generic type or method 'C4.M<T4>()'. The constraint interface 'I2' or its base interface has static abstract or virtual members.
-                //         x.M<I3>();
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I3>").WithArguments("C4.M<T4>()", "I2", "T4", "I3").WithLocation(33, 11),
-                // (39,22): error CS8920: The interface 'I3' cannot be used as type parameter 'T5' in the generic type or method 'C5<T5>'. The constraint interface 'I3' or its base interface has static abstract or virtual members.
-                //     void Test(C5<I3> y)
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "y").WithArguments("C5<T5>", "I3", "T5", "I3").WithLocation(39, 22),
-                // (50,11): error CS8920: The interface 'I3' cannot be used as type parameter 'T6' in the generic type or method 'C6.M<T6>()'. The constraint interface 'I3' or its base interface has static abstract or virtual members.
-                //         x.M<I3>();
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I3>").WithArguments("C6.M<T6>()", "I3", "T6", "I3").WithLocation(50, 11),
-                // (56,22): error CS8920: The interface 'I1' cannot be used as type parameter 'T7' in the generic type or method 'C7<T7>'. The constraint interface 'I1' or its base interface has static abstract or virtual members.
-                //     void Test(C7<I1> y)
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "y").WithArguments("C7<T7>", "I1", "T7", "I1").WithLocation(56, 22),
-                // (67,11): error CS8920: The interface 'I1' cannot be used as type parameter 'T8' in the generic type or method 'C8.M<T8>()'. The constraint interface 'I1' or its base interface has static abstract or virtual members.
-                //         x.M<I1>();
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I1>").WithArguments("C8.M<T8>()", "I1", "T8", "I1").WithLocation(67, 11)
-            };
+            DiagnosticDescription[] expected;
+
+            if (!isVirtual)
+            {
+                expected = new[] {
+                    // (4,22): error CS8920: The interface 'I2' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
+                    //     void Test(C1<I2> x)
+                    Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "x").WithArguments("I2", "I1.M01()").WithLocation(4, 22),
+                    // (15,11): error CS8920: The interface 'I2' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
+                    //         x.M<I2>();
+                    Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I2>").WithArguments("I2", "I1.M01()").WithLocation(15, 11),
+                    // (21,22): error CS8920: The interface 'I2' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
+                    //     void Test(C3<I2> x, C3<I3> y)
+                    Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "x").WithArguments("I2", "I1.M01()").WithLocation(21, 22),
+                    // (21,32): error CS8920: The interface 'I3' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
+                    //     void Test(C3<I2> x, C3<I3> y)
+                    Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "y").WithArguments("I3", "I1.M01()").WithLocation(21, 32),
+                    // (32,11): error CS8920: The interface 'I2' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
+                    //         x.M<I2>();
+                    Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I2>").WithArguments("I2", "I1.M01()").WithLocation(32, 11),
+                    // (33,11): error CS8920: The interface 'I3' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
+                    //         x.M<I3>();
+                    Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I3>").WithArguments("I3", "I1.M01()").WithLocation(33, 11),
+                    // (39,22): error CS8920: The interface 'I3' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
+                    //     void Test(C5<I3> y)
+                    Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "y").WithArguments("I3", "I1.M01()").WithLocation(39, 22),
+                    // (50,11): error CS8920: The interface 'I3' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
+                    //         x.M<I3>();
+                    Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I3>").WithArguments("I3", "I1.M01()").WithLocation(50, 11),
+                    // (56,22): error CS8920: The interface 'I1' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
+                    //     void Test(C7<I1> y)
+                    Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "y").WithArguments("I1", "I1.M01()").WithLocation(56, 22),
+                    // (67,11): error CS8920: The interface 'I1' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
+                    //         x.M<I1>();
+                    Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I1>").WithArguments("I1", "I1.M01()").WithLocation(67, 11)
+                };
+            }
+            else
+            {
+                expected = Array.Empty<DiagnosticDescription>();
+            }
 
             compilation2.VerifyDiagnostics(expected);
 
@@ -6474,14 +6483,583 @@ class C6 : C5<I1>
                                                  targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
-            compilation2.VerifyEmitDiagnostics();
+            if (isVirtual)
+            {
+                compilation2.VerifyEmitDiagnostics();
+            }
+            else
+            {
+                compilation2.VerifyEmitDiagnostics(
+                    // (43,7): error CS8920: The interface 'I1' cannot be used as type argumen. Member 'I1.M01()' does not have a most specific implementation in the interface.
+                    // class C6 : C5<I1>
+                    Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "C6").WithArguments("I1", "I1.M01()").WithLocation(43, 7)
+                    );
+            }
 
             compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.EmitToImageReference() });
 
-            compilation2.VerifyEmitDiagnostics();
+            if (isVirtual)
+            {
+                compilation2.VerifyEmitDiagnostics();
+            }
+            else
+            {
+                compilation2.VerifyEmitDiagnostics(
+                    // (43,7): error CS8920: The interface 'I1' cannot be used as type argumen. Member 'I1.M01()' does not have a most specific implementation in the interface.
+                    // class C6 : C5<I1>
+                    Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "C6").WithArguments("I1", "I1.M01()").WithLocation(43, 7)
+                    );
+            }
+        }
+
+        [Fact]
+        public void ConstraintChecks_03()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    abstract static void M01();
+}
+
+public interface I2 : I1
+{
+    static void I1.M01() {}
+}
+
+public interface I3 : I2
+{
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework);
+
+            var source2 =
+@"
+class C1<T1> where T1 : I1
+{
+    void Test(C1<I2> x)
+    {
+    }
+}
+
+class C2
+{
+    void M<T2>() where T2 : I1 {}
+
+    void Test(C2 x)
+    {
+        x.M<I2>();
+    }
+}
+
+class C3<T3> where T3 : I2
+{
+    void Test(C3<I2> x, C3<I3> y)
+    {
+    }
+}
+
+class C4
+{
+    void M<T4>() where T4 : I2 {}
+
+    void Test(C4 x)
+    {
+        x.M<I2>();
+        x.M<I3>();
+    }
+}
+
+class C5<T5> where T5 : I3
+{
+    void Test(C5<I3> y)
+    {
+    }
+}
+
+class C6
+{
+    void M<T6>() where T6 : I3 {}
+
+    void Test(C6 x)
+    {
+        x.M<I3>();
+    }
+}
+
+class C7<T7> where T7 : I1
+{
+    void Test(C7<I1> y)
+    {
+    }
+}
+
+class C8
+{
+    void M<T8>() where T8 : I1 {}
+
+    void Test(C8 x)
+    {
+        x.M<I1>();
+    }
+}
+";
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+
+            var expected = new[] {
+                // (56,22): error CS8920: The interface 'I1' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
+                //     void Test(C7<I1> y)
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "y").WithArguments("I1", "I1.M01()").WithLocation(56, 22),
+                // (67,11): error CS8920: The interface 'I1' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
+                //         x.M<I1>();
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I1>").WithArguments("I1", "I1.M01()").WithLocation(67, 11)
+                };
+
+            compilation2.VerifyDiagnostics(expected);
+
+            compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework,
+                                                 references: new[] { compilation1.EmitToImageReference() });
+
+            compilation2.VerifyDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ConstraintChecks_04()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    virtual static void M01(){}
+}
+
+public interface I2 : I1
+{
+    abstract static void I1.M01();
+}
+
+public interface I3 : I2
+{
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework);
+
+            var source2 =
+@"
+class C1<T1> where T1 : I1
+{
+    void Test(C1<I2> x)
+    {
+    }
+}
+
+class C2
+{
+    void M<T2>() where T2 : I1 {}
+
+    void Test(C2 x)
+    {
+        x.M<I2>();
+    }
+}
+
+class C3<T3> where T3 : I2
+{
+    void Test(C3<I2> x, C3<I3> y)
+    {
+    }
+}
+
+class C4
+{
+    void M<T4>() where T4 : I2 {}
+
+    void Test(C4 x)
+    {
+        x.M<I2>();
+        x.M<I3>();
+    }
+}
+
+class C5<T5> where T5 : I3
+{
+    void Test(C5<I3> y)
+    {
+    }
+}
+
+class C6
+{
+    void M<T6>() where T6 : I3 {}
+
+    void Test(C6 x)
+    {
+        x.M<I3>();
+    }
+}
+
+class C7<T7> where T7 : I1
+{
+    void Test(C7<I1> y)
+    {
+    }
+}
+
+class C8
+{
+    void M<T8>() where T8 : I1 {}
+
+    void Test(C8 x)
+    {
+        x.M<I1>();
+    }
+}
+";
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+
+            var expected = new[] {
+                // (4,22): error CS8920: The interface 'I2' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
+                //     void Test(C1<I2> x)
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "x").WithArguments("I2", "I1.M01()").WithLocation(4, 22),
+                // (15,11): error CS8920: The interface 'I2' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
+                //         x.M<I2>();
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I2>").WithArguments("I2", "I1.M01()").WithLocation(15, 11),
+                // (21,22): error CS8920: The interface 'I2' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
+                //     void Test(C3<I2> x, C3<I3> y)
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "x").WithArguments("I2", "I1.M01()").WithLocation(21, 22),
+                // (21,32): error CS8920: The interface 'I3' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
+                //     void Test(C3<I2> x, C3<I3> y)
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "y").WithArguments("I3", "I1.M01()").WithLocation(21, 32),
+                // (32,11): error CS8920: The interface 'I2' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
+                //         x.M<I2>();
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I2>").WithArguments("I2", "I1.M01()").WithLocation(32, 11),
+                // (33,11): error CS8920: The interface 'I3' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
+                //         x.M<I3>();
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I3>").WithArguments("I3", "I1.M01()").WithLocation(33, 11),
+                // (39,22): error CS8920: The interface 'I3' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
+                //     void Test(C5<I3> y)
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "y").WithArguments("I3", "I1.M01()").WithLocation(39, 22),
+                // (50,11): error CS8920: The interface 'I3' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
+                //         x.M<I3>();
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I3>").WithArguments("I3", "I1.M01()").WithLocation(50, 11)
+                };
+
+            compilation2.VerifyDiagnostics(expected);
+
+            compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework,
+                                                 references: new[] { compilation1.EmitToImageReference() });
+
+            compilation2.VerifyDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ConstraintChecks_05()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    virtual static void M01(){}
+}
+
+public interface I2 : I1
+{
+    static void I1.M01(){}
+}
+
+public interface I4 : I1
+{
+    abstract static void I1.M01();
+}
+
+public interface I3 : I2, I4
+{
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework);
+
+            var source2 =
+@"
+class C1<T1> where T1 : I1
+{
+    void Test(C1<I2> x)
+    {
+    }
+}
+
+class C2
+{
+    void M<T2>() where T2 : I1 {}
+
+    void Test(C2 x)
+    {
+        x.M<I2>();
+    }
+}
+
+class C3<T3> where T3 : I2
+{
+    void Test(C3<I2> x, C3<I3> y)
+    {
+    }
+}
+
+class C4
+{
+    void M<T4>() where T4 : I2 {}
+
+    void Test(C4 x)
+    {
+        x.M<I2>();
+        x.M<I3>();
+    }
+}
+
+class C5<T5> where T5 : I3
+{
+    void Test(C5<I3> y)
+    {
+    }
+}
+
+class C6
+{
+    void M<T6>() where T6 : I3 {}
+
+    void Test(C6 x)
+    {
+        x.M<I3>();
+    }
+}
+
+class C7<T7> where T7 : I1
+{
+    void Test(C7<I1> y)
+    {
+    }
+}
+
+class C8
+{
+    void M<T8>() where T8 : I1 {}
+
+    void Test(C8 x)
+    {
+        x.M<I1>();
+    }
+}
+";
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+
+            var expected = new[] {
+                // (21,32): error CS8920: The interface 'I3' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
+                //     void Test(C3<I2> x, C3<I3> y)
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "y").WithArguments("I3", "I1.M01()").WithLocation(21, 32),
+                // (33,11): error CS8920: The interface 'I3' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
+                //         x.M<I3>();
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I3>").WithArguments("I3", "I1.M01()").WithLocation(33, 11),
+                // (39,22): error CS8920: The interface 'I3' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
+                //     void Test(C5<I3> y)
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "y").WithArguments("I3", "I1.M01()").WithLocation(39, 22),
+                // (50,11): error CS8920: The interface 'I3' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
+                //         x.M<I3>();
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I3>").WithArguments("I3", "I1.M01()").WithLocation(50, 11)
+                };
+
+            compilation2.VerifyDiagnostics(expected);
+
+            compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework,
+                                                 references: new[] { compilation1.EmitToImageReference() });
+
+            compilation2.VerifyDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ConstraintChecks_06()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    virtual static void M01(){}
+}
+
+public interface I2 : I1
+{
+    static void I1.M01(){}
+}
+
+public interface I4 : I1
+{
+    static void I1.M01(){}
+}
+
+public interface I3 : I2, I4
+{
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework);
+
+            var source2 =
+@"
+class C1<T1> where T1 : I1
+{
+    void Test(C1<I2> x)
+    {
+    }
+}
+
+class C2
+{
+    void M<T2>() where T2 : I1 {}
+
+    void Test(C2 x)
+    {
+        x.M<I2>();
+    }
+}
+
+class C3<T3> where T3 : I2
+{
+    void Test(C3<I2> x, C3<I3> y)
+    {
+    }
+}
+
+class C4
+{
+    void M<T4>() where T4 : I2 {}
+
+    void Test(C4 x)
+    {
+        x.M<I2>();
+        x.M<I3>();
+    }
+}
+
+class C5<T5> where T5 : I3
+{
+    void Test(C5<I3> y)
+    {
+    }
+}
+
+class C6
+{
+    void M<T6>() where T6 : I3 {}
+
+    void Test(C6 x)
+    {
+        x.M<I3>();
+    }
+}
+
+class C7<T7> where T7 : I1
+{
+    void Test(C7<I1> y)
+    {
+    }
+}
+
+class C8
+{
+    void M<T8>() where T8 : I1 {}
+
+    void Test(C8 x)
+    {
+        x.M<I1>();
+    }
+}
+";
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+
+            var expected = new[] {
+                // (21,32): error CS8920: The interface 'I3' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
+                //     void Test(C3<I2> x, C3<I3> y)
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "y").WithArguments("I3", "I1.M01()").WithLocation(21, 32),
+                // (33,11): error CS8920: The interface 'I3' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
+                //         x.M<I3>();
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I3>").WithArguments("I3", "I1.M01()").WithLocation(33, 11),
+                // (39,22): error CS8920: The interface 'I3' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
+                //     void Test(C5<I3> y)
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "y").WithArguments("I3", "I1.M01()").WithLocation(39, 22),
+                // (50,11): error CS8920: The interface 'I3' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
+                //         x.M<I3>();
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I3>").WithArguments("I3", "I1.M01()").WithLocation(50, 11)
+                };
+
+            compilation2.VerifyDiagnostics(expected);
+
+            compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework,
+                                                 references: new[] { compilation1.EmitToImageReference() });
+
+            compilation2.VerifyDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ConstraintChecks_07()
+        {
+            var source1 =
+@"
+abstract class C<T>
+{
+    public abstract void M<U>() where U : T;
+    public void M0() { M<T>(); }
+}
+interface I
+{
+    static abstract string P { get; }
+}
+class D : C<I>
+{
+    public override void M<U>() => System.Console.WriteLine(U.P);
+    
+    static void Main()
+    {
+        new D().M0();
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework);
+
+            compilation1.VerifyDiagnostics(
+                // (11,7): error CS8920: The interface 'I' cannot be used as type argument. Static member 'I.P' does not have a most specific implementation in the interface.
+                // class D : C<I>
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "D").WithArguments("I", "I.P").WithLocation(11, 7)
+                );
         }
 
         [Theory]
@@ -7523,15 +8101,15 @@ class Test
                 // (30,9): error CS0176: Member 'I1.M04()' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         x.M04();
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "x.M04").WithArguments("I1.M04()").WithLocation(30, 9),
-                // (35,9): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                // (35,9): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         T.M03();
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(35, 9),
-                // (36,9): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(35, 9),
+                // (36,9): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         T.M04();
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(36, 9),
-                // (37,9): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(36, 9),
+                // (37,9): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         T.M00();
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(37, 9),
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(37, 9),
                 // (38,11): error CS0122: 'I1.M05()' is inaccessible due to its protection level
                 //         T.M05();
                 Diagnostic(ErrorCode.ERR_BadAccess, "M05").WithArguments("I1.M05()").WithLocation(38, 11),
@@ -7594,15 +8172,15 @@ class Test
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (35,20): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                // (35,20): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         _ = nameof(T.M03);
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(35, 20),
-                // (36,20): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(35, 20),
+                // (36,20): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         _ = nameof(T.M04);
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(36, 20),
-                // (37,20): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(36, 20),
+                // (37,20): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         _ = nameof(T.M00);
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(37, 20),
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(37, 20),
                 // (38,22): error CS0122: 'I1.M05()' is inaccessible due to its protection level
                 //         _ = nameof(T.M05);
                 Diagnostic(ErrorCode.ERR_BadAccess, "M05").WithArguments("I1.M05()").WithLocation(38, 22)
@@ -7808,7 +8386,6 @@ class Test
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
-            // https://github.com/dotnet/roslyn/issues/53796: Confirm whether we want to enable the 'from t in T' scenario.
             compilation1.VerifyDiagnostics(
                 // (11,23): error CS0119: 'T' is a type parameter, which is not valid in the given context
                 //         _ = from t in T select t + 1;
@@ -8793,20 +9370,49 @@ class C<T>
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
-            compilation1.VerifyDiagnostics(
-                // (9,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
-                //         _ = x == x;
-                Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "x " + op + " x").WithLocation(9, 13),
-                // (14,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
-                //         _ = y == y;
-                Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "y " + op + " y").WithLocation(14, 13),
-                // (22,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
-                //         _ = a == a;
-                Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "a " + op + " a").WithLocation(22, 13),
-                // (27,98): error CS8382: An expression tree may not contain a tuple == or != operator
-                //         _ = (System.Linq.Expressions.Expression<System.Action<(int, C<T>)>>)(((int, C<T>) b) => (b == b).ToString());
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsTupleBinOp, "b " + op + " b").WithLocation(27, 98)
-                );
+            if (isVirtual)
+            {
+                compilation1.VerifyDiagnostics(
+                    // (9,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
+                    //         _ = x == x;
+                    Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "x " + op + " x").WithLocation(9, 13),
+                    // (14,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
+                    //         _ = y == y;
+                    Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "y " + op + " y").WithLocation(14, 13),
+                    // (22,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
+                    //         _ = a == a;
+                    Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "a " + op + " a").WithLocation(22, 13),
+                    // (27,98): error CS8382: An expression tree may not contain a tuple == or != operator
+                    //         _ = (System.Linq.Expressions.Expression<System.Action<(int, C<T>)>>)(((int, C<T>) b) => (b == b).ToString());
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsTupleBinOp, "b " + op + " b").WithLocation(27, 98)
+                    );
+            }
+            else
+            {
+                compilation1.VerifyDiagnostics(
+                    // (7,34): error CS8920: The interface 'I1' cannot be used as type argument. Static member 'I1.operator true(I1)' does not have a most specific implementation in the interface.
+                    //     static void M02((int, C<I1>) x)
+                    Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "x").WithArguments("I1", "I1.operator true(I1)").WithLocation(7, 34),
+                    // (12,27): error CS8920: The interface 'I1' cannot be used as type argument. Static member 'I1.operator true(I1)' does not have a most specific implementation in the interface.
+                    //     void M03((int, C<I1>) y)
+                    Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "y").WithArguments("I1", "I1.operator true(I1)").WithLocation(12, 27),
+                    // (20,34): error CS8920: The interface 'I1' cannot be used as type argument. Static member 'I1.operator true(I1)' does not have a most specific implementation in the interface.
+                    //     static void MT1((int, C<I1>) a)
+                    Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "a").WithArguments("I1", "I1.operator true(I1)").WithLocation(20, 34),
+                    // (9,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
+                    //         _ = x == x;
+                    Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "x " + op + " x").WithLocation(9, 13),
+                    // (14,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
+                    //         _ = y == y;
+                    Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "y " + op + " y").WithLocation(14, 13),
+                    // (22,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
+                    //         _ = a == a;
+                    Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "a " + op + " a").WithLocation(22, 13),
+                    // (27,98): error CS8382: An expression tree may not contain a tuple == or != operator
+                    //         _ = (System.Linq.Expressions.Expression<System.Action<(int, C<T>)>>)(((int, C<T>) b) => (b == b).ToString());
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsTupleBinOp, "b " + op + " b").WithLocation(27, 98)
+                    );
+            }
         }
 
         [Theory]
@@ -9655,17 +10261,44 @@ class Test
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
+                // (10,34): error CS8920: The interface 'I1<T>' cannot be used as type argument. Static member 'I1<T>.operator ==(T, T)' does not have a most specific implementation in the interface.
+                //     static void M02((int, I1<T>) x)
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "x").WithArguments("I1<T>", "I1<T>.operator ==(T, T)").WithLocation(10, 34),
                 // (12,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
-                //         _ = x == x;
+                //         _ = x != x;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "x " + op + " x").WithLocation(12, 13),
+                // (12,13): error CS8920: The interface 'I1<T>' cannot be used as type argument. Static member 'I1<T>.operator ==(T, T)' does not have a most specific implementation in the interface.
+                //         _ = x != x;
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "x").WithArguments("I1<T>", "I1<T>.operator ==(T, T)").WithLocation(12, 13),
+                // (12,18): error CS8920: The interface 'I1<T>' cannot be used as type argument. Static member 'I1<T>.operator ==(T, T)' does not have a most specific implementation in the interface.
+                //         _ = x != x;
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "x").WithArguments("I1<T>", "I1<T>.operator ==(T, T)").WithLocation(12, 18),
+                // (15,27): error CS8920: The interface 'I1<T>' cannot be used as type argument. Static member 'I1<T>.operator ==(T, T)' does not have a most specific implementation in the interface.
+                //     void M03((int, I1<T>) y)
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "y").WithArguments("I1<T>", "I1<T>.operator ==(T, T)").WithLocation(15, 27),
                 // (17,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
-                //         _ = y == y;
+                //         _ = y != y;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "y " + op + " y").WithLocation(17, 13),
+                // (17,13): error CS8920: The interface 'I1<T>' cannot be used as type argument. Static member 'I1<T>.operator ==(T, T)' does not have a most specific implementation in the interface.
+                //         _ = y != y;
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "y").WithArguments("I1<T>", "I1<T>.operator ==(T, T)").WithLocation(17, 13),
+                // (17,18): error CS8920: The interface 'I1<T>' cannot be used as type argument. Static member 'I1<T>.operator ==(T, T)' does not have a most specific implementation in the interface.
+                //         _ = y != y;
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "y").WithArguments("I1<T>", "I1<T>.operator ==(T, T)").WithLocation(17, 18),
+                // (23,37): error CS8920: The interface 'I1<T>' cannot be used as type argument. Static member 'I1<T>.operator ==(T, T)' does not have a most specific implementation in the interface.
+                //     static void MT1<T>((int, I1<T>) a) where T : I1<T>
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "a").WithArguments("I1<T>", "I1<T>.operator ==(T, T)").WithLocation(23, 37),
                 // (25,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
-                //         _ = a == a;
+                //         _ = a != a;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "a " + op + " a").WithLocation(25, 13),
+                // (25,13): error CS8920: The interface 'I1<T>' cannot be used as type argument. Static member 'I1<T>.operator ==(T, T)' does not have a most specific implementation in the interface.
+                //         _ = a != a;
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "a").WithArguments("I1<T>", "I1<T>.operator ==(T, T)").WithLocation(25, 13),
+                // (25,18): error CS8920: The interface 'I1<T>' cannot be used as type argument. Static member 'I1<T>.operator ==(T, T)' does not have a most specific implementation in the interface.
+                //         _ = a != a;
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "a").WithArguments("I1<T>", "I1<T>.operator ==(T, T)").WithLocation(25, 18),
                 // (30,92): error CS8382: An expression tree may not contain a tuple == or != operator
-                //         _ = (System.Linq.Expressions.Expression<System.Action<(int, T)>>)(((int, T) b) => (b == b).ToString());
+                //         _ = (System.Linq.Expressions.Expression<System.Action<(int, T)>>)(((int, T) b) => (b != b).ToString());
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsTupleBinOp, "b " + op + " b").WithLocation(30, 92)
                 );
         }
@@ -12112,15 +12745,15 @@ class Test
                 // (30,13): error CS0176: Member 'I1.P04' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         _ = x.P04;
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "x.P04").WithArguments("I1.P04").WithLocation(30, 13),
-                // (35,13): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                // (35,13): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         _ = T.P03;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(35, 13),
-                // (36,13): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(35, 13),
+                // (36,13): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         _ = T.P04;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(36, 13),
-                // (37,13): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(36, 13),
+                // (37,13): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         _ = T.P00;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(37, 13),
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(37, 13),
                 // (38,15): error CS0122: 'I1.P05' is inaccessible due to its protection level
                 //         _ = T.P05;
                 Diagnostic(ErrorCode.ERR_BadAccess, "P05").WithArguments("I1.P05").WithLocation(38, 15),
@@ -12203,15 +12836,15 @@ class Test
                 // (30,9): error CS0176: Member 'I1.P04' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         x.P04 = 1;
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "x.P04").WithArguments("I1.P04").WithLocation(30, 9),
-                // (35,9): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                // (35,9): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         T.P03 = 1;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(35, 9),
-                // (36,9): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(35, 9),
+                // (36,9): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         T.P04 = 1;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(36, 9),
-                // (37,9): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(36, 9),
+                // (37,9): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         T.P00 = 1;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(37, 9),
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(37, 9),
                 // (38,11): error CS0122: 'I1.P05' is inaccessible due to its protection level
                 //         T.P05 = 1;
                 Diagnostic(ErrorCode.ERR_BadAccess, "P05").WithArguments("I1.P05").WithLocation(38, 11),
@@ -12303,15 +12936,15 @@ class Test
                 // (30,9): error CS0176: Member 'I1.P04' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         x.P04 += 1;
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "x.P04").WithArguments("I1.P04").WithLocation(30, 9),
-                // (35,9): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                // (35,9): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         T.P03 += 1;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(35, 9),
-                // (36,9): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(35, 9),
+                // (36,9): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         T.P04 += 1;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(36, 9),
-                // (37,9): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(36, 9),
+                // (37,9): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         T.P00 += 1;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(37, 9),
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(37, 9),
                 // (38,11): error CS0122: 'I1.P05' is inaccessible due to its protection level
                 //         T.P05 += 1;
                 Diagnostic(ErrorCode.ERR_BadAccess, "P05").WithArguments("I1.P05").WithLocation(38, 11),
@@ -12389,15 +13022,15 @@ class Test
                 // (30,20): error CS0176: Member 'I1.P04' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         _ = nameof(x.P04);
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "x.P04").WithArguments("I1.P04").WithLocation(30, 20),
-                // (35,20): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                // (35,20): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         _ = nameof(T.P03);
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(35, 20),
-                // (36,20): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(35, 20),
+                // (36,20): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         _ = nameof(T.P04);
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(36, 20),
-                // (37,20): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(36, 20),
+                // (37,20): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         _ = nameof(T.P00);
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(37, 20),
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(37, 20),
                 // (38,22): error CS0122: 'I1.P05' is inaccessible due to its protection level
                 //         _ = nameof(T.P05);
                 Diagnostic(ErrorCode.ERR_BadAccess, "P05").WithArguments("I1.P05").WithLocation(38, 22)
@@ -13100,15 +13733,15 @@ class Test
                 // (30,9): error CS0176: Member 'I1.P04' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         x.P04 += null;
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "x.P04").WithArguments("I1.P04").WithLocation(30, 9),
-                // (35,9): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                // (35,9): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         T.P03 += null;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(35, 9),
-                // (36,9): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(35, 9),
+                // (36,9): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         T.P04 += null;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(36, 9),
-                // (37,9): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(36, 9),
+                // (37,9): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         T.P00 += null;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(37, 9),
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(37, 9),
                 // (38,11): error CS0122: 'I1.P05' is inaccessible due to its protection level
                 //         T.P05 += null;
                 Diagnostic(ErrorCode.ERR_BadAccess, "P05").WithArguments("I1.P05").WithLocation(38, 11),
@@ -13197,15 +13830,15 @@ class Test
                 // (30,9): error CS0176: Member 'I1.P04' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         x.P04 -= null;
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "x.P04").WithArguments("I1.P04").WithLocation(30, 9),
-                // (35,9): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                // (35,9): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         T.P03 -= null;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(35, 9),
-                // (36,9): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(35, 9),
+                // (36,9): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         T.P04 -= null;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(36, 9),
-                // (37,9): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(36, 9),
+                // (37,9): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         T.P00 -= null;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(37, 9),
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(37, 9),
                 // (38,11): error CS0122: 'I1.P05' is inaccessible due to its protection level
                 //         T.P05 -= null;
                 Diagnostic(ErrorCode.ERR_BadAccess, "P05").WithArguments("I1.P05").WithLocation(38, 11),
@@ -13280,15 +13913,15 @@ class Test
                 // (30,20): error CS0176: Member 'I1.P04' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         _ = nameof(x.P04);
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "x.P04").WithArguments("I1.P04").WithLocation(30, 20),
-                // (35,20): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                // (35,20): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         _ = nameof(T.P03);
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(35, 20),
-                // (36,20): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(35, 20),
+                // (36,20): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         _ = nameof(T.P04);
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(36, 20),
-                // (37,20): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(36, 20),
+                // (37,20): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         _ = nameof(T.P00);
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(37, 20),
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(37, 20),
                 // (38,22): error CS0122: 'I1.P05' is inaccessible due to its protection level
                 //         _ = nameof(T.P05);
                 Diagnostic(ErrorCode.ERR_BadAccess, "P05").WithArguments("I1.P05").WithLocation(38, 22)
@@ -13705,12 +14338,12 @@ class Test
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (6,9): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                // (6,9): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         T.Item[0] += 1;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(6, 9),
-                // (11,23): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(6, 9),
+                // (11,23): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         return nameof(T.Item);
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(11, 23)
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(11, 23)
                 );
 
             var source2 =
@@ -13917,15 +14550,15 @@ class Test
                 // (30,28): error CS0176: Member 'I1.M04()' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         _ = (System.Action)x.M04;
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "x.M04").WithArguments("I1.M04()").WithLocation(30, 28),
-                // (35,28): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                // (35,28): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         _ = (System.Action)T.M03;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(35, 28),
-                // (36,28): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(35, 28),
+                // (36,28): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         _ = (System.Action)T.M04;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(36, 28),
-                // (37,28): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(36, 28),
+                // (37,28): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         _ = (System.Action)T.M00;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(37, 28),
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(37, 28),
                 // (38,30): error CS0122: 'I1.M05()' is inaccessible due to its protection level
                 //         _ = (System.Action)T.M05;
                 Diagnostic(ErrorCode.ERR_BadAccess, "M05").WithArguments("I1.M05()").WithLocation(38, 30),
@@ -14137,7 +14770,7 @@ class Test
             }
 #endif
 
-            return true;
+            return ExecutionConditionUtil.IsMonoOrCoreClr;
         }
 
         [ConditionalTheory(typeof(CoreClrOnly))]
@@ -14345,15 +14978,15 @@ class Test
                 // (30,31): error CS0176: Member 'I1.M04()' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         _ = new System.Action(x.M04);
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "x.M04").WithArguments("I1.M04()").WithLocation(30, 31),
-                // (35,31): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                // (35,31): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         _ = new System.Action(T.M03);
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(35, 31),
-                // (36,31): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(35, 31),
+                // (36,31): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         _ = new System.Action(T.M04);
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(36, 31),
-                // (37,31): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(36, 31),
+                // (37,31): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         _ = new System.Action(T.M00);
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(37, 31),
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(37, 31),
                 // (38,33): error CS0122: 'I1.M05()' is inaccessible due to its protection level
                 //         _ = new System.Action(T.M05);
                 Diagnostic(ErrorCode.ERR_BadAccess, "M05").WithArguments("I1.M05()").WithLocation(38, 33),
@@ -14617,15 +15250,15 @@ unsafe class Test
                 // (30,13): error CS8757: No overload for 'M04' matches function pointer 'delegate*<void>'
                 //         _ = (delegate*<void>)&x.M04;
                 Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "(delegate*<void>)&x.M04").WithArguments("M04", "delegate*<void>").WithLocation(30, 13),
-                // (35,31): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                // (35,31): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         _ = (delegate*<void>)&T.M03;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(35, 31),
-                // (36,31): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(35, 31),
+                // (36,31): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         _ = (delegate*<void>)&T.M04;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(36, 31),
-                // (37,31): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(36, 31),
+                // (37,31): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         _ = (delegate*<void>)&T.M00;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(37, 31),
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(37, 31),
                 // (38,33): error CS0122: 'I1.M05()' is inaccessible due to its protection level
                 //         _ = (delegate*<void>)&T.M05;
                 Diagnostic(ErrorCode.ERR_BadAccess, "M05").WithArguments("I1.M05()").WithLocation(38, 33),
@@ -22717,7 +23350,16 @@ public class C1 : I1
                                                      parseOptions: TestOptions.RegularPreview,
                                                      targetFramework: _supportingFramework);
 
-                CompileAndVerify(compilation3, sourceSymbolValidator: validate3, symbolValidator: validate3, verify: Verification.Skipped).VerifyDiagnostics();
+                compilation3.VerifyDiagnostics(
+                    // (4,28): error CS9044: 'C1' does not implement interface member 'I1.M01.get'. 'C1.M01.get' cannot implicitly implement an inaccessible member.
+                    //    public static int M01 { get; set; }
+                    Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "get").WithArguments("C1", "I1.M01.get", "C1.M01.get").WithLocation(4, 28),
+                    // (4,33): error CS9044: 'C1' does not implement interface member 'I1.M01.set'. 'C1.M01.set' cannot implicitly implement an inaccessible member.
+                    //    public static int M01 { get; set; }
+                    Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "set").WithArguments("C1", "I1.M01.set", "C1.M01.set").WithLocation(4, 33)
+                    );
+
+                validate3(compilation3.SourceModule);
 
                 void validate3(ModuleSymbol module)
                 {
@@ -22860,7 +23502,13 @@ public class C1 : I1
                                                      parseOptions: TestOptions.RegularPreview,
                                                      targetFramework: _supportingFramework);
 
-                CompileAndVerify(compilation3, sourceSymbolValidator: validate3, symbolValidator: validate3, verify: Verification.Skipped).VerifyDiagnostics();
+                compilation3.VerifyDiagnostics(
+                    // (4,33): error CS9044: 'C1' does not implement interface member 'I1.M01.set'. 'C1.M01.set' cannot implicitly implement an inaccessible member.
+                    //    public static int M01 { get; set; }
+                    Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "set").WithArguments("C1", "I1.M01.set", "C1.M01.set").WithLocation(4, 33)
+                    );
+
+                validate3(compilation3.SourceModule);
 
                 void validate3(ModuleSymbol module)
                 {
@@ -23027,7 +23675,10 @@ public class C1 : I1
                 compilation6.VerifyDiagnostics(
                     // (2,19): error CS0535: 'C1' does not implement interface member 'I1.M01.get'
                     // public class C1 : I1
-                    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C1", "I1.M01.get").WithLocation(2, 19)
+                    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C1", "I1.M01.get").WithLocation(2, 19),
+                    // (4,28): error CS9044: 'C1' does not implement interface member 'I1.M01.set'. 'C1.M01.set' cannot implicitly implement an inaccessible member.
+                    //    public static int M01 { set{} }
+                    Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "set").WithArguments("C1", "I1.M01.set", "C1.M01.set").WithLocation(4, 28)
                     );
 
                 c1 = compilation6.GlobalNamespace.GetTypeMember("C1");
@@ -23203,7 +23854,13 @@ public class C1 : I1
                                                      parseOptions: TestOptions.RegularPreview,
                                                      targetFramework: _supportingFramework);
 
-                CompileAndVerify(compilation3, sourceSymbolValidator: validate3, symbolValidator: validate3, verify: Verification.Skipped).VerifyDiagnostics();
+                compilation3.VerifyDiagnostics(
+                    // (4,28): error CS9044: 'C1' does not implement interface member 'I1.M01.get'. 'C1.M01.get' cannot implicitly implement an inaccessible member.
+                    //    public static int M01 { get; set; }
+                    Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "get").WithArguments("C1", "I1.M01.get", "C1.M01.get").WithLocation(4, 28)
+                    );
+
+                validate3(compilation3.SourceModule);
 
                 void validate3(ModuleSymbol module)
                 {
@@ -23370,7 +24027,10 @@ public class C1 : I1
                 compilation6.VerifyDiagnostics(
                     // (2,19): error CS0535: 'C1' does not implement interface member 'I1.M01.set'
                     // public class C1 : I1
-                    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C1", "I1.M01.set").WithLocation(2, 19)
+                    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C1", "I1.M01.set").WithLocation(2, 19),
+                    // (4,28): error CS9044: 'C1' does not implement interface member 'I1.M01.get'. 'C1.M01.get' cannot implicitly implement an inaccessible member.
+                    //    public static int M01 { get; }
+                    Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "get").WithArguments("C1", "I1.M01.get", "C1.M01.get").WithLocation(4, 28)
                     );
 
                 c1 = compilation6.GlobalNamespace.GetTypeMember("C1");
@@ -28914,12 +29574,21 @@ class C<T>
                 // (4,39): error CS0552: 'I1.implicit operator bool(I1)': user-defined conversions to or from an interface are not allowed
                 //     abstract static implicit operator bool(I1 x);
                 Diagnostic(ErrorCode.ERR_ConversionWithInterface, "bool").WithArguments("I1.implicit operator bool(I1)").WithLocation(4, 39),
+                // (7,34): error CS8920: The interface 'I1' cannot be used as type argument. Static member 'I1.implicit operator bool(I1)' does not have a most specific implementation in the interface.
+                //     static void M02((int, C<I1>) x)
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "x").WithArguments("I1", "I1.implicit operator bool(I1)").WithLocation(7, 34),
                 // (9,13): error CS0029: Cannot implicitly convert type 'I1' to 'bool'
                 //         _ = x == x;
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "x " + op + " x").WithArguments("I1", "bool").WithLocation(9, 13),
+                // (12,27): error CS8920: The interface 'I1' cannot be used as type argument. Static member 'I1.implicit operator bool(I1)' does not have a most specific implementation in the interface.
+                //     void M03((int, C<I1>) y)
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "y").WithArguments("I1", "I1.implicit operator bool(I1)").WithLocation(12, 27),
                 // (14,13): error CS0029: Cannot implicitly convert type 'I1' to 'bool'
                 //         _ = y == y;
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "y " + op + " y").WithArguments("I1", "bool").WithLocation(14, 13),
+                // (20,34): error CS8920: The interface 'I1' cannot be used as type argument. Static member 'I1.implicit operator bool(I1)' does not have a most specific implementation in the interface.
+                //     static void MT1((int, C<I1>) a)
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "a").WithArguments("I1", "I1.implicit operator bool(I1)").WithLocation(20, 34),
                 // (22,13): error CS0029: Cannot implicitly convert type 'I1' to 'bool'
                 //         _ = a == a;
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "a " + op + " a").WithArguments("I1", "bool").WithLocation(22, 13),
@@ -29905,7 +30574,7 @@ class Test
         [CombinatorialData]
         public void ConsumeAbstractConversionOperator_10([CombinatorialValues("implicit", "explicit")] string op)
         {
-            // Look in derived interfaces
+            // Look in base interfaces for source 
 
             string metadataName = ConversionOperatorName(op);
             bool needCast = op == "explicit";
@@ -29953,13 +30622,16 @@ class Test
         }
 
         [Theory]
-        [CombinatorialData]
-        public void ConsumeAbstractConversionOperator_11([CombinatorialValues("implicit", "explicit")] string op)
+        [InlineData("implicit", false)]
+        [InlineData("implicit", true)]
+        [InlineData("explicit", false)]
+        [InlineData("explicit", true)]
+        public void ConsumeAbstractConversionOperator_11(string op, bool useCast)
         {
             // Same as ConsumeAbstractConversionOperator_10 only direction of conversion is flipped
+            // Look in base interfaces for destination for explicit cast in code
 
             string metadataName = ConversionOperatorName(op);
-            bool needCast = op == "explicit";
 
             var source1 =
 @"
@@ -29975,7 +30647,7 @@ class Test
 {
     static T M02<T, U>(int x) where T : U where U : I2<T>
     {
-        return " + (needCast ? "(T)" : "") + @"x;
+        return " + (useCast ? "(T)" : "") + @"x;
     }
 }
 ";
@@ -29983,10 +30655,12 @@ class Test
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
-            var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
+            if (useCast)
+            {
+                var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
-            verifier.VerifyIL("Test.M02<T, U>(int)",
-@"
+                verifier.VerifyIL("Test.M02<T, U>(int)",
+    @"
 {
   // Code size       18 (0x12)
   .maxstack  1
@@ -30001,6 +30675,15 @@ class Test
   IL_0011:  ret
 }
 ");
+            }
+            else
+            {
+                compilation1.VerifyDiagnostics(
+                    // (14,16): error CS0266: Cannot implicitly convert type 'int' to 'T'. An explicit conversion exists (are you missing a cast?)
+                    //         return x;
+                    Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("int", "T").WithLocation(14, 16)
+                    );
+            }
         }
 
         [Theory]
@@ -30146,7 +30829,7 @@ class Test
         [CombinatorialData]
         public void ConsumeAbstractConversionOperator_15([CombinatorialValues("implicit", "explicit")] string op)
         {
-            // If there is a non-trivial class constraint, interfaces are not looked at.
+            // If there is an applicable candidate in effective base class, interfaces are not looked at.
 
             string metadataName = ConversionOperatorName(op);
             bool needCast = op == "explicit";
@@ -30248,7 +30931,7 @@ class Test
         [CombinatorialData]
         public void ConsumeAbstractConversionOperator_17([CombinatorialValues("implicit", "explicit")] string op)
         {
-            // If there is a non-trivial class constraint, interfaces are not looked at.
+            // If there is no applicable candidate in effective base class, look in interfaces.
 
             bool needCast = op == "explicit";
 
@@ -30274,16 +30957,32 @@ class Test
     {
         return " + (needCast ? "(int)" : "") + @"y;
     }
+
+    static void Main()
+    {
+        var c2 = new C2();
+        M02<C2, C2>(c2);
+        M03<C2, C2>(c2);
+    }
+}
+
+public class C2 : C1, I1<C2>
+{
+    public static " + op + @" operator int(C2 x)
+    {
+        System.Console.WriteLine(""C2 conversion"");
+        return default;
+    }
 }
 ";
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
-            compilation1.VerifyDiagnostics(
-                // (15,16): error CS0030: Cannot convert type 'T' to 'int'
-                //         return (int)x;
-                Diagnostic((op == "explicit" ? ErrorCode.ERR_NoExplicitConv : ErrorCode.ERR_NoImplicitConv), (needCast ? "(int)" : "") + "x").WithArguments("T", "int").WithLocation(15, 16)
-                );
+
+            CompileAndVerify(compilation1, verify: Verification.Skipped, expectedOutput: !Execute(isVirtual: false) ? null : @"
+C2 conversion
+C2 conversion
+").VerifyDiagnostics();
         }
 
         [Theory]
@@ -30316,16 +31015,84 @@ class Test
     {
         return " + (needCast ? "(T)" : "") + @"y;
     }
+
+    static void Main()
+    {
+        M02<C2, C2>(0);
+        M03<C2, C2>(1);
+    }
+}
+
+public class C2 : C1, I1<C2>
+{
+    public static " + op + @" operator C2(int x)
+    {
+        System.Console.WriteLine(""C2 conversion"");
+        return default;
+    }
 }
 ";
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
-            compilation1.VerifyDiagnostics(
-                // (15,16): error CS0030: Cannot convert type 'int' to 'T'
-                //         return (T)x;
-                Diagnostic((op == "explicit" ? ErrorCode.ERR_NoExplicitConv : ErrorCode.ERR_NoImplicitConv), (needCast ? "(T)" : "") + "x").WithArguments("int", "T").WithLocation(15, 16)
-                );
+
+            CompileAndVerify(compilation1, verify: Verification.Skipped, expectedOutput: !Execute(isVirtual: false) ? null : @"
+C2 conversion
+C2 conversion
+").VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(56753, "https://github.com/dotnet/roslyn/issues/56753")]
+        public void ConsumeAbstractConversionOperator_19()
+        {
+            var source1 =
+@"
+interface I1 { }
+
+abstract class Base : I1 {}
+
+interface I2<T> where T : class, I2<T>
+{ 
+    public static abstract implicit operator T(string value);
+}
+
+class Derived : Base, I2<Derived>
+{
+    public static implicit operator Derived(string value)
+    { 
+        System.Console.WriteLine(""Derived conversion"");
+        return default;
+    }
+}
+
+static class Util 
+{
+    static void Method1<T>(string value) where T : Base, I2<T>
+    {
+        var newT = (T)value;
+    }
+
+    static void Method2<T>(string value) where T : class, I1, I2<T>
+    {
+        var newT = (T)value;
+    }
+
+    static void Main()
+    {
+        Method1<Derived>("""");
+        Method2<Derived>("""");
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework);
+
+            CompileAndVerify(compilation1, verify: Verification.Skipped, expectedOutput: !Execute(isVirtual: false) ? null : @"
+Derived conversion
+Derived conversion
+").VerifyDiagnostics();
         }
 
         [Theory]

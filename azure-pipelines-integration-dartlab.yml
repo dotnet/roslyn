@@ -20,7 +20,7 @@ resources:
     endpoint: dnceng/internal dotnet-roslyn
     type: git
     name: internal/dotnet-roslyn
-    ref: $(Build.SourceBranchName)
+    ref: $(Build.SourceBranch)
     trigger:
     - main
 

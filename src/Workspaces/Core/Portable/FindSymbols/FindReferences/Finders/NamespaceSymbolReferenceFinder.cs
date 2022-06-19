@@ -4,18 +4,19 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
     internal class NamespaceSymbolReferenceFinder : AbstractReferenceFinder<INamespaceSymbol>
     {
-        private static readonly SymbolDisplayFormat s_globalNamespaceFormat = new(SymbolDisplayGlobalNamespaceStyle.Included);
-
         protected override bool CanFind(INamespaceSymbol symbol)
             => true;
 
@@ -34,9 +35,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             using var _ = ArrayBuilder<Document>.GetInstance(out var result);
 
-            var namespaceName = GetNamespaceIdentifierName(symbol);
-            result.AddRange(await FindDocumentsAsync(
-                project, documents, cancellationToken, namespaceName).ConfigureAwait(false));
+            result.AddRange(!symbol.IsGlobalNamespace
+                ? await FindDocumentsAsync(project, documents, cancellationToken, symbol.Name).ConfigureAwait(false)
+                : await FindDocumentsAsync(project, documents, async (d, c) =>
+                {
+                    var index = await d.GetSyntaxTreeIndexAsync(c).ConfigureAwait(false);
+                    return index.ContainsGlobalKeyword;
+                }, cancellationToken).ConfigureAwait(false));
 
             if (globalAliases != null)
             {
@@ -53,13 +58,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return result.ToImmutable();
         }
 
-        private static string GetNamespaceIdentifierName(INamespaceSymbol symbol)
-        {
-            return symbol.IsGlobalNamespace
-                ? symbol.ToDisplayString(s_globalNamespaceFormat)
-                : symbol.Name;
-        }
-
         protected override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             INamespaceSymbol symbol,
             HashSet<string>? globalAliases,
@@ -69,35 +67,43 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var namespaceName = GetNamespaceIdentifierName(symbol);
-
             using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var initialReferences);
 
-            await AddReferencesAsync(
-                symbol, namespaceName, document, semanticModel,
-                initialReferences, cancellationToken).ConfigureAwait(false);
-
-            if (globalAliases != null)
+            if (symbol.IsGlobalNamespace)
             {
-                foreach (var globalAlias in globalAliases)
-                {
-                    // ignore the cases where the global alias might match the namespace name (i.e.
-                    // global alias Collections = System.Collections).  We'll already find those references
-                    // above.
-                    if (syntaxFacts.StringComparer.Equals(namespaceName, globalAlias))
-                        continue;
-
-                    await AddReferencesAsync(
-                        symbol, globalAlias, document, semanticModel,
-                        initialReferences, cancellationToken).ConfigureAwait(false);
-                }
+                await AddGlobalNamespaceReferencesAsync(
+                    symbol, document, semanticModel,
+                    initialReferences, cancellationToken).ConfigureAwait(false);
             }
+            else
+            {
+                var namespaceName = symbol.Name;
+                await AddNamedReferencesAsync(
+                    symbol, namespaceName, document, semanticModel,
+                    initialReferences, cancellationToken).ConfigureAwait(false);
 
-            initialReferences.AddRange(await FindLocalAliasReferencesAsync(
-                initialReferences, symbol, document, semanticModel, cancellationToken).ConfigureAwait(false));
+                if (globalAliases != null)
+                {
+                    foreach (var globalAlias in globalAliases)
+                    {
+                        // ignore the cases where the global alias might match the namespace name (i.e.
+                        // global alias Collections = System.Collections).  We'll already find those references
+                        // above.
+                        if (syntaxFacts.StringComparer.Equals(namespaceName, globalAlias))
+                            continue;
 
-            initialReferences.AddRange(await FindReferencesInDocumentInsideGlobalSuppressionsAsync(
-                document, semanticModel, symbol, cancellationToken).ConfigureAwait(false));
+                        await AddNamedReferencesAsync(
+                            symbol, globalAlias, document, semanticModel,
+                            initialReferences, cancellationToken).ConfigureAwait(false);
+                    }
+                }
+
+                initialReferences.AddRange(await FindLocalAliasReferencesAsync(
+                    initialReferences, symbol, document, semanticModel, cancellationToken).ConfigureAwait(false));
+
+                initialReferences.AddRange(await FindReferencesInDocumentInsideGlobalSuppressionsAsync(
+                    document, semanticModel, symbol, cancellationToken).ConfigureAwait(false));
+            }
 
             return initialReferences.ToImmutable();
         }
@@ -107,7 +113,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// only if it referenced though <paramref name="name"/> (which might be the actual name
         /// of the type, or a global alias to it).
         /// </summary>
-        private static async Task AddReferencesAsync(
+        private static async Task AddNamedReferencesAsync(
             INamespaceSymbol symbol,
             string name,
             Document document,
@@ -117,7 +123,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-            var tokens = await GetIdentifierOrGlobalNamespaceTokensWithTextAsync(
+            var tokens = await GetIdentifierTokensWithTextAsync(
                 document, semanticModel, name, cancellationToken).ConfigureAwait(false);
 
             initialReferences.AddRange(await FindReferencesInTokensAsync(
@@ -125,7 +131,36 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 document,
                 semanticModel,
                 tokens,
-                t => syntaxFacts.TextMatch(t.ValueText, name),
+                t =>
+                {
+                    Debug.Assert(syntaxFacts.TextMatch(t.ValueText, name));
+                    return true;
+                },
+                cancellationToken).ConfigureAwait(false));
+        }
+
+        private static async Task AddGlobalNamespaceReferencesAsync(
+            INamespaceSymbol symbol,
+            Document document,
+            SemanticModel semanticModel,
+            ArrayBuilder<FinderLocation> initialReferences,
+            CancellationToken cancellationToken)
+        {
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var tokens = root.DescendantTokens().Where(syntaxFacts.IsGlobalNamespaceKeyword);
+
+            initialReferences.AddRange(await FindReferencesInTokensAsync(
+                symbol,
+                document,
+                semanticModel,
+                tokens,
+                t =>
+                {
+                    Debug.Assert(syntaxFacts.IsGlobalNamespaceKeyword(t));
+                    return true;
+                },
                 cancellationToken).ConfigureAwait(false));
         }
     }

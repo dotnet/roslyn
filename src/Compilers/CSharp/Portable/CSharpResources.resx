@@ -2058,7 +2058,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Inconsistent accessibility: constraint type '{1}' is less accessible than '{0}'</value>
   </data>
   <data name="ERR_LookupInTypeVariable" xml:space="preserve">
-    <value>Cannot do member lookup in '{0}' because it is a type parameter</value>
+    <value>Cannot do non-virtual member lookup in '{0}' because it is a type parameter</value>
   </data>
   <data name="ERR_BadConstraintType" xml:space="preserve">
     <value>Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.</value>
@@ -6670,9 +6670,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureInferredDelegateType" xml:space="preserve">
     <value>inferred delegate type</value>
   </data>
-  <data name="IDS_FeatureLineSpanDirective" xml:space="preserve">
-    <value>line span directive</value>
-  </data>
   <data name="IDS_FeatureAutoDefaultStructs" xml:space="preserve">
     <value>auto default struct fields</value>
   </data>
@@ -6681,6 +6678,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_LineSpanDirectiveEndLessThanStart" xml:space="preserve">
     <value>The #line directive end position must be greater than or equal to the start position</value>
+  </data>
+  <data name="ERR_LineSpanDirectiveRequiresSpace" xml:space="preserve">
+    <value>The #line span directive requires space before the first parenthesis, before the character offset, and before the file name</value>
   </data>
   <data name="WRN_DoNotCompareFunctionPointers" xml:space="preserve">
     <value>Comparison of function pointers might yield an unexpected result, since pointers to the same function may be distinct.</value>
@@ -6887,7 +6887,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Target runtime doesn't support static abstract members in interfaces.</value>
   </data>
   <data name="ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers" xml:space="preserve">
-    <value>The interface '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. The constraint interface '{1}' or its base interface has static abstract or virtual members.</value>
+    <value>The interface '{0}' cannot be used as type argument. Static member '{1}' does not have a most specific implementation in the interface.</value>
   </data>
   <data name="ERR_BadAbstractUnaryOperatorSignature" xml:space="preserve">
     <value>The parameter of a unary operator must be the containing type, or its type parameter constrained to it.</value>
@@ -7123,5 +7123,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_MisplacedUnchecked" xml:space="preserve">
     <value>Unexpected keyword 'unchecked'</value>
+  </data>
+  <data name="ERR_ImplicitImplementationOfInaccessibleInterfaceMember" xml:space="preserve">
+    <value>'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement an inaccessible member.</value>
+  </data>
+  <data name="ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers" xml:space="preserve">
+    <value>Required members are not allowed on the top level of a script or submission.</value>
   </data>
 </root>

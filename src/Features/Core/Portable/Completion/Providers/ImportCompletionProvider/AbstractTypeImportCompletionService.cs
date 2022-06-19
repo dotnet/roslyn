@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 var solution = currentProject.Solution;
                 var graph = solution.GetProjectDependencyGraph();
-                var referencedProjects = graph.GetProjectsThatThisProjectTransitivelyDependsOn(currentProject.Id).Select(id => solution.GetRequiredProject(id)).Where(p => p.SupportsCompilation);
+                var referencedProjects = graph.GetProjectsThatThisProjectTransitivelyDependsOn(currentProject.Id).Select(solution.GetRequiredProject).Where(p => p.SupportsCompilation);
 
                 projectsBuilder.Add(currentProject);
                 projectsBuilder.AddRange(referencedProjects);

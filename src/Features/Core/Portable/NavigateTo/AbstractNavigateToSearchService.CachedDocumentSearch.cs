@@ -64,8 +64,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
             var onItemFound = GetOnItemFoundCallback(solution, onResultFound, cancellationToken);
 
-            var documentKeys = project.Documents.SelectAsArray(d => DocumentKey.ToDocumentKey(d));
-            var priorityDocumentKeys = priorityDocuments.SelectAsArray(d => DocumentKey.ToDocumentKey(d));
+            var documentKeys = project.Documents.SelectAsArray(DocumentKey.ToDocumentKey);
+            var priorityDocumentKeys = priorityDocuments.SelectAsArray(DocumentKey.ToDocumentKey);
             if (client != null)
             {
                 var callback = new NavigateToSearchServiceCallback(onItemFound);
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         private static async Task SearchCachedDocumentsInCurrentProcessAsync(
             IChecksummedPersistentStorageService storageService,
             string patternName,
-            string patternContainer,
+            string? patternContainer,
             DeclaredSymbolInfoKindSet kinds,
             Func<RoslynNavigateToItem, Task> onItemFound,
             ImmutableArray<DocumentKey> documentKeys,

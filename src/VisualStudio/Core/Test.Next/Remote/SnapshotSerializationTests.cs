@@ -53,9 +53,6 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         internal static Solution CreateFullSolution(Workspace workspace)
         {
             var solution = workspace.CurrentSolution;
-            var languages = ImmutableHashSet.Create(LanguageNames.CSharp, LanguageNames.VisualBasic);
-            var solutionOptions = solution.Workspace.Services.GetRequiredService<IOptionService>().GetSerializableOptionsSnapshot(languages);
-            solution = solution.WithOptions(solutionOptions);
 
             var csCode = "class A { }";
             var project1 = solution.AddProject("Project", "Project.dll", LanguageNames.CSharp);
@@ -372,52 +369,6 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         }
 
         [Fact]
-        public async Task OptionSet_Serialization()
-        {
-            using var workspace = CreateWorkspace()
-                .CurrentSolution.AddProject("Project1", "Project.dll", LanguageNames.CSharp)
-                .Solution.AddProject("Project2", "Project2.dll", LanguageNames.VisualBasic)
-                .Solution.Workspace;
-            await VerifyOptionSetsAsync(workspace, _ => { }).ConfigureAwait(false);
-        }
-
-        [Fact]
-        public async Task OptionSet_Serialization_CustomValue()
-        {
-            using var workspace = CreateWorkspace();
-
-            var newQualifyFieldAccessValue = new CodeStyleOption2<bool>(false, NotificationOption2.Error);
-            var newQualifyMethodAccessValue = new CodeStyleOption2<bool>(true, NotificationOption2.Warning);
-            var newVarWhenTypeIsApparentValue = new CodeStyleOption2<bool>(false, NotificationOption2.Suggestion);
-            var newPreferIntrinsicPredefinedTypeKeywordInMemberAccessValue = new CodeStyleOption2<bool>(true, NotificationOption2.Silent);
-
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                                                 .WithChangedOption(CodeStyleOptions2.QualifyFieldAccess, LanguageNames.CSharp, newQualifyFieldAccessValue)
-                                                 .WithChangedOption(CodeStyleOptions2.QualifyMethodAccess, LanguageNames.VisualBasic, newQualifyMethodAccessValue)
-                                                 .WithChangedOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, newVarWhenTypeIsApparentValue)
-                                                 .WithChangedOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, LanguageNames.VisualBasic, newPreferIntrinsicPredefinedTypeKeywordInMemberAccessValue)));
-
-            var validator = new SerializationValidator(workspace.Services);
-
-            await VerifyOptionSetsAsync(workspace, VerifyOptions).ConfigureAwait(false);
-
-            void VerifyOptions(OptionSet options)
-            {
-                var actualQualifyFieldAccessValue = options.GetOption(CodeStyleOptions2.QualifyFieldAccess, LanguageNames.CSharp);
-                Assert.Equal(newQualifyFieldAccessValue, actualQualifyFieldAccessValue);
-
-                var actualQualifyMethodAccessValue = options.GetOption(CodeStyleOptions2.QualifyMethodAccess, LanguageNames.VisualBasic);
-                Assert.Equal(newQualifyMethodAccessValue, actualQualifyMethodAccessValue);
-
-                var actualVarWhenTypeIsApparentValue = options.GetOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent);
-                Assert.Equal(newVarWhenTypeIsApparentValue, actualVarWhenTypeIsApparentValue);
-
-                var actualPreferIntrinsicPredefinedTypeKeywordInMemberAccessValue = options.GetOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, LanguageNames.VisualBasic);
-                Assert.Equal(newPreferIntrinsicPredefinedTypeKeywordInMemberAccessValue, actualPreferIntrinsicPredefinedTypeKeywordInMemberAccessValue);
-            }
-        }
-
-        [Fact]
         public void Missing_Metadata_Serialization_Test()
         {
             using var workspace = CreateWorkspace();
@@ -575,17 +526,6 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var recovered = await validator.GetSolutionAsync(snapshot).ConfigureAwait(false);
         }
 
-        [Fact, WorkItem(44791, "https://github.com/dotnet/roslyn/issues/44791")]
-        public async Task UnknownLanguageOptionsTest()
-        {
-            using var workspace = CreateWorkspace(new[] { typeof(NoCompilationLanguageServiceFactory) });
-            var project = workspace.CurrentSolution.AddProject("Project", "Project.dll", NoCompilationConstants.LanguageName)
-                .Solution.AddProject("Project2", "Project2.dll", LanguageNames.CSharp);
-            workspace.TryApplyChanges(project.Solution);
-
-            await VerifyOptionSetsAsync(workspace, verifyOptionValues: _ => { });
-        }
-
         [Fact]
         public async Task EmptyAssetChecksumTest()
         {
@@ -732,35 +672,6 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
                 Assert.Equal(original, recovered);
             }
-        }
-
-        private static async Task VerifyOptionSetsAsync(Workspace workspace, Action<OptionSet> verifyOptionValues)
-        {
-            var solution = workspace.CurrentSolution;
-
-            verifyOptionValues(workspace.Options);
-            verifyOptionValues(solution.Options);
-
-            var validator = new SerializationValidator(workspace.Services);
-
-            using var scope = await validator.AssetStorage.StoreAssetsAsync(solution, CancellationToken.None).ConfigureAwait(false);
-            var checksum = scope.SolutionChecksum;
-            var solutionObject = await validator.GetValueAsync<SolutionStateChecksums>(checksum).ConfigureAwait(false);
-
-            await validator.VerifyChecksumInServiceAsync(solutionObject.Attributes, WellKnownSynchronizationKind.SolutionAttributes);
-
-            var recoveredSolution = await validator.GetSolutionAsync(scope);
-
-            // option should be exactly same
-            Assert.Equal(0, recoveredSolution.Options.GetChangedOptions(workspace.Options).Count());
-
-            verifyOptionValues(workspace.Options);
-            verifyOptionValues(recoveredSolution.Options);
-
-            // checksum for recovered solution should be the same.
-            using var recoveredScope = await validator.AssetStorage.StoreAssetsAsync(recoveredSolution, CancellationToken.None).ConfigureAwait(false);
-            var recoveredChecksum = recoveredScope.SolutionChecksum;
-            Assert.Equal(checksum, recoveredChecksum);
         }
 
         private static SolutionAsset CloneAsset(ISerializerService serializer, SolutionAsset asset)

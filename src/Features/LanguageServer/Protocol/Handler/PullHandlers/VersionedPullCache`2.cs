@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
@@ -21,13 +22,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private readonly string _uniqueKey;
 
         /// <summary>
-        /// Lock to protect <see cref="_documentIdToLastResult"/> and <see cref="_nextDocumentResultId"/>.
+        /// Lock to protect <see cref="_idToLastReportedResult"/> and <see cref="_nextDocumentResultId"/>.
         /// This enables this type to be used by request handlers that process requests concurrently.
         /// </summary>
         private readonly SemaphoreSlim _semaphore = new(1);
 
         /// <summary>
-        /// Mapping of a document to the data used to make the last pull report which contains:
+        /// Mapping of a diagnostic source to the data used to make the last pull report which contains:
         /// <list type="bullet">
         ///   <item>The resultId reported to the client.</item>
         ///   <item>The TCheapVersion of the data that was used to calculate results.
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// </list>
         /// This is used to determine if we need to re-calculate results.
         /// </summary>
-        private readonly Dictionary<(Workspace workspace, DocumentId documentId), (string resultId, TCheapVersion cheapVersion, TExpensiveVersion expensiveVersion)> _documentIdToLastResult = new();
+        private readonly Dictionary<(Workspace workspace, ProjectOrDocumentId id), (string resultId, TCheapVersion cheapVersion, TExpensiveVersion expensiveVersion)> _idToLastReportedResult = new();
 
         /// <summary>
         /// The next available id to label results with.  Note that results are tagged on a per-document bases.  That
@@ -56,12 +57,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// If results have changed since the last request this calculates and returns a new
         /// non-null resultId to use for subsequent computation and caches it.
         /// </summary>
-        /// <param name="documentToPreviousResult">the resultIds the client sent us.</param>
-        /// <param name="document">the document we are currently calculating results for.</param>
+        /// <param name="idToClientLastResult">a map of roslyn document or project id to the previous result the client sent us for that doc.</param>
+        /// <param name="projectOrDocumentId">the id of the project or document that we are checking to see if it has changed.</param>
         /// <returns>Null when results are unchanged, otherwise returns a non-null new resultId.</returns>
         public async Task<string?> GetNewResultIdAsync(
-            Dictionary<Document, PreviousPullResult> documentToPreviousResult,
-            Document document,
+            Dictionary<ProjectOrDocumentId, PreviousPullResult> idToClientLastResult,
+            ProjectOrDocumentId projectOrDocumentId,
+            Project project,
             Func<Task<TCheapVersion>> computeCheapVersionAsync,
             Func<Task<TExpensiveVersion>> computeExpensiveVersionAsync,
             CancellationToken cancellationToken)
@@ -69,15 +71,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             TCheapVersion cheapVersion;
             TExpensiveVersion expensiveVersion;
 
-            var workspace = document.Project.Solution.Workspace;
+            var workspace = project.Solution.Workspace;
 
             // We have to make sure we've been fully loaded before using cached results as the previous results may not be complete.
-            var isFullyLoaded = await IsFullyLoadedAsync(document.Project.Solution, cancellationToken).ConfigureAwait(false);
+            var isFullyLoaded = await IsFullyLoadedAsync(project.Solution, cancellationToken).ConfigureAwait(false);
             using (await _semaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                if (isFullyLoaded && documentToPreviousResult.TryGetValue(document, out var previousResult) &&
+                if (isFullyLoaded && idToClientLastResult.TryGetValue(projectOrDocumentId, out var previousResult) &&
                     previousResult.PreviousResultId != null &&
-                    _documentIdToLastResult.TryGetValue((workspace, document.Id), out var lastResult) &&
+                    _idToLastReportedResult.TryGetValue((workspace, projectOrDocumentId), out var lastResult) &&
                     lastResult.resultId == previousResult.PreviousResultId)
                 {
                     cheapVersion = await computeCheapVersionAsync().ConfigureAwait(false);
@@ -117,7 +119,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 // Note that we can safely update the map before computation as any cancellation or exception
                 // during computation means that the client will never recieve this resultId and so cannot ask us for it.
                 var newResultId = $"{_uniqueKey}:{_nextDocumentResultId++}";
-                _documentIdToLastResult[(document.Project.Solution.Workspace, document.Id)] = (newResultId, cheapVersion, expensiveVersion);
+                _idToLastReportedResult[(project.Solution.Workspace, projectOrDocumentId)] = (newResultId, cheapVersion, expensiveVersion);
                 return newResultId;
             }
         }
