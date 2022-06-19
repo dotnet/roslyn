@@ -107,7 +107,7 @@ IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'A')
   IObjectCreationOperation (Constructor: Sub AAttribute..ctor([callerName As System.String = ""])) (OperationKind.ObjectCreation, Type: AAttribute, IsImplicit) (Syntax: 'A')
     Arguments(1):
         IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: callerName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'A')
-            ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "", IsImplicit) (Syntax: 'A')
+            ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "M", IsImplicit) (Syntax: 'A')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
     Initializer:
@@ -137,13 +137,12 @@ Class Test
     End Sub
 End Class
 ]]>.Value
-            ' PROTOTYPE: Looks like ILiteralOperation constant value is wrong? it should be "M"
             Dim expectedOperationTree = <![CDATA[
 IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My')
-  IObjectCreationOperation (Constructor: Sub MyAttribute..ctor([callerName As System.String = """"])) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My')
+  IObjectCreationOperation (Constructor: Sub MyAttribute..ctor([callerName As System.String = ""])) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My')
     Arguments(1):
         IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: callerName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'My')
-          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: """", IsImplicit) (Syntax: 'My')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "M", IsImplicit) (Syntax: 'My')
           InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
     Initializer:

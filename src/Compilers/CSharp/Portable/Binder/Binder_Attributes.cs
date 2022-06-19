@@ -124,8 +124,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var boundAttribute = new ExecutableCodeBinder(node, this.ContainingMemberOrLambda, this).BindAttribute(node, boundAttributeType, (this as ContextualAttributeBinder)?.AttributeTarget, diagnostics);
             afterAttributePartBound?.Invoke(node);
             return (GetAttribute(boundAttribute, diagnostics), boundAttribute);
-
-
         }
 
         internal BoundAttribute BindAttribute(AttributeSyntax node, NamedTypeSymbol attributeType, Symbol? attributeTarget, BindingDiagnosticBag diagnostics)

@@ -17,16 +17,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary> Root syntax node </summary>
         Private ReadOnly _root As VisualBasicSyntaxNode
 
-        Public Sub New(containingBinder As Binder, tree As SyntaxTree, Optional node As VisualBasicSyntaxNode = Nothing)
+        Private ReadOnly _attributeTarget As Symbol
+
+        Public Sub New(containingBinder As Binder, tree As SyntaxTree, node As VisualBasicSyntaxNode)
             MyBase.New(containingBinder, tree)
 
             _root = node
+        End Sub
+
+        Public Sub New(containingBinder As Binder, tree As SyntaxTree, attributeTarget As Symbol)
+            MyBase.New(containingBinder, tree)
+
+            _attributeTarget = attributeTarget
         End Sub
 
         ''' <summary> Field or property declaration statement syntax node </summary>
         Friend ReadOnly Property Root As VisualBasicSyntaxNode
             Get
                 Return _root
+            End Get
+        End Property
+
+        Friend ReadOnly Property AttributeTarget As Symbol
+            Get
+                Return _attributeTarget
             End Get
         End Property
 
