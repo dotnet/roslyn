@@ -57,18 +57,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             targetToken As SyntaxToken,
             isAttributeNameContext As Boolean,
             isAwaitKeywordContext As Boolean,
-            isClassInheritanceContext As Boolean,
-            isClassImplementsInterfaceContext As Boolean,
             IsCustomEventContext As Boolean,
             isEnumTypeMemberAccessContext As Boolean,
             isAnyExpressionContext As Boolean,
             isGenericConstraintContext As Boolean,
             isGlobalStatementContext As Boolean,
-            isOnArgumentListBracketOrComma As Boolean,
+            isInheritanceRequiringClassContext As Boolean,
+            isInheritanceRequiringInterfaceContext As Boolean,
+            IsOnArgumentListBracketOrComma As Boolean,
             isInImportsDirective As Boolean,
             isInLambda As Boolean,
             isInQuery As Boolean,
-            isInterfaceInheritanceContext As Boolean,
             isNameOfContext As Boolean,
             isNamespaceContext As Boolean,
             isNamespaceDeclarationNameContext As Boolean,
@@ -78,7 +77,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             isRightOfNameSeparator As Boolean,
             isRightSideOfNumericType As Boolean,
             isStatementContext As Boolean,
-            isStructImplementsInterfaceContext As Boolean,
             isTaskLikeTypeContext As Boolean,
             isTypeContext As Boolean,
             isWithinAsyncMethod As Boolean,
@@ -95,25 +93,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 isAtStartOfPattern:=False,
                 isAttributeNameContext:=isAttributeNameContext,
                 isAwaitKeywordContext:=isAwaitKeywordContext,
-                isClassInheritanceContext:=isClassInheritanceContext,
-                isClassImplementsInterfaceContext:=isClassImplementsInterfaceContext,
                 isEnumTypeMemberAccessContext:=isEnumTypeMemberAccessContext,
                 isGenericConstraintContext:=isGenericConstraintContext,
                 isGlobalStatementContext:=isGlobalStatementContext,
+                isInheritanceRequiringClassContext:=isInheritanceRequiringClassContext,
+                isInheritanceRequiringInterfaceContext:=isInheritanceRequiringInterfaceContext,
                 isInImportsDirective:=isInImportsDirective,
                 isInQuery:=isInQuery,
-                isInterfaceInheritanceContext:=isInterfaceInheritanceContext,
                 isNameOfContext:=isNameOfContext,
                 isNamespaceContext,
                 isNamespaceDeclarationNameContext,
-                isOnArgumentListBracketOrComma:=isOnArgumentListBracketOrComma,
+                isOnArgumentListBracketOrComma:=IsOnArgumentListBracketOrComma,
                 isPossibleTupleContext:=isPossibleTupleContext,
                 isPreProcessorDirectiveContext:=isPreProcessorDirectiveContext,
                 isPreProcessorExpressionContext:=isPreProcessorExpressionContext,
                 isRightOfNameSeparator:=isRightOfNameSeparator,
                 isRightSideOfNumericType:=isRightSideOfNumericType,
                 isStatementContext:=isStatementContext,
-                isStructImplementsInterfaceContext:=isStructImplementsInterfaceContext,
                 isTaskLikeTypeContext:=isTaskLikeTypeContext,
                 isTypeContext:=isTypeContext,
                 isWithinAsyncMethod:=isWithinAsyncMethod,
@@ -155,6 +151,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             Return False
         End Function
 
+        Private Shared Function ComputeIsInheritanceRequiringClassContext(targetToken As SyntaxToken) As Boolean
+            If targetToken.IsChildToken(Of InheritsStatementSyntax)(Function(n) n.InheritsKeyword) AndAlso targetToken.HasAncestor(Of ClassBlockSyntax)() Then
+                Return True
+            End If
+
+            Return targetToken.IsChildToken(Of QualifiedNameSyntax)(Function(n) n.DotToken) AndAlso
+                   targetToken.Parent?.FirstAncestorOrSelf(Of InheritsStatementSyntax) IsNot Nothing AndAlso
+                   targetToken.HasAncestor(Of ClassBlockSyntax)()
+        End Function
+
+        Private Shared Function ComputeIsInheritanceRequiringInterfaceContext(targetToken As SyntaxToken) As Boolean
+            ' Class Implements interface
+            If targetToken.IsChildToken(Of ImplementsStatementSyntax)(Function(n) n.ImplementsKeyword) AndAlso Not targetToken.HasAncestor(Of InterfaceBlockSyntax)() Then
+                Return True
+            End If
+
+            ' Interface Inherits interface
+            If targetToken.IsChildToken(Of InheritsStatementSyntax)(Function(n) n.InheritsKeyword) AndAlso targetToken.HasAncestor(Of InterfaceBlockSyntax)() Then
+                Return True
+            End If
+
+            Return targetToken.IsChildToken(Of QualifiedNameSyntax)(Function(n) n.DotToken) AndAlso
+                   targetToken.Parent?.FirstAncestorOrSelf(Of ImplementsStatementSyntax) IsNot Nothing AndAlso
+                   Not targetToken.HasAncestor(Of InterfaceBlockSyntax)()
+        End Function
+
         Private Shared Shadows Function ComputeIsWithinAsyncMethod(targetToken As SyntaxToken) As Boolean
             Dim enclosingMethod = targetToken.GetAncestor(Of MethodBlockBaseSyntax)()
             Return enclosingMethod IsNot Nothing AndAlso enclosingMethod.BlockStatement.Modifiers.Any(SyntaxKind.AsyncKeyword)
@@ -178,27 +200,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 isAnyExpressionContext:=isAnyExpressionContext,
                 isAttributeNameContext:=syntaxTree.IsAttributeNameContext(position, targetToken, cancellationToken),
                 isAwaitKeywordContext:=ComputeIsAwaitKeywordContext(targetToken, isAnyExpressionContext, isInQuery, isStatementContext),
-                isClassInheritanceContext:=False, ' TODO
-                isClassImplementsInterfaceContext:=False, ' TODO
                 IsCustomEventContext:=targetToken.GetAncestor(Of EventBlockSyntax)() IsNot Nothing,
                 isEnumTypeMemberAccessContext:=syntaxTree.IsEnumTypeMemberAccessContext(position, targetToken, semanticModel, cancellationToken),
                 isGenericConstraintContext:=targetToken.Parent.IsKind(SyntaxKind.TypeParameterSingleConstraintClause, SyntaxKind.TypeParameterMultipleConstraintClause),
                 isGlobalStatementContext:=syntaxTree.IsGlobalStatementContext(position, cancellationToken),
+                isInheritanceRequiringClassContext:=ComputeIsInheritanceRequiringClassContext(targetToken),
+                isInheritanceRequiringInterfaceContext:=ComputeIsInheritanceRequiringInterfaceContext(targetToken),
                 isInImportsDirective:=leftToken.GetAncestor(Of ImportsStatementSyntax)() IsNot Nothing,
                 isInLambda:=leftToken.GetAncestor(Of LambdaExpressionSyntax)() IsNot Nothing,
                 isInQuery:=isInQuery,
-                isInterfaceInheritanceContext:=False, ' TODO
                 isNameOfContext:=syntaxTree.IsNameOfContext(position, cancellationToken),
                 isNamespaceContext:=syntaxTree.IsNamespaceContext(position, targetToken, cancellationToken, semanticModel),
                 isNamespaceDeclarationNameContext:=syntaxTree.IsNamespaceDeclarationNameContext(position, cancellationToken),
-                isOnArgumentListBracketOrComma:=targetToken.Parent.IsKind(SyntaxKind.ArgumentList),
+                IsOnArgumentListBracketOrComma:=targetToken.Parent.IsKind(SyntaxKind.ArgumentList),
                 isPossibleTupleContext:=syntaxTree.IsPossibleTupleContext(targetToken, position),
                 isPreProcessorDirectiveContext:=syntaxTree.IsInPreprocessorDirectiveContext(position, cancellationToken),
                 isPreProcessorExpressionContext:=syntaxTree.IsInPreprocessorExpressionContext(position, cancellationToken),
                 isRightOfNameSeparator:=syntaxTree.IsRightOfDot(position, cancellationToken),
                 isRightSideOfNumericType:=False,
                 isStatementContext:=isStatementContext,
-                isStructImplementsInterfaceContext:=False, ' TODO
                 isTaskLikeTypeContext:=ComputeIsTaskLikeTypeContext(targetToken),
                 isTypeContext:=syntaxTree.IsTypeContext(position, targetToken, cancellationToken, semanticModel),
                 isWithinAsyncMethod:=ComputeIsWithinAsyncMethod(targetToken),

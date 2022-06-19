@@ -1485,19 +1485,227 @@ class CL<T> where T : A, $$", @"Test");
             await VerifyItemExistsAsync(@"class CL<T1> { void M<T2>() where $$", @"T2");
         }
 
+        #region Inheritance
+
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task BaseList1()
         {
-            await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"class CL : $$"), @"String");
+            await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"class CL : $$"), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"class CL : $$"), @"System");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task BaseList2()
         {
-            await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"class CL : B, $$"), @"String");
+            await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"class CL : B, $$"), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"class CL : B, $$"), @"System");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task BaseList_NotStaticClass()
+        {
+            await VerifyItemIsAbsentAsync(@"
+static class C {}
+
+class B : $$
+", "C");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task BaseList_NotSealedClass()
+        {
+            await VerifyItemIsAbsentAsync(@"
+sealed class C {}
+
+class B : $$
+", "C");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task BaseList_StaticClass_ValidNestedTypes()
+        {
+            await VerifyItemExistsAsync(@"
+static class C
+{
+    class N {}
+}
+
+class B : $$
+", "C");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task BaseList_SealedClass_ValidNestedTypes()
+        {
+            await VerifyItemExistsAsync(@"
+sealed class C
+{
+    class N {}
+}
+
+class B : $$
+", "C");
+        }
+
+        [WorkItem(60935, "https://github.com/dotnet/roslyn/issues/60935")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task BaseList_NotSelfClass()
+        {
+            await VerifyItemIsAbsentAsync(@"
+class B : $$
+", "B");
+        }
+
+        [WorkItem(60935, "https://github.com/dotnet/roslyn/issues/60935")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task BaseList_NotSelfClass_NestedClass()
+        {
+            await VerifyItemIsAbsentAsync(@"
+class B : $$
+{
+    class X {}
+}", "B");
+        }
+
+        [WorkItem(60935, "https://github.com/dotnet/roslyn/issues/60935")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task BaseList_SelfClass_NestedInterface()
+        {
+            await VerifyItemExistsAsync(@"
+class B : $$
+{
+    interface I {}
+}", "B");
+        }
+
+        [WorkItem(60935, "https://github.com/dotnet/roslyn/issues/60935")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NotDirectlyBaseList_Self()
+        {
+            await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"
+class B : IEnumerable<$$"), "B");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task BaseList_NotStruct()
+        {
+            await VerifyItemIsAbsentAsync(@"
+struct C {}
+
+class B : $$
+", "C");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task BaseList_Struct_ValidNestedType()
+        {
+            await VerifyItemExistsAsync(@"
+struct C
+{
+    class N {}
+}
+
+class B : $$
+", "C");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task BaseList_NotEnum()
+        {
+            await VerifyItemIsAbsentAsync(@"
+enum C {}
+
+class B : $$
+", "C");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task BaseList_NotDelegate()
+        {
+            await VerifyItemIsAbsentAsync(@"
+delegate void C();
+
+class B : $$
+", "C");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task BaseList_Interface()
+        {
+            await VerifyItemExistsAsync(@"
+interface I {}
+
+class B : $$
+", "I");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task BaseListStruct_NotClass()
+        {
+            await VerifyItemIsAbsentAsync(@"
+class C {}
+
+struct B : $$
+", "C");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task BaseListStruct_Class_ValidNestedType()
+        {
+            await VerifyItemExistsAsync(@"
+class C
+{
+    interface I {}
+}
+
+struct B : $$
+", "C");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task BaseListStruct_Interface()
+        {
+            await VerifyItemExistsAsync(@"
+interface I {}
+
+struct B : $$
+", "I");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task BaseListInterface_Interface()
+        {
+            await VerifyItemExistsAsync(@"
+interface I2 {}
+
+interface I1 : $$
+", "I2");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task BaseListInterface_NotClass()
+        {
+            await VerifyItemIsAbsentAsync(@"
+class N {}
+
+interface I : $$
+", "N");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task BaseListInterface_Class_ValidNestedType()
+        {
+            await VerifyItemExistsAsync(@"
+class N
+{
+    interface I2 {}
+}
+
+interface I : $$
+", "N");
+        }
+
+        #endregion
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task BaseListWhere()
@@ -6181,7 +6389,7 @@ class Program : $$
 
             var referencedCode = @"
 [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-public struct Goo
+public class Goo
 {
 }";
             await VerifyItemInEditorBrowsableContextsAsync(
@@ -6233,7 +6441,7 @@ class Program : $$
 
             var referencedCode = @"
 [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Always)]
-public struct Goo
+public class Goo
 {
 }";
             await VerifyItemInEditorBrowsableContextsAsync(
@@ -6298,7 +6506,7 @@ class Program : $$
 
             var referencedCode = @"
 [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Advanced)]
-public struct Goo
+public class Goo
 {
 }";
             HideAdvancedMembers = false;

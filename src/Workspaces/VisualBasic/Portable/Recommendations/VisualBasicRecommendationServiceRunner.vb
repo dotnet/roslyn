@@ -116,7 +116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
 
             Private Function GetUnqualifiedSymbolsForType() As ImmutableArray(Of ISymbol)
                 Dim symbols = _context.SemanticModel.LookupNamespacesAndTypes(_context.TargetToken.SpanStart)
-                Return FilterToValidAccessibleSymbols(symbols)
+                Return symbols
             End Function
 
             Private Function GetUnqualifiedSymbolsForExpressionOrStatementContext() As ImmutableArray(Of ISymbol)
@@ -181,7 +181,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
                     End If
                 End If
 
-                Return FilterToValidAccessibleSymbols(symbols)
+                Return symbols
             End Function
 
             Private Function GetSymbolsForMemberAccessExpression(node As MemberAccessExpressionSyntax) As ImmutableArray(Of ISymbol)
@@ -366,64 +366,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
                 End While
 
                 Return Nothing
-            End Function
-
-            Private Function FilterToValidAccessibleSymbols(symbols As ImmutableArray(Of ISymbol)) As ImmutableArray(Of ISymbol)
-                ' If this is an Inherits or Implements statement, we filter out symbols which do not recursively contain accessible, valid types.
-                Dim inheritsContext = IsInheritsStatementContext(_context.TargetToken)
-                Dim implementsContext = IsImplementsStatementContext(_context.TargetToken)
-
-                If inheritsContext OrElse implementsContext Then
-
-                    Dim typeBlock = _context.TargetToken.Parent?.FirstAncestorOrSelf(Of TypeBlockSyntax)()
-                    If typeBlock IsNot Nothing Then
-                        Dim typeOrAssemblySymbol As ISymbol = _context.SemanticModel.GetDeclaredSymbol(typeBlock, _cancellationToken)
-                        If typeOrAssemblySymbol Is Nothing Then
-                            typeOrAssemblySymbol = _context.SemanticModel.Compilation.Assembly
-                        End If
-
-                        Dim isInterface = TryCast(typeOrAssemblySymbol, ITypeSymbol)?.TypeKind = TypeKind.Interface
-
-                        If inheritsContext Then
-
-                            ' In an interface's Inherits statement, only show interfaces.
-                            If isInterface Then
-                                Return symbols.WhereAsArray(Function(s) IsValidAccessibleInterfaceOrContainer(s, typeOrAssemblySymbol))
-                            End If
-
-                            Return symbols.WhereAsArray(Function(s) IsValidAccessibleClassOrContainer(s, typeOrAssemblySymbol))
-
-                        Else ' implementsContext
-
-                            ' In an interface's Implements statement, show nothing.
-                            If isInterface Then
-                                Return ImmutableArray(Of ISymbol).Empty
-                            End If
-
-                            Return symbols.WhereAsArray(Function(s) IsValidAccessibleInterfaceOrContainer(s, typeOrAssemblySymbol))
-                        End If
-                    End If
-                End If
-
-                Return symbols
-            End Function
-
-            Private Shared Function IsInheritsStatementContext(token As SyntaxToken) As Boolean
-                If token.IsChildToken(Of InheritsStatementSyntax)(Function(n) n.InheritsKeyword) Then
-                    Return True
-                End If
-
-                Return token.IsChildToken(Of QualifiedNameSyntax)(Function(n) n.DotToken) AndAlso
-                   token.Parent?.FirstAncestorOrSelf(Of InheritsStatementSyntax) IsNot Nothing
-            End Function
-
-            Private Shared Function IsImplementsStatementContext(token As SyntaxToken) As Boolean
-                If token.IsChildToken(Of ImplementsStatementSyntax)(Function(n) n.ImplementsKeyword) Then
-                    Return True
-                End If
-
-                Return token.IsChildToken(Of QualifiedNameSyntax)(Function(n) n.DotToken) AndAlso
-                   token.Parent?.FirstAncestorOrSelf(Of ImplementsStatementSyntax) IsNot Nothing
             End Function
 
             Private Function IsValidAccessibleInterfaceOrContainer(symbol As ISymbol, within As ISymbol) As Boolean

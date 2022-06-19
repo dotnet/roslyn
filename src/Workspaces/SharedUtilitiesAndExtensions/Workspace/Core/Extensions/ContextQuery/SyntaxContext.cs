@@ -32,14 +32,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
         public bool IsAtStartOfPattern { get; }
         public bool IsAttributeNameContext { get; }
         public bool IsAwaitKeywordContext { get; }
-        public bool IsClassInheritanceContext { get; }
-        public bool IsClassImplementsInterfaceContext { get; }
         public bool IsEnumTypeMemberAccessContext { get; }
         public bool IsGenericConstraintContext { get; }
         public bool IsGlobalStatementContext { get; }
+        public bool IsInheritanceRequiringClassContext { get; }
+        public bool IsInheritanceRequiringInterfaceContext { get; }
         public bool IsInImportsDirective { get; }
         public bool IsInQuery { get; }
-        public bool IsInterfaceInheritanceContext { get; }
         public bool IsTaskLikeTypeContext { get; }
         public bool IsNameOfContext { get; }
         public bool IsNamespaceContext { get; }
@@ -51,7 +50,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
         public bool IsRightOfNameSeparator { get; }
         public bool IsRightSideOfNumericType { get; }
         public bool IsStatementContext { get; }
-        public bool IsStructImplementsInterfaceContext { get; }
         public bool IsTypeContext { get; }
         public bool IsWithinAsyncMethod { get; }
 
@@ -68,14 +66,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             bool isAtStartOfPattern,
             bool isAttributeNameContext,
             bool isAwaitKeywordContext,
-            bool isClassInheritanceContext,
-            bool isClassImplementsInterfaceContext,
             bool isEnumTypeMemberAccessContext,
             bool isGenericConstraintContext,
             bool isGlobalStatementContext,
+            bool isInheritanceRequiringClassContext,
+            bool isInheritanceRequiringInterfaceContext,
             bool isInImportsDirective,
             bool isInQuery,
-            bool isInterfaceInheritanceContext,
             bool isNameOfContext,
             bool isNamespaceContext,
             bool isNamespaceDeclarationNameContext,
@@ -86,7 +83,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             bool isRightOfNameSeparator,
             bool isRightSideOfNumericType,
             bool isStatementContext,
-            bool isStructImplementsInterfaceContext,
             bool isTaskLikeTypeContext,
             bool isTypeContext,
             bool isWithinAsyncMethod,
@@ -104,14 +100,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             this.IsAtStartOfPattern = isAtStartOfPattern;
             this.IsAttributeNameContext = isAttributeNameContext;
             this.IsAwaitKeywordContext = isAwaitKeywordContext;
-            this.IsClassInheritanceContext = isClassInheritanceContext;
-            this.IsClassImplementsInterfaceContext = isClassImplementsInterfaceContext;
             this.IsEnumTypeMemberAccessContext = isEnumTypeMemberAccessContext;
             this.IsGenericConstraintContext = isGenericConstraintContext;
             this.IsGlobalStatementContext = isGlobalStatementContext;
+            this.IsInheritanceRequiringClassContext = isInheritanceRequiringClassContext;
+            this.IsInheritanceRequiringInterfaceContext = isInheritanceRequiringInterfaceContext;
             this.IsInImportsDirective = isInImportsDirective;
             this.IsInQuery = isInQuery;
-            this.IsInterfaceInheritanceContext = isInterfaceInheritanceContext;
             this.IsNameOfContext = isNameOfContext;
             this.IsNamespaceContext = isNamespaceContext;
             this.IsNamespaceDeclarationNameContext = isNamespaceDeclarationNameContext;
@@ -122,7 +117,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             this.IsRightOfNameSeparator = isRightOfNameSeparator;
             this.IsRightSideOfNumericType = isRightSideOfNumericType;
             this.IsStatementContext = isStatementContext;
-            this.IsStructImplementsInterfaceContext = isStructImplementsInterfaceContext;
             this.IsTaskLikeTypeContext = isTaskLikeTypeContext;
             this.IsTypeContext = isTypeContext;
             this.IsWithinAsyncMethod = isWithinAsyncMethod;

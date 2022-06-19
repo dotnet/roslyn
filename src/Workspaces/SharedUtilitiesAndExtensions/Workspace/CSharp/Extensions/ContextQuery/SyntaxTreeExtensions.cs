@@ -2998,5 +2998,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                    targetToken.Parent is FunctionPointerTypeSyntax functionPointerType &&
                    targetToken == functionPointerType.AsteriskToken;
         }
+
+        public static bool IsInheritanceRequiringClassContext(this SyntaxTree syntaxTree, SyntaxToken targetToken)
+            => targetToken.Parent is BaseListSyntax { Parent: ClassDeclarationSyntax };
+
+        public static bool IsInheritanceRequiringInterfaceContext(this SyntaxTree syntaxTree, SyntaxToken targetToken)
+            => targetToken.Parent is BaseListSyntax { Parent: ClassDeclarationSyntax or InterfaceDeclarationSyntax or StructDeclarationSyntax };
     }
 }

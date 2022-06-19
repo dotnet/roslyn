@@ -5581,7 +5581,7 @@ End Interface
         End Function
 
         <WorkItem(531256, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531256")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact(Skip:="TODO"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestImplements_OnlyInterfacesForInterfaceInherits2() As Task
             Const markup = "
 Interface ITestInterface

@@ -47,6 +47,19 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 // Just filter valid symbols. Nothing to preselect
                 return recommendedSymbols.NamedSymbols.SelectAsArray(IsValidForGenericConstraintContext, s => (s, preselect: false));
             }
+            // When inheriting from a class in C# both classes and interfaces are valid completions,
+            // so we need to check it all in one go
+            else if (context.IsInheritanceRequiringClassContext || context.IsInheritanceRequiringInterfaceContext)
+            {
+                ISymbol? inheritingFrom = null;
+
+                // We know for sure that in both C# and VB syntax, that represents a type,
+                // is 2 steps up relatively to our current position
+                if (context.TargetToken.Parent?.Parent is not null and var typeSyntax)
+                    inheritingFrom = context.SemanticModel.GetDeclaredSymbol(typeSyntax, cancellationToken);
+
+                return recommendedSymbols.NamedSymbols.SelectAsArray(s => IsValidForInheritanceContext(s, inheritingFrom, context), s => (s, preselect: false));
+            }
             else
             {
                 var shouldPreselectInferredTypes = await ShouldPreselectInferredTypesAsync(completionContext, position, options, cancellationToken).ConfigureAwait(false);
@@ -72,9 +85,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private static bool IsValidForTaskLikeTypeOnlyContext(ISymbol symbol, TSyntaxContext context)
         {
-            // We want to allow all namespaces as the user may be typing a namespace name to get to a task-like type.
-            if (symbol.IsNamespace())
-                return true;
+            if (symbol is IAliasSymbol alias)
+                symbol = alias.Target;
+
+            if (symbol is INamespaceSymbol @namespace)
+                return @namespace.GetMembers().Any(m => IsValidForTaskLikeTypeOnlyContext(m, context));
 
             if (symbol is not INamedTypeSymbol namedType ||
                 symbol.IsDelegateType() ||
@@ -93,13 +108,18 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             return namedType.IsAwaitableNonDynamic(context.SemanticModel, context.Position) ||
-                   namedType.GetTypeMembers().Any(static (m, context) => IsValidForTaskLikeTypeOnlyContext(m, context), context);
+                   namedType.GetTypeMembers().Any(IsValidForTaskLikeTypeOnlyContext, context);
         }
 
         private static bool IsValidForGenericConstraintContext(ISymbol symbol)
         {
-            if (symbol.IsNamespace() ||
-                symbol.IsKind(SymbolKind.TypeParameter))
+            if (symbol is IAliasSymbol alias)
+                symbol = alias.Target;
+
+            if (symbol is INamespaceSymbol @namespace)
+                return @namespace.GetMembers().Any(IsValidForGenericConstraintContext);
+
+            if (symbol.IsKind(SymbolKind.TypeParameter))
             {
                 return true;
             }
@@ -113,12 +133,65 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             // If current symbol is a struct or static or sealed class then it cannot be used as a generic constraint.
             // However it can contain other valid constraint types and if this is true we should show it
-            if (namedType.IsStructType() || namedType.IsStatic || namedType.IsSealed)
-            {
+            if (namedType.IsModuleType() || namedType.IsStructType() || namedType.IsStatic || namedType.IsSealed)
                 return namedType.GetTypeMembers().Any(IsValidForGenericConstraintContext);
-            }
 
             return true;
+        }
+
+        private static bool IsValidForInheritanceContext(ISymbol symbol, ISymbol? inheritingFrom, TSyntaxContext context)
+        {
+            if (symbol is IAliasSymbol alias)
+                symbol = alias.Target;
+
+            if (symbol is INamespaceSymbol @namespace)
+                return @namespace.GetMembers().Any(m => IsValidForInheritanceContext(m, inheritingFrom, context));
+
+            if (symbol is not INamedTypeSymbol namedType ||
+                symbol.IsDelegateType() ||
+                namedType.IsEnumType())
+            {
+                return false;
+            }
+
+            if (namedType.IsStructType() || namedType.IsModuleType())
+                return namedType.GetTypeMembers().Any(m => IsValidForInheritanceContext(m, inheritingFrom, context));
+
+            if (context.IsInheritanceRequiringClassContext && namedType.TypeKind is TypeKind.Class)
+            {
+                if (namedType.IsStatic || namedType.IsSealed)
+                    return namedType.GetTypeMembers().Any(m => IsValidForInheritanceContext(m, inheritingFrom, context));
+
+                var compilation = context.SemanticModel.Compilation;
+
+                // These types are special. They are not sealed, but trying to inherit from them
+                // produces compiler error both in C# and VB
+                if (namedType.Equals(compilation.EnumType()) ||
+                    namedType.Equals(compilation.ValueTypeType()) ||
+                    namedType.Equals(compilation.DelegateType()) ||
+                    namedType.Equals(compilation.ArrayType()))
+                {
+                    return false;
+                }
+
+                // Is current class is equal to one we inherit from
+                // then such self-reference is only valid if there are interfaces nested in that type
+                if (namedType.Equals(inheritingFrom))
+                    return namedType.GetTypeMembers().Any(m => m.IsInterfaceType());
+
+                return true;
+            }
+
+            if (context.IsInheritanceRequiringInterfaceContext)
+            {
+                if (!namedType.IsInterfaceType())
+                    return namedType.GetTypeMembers().Any(m => IsValidForInheritanceContext(m, inheritingFrom, context));
+
+                // Cannot inherit interface from itself
+                return !namedType.Equals(inheritingFrom);
+            }
+
+            return false;
         }
 
         private static ITypeSymbol? GetSymbolType(ISymbol symbol)

@@ -62,8 +62,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             bool isAttributeNameContext,
             bool isAwaitKeywordContext,
             bool isCatchFilterContext,
-            bool isClassInheritanceContext,
-            bool isClassImplementsInterfaceContext,
             bool isConstantExpressionContext,
             bool isCrefContext,
             bool isDeclarationExpressionContext,
@@ -78,11 +76,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             bool isGenericTypeArgumentContext,
             bool isGlobalStatementContext,
             bool isImplicitOrExplicitOperatorTypeContext,
+            bool isInheritanceRequiringClassContext,
+            bool isInheritanceRequiringInterfaceContext,
             bool isInImportsDirective,
             bool isInNonUserCode,
             bool isInQuery,
             bool isInstanceContext,
-            bool isInterfaceInheritanceContext,
             bool isIsOrAsOrSwitchOrWithExpressionContext,
             bool isIsOrAsTypeContext,
             bool isLabelContext,
@@ -105,7 +104,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             bool isRightOfNameSeparator,
             bool isRightSideOfNumericType,
             bool isStatementContext,
-            bool isStructImplementsInterfaceContext,
             bool isTaskLikeTypeContext,
             bool isTypeArgumentOfConstraintContext,
             bool isTypeContext,
@@ -124,14 +122,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                   isAtStartOfPattern: isAtStartOfPattern,
                   isAttributeNameContext: isAttributeNameContext,
                   isAwaitKeywordContext: isAwaitKeywordContext,
-                  isClassInheritanceContext: isClassInheritanceContext,
-                  isClassImplementsInterfaceContext: isClassImplementsInterfaceContext,
                   isEnumTypeMemberAccessContext: isEnumTypeMemberAccessContext,
                   isGenericConstraintContext: isGenericConstraintContext,
                   isGlobalStatementContext: isGlobalStatementContext,
+                  isInheritanceRequiringClassContext: isInheritanceRequiringClassContext,
+                  isInheritanceRequiringInterfaceContext: isInheritanceRequiringInterfaceContext,
                   isInImportsDirective: isInImportsDirective,
                   isInQuery: isInQuery,
-                  isInterfaceInheritanceContext: isInterfaceInheritanceContext,
                   isNameOfContext: isNameOfContext,
                   isNamespaceContext: isNamespaceContext,
                   isNamespaceDeclarationNameContext: isNamespaceDeclarationNameContext,
@@ -142,7 +139,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                   isRightOfNameSeparator: isRightOfNameSeparator,
                   isRightSideOfNumericType: isRightSideOfNumericType,
                   isStatementContext: isStatementContext,
-                  isStructImplementsInterfaceContext: isStructImplementsInterfaceContext,
                   isTaskLikeTypeContext: isTaskLikeTypeContext,
                   isTypeContext: isTypeContext,
                   isWithinAsyncMethod: isWithinAsyncMethod,
@@ -229,9 +225,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 ? syntaxTree.IsConstantExpressionContext(position, leftToken)
                 : false;
 
-            var containingTypeDeclaration = syntaxTree.GetContainingTypeDeclaration(position, cancellationToken);
-            var containingTypeOrEnumDeclaration = syntaxTree.GetContainingTypeOrEnumDeclaration(position, cancellationToken);
-
             var isDestructorTypeContext = targetToken.IsKind(SyntaxKind.TildeToken) &&
                                             targetToken.Parent.IsKind(SyntaxKind.DestructorDeclaration) &&
                                             targetToken.Parent.Parent.IsKind(SyntaxKind.ClassDeclaration, SyntaxKind.RecordDeclaration);
@@ -243,10 +236,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // If the second dot was typed, we just insert two dots.
             var isRightSideOfNumericType = leftToken.IsNumericTypeContext(semanticModel, cancellationToken);
 
-            var isOnArgumentListBracketOrComma = targetToken.Parent.IsKind(SyntaxKind.ArgumentList, SyntaxKind.AttributeArgumentList, SyntaxKind.ArrayRankSpecifier);
-
-            var isLocalFunctionDeclarationContext = syntaxTree.IsLocalFunctionDeclarationContext(position, cancellationToken);
-
             var precedingModifiers = syntaxTree.GetPrecedingModifiers(position, cancellationToken);
 
             return new CSharpSyntaxContext(
@@ -255,16 +244,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 position: position,
                 leftToken: leftToken,
                 targetToken: targetToken,
-                containingTypeDeclaration: containingTypeDeclaration,
-                containingTypeOrEnumDeclaration: containingTypeOrEnumDeclaration,
+                containingTypeDeclaration: syntaxTree.GetContainingTypeDeclaration(position, cancellationToken),
+                containingTypeOrEnumDeclaration: syntaxTree.GetContainingTypeOrEnumDeclaration(position, cancellationToken),
                 isAnyExpressionContext: isAnyExpressionContext,
                 isAtEndOfPattern: syntaxTree.IsAtEndOfPattern(leftToken, position),
                 isAtStartOfPattern: syntaxTree.IsAtStartOfPattern(leftToken, position),
                 isAttributeNameContext: syntaxTree.IsAttributeNameContext(position, cancellationToken),
                 isAwaitKeywordContext: ComputeIsAwaitKeywordContext(position, leftToken, targetToken, isGlobalStatementContext, isAnyExpressionContext, isStatementContext),
                 isCatchFilterContext: syntaxTree.IsCatchFilterContext(position, leftToken),
-                isClassInheritanceContext: false, // TODO
-                isClassImplementsInterfaceContext: false, // TODO
                 isConstantExpressionContext: isConstantExpressionContext,
                 isCrefContext: syntaxTree.IsCrefContext(position, cancellationToken) && !leftToken.IsKind(SyntaxKind.DotToken),
                 isDeclarationExpressionContext: syntaxTree.IsDeclarationExpressionContext(position, leftToken),
@@ -279,17 +266,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 isGenericTypeArgumentContext: syntaxTree.IsGenericTypeArgumentContext(position, leftToken, cancellationToken),
                 isGlobalStatementContext: isGlobalStatementContext,
                 isImplicitOrExplicitOperatorTypeContext: syntaxTree.IsImplicitOrExplicitOperatorTypeContext(position, leftToken),
-                isOnArgumentListBracketOrComma: isOnArgumentListBracketOrComma,
+                isOnArgumentListBracketOrComma: targetToken.Parent.IsKind(SyntaxKind.ArgumentList, SyntaxKind.AttributeArgumentList, SyntaxKind.ArrayRankSpecifier),
+                isInheritanceRequiringClassContext: syntaxTree.IsInheritanceRequiringClassContext(targetToken),
+                isInheritanceRequiringInterfaceContext: syntaxTree.IsInheritanceRequiringInterfaceContext(targetToken),
                 isInImportsDirective: leftToken.GetAncestor<UsingDirectiveSyntax>() != null,
                 isInNonUserCode: isInNonUserCode,
                 isInQuery: leftToken.GetAncestor<QueryExpressionSyntax>() != null,
                 isInstanceContext: syntaxTree.IsInstanceContext(targetToken, semanticModel, cancellationToken),
-                isInterfaceInheritanceContext: false, // TODO
                 isIsOrAsOrSwitchOrWithExpressionContext: syntaxTree.IsIsOrAsOrSwitchOrWithExpressionContext(semanticModel, position, leftToken, cancellationToken),
                 isIsOrAsTypeContext: syntaxTree.IsIsOrAsTypeContext(position, leftToken),
                 isLabelContext: syntaxTree.IsLabelContext(position, cancellationToken),
                 isLeftSideOfImportAliasDirective: IsLeftSideOfUsingAliasDirective(leftToken),
-                isLocalFunctionDeclarationContext: isLocalFunctionDeclarationContext,
+                isLocalFunctionDeclarationContext: syntaxTree.IsLocalFunctionDeclarationContext(position, cancellationToken),
                 isLocalVariableDeclarationContext: syntaxTree.IsLocalVariableDeclarationContext(position, leftToken, cancellationToken),
                 isNameOfContext: syntaxTree.IsNameOfContext(position, semanticModel, cancellationToken),
                 isNamespaceContext: syntaxTree.IsNamespaceContext(position, cancellationToken, semanticModelOpt: semanticModel),
@@ -306,7 +294,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 isRightOfNameSeparator: syntaxTree.IsRightOfDotOrArrowOrColonColon(position, targetToken, cancellationToken),
                 isRightSideOfNumericType: isRightSideOfNumericType,
                 isStatementContext: isStatementContext,
-                isStructImplementsInterfaceContext: false, // TODO
                 isTaskLikeTypeContext: precedingModifiers.Contains(SyntaxKind.AsyncKeyword),
                 isTypeArgumentOfConstraintContext: syntaxTree.IsTypeArgumentOfConstraintClause(position, cancellationToken),
                 isTypeContext: syntaxTree.IsTypeContext(position, cancellationToken, semanticModelOpt: semanticModel),
