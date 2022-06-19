@@ -449,8 +449,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             FindReferencesDocumentState state,
             CancellationToken cancellationToken)
         {
-            var document = state.Document;
-            var semanticModel = state.SemanticModel;
             return FindReferencesInDocumentAsync(state, IsRelevantDocument, CollectMatchingReferences, cancellationToken);
 
             static bool IsRelevantDocument(SyntaxTreeIndex syntaxTreeInfo)
@@ -459,8 +457,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             void CollectMatchingReferences(
                 SyntaxNode node, FindReferencesDocumentState state, ArrayBuilder<FinderLocation> locations)
             {
-                var semanticFacts = state.SemanticFacts;
-                var info = semanticFacts.GetForEachSymbols(semanticModel, node);
+                var info = state.SemanticFacts.GetForEachSymbols(state.SemanticModel, node);
 
                 if (Matches(info.GetEnumeratorMethod, symbol) ||
                     Matches(info.MoveNextMethod, symbol) ||
@@ -471,7 +468,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     var symbolUsageInfo = GetSymbolUsageInfo(node, state, cancellationToken);
 
                     locations.Add(new FinderLocation(node, new ReferenceLocation(
-                        document,
+                        state.Document,
                         alias: null,
                         location: location,
                         isImplicit: true,
