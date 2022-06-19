@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             ISymbol symbol,
             string identifier,
             FindReferencesDocumentState state,
-            Func<SyntaxToken, SyntaxNode>? findParentNode,
+            Func<FindReferencesDocumentState, SyntaxToken, SyntaxNode>? findParentNode,
             CancellationToken cancellationToken)
         {
             var symbolsMatch = GetStandardSymbolsMatchFunction(symbol, findParentNode);
@@ -178,8 +178,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected static Task<ImmutableArray<SyntaxToken>> FindMatchingIdentifierTokensAsync(FindReferencesDocumentState state, string identifier, CancellationToken cancellationToken)
             => state.Cache.FindMatchingIdentifierTokensAsync(state.Document, identifier, cancellationToken);
 
-        protected static Func<SyntaxToken, SyntaxNode>? GetNamedTypeOrConstructorFindParentNodeFunction(
-            FindReferencesDocumentState state, ISymbol searchSymbol)
+        protected static Func<FindReferencesDocumentState, SyntaxToken, SyntaxNode>? GetNamedTypeOrConstructorFindParentNodeFunction(ISymbol searchSymbol)
         {
             // delegates don't have exposed symbols for their constructors.  so when you do `new MyDel()`, that's only a
             // reference to a type (as we don't have any real constructor symbols that can actually cascade to).  So
@@ -187,16 +186,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             if (searchSymbol.IsDelegateType())
                 return null;
 
-            return t => state.SyntaxFacts.TryGetBindableParent(t) ?? t.Parent!;
+            return static (state, token) => state.SyntaxFacts.TryGetBindableParent(token) ?? token.Parent!;
         }
 
         protected static Func<FindReferencesDocumentState, SyntaxToken, CancellationToken, ValueTask<(bool matched, CandidateReason reason)>> GetStandardSymbolsMatchFunction(
             ISymbol symbol,
-            Func<SyntaxToken, SyntaxNode>? findParentNode)
+            Func<FindReferencesDocumentState, SyntaxToken, SyntaxNode>? findParentNode)
         {
             var nodeMatchAsync = GetStandardSymbolsNodeMatchFunction(symbol);
-            findParentNode ??= t => t.Parent!;
-            return (state, token, cancellationToken) => nodeMatchAsync(state, findParentNode(token), cancellationToken);
+            findParentNode ??= (_, token) => token.Parent!;
+            return (state, token, cancellationToken) => nodeMatchAsync(state, findParentNode(state, token), cancellationToken);
         }
 
         protected static Func<FindReferencesDocumentState, SyntaxNode, CancellationToken, ValueTask<(bool matched, CandidateReason reason)>> GetStandardSymbolsNodeMatchFunction(
@@ -296,7 +295,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             ArrayBuilder<FinderLocation> initialReferences,
             ISymbol symbol,
             FindReferencesDocumentState state,
-            Func<SyntaxToken, SyntaxNode>? findParentNode,
+            Func<FindReferencesDocumentState, SyntaxToken, SyntaxNode>? findParentNode,
             CancellationToken cancellationToken)
         {
             var aliasSymbols = GetLocalAliasSymbols(state, initialReferences, cancellationToken);
@@ -337,7 +336,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             ISymbol symbol,
             FindReferencesDocumentState state,
             ImmutableArray<IAliasSymbol> localAliasSymbols,
-            Func<SyntaxToken, SyntaxNode>? findParentNode,
+            Func<FindReferencesDocumentState, SyntaxToken, SyntaxNode>? findParentNode,
             CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var allAliasReferences);
@@ -910,7 +909,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             FindReferencesDocumentState state,
             IEnumerable<SyntaxToken> tokens,
             Func<FindReferencesDocumentState, SyntaxToken, T, CancellationToken, bool> tokensMatch,
-            Func<SyntaxToken, SyntaxNode>? findParentNode,
+            Func<FindReferencesDocumentState, SyntaxToken, SyntaxNode>? findParentNode,
             T value,
             CancellationToken cancellationToken)
         {
@@ -938,7 +937,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             TSymbol symbol,
             FindReferencesDocumentState state,
             Func<FindReferencesDocumentState, SyntaxToken, T, CancellationToken, bool> tokensMatch,
-            Func<SyntaxToken, SyntaxNode>? findParentNode,
+            Func<FindReferencesDocumentState, SyntaxToken, SyntaxNode>? findParentNode,
             T value,
             CancellationToken cancellationToken)
         {

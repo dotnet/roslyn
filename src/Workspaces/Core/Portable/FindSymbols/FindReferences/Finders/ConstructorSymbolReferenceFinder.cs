@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             using var _1 = ArrayBuilder<FinderLocation>.GetInstance(out var result);
 
-            var findParentNode = GetNamedTypeOrConstructorFindParentNodeFunction(state, methodSymbol);
+            var findParentNode = GetNamedTypeOrConstructorFindParentNodeFunction(methodSymbol);
 
             // First just look for this normal constructor references using the name of it's containing type.
             var name = methodSymbol.ContainingType.Name;
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             IMethodSymbol symbol,
             string name,
             FindReferencesDocumentState state,
-            Func<SyntaxToken, SyntaxNode>? findParentNode,
+            Func<FindReferencesDocumentState, SyntaxToken, SyntaxNode>? findParentNode,
             ArrayBuilder<FinderLocation> result,
             CancellationToken cancellationToken)
         {
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             IMethodSymbol symbol,
             string name,
             FindReferencesDocumentState state,
-            Func<SyntaxToken, SyntaxNode>? findParentNode,
+            Func<FindReferencesDocumentState, SyntaxToken, SyntaxNode>? findParentNode,
             CancellationToken cancellationToken)
         {
             return FindReferencesInDocumentUsingIdentifierAsync(

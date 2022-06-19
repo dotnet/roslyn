@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             TSymbol symbol,
             FindReferencesDocumentState state,
             IEnumerable<SyntaxToken> tokens,
-            Func<SyntaxToken, SyntaxNode>? findParentNode,
+            Func<FindReferencesDocumentState, SyntaxToken, SyntaxNode>? findParentNode,
             CancellationToken cancellationToken)
         {
             return FindReferencesInTokensAsync(
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             TSymbol symbol,
             ISymbol container,
             FindReferencesDocumentState state,
-            Func<SyntaxToken, SyntaxNode>? findParentNode,
+            Func<FindReferencesDocumentState, SyntaxToken, SyntaxNode>? findParentNode,
             CancellationToken cancellationToken)
         {
             var service = state.Document.GetRequiredLanguageService<ISymbolDeclarationService>();

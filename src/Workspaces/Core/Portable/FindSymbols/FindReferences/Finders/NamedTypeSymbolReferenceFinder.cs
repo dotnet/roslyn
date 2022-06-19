@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             // then the parent node of `b` won't be `a.b`, but rather `new a.b()`.  This will actually cause us to bind
             // to the constructor not the type.  That's a good thing as we don't want these object-creations to
             // associate with the type, but rather with the constructor itself.
-            var findParentNode = GetNamedTypeOrConstructorFindParentNodeFunction(state, namedType);
+            var findParentNode = GetNamedTypeOrConstructorFindParentNodeFunction(namedType);
             var symbolsMatch = GetStandardSymbolsMatchFunction(namedType, findParentNode);
 
             return FindReferencesInDocumentUsingIdentifierAsync(
