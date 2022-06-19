@@ -223,8 +223,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CancellationToken cancellationToken)
         {
             var symbolsMatch = GetStandardSymbolsMatchFunction(namedType, findParentNode: null);
-            var syntaxFacts = state.SyntaxFacts;
-            return TryGetNameWithoutAttributeSuffix(name, syntaxFacts, out var nameWithoutSuffix)
+            return TryGetNameWithoutAttributeSuffix(name, state.SyntaxFacts, out var nameWithoutSuffix)
                 ? FindReferencesInDocumentUsingIdentifierAsync(namedType, nameWithoutSuffix, state, symbolsMatch, cancellationToken)
                 : new ValueTask<ImmutableArray<FinderLocation>>(ImmutableArray<FinderLocation>.Empty);
         }
