@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var locations);
             foreach (var token in root.DescendantTokens())
             {
-                if (IsCandidate(token, expectedDocCommentId.Span, semanticModel, syntaxFacts, suppressMessageAttribute, cancellationToken, out var offsetOfReferenceInToken))
+                if (IsCandidate(state, token, expectedDocCommentId.Span, suppressMessageAttribute, cancellationToken, out var offsetOfReferenceInToken))
                 {
                     var referenceLocation = CreateReferenceLocation(offsetOfReferenceInToken, token, root, state.Document, syntaxFacts);
                     locations.Add(new FinderLocation(token.GetRequiredParent(), referenceLocation));
@@ -94,13 +94,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             // Local functions
             static bool IsCandidate(
-                SyntaxToken token, ReadOnlySpan<char> expectedDocCommentId, SemanticModel semanticModel, ISyntaxFacts syntaxFacts,
+                FindReferencesDocumentState state, SyntaxToken token, ReadOnlySpan<char> expectedDocCommentId,
                 INamedTypeSymbol suppressMessageAttribute, CancellationToken cancellationToken, out int offsetOfReferenceInToken)
             {
                 offsetOfReferenceInToken = -1;
 
                 // Check if this token is a named attribute argument to "Target" property of "SuppressMessageAttribute".
-                if (!IsValidTargetOfGlobalSuppressionAttribute(token, suppressMessageAttribute, semanticModel, syntaxFacts, cancellationToken))
+                if (!IsValidTargetOfGlobalSuppressionAttribute(
+                    token, suppressMessageAttribute, state.SemanticModel, state.SyntaxFacts, cancellationToken))
                 {
                     return false;
                 }
