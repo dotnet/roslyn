@@ -187,8 +187,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             if (searchSymbol.IsDelegateType())
                 return null;
 
-            var syntaxFacts = state.SyntaxFacts;
-            return t => syntaxFacts.TryGetBindableParent(t) ?? t.Parent!;
+            return t => state.SyntaxFacts.TryGetBindableParent(t) ?? t.Parent!;
         }
 
         protected static Func<FindReferencesDocumentState, SyntaxToken, CancellationToken, ValueTask<(bool matched, CandidateReason reason)>> GetStandardSymbolsMatchFunction(
@@ -341,7 +340,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             Func<SyntaxToken, SyntaxNode>? findParentNode,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = state.SyntaxFacts;
             using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var allAliasReferences);
             foreach (var localAliasSymbol in localAliasSymbols)
             {
@@ -350,7 +348,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 allAliasReferences.AddRange(aliasReferences);
                 // the alias may reference an attribute and the alias name may end with an "Attribute" suffix. In this case search for the
                 // shortened name as well (e.g. using GooAttribute = MyNamespace.GooAttribute; [Goo] class C1 {})
-                if (TryGetNameWithoutAttributeSuffix(localAliasSymbol.Name, syntaxFacts, out var simpleName))
+                if (TryGetNameWithoutAttributeSuffix(localAliasSymbol.Name, state.SyntaxFacts, out var simpleName))
                 {
                     aliasReferences = await FindReferencesInDocumentUsingIdentifierAsync(
                         symbol, simpleName, state, cancellationToken).ConfigureAwait(false);
