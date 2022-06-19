@@ -113,8 +113,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             ArrayBuilder<FinderLocation> initialReferences,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = state.SyntaxFacts;
-
             var tokens = await FindMatchingIdentifierTokensAsync(
                 state, name, cancellationToken).ConfigureAwait(false);
 
