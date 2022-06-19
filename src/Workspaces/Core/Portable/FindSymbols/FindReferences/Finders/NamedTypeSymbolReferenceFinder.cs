@@ -206,11 +206,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             var predefinedType = symbol.SpecialType.ToPredefinedType();
             if (predefinedType == PredefinedType.None)
-            {
                 return new ValueTask<ImmutableArray<FinderLocation>>(ImmutableArray<FinderLocation>.Empty);
-            }
 
-            var syntaxFacts = state.SyntaxFacts;
             return FindReferencesInDocumentAsync(
                 state,
                 static (state, token, predefinedType, _) => IsPotentialReference(predefinedType, state.SyntaxFacts, token),
