@@ -137,7 +137,7 @@ Class Test
     End Sub
 End Class
 ]]>.Value
-
+            ' PROTOTYPE: Looks like ILiteralOperation constant value is wrong? it should be "M"
             Dim expectedOperationTree = <![CDATA[
 IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My')
   IObjectCreationOperation (Constructor: Sub MyAttribute..ctor([callerName As System.String = """"])) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My')

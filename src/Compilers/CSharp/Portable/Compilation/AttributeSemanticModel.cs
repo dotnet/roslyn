@@ -16,12 +16,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed class AttributeSemanticModel : MemberSemanticModel
     {
         private readonly AliasSymbol _aliasOpt;
-        private readonly Symbol? _attributedMember;
+        private readonly Symbol? _attributeTarget;
 
         private AttributeSemanticModel(
             AttributeSyntax syntax,
             NamedTypeSymbol attributeType,
-            Symbol? attributedMember,
+            Symbol? attributeTarget,
             AliasSymbol aliasOpt,
             Binder rootBinder,
             SyntaxTreeSemanticModel? containingSemanticModelOpt = null,
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(syntax != null);
             _aliasOpt = aliasOpt;
-            _attributedMember = attributedMember;
+            _attributeTarget = attributeTarget;
         }
 
         /// <summary>
@@ -53,11 +53,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(rootBinder != null);
             Debug.Assert(rootBinder.IsSemanticModelBinder);
 
-            var attributedMember = GetAttributedMemberFromPosition(position, parentSemanticModel);
-            return new AttributeSemanticModel(syntax, attributeType, attributedMember: attributedMember, aliasOpt, rootBinder, parentSemanticModelOpt: parentSemanticModel, parentRemappedSymbolsOpt: parentRemappedSymbolsOpt, speculatedPosition: position);
+            var attributeTarget = GetAttributeTargetFromPosition(position, parentSemanticModel);
+            return new AttributeSemanticModel(syntax, attributeType, attributeTarget, aliasOpt, rootBinder, parentSemanticModelOpt: parentSemanticModel, parentRemappedSymbolsOpt: parentRemappedSymbolsOpt, speculatedPosition: position);
         }
 
-        private static Symbol? GetAttributedMemberFromPosition(int position, SemanticModel model)
+        private static Symbol? GetAttributeTargetFromPosition(int position, SemanticModel model)
         {
             var attributedNode = model.SyntaxTree.GetRoot().FindToken(position).Parent;
             while (attributedNode is AttributeListSyntax or AttributeSyntax or AttributeArgumentListSyntax or AttributeArgumentSyntax)
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.Kind() == SyntaxKind.Attribute)
             {
                 var attribute = (AttributeSyntax)node;
-                return binder.BindAttribute(attribute, AttributeType, attributedMember: _attributedMember, diagnostics);
+                return binder.BindAttribute(attribute, AttributeType, attributeTarget: _attributeTarget, diagnostics);
             }
             else if (SyntaxFacts.IsAttributeName(node))
             {
