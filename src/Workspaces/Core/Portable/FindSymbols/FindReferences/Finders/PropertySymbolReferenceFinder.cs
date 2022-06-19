@@ -187,12 +187,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             }
 
             var syntaxFacts = state.SyntaxFacts;
-            var semanticFacts = state.SemanticFacts;
 
-            var syntaxTree = state.SyntaxTree;
-            var syntaxRoot = state.Root;
-
-            var indexerReferenceExpresssions = syntaxRoot.DescendantNodes(descendIntoTrivia: true)
+            var indexerReferenceExpresssions = state.Root.DescendantNodes(descendIntoTrivia: true)
                 .Where(node =>
                     syntaxFacts.IsElementAccessExpression(node) ||
                     syntaxFacts.IsConditionalAccessExpression(node) ||
@@ -208,7 +204,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 if (!matched)
                     continue;
 
-                var location = syntaxTree.GetLocation(new TextSpan(indexerReference.SpanStart, 0));
+                var location = state.SyntaxTree.GetLocation(new TextSpan(indexerReference.SpanStart, 0));
                 var symbolUsageInfo = GetSymbolUsageInfo(node, state, cancellationToken);
 
                 locations.Add(new FinderLocation(node,
