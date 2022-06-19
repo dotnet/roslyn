@@ -128,8 +128,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var document = state.Document;
-            var semanticModel = state.SemanticModel;
             var nameReferences = await FindReferencesInDocumentUsingSymbolNameAsync(
                 symbol, state, cancellationToken).ConfigureAwait(false);
 

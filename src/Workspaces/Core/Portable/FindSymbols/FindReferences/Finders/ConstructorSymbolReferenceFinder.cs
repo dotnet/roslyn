@@ -247,8 +247,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 if (exactArgumentCount != -1 && exactArgumentCount != actualArgumentCount)
                     return;
 
-                var semanticModel = state.SemanticModel;
-                var constructor = semanticModel.GetSymbolInfo(node, cancellationToken).Symbol;
+                var constructor = state.SemanticModel.GetSymbolInfo(node, cancellationToken).Symbol;
                 if (Matches(constructor, symbol))
                 {
                     var location = node.GetFirstToken().GetLocation();
