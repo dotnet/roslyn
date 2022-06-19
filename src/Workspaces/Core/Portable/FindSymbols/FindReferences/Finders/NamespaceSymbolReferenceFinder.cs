@@ -64,7 +64,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = state.SyntaxFacts;
             using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var initialReferences);
 
             if (symbol.IsGlobalNamespace)
@@ -85,7 +84,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                         // ignore the cases where the global alias might match the namespace name (i.e.
                         // global alias Collections = System.Collections).  We'll already find those references
                         // above.
-                        if (syntaxFacts.StringComparer.Equals(namespaceName, globalAlias))
+                        if (state.SyntaxFacts.StringComparer.Equals(namespaceName, globalAlias))
                             continue;
 
                         await AddNamedReferencesAsync(
