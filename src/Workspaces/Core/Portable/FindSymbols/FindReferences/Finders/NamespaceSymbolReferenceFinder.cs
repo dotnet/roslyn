@@ -63,6 +63,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             HashSet<string>? globalAliases,
             Document document,
             SemanticModel semanticModel,
+            FindReferenceCache cache,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
@@ -72,14 +73,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             if (symbol.IsGlobalNamespace)
             {
                 await AddGlobalNamespaceReferencesAsync(
-                    symbol, document, semanticModel,
+                    symbol, document, semanticModel, cache,
                     initialReferences, cancellationToken).ConfigureAwait(false);
             }
             else
             {
                 var namespaceName = symbol.Name;
                 await AddNamedReferencesAsync(
-                    symbol, namespaceName, document, semanticModel,
+                    symbol, namespaceName, document, semanticModel, cache,
                     initialReferences, cancellationToken).ConfigureAwait(false);
 
                 if (globalAliases != null)
@@ -93,13 +94,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                             continue;
 
                         await AddNamedReferencesAsync(
-                            symbol, globalAlias, document, semanticModel,
+                            symbol, globalAlias, document, semanticModel, cache,
                             initialReferences, cancellationToken).ConfigureAwait(false);
                     }
                 }
 
                 initialReferences.AddRange(await FindLocalAliasReferencesAsync(
-                    initialReferences, symbol, document, semanticModel, cancellationToken).ConfigureAwait(false));
+                    initialReferences, symbol, document, semanticModel, cache, cancellationToken).ConfigureAwait(false));
 
                 initialReferences.AddRange(await FindReferencesInDocumentInsideGlobalSuppressionsAsync(
                     document, semanticModel, symbol, cancellationToken).ConfigureAwait(false));
@@ -118,18 +119,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             string name,
             Document document,
             SemanticModel semanticModel,
+            FindReferenceCache cache,
             ArrayBuilder<FinderLocation> initialReferences,
             CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-            var tokens = await GetIdentifierTokensWithTextAsync(
-                document, semanticModel, name, cancellationToken).ConfigureAwait(false);
+            var tokens = await FindMatchingIdentifierTokensAsync(
+                document, cache, name, cancellationToken).ConfigureAwait(false);
 
             initialReferences.AddRange(await FindReferencesInTokensAsync(
                 symbol,
                 document,
                 semanticModel,
+                cache,
                 tokens,
                 t =>
                 {
@@ -143,6 +146,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             INamespaceSymbol symbol,
             Document document,
             SemanticModel semanticModel,
+            FindReferenceCache cache,
             ArrayBuilder<FinderLocation> initialReferences,
             CancellationToken cancellationToken)
         {
@@ -155,6 +159,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 symbol,
                 document,
                 semanticModel,
+                cache,
                 tokens,
                 t =>
                 {

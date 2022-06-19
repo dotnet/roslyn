@@ -63,13 +63,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             HashSet<string>? globalAliases,
             Document document,
             SemanticModel semanticModel,
+            FindReferenceCache cache,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             return FindReferencesInDocumentAsync(
-                symbol, document, semanticModel,
+                symbol, document, semanticModel, cache,
                 t => IsPotentialReference(syntaxFacts, t),
                 cancellationToken);
         }

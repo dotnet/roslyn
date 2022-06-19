@@ -56,6 +56,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             HashSet<string>? globalAliases,
             Document document,
             SemanticModel semanticModel,
+            FindReferenceCache cache,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
@@ -65,12 +66,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var tokens = await document.GetConstructorInitializerTokensAsync(semanticModel, cancellationToken).ConfigureAwait(false);
             if (semanticModel.Language == LanguageNames.VisualBasic)
             {
-                tokens = tokens.Concat(await GetIdentifierTokensWithTextAsync(
-                    document, semanticModel, "New", cancellationToken).ConfigureAwait(false)).Distinct();
+                tokens = tokens.Concat(await FindMatchingIdentifierTokensAsync(
+                    document, cache, "New", cancellationToken).ConfigureAwait(false)).Distinct();
             }
 
             return await FindReferencesInTokensAsync(
-                 methodSymbol, document, semanticModel, tokens, TokensMatch, cancellationToken).ConfigureAwait(false);
+                 methodSymbol, document, semanticModel, cache, tokens, TokensMatch, cancellationToken).ConfigureAwait(false);
 
             // local functions
             bool TokensMatch(SyntaxToken t)
