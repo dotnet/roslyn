@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
             // When inheriting from a class in C# both classes and interfaces are valid completions,
             // so we need to check it all in one go
-            else if (context.IsInheritanceRequiringClassContext || context.IsInheritanceRequiringInterfaceContext)
+            else if (context.IsBaseClassContext || context.IsBaseInterfaceContext)
             {
                 ISymbol? inheritingFrom = null;
 
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             if (namedType.IsStructType() || namedType.IsModuleType())
                 return namedType.GetTypeMembers().Any(m => IsValidForInheritanceContext(m, inheritingFrom, context));
 
-            if (context.IsInheritanceRequiringClassContext && namedType.TypeKind is TypeKind.Class)
+            if (context.IsBaseClassContext && namedType.TypeKind is TypeKind.Class)
             {
                 if (namedType.IsStatic || namedType.IsSealed)
                     return namedType.GetTypeMembers().Any(m => IsValidForInheritanceContext(m, inheritingFrom, context));
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return true;
             }
 
-            if (context.IsInheritanceRequiringInterfaceContext)
+            if (context.IsBaseInterfaceContext)
             {
                 if (!namedType.IsInterfaceType())
                     return namedType.GetTypeMembers().Any(m => IsValidForInheritanceContext(m, inheritingFrom, context));

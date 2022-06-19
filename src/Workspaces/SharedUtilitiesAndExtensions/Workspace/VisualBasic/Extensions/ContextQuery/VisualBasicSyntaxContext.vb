@@ -57,13 +57,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             targetToken As SyntaxToken,
             isAttributeNameContext As Boolean,
             isAwaitKeywordContext As Boolean,
+            isBaseClassContext As Boolean,
+            isBaseInterfaceContext As Boolean,
             IsCustomEventContext As Boolean,
             isEnumTypeMemberAccessContext As Boolean,
             isAnyExpressionContext As Boolean,
             isGenericConstraintContext As Boolean,
             isGlobalStatementContext As Boolean,
-            isInheritanceRequiringClassContext As Boolean,
-            isInheritanceRequiringInterfaceContext As Boolean,
             IsOnArgumentListBracketOrComma As Boolean,
             isInImportsDirective As Boolean,
             isInLambda As Boolean,
@@ -93,11 +93,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 isAtStartOfPattern:=False,
                 isAttributeNameContext:=isAttributeNameContext,
                 isAwaitKeywordContext:=isAwaitKeywordContext,
+                isBaseClassContext:=isBaseClassContext,
+                isBaseInterfaceContext:=isBaseInterfaceContext,
                 isEnumTypeMemberAccessContext:=isEnumTypeMemberAccessContext,
                 isGenericConstraintContext:=isGenericConstraintContext,
                 isGlobalStatementContext:=isGlobalStatementContext,
-                isInheritanceRequiringClassContext:=isInheritanceRequiringClassContext,
-                isInheritanceRequiringInterfaceContext:=isInheritanceRequiringInterfaceContext,
                 isInImportsDirective:=isInImportsDirective,
                 isInQuery:=isInQuery,
                 isNameOfContext:=isNameOfContext,
@@ -151,7 +151,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             Return False
         End Function
 
-        Private Shared Function ComputeIsInheritanceRequiringClassContext(targetToken As SyntaxToken) As Boolean
+        Private Shared Function ComputeIsBaseClassContext(targetToken As SyntaxToken) As Boolean
             If targetToken.IsChildToken(Of InheritsStatementSyntax)(Function(n) n.InheritsKeyword) AndAlso targetToken.HasAncestor(Of ClassBlockSyntax)() Then
                 Return True
             End If
@@ -161,8 +161,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                    targetToken.HasAncestor(Of ClassBlockSyntax)()
         End Function
 
-        Private Shared Function ComputeIsInheritanceRequiringInterfaceContext(targetToken As SyntaxToken) As Boolean
-            ' Class Implements interface
+        Private Shared Function ComputeIsBaseInterfaceContext(targetToken As SyntaxToken) As Boolean
+            ' Class/Structure Implements interface
             If targetToken.IsChildToken(Of ImplementsStatementSyntax)(Function(n) n.ImplementsKeyword) AndAlso Not targetToken.HasAncestor(Of InterfaceBlockSyntax)() Then
                 Return True
             End If
@@ -200,12 +200,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 isAnyExpressionContext:=isAnyExpressionContext,
                 isAttributeNameContext:=syntaxTree.IsAttributeNameContext(position, targetToken, cancellationToken),
                 isAwaitKeywordContext:=ComputeIsAwaitKeywordContext(targetToken, isAnyExpressionContext, isInQuery, isStatementContext),
+                isBaseClassContext:=ComputeIsBaseClassContext(targetToken),
+                isBaseInterfaceContext:=ComputeIsBaseInterfaceContext(targetToken),
                 IsCustomEventContext:=targetToken.GetAncestor(Of EventBlockSyntax)() IsNot Nothing,
                 isEnumTypeMemberAccessContext:=syntaxTree.IsEnumTypeMemberAccessContext(position, targetToken, semanticModel, cancellationToken),
                 isGenericConstraintContext:=targetToken.Parent.IsKind(SyntaxKind.TypeParameterSingleConstraintClause, SyntaxKind.TypeParameterMultipleConstraintClause),
                 isGlobalStatementContext:=syntaxTree.IsGlobalStatementContext(position, cancellationToken),
-                isInheritanceRequiringClassContext:=ComputeIsInheritanceRequiringClassContext(targetToken),
-                isInheritanceRequiringInterfaceContext:=ComputeIsInheritanceRequiringInterfaceContext(targetToken),
                 isInImportsDirective:=leftToken.GetAncestor(Of ImportsStatementSyntax)() IsNot Nothing,
                 isInLambda:=leftToken.GetAncestor(Of LambdaExpressionSyntax)() IsNot Nothing,
                 isInQuery:=isInQuery,
