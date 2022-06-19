@@ -135,10 +135,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             ArrayBuilder<FinderLocation> initialReferences,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = state.SyntaxFacts;
-
-            var root = state.Root;
-            var tokens = root.DescendantTokens().Where(syntaxFacts.IsGlobalNamespaceKeyword);
+            var tokens = state.Root.DescendantTokens().Where(state.SyntaxFacts.IsGlobalNamespaceKeyword);
 
             initialReferences.AddRange(await FindReferencesInTokensAsync(
                 symbol,
