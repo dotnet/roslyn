@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
                 // Check if this token is a named attribute argument to "Target" property of "SuppressMessageAttribute".
                 if (!IsValidTargetOfGlobalSuppressionAttribute(
-                    token, suppressMessageAttribute, state.SemanticModel, state.SyntaxFacts, cancellationToken))
+                        token, suppressMessageAttribute, state.SemanticModel, state.SyntaxFacts, cancellationToken))
                 {
                     return false;
                 }
