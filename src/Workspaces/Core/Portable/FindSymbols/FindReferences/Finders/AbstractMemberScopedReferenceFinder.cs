@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
     internal abstract class AbstractMemberScopedReferenceFinder<TSymbol> : AbstractReferenceFinder<TSymbol>
         where TSymbol : ISymbol
     {
-        protected abstract Func<FindReferencesDocumentState, SyntaxToken, string, bool> GetTokensMatchFunction();
+        protected abstract Func<FindReferencesDocumentState, SyntaxToken, string, CancellationToken, bool> GetTokensMatchFunction();
 
         protected sealed override bool CanFind(TSymbol symbol)
             => true;
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return FindReferencesInTokensAsync(
                 state,
                 tokens,
-                static (state, token, name) => IdentifiersMatch(state.SyntaxFacts, name, token),
+                static (state, token, name, _) => IdentifiersMatch(state.SyntaxFacts, name, token),
                 GetStandardSymbolsMatchFunction(symbol, findParentNode),
                 symbol.Name,
                 cancellationToken);

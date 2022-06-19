@@ -57,10 +57,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = state.SyntaxFacts;
-            var typeName = methodSymbol.ContainingType.Name;
-
-            var tokens = state.Cache.GetConstructorInitializerTokens(syntaxFacts, state.Root, cancellationToken);
+            var tokens = state.Cache.GetConstructorInitializerTokens(state.SyntaxFacts, state.Root, cancellationToken);
             if (state.SemanticModel.Language == LanguageNames.VisualBasic)
             {
                 tokens = tokens.Concat(await FindMatchingIdentifierTokensAsync(
@@ -72,16 +69,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                  state,
                  tokens,
                  TokensMatch,
-                 (typeName, cancellationToken),
+                 methodSymbol.ContainingType.Name,
                  cancellationToken).ConfigureAwait(false);
 
             // local functions
             static bool TokensMatch(
                 FindReferencesDocumentState state,
                 SyntaxToken token,
-                (string typeName, CancellationToken cancellationToken) tuple)
+                string typeName,
+                CancellationToken cancellationToken)
             {
-                var (typeName, cancellationToken) = tuple;
                 var semanticModel = state.SemanticModel;
                 var syntaxFacts = state.SyntaxFacts;
 

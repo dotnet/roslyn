@@ -37,12 +37,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CancellationToken cancellationToken)
         {
             var syntaxFacts = state.SyntaxFacts;
-            var op = symbol.GetPredefinedOperator();
 
             var opReferences = await FindReferencesInDocumentAsync(
                 symbol, state,
-                static (state, token, op) => IsPotentialReference(state.SyntaxFacts, op, token),
-                op,
+                static (state, token, op, _) => IsPotentialReference(state.SyntaxFacts, op, token),
+                symbol.GetPredefinedOperator(),
                 cancellationToken).ConfigureAwait(false);
             var suppressionReferences = await FindReferencesInDocumentInsideGlobalSuppressionsAsync(
                 symbol, state, cancellationToken).ConfigureAwait(false);

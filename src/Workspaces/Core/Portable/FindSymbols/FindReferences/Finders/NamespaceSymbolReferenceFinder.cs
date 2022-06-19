@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 symbol,
                 state,
                 tokens,
-                static (state, token, name) =>
+                static (state, token, name, _) =>
                 {
                     Debug.Assert(state.SyntaxFacts.TextMatch(token.ValueText, name));
                     return true;
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 symbol,
                 state,
                 tokens,
-                static (state, token, _) =>
+                static (state, token, _, _) =>
                 {
                     Debug.Assert(state.SyntaxFacts.IsGlobalNamespaceKeyword(token));
                     return true;
