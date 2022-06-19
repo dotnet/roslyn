@@ -274,9 +274,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             SyntaxNode node, FindReferencesDocumentState state, SymbolsMatchAsync symbolsMatchAsync, CancellationToken cancellationToken)
         {
             // For an ElementAccessExpression the indexer we are looking for is the argumentList component.
-            var syntaxFacts = state.SyntaxFacts;
-
-            syntaxFacts.GetPartsOfElementAccessExpression(node, out var expression, out var indexerReference);
+            state.SyntaxFacts.GetPartsOfElementAccessExpression(node, out var expression, out var indexerReference);
             if (expression != null && (await symbolsMatchAsync(state, expression, cancellationToken).ConfigureAwait(false)).matched)
             {
                 // Element access with explicit member name (allowed in VB). We will have
