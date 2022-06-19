@@ -88,8 +88,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             if (symbol is IAliasSymbol alias)
                 symbol = alias.Target;
 
-            if (symbol is INamespaceSymbol @namespace)
-                return @namespace.GetMembers().Any(m => IsValidForTaskLikeTypeOnlyContext(m, context));
+            if (symbol.IsNamespace())
+                return true;
 
             if (symbol is not INamedTypeSymbol namedType ||
                 symbol.IsDelegateType() ||
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             return namedType.IsAwaitableNonDynamic(context.SemanticModel, context.Position) ||
-                   namedType.GetTypeMembers().Any(IsValidForTaskLikeTypeOnlyContext, context);
+                   namedType.GetTypeMembers().Any(static (m, context) => IsValidForTaskLikeTypeOnlyContext(m, context), context);
         }
 
         private static bool IsValidForGenericConstraintContext(ISymbol symbol)
@@ -116,13 +116,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             if (symbol is IAliasSymbol alias)
                 symbol = alias.Target;
 
-            if (symbol is INamespaceSymbol @namespace)
-                return @namespace.GetMembers().Any(IsValidForGenericConstraintContext);
+            if (symbol.IsNamespace())
+                return true;
 
             if (symbol.IsKind(SymbolKind.TypeParameter))
-            {
                 return true;
-            }
 
             if (symbol is not INamedTypeSymbol namedType ||
                 symbol.IsDelegateType() ||
