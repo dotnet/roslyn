@@ -526,8 +526,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             void CollectMatchingReferences(
                 SyntaxNode node, FindReferencesDocumentState state, ArrayBuilder<FinderLocation> locations)
             {
-                var semanticModel = state.SemanticModel;
-                var awaitExpressionMethod = state.SemanticFacts.GetGetAwaiterMethod(semanticModel, node);
+                var awaitExpressionMethod = state.SemanticFacts.GetGetAwaiterMethod(state.SemanticModel, node);
 
                 if (Matches(awaitExpressionMethod, symbol))
                 {
