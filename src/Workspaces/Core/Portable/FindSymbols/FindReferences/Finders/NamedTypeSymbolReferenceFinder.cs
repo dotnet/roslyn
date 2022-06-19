@@ -144,7 +144,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             ArrayBuilder<FinderLocation> nonAliasReferences,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = state.SyntaxFacts;
             await AddNonAliasReferencesAsync(
                 namedType, namedType.Name, state, nonAliasReferences, cancellationToken).ConfigureAwait(false);
 
@@ -155,7 +154,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     // ignore the cases where the global alias might match the type name (i.e.
                     // global alias Console = System.Console).  We'll already find those references
                     // above.
-                    if (syntaxFacts.StringComparer.Equals(namedType.Name, globalAlias))
+                    if (state.SyntaxFacts.StringComparer.Equals(namedType.Name, globalAlias))
                         continue;
 
                     await AddNonAliasReferencesAsync(
