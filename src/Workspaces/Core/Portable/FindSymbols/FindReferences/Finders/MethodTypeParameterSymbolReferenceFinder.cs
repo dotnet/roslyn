@@ -63,9 +63,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         private static string GetMemberNameWithoutInterfaceName(string fullName)
         {
             var index = fullName.LastIndexOf('.');
-            return index > 0
-                ? fullName.Substring(index + 1)
-                : fullName;
+            return index > 0 ? fullName[(index + 1)..] : fullName;
         }
 
         protected sealed override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(

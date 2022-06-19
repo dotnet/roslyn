@@ -121,14 +121,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             var name = symbol.Name;
             var syntaxFacts = state.SyntaxFacts;
-            var symbolsMatch = GetStandardSymbolsMatchFunction(
-                symbol, findParentNode, cancellationToken);
 
             return FindReferencesInTokensAsync(
                 state,
                 tokens,
                 static (state, token, name) => IdentifiersMatch(state.SyntaxFacts, name, token),
-                symbolsMatch,
+                GetStandardSymbolsMatchFunction(symbol, findParentNode),
                 name,
                 cancellationToken);
         }
@@ -155,9 +153,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var tokens = declarations.SelectMany(r => r.GetSyntax(cancellationToken).DescendantTokens());
 
             var name = symbol.Name;
-            var syntaxFacts = state.SyntaxFacts;
-            var symbolsMatch = GetStandardSymbolsMatchFunction(
-                symbol, findParentNode, cancellationToken);
+            var symbolsMatch = GetStandardSymbolsMatchFunction(symbol, findParentNode);
             var tokensMatch = GetTokensMatchFunction();
 
             return FindReferencesInTokensAsync(

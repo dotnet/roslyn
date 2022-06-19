@@ -53,8 +53,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             // Get the standard function for comparing parameters.  This function will just 
             // directly compare the parameter symbols for SymbolEquivalence.
-            var standardFunction = GetStandardSymbolsMatchFunction(
-                parameter, findParentNode: null, cancellationToken);
+            var standardFunction = GetStandardSymbolsMatchFunction(parameter, findParentNode: null);
 
             // HOwever, we also want to consider parameter symbols them same if they unify across
             // VB's synthesized AnonymousDelegate parameters. 
@@ -77,8 +76,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             // anonymous-delegate's invoke method.  So get he symbol match function that will check
             // for equivalence with that parameter.
             var anonymousDelegateParameter = invokeMethod.Parameters[ordinal];
-            var anonParameterFunc = GetStandardSymbolsMatchFunction(
-                anonymousDelegateParameter, findParentNode: null, cancellationToken);
+            var anonParameterFunc = GetStandardSymbolsMatchFunction(anonymousDelegateParameter, findParentNode: null);
 
             // Return a new function which is a compound of the two functions we have.
             return async (state, token, cancellationToken) =>
@@ -290,18 +288,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             IParameterSymbol parameter,
             ArrayBuilder<ISymbol> results)
         {
-            if (parameter.ContainingSymbol is IMethodSymbol)
+            if (parameter.ContainingSymbol is IMethodSymbol method)
             {
                 var ordinal = parameter.Ordinal;
-                var method = (IMethodSymbol)parameter.ContainingSymbol;
                 if (method.PartialDefinitionPart != null && ordinal < method.PartialDefinitionPart.Parameters.Length)
                 {
-                    results.Add(method.PartialDefinitionPart.Parameters[ordinal]);
+                    results.Add((ISymbol)method.PartialDefinitionPart.Parameters[ordinal]);
                 }
 
                 if (method.PartialImplementationPart != null && ordinal < method.PartialImplementationPart.Parameters.Length)
                 {
-                    results.Add(method.PartialImplementationPart.Parameters[ordinal]);
+                    results.Add((ISymbol)method.PartialImplementationPart.Parameters[ordinal]);
                 }
             }
         }

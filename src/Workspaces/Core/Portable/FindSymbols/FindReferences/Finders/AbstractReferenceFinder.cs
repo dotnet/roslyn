@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             Func<SyntaxToken, SyntaxNode>? findParentNode,
             CancellationToken cancellationToken)
         {
-            var symbolsMatch = GetStandardSymbolsMatchFunction(symbol, findParentNode, cancellationToken);
+            var symbolsMatch = GetStandardSymbolsMatchFunction(symbol, findParentNode);
             return FindReferencesInDocumentUsingIdentifierAsync(
                 symbol, identifier, state, symbolsMatch, cancellationToken);
         }
@@ -193,12 +193,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         protected static Func<FindReferencesDocumentState, SyntaxToken, CancellationToken, ValueTask<(bool matched, CandidateReason reason)>> GetStandardSymbolsMatchFunction(
             ISymbol symbol,
-            Func<SyntaxToken, SyntaxNode>? findParentNode,
-            CancellationToken cancellationToken)
+            Func<SyntaxToken, SyntaxNode>? findParentNode)
         {
             var nodeMatchAsync = GetStandardSymbolsNodeMatchFunction(symbol);
             findParentNode ??= t => t.Parent!;
-            return (state, token, CancellationToken) => nodeMatchAsync(state, findParentNode(token), cancellationToken);
+            return (state, token, cancellationToken) => nodeMatchAsync(state, findParentNode(token), cancellationToken);
         }
 
         protected static Func<FindReferencesDocumentState, SyntaxNode, CancellationToken, ValueTask<(bool matched, CandidateReason reason)>> GetStandardSymbolsNodeMatchFunction(
@@ -920,14 +919,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             T value,
             CancellationToken cancellationToken)
         {
-            var symbolsMatchAsync = GetStandardSymbolsMatchFunction(
-                symbol, findParentNode, cancellationToken);
-
             return FindReferencesInTokensAsync(
                 state,
                 tokens,
                 tokensMatch,
-                symbolsMatchAsync,
+                GetStandardSymbolsMatchFunction(symbol, findParentNode),
                 value,
                 cancellationToken);
         }
@@ -951,7 +947,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             T value,
             CancellationToken cancellationToken)
         {
-            var symbolsMatchAsync = GetStandardSymbolsMatchFunction(symbol, findParentNode, cancellationToken);
+            var symbolsMatchAsync = GetStandardSymbolsMatchFunction(symbol, findParentNode);
             return FindReferencesInDocumentAsync(state, tokensMatch, symbolsMatchAsync, value, cancellationToken);
         }
 

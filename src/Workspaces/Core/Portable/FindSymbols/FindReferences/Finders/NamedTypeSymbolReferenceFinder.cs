@@ -124,8 +124,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             // This named type may end up being locally aliased as well.  If so, now find all the references
             // to the local alias.
-            var symbolsMatch = GetStandardSymbolsMatchFunction(
-                namedType, findParentNode: null, cancellationToken);
+            var symbolsMatch = GetStandardSymbolsMatchFunction(namedType, findParentNode: null);
 
             initialReferences.AddRange(await FindLocalAliasReferencesAsync(
                 initialReferences, state, symbolsMatch, cancellationToken).ConfigureAwait(false));
@@ -195,8 +194,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             // to the constructor not the type.  That's a good thing as we don't want these object-creations to
             // associate with the type, but rather with the constructor itself.
             var findParentNode = GetNamedTypeOrConstructorFindParentNodeFunction(state, namedType);
-            var symbolsMatch = GetStandardSymbolsMatchFunction(
-                namedType, findParentNode, cancellationToken);
+            var symbolsMatch = GetStandardSymbolsMatchFunction(namedType, findParentNode);
 
             return FindReferencesInDocumentUsingIdentifierAsync(
                 namedType, name, state, symbolsMatch, cancellationToken);
@@ -228,8 +226,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             FindReferencesDocumentState state,
             CancellationToken cancellationToken)
         {
-            var symbolsMatch = GetStandardSymbolsMatchFunction(
-                namedType, findParentNode: null, cancellationToken);
+            var symbolsMatch = GetStandardSymbolsMatchFunction(namedType, findParentNode: null);
             var syntaxFacts = state.SyntaxFacts;
             return TryGetNameWithoutAttributeSuffix(name, syntaxFacts, out var nameWithoutSuffix)
                 ? FindReferencesInDocumentUsingIdentifierAsync(namedType, nameWithoutSuffix, state, symbolsMatch, cancellationToken)
