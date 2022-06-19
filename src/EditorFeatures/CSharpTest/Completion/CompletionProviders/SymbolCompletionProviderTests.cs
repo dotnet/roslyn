@@ -1547,6 +1547,17 @@ class B : $$
 ", "C");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task BaseList_NotSpecialTypes()
+        {
+            var markup = AddUsingDirectives("using System;", "class B: $$");
+
+            await VerifyItemIsAbsentAsync(markup, "Enum");
+            await VerifyItemIsAbsentAsync(markup, "ValueType");
+            await VerifyItemIsAbsentAsync(markup, "Delegate");
+            await VerifyItemIsAbsentAsync(markup, "Array");
+        }
+
         [WorkItem(60935, "https://github.com/dotnet/roslyn/issues/60935")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task BaseList_NotSelfClass()
@@ -1703,6 +1714,26 @@ class N
 
 interface I : $$
 ", "N");
+        }
+
+        [WorkItem(60935, "https://github.com/dotnet/roslyn/issues/60935")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task BaseListInterface_NotSelf()
+        {
+            await VerifyItemIsAbsentAsync(@"
+interface I : $$
+", "I");
+        }
+
+        [WorkItem(60935, "https://github.com/dotnet/roslyn/issues/60935")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task BaseListInterface_NotSelfEvenWithNestedTypes()
+        {
+            await VerifyItemIsAbsentAsync(@"
+interface I : $$
+{
+    interface I2 {}
+}", "I");
         }
 
         #endregion

@@ -115,8 +115,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             End Function
 
             Private Function GetUnqualifiedSymbolsForType() As ImmutableArray(Of ISymbol)
-                Dim symbols = _context.SemanticModel.LookupNamespacesAndTypes(_context.TargetToken.SpanStart)
-                Return symbols
+                ' Edge case when interface declare Implements block.
+                ' We shouldn't provide any symbols in this case
+                If IsInterfaceImplementsErrorBlock() Then
+                    Return ImmutableArray(Of ISymbol).Empty
+                End If
+                Return _context.SemanticModel.LookupNamespacesAndTypes(_context.TargetToken.SpanStart)
             End Function
 
             Private Function GetUnqualifiedSymbolsForExpressionOrStatementContext() As ImmutableArray(Of ISymbol)
@@ -156,6 +160,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             End Function
 
             Private Function GetSymbolsForQualifiedNameSyntax(node As QualifiedNameSyntax) As ImmutableArray(Of ISymbol)
+                ' Edge case when interface declare Implements block.
+                ' We shouldn't provide any symbols in this case
+                If IsInterfaceImplementsErrorBlock() Then
+                    Return ImmutableArray(Of ISymbol).Empty
+                End If
+
                 ' We're in a name-only context, since if we were an expression we'd be a
                 ' MemberAccessExpressionSyntax. Thus, let's do other namespaces and types.
                 Dim leftHandSymbolInfo = _context.SemanticModel.GetSymbolInfo(node.Left, _cancellationToken)
@@ -182,6 +192,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
                 End If
 
                 Return symbols
+            End Function
+
+            Private Function IsInterfaceImplementsErrorBlock() As Boolean
+                Dim possibleTypeBlock = _context.TargetToken.Parent?.FirstAncestorOrSelf(Of TypeBlockSyntax)()
+                If possibleTypeBlock IsNot Nothing Then
+                    Dim typeSymbol As ISymbol = _context.SemanticModel.GetDeclaredSymbol(possibleTypeBlock, _cancellationToken)
+                    If typeSymbol.IsInterfaceType() Then
+                        Dim token = _context.TargetToken
+                        If token.IsChildToken(Of ImplementsStatementSyntax)(Function(n) n.ImplementsKeyword) Then
+                            Return True
+                        End If
+                        Return token.IsChildToken(Of QualifiedNameSyntax)(Function(n) n.DotToken) AndAlso
+                               token.Parent?.FirstAncestorOrSelf(Of ImplementsStatementSyntax) IsNot Nothing
+                    End If
+                End If
+                Return False
             End Function
 
             Private Function GetSymbolsForMemberAccessExpression(node As MemberAccessExpressionSyntax) As ImmutableArray(Of ISymbol)
