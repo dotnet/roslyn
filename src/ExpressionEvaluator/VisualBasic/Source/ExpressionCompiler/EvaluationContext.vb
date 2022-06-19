@@ -637,13 +637,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Private Shared Function IsValidMissingAssemblyIdentity(identity As AssemblyIdentity) As Boolean
             Return identity IsNot Nothing AndAlso Not identity.Equals(MissingCorLibrarySymbol.Instance.Identity)
         End Function
-
-        Private Shared Function GetSynthesizedMethod(moduleBuilder As CommonPEModuleBuilder) As MethodSymbol
-            Dim method = DirectCast(moduleBuilder, EEAssemblyBuilder).Methods.Single(Function(m) m.MetadataName = s_methodName)
-            Debug.Assert(method.ContainingType.MetadataName = s_typeName)
-            Return method
-        End Function
-
     End Class
 
 End Namespace

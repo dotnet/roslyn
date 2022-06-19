@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
             IEnumerable<Lazy<TService, EmbeddedLanguageMetadata>> allServices)
         {
             // Order the classifiers to respect the [Order] annotations.
-            var orderedClassifiers = ExtensionOrderer.Order(allServices).Where(c => c.Metadata.Language == languageName).ToImmutableArray();
+            var orderedClassifiers = ExtensionOrderer.Order(allServices).Where(c => c.Metadata.Languages.Contains(languageName)).ToImmutableArray();
 
             // Grab out the services that handle unannotated literals and APIs.
             _legacyServices = orderedClassifiers.WhereAsArray(c => c.Metadata.SupportsUnannotatedAPIs);

@@ -3751,7 +3751,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         [Obsolete("Use VisitCollectionElementInitializer(BoundCollectionElementInitializer node, TypeSymbol containingType, bool delayCompletionForType) instead.", true)]
+#pragma warning disable IDE0051 // Remove unused private members
         private new void VisitCollectionElementInitializer(BoundCollectionElementInitializer node)
+#pragma warning restore IDE0051 // Remove unused private members
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -8081,7 +8083,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeWithState resultType = calculateResultType(targetTypeWithNullability, fromExplicitCast, resultState, isSuppressed, targetType);
 
-            if (operandType.Type?.IsErrorType() != true && !targetType.IsErrorType())
+            if (!conversionOperand.HasErrors && !targetType.IsErrorType())
             {
                 // Need to report all warnings that apply since the warnings can be suppressed individually.
                 if (reportTopLevelWarnings)

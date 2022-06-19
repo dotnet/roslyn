@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis
         private readonly HostWorkspaceServices _services;
         private readonly BranchId _primaryBranchId;
 
-        private readonly IOptionService _optionService;
+        private readonly ILegacyWorkspaceOptionService _legacyOptions;
 
         // forces serialization of mutation calls from host (OnXXX methods). Must take this lock before taking stateLock.
         private readonly SemaphoreSlim _serializationLock = new(initialCount: 1);
@@ -76,8 +76,8 @@ namespace Microsoft.CodeAnalysis
 
             _services = host.CreateWorkspaceServices(this);
 
-            _optionService = _services.GetRequiredService<IOptionService>();
-            _optionService.RegisterWorkspace(this);
+            _legacyOptions = _services.GetRequiredService<ILegacyWorkspaceOptionService>();
+            _legacyOptions.RegisterWorkspace(this);
 
             // queue used for sending events
             var schedulerProvider = _services.GetRequiredService<ITaskSchedulerProvider>();
@@ -87,8 +87,7 @@ namespace Microsoft.CodeAnalysis
             // initialize with empty solution
             var info = SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create());
 
-            var emptyOptions = new SerializableOptionSet(
-                _optionService, ImmutableDictionary<OptionKey, object?>.Empty, changedOptionKeysSerializable: ImmutableHashSet<OptionKey>.Empty);
+            var emptyOptions = new SolutionOptionSet(_legacyOptions);
 
             _latestSolution = CreateSolution(info, emptyOptions, analyzerReferences: SpecializedCollections.EmptyReadOnlyList<AnalyzerReference>());
         }
@@ -131,14 +130,14 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal Solution CreateSolution(SolutionInfo solutionInfo)
         {
-            var options = _optionService.GetSerializableOptionsSnapshot(solutionInfo.GetRemoteSupportedProjectLanguages());
+            var options = new SolutionOptionSet(_legacyOptions);
             return CreateSolution(solutionInfo, options, solutionInfo.AnalyzerReferences);
         }
 
         /// <summary>
         /// Create a new empty solution instance associated with this workspace, and with the given options.
         /// </summary>
-        private Solution CreateSolution(SolutionInfo solutionInfo, SerializableOptionSet options, IReadOnlyList<AnalyzerReference> analyzerReferences)
+        private Solution CreateSolution(SolutionInfo solutionInfo, SolutionOptionSet options, IReadOnlyList<AnalyzerReference> analyzerReferences)
             => new(this, solutionInfo.Attributes, options, analyzerReferences);
 
         /// <summary>
@@ -255,21 +254,20 @@ namespace Microsoft.CodeAnalysis
             [Obsolete(@"Workspace options should be set by invoking 'workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(newOptionSet))'")]
             set
             {
-                SetOptions(value);
+                var changedOptionKeys = value switch
+                {
+                    null => throw new ArgumentNullException(nameof(value)),
+                    SolutionOptionSet serializableOptionSet => serializableOptionSet.GetChangedOptions(),
+                    _ => throw new ArgumentException(WorkspacesResources.Options_did_not_come_from_specified_Solution, paramName: nameof(value))
+                };
+
+                _legacyOptions.SetOptions(value, changedOptionKeys);
             }
         }
 
-        /// <summary>
-        /// Sets global options and <see cref="Options"/> to have the new options.
-        /// NOTE: This method also updates <see cref="CurrentSolution"/> to a new solution instance with updated <see cref="Solution.Options"/>.
-        /// </summary>
-        internal void SetOptions(OptionSet options)
-            => _optionService.SetOptions(options);
-
         internal void UpdateCurrentSolutionOnOptionsChanged()
         {
-            var newOptions = _optionService.GetSerializableOptionsSnapshot(this.CurrentSolution.State.GetRemoteSupportedProjectLanguages());
-            this.SetCurrentSolution(this.CurrentSolution.WithOptions(newOptions));
+            SetCurrentSolution(CurrentSolution.WithOptions(new SolutionOptionSet(_legacyOptions)));
         }
 
         /// <summary>
@@ -369,7 +367,7 @@ namespace Microsoft.CodeAnalysis
                 this.Services.GetService<IWorkspaceEventListenerService>()?.Stop();
             }
 
-            _optionService.UnregisterWorkspace(this);
+            _legacyOptions.UnregisterWorkspace(this);
 
             // Directly dispose IRemoteHostClientProvider if necessary. This is a test hook to ensure RemoteWorkspace
             // gets disposed in unit tests as soon as TestWorkspace gets disposed. This would be superseded by direct
@@ -1247,7 +1245,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (this.CurrentSolution.Options != newSolution.Options)
                 {
-                    SetOptions(newSolution.Options);
+                    _legacyOptions.SetOptions(newSolution.State.Options, newSolution.State.Options.GetChangedOptions());
                 }
 
                 if (!CurrentSolution.AnalyzerReferences.SequenceEqual(newSolution.AnalyzerReferences))
@@ -1658,16 +1656,16 @@ namespace Microsoft.CodeAnalysis
                 project.OutputFilePath,
                 project.CompilationOptions,
                 project.ParseOptions,
-                project.Documents.Select(d => CreateDocumentInfoWithText(d)),
+                project.Documents.Select(CreateDocumentInfoWithText),
                 project.ProjectReferences,
                 project.MetadataReferences,
                 project.AnalyzerReferences,
-                project.AdditionalDocuments.Select(d => CreateDocumentInfoWithText(d)),
+                project.AdditionalDocuments.Select(CreateDocumentInfoWithText),
                 project.IsSubmission,
                 project.State.HostObjectType,
                 project.OutputRefFilePath)
                 .WithDefaultNamespace(project.DefaultNamespace)
-                .WithAnalyzerConfigDocuments(project.AnalyzerConfigDocuments.Select(d => CreateDocumentInfoWithText(d)));
+                .WithAnalyzerConfigDocuments(project.AnalyzerConfigDocuments.Select(CreateDocumentInfoWithText));
         }
 
         private static DocumentInfo CreateDocumentInfoWithText(TextDocument doc)

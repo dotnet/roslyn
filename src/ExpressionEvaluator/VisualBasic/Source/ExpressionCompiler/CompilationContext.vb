@@ -905,29 +905,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Return fileLevel
         End Function
 
-        Private Shared Function SelectAndInitializeCollection(Of T)(
-            scope As VBImportScopeKind,
-            ByRef projectLevelCollection As T,
-            ByRef fileLevelCollection As T,
-            initializeCollection As Func(Of T)) As T
-
-            If scope = VBImportScopeKind.Project Then
-                If projectLevelCollection Is Nothing Then
-                    projectLevelCollection = initializeCollection()
-                End If
-
-                Return projectLevelCollection
-            Else
-                Debug.Assert(scope = VBImportScopeKind.File OrElse scope = VBImportScopeKind.Unspecified)
-
-                If fileLevelCollection Is Nothing Then
-                    fileLevelCollection = initializeCollection()
-                End If
-
-                Return fileLevelCollection
-            End If
-        End Function
-
         ''' <summary>
         ''' We don't want to use the real scanner because we want to treat keywords as identifiers.
         ''' Since the inputs are so simple, we'll just do the scanning ourselves.

@@ -134,12 +134,12 @@
       </trans-unit>
       <trans-unit id="ERR_BadAbstractShiftOperatorSignature">
         <source>The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it</source>
-        <target state="needs-review-translation">Il primo operando di un operatore shift di overload deve essere dello stesso tipo del tipo che lo contiene o del relativo parametro di tipo vincolato ad esso, mentre il tipo del secondo operando deve essere int</target>
+        <target state="translated">Il primo operando di un operatore di spostamento sovraccaricato deve avere lo stesso tipo del tipo che lo contiene o del relativo parametro di tipo vincolato ad esso</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractStaticMemberAccess">
         <source>A static virtual or abstract interface member can be accessed only on a type parameter.</source>
-        <target state="needs-review-translation">È possibile accedere a un membro di interfaccia astratto statico solo in un parametro di tipo.</target>
+        <target state="translated">È possibile accedere a un membro di interfaccia statico virtuale o astratto solo su un parametro di tipo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractUnaryOperatorSignature">
@@ -224,7 +224,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotBeConvertedToUTF8">
         <source>The input string cannot be converted into the equivalent UTF-8 byte representation. {0}</source>
-        <target state="new">The input string cannot be converted into the equivalent UTF-8 byte representation. {0}</target>
+        <target state="translated">Impossibile convertire la stringa di input nella rappresentazione di UTF-8 byte equivalente. {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotBeMadeNullable">
@@ -239,7 +239,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotConvertAddressOfToDelegate">
         <source>Cannot convert &amp;method group '{0}' to delegate type '{1}'.</source>
-        <target state="new">Cannot convert &amp;method group '{0}' to delegate type '{1}'.</target>
+        <target state="translated">Non è possibile convertire il gruppo di &amp;metodi '{0}' nel tipo delegato '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotInferDelegateType">
@@ -294,12 +294,12 @@
       </trans-unit>
       <trans-unit id="ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers">
         <source>This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.</source>
-        <target state="new">This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.</target>
+        <target state="translated">Questo costruttore deve aggiungere 'SetsRequiredMembers' perché è concatenato a un costruttore che ha tale attributo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CheckedOperatorNeedsMatch">
         <source>The operator '{0}' requires a matching non-checked version of the operator to also be defined</source>
-        <target state="new">The operator '{0}' requires a matching non-checked version of the operator to also be defined</target>
+        <target state="translated">L'operatore '{0}' richiede che sia definita anche una versione non controllata corrispondente dell’operatore</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CloneDisallowedInRecord">
@@ -454,7 +454,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExplicitRequiredMember">
         <source>Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.</source>
-        <target state="new">Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.</target>
+        <target state="translated">Non usare 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Usare la parola chiave 'obbligatorio' nei campi e nelle proprietà obbligatori.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExprCannotBeFixed">
@@ -474,7 +474,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsAbstractStaticMemberAccess">
         <source>An expression tree may not contain an access of static virtual or abstract interface member</source>
-        <target state="needs-review-translation">Un albero delle espressioni non può contenere un accesso del membro di interfaccia astratto statico</target>
+        <target state="translated">Un albero delle espressioni può non contenere un accesso del membro di interfaccia statico astratto o virtuale</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
@@ -509,7 +509,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsUTF8StringLiterals">
         <source>An expression tree may not contain UTF-8 string conversion or literal.</source>
-        <target state="new">An expression tree may not contain UTF-8 string conversion or literal.</target>
+        <target state="translated">Un albero delle espressioni non può una contenere conversione di stringa UTF-8 o un valore letterale.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsWithExpression">
@@ -593,8 +593,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers">
-        <source>The interface '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. The constraint interface '{1}' or its base interface has static abstract or virtual members.</source>
-        <target state="needs-review-translation">Non è possibile usare l'interfaccia '{3}' come parametro di tipo '{2}' nel metodo o nel tipo generico '{0}'. L'interfaccia di vincolo '{1}' o la relativa interfaccia di base contiene membri statici astratti.</target>
+        <source>The interface '{0}' cannot be used as type argument. Static member '{1}' does not have a most specific implementation in the interface.</source>
+        <target state="new">The interface '{0}' cannot be used as type argument. Static member '{1}' does not have a most specific implementation in the interface.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GlobalUsingInNamespace">
@@ -634,7 +634,12 @@
       </trans-unit>
       <trans-unit id="ERR_ImplicitConversionOperatorCantBeChecked">
         <source>An 'implicit' user-defined conversion operator cannot be declared checked</source>
-        <target state="new">An 'implicit' user-defined conversion operator cannot be declared checked</target>
+        <target state="translated">Impossibile dichiarare controllato un operatore di conversione 'implicit' definito dall'utente</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitImplementationOfInaccessibleInterfaceMember">
+        <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement an inaccessible member.</source>
+        <target state="new">'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement an inaccessible member.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitIndexIndexerWithName">
@@ -837,6 +842,11 @@
         <target state="translated">Il valore della direttiva #line manca oppure non è compreso nell'intervallo</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_LineSpanDirectiveRequiresSpace">
+        <source>The #line span directive requires space before the first parenthesis, before the character offset, and before the file name</source>
+        <target state="new">The #line span directive requires space before the first parenthesis, before the character offset, and before the file name</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ListPatternRequiresLength">
         <source>List patterns may not be used for a value of type '{0}'. No suitable 'Length' or 'Count' property was found.</source>
         <target state="translated">I criteri di elenco non possono essere utilizzati per un valore di tipo '{0}'. Non è stata trovata alcuna proprietà 'Length' o 'Count' appropriata.</target>
@@ -859,7 +869,7 @@
       </trans-unit>
       <trans-unit id="ERR_MisplacedUnchecked">
         <source>Unexpected keyword 'unchecked'</source>
-        <target state="new">Unexpected keyword 'unchecked'</target>
+        <target state="translated">Parola chiave imprevista 'unchecked'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingAddressOf">
@@ -924,7 +934,7 @@
       </trans-unit>
       <trans-unit id="ERR_NewConstraintCannotHaveRequiredMembers">
         <source>'{2}' cannot satisfy the 'new()' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.</source>
-        <target state="new">'{2}' cannot satisfy the 'new()' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.</target>
+        <target state="translated">'{2}' non è in grado di soddisfare il vincolo 'new()' sul parametro '{1}' nel tipo generico o nel metodo '{0}' perché '{2}' contiene membri obbligatori.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString">
@@ -1044,7 +1054,7 @@
       </trans-unit>
       <trans-unit id="ERR_OperatorCantBeChecked">
         <source>User-defined operator '{0}' cannot be declared checked</source>
-        <target state="new">User-defined operator '{0}' cannot be declared checked</target>
+        <target state="translated">Impossibile dichiarare controllato l'operatore '{0}' definito dall'utente</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OutVariableCannotBeByRef">
@@ -1059,7 +1069,7 @@
       </trans-unit>
       <trans-unit id="ERR_OverrideMustHaveRequired">
         <source>'{0}' must be required because it overrides required member '{1}'</source>
-        <target state="new">'{0}' must be required because it overrides required member '{1}'</target>
+        <target state="translated">'{0}' deve essere obbligatorio perché esegue l’override del membro obbligatorio '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideRefConstraintNotSatisfied">
@@ -1074,7 +1084,7 @@
       </trans-unit>
       <trans-unit id="ERR_ParameterNullCheckingNotSupported">
         <source>The 'parameter null-checking' feature is not supported.</source>
-        <target state="new">The 'parameter null-checking' feature is not supported.</target>
+        <target state="translated">La funzionalità 'parameter null-checking' non è supportata.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodAccessibilityDifference">
@@ -1124,7 +1134,7 @@
       </trans-unit>
       <trans-unit id="ERR_PatternSpanCharCannotBeStringNull">
         <source>A string 'null' constant is not supported as a pattern for '{0}'. Use an empty string instead.</source>
-        <target state="new">A string 'null' constant is not supported as a pattern for '{0}'. Use an empty string instead.</target>
+        <target state="translated">Una costante di tipo stringa 'null' non è supportata come criterio per ?{0}'. Usare invece una stringa vuota.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PointerTypeInPatternMatching">
@@ -1199,7 +1209,7 @@
       </trans-unit>
       <trans-unit id="ERR_RefReturningPropertiesCannotBeRequired">
         <source>Ref returning properties cannot be required.</source>
-        <target state="new">Ref returning properties cannot be required.</target>
+        <target state="translated">Il riferimento che restituisce le proprietà non può essere obbligatorio.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RelationalPatternWithNaN">
@@ -1209,42 +1219,42 @@
       </trans-unit>
       <trans-unit id="ERR_RequiredMemberCannotBeHidden">
         <source>Required member '{0}' cannot be hidden by '{1}'.</source>
-        <target state="new">Required member '{0}' cannot be hidden by '{1}'.</target>
+        <target state="translated">Il membro obbligatorio '{0}' non può essere nascosto da '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RequiredMemberCannotBeLessVisibleThanContainingType">
         <source>Required member '{0}' cannot be less visible or have a setter less visible than the containing type '{1}'.</source>
-        <target state="new">Required member '{0}' cannot be less visible or have a setter less visible than the containing type '{1}'.</target>
+        <target state="translated">Il membro obbligatorio '{0}' non può essere meno visibile o avere un setter meno visibile del tipo contenitore '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RequiredMemberMustBeSet">
         <source>Required member '{0}' must be set in the object initializer or attribute constructor.</source>
-        <target state="new">Required member '{0}' must be set in the object initializer or attribute constructor.</target>
+        <target state="translated">Il membro obbligatorio '{0}' deve essere impostato nell'inizializzatore di oggetto o nel costruttore dell’attributo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RequiredMemberMustBeSettable">
         <source>Required member '{0}' must be settable.</source>
-        <target state="new">Required member '{0}' must be settable.</target>
+        <target state="translated">Il membro obbligatorio '{0}' deve essere impostabile.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RequiredMembersBaseTypeInvalid">
         <source>The required members list for the base type '{0}' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.</source>
-        <target state="new">The required members list for the base type '{0}' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.</target>
+        <target state="translated">L'elenco dei membri obbligatori per il tipo di base '{0}' non è valido e non può essere interpretato. Per utilizzare questo costruttore, applicare l'attributo 'SetsRequiredMembers'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RequiredMembersInvalid">
         <source>The required members list for '{0}' is malformed and cannot be interpreted.</source>
-        <target state="new">The required members list for '{0}' is malformed and cannot be interpreted.</target>
+        <target state="translated">L'elenco dei membri obbligatori per '{0}' non è valido e non può essere interpretato.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RequiredMembersMustBeAssignedValue">
         <source>Required member '{0}' must be assigned a value, it cannot use a nested member or collection initializer.</source>
-        <target state="new">Required member '{0}' must be assigned a value, it cannot use a nested member or collection initializer.</target>
+        <target state="translated">Al membro obbligatorio '{0}' deve essere assegnato un valore, non può utilizzare un membro annidato o un inizializzatore di insieme.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RequiredNameDisallowed">
         <source>Types and aliases cannot be named 'required'.</source>
-        <target state="new">Types and aliases cannot be named 'required'.</target>
+        <target state="translated">I tipi e gli alias non possono essere denominati 'obbligatori'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses">
@@ -1275,6 +1285,11 @@
       <trans-unit id="ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv">
         <source>The target runtime doesn't support extensible or runtime-environment default calling conventions.</source>
         <target state="translated">Il runtime di destinazione non supporta convenzioni di chiamata predefinite estendibili o dell'ambiente di runtime.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers">
+        <source>Required members are not allowed on the top level of a script or submission.</source>
+        <target state="new">Required members are not allowed on the top level of a script or submission.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SealedAPIInRecord">
@@ -1434,12 +1449,12 @@
       </trans-unit>
       <trans-unit id="ERR_UnassignedThisAutoPropertyUnsupportedVersion">
         <source>Auto-implemented property '{0}' must be fully assigned before control is returned to the caller. Consider updating to language version '{1}' to auto-default the property.</source>
-        <target state="new">Auto-implemented property '{0}' must be fully assigned before control is returned to the caller. Consider updating to language version '{1}' to auto-default the property.</target>
+        <target state="translated">La proprietà implementata automaticamente '{0}' deve essere assegnata completamente prima che il controllo sia restituito al chiamante. Provare a eseguire l'aggiornamento alla versione del linguaggio '{1}' per impostare automaticamente la proprietà come predefinita.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnassignedThisUnsupportedVersion">
         <source>Field '{0}' must be fully assigned before control is returned to the caller. Consider updating to language version '{1}' to auto-default the field.</source>
-        <target state="new">Field '{0}' must be fully assigned before control is returned to the caller. Consider updating to language version '{1}' to auto-default the field.</target>
+        <target state="translated">Il campo '{0}' deve essere assegnato completamente prima che il controllo sia restituito al chiamante. Provare a eseguire l'aggiornamento alla versione del linguaggio '{1}' per impostare automaticamente il campo come predefinito.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly">
@@ -1454,7 +1469,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnsupportedCompilerFeature">
         <source>'{0}' requires compiler feature '{1}', which is not supported by this version of the C# compiler.</source>
-        <target state="new">'{0}' requires compiler feature '{1}', which is not supported by this version of the C# compiler.</target>
+        <target state="translated">'{0}' richiede la funzionalità del compilatore '{1}', che non è supportata da questa versione del compilatore C#.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedTypeForListPattern">
@@ -1474,17 +1489,17 @@
       </trans-unit>
       <trans-unit id="ERR_UseDefViolationFieldUnsupportedVersion">
         <source>Use of possibly unassigned field '{0}'. Consider updating to language version '{1}' to auto-default the field.</source>
-        <target state="new">Use of possibly unassigned field '{0}'. Consider updating to language version '{1}' to auto-default the field.</target>
+        <target state="translated">Uso del campo probabilmente non assegnato '{0}'. Provare a eseguire l'aggiornamento alla versione del linguaggio '{1}' per impostare automaticamente il campo come predefinito.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UseDefViolationPropertyUnsupportedVersion">
         <source>Use of possibly unassigned auto-implemented property '{0}'. Consider updating to language version '{1}' to auto-default the property.</source>
-        <target state="new">Use of possibly unassigned auto-implemented property '{0}'. Consider updating to language version '{1}' to auto-default the property.</target>
+        <target state="translated">Utilizzo della proprietà implementata automaticamente probabilmente non assegnata '{0}'. Provare a eseguire l'aggiornamento alla versione del linguaggio '{1}' per impostare automaticamente la proprietà come predefinita.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UseDefViolationThisUnsupportedVersion">
         <source>The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version '{0}' to auto-default the unassigned fields.</source>
-        <target state="new">The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version '{0}' to auto-default the unassigned fields.</target>
+        <target state="translated">Impossibile utilizzare l'oggetto 'this' prima dell'assegnazione di tutti i relativi campi. Provare a eseguire l'aggiornamento alla versione del linguaggio '{0}' per impostare come predefiniti automaticamente i campi non assegnati.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_WrongArityAsyncReturn">
@@ -1509,12 +1524,12 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureAutoDefaultStructs">
         <source>auto default struct fields</source>
-        <target state="new">auto default struct fields</target>
+        <target state="translated">campi struct predefiniti in automatico</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureCheckedUserDefinedOperators">
         <source>checked user-defined operators</source>
-        <target state="new">checked user-defined operators</target>
+        <target state="translated">operatori definiti dall'utente controllati</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
@@ -1577,11 +1592,6 @@
         <target state="translated">tipo restituito dell'espressione lambda</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureLineSpanDirective">
-        <source>line span directive</source>
-        <target state="translated">direttiva per intervallo di riga</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_FeatureListPattern">
         <source>list pattern</source>
         <target state="translated">modello di elenco</target>
@@ -1614,12 +1624,12 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureRelaxedShiftOperator">
         <source>relaxed shift operator</source>
-        <target state="new">relaxed shift operator</target>
+        <target state="translated">operatore di spostamento rilassato</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRequiredMembers">
         <source>required members</source>
-        <target state="new">required members</target>
+        <target state="translated">membri obbligatori</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureSealedToStringInRecord">
@@ -1634,12 +1644,12 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureUTF8StringLiterals">
         <source>UTF-8 string literals</source>
-        <target state="new">UTF-8 string literals</target>
+        <target state="translated">Valori letterali stringa UTF-8</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnsignedRightShift">
         <source>unsigned right shift</source>
-        <target state="new">unsigned right shift</target>
+        <target state="translated">spostamento a destra senza segno</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureWithOnAnonymousTypes">
@@ -1659,7 +1669,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureSpanCharConstantPattern">
         <source>pattern matching ReadOnly/Span&lt;char&gt; on constant string</source>
-        <target state="new">pattern matching ReadOnly/Span&lt;char&gt; on constant string</target>
+        <target state="translated">criterio corrispondente a ReadOnly/Span&lt;char&gt; su stringa costante</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
@@ -1794,12 +1804,12 @@
       </trans-unit>
       <trans-unit id="WRN_ObsoleteMembersShouldNotBeRequired">
         <source>Required member '{0}' should not be attributed with 'ObsoleteAttribute' unless the containing type is obsolete or all constructors are obsolete.</source>
-        <target state="new">Required member '{0}' should not be attributed with 'ObsoleteAttribute' unless the containing type is obsolete or all constructors are obsolete.</target>
+        <target state="translated">Al membro obbligatorio '{0}' non deve essere attribuito 'ObsoleteAttribute' a meno che il tipo contenitore sia obsoleto o che tutti i costruttori siano obsoleti.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ObsoleteMembersShouldNotBeRequired_Title">
         <source>Members attributed with 'ObsoleteAttribute' should not be required unless the containing type is obsolete or all constructors are obsolete.</source>
-        <target state="new">Members attributed with 'ObsoleteAttribute' should not be required unless the containing type is obsolete or all constructors are obsolete.</target>
+        <target state="translated">I membri con attributo 'ObsoleteAttribute' non devono essere obbligatori a meno che il tipo contenitore sia obsoleto o che tutti i costruttori siano obsoleti.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
@@ -1914,7 +1924,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyRequiresStatic">
         <source>'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.</source>
-        <target state="needs-review-translation">'UnmanagedCallersOnly' può essere applicato solo a metodi non astratti statici normali o funzioni locali statiche.</target>
+        <target state="translated">'UnmanagedCallersOnly' può essere applicato solo a metodi ordinari statici, non astratti e non virtuali, o a funzioni locali statiche.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_UnmanagedConstraintNotSatisfied">
@@ -2153,7 +2163,7 @@
                               ai caratteri jolly specificati
 -reference:&lt;alias&gt;=&lt;file&gt;     Crea un riferimento ai metadati dal file di assembly specificato
                               usando l'alias indicato. Forma breve: -r
--reference:&lt;elenco file&gt;        Crea un riferimento ai metadati dai file di assembly 
+-reference:&lt;elenco file&gt;        Crea un riferimento ai metadati dai file di assembly
                               specificati. Forma breve: -r
 -addmodule:&lt;elenco file&gt;        Collega i moduli specificati in questo assembly
 -link:&lt;elenco file&gt;             Incorpora metadati dai file di assembly di
@@ -2190,7 +2200,7 @@
 -instrument:TestCoverage      Produce un assembly instrumentato per raccogliere
                               informazioni sul code coverage
 -sourcelink:&lt;file&gt;            Informazioni sul collegamento all'origine da incorporare nel file PDB.
- 
+
                        - ERRORI E AVVISI -
 -warnaserror[+|-]             Segnala tutti gli avvisi come errori
 -warnaserror[+|-]:&lt;elenco avvisi&gt; Segnala determinati avvisi come errori
@@ -2244,7 +2254,7 @@
 
                        - AVANZATE -
 -baseaddress:&lt;indirizzo&gt;        Indirizzo di base della libreria da compilare
--checksumalgorithm:&lt;alg&gt;      Consente di specificare l'algoritmo per calcolare il checksum 
+-checksumalgorithm:&lt;alg&gt;      Consente di specificare l'algoritmo per calcolare il checksum
                               del file di origine archiviato nel file PDB. I valori supportati sono:
                               SHA1 o SHA256 (impostazione predefinita).
 -codepage:&lt;n&gt;                 Consente di specificare la tabella codici da usare all'apertura dei file
@@ -3698,42 +3708,42 @@
       </trans-unit>
       <trans-unit id="WRN_UnassignedThisAutoPropertySupportedVersion">
         <source>Control is returned to caller before auto-implemented property '{0}' is explicitly assigned, causing a preceding implicit assignment of 'default'.</source>
-        <target state="new">Control is returned to caller before auto-implemented property '{0}' is explicitly assigned, causing a preceding implicit assignment of 'default'.</target>
+        <target state="translated">Il controllo viene restituito al chiamante prima che la proprietà implementata automaticamente '{0}' sia assegnata in modo esplicito, determinando un'assegnazione implicita precedente di 'default'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnassignedThisAutoPropertySupportedVersion_Title">
         <source>Control is returned to caller before auto-implemented property is explicitly assigned, causing a preceding implicit assignment of 'default'.</source>
-        <target state="new">Control is returned to caller before auto-implemented property is explicitly assigned, causing a preceding implicit assignment of 'default'.</target>
+        <target state="translated">Il controllo viene restituito al chiamante prima che la proprietà implementata automaticamente sia assegnata in modo esplicito, determinando un'assegnazione implicita precedente di 'default'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnassignedThisAutoPropertyUnsupportedVersion">
         <source>Auto-implemented property '{0}' must be fully assigned before control is returned to the caller. Consider updating to language version '{1}' to auto-default the property.</source>
-        <target state="new">Auto-implemented property '{0}' must be fully assigned before control is returned to the caller. Consider updating to language version '{1}' to auto-default the property.</target>
+        <target state="translated">La proprietà implementata automaticamente '{0}' deve essere assegnata completamente prima che il controllo sia restituito al chiamante. Provare a eseguire l'aggiornamento alla versione del linguaggio '{1}' per impostare automaticamente la proprietà come predefinita.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnassignedThisAutoPropertyUnsupportedVersion_Title">
         <source>An auto-implemented property must be fully assigned before control is returned to the caller. Consider updating the language version to auto-default the property.</source>
-        <target state="new">An auto-implemented property must be fully assigned before control is returned to the caller. Consider updating the language version to auto-default the property.</target>
+        <target state="translated">Una proprietà implementata automaticamente deve essere assegnata completamente prima che il controllo sia restituito al chiamante. Provare ad aggiornare la versione del linguaggio per impostare automaticamente la proprietà come predefinita.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnassignedThisSupportedVersion">
         <source>Control is returned to caller before field '{0}' is explicitly assigned, causing a preceding implicit assignment of 'default'.</source>
-        <target state="new">Control is returned to caller before field '{0}' is explicitly assigned, causing a preceding implicit assignment of 'default'.</target>
+        <target state="translated">Il controllo viene restituito al chiamante prima che il campo '{0}' sia assegnato in modo esplicito, determinando un'assegnazione implicita precedente di 'default'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnassignedThisSupportedVersion_Title">
         <source>Control is returned to caller before field is explicitly assigned, causing a preceding implicit assignment of 'default'.</source>
-        <target state="new">Control is returned to caller before field is explicitly assigned, causing a preceding implicit assignment of 'default'.</target>
+        <target state="translated">Il controllo viene restituito al chiamante prima che il campo sia assegnato in modo esplicito, determinando un'assegnazione implicita precedente di 'default'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnassignedThisUnsupportedVersion">
         <source>Field '{0}' must be fully assigned before control is returned to the caller. Consider updating to language version '{1}' to auto-default the field.</source>
-        <target state="new">Field '{0}' must be fully assigned before control is returned to the caller. Consider updating to language version '{1}' to auto-default the field.</target>
+        <target state="translated">Il campo '{0}' deve essere assegnato completamente prima che il controllo sia restituito al chiamante. Provare a eseguire l'aggiornamento alla versione del linguaggio '{1}' per impostare automaticamente il campo come predefinito.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnassignedThisUnsupportedVersion_Title">
         <source>Fields of a struct must be fully assigned in a constructor before control is returned to the caller. Consider updating the language version to auto-default the field.</source>
-        <target state="new">Fields of a struct must be fully assigned in a constructor before control is returned to the caller. Consider updating the language version to auto-default the field.</target>
+        <target state="translated">I campi di uno struct devono essere completamente assegnati in un costruttore prima che il controllo sia restituito al chiamante. Provare ad aggiornare la versione del linguaggio per impostare automaticamente il campo come predefinito.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnboxPossibleNull">
@@ -3798,22 +3808,22 @@
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationFieldSupportedVersion">
         <source>Field '{0}' is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</source>
-        <target state="new">Field '{0}' is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</target>
+        <target state="translated">Il campo '{0}' viene letto prima di essere assegnato in modo esplicito, determinando un’assegnazione implicita precedente di 'default'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationFieldSupportedVersion_Title">
         <source>Field is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</source>
-        <target state="new">Field is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</target>
+        <target state="translated">Il campo viene letto prima di essere assegnato in modo esplicito, determinando un’assegnazione implicita precedente di 'default'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationFieldUnsupportedVersion">
         <source>Use of possibly unassigned field '{0}'. Consider updating to language version '{1}' to auto-default the field.</source>
-        <target state="new">Use of possibly unassigned field '{0}'. Consider updating to language version '{1}' to auto-default the field.</target>
+        <target state="translated">Uso del campo probabilmente non assegnato '{0}'. Provare a eseguire l'aggiornamento alla versione del linguaggio '{1}' per impostare automaticamente il campo come predefinito.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationFieldUnsupportedVersion_Title">
         <source>Use of possibly unassigned field. Consider updating the language version to auto-default the field.</source>
-        <target state="new">Use of possibly unassigned field. Consider updating the language version to auto-default the field.</target>
+        <target state="translated">Uso di un campo probabilmente non assegnato. Provare ad aggiornare la versione della lingua per impostare automaticamente il campo come predefinito.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationField_Title">
@@ -3838,22 +3848,22 @@
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationPropertySupportedVersion">
         <source>Auto-implemented property '{0}' is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</source>
-        <target state="new">Auto-implemented property '{0}' is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</target>
+        <target state="translated">La proprietà implementata automaticamente '{0}' viene letta prima di essere assegnata in modo esplicito, determinando un'assegnazione implicita precedente di 'default'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationPropertySupportedVersion_Title">
         <source>Auto-implemented property is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</source>
-        <target state="new">Auto-implemented property is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</target>
+        <target state="translated">La proprietà implementata automaticamente viene letta prima di essere assegnata in modo esplicito, determinando un'assegnazione implicita precedente di 'default'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationPropertyUnsupportedVersion">
         <source>Use of possibly unassigned auto-implemented property '{0}'. Consider updating to language version '{1}' to auto-default the property.</source>
-        <target state="new">Use of possibly unassigned auto-implemented property '{0}'. Consider updating to language version '{1}' to auto-default the property.</target>
+        <target state="translated">Utilizzo della proprietà implementata automaticamente probabilmente non assegnata '{0}'. Provare a eseguire l'aggiornamento alla versione del linguaggio '{1}' per impostare automaticamente la proprietà come predefinita.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationPropertyUnsupportedVersion_Title">
         <source>Use of possibly unassigned auto-implemented property. Consider updating the language version to auto-default the property.</source>
-        <target state="new">Use of possibly unassigned auto-implemented property. Consider updating the language version to auto-default the property.</target>
+        <target state="translated">Utilizzo di proprietà implementata automaticamente probabilmente non assegnata. Provare ad aggiornare la versione del linguaggio per impostare automaticamente la proprietà come predefinita.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationProperty_Title">
@@ -3863,22 +3873,22 @@
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationThisSupportedVersion">
         <source>The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.</source>
-        <target state="new">The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.</target>
+        <target state="translated">L'oggetto 'this' viene letto prima che tutti i relativi campi siano stati assegnati, determinando le assegnazioni implicite precedenti di 'default' ai campi non esplicitamente assegnati.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationThisSupportedVersion_Title">
         <source>The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.</source>
-        <target state="new">The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.</target>
+        <target state="translated">L'oggetto 'this' viene letto prima che tutti i relativi campi siano stati assegnati, determinando le assegnazioni implicite precedenti di 'default' ai campi non esplicitamente assegnati.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationThisUnsupportedVersion">
         <source>The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version '{0}' to auto-default the unassigned fields.</source>
-        <target state="new">The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version '{0}' to auto-default the unassigned fields.</target>
+        <target state="translated">Impossibile utilizzare l'oggetto 'this' prima dell'assegnazione di tutti i relativi campi. Provare a eseguire l'aggiornamento alla versione del linguaggio '{0}' per impostare come predefiniti automaticamente i campi non assegnati.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationThisUnsupportedVersion_Title">
         <source>The 'this' object cannot be used in a constructor before all of its fields have been assigned. Consider updating the language version to auto-default the unassigned fields.</source>
-        <target state="new">The 'this' object cannot be used in a constructor before all of its fields have been assigned. Consider updating the language version to auto-default the unassigned fields.</target>
+        <target state="translated">Impossibile utilizzare l'oggetto 'this' in un costruttore prima che siano stati assegnati tutti i suoi campi. Provare ad aggiornare la versione del linguaggio per impostare automaticamente come predefiniti i campi non assegnati.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolation_Title">
@@ -5917,7 +5927,7 @@ Se si usa tale classe come classe base e se la classe di derivazione definisce u
       </trans-unit>
       <trans-unit id="ERR_BadShiftOperatorSignature">
         <source>The first operand of an overloaded shift operator must have the same type as the containing type</source>
-        <target state="needs-review-translation">Il primo operando di un operatore shift di overload deve essere dello stesso tipo del tipo che lo contiene, mentre il tipo del secondo operando deve essere int</target>
+        <target state="translated">Il primo operando di un operatore di spostamento sovraccaricato deve avere lo stesso tipo del tipo contenitore</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EnumsCantContainDefaultConstructor">
@@ -6491,8 +6501,8 @@ Se si usa tale classe come classe base e se la classe di derivazione definisce u
         <note />
       </trans-unit>
       <trans-unit id="ERR_LookupInTypeVariable">
-        <source>Cannot do member lookup in '{0}' because it is a type parameter</source>
-        <target state="translated">Non è possibile eseguire la ricerca di membri in '{0}' perché è un parametro di tipo</target>
+        <source>Cannot do non-virtual member lookup in '{0}' because it is a type parameter</source>
+        <target state="needs-review-translation">Non è possibile eseguire la ricerca di membri in '{0}' perché è un parametro di tipo</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadConstraintType">

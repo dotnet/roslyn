@@ -112,18 +112,18 @@ namespace Microsoft.CodeAnalysis.Options
         internal OptionSet WithChangedOption<T>(PerLanguageOption2<T> option, string? language, T value)
             => WithChangedOption(new OptionKey(option, language), value);
 
-        internal AnalyzerConfigOptions AsAnalyzerConfigOptions(IOptionService optionService, string? language)
+        internal AnalyzerConfigOptions AsAnalyzerConfigOptions(ILegacyWorkspaceOptionService optionService, string? language)
         {
             return ImmutableInterlocked.GetOrAdd(
                 ref _lazyAnalyzerConfigOptions,
                 language ?? NoLanguageSentinel,
-                (string language, (OptionSet self, IOptionService optionService) arg) => arg.self.CreateAnalyzerConfigOptions(arg.optionService, (object)language == NoLanguageSentinel ? null : language),
+                (string language, (OptionSet self, ILegacyWorkspaceOptionService optionService) arg) => arg.self.CreateAnalyzerConfigOptions(arg.optionService, (object)language == NoLanguageSentinel ? null : language),
                 (this, optionService));
         }
 
         internal abstract IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet);
 
-        private protected virtual AnalyzerConfigOptions CreateAnalyzerConfigOptions(IOptionService optionService, string? language)
+        private protected virtual AnalyzerConfigOptions CreateAnalyzerConfigOptions(ILegacyWorkspaceOptionService optionService, string? language)
             => new AnalyzerConfigOptionsImpl(this, optionService, language);
     }
 }
