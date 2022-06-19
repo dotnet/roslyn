@@ -10,11 +10,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal class FindReferencesDocumentState
     {
+        private static readonly HashSet<string> s_empty = new();
+
         public readonly Document Document;
         public readonly SemanticModel SemanticModel;
         public readonly SyntaxNode Root;
         public readonly FindReferenceCache Cache;
-        public readonly HashSet<string>? GlobalAliases;
+        public readonly HashSet<string> GlobalAliases;
 
         public readonly Solution Solution;
         public readonly SyntaxTree SyntaxTree;
@@ -32,7 +34,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             SemanticModel = semanticModel;
             Root = root;
             Cache = cache;
-            GlobalAliases = globalAliases;
+            GlobalAliases = globalAliases ?? s_empty;
 
             Solution = document.Project.Solution;
             SyntaxTree = semanticModel.SyntaxTree;

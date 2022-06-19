@@ -69,26 +69,26 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var references = await FindReferencesInDocumentUsingSymbolNameAsync(
                 symbol, state, cancellationToken).ConfigureAwait(false);
 
-            if (symbol.AssociatedSymbol is IPropertySymbol property &&
-                options.AssociatePropertyReferencesWithSpecificAccessor)
+            if (symbol.AssociatedSymbol is not IPropertySymbol property ||
+                !options.AssociatePropertyReferencesWithSpecificAccessor)
             {
-                var propertyReferences = await ReferenceFinders.Property.FindReferencesInDocumentAsync(
-                    property, state,
-                    options with { AssociatePropertyReferencesWithSpecificAccessor = false },
-                    cancellationToken).ConfigureAwait(false);
-
-                var accessorReferences = propertyReferences.WhereAsArray(
-                    loc =>
-                    {
-                        var accessors = GetReferencedAccessorSymbols(
-                            state, property, loc.Node, cancellationToken);
-                        return accessors.Contains(symbol);
-                    });
-
-                references = references.AddRange(accessorReferences);
+                return references;
             }
 
-            return references;
+            var propertyReferences = await ReferenceFinders.Property.FindReferencesInDocumentAsync(
+                property, state,
+                options with { AssociatePropertyReferencesWithSpecificAccessor = false },
+                cancellationToken).ConfigureAwait(false);
+
+            var accessorReferences = propertyReferences.WhereAsArray(
+                loc =>
+                {
+                    var accessors = GetReferencedAccessorSymbols(
+                        state, property, loc.Node, cancellationToken);
+                    return accessors.Contains(symbol);
+                });
+
+            return references.Concat(accessorReferences);
         }
     }
 }

@@ -118,19 +118,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 methodSymbol, name, state, findParentNode, result, cancellationToken).ConfigureAwait(false);
 
             // Next, look for constructor references through a global alias to our containing type.
-            if (state.GlobalAliases != null)
+            foreach (var globalAlias in state.GlobalAliases)
             {
-                foreach (var globalAlias in state.GlobalAliases)
-                {
-                    // ignore the cases where the global alias might match the type name (i.e.
-                    // global alias Console = System.Console).  We'll already find those references
-                    // above.
-                    if (state.SyntaxFacts.StringComparer.Equals(name, globalAlias))
-                        continue;
+                // ignore the cases where the global alias might match the type name (i.e.
+                // global alias Console = System.Console).  We'll already find those references
+                // above.
+                if (state.SyntaxFacts.StringComparer.Equals(name, globalAlias))
+                    continue;
 
-                    await AddReferencesInDocumentWorkerAsync(
-                        methodSymbol, globalAlias, state, findParentNode, result, cancellationToken).ConfigureAwait(false);
-                }
+                await AddReferencesInDocumentWorkerAsync(
+                    methodSymbol, globalAlias, state, findParentNode, result, cancellationToken).ConfigureAwait(false);
             }
 
             // Nest, our containing type might itself have local aliases to it in this particular file.

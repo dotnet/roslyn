@@ -147,19 +147,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             await AddNonAliasReferencesAsync(
                 namedType, namedType.Name, state, nonAliasReferences, cancellationToken).ConfigureAwait(false);
 
-            if (state.GlobalAliases != null)
+            foreach (var globalAlias in state.GlobalAliases)
             {
-                foreach (var globalAlias in state.GlobalAliases)
-                {
-                    // ignore the cases where the global alias might match the type name (i.e.
-                    // global alias Console = System.Console).  We'll already find those references
-                    // above.
-                    if (state.SyntaxFacts.StringComparer.Equals(namedType.Name, globalAlias))
-                        continue;
+                // ignore the cases where the global alias might match the type name (i.e.
+                // global alias Console = System.Console).  We'll already find those references
+                // above.
+                if (state.SyntaxFacts.StringComparer.Equals(namedType.Name, globalAlias))
+                    continue;
 
-                    await AddNonAliasReferencesAsync(
-                        namedType, globalAlias, state, nonAliasReferences, cancellationToken).ConfigureAwait(false);
-                }
+                await AddNonAliasReferencesAsync(
+                    namedType, globalAlias, state, nonAliasReferences, cancellationToken).ConfigureAwait(false);
             }
         }
 

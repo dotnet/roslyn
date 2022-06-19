@@ -77,19 +77,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 await AddNamedReferencesAsync(
                     symbol, namespaceName, state, initialReferences, cancellationToken).ConfigureAwait(false);
 
-                if (state.GlobalAliases != null)
+                foreach (var globalAlias in state.GlobalAliases)
                 {
-                    foreach (var globalAlias in state.GlobalAliases)
-                    {
-                        // ignore the cases where the global alias might match the namespace name (i.e.
-                        // global alias Collections = System.Collections).  We'll already find those references
-                        // above.
-                        if (state.SyntaxFacts.StringComparer.Equals(namespaceName, globalAlias))
-                            continue;
+                    // ignore the cases where the global alias might match the namespace name (i.e.
+                    // global alias Collections = System.Collections).  We'll already find those references
+                    // above.
+                    if (state.SyntaxFacts.StringComparer.Equals(namespaceName, globalAlias))
+                        continue;
 
-                        await AddNamedReferencesAsync(
-                            symbol, globalAlias, state, initialReferences, cancellationToken).ConfigureAwait(false);
-                    }
+                    await AddNamedReferencesAsync(
+                        symbol, globalAlias, state, initialReferences, cancellationToken).ConfigureAwait(false);
                 }
 
                 initialReferences.AddRange(await FindLocalAliasReferencesAsync(

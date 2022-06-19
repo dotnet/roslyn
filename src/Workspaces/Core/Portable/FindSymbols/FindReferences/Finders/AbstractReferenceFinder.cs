@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             Func<FindReferencesDocumentState, SyntaxToken, SyntaxNode>? findParentNode)
         {
             var nodeMatchAsync = GetStandardSymbolsNodeMatchFunction(symbol);
-            findParentNode ??= (_, token) => token.Parent!;
+            findParentNode ??= static (_, token) => token.Parent!;
             return (state, token, cancellationToken) => nodeMatchAsync(state, findParentNode(state, token), cancellationToken);
         }
 
