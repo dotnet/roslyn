@@ -162,14 +162,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 if (namedType.IsStatic || namedType.IsSealed)
                     return namedType.GetTypeMembers().Any(m => IsValidForInheritanceContext(m, inheritingFrom, context));
 
-                var compilation = context.SemanticModel.Compilation;
-
                 // These types are special. They are not sealed, but trying to inherit from them
                 // produces compiler error both in C# and VB
-                if (namedType.Equals(compilation.EnumType()) ||
-                    namedType.Equals(compilation.ValueTypeType()) ||
-                    namedType.Equals(compilation.DelegateType()) ||
-                    namedType.Equals(compilation.ArrayType()))
+                if (namedType.SpecialType is
+                    SpecialType.System_Enum or
+                    SpecialType.System_ValueType or
+                    SpecialType.System_Delegate or
+                    SpecialType.System_Array)
                 {
                     return false;
                 }

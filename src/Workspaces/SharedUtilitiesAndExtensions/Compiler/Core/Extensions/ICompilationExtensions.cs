@@ -230,17 +230,5 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static INamedTypeSymbol? CancellationTokenType(this Compilation compilation)
             => compilation.GetTypeByMetadataName(typeof(CancellationToken).FullName!);
-
-        public static INamedTypeSymbol? EnumType(this Compilation compilation)
-            => compilation.GetTypeByMetadataName(typeof(Enum).FullName!);
-
-        public static INamedTypeSymbol? ValueTypeType(this Compilation compilation)
-            => compilation.GetTypeByMetadataName(typeof(ValueType).FullName!);
-
-        public static INamedTypeSymbol? DelegateType(this Compilation compilation)
-            => compilation.GetTypeByMetadataName(typeof(Delegate).FullName!);
-
-        public static INamedTypeSymbol? ArrayType(this Compilation compilation)
-            => compilation.GetTypeByMetadataName(typeof(Array).FullName!);
     }
 }
