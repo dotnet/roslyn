@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         public abstract ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             ISymbol symbol, FindReferencesDocumentState state, FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
-        protected static ValueTask<(bool matched, CandidateReason reason)> SymbolsMatchAsync(
+        private static ValueTask<(bool matched, CandidateReason reason)> SymbolsMatchAsync(
             ISymbol symbol, FindReferencesDocumentState state, SyntaxToken token, CancellationToken cancellationToken)
         {
             // delegates don't have exposed symbols for their constructors.  so when you do `new MyDel()`, that's only a
@@ -150,19 +150,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             return FindDocumentsWithPredicateAsync(
                 project, documents, static (index, predefinedType) => index.ContainsPredefinedType(predefinedType), predefinedType, cancellationToken);
-        }
-
-        protected static Task<ImmutableArray<Document>> FindDocumentsAsync(
-            Project project,
-            IImmutableSet<Document>? documents,
-            PredefinedOperator op,
-            CancellationToken cancellationToken)
-        {
-            if (op == PredefinedOperator.None)
-                return SpecializedTasks.EmptyImmutableArray<Document>();
-
-            return FindDocumentsWithPredicateAsync(
-                project, documents, static (index, op) => index.ContainsPredefinedOperator(op), op, cancellationToken);
         }
 
         protected static bool IdentifiersMatch(ISyntaxFactsService syntaxFacts, string name, SyntaxToken token)
@@ -357,15 +344,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         protected static Task<ImmutableArray<Document>> FindDocumentsWithForEachStatementsAsync(Project project, IImmutableSet<Document>? documents, CancellationToken cancellationToken)
             => FindDocumentsWithPredicateAsync(project, documents, static (sti, _) => sti.ContainsForEachStatement, /*unused*/false, cancellationToken);
-
-        protected static Task<ImmutableArray<Document>> FindDocumentsWithDeconstructionAsync(Project project, IImmutableSet<Document>? documents, CancellationToken cancellationToken)
-            => FindDocumentsWithPredicateAsync(project, documents, static (sti, _) => sti.ContainsDeconstruction, /*unused*/false, cancellationToken);
-
-        protected static Task<ImmutableArray<Document>> FindDocumentsWithAwaitExpressionAsync(Project project, IImmutableSet<Document>? documents, CancellationToken cancellationToken)
-            => FindDocumentsWithPredicateAsync(project, documents, static (sti, _) => sti.ContainsAwait, /*unused*/false, cancellationToken);
-
-        protected static Task<ImmutableArray<Document>> FindDocumentsWithImplicitObjectCreationExpressionAsync(Project project, IImmutableSet<Document>? documents, CancellationToken cancellationToken)
-            => FindDocumentsWithPredicateAsync(project, documents, static (sti, _) => sti.ContainsImplicitObjectCreation, /*unused*/false, cancellationToken);
 
         /// <summary>
         /// If the `node` implicitly matches the `symbol`, then it will be added to `locations`.
@@ -744,7 +722,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return additionalProperties.ToImmutable();
         }
 
-        protected static bool TryGetAdditionalProperty(SyntaxNode? node, string name, SemanticModel semanticModel, out KeyValuePair<string, string> additionalProperty)
+        private static bool TryGetAdditionalProperty(SyntaxNode? node, string name, SemanticModel semanticModel, out KeyValuePair<string, string> additionalProperty)
         {
             if (node != null)
             {

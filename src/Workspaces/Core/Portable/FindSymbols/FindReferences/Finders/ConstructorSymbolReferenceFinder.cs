@@ -75,6 +75,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return result.ToImmutable();
         }
 
+        private static Task<ImmutableArray<Document>> FindDocumentsWithImplicitObjectCreationExpressionAsync(Project project, IImmutableSet<Document>? documents, CancellationToken cancellationToken)
+            => FindDocumentsWithPredicateAsync(project, documents, static (sti, _) => sti.ContainsImplicitObjectCreation, /*unused*/false, cancellationToken);
+
         private static async Task AddDocumentsAsync(
             Project project,
             IImmutableSet<Document>? documents,
