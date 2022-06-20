@@ -49,8 +49,24 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 : state.SyntaxFacts.TryGetBindableParent(token);
             parent ??= token.Parent!;
 
-            var nodeMatchAsync = GetStandardSymbolsNodeMatchFunction();
-            return nodeMatchAsync(symbol, state, parent, cancellationToken);
+            return SymbolsMatchAsync(symbol, state, parent, cancellationToken);
+        }
+
+        protected static async ValueTask<(bool matched, CandidateReason reason)> SymbolsMatchAsync(
+            ISymbol searchSymbol, FindReferencesDocumentState state, SyntaxNode node, CancellationToken cancellationToken)
+        {
+            var symbolInfo = state.Cache.GetSymbolInfo(node, cancellationToken);
+
+            if (await SymbolFinder.OriginalSymbolsMatchAsync(state.Solution, searchSymbol, symbolInfo.Symbol, cancellationToken).ConfigureAwait(false))
+                return (matched: true, CandidateReason.None);
+
+            foreach (var candidate in symbolInfo.CandidateSymbols)
+            {
+                if (await SymbolFinder.OriginalSymbolsMatchAsync(state.Solution, searchSymbol, candidate, cancellationToken).ConfigureAwait(false))
+                    return (matched: true, symbolInfo.CandidateReason);
+            }
+
+            return default;
         }
 
         protected static bool TryGetNameWithoutAttributeSuffix(
@@ -172,25 +188,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         protected static Task<ImmutableArray<SyntaxToken>> FindMatchingIdentifierTokensAsync(FindReferencesDocumentState state, string identifier, CancellationToken cancellationToken)
             => state.Cache.FindMatchingIdentifierTokensAsync(state.Document, identifier, cancellationToken);
-
-        protected static Func<ISymbol, FindReferencesDocumentState, SyntaxNode, CancellationToken, ValueTask<(bool matched, CandidateReason reason)>> GetStandardSymbolsNodeMatchFunction()
-        {
-            return static async (searchSymbol, state, node, cancellationToken) =>
-            {
-                var symbolInfo = state.Cache.GetSymbolInfo(node, cancellationToken);
-
-                if (await SymbolFinder.OriginalSymbolsMatchAsync(state.Solution, searchSymbol, symbolInfo.Symbol, cancellationToken).ConfigureAwait(false))
-                    return (matched: true, CandidateReason.None);
-
-                foreach (var candidate in symbolInfo.CandidateSymbols)
-                {
-                    if (await SymbolFinder.OriginalSymbolsMatchAsync(state.Solution, searchSymbol, candidate, cancellationToken).ConfigureAwait(false))
-                        return (matched: true, symbolInfo.CandidateReason);
-                }
-
-                return default;
-            };
-        }
 
         protected async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInTokensAsync<T>(
             ISymbol symbol,
