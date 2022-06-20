@@ -1,0 +1,63 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using EnvDTE;
+using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.Extensibility.Testing;
+using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin;
+using Microsoft.VisualStudio.Text.Tagging;
+using Roslyn.Test.Utilities;
+using Roslyn.VisualStudio.IntegrationTests;
+using Roslyn.VisualStudio.IntegrationTests.InProcess;
+using Xunit;
+using static Microsoft.VisualStudio.VSConstants;
+
+namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
+{
+    public class CSharpInheritanceMarginTests : AbstractEditorTest
+    {
+
+        protected override string LanguageName => LanguageNames.CSharp;
+
+        public CSharpInheritanceMarginTests()
+            : base(nameof(CSharpInheritanceMarginTests))
+        {
+        }
+
+        [IdeFact]
+        public async Task TestNavigateInSource()
+        {
+            var project = ProjectName;
+            await TestServices.InheritanceMargin.EnableOptionsAsync(LanguageName, cancellationToken: HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.AddFileAsync(project, "Test.cs", cancellationToken: HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.OpenFileAsync(project, "Test.cs", HangMitigatingCancellationToken);
+
+            await TestServices.InheritanceMargin.SetTextAndEnsureGlyphsAppearAsync(
+@"
+interface IBar
+{
+}
+
+class Implementation : IBar
+{
+}", expectedGlyphsNumberInMargin: 2, HangMitigatingCancellationToken);
+
+            await TestServices.InheritanceMargin.ClickTheGlyphOnLine(2, HangMitigatingCancellationToken);
+
+            // Move focus to menu item of 'class Implementation'
+            await TestServices.Input.SendAsync(VirtualKey.Tab);
+            // Navigate to the destination
+            await TestServices.Input.SendAsync(VirtualKey.Enter);
+
+            await TestServices.EditorVerifier.TextContainsAsync(@"class Implementation$$", assertCaretPosition: true);
+        }
+    }
+}

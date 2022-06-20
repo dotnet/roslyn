@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.LanguageServices.InheritanceMargin;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
@@ -25,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
     internal class InheritanceMarginViewMargin : ForegroundThreadAffinitizedObject, IWpfTextViewMargin
     {
         // 16 (width of the crisp image) + 2 * 1 (width of the border) = 18
-        private const double HeightAndWidthOfMargin = 18;
+        public const double HeightAndWidthOfMargin = 18;
         private readonly IWpfTextView _textView;
         private readonly ITagAggregator<InheritanceMarginTag> _tagAggregator;
         private readonly IGlobalOptionService _globalOptions;
@@ -57,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             _tagAggregator = tagAggregator;
             _globalOptions = globalOptions;
             _languageName = languageName;
-            _mainCanvas = new Canvas { ClipToBounds = true, Width = HeightAndWidthOfMargin };
+            _mainCanvas = new InheritanceMarginCanvas { ClipToBounds = true, Width = HeightAndWidthOfMargin };
             _grid = new Grid();
             _grid.Children.Add(_mainCanvas);
             _glyphManager = new InheritanceGlyphManager(
@@ -175,7 +176,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             }
         }
 
-        private void RefreshGlyphsOver(ITextViewLine textViewLine)
+        internal void RefreshGlyphsOver(ITextViewLine textViewLine)
         {
             if (!_globalOptions.GetOption(FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin))
             {
