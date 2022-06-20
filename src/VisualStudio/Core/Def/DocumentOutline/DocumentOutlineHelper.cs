@@ -6,13 +6,76 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.VisualStudio.LanguageServices
 {
     internal static class DocumentOutlineHelper
     {
-        internal static List<DocumentSymbolViewModel> GetDocumentSymbols(DocumentSymbol[]? documentSymbols)
+        internal static DocumentSymbol[] GetNestedDocumentSymbols(DocumentSymbol[]? documentSymbols)
+        {
+            if (documentSymbols is null || documentSymbols.Length == 0)
+                return Array.Empty<DocumentSymbol>();
+
+            var allSymbols = documentSymbols
+                .SelectMany(x => x.Children)
+                .Concat(documentSymbols)
+                .OrderBy(x => x.Range.Start.Line)
+                .ThenBy(x => x.Range.Start.Character)
+                .ToList();
+
+            return GroupDocumentSymbolTrees(allSymbols)
+                .Select(group => CreateDocumentSymbolTree(group))
+                .ToArray();
+        }
+
+        // Groups a flat list of document symbols into lists containing the symbols of a tree
+        // The first symbol in a list is always the parent (determines the group's position range)
+        private static List<List<DocumentSymbol>> GroupDocumentSymbolTrees(List<DocumentSymbol> allSymbols)
+        {
+            var documentSymbolGroups = new List<List<DocumentSymbol>>();
+            if (allSymbols.Count == 0)
+            {
+                return documentSymbolGroups;
+            }
+
+            var curGroup = new List<DocumentSymbol> { allSymbols.First() };
+            var curRange = allSymbols.First().Range;
+            for (var i = 1; i < allSymbols.Count; i++)
+            {
+                var symbol = allSymbols[i];
+                // If the symbol's range is in the parent symbol's range
+                if (symbol.Range.Start.Line > curRange.Start.Line && symbol.Range.End.Line < curRange.End.Line)
+                {
+                    curGroup.Add(symbol);
+                }
+                else
+                {
+                    // Push existing group
+                    documentSymbolGroups.Add(curGroup);
+                    // Create new group with this symbol as the parent
+                    curGroup = new List<DocumentSymbol> { symbol };
+                    curRange = symbol.Range;
+                }
+            }
+
+            documentSymbolGroups.Add(curGroup);
+            return documentSymbolGroups;
+        }
+
+        private static DocumentSymbol CreateDocumentSymbolTree(List<DocumentSymbol> documentSymbols)
+        {
+            var node = documentSymbols.First();
+            documentSymbols.RemoveAt(0);
+            node.Children = GroupDocumentSymbolTrees(documentSymbols)
+                .Select(group => CreateDocumentSymbolTree(group))
+                .ToArray();
+            return node;
+        }
+
+        internal static List<DocumentSymbolViewModel> GetDocumentSymbolModels(DocumentSymbol[]? documentSymbols)
         {
             var documentSymbolModels = new List<DocumentSymbolViewModel>();
             if (documentSymbols is null || documentSymbols.Length == 0)
@@ -23,7 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             foreach (var documentSymbol in documentSymbols)
             {
                 var documentSymbolModel = new DocumentSymbolViewModel(documentSymbol);
-                documentSymbolModel.Children = GetDocumentSymbols(documentSymbol.Children);
+                documentSymbolModel.Children = GetDocumentSymbolModels(documentSymbol.Children);
                 documentSymbolModels.Add(documentSymbolModel);
             }
 

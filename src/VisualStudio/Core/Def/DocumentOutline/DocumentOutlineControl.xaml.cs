@@ -92,7 +92,8 @@ namespace Microsoft.VisualStudio.LanguageServices
                 {
                     await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(CancellationToken.None);
                     var responseBody = response.Response.ToObject<DocumentSymbol[]>();
-                    var documentSymbolModels = DocumentOutlineHelper.GetDocumentSymbols(responseBody);
+                    var documentSymbols = DocumentOutlineHelper.GetNestedDocumentSymbols(responseBody);
+                    var documentSymbolModels = DocumentOutlineHelper.GetDocumentSymbolModels(documentSymbols);
                     SymbolTreeInitialized = true;
                     SymbolsTreeItemsSource = documentSymbolModels;
                     symbolTree.ItemsSource = documentSymbolModels;

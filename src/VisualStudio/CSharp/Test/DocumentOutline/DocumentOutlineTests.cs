@@ -102,13 +102,13 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
         {
             // Test the empty case
             var documentSymbols = Array.Empty<DocumentSymbol>();
-            var result = DocumentOutlineHelper.GetDocumentSymbols(documentSymbols);
+            var result = DocumentOutlineHelper.GetDocumentSymbolModels(documentSymbols);
             var expectedResult = new List<DocumentSymbolViewModel>();
             Assert.Equal(result, expectedResult);
 
             // Test using mock data
             documentSymbols = GetDocumentSymbols();
-            result = DocumentOutlineHelper.GetDocumentSymbols(documentSymbols);
+            result = DocumentOutlineHelper.GetDocumentSymbolModels(documentSymbols);
             expectedResult = GetDocumentSymbolViewModels();
 
             Assert.Equal(result.Count, expectedResult.Count);
