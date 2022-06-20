@@ -242,7 +242,6 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             }
         }
 
-
         private async Task<(Solution updatedSolution, string? confirmationMessage)> CreateUpdatedSolutionAsync(
             ChangeSignatureAnalysisSucceededContext context, ChangeSignatureOptionsResult options, CancellationToken cancellationToken)
         {

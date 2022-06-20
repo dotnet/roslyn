@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
-
 namespace Microsoft.CodeAnalysis.CSharp
 {
     public partial class CSharpCompilation
