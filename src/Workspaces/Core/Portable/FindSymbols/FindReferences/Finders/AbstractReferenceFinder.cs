@@ -144,19 +144,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             FindReferencesDocumentState state,
             CancellationToken cancellationToken)
         {
-            return FindReferencesInDocumentUsingIdentifierAsync(
-                symbol, identifier, state, findParentNode: null, cancellationToken);
-        }
-
-        [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1224834", OftenCompletesSynchronously = true)]
-        protected static ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentUsingIdentifierAsync(
-            ISymbol symbol,
-            string identifier,
-            FindReferencesDocumentState state,
-            Func<FindReferencesDocumentState, SyntaxToken, SyntaxNode>? findParentNode,
-            CancellationToken cancellationToken)
-        {
-            var symbolsMatch = GetStandardSymbolsMatchFunction(symbol, findParentNode);
+            var symbolsMatch = GetStandardSymbolsMatchFunction(symbol);
             return FindReferencesInDocumentUsingIdentifierAsync(
                 symbol, identifier, state, symbolsMatch, cancellationToken);
         }
@@ -183,26 +171,24 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected static Task<ImmutableArray<SyntaxToken>> FindMatchingIdentifierTokensAsync(FindReferencesDocumentState state, string identifier, CancellationToken cancellationToken)
             => state.Cache.FindMatchingIdentifierTokensAsync(state.Document, identifier, cancellationToken);
 
-        protected static Func<FindReferencesDocumentState, SyntaxToken, SyntaxNode>? GetNamedTypeOrConstructorFindParentNodeFunction(ISymbol searchSymbol)
-        {
-            // delegates don't have exposed symbols for their constructors.  so when you do `new MyDel()`, that's only a
-            // reference to a type (as we don't have any real constructor symbols that can actually cascade to).  So
-            // don't do any special finding in that case.
-            if (searchSymbol.IsDelegateType())
-                return null;
-
-            return static (state, token) => state.SyntaxFacts.TryGetBindableParent(token) ?? token.Parent!;
-        }
-
         protected static Func<FindReferencesDocumentState, SyntaxToken, CancellationToken, ValueTask<(bool matched, CandidateReason reason)>> GetStandardSymbolsMatchFunction(
-            ISymbol symbol,
-            Func<FindReferencesDocumentState, SyntaxToken, SyntaxNode>? findParentNode)
+            ISymbol symbol)
         {
             var nodeMatchAsync = GetStandardSymbolsNodeMatchFunction(symbol);
-            findParentNode ??= static (_, token) => token.Parent!;
-            return (state, token, cancellationToken) => nodeMatchAsync(state, findParentNode(state, token), cancellationToken);
-        }
+            return (state, token, cancellationToken) =>
+            {
+                // delegates don't have exposed symbols for their constructors.  so when you do `new MyDel()`, that's only a
+                // reference to a type (as we don't have any real constructor symbols that can actually cascade to).  So
+                // don't do any special finding in that case.
+                var parent = symbol.IsDelegateType()
+                    ? token.Parent
+                    : state.SyntaxFacts.TryGetBindableParent(token);
+                parent ??= token.Parent!;
 
+                return nodeMatchAsync(state, parent, cancellationToken);
+            };
+        }
+ 
         protected static Func<FindReferencesDocumentState, SyntaxNode, CancellationToken, ValueTask<(bool matched, CandidateReason reason)>> GetStandardSymbolsNodeMatchFunction(
             ISymbol searchSymbol)
         {
@@ -286,27 +272,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return null;
         }
 
-        protected static Task<ImmutableArray<FinderLocation>> FindLocalAliasReferencesAsync(
-            ArrayBuilder<FinderLocation> initialReferences,
-            ISymbol symbol,
-            FindReferencesDocumentState state,
-            CancellationToken cancellationToken)
-        {
-            return FindLocalAliasReferencesAsync(
-                initialReferences, symbol, state, findParentNode: null, cancellationToken);
-        }
-
         protected static async Task<ImmutableArray<FinderLocation>> FindLocalAliasReferencesAsync(
             ArrayBuilder<FinderLocation> initialReferences,
             ISymbol symbol,
             FindReferencesDocumentState state,
-            Func<FindReferencesDocumentState, SyntaxToken, SyntaxNode>? findParentNode,
             CancellationToken cancellationToken)
         {
             var aliasSymbols = GetLocalAliasSymbols(state, initialReferences, cancellationToken);
             return aliasSymbols.IsDefaultOrEmpty
                 ? ImmutableArray<FinderLocation>.Empty
-                : await FindReferencesThroughLocalAliasSymbolsAsync(symbol, state, aliasSymbols, findParentNode, cancellationToken).ConfigureAwait(false);
+                : await FindReferencesThroughLocalAliasSymbolsAsync(symbol, state, aliasSymbols, cancellationToken).ConfigureAwait(false);
         }
 
         protected static async Task<ImmutableArray<FinderLocation>> FindLocalAliasReferencesAsync(
@@ -341,14 +316,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             ISymbol symbol,
             FindReferencesDocumentState state,
             ImmutableArray<IAliasSymbol> localAliasSymbols,
-            Func<FindReferencesDocumentState, SyntaxToken, SyntaxNode>? findParentNode,
             CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var allAliasReferences);
             foreach (var localAliasSymbol in localAliasSymbols)
             {
                 var aliasReferences = await FindReferencesInDocumentUsingIdentifierAsync(
-                    symbol, localAliasSymbol.Name, state, findParentNode, cancellationToken).ConfigureAwait(false);
+                    symbol, localAliasSymbol.Name, state, cancellationToken).ConfigureAwait(false);
                 allAliasReferences.AddRange(aliasReferences);
                 // the alias may reference an attribute and the alias name may end with an "Attribute" suffix. In this case search for the
                 // shortened name as well (e.g. using GooAttribute = MyNamespace.GooAttribute; [Goo] class C1 {})
@@ -901,23 +875,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CancellationToken cancellationToken)
         {
             return FindReferencesInTokensAsync(
-                symbol, state, tokens, tokensMatch, findParentNode: null, value, cancellationToken);
-        }
-
-        protected static ValueTask<ImmutableArray<FinderLocation>> FindReferencesInTokensAsync<T>(
-            TSymbol symbol,
-            FindReferencesDocumentState state,
-            IEnumerable<SyntaxToken> tokens,
-            Func<FindReferencesDocumentState, SyntaxToken, T, CancellationToken, bool> tokensMatch,
-            Func<FindReferencesDocumentState, SyntaxToken, SyntaxNode>? findParentNode,
-            T value,
-            CancellationToken cancellationToken)
-        {
-            return FindReferencesInTokensAsync(
                 state,
                 tokens,
                 tokensMatch,
-                GetStandardSymbolsMatchFunction(symbol, findParentNode),
+                GetStandardSymbolsMatchFunction(symbol),
                 value,
                 cancellationToken);
         }
@@ -929,19 +890,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             T value,
             CancellationToken cancellationToken)
         {
-            return FindReferencesInDocumentAsync(
-                symbol, state, tokensMatch, findParentNode: null, value, cancellationToken);
-        }
-
-        protected static ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync<T>(
-            TSymbol symbol,
-            FindReferencesDocumentState state,
-            Func<FindReferencesDocumentState, SyntaxToken, T, CancellationToken, bool> tokensMatch,
-            Func<FindReferencesDocumentState, SyntaxToken, SyntaxNode>? findParentNode,
-            T value,
-            CancellationToken cancellationToken)
-        {
-            var symbolsMatchAsync = GetStandardSymbolsMatchFunction(symbol, findParentNode);
+            var symbolsMatchAsync = GetStandardSymbolsMatchFunction(symbol);
             return FindReferencesInDocumentAsync(state, tokensMatch, symbolsMatchAsync, value, cancellationToken);
         }
 

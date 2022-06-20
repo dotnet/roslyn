@@ -110,12 +110,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             using var _1 = ArrayBuilder<FinderLocation>.GetInstance(out var result);
 
-            var findParentNode = GetNamedTypeOrConstructorFindParentNodeFunction(methodSymbol);
-
             // First just look for this normal constructor references using the name of it's containing type.
             var name = methodSymbol.ContainingType.Name;
             await AddReferencesInDocumentWorkerAsync(
-                methodSymbol, name, state, findParentNode, result, cancellationToken).ConfigureAwait(false);
+                methodSymbol, name, state, result, cancellationToken).ConfigureAwait(false);
 
             // Next, look for constructor references through a global alias to our containing type.
             foreach (var globalAlias in state.GlobalAliases)
@@ -127,7 +125,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     continue;
 
                 await AddReferencesInDocumentWorkerAsync(
-                    methodSymbol, globalAlias, state, findParentNode, result, cancellationToken).ConfigureAwait(false);
+                    methodSymbol, globalAlias, state, result, cancellationToken).ConfigureAwait(false);
             }
 
             // Nest, our containing type might itself have local aliases to it in this particular file.
@@ -137,7 +135,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 methodSymbol.ContainingType, state, typeReferences, cancellationToken).ConfigureAwait(false);
 
             var aliasReferences = await FindLocalAliasReferencesAsync(
-                typeReferences, methodSymbol, state, findParentNode, cancellationToken).ConfigureAwait(false);
+                typeReferences, methodSymbol, state, cancellationToken).ConfigureAwait(false);
 
             // Finally, look for constructor references to predefined types (like `new int()`),
             // implicit object references, and inside global suppression attributes.
@@ -161,12 +159,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             IMethodSymbol symbol,
             string name,
             FindReferencesDocumentState state,
-            Func<FindReferencesDocumentState, SyntaxToken, SyntaxNode>? findParentNode,
             ArrayBuilder<FinderLocation> result,
             CancellationToken cancellationToken)
         {
             result.AddRange(await FindOrdinaryReferencesAsync(
-                symbol, name, state, findParentNode, cancellationToken).ConfigureAwait(false));
+                symbol, name, state, cancellationToken).ConfigureAwait(false));
             result.AddRange(await FindAttributeReferencesAsync(
                 symbol, name, state, cancellationToken).ConfigureAwait(false));
         }
@@ -175,11 +172,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             IMethodSymbol symbol,
             string name,
             FindReferencesDocumentState state,
-            Func<FindReferencesDocumentState, SyntaxToken, SyntaxNode>? findParentNode,
             CancellationToken cancellationToken)
         {
             return FindReferencesInDocumentUsingIdentifierAsync(
-                symbol, name, state, findParentNode, cancellationToken);
+                symbol, name, state, cancellationToken);
         }
 
         private static ValueTask<ImmutableArray<FinderLocation>> FindPredefinedTypeReferencesAsync(

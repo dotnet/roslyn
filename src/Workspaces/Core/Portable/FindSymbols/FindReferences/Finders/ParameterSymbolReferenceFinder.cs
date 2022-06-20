@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             // Get the standard function for comparing parameters.  This function will just 
             // directly compare the parameter symbols for SymbolEquivalence.
-            var standardFunction = GetStandardSymbolsMatchFunction(parameter, findParentNode: null);
+            var standardFunction = GetStandardSymbolsMatchFunction(parameter);
 
             // HOwever, we also want to consider parameter symbols them same if they unify across
             // VB's synthesized AnonymousDelegate parameters. 
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             // anonymous-delegate's invoke method.  So get he symbol match function that will check
             // for equivalence with that parameter.
             var anonymousDelegateParameter = invokeMethod.Parameters[ordinal];
-            var anonParameterFunc = GetStandardSymbolsMatchFunction(anonymousDelegateParameter, findParentNode: null);
+            var anonParameterFunc = GetStandardSymbolsMatchFunction(anonymousDelegateParameter);
 
             // Return a new function which is a compound of the two functions we have.
             return async (state, token, cancellationToken) =>
