@@ -33,13 +33,13 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 return;
             }
 
-            var rules = document.GetFormattingRules(span, additionalRules: null);
+            var documentSyntax = ParsedDocument.CreateSynchronously(document, cancellationToken);
+            var rules = FormattingRuleUtilities.GetFormattingRules(documentSyntax, document.Project.LanguageServices, span, additionalRules: null);
 
-            var root = document.GetRequiredSyntaxRootSynchronously(cancellationToken);
             var formatter = document.GetRequiredLanguageService<ISyntaxFormattingService>();
 
             var options = document.GetSyntaxFormattingOptionsAsync(globalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
-            var result = formatter.GetFormattingResult(root, SpecializedCollections.SingletonEnumerable(span), options, rules, cancellationToken);
+            var result = formatter.GetFormattingResult(documentSyntax.Root, SpecializedCollections.SingletonEnumerable(span), options, rules, cancellationToken);
             var changes = result.GetTextChanges(cancellationToken);
 
             using (Logger.LogBlock(FunctionId.Formatting_ApplyResultToBuffer, cancellationToken))

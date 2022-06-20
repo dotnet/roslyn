@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.MetadataAsSource
@@ -96,25 +94,15 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             return null;
         }
 
-        public static bool TryGetImplementationAssemblyPath(string referenceDllPath, [NotNullWhen(true)] out string? implementationDllPath)
+        public static bool IsReferenceAssembly(IAssemblySymbol assemblySymbol)
         {
-            implementationDllPath = null;
-
-            // For some nuget packages if the reference path has a "ref" folder in it, then the implementation assembly
-            // will be in the corresponding "lib" folder.
-            // TODO: Support more cases, like SDK references: https://github.com/dotnet/sdk/issues/12360
-            var start = referenceDllPath.IndexOf(@"\ref\");
-            if (start == -1)
-                return false;
-
-            var pathToTry = referenceDllPath.Substring(0, start) +
-                            @"\lib\" +
-                            referenceDllPath.Substring(start + 5);
-
-            if (IOUtilities.PerformIO(() => File.Exists(pathToTry)))
+            foreach (var attribute in assemblySymbol.GetAttributes())
             {
-                implementationDllPath = pathToTry;
-                return true;
+                if (attribute.AttributeClass?.Name == nameof(ReferenceAssemblyAttribute) &&
+                    attribute.AttributeClass.ToNameDisplayString() == typeof(ReferenceAssemblyAttribute).FullName)
+                {
+                    return true;
+                }
             }
 
             return false;

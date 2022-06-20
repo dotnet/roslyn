@@ -672,7 +672,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
 
                 var diagnostics = script.Compile();
-                if (diagnostics.Any(d => d.Severity == DiagnosticSeverity.Error))
+                if (diagnostics.Any(static d => d.Severity == DiagnosticSeverity.Error))
                 {
                     DisplayInteractiveErrors(diagnostics, Console.Error);
                     return null;

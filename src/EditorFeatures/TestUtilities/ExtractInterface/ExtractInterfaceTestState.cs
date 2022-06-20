@@ -47,11 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
                 ? TestWorkspace.CreateCSharp(markup, composition: Composition, compilationOptions: compilationOptions, parseOptions: parseOptions)
                 : TestWorkspace.CreateVisualBasic(markup, composition: Composition, compilationOptions: compilationOptions, parseOptions: parseOptions);
 
-            if (options != null)
-            {
-                foreach (var kvp in options)
-                    workspace.SetOptions(workspace.Options.WithChangedOption(kvp.Key, kvp.Value));
-            }
+            options?.SetGlobalOptions(workspace.GlobalOptions);
 
             return new ExtractInterfaceTestState(workspace);
         }

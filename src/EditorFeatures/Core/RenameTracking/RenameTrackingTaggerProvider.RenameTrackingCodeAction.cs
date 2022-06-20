@@ -9,8 +9,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Utilities;
@@ -22,6 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         private class RenameTrackingCodeAction : CodeAction
         {
             private readonly string _title;
+            private readonly IThreadingContext _threadingContext;
             private readonly Document _document;
             private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
             private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
@@ -29,12 +32,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             private RenameTrackingCommitter _renameTrackingCommitter;
 
             public RenameTrackingCodeAction(
+                IThreadingContext threadingContext,
                 Document document,
                 string title,
                 IEnumerable<IRefactorNotifyService> refactorNotifyServices,
                 ITextUndoHistoryRegistry undoHistoryRegistry,
                 IGlobalOptionService globalOptions)
             {
+                _threadingContext = threadingContext;
                 _document = document;
                 _title = title;
                 _refactorNotifyServices = refactorNotifyServices;
@@ -56,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     }
                 }
 
-                var committerOperation = new RenameTrackingCommitterOperation(_renameTrackingCommitter);
+                var committerOperation = new RenameTrackingCommitterOperation(_renameTrackingCommitter, _threadingContext);
                 return Task.FromResult(SpecializedCollections.SingletonEnumerable(committerOperation as CodeActionOperation));
             }
 
@@ -105,19 +110,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             private sealed class RenameTrackingCommitterOperation : CodeActionOperation
             {
                 private readonly RenameTrackingCommitter _committer;
+                private readonly IThreadingContext _threadingContext;
 
-                public RenameTrackingCommitterOperation(RenameTrackingCommitter committer)
-                    => _committer = committer;
-
-                public override void Apply(Workspace workspace, CancellationToken cancellationToken)
+                public RenameTrackingCommitterOperation(RenameTrackingCommitter committer, IThreadingContext threadingContext)
                 {
-                    var error = _committer.TryCommit(cancellationToken);
-                    if (error != null)
-                    {
-                        var notificationService = workspace.Services.GetService<INotificationService>();
-                        notificationService.SendNotification(
-                            error.Value.message, EditorFeaturesResources.Rename_Symbol, error.Value.severity);
-                    }
+                    _committer = committer;
+                    _threadingContext = threadingContext;
+                }
+
+                internal override async Task<bool> TryApplyAsync(Workspace workspace, IProgressTracker progressTracker, CancellationToken cancellationToken)
+                {
+                    var error = await _committer.TryCommitAsync(cancellationToken).ConfigureAwait(false);
+                    if (error == null)
+                        return true;
+
+                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                    var notificationService = workspace.Services.GetService<INotificationService>();
+                    notificationService.SendNotification(
+                        error.Value.message, EditorFeaturesResources.Rename_Symbol, error.Value.severity);
+                    return false;
                 }
             }
         }

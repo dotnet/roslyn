@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 var firstStringToken = stringLiterals[0].GetFirstToken();
                 isVerbatimStringLiteral = syntaxFacts.IsVerbatimStringLiteral(firstStringToken);
                 if (stringLiterals.Any(
-                        lit => isVerbatimStringLiteral != syntaxFacts.IsVerbatimStringLiteral(lit.GetFirstToken())))
+                        static (lit, arg) => arg.isVerbatimStringLiteral != arg.syntaxFacts.IsVerbatimStringLiteral(lit.GetFirstToken()), (syntaxFacts, isVerbatimStringLiteral)))
                 {
                     return;
                 }

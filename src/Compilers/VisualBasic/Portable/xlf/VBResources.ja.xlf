@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadAbstractStaticMemberAccess">
         <source>A shared abstract or virtual interface member cannot be accessed.</source>
-        <target state="needs-review-translation">共有された抽象インターフェイスメンバーにアクセスできません。</target>
+        <target state="translated">共有された抽象または仮想インターフェイスメンバーにアクセスできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
@@ -29,7 +29,7 @@
       </trans-unit>
       <trans-unit id="ERR_DoNotUseCompilerFeatureRequired">
         <source>'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute' is reserved for compiler usage only.</source>
-        <target state="new">'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute' is reserved for compiler usage only.</target>
+        <target state="translated">'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute' は、コンパイラのみで使用するために予約されています。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
@@ -69,7 +69,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnimplementedSharedMember">
         <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract or virtual '{2}'.</source>
-        <target state="needs-review-translation">{0} '{1}' には、共有された抽象 '{2}' が含まれているため、インターフェイス '{3}' を実装できません。</target>
+        <target state="translated">{0} '{1}' には、共有された抽象または仮想 '{2}' が含まれているため、インターフェイス '{3}' を実装できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
@@ -79,7 +79,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnsupportedCompilerFeature">
         <source>'{0}' requires compiler feature '{1}', which is not supported by this version of the Visual Basic compiler.</source>
-        <target state="new">'{0}' requires compiler feature '{1}', which is not supported by this version of the Visual Basic compiler.</target>
+        <target state="translated">'{0}' にはコンパイラ機能 '{1}' が必要ですが、このバージョンのVisual Basic コンパイラではサポートされていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CallerArgumentExpression">

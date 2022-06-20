@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var mightAssignWalker = new WhenClauseMightAssignPatternVariableWalker();
                 bool canShareTemps =
                     !decisionDag.TopologicallySortedNodes
-                    .Any(node => node is BoundWhenDecisionDagNode w && mightAssignWalker.MightAssignSomething(w.WhenExpression));
+                    .Any(static (node, mightAssignWalker) => node is BoundWhenDecisionDagNode w && mightAssignWalker.MightAssignSomething(w.WhenExpression), mightAssignWalker);
 
                 if (canShareTemps)
                 {
@@ -916,7 +916,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #nullable enable
             private void LowerWhenClauses(ImmutableArray<BoundDecisionDagNode> sortedNodes)
             {
-                if (!sortedNodes.Any(n => n.Kind == BoundKind.WhenDecisionDagNode)) return;
+                if (!sortedNodes.Any(static n => n.Kind == BoundKind.WhenDecisionDagNode)) return;
 
                 // The way the DAG is prepared, it is possible for different `BoundWhenDecisionDagNode` nodes to
                 // share the same `WhenExpression` (same `BoundExpression` instance).

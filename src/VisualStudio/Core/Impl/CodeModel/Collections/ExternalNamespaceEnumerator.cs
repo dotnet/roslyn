@@ -83,7 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
 
                     if (namedType.IsAccessibleWithin(containingAssembly))
                     {
-                        if (namedType.Locations.Any(l => l.IsInMetadata || l.IsInSource))
+                        if (namedType.Locations.Any(static l => l.IsInMetadata || l.IsInSource))
                         {
                             yield return state.CodeModelService.CreateCodeType(state, projectId, namedType);
                         }

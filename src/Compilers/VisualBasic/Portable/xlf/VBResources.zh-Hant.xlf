@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadAbstractStaticMemberAccess">
         <source>A shared abstract or virtual interface member cannot be accessed.</source>
-        <target state="needs-review-translation">無法存取共用摘要介面成員。</target>
+        <target state="new">A shared abstract or virtual interface member cannot be accessed.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
@@ -69,7 +69,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnimplementedSharedMember">
         <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract or virtual '{2}'.</source>
-        <target state="needs-review-translation">{0} '{1}' 無法實作介面 '{3}' 因為其包含共用摘要 '{2}'。</target>
+        <target state="new">{0} '{1}' cannot implement interface '{3}' because it contains shared abstract or virtual '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">

@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
             var buffer = hostdoc.GetTextBuffer();
 
             var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
-            var syntaxTree = await document.GetSyntaxTreeAsync();
+            var documentSyntax = await ParsedDocument.CreateAsync(document, CancellationToken.None).ConfigureAwait(false);
 
             // create new buffer with cloned content
             var clonedBuffer = EditorFactory.CreateBuffer(
@@ -195,10 +195,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
             {
                 var factory = (TestFormattingRuleFactoryServiceFactory.Factory)formattingRuleProvider;
                 factory.BaseIndentation = baseIndentation.Value;
-                factory.TextSpan = spans?.First() ?? syntaxTree.GetRoot(CancellationToken.None).FullSpan;
+                factory.TextSpan = spans?.First() ?? documentSyntax.Root.FullSpan;
             }
-
-            var root = await syntaxTree.GetRootAsync();
 
             var formattingService = document.GetRequiredLanguageService<ISyntaxFormattingService>();
 
@@ -206,12 +204,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
                 formattingService.GetFormattingOptions(options.ToAnalyzerConfigOptions(document.Project.LanguageServices), fallbackOptions: null) :
                 formattingService.DefaultOptions;
 
-            document = workspace.CurrentSolution.GetDocument(syntaxTree);
-            var rules = formattingRuleProvider.CreateRule(document, 0).Concat(Formatter.GetDefaultFormattingRules(document));
-            AssertFormat(workspace, expected, formattingOptions, rules, clonedBuffer, root, spans);
+            var rules = formattingRuleProvider.CreateRule(documentSyntax, 0).Concat(Formatter.GetDefaultFormattingRules(document));
+            AssertFormat(workspace, expected, formattingOptions, rules, clonedBuffer, documentSyntax.Root, spans);
 
             // format with node and transform
-            AssertFormatWithTransformation(workspace, expected, formattingOptions, rules, root, spans);
+            AssertFormatWithTransformation(workspace, expected, formattingOptions, rules, documentSyntax.Root, spans);
         }
 
         internal void AssertFormatWithTransformation(Workspace workspace, string expected, SyntaxFormattingOptions options, IEnumerable<AbstractFormattingRule> rules, SyntaxNode root, IEnumerable<TextSpan> spans)

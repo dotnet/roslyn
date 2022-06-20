@@ -320,14 +320,18 @@ namespace Microsoft.CodeAnalysis.Emit
                 try
                 {
                     int count = blobReader.ReadCompressedInteger();
-
-                    while (count > 0)
+                    if (count > 0)
                     {
-                        int stateNumber = blobReader.ReadCompressedSignedInteger();
-                        int syntaxOffset = blobReader.ReadCompressedInteger();
+                        int syntaxOffsetBaseline = -blobReader.ReadCompressedInteger();
 
-                        mapBuilder.Add(new StateMachineStateDebugInfo(syntaxOffset, stateNumber));
-                        count--;
+                        while (count > 0)
+                        {
+                            int stateNumber = blobReader.ReadCompressedSignedInteger();
+                            int syntaxOffset = syntaxOffsetBaseline + blobReader.ReadCompressedInteger();
+
+                            mapBuilder.Add(new StateMachineStateDebugInfo(syntaxOffset, stateNumber));
+                            count--;
+                        }
                     }
                 }
                 catch (BadImageFormatException)
@@ -342,11 +346,16 @@ namespace Microsoft.CodeAnalysis.Emit
         internal void SerializeStateMachineStates(BlobBuilder writer)
         {
             writer.WriteCompressedInteger(StateMachineStates.Length);
-
-            foreach (StateMachineStateDebugInfo state in StateMachineStates)
+            if (StateMachineStates.Length > 0)
             {
-                writer.WriteCompressedSignedInteger(state.StateNumber);
-                writer.WriteCompressedInteger(state.SyntaxOffset);
+                int syntaxOffsetBaseline = Math.Min(StateMachineStates.Min(state => state.SyntaxOffset), 0);
+                writer.WriteCompressedInteger(-syntaxOffsetBaseline);
+
+                foreach (StateMachineStateDebugInfo state in StateMachineStates)
+                {
+                    writer.WriteCompressedSignedInteger(state.StateNumber);
+                    writer.WriteCompressedInteger(state.SyntaxOffset - syntaxOffsetBaseline);
+                }
             }
         }
 

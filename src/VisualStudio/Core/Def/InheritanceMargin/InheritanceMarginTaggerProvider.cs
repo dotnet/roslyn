@@ -68,8 +68,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                TaggerEventSources.OnWorkspaceChanged(subjectBuffer, AsyncListener),
                TaggerEventSources.OnViewSpanChanged(ThreadingContext, textView),
                TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer),
-               TaggerEventSources.OnOptionChanged(subjectBuffer, FeatureOnOffOptions.ShowInheritanceMargin),
-               TaggerEventSources.OnOptionChanged(subjectBuffer, FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin));
+               TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, FeatureOnOffOptions.ShowInheritanceMargin),
+               TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin));
         }
 
         protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView? textView, ITextBuffer subjectBuffer)
@@ -119,6 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 document,
                 spanToSearch,
                 includeGlobalImports,
+                frozenPartialSemantics: true,
                 cancellationToken).ConfigureAwait(false);
             var elapsed = stopwatch.Elapsed;
 

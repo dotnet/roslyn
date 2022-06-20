@@ -13,12 +13,15 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
     internal interface IInheritanceMarginService : ILanguageService
     {
         /// <summary>
-        /// Get the lines need to be have a margin and the member's information on that line.
+        /// Get information about
+        /// 1. The inheritance chain of the member in given span.
+        /// 2. The global imports for the document.
         /// </summary>
         ValueTask<ImmutableArray<InheritanceMarginItem>> GetInheritanceMemberItemsAsync(
             Document document,
             TextSpan spanToSearch,
             bool includeGlobalImports,
+            bool frozenPartialSemantics,
             CancellationToken cancellationToken);
     }
 }

@@ -4837,7 +4837,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (argument is BoundConversion { Conversion.IsInterpolatedStringHandler: true, Operand: var operand })
                             {
                                 var handlerPlaceholders = operand.GetInterpolatedStringHandlerData().ArgumentPlaceholders;
-                                if (handlerPlaceholders.Any(placeholder => placeholder.ArgumentIndex == BoundInterpolatedStringArgumentPlaceholder.InstanceParameter))
+                                if (handlerPlaceholders.Any(static placeholder => placeholder.ArgumentIndex == BoundInterpolatedStringArgumentPlaceholder.InstanceParameter))
                                 {
                                     diagnostics.Add(ErrorCode.ERR_InterpolatedStringsReferencingInstanceCannotBeInObjectInitializers, argument.Syntax.Location);
                                     hasErrors = true;
@@ -6065,9 +6065,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindCheckedExpression(CheckedExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
-            // the binder is not cached since we only cache statement level binders
-            return this.WithCheckedOrUncheckedRegion(node.Kind() == SyntaxKind.CheckedExpression).
-                BindParenthesizedExpression(node.Expression, diagnostics);
+            var binder = this.GetBinder(node);
+            return binder.BindParenthesizedExpression(node.Expression, diagnostics);
         }
 
         /// <summary>
@@ -6525,7 +6524,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else if (lookupResult.IsClear)
                     {
-                        Error(diagnostics, ErrorCode.ERR_BadSKunknown, boundLeft.Syntax, leftType, MessageID.IDS_SK_TYVAR.Localize());
+                        Error(diagnostics, ErrorCode.ERR_LookupInTypeVariable, boundLeft.Syntax, leftType);
                         return BadExpression(node, LookupResultKind.NotAValue, boundLeft);
                     }
                 }
@@ -6753,7 +6752,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private bool ImplementsWinRTAsyncInterface(TypeSymbol type)
         {
-            return IsWinRTAsyncInterface(type) || type.AllInterfacesNoUseSiteDiagnostics.Any(i => IsWinRTAsyncInterface(i));
+            return IsWinRTAsyncInterface(type) || type.AllInterfacesNoUseSiteDiagnostics.Any(static (i, self) => self.IsWinRTAsyncInterface(i), this);
         }
 
         private bool IsWinRTAsyncInterface(TypeSymbol type)
@@ -8925,7 +8924,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            bool hasByRefParameters = !parameterRefKinds.IsDefault && parameterRefKinds.Any(refKind => refKind != RefKind.None);
+            bool hasByRefParameters = !parameterRefKinds.IsDefault && parameterRefKinds.Any(static refKind => refKind != RefKind.None);
 
             // Use System.Action<...> or System.Func<...> if possible.
             if (returnRefKind == RefKind.None && !hasByRefParameters)

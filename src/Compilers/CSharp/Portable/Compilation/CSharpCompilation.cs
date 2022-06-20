@@ -3800,7 +3800,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 memberTypes[i].EnsureCSharpSymbolOrNull($"{nameof(memberTypes)}[{i}]");
             }
 
-            if (!memberIsReadOnly.IsDefault && memberIsReadOnly.Any(v => !v))
+            if (!memberIsReadOnly.IsDefault && memberIsReadOnly.Any(static v => !v))
             {
                 throw new ArgumentException($"Non-ReadOnly members are not supported in C# anonymous types.");
             }

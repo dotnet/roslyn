@@ -3576,6 +3576,7 @@ class Program{
             var position = testDocument.CursorPosition.Value;
 
             var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
+            var documentSyntax = await ParsedDocument.CreateAsync(document, CancellationToken.None);
             var rules = Formatter.GetDefaultFormattingRules(document);
 
             var root = (CompilationUnitSyntax)await document.GetSyntaxRootAsync();
@@ -3590,7 +3591,7 @@ class Program{
             var options = new IndentationOptions(
                 CSharpSyntaxFormattingOptions.Default.With(new LineFormattingOptions { UseTabs = useTabs }));
 
-            var formatter = new CSharpSmartTokenFormatter(options, rules, root);
+            var formatter = new CSharpSmartTokenFormatter(options, rules, (CompilationUnitSyntax)documentSyntax.Root, documentSyntax.Text);
 
             var tokenRange = FormattingRangeHelper.FindAppropriateRange(endToken);
             if (tokenRange == null)
