@@ -206,7 +206,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 symbol,
                 state,
                 static (state, token, predefinedType, _) => IsPotentialReference(predefinedType, state.SyntaxFacts, token),
-                // static (_, state, token, _) => ValueTaskFactory.FromResult((matched: true, reason: CandidateReason.None)),
                 predefinedType,
                 cancellationToken);
         }
