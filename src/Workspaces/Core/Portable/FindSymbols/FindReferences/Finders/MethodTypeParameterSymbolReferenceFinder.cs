@@ -63,23 +63,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         private static string GetMemberNameWithoutInterfaceName(string fullName)
         {
             var index = fullName.LastIndexOf('.');
-            return index > 0
-                ? fullName.Substring(index + 1)
-                : fullName;
+            return index > 0 ? fullName[(index + 1)..] : fullName;
         }
 
         protected sealed override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             ITypeParameterSymbol symbol,
-            HashSet<string>? globalAliases,
-            Document document,
-            SemanticModel semanticModel,
+            FindReferencesDocumentState state,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             // TODO(cyrusn): Method type parameters are like locals.  They are only in scope in
             // the bounds of the method they're declared within.  We could improve perf by
             // limiting our search by only looking within the method body's span. 
-            return FindReferencesInDocumentUsingSymbolNameAsync(symbol, document, semanticModel, cancellationToken);
+            return FindReferencesInDocumentUsingSymbolNameAsync(symbol, state, cancellationToken);
         }
     }
 }

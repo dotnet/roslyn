@@ -3,13 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Threading;
 using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
     internal sealed class RangeVariableSymbolReferenceFinder : AbstractMemberScopedReferenceFinder<IRangeVariableSymbol>
     {
-        protected override Func<SyntaxToken, bool> GetTokensMatchFunction(ISyntaxFactsService syntaxFacts, string name)
-            => t => IdentifiersMatch(syntaxFacts, name, t);
+        protected override Func<FindReferencesDocumentState, SyntaxToken, string, CancellationToken, bool> GetTokensMatchFunction()
+            => static (state, token, name, _) => IdentifiersMatch(state.SyntaxFacts, name, token);
     }
 }

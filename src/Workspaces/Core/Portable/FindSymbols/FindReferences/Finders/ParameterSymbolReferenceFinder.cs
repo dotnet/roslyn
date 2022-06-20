@@ -38,24 +38,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         protected override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IParameterSymbol symbol,
-            HashSet<string>? globalAliases,
-            Document document,
-            SemanticModel semanticModel,
+            FindReferencesDocumentState state,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var symbolsMatchAsync = GetParameterSymbolsMatchFunction(symbol, document.Project.Solution, cancellationToken);
-
             return FindReferencesInDocumentUsingIdentifierAsync(
-                symbol, symbol.Name, document, semanticModel, symbolsMatchAsync, cancellationToken);
+                symbol, symbol.Name, state,
+                GetParameterSymbolsMatchFunction(symbol),
+                cancellationToken);
         }
 
-        private static Func<SyntaxToken, SemanticModel, ValueTask<(bool matched, CandidateReason reason)>> GetParameterSymbolsMatchFunction(
-            IParameterSymbol parameter, Solution solution, CancellationToken cancellationToken)
+        private static Func<FindReferencesDocumentState, SyntaxToken, CancellationToken, ValueTask<(bool matched, CandidateReason reason)>> GetParameterSymbolsMatchFunction(
+            IParameterSymbol parameter)
         {
             // Get the standard function for comparing parameters.  This function will just 
             // directly compare the parameter symbols for SymbolEquivalence.
-            var standardFunction = GetStandardSymbolsMatchFunction(parameter, findParentNode: null, solution, cancellationToken);
+            var standardFunction = GetStandardSymbolsMatchFunction(parameter, findParentNode: null);
 
             // HOwever, we also want to consider parameter symbols them same if they unify across
             // VB's synthesized AnonymousDelegate parameters. 
@@ -73,22 +71,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 return standardFunction;
             }
 
-            // This was parameter of a method that had an associated synthesized anonyomous-delegate.
+            // This was parameter of a method that had an associated synthesized anonymous-delegate.
             // IN that case, we want it to match references to the corresponding parameter in that
-            // anonymous-delegate's invoke method.  So get he symbol match function that will chec
+            // anonymous-delegate's invoke method.  So get he symbol match function that will check
             // for equivalence with that parameter.
             var anonymousDelegateParameter = invokeMethod.Parameters[ordinal];
-            var anonParameterFunc = GetStandardSymbolsMatchFunction(anonymousDelegateParameter, findParentNode: null, solution, cancellationToken);
+            var anonParameterFunc = GetStandardSymbolsMatchFunction(anonymousDelegateParameter, findParentNode: null);
 
             // Return a new function which is a compound of the two functions we have.
-            return async (token, model) =>
+            return async (state, token, cancellationToken) =>
             {
                 // First try the standard function.
-                var result = await standardFunction(token, model).ConfigureAwait(false);
+                var result = await standardFunction(state, token, cancellationToken).ConfigureAwait(false);
                 if (!result.matched)
                 {
                     // If it fails, fall back to the anon-delegate function.
-                    result = await anonParameterFunc(token, model).ConfigureAwait(false);
+                    result = await anonParameterFunc(state, token, cancellationToken).ConfigureAwait(false);
                 }
 
                 return result;
@@ -290,19 +288,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             IParameterSymbol parameter,
             ArrayBuilder<ISymbol> results)
         {
-            if (parameter.ContainingSymbol is IMethodSymbol)
+            if (parameter.ContainingSymbol is IMethodSymbol method)
             {
                 var ordinal = parameter.Ordinal;
-                var method = (IMethodSymbol)parameter.ContainingSymbol;
-                if (method.PartialDefinitionPart != null && ordinal < method.PartialDefinitionPart.Parameters.Length)
-                {
+                if (ordinal < method.PartialDefinitionPart?.Parameters.Length)
                     results.Add(method.PartialDefinitionPart.Parameters[ordinal]);
-                }
 
-                if (method.PartialImplementationPart != null && ordinal < method.PartialImplementationPart.Parameters.Length)
-                {
+                if (ordinal < method.PartialImplementationPart?.Parameters.Length)
                     results.Add(method.PartialImplementationPart.Parameters[ordinal]);
-                }
             }
         }
     }

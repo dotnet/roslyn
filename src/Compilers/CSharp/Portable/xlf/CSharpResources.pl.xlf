@@ -122,6 +122,11 @@
         <target state="translated">Jeden z parametrów operatora binarnego musi być typem otaczającym lub jest parametrem typu ograniczonym do niego.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadAbstractEqualityOperatorSignature">
+        <source>One of the parameters of an equality, or inequality operator declared in interface '{0}' must be a type parameter on '{0}' constrained to '{0}'</source>
+        <target state="new">One of the parameters of an equality, or inequality operator declared in interface '{0}' must be a type parameter on '{0}' constrained to '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadAbstractIncDecRetType">
         <source>The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.</source>
         <target state="translated">Zwracany typ dla operatora ++ lub -- musi być zgodny z typem parametru lub być pochodną od typu parametru, bądź musi być parametrem typu typu zawierającego ograniczonego do niego, chyba że typ parametru jest innym parametrem typu.</target>
@@ -11673,8 +11678,8 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainConversionOrEqualityOperators">
-        <source>Conversion, equality, or inequality operators declared in interfaces must be abstract</source>
-        <target state="translated">Operatory konwersji, równości lub nierówności zadeklarowane w interfejsach muszą być abstrakcyjne</target>
+        <source>Conversion, equality, or inequality operators declared in interfaces must be abstract or virtual</source>
+        <target state="needs-review-translation">Operatory konwersji, równości lub nierówności zadeklarowane w interfejsach muszą być abstrakcyjne</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
