@@ -40,7 +40,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.RemoveUnnecessaryNul
                 }
                 """,
                 $$"""
-
                 #nullable {{GetEnableDirectiveContext(codeContext)}}
                 class Program
                 {
@@ -66,8 +65,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.RemoveUnnecessaryNul
                 }
                 """,
                 """
-
-
                 class Program
                 {
                 }
@@ -94,7 +91,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.RemoveUnnecessaryNul
                 }
                 """,
                 $$"""
-
                 #nullable {{GetDisableDirectiveContext(codeContext)}}
                 class Program
                 {
@@ -120,8 +116,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.RemoveUnnecessaryNul
                 }
                 """,
                 """
-
-
                 class Program
                 {
                 }
@@ -144,7 +138,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.RemoveUnnecessaryNul
                 }
                 """,
                 $$"""
-
                 #nullable {{(enable ? "enable" : "disable")}}
                 #nullable restore
                 class Program
@@ -166,6 +159,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.RemoveUnnecessaryNul
                 }
                 """,
                 """
+                class Program
+                {
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestRedundantDirectiveWithFileHeader()
+        {
+            await VerifyCodeFixAsync(
+                NullableContextOptions.Enable,
+                """
+                // File Header
+
+                [|#nullable enable|]
+
+                class Program
+                {
+                }
+                """,
+                """
+                // File Header
+
 
                 class Program
                 {

@@ -39,7 +39,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.RemoveUnnecessaryNul
                 }
                 """,
                 $$"""
-
                 class Program
                 {
                 }
@@ -60,6 +59,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.RemoveUnnecessaryNul
                 }
                 """,
                 """
+                enum EnumName
+                {
+                    First,
+                    Second,
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestUnnecessaryDisableEnumDeclarationWithFileHeader()
+        {
+            await VerifyCodeFixAsync(
+                NullableContextOptions.Enable,
+                """
+                // File Header
+
+                [|#nullable disable|]
+
+                enum EnumName
+                {
+                    First,
+                    Second,
+                }
+                """,
+                """
+                // File Header
+
 
                 enum EnumName
                 {
@@ -92,7 +118,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.RemoveUnnecessaryNul
                     string Field;
                 }
                 
-
                 """);
         }
 
