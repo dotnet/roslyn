@@ -110,22 +110,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             IEnumerable<SyntaxToken> tokens,
             CancellationToken cancellationToken)
         {
-            return FindReferencesInTokensWithSymbolNameAsync(
-                symbol, state, tokens, findParentNode: null, cancellationToken);
-        }
-
-        protected static ValueTask<ImmutableArray<FinderLocation>> FindReferencesInTokensWithSymbolNameAsync(
-            TSymbol symbol,
-            FindReferencesDocumentState state,
-            IEnumerable<SyntaxToken> tokens,
-            Func<FindReferencesDocumentState, SyntaxToken, SyntaxNode>? findParentNode,
-            CancellationToken cancellationToken)
-        {
             return FindReferencesInTokensAsync(
+                symbol,
                 state,
                 tokens,
                 static (state, token, name, _) => IdentifiersMatch(state.SyntaxFacts, name, token),
-                GetStandardSymbolsMatchFunction(symbol, findParentNode),
+                GetStandardSymbolsMatchFunction(),
                 symbol.Name,
                 cancellationToken);
         }
@@ -136,26 +126,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             FindReferencesDocumentState state,
             CancellationToken cancellationToken)
         {
-            return FindReferencesInContainerAsync(
-                symbol, container, state, findParentNode: null, cancellationToken);
-        }
-
-        private ValueTask<ImmutableArray<FinderLocation>> FindReferencesInContainerAsync(
-            TSymbol symbol,
-            ISymbol container,
-            FindReferencesDocumentState state,
-            Func<FindReferencesDocumentState, SyntaxToken, SyntaxNode>? findParentNode,
-            CancellationToken cancellationToken)
-        {
             var service = state.Document.GetRequiredLanguageService<ISymbolDeclarationService>();
             var declarations = service.GetDeclarations(container);
             var tokens = declarations.SelectMany(r => r.GetSyntax(cancellationToken).DescendantTokens());
 
             return FindReferencesInTokensAsync(
+                symbol,
                 state,
                 tokens,
                 GetTokensMatchFunction(),
-                GetStandardSymbolsMatchFunction(symbol, findParentNode),
+                GetStandardSymbolsMatchFunction(),
                 symbol.Name,
                 cancellationToken);
         }
