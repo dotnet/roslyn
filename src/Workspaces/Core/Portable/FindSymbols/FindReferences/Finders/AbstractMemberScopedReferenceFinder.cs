@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return null;
         }
 
-        protected static ValueTask<ImmutableArray<FinderLocation>> FindReferencesInTokensWithSymbolNameAsync(
+        protected ValueTask<ImmutableArray<FinderLocation>> FindReferencesInTokensWithSymbolNameAsync(
             TSymbol symbol,
             FindReferencesDocumentState state,
             IEnumerable<SyntaxToken> tokens,
@@ -115,7 +115,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 state,
                 tokens,
                 static (state, token, name, _) => IdentifiersMatch(state.SyntaxFacts, name, token),
-                GetStandardSymbolsMatchFunction(),
                 symbol.Name,
                 cancellationToken);
         }
@@ -135,7 +134,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 state,
                 tokens,
                 GetTokensMatchFunction(),
-                GetStandardSymbolsMatchFunction(),
                 symbol.Name,
                 cancellationToken);
         }

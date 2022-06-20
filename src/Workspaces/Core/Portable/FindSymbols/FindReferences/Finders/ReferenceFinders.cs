@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         public static readonly IReferenceFinder Label = new LabelSymbolReferenceFinder();
         public static readonly IReferenceFinder Local = new LocalSymbolReferenceFinder();
         public static readonly IReferenceFinder MethodTypeParameter = new MethodTypeParameterSymbolReferenceFinder();
-        public static readonly IReferenceFinder NamedType = new NamedTypeSymbolReferenceFinder();
+        public static readonly IReferenceFinder NamedType = NamedTypeSymbolReferenceFinder.Instance;
         public static readonly IReferenceFinder Namespace = new NamespaceSymbolReferenceFinder();
         public static readonly IReferenceFinder Operator = new OperatorSymbolReferenceFinder();
         public static readonly IReferenceFinder OrdinaryMethod = new OrdinaryMethodReferenceFinder();

@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// Finds references to <paramref name="symbol"/> in this <paramref name="state"/>, but only if it referenced
         /// though <paramref name="name"/> (which might be the actual name of the type, or a global alias to it).
         /// </summary>
-        private static async Task AddNamedReferencesAsync(
+        private async Task AddNamedReferencesAsync(
             INamespaceSymbol symbol,
             string name,
             FindReferencesDocumentState state,
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 cancellationToken).ConfigureAwait(false));
         }
 
-        private static async Task AddGlobalNamespaceReferencesAsync(
+        private async Task AddGlobalNamespaceReferencesAsync(
             INamespaceSymbol symbol,
             FindReferencesDocumentState state,
             ArrayBuilder<FinderLocation> initialReferences,

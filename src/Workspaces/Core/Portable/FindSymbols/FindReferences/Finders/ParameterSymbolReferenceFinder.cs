@@ -43,32 +43,28 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CancellationToken cancellationToken)
         {
             return FindReferencesInDocumentUsingIdentifierAsync(
-                symbol, symbol.Name, state,
-                GetParameterSymbolsMatchFunction(symbol),
-                cancellationToken);
+                symbol, symbol.Name, state, cancellationToken);
         }
 
-        private static Func<ISymbol, FindReferencesDocumentState, SyntaxToken, CancellationToken, ValueTask<(bool matched, CandidateReason reason)>> GetParameterSymbolsMatchFunction(
-            IParameterSymbol parameter)
+        protected override async ValueTask<(bool matched, CandidateReason reason)> SymbolsMatchAsync(
+            ISymbol symbol, FindReferencesDocumentState state, SyntaxToken token, CancellationToken cancellationToken)
         {
-            // Get the standard function for comparing parameters.  This function will just 
-            // directly compare the parameter symbols for SymbolEquivalence.
-            var standardFunction = GetStandardSymbolsMatchFunction();
+            var parameter = (IParameterSymbol)symbol;
 
-            // HOwever, we also want to consider parameter symbols them same if they unify across
+            // However, we also want to consider parameter symbols them same if they unify across
             // VB's synthesized AnonymousDelegate parameters. 
             var containingMethod = parameter.ContainingSymbol as IMethodSymbol;
             if (containingMethod?.AssociatedAnonymousDelegate == null)
             {
                 // This was a normal parameter, so just use the normal comparison function.
-                return standardFunction;
+                return await base.SymbolsMatchAsync(parameter, state, token, cancellationToken).ConfigureAwait(false);
             }
 
             var invokeMethod = containingMethod.AssociatedAnonymousDelegate.DelegateInvokeMethod;
             var ordinal = parameter.Ordinal;
             if (invokeMethod == null || ordinal >= invokeMethod.Parameters.Length)
             {
-                return standardFunction;
+                return await base.SymbolsMatchAsync(parameter, state, token, cancellationToken).ConfigureAwait(false);
             }
 
             // This was parameter of a method that had an associated synthesized anonymous-delegate.
@@ -76,21 +72,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             // anonymous-delegate's invoke method.  So get he symbol match function that will check
             // for equivalence with that parameter.
             var anonymousDelegateParameter = invokeMethod.Parameters[ordinal];
-            var anonParameterFunc = GetStandardSymbolsMatchFunction();
 
-            // Return a new function which is a compound of the two functions we have.
-            return async (symbol, state, token, cancellationToken) =>
-            {
-                // First try the standard function.
-                var result = await standardFunction(parameter, state, token, cancellationToken).ConfigureAwait(false);
-                if (!result.matched)
-                {
-                    // If it fails, fall back to the anon-delegate function.
-                    result = await anonParameterFunc(anonymousDelegateParameter, state, token, cancellationToken).ConfigureAwait(false);
-                }
-
+            // First try the standard function.
+            var result = await base.SymbolsMatchAsync(parameter, state, token, cancellationToken).ConfigureAwait(false);
+            if (result.matched)
                 return result;
-            };
+
+            // If it fails, fall back to the anon-delegate function.
+            return await base.SymbolsMatchAsync(anonymousDelegateParameter, state, token, cancellationToken).ConfigureAwait(false);
         }
 
         protected override async Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
