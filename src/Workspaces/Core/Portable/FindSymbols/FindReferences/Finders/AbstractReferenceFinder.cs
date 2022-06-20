@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             Project project, IImmutableSet<Document>? documents, CancellationToken cancellationToken)
         {
             return FindDocumentsWithPredicateAsync(
-                project, documents, static (index, _) => index.ContainsGlobalSuppressMessageAttribute, /*unused*/false, cancellationToken);
+                project, documents, static index => index.ContainsGlobalSuppressMessageAttribute, cancellationToken);
         }
 
         protected static Task<ImmutableArray<Document>> FindDocumentsAsync(
@@ -342,8 +342,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             }, (predicate, value), cancellationToken);
         }
 
+        protected static Task<ImmutableArray<Document>> FindDocumentsWithPredicateAsync(
+            Project project,
+            IImmutableSet<Document>? documents,
+            Func<SyntaxTreeIndex, bool> predicate,
+            CancellationToken cancellationToken)
+        {
+            return FindDocumentsWithPredicateAsync(
+                project, documents,
+                static (info, predicate) => predicate(info),
+                predicate,
+                cancellationToken);
+        }
+
         protected static Task<ImmutableArray<Document>> FindDocumentsWithForEachStatementsAsync(Project project, IImmutableSet<Document>? documents, CancellationToken cancellationToken)
-            => FindDocumentsWithPredicateAsync(project, documents, static (sti, _) => sti.ContainsForEachStatement, /*unused*/false, cancellationToken);
+            => FindDocumentsWithPredicateAsync(project, documents, static index => index.ContainsForEachStatement, cancellationToken);
 
         /// <summary>
         /// If the `node` implicitly matches the `symbol`, then it will be added to `locations`.

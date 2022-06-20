@@ -91,10 +91,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         private static Task<ImmutableArray<Document>> FindDocumentsWithDeconstructionAsync(Project project, IImmutableSet<Document>? documents, CancellationToken cancellationToken)
-            => FindDocumentsWithPredicateAsync(project, documents, static (sti, _) => sti.ContainsDeconstruction, /*unused*/false, cancellationToken);
+            => FindDocumentsWithPredicateAsync(project, documents, static index => index.ContainsDeconstruction, cancellationToken);
 
         private static Task<ImmutableArray<Document>> FindDocumentsWithAwaitExpressionAsync(Project project, IImmutableSet<Document>? documents, CancellationToken cancellationToken)
-            => FindDocumentsWithPredicateAsync(project, documents, static (sti, _) => sti.ContainsAwait, /*unused*/false, cancellationToken);
+            => FindDocumentsWithPredicateAsync(project, documents, static index => index.ContainsAwait, cancellationToken);
 
         private static bool IsForEachMethod(IMethodSymbol methodSymbol)
         {
