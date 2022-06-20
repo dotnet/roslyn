@@ -1041,7 +1041,9 @@ class Program
                 //                 x = MayWrap(ref inner);
                 Diagnostic(ErrorCode.ERR_EscapeCall, "MayWrap(ref inner)").WithArguments("Program.MayWrap(ref System.Span<int>)", "arg").WithLocation(19, 21)
             );
-            // x = MayWrap(ref outer); is invalid in C#11.
+
+            // Breaking change in C#11 for x = MayWrap(ref outer); because a method invocation that
+            // returns a ref struct is safe-to-escape from ... the ref-safe-to-escape of all ref arguments.
             CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
                 // (16,33): error CS8168: Cannot return local 'outer' by reference because it is not a ref local
                 //                 x = MayWrap(ref outer);
@@ -1453,7 +1455,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "MayAssign1(__arglist(ref inner, ref rOuter))").WithArguments("Program.MayAssign1(__arglist)", "__arglist").WithLocation(23, 9)
             );
 
-            // C#11 reports errors for arg2 = MayWrap(ref arg1); because a method invocation that
+            // Breaking change in C#11 for arg2 = MayWrap(ref arg1); because a method invocation that
             // returns a ref struct is safe-to-escape from ... the ref-safe-to-escape of all ref arguments,
             // and arg2 is initialized with __refvalue which has ref-safe-to-escape of the current method.
             CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
