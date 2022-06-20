@@ -60,9 +60,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 _state.Target.TextView.Closed += OnTextViewClosed;
 
-                var updateSource = (IDiagnosticUpdateSource)owner._diagnosticService;
-                updateSource.DiagnosticsUpdated += OnDiagnosticsUpdated;
-
                 RegisterEventsToWorkspace(_state, _state.Target.Registration.Workspace);
 
                 _state.Target.Registration.WorkspaceChanged += OnWorkspaceChanged;
@@ -553,23 +550,30 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 state.Target.Workspace.DocumentActiveContextChanged += OnActiveContextChanged;
                 state.Target.Workspace.Services.GetRequiredService<IWorkspaceStatusService>().StatusChanged += OnWorkspaceStatusChanged;
+                state.Target.Workspace.WorkspaceChanged += OnWorkspaceChanged;
+            }
+
+            private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
+            {
+                switch (e.Kind)
+                {
+                    // Only care about document changes here, the call to OnSuggestedActionsChange
+                    // will filter and make sure the event only gets sent if its relevant to this buffer.
+                    case WorkspaceChangeKind.DocumentAdded:
+                    case WorkspaceChangeKind.DocumentRemoved:
+                    case WorkspaceChangeKind.DocumentReloaded:
+                    case WorkspaceChangeKind.DocumentChanged:
+                        OnSuggestedActionsChanged(e.NewSolution.Workspace, e.DocumentId, e.NewSolution.WorkspaceVersion);
+                        break;
+                    default:
+                        break;
+                }
             }
 
             private void OnActiveContextChanged(object sender, DocumentActiveContextChangedEventArgs e)
             {
                 // REVIEW: it would be nice for changed event to pass in both old and new document.
                 OnSuggestedActionsChanged(e.Solution.Workspace, e.NewActiveContextDocumentId, e.Solution.WorkspaceVersion);
-            }
-
-            private void OnDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
-            {
-                // document removed case. no reason to raise event
-                if (e.Solution == null)
-                {
-                    return;
-                }
-
-                OnSuggestedActionsChanged(e.Workspace, e.DocumentId, e.Solution.WorkspaceVersion);
             }
 
             private void OnWorkspaceStatusChanged(object sender, EventArgs args)

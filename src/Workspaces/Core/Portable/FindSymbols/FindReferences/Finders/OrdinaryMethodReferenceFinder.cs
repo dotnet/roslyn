@@ -108,10 +108,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             HashSet<string>? globalAliases,
             Document document,
             SemanticModel semanticModel,
+            FindReferenceCache cache,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var nameMatches = await FindReferencesInDocumentUsingSymbolNameAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
+            var nameMatches = await FindReferencesInDocumentUsingSymbolNameAsync(
+                symbol, document, semanticModel, cache, cancellationToken).ConfigureAwait(false);
 
             var forEachMatches = IsForEachMethod(symbol)
                 ? await FindReferencesInForEachStatementsAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false)

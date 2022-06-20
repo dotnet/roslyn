@@ -32,3 +32,4 @@ M:Microsoft.CodeAnalysis.Simplification.Simplifier.ReduceAsync(Microsoft.CodeAna
 M:Microsoft.CodeAnalysis.Simplification.Simplifier.ReduceAsync(Microsoft.CodeAnalysis.Document,Microsoft.CodeAnalysis.SyntaxAnnotation,Microsoft.CodeAnalysis.Options.OptionSet,System.Threading.CancellationToken); Use overload that takes SimplifierOptions
 M:Microsoft.CodeAnalysis.Simplification.Simplifier.ReduceAsync(Microsoft.CodeAnalysis.Document,Microsoft.CodeAnalysis.Text.TextSpan,Microsoft.CodeAnalysis.Options.OptionSet,System.Threading.CancellationToken); Use overload that takes SimplifierOptions
 M:Microsoft.CodeAnalysis.Simplification.Simplifier.ReduceAsync(Microsoft.CodeAnalysis.Document,System.Collections.Generic.IEnumerable{Microsoft.CodeAnalysis.Text.TextSpan},Microsoft.CodeAnalysis.Options.OptionSet,System.Threading.CancellationToken); Use overload that takes SimplifierOptions
+P:Microsoft.CodeAnalysis.Completion.CompletionList.Items; Use CompletionList.ItemsList instead

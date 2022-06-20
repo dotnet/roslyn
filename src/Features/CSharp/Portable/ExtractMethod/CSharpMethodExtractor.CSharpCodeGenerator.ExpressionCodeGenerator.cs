@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                     var sourceNode = CSharpSelectionResult.GetContainingScope();
                     Contract.ThrowIfTrue(
-                        sourceNode.Parent is MemberAccessExpressionSyntax && ((MemberAccessExpressionSyntax)sourceNode.Parent).Name == sourceNode,
+                        sourceNode.Parent is MemberAccessExpressionSyntax memberAccessExpression && memberAccessExpression.Name == sourceNode,
                         "invalid scope. given scope is not an expression");
 
                     // To lower the chances that replacing sourceNode with callSignature will break the user's

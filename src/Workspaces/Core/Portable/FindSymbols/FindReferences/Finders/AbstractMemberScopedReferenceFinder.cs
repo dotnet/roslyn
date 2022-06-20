@@ -53,13 +53,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             HashSet<string>? globalAliases,
             Document document,
             SemanticModel semanticModel,
+            FindReferenceCache cache,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             var container = GetContainer(symbol);
             if (container != null)
             {
-                return await FindReferencesInContainerAsync(symbol, container, document, semanticModel, cancellationToken).ConfigureAwait(false);
+                return await FindReferencesInContainerAsync(symbol, container, document, semanticModel, cache, cancellationToken).ConfigureAwait(false);
             }
 
             if (symbol.ContainingType != null && symbol.ContainingType.IsScriptClass)
@@ -70,7 +71,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 var tokens = root.DescendantTokens();
 
                 return await FindReferencesInTokensWithSymbolNameAsync(
-                    symbol, document, semanticModel, tokens, cancellationToken).ConfigureAwait(false);
+                    symbol, document, semanticModel, cache, tokens, cancellationToken).ConfigureAwait(false);
             }
 
             return ImmutableArray<FinderLocation>.Empty;
@@ -115,28 +116,32 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             TSymbol symbol,
             Document document,
             SemanticModel semanticModel,
+            FindReferenceCache cache,
             IEnumerable<SyntaxToken> tokens,
             CancellationToken cancellationToken)
         {
             return FindReferencesInTokensWithSymbolNameAsync(
-                symbol, document, semanticModel, tokens, findParentNode: null, cancellationToken);
+                symbol, document, semanticModel, cache, tokens, findParentNode: null, cancellationToken);
         }
 
         protected static ValueTask<ImmutableArray<FinderLocation>> FindReferencesInTokensWithSymbolNameAsync(
             TSymbol symbol,
             Document document,
             SemanticModel semanticModel,
+            FindReferenceCache cache,
             IEnumerable<SyntaxToken> tokens,
             Func<SyntaxToken, SyntaxNode>? findParentNode,
             CancellationToken cancellationToken)
         {
             var name = symbol.Name;
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var symbolsMatch = GetStandardSymbolsMatchFunction(symbol, findParentNode, document.Project.Solution, cancellationToken);
+            var symbolsMatch = GetStandardSymbolsMatchFunction(
+                symbol, findParentNode, document.Project.Solution, cache, cancellationToken);
 
             return FindReferencesInTokensAsync(
                 document,
                 semanticModel,
+                cache,
                 tokens,
                 t => IdentifiersMatch(syntaxFacts, name, t),
                 symbolsMatch,
@@ -148,10 +153,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             ISymbol container,
             Document document,
             SemanticModel semanticModel,
+            FindReferenceCache cache,
             CancellationToken cancellationToken)
         {
             return FindReferencesInContainerAsync(
-                symbol, container, document, semanticModel, findParentNode: null, cancellationToken);
+                symbol, container, document, semanticModel, cache, findParentNode: null, cancellationToken);
         }
 
         private ValueTask<ImmutableArray<FinderLocation>> FindReferencesInContainerAsync(
@@ -159,6 +165,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             ISymbol container,
             Document document,
             SemanticModel semanticModel,
+            FindReferenceCache cache,
             Func<SyntaxToken, SyntaxNode>? findParentNode,
             CancellationToken cancellationToken)
         {
@@ -168,12 +175,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             var name = symbol.Name;
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var symbolsMatch = GetStandardSymbolsMatchFunction(symbol, findParentNode, document.Project.Solution, cancellationToken);
+            var symbolsMatch = GetStandardSymbolsMatchFunction(
+                symbol, findParentNode, document.Project.Solution, cache, cancellationToken);
             var tokensMatch = GetTokensMatchFunction(syntaxFacts, name);
 
             return FindReferencesInTokensAsync(
                 document,
                 semanticModel,
+                cache,
                 tokens,
                 tokensMatch,
                 symbolsMatch,

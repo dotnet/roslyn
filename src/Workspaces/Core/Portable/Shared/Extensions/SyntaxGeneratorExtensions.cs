@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
                 attributes: default,
                 accessibility: accessibility,
-                modifiers: new DeclarationModifiers(isUnsafe: !isContainedInUnsafeType && parameters.Any(p => p.RequiresUnsafeModifier())),
+                modifiers: new DeclarationModifiers(isUnsafe: !isContainedInUnsafeType && parameters.Any(static p => p.RequiresUnsafeModifier())),
                 typeName: typeName,
                 parameters: parameters,
                 statements: statements,

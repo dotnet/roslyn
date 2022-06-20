@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
         protected override bool IsValidClosingBraceToken(SyntaxToken token)
             => token.IsKind(SyntaxKind.CloseBraceToken);
 
-        protected override int AdjustFormattingEndPoint(SourceText text, SyntaxNode root, int startPoint, int endPoint)
+        protected override int AdjustFormattingEndPoint(ParsedDocument document, int startPoint, int endPoint)
         {
             // Only format outside of the completed braces if they're on the same line for array/collection/object initializer expressions.
             // Example:   `var x = new int[]{}`:
@@ -66,9 +66,9 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             // Incorrect: `var x = new int[] { }`
             // This is a heuristic to prevent brace completion from breaking user expectation/muscle memory in common scenarios.
             // see bug Devdiv:823958
-            if (text.Lines.GetLineFromPosition(startPoint) == text.Lines.GetLineFromPosition(endPoint))
+            if (document.Text.Lines.GetLineFromPosition(startPoint) == document.Text.Lines.GetLineFromPosition(endPoint))
             {
-                var startToken = root.FindToken(startPoint, findInsideTrivia: true);
+                var startToken = document.Root.FindToken(startPoint, findInsideTrivia: true);
                 if (IsValidOpeningBraceToken(startToken) &&
                     (startToken.Parent?.IsInitializerForArrayOrCollectionCreationExpression() == true ||
                      startToken.Parent is AnonymousObjectCreationExpressionSyntax))

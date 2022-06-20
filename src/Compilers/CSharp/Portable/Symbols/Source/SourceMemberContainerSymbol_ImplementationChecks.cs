@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if (implementingMemberAndDiagnostics.Diagnostics.Diagnostics.Any())
                         {
                             diagnostics.AddRange(implementingMemberAndDiagnostics.Diagnostics);
-                            reportedAnError = implementingMemberAndDiagnostics.Diagnostics.Diagnostics.Any(d => d.Severity == DiagnosticSeverity.Error);
+                            reportedAnError = implementingMemberAndDiagnostics.Diagnostics.Diagnostics.Any(static d => d.Severity == DiagnosticSeverity.Error);
                         }
 
                         if (!reportedAnError)
@@ -1609,7 +1609,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             foreach (Diagnostic diagnostic in implementingMemberAndDiagnostics.Diagnostics.Diagnostics)
             {
-                if (diagnostic.Severity == DiagnosticSeverity.Error && diagnostic.Code is not (int)ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember)
+                if (diagnostic.Severity == DiagnosticSeverity.Error && diagnostic.Code is not ((int)ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember or (int)ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember))
                 {
                     return default;
                 }

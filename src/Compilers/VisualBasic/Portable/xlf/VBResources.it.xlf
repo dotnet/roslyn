@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadAbstractStaticMemberAccess">
         <source>A shared abstract or virtual interface member cannot be accessed.</source>
-        <target state="needs-review-translation">Impossibile accedere a un membro di interfaccia abstract condiviso.</target>
+        <target state="translated">Impossibile accedere a un membro di interfaccia astratto o virtuale condiviso.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
@@ -29,7 +29,7 @@
       </trans-unit>
       <trans-unit id="ERR_DoNotUseCompilerFeatureRequired">
         <source>'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute' is reserved for compiler usage only.</source>
-        <target state="new">'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute' is reserved for compiler usage only.</target>
+        <target state="translated">'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute' è riservato all'utilizzo esclusivo del compilatore.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
@@ -69,7 +69,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnimplementedSharedMember">
         <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract or virtual '{2}'.</source>
-        <target state="needs-review-translation">{0} '{1}' non può implementare l'interfaccia '{3}' perché contiene l'abstract condiviso '{2}'.</target>
+        <target state="translated">{0} '{1}' non può implementare l'interfaccia '{3}' perché contiene '{2}' condiviso astratto o virtuale.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
@@ -79,7 +79,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnsupportedCompilerFeature">
         <source>'{0}' requires compiler feature '{1}', which is not supported by this version of the Visual Basic compiler.</source>
-        <target state="new">'{0}' requires compiler feature '{1}', which is not supported by this version of the Visual Basic compiler.</target>
+        <target state="translated">'{0}' richiede la funzionalità del compilatore '{1}', che non è supportata da questa versione del compilatore Visual Basic.</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CallerArgumentExpression">

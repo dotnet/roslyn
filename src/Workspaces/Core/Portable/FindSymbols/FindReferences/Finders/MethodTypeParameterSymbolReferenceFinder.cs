@@ -73,13 +73,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             HashSet<string>? globalAliases,
             Document document,
             SemanticModel semanticModel,
+            FindReferenceCache cache,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             // TODO(cyrusn): Method type parameters are like locals.  They are only in scope in
             // the bounds of the method they're declared within.  We could improve perf by
             // limiting our search by only looking within the method body's span. 
-            return FindReferencesInDocumentUsingSymbolNameAsync(symbol, document, semanticModel, cancellationToken);
+            return FindReferencesInDocumentUsingSymbolNameAsync(symbol, document, semanticModel, cache, cancellationToken);
         }
     }
 }

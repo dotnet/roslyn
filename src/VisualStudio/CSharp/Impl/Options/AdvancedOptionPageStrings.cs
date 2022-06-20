@@ -377,5 +377,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_Navigate_asynchronously_exerimental
             => ServicesVSResources.Navigate_asynchronously_exerimental;
+
+        public static string Option_Rename
+            => ServicesVSResources.Rename;
+
+        public static string Option_Rename_asynchronously_experimental
+            => ServicesVSResources.Rename_asynchronously_experimental;
     }
 }

@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             var descriptors = DiagnosticAnalyzerInfoCache.GetDiagnosticDescriptors(analyzer);
             var analyzerConfigOptions = project.GetAnalyzerConfigOptions();
 
-            return descriptors.Any(d => d.GetEffectiveSeverity(project.CompilationOptions!, analyzerConfigOptions?.AnalyzerOptions, analyzerConfigOptions?.TreeOptions) != ReportDiagnostic.Hidden);
+            return descriptors.Any(static (d, arg) => d.GetEffectiveSeverity(arg.project.CompilationOptions!, arg.analyzerConfigOptions?.AnalyzerOptions, arg.analyzerConfigOptions?.TreeOptions) != ReportDiagnostic.Hidden, (project, analyzerConfigOptions));
         }
 
         private void RaiseProjectDiagnosticsIfNeeded(
