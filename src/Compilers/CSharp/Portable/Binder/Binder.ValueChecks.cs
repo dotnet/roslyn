@@ -1393,6 +1393,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #nullable enable
 
+        /// <summary>
+        /// Returns true if the argument contributes _ref-safe-to-escape_;
+        /// returns false if the argument contributes _safe-to-escape_; and
+        /// returns null if the argument contributes neither.
+        /// </summary>
         private bool? UseRefEscapeOfInvocationArgument(Symbol symbol, RefKind effectiveRefKind, bool isRefEscape, DeclarationScope scope)
         {
             if (!UseUpdatedEscapeRules)
