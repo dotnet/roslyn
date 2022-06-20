@@ -2539,7 +2539,7 @@ class Program
         }
     }
 ";
-            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
                 // (12,33): error CS8526: Cannot use local 'value1' in this context because it may expose referenced variables outside of their declaration scope
                 //             new SW().TryGet(out value1);
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "value1").WithArguments("value1").WithLocation(12, 33),
@@ -2547,8 +2547,6 @@ class Program
                 //             new SW().TryGet(out value1);
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "new SW().TryGet(out value1)").WithArguments("SW.TryGet(out System.Span<int>)", "result").WithLocation(12, 13)
                 );
-
-            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics();
         }
 
         [WorkItem(21911, "https://github.com/dotnet/roslyn/issues/21911")]
@@ -2945,7 +2943,7 @@ public static class Extensions
     public static void Deconstruct(ref this Span<int> self, out Span<int> x, out Span<int> y) => throw null;
 }
 ";
-            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
                 // (8,9): error CS1510: A ref or out value must be an assignable variable
                 //         (global, global) = global;
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "(global, global) = global").WithLocation(8, 9),
@@ -2955,11 +2953,6 @@ public static class Extensions
                 // (8,28): error CS8350: This combination of arguments to 'Extensions.Deconstruct(ref Span<int>, out Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
                 //         (global, global) = global;
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "global").WithArguments("Extensions.Deconstruct(ref System.Span<int>, out System.Span<int>, out System.Span<int>)", "x").WithLocation(8, 28)
-            );
-            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
-                // (8,9): error CS1510: A ref or out value must be an assignable variable
-                //         (global, global) = global;
-                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "(global, global) = global").WithLocation(8, 9)
             );
         }
 
@@ -3474,12 +3467,11 @@ public ref struct S
 ";
             // Tracking issue: https://github.com/dotnet/roslyn/issues/22361
 
-            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
                 // (9,9): error CS8352: Cannot use local 'local1' in this context because it may expose referenced variables outside of their declaration scope
                 //         local1.M(out S local2);
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "local1").WithArguments("local1").WithLocation(9, 9)
                 );
-            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics();
         }
 
         [Fact]

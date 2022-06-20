@@ -1575,7 +1575,7 @@ class C
         [WorkItem(27357, "https://github.com/dotnet/roslyn/issues/27357")]
         public void PassingSpansToParameters_Errors()
         {
-            var source = @"
+            CreateCompilationWithMscorlibAndSpan(@"
 using System;
 class C
 {
@@ -1607,9 +1607,7 @@ class C
     {
         y = default;
     }
-}";
-
-            CreateCompilationWithMscorlibAndSpan(source, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+}").VerifyDiagnostics(
                 // (16,24): error CS8352: Cannot use local 's2' in this context because it may expose referenced variables outside of their declaration scope
                 //         M2(ref s1, out s2);         // one
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "s2").WithArguments("s2").WithLocation(16, 24),
@@ -1646,8 +1644,6 @@ class C
                 // (23,9): error CS8350: This combination of arguments to 'C.M2(ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
                 //         M2(y: out s1, x: ref s2);   // six
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(y: out s1, x: ref s2)").WithArguments("C.M2(ref System.Span<int>, out System.Span<int>)", "x").WithLocation(23, 9));
-
-            CreateCompilationWithMscorlibAndSpan(source).VerifyDiagnostics();
         }
 
         [Fact]

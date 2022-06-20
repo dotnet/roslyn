@@ -1789,7 +1789,7 @@ moreArguments:
                     }
 
                     var parameter = (parameters.Length > 0) ? getParameter(parameters, argsToParamsOpt, argIndex) : null;
-                    if (parameter is { } && !considerParameter(parameter))
+                    if (!considerParameter(parameter))
                     {
                         continue;
                     }
@@ -1830,15 +1830,7 @@ moreArguments:
                     // SPEC: For a given argument `a` that is passed to parameter `p`:
                     // SPEC:  1. ...
                     // SPEC: 2. If `p` is `scoped` or `ref scoped` then `a` does not contribute *safe-to-escape* when considering arguments.
-                    if (parameter is null)
-                    {
-                        return true;
-                    }
-                    if (parameter.RefKind == RefKind.Out)
-                    {
-                        return false;
-                    }
-                    if (parameter.Scope == DeclarationScope.ValueScoped)
+                    if (parameter?.Scope == DeclarationScope.ValueScoped)
                     {
                         return false;
                     }

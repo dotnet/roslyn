@@ -10900,6 +10900,90 @@ class Program
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r.F = ref t").WithArguments("F", "t").WithLocation(12, 13));
         }
 
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersionFacts.CSharpNext)]
+        public void InstanceMethodWithOutVar_01(LanguageVersion languageVersion)
+        {
+            var source =
+@"using System;
+ref struct R
+{
+    public R(Span<int> s) { }
+    public void F(out R r) { r = default; }
+}
+class Program
+{
+    static void F(out R r)
+    { 
+        Span<int> s1 = stackalloc int[10];
+        R r1 = new R(s1);
+        r1.F(out r);
+    }
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyDiagnostics(
+                // (13,9): error CS8352: Cannot use local 'r1' in this context because it may expose referenced variables outside of their declaration scope
+                //         r1.F(out r);
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "r1").WithArguments("r1").WithLocation(13, 9));
+        }
+
+        [Fact]
+        public void InstanceMethodWithOutVar_02()
+        {
+            var source =
+@"ref struct R
+{
+    public ref int _i;
+    public R(ref int i) { _i = ref i; }
+    public void F(out R r) { r = new R(ref _i); }
+}
+class Program
+{
+    static void F(out R r)
+    { 
+        int i = 0;
+        R r1 = new R(ref i);
+        r1.F(out r);
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (13,9): error CS8352: Cannot use local 'r1' in this context because it may expose referenced variables outside of their declaration scope
+                //         r1.F(out r);
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "r1").WithArguments("r1").WithLocation(13, 9));
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersionFacts.CSharpNext)]
+        public void InstanceMethodWithOutVar_03(LanguageVersion languageVersion)
+        {
+            var source =
+@"using System;
+ref struct R
+{
+    public void F(out Span<int> s) { s = default; }
+}
+class Program
+{
+    static void Main()
+    {
+        Span<int> s = stackalloc int[10];
+        R r = new R();
+        r.F(out s);
+    }
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyDiagnostics(
+                // (12,9): error CS8350: This combination of arguments to 'R.F(out Span<int>)' is disallowed because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //         r.F(out s);
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "r.F(out s)").WithArguments("R.F(out System.Span<int>)", "s").WithLocation(12, 9),
+                // (12,17): error CS8352: Cannot use local 's' in this context because it may expose referenced variables outside of their declaration scope
+                //         r.F(out s);
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "s").WithArguments("s").WithLocation(12, 17));
+        }
+
         // PROTOTYPE: Test combinations of locals without initializers and later assignments where the local and the assignment value are { none, ref, scoped, ref scoped, scoped ref, scoped ref scoped }.
 
         // PROTOTYPE: Test with locals declared as { var, ref var, scoped var, ref scoped var, scoped ref var, scoped ref scoped var }.
