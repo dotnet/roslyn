@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected override bool CanFind(IPropertySymbol symbol)
             => true;
 
-        protected override Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+        protected override ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
             IPropertySymbol symbol,
             Solution solution,
             FindReferencesSearchOptions options,
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CascadeToAccessors(symbol, result);
             CascadeToPrimaryConstructorParameters(symbol, result, cancellationToken);
 
-            return Task.FromResult(result.ToImmutable());
+            return new(result.ToImmutable());
         }
 
         private static void CascadeToBackingFields(IPropertySymbol symbol, ArrayBuilder<ISymbol> result)

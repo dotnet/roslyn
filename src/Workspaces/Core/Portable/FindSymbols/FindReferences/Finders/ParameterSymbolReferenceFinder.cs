@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return FindReferencesInDocumentUsingIdentifierAsync(symbol, symbol.Name, state, cancellationToken);
         }
 
-        protected override async Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+        protected override async ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
             IParameterSymbol parameter,
             Solution solution,
             FindReferencesSearchOptions options,
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             symbols.AddIfNotNull(parameter.GetAssociatedSynthesizedRecordProperty(cancellationToken));
         }
 
-        private static async Task CascadeBetweenAnonymousFunctionParametersAsync(
+        private static async ValueTask CascadeBetweenAnonymousFunctionParametersAsync(
             Solution solution,
             IParameterSymbol parameter,
             ArrayBuilder<ISymbol> results,

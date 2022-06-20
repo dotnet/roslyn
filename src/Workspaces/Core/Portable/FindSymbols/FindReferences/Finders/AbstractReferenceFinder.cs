@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         public abstract Task<ImmutableArray<string>> DetermineGlobalAliasesAsync(
             ISymbol symbol, Project project, CancellationToken cancellationToken);
 
-        public abstract Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+        public abstract ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
             ISymbol symbol, Solution solution, FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
         public abstract Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
@@ -213,7 +213,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             return locations.ToImmutable();
         }
-
 
         protected static ValueTask<ImmutableArray<FinderLocation>> FindReferencesInTokensAsync(
             ISymbol symbol,
@@ -819,7 +818,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 : new ValueTask<ImmutableArray<FinderLocation>>(ImmutableArray<FinderLocation>.Empty);
         }
 
-        public sealed override Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+        public sealed override ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
             ISymbol symbol, Solution solution, FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
             if (options.Cascade &&
@@ -829,16 +828,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 return DetermineCascadedSymbolsAsync(typedSymbol, solution, options, cancellationToken);
             }
 
-            return SpecializedTasks.EmptyImmutableArray<ISymbol>();
+            return new(ImmutableArray<ISymbol>.Empty);
         }
 
-        protected virtual Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
-            TSymbol symbol,
-            Solution solution,
-            FindReferencesSearchOptions options,
-            CancellationToken cancellationToken)
+        protected virtual ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+            TSymbol symbol, Solution solution, FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
-            return SpecializedTasks.EmptyImmutableArray<ISymbol>();
+            return new(ImmutableArray<ISymbol>.Empty);
         }
 
         protected static ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentUsingSymbolNameAsync(

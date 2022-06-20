@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return GetAllMatchingGlobalAliasNamesAsync(project, symbol.Name, symbol.Arity, cancellationToken);
         }
 
-        protected override Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+        protected override ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
             INamedTypeSymbol symbol,
             Solution solution,
             FindReferencesSearchOptions options,
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             // cascade to destructor
             Add(result, symbol.GetMembers(WellKnownMemberNames.DestructorName));
 
-            return Task.FromResult(result.ToImmutable());
+            return new(result.ToImmutable());
         }
 
         private static void Add<TSymbol>(ArrayBuilder<ISymbol> result, ImmutableArray<TSymbol> enumerable) where TSymbol : ISymbol

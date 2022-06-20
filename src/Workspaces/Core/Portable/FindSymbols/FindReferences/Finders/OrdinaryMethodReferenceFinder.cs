@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                                     MethodKind.ReducedExtension or
                                     MethodKind.LocalFunction;
 
-        protected override Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+        protected override ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
             IMethodSymbol symbol,
             Solution solution,
             FindReferencesSearchOptions options,
@@ -26,14 +26,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             // If it's a delegate method, then cascade to the type as well.  These guys are
             // practically equivalent for users.
-            if (symbol.ContainingType.TypeKind == TypeKind.Delegate)
-            {
-                return Task.FromResult(ImmutableArray.Create<ISymbol>(symbol.ContainingType));
-            }
-            else
-            {
-                return Task.FromResult(GetOtherPartsOfPartial(symbol));
-            }
+            return symbol.ContainingType.TypeKind == TypeKind.Delegate
+                ? new(ImmutableArray.Create<ISymbol>(symbol.ContainingType))
+                : new(GetOtherPartsOfPartial(symbol));
         }
 
         private static ImmutableArray<ISymbol> GetOtherPartsOfPartial(IMethodSymbol symbol)
