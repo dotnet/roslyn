@@ -62,39 +62,33 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         protected override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol symbol,
-            HashSet<string>? globalAliases,
-            Document document,
-            SemanticModel semanticModel,
-            FindReferenceCache cache,
+            FindReferencesDocumentState state,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             var references = await FindReferencesInDocumentUsingSymbolNameAsync(
-                symbol, document, semanticModel, cache, cancellationToken).ConfigureAwait(false);
+                symbol, state, cancellationToken).ConfigureAwait(false);
 
-            if (symbol.AssociatedSymbol is IPropertySymbol property &&
-                options.AssociatePropertyReferencesWithSpecificAccessor)
+            if (symbol.AssociatedSymbol is not IPropertySymbol property ||
+                !options.AssociatePropertyReferencesWithSpecificAccessor)
             {
-                var propertyReferences = await ReferenceFinders.Property.FindReferencesInDocumentAsync(
-                    property, globalAliases, document, semanticModel, cache,
-                    options with { AssociatePropertyReferencesWithSpecificAccessor = false },
-                    cancellationToken).ConfigureAwait(false);
-
-                var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-                var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
-
-                var accessorReferences = propertyReferences.WhereAsArray(
-                    loc =>
-                    {
-                        var accessors = GetReferencedAccessorSymbols(
-                            syntaxFacts, semanticFacts, semanticModel, property, loc.Node, cancellationToken);
-                        return accessors.Contains(symbol);
-                    });
-
-                references = references.AddRange(accessorReferences);
+                return references;
             }
 
-            return references;
+            var propertyReferences = await ReferenceFinders.Property.FindReferencesInDocumentAsync(
+                property, state,
+                options with { AssociatePropertyReferencesWithSpecificAccessor = false },
+                cancellationToken).ConfigureAwait(false);
+
+            var accessorReferences = propertyReferences.WhereAsArray(
+                loc =>
+                {
+                    var accessors = GetReferencedAccessorSymbols(
+                        state, property, loc.Node, cancellationToken);
+                    return accessors.Contains(symbol);
+                });
+
+            return references.Concat(accessorReferences);
         }
     }
 }

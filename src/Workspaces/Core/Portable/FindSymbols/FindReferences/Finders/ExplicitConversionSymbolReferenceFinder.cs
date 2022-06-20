@@ -60,24 +60,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         protected sealed override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol symbol,
-            HashSet<string>? globalAliases,
-            Document document,
-            SemanticModel semanticModel,
-            FindReferenceCache cache,
+            FindReferencesDocumentState state,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-
             return FindReferencesInDocumentAsync(
-                symbol, document, semanticModel, cache,
-                t => IsPotentialReference(syntaxFacts, t),
+                symbol, state,
+                static (state, token, _, _) => IsPotentialReference(state.SyntaxFacts, token),
+                /*unused*/false,
                 cancellationToken);
         }
 
         private static bool IsPotentialReference(
-            ISyntaxFactsService syntaxFacts,
-            SyntaxToken token)
+            ISyntaxFactsService syntaxFacts, SyntaxToken token)
         {
             var node = token.GetRequiredParent();
             return node.GetFirstToken() == token && syntaxFacts.IsConversionExpression(node);

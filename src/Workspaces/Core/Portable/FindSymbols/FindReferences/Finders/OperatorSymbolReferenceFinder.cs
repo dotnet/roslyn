@@ -32,20 +32,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         protected sealed override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol symbol,
-            HashSet<string>? globalAliases,
-            Document document,
-            SemanticModel semanticModel,
-            FindReferenceCache cache,
+            FindReferencesDocumentState state,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var op = symbol.GetPredefinedOperator();
-
-            var opReferences = await FindReferencesInDocumentAsync(symbol, document, semanticModel, cache,
-                t => IsPotentialReference(syntaxFacts, op, t),
+            var opReferences = await FindReferencesInDocumentAsync(
+                symbol, state,
+                static (state, token, op, _) => IsPotentialReference(state.SyntaxFacts, op, token),
+                symbol.GetPredefinedOperator(),
                 cancellationToken).ConfigureAwait(false);
-            var suppressionReferences = await FindReferencesInDocumentInsideGlobalSuppressionsAsync(document, semanticModel, symbol, cancellationToken).ConfigureAwait(false);
+            var suppressionReferences = await FindReferencesInDocumentInsideGlobalSuppressionsAsync(
+                symbol, state, cancellationToken).ConfigureAwait(false);
 
             return opReferences.Concat(suppressionReferences);
         }

@@ -105,29 +105,27 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         protected sealed override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol symbol,
-            HashSet<string>? globalAliases,
-            Document document,
-            SemanticModel semanticModel,
-            FindReferenceCache cache,
+            FindReferencesDocumentState state,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             var nameMatches = await FindReferencesInDocumentUsingSymbolNameAsync(
-                symbol, document, semanticModel, cache, cancellationToken).ConfigureAwait(false);
+                symbol, state, cancellationToken).ConfigureAwait(false);
 
             var forEachMatches = IsForEachMethod(symbol)
-                ? await FindReferencesInForEachStatementsAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false)
+                ? await FindReferencesInForEachStatementsAsync(symbol, state, cancellationToken).ConfigureAwait(false)
                 : ImmutableArray<FinderLocation>.Empty;
 
             var deconstructMatches = IsDeconstructMethod(symbol)
-                ? await FindReferencesInDeconstructionAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false)
+                ? await FindReferencesInDeconstructionAsync(symbol, state, cancellationToken).ConfigureAwait(false)
                 : ImmutableArray<FinderLocation>.Empty;
 
             var getAwaiterMatches = IsGetAwaiterMethod(symbol)
-                ? await FindReferencesInAwaitExpressionAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false)
+                ? await FindReferencesInAwaitExpressionAsync(symbol, state, cancellationToken).ConfigureAwait(false)
                 : ImmutableArray<FinderLocation>.Empty;
 
-            var suppressionReferences = await FindReferencesInDocumentInsideGlobalSuppressionsAsync(document, semanticModel, symbol, cancellationToken).ConfigureAwait(false);
+            var suppressionReferences = await FindReferencesInDocumentInsideGlobalSuppressionsAsync(
+                symbol, state, cancellationToken).ConfigureAwait(false);
             return nameMatches.Concat(forEachMatches, deconstructMatches, getAwaiterMatches, suppressionReferences);
         }
     }
