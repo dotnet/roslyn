@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.MakeFlags(methodKind, declarationModifiers, returnsVoid: false, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled);
 
             if (this.ContainingType.IsInterface &&
-                !IsAbstract &&
+                !(IsAbstract || IsVirtual) && !IsExplicitInterfaceImplementation &&
                 !(syntax is OperatorDeclarationSyntax { OperatorToken: var opToken } && opToken.Kind() is not (SyntaxKind.EqualsEqualsToken or SyntaxKind.ExclamationEqualsToken)))
             {
                 diagnostics.Add(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, this.Locations[0]);
@@ -134,11 +134,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (inInterface)
                 {
-                    allowedModifiers |= DeclarationModifiers.Abstract;
+                    allowedModifiers |= DeclarationModifiers.Abstract | DeclarationModifiers.Virtual;
 
                     if (syntax is OperatorDeclarationSyntax { OperatorToken: var opToken } && opToken.Kind() is not (SyntaxKind.EqualsEqualsToken or SyntaxKind.ExclamationEqualsToken))
                     {
-                        allowedModifiers |= DeclarationModifiers.Sealed | DeclarationModifiers.Virtual;
+                        allowedModifiers |= DeclarationModifiers.Sealed;
                     }
                 }
             }
@@ -386,6 +386,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     CheckShiftSignature(diagnostics);
                     break;
 
+                case WellKnownMemberNames.EqualityOperatorName:
+                case WellKnownMemberNames.InequalityOperatorName:
+                    if (IsAbstract || IsVirtual)
+                    {
+                        CheckAbstractEqualitySignature(diagnostics);
+                    }
+                    else
+                    {
+                        CheckBinarySignature(diagnostics);
+                    }
+
+                    break;
+
                 default:
                     CheckBinarySignature(diagnostics);
                     break;
@@ -418,11 +431,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CheckUserDefinedConversionSignature(BindingDiagnosticBag diagnostics)
         {
-            if (this.ReturnsVoid)
-            {
-                // CS0590: User-defined operators cannot return void
-                diagnostics.Add(ErrorCode.ERR_OperatorCantReturnVoid, this.Locations[0]);
-            }
+            CheckReturnIsNotVoid(diagnostics);
 
             // SPEC: For a given source type S and target type T, if S or T are
             // SPEC: nullable types let S0 and T0 refer to their underlying types,
@@ -455,7 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 !MatchesContainingType(target))
             {
                 // CS0556: User-defined conversion must convert to or from the enclosing type
-                diagnostics.Add(IsAbstract ? ErrorCode.ERR_AbstractConversionNotInvolvingContainedType : ErrorCode.ERR_ConversionNotInvolvingContainedType, this.Locations[0]);
+                diagnostics.Add(IsAbstract || IsVirtual ? ErrorCode.ERR_AbstractConversionNotInvolvingContainedType : ErrorCode.ERR_ConversionNotInvolvingContainedType, this.Locations[0]);
                 return;
             }
 
@@ -574,6 +583,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        private void CheckReturnIsNotVoid(BindingDiagnosticBag diagnostics)
+        {
+            if (this.ReturnsVoid)
+            {
+                // CS0590: User-defined operators cannot return void
+                diagnostics.Add(ErrorCode.ERR_OperatorCantReturnVoid, this.Locations[0]);
+            }
+        }
+
         private void CheckUnarySignature(BindingDiagnosticBag diagnostics)
         {
             // SPEC: A unary + - ! ~ operator must take a single parameter of type
@@ -585,12 +603,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add((IsAbstract || IsVirtual) ? ErrorCode.ERR_BadAbstractUnaryOperatorSignature : ErrorCode.ERR_BadUnaryOperatorSignature, this.Locations[0]);
             }
 
-            if (this.ReturnsVoid)
-            {
-                // The Roslyn parser does not detect this error.
-                // CS0590: User-defined operators cannot return void
-                diagnostics.Add(ErrorCode.ERR_OperatorCantReturnVoid, this.Locations[0]);
-            }
+            CheckReturnIsNotVoid(diagnostics);
         }
 
         private void CheckTrueFalseSignature(BindingDiagnosticBag diagnostics)
@@ -714,12 +727,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Binder.CheckFeatureAvailability(location.SourceTree, MessageID.IDS_FeatureRelaxedShiftOperator, diagnostics, location);
             }
 
-            if (this.ReturnsVoid)
-            {
-                // The Roslyn parser does not detect this error.
-                // CS0590: User-defined operators cannot return void
-                diagnostics.Add(ErrorCode.ERR_OperatorCantReturnVoid, this.Locations[0]);
-            }
+            CheckReturnIsNotVoid(diagnostics);
         }
 
         private void CheckBinarySignature(BindingDiagnosticBag diagnostics)
@@ -733,12 +741,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add((IsAbstract || IsVirtual) ? ErrorCode.ERR_BadAbstractBinaryOperatorSignature : ErrorCode.ERR_BadBinaryOperatorSignature, this.Locations[0]);
             }
 
-            if (this.ReturnsVoid)
+            CheckReturnIsNotVoid(diagnostics);
+        }
+
+        private void CheckAbstractEqualitySignature(BindingDiagnosticBag diagnostics)
+        {
+            if (!IsSelfConstrainedTypeParameter(this.GetParameterType(0).StrippedType()) &&
+                !IsSelfConstrainedTypeParameter(this.GetParameterType(1).StrippedType()))
             {
-                // The parser does not detect this error.
-                // CS0590: User-defined operators cannot return void
-                diagnostics.Add(ErrorCode.ERR_OperatorCantReturnVoid, this.Locations[0]);
+                diagnostics.Add(ErrorCode.ERR_BadAbstractEqualityOperatorSignature, this.Locations[0], this.ContainingType);
             }
+
+            CheckReturnIsNotVoid(diagnostics);
         }
 
         public sealed override string Name
