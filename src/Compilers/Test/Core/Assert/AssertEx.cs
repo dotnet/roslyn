@@ -954,6 +954,5 @@ namespace Roslyn.Test.Utilities
             Debug.Assert(value is object);
         }
 
-#nullable disable
     }
 }
