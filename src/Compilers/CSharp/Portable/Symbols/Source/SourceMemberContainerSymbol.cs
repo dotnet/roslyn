@@ -4426,14 +4426,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.FieldDeclaration:
                         {
                             var fieldSyntax = (FieldDeclarationSyntax)m;
+
                             if (IsImplicitClass && reportMisplacedGlobalCode)
                             {
                                 diagnostics.Add(ErrorCode.ERR_NamespaceUnexpected,
                                     new SourceLocation(fieldSyntax.Declaration.Variables.First().Identifier));
                             }
 
+                            bool isRefField = false;
+                            if (fieldSyntax.Declaration.Type is RefTypeSyntax refTypeSyntax)
+                            {
+                                isRefField = true;
+                                if (refTypeSyntax.ScopedKeyword.Kind() == SyntaxKind.ScopedKeyword)
+                                {
+                                    diagnostics.Add(ErrorCode.ERR_BadMemberFlag, refTypeSyntax.ScopedKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ScopedKeyword));
+                                }
+                            }
+
                             bool modifierErrors;
-                            var modifiers = SourceMemberFieldSymbol.MakeModifiers(this, fieldSyntax.Declaration.Variables[0].Identifier, fieldSyntax.Modifiers, diagnostics, out modifierErrors);
+                            var modifiers = SourceMemberFieldSymbol.MakeModifiers(this, fieldSyntax.Declaration.Variables[0].Identifier, fieldSyntax.Modifiers, isRefField: isRefField, diagnostics, out modifierErrors);
                             foreach (var variable in fieldSyntax.Declaration.Variables)
                             {
                                 var fieldSymbol = (modifiers & DeclarationModifiers.Fixed) == 0

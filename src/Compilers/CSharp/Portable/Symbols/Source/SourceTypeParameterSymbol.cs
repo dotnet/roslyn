@@ -427,7 +427,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!attribute.HasErrors);
             Debug.Assert(arguments.SymbolPart == AttributeLocation.None);
 
-            ReportExplicitUseOfReservedAttributes(in arguments, ReservedAttributes.NullableAttribute);
+            ReportExplicitUseOfReservedAttributes(in arguments, ReservedAttributes.NullableAttribute | ReservedAttributes.LifetimeAnnotationAttribute);
 
             base.DecodeWellKnownAttributeImpl(ref arguments);
         }

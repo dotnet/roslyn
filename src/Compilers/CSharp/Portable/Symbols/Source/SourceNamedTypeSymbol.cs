@@ -1119,7 +1119,8 @@ next:;
                 | ReservedAttributes.NullableContextAttribute
                 | ReservedAttributes.NativeIntegerAttribute
                 | ReservedAttributes.CaseSensitiveExtensionAttribute
-                | ReservedAttributes.RequiredMemberAttribute))
+                | ReservedAttributes.RequiredMemberAttribute
+                | ReservedAttributes.LifetimeAnnotationAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.SecurityCriticalAttribute)

@@ -89,6 +89,59 @@ Note: The break will also apply to C# 10 and earlier when .NET 7 ships, but is
 currently scoped down to users of LangVer=preview.  
 Tracked by https://github.com/dotnet/roslyn/issues/60640
 
+## Cannot return an out parameter by reference
+
+***Introduced in .NET SDK 7.0.100, Visual Studio 2022 version 17.3.***
+
+With language version C# 11 or later, or with .NET 7.0 or later, an `out` parameter cannot be returned by reference.
+
+```csharp
+static ref T ReturnOutParamByRef<T>(out T t)
+{
+    t = default;
+    return ref t; // error CS8166: Cannot return a parameter by reference 't' because it is not a ref parameter
+}
+```
+
+A possible workaround is to change the method signature to pass the parameter by `ref` instead.
+
+```csharp
+static ref T ReturnRefParamByRef<T>(ref T t)
+{
+    t = default;
+    return ref t; // ok
+}
+```
+
+## Method ref struct return escape analysis depends on ref escape of ref arguments
+
+***Introduced in .NET SDK 7.0.100, Visual Studio 2022 version 17.3.***
+
+With language version C# 11 or later, or with .NET 7.0 or later, the return value of a method invocation that returns a `ref struct` is only _safe-to-escape_ if all the `ref` and `in` arguments to the method invocation are _ref-safe-to-escape_. _The `in` arguments may include implicit default parameter values._
+
+```csharp
+ref struct R { }
+
+static R MayCaptureArg(ref int i) => new R();
+
+static R MayCaptureDefaultArg(in int i = 0) => new R();
+
+static R Create()
+{
+    int i = 0;
+    // error CS8347: Cannot use a result of 'MayCaptureArg(ref int)' because it may expose
+    // variables referenced by parameter 'i' outside of their declaration scope
+    return MayCaptureArg(ref i);
+}
+
+static R CreateDefault()
+{
+    // error CS8347: Cannot use a result of 'MayCaptureDefaultArg(in int)' because it may expose
+    // variables referenced by parameter 'i' outside of their declaration scope
+    return MayCaptureDefaultArg();
+}
+```
+
 ## Unsigned right shift operator
 
 ***Introduced in .NET SDK 6.0.400, Visual Studio 2022 version 17.3.***

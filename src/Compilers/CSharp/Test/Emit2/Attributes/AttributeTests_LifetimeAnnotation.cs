@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private const string LifetimeAnnotationAttributeDefinition =
 @"namespace System.Runtime.CompilerServices
 {
-    [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = false)]
+    [AttributeUsage(AttributeTargets.All, AllowMultiple = false, Inherited = false)]
     public sealed class LifetimeAnnotationAttribute : Attribute
     {
         public LifetimeAnnotationAttribute(bool isRefScoped, bool isValueScoped)
@@ -105,17 +105,79 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void ExplicitAttribute_ReferencedInSource()
+        public void ExplicitAttribute_ReferencedInSource_01()
         {
             var source =
 @"using System.Runtime.CompilerServices;
+delegate void D([LifetimeAnnotation(true, false)] ref int i);
 class Program
 {
-    public static void Main([LifetimeAnnotation(false, true)] string[] args) { }
+    public static void Main([LifetimeAnnotation(false, true)] string[] args)
+    {
+        D d = ([LifetimeAnnotation(true, false)] ref int i) => { };
+    }
 }";
             var comp = CreateCompilation(new[] { LifetimeAnnotationAttributeDefinition, source });
-            // PROTOTYPE: Should report ErrorCode.ERR_ExplicitReservedAttr.
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (2,18): error CS8335: Do not use 'System.Runtime.CompilerServices.LifetimeAnnotationAttribute'. This is reserved for compiler usage.
+                // delegate void D([LifetimeAnnotation(true, false)] ref int i);
+                Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "LifetimeAnnotation(true, false)").WithArguments("System.Runtime.CompilerServices.LifetimeAnnotationAttribute").WithLocation(2, 18),
+                // (5,30): error CS8335: Do not use 'System.Runtime.CompilerServices.LifetimeAnnotationAttribute'. This is reserved for compiler usage.
+                //     public static void Main([LifetimeAnnotation(false, true)] string[] args)
+                Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "LifetimeAnnotation(false, true)").WithArguments("System.Runtime.CompilerServices.LifetimeAnnotationAttribute").WithLocation(5, 30),
+                // (7,17): error CS8335: Do not use 'System.Runtime.CompilerServices.LifetimeAnnotationAttribute'. This is reserved for compiler usage.
+                //         D d = ([LifetimeAnnotation(true, false)] ref int i) => { };
+                Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "LifetimeAnnotation(true, false)").WithArguments("System.Runtime.CompilerServices.LifetimeAnnotationAttribute").WithLocation(7, 17));
+        }
+
+        [Fact]
+        public void ExplicitAttribute_ReferencedInSource_02()
+        {
+            var source =
+@"using System;
+using System.Runtime.CompilerServices;
+[module: LifetimeAnnotation(false, true)]
+[LifetimeAnnotation(false, true)] class Program
+{
+    [LifetimeAnnotation(false, true)] object F;
+    [LifetimeAnnotation(false, true)] event EventHandler E;
+    [LifetimeAnnotation(false, true)] object P { get; }
+    [LifetimeAnnotation(false, true)] static object M1() => throw null;
+    [return: LifetimeAnnotation(false, true)] static object M2() => throw null;
+    static void M3<[LifetimeAnnotation(false, true)] T>() { }
+}";
+            var comp = CreateCompilation(new[] { LifetimeAnnotationAttributeDefinition, source });
+            comp.VerifyDiagnostics(
+                // (3,10): error CS8335: Do not use 'System.Runtime.CompilerServices.LifetimeAnnotationAttribute'. This is reserved for compiler usage.
+                // [module: LifetimeAnnotation(false, true)]
+                Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "LifetimeAnnotation(false, true)").WithArguments("System.Runtime.CompilerServices.LifetimeAnnotationAttribute").WithLocation(3, 10),
+                // (4,2): error CS8335: Do not use 'System.Runtime.CompilerServices.LifetimeAnnotationAttribute'. This is reserved for compiler usage.
+                // [LifetimeAnnotation(false, true)] class Program
+                Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "LifetimeAnnotation(false, true)").WithArguments("System.Runtime.CompilerServices.LifetimeAnnotationAttribute").WithLocation(4, 2),
+                // (6,6): error CS8335: Do not use 'System.Runtime.CompilerServices.LifetimeAnnotationAttribute'. This is reserved for compiler usage.
+                //     [LifetimeAnnotation(false, true)] object F;
+                Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "LifetimeAnnotation(false, true)").WithArguments("System.Runtime.CompilerServices.LifetimeAnnotationAttribute").WithLocation(6, 6),
+                // (6,46): warning CS0169: The field 'Program.F' is never used
+                //     [LifetimeAnnotation(false, true)] object F;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "F").WithArguments("Program.F").WithLocation(6, 46),
+                // (7,6): error CS8335: Do not use 'System.Runtime.CompilerServices.LifetimeAnnotationAttribute'. This is reserved for compiler usage.
+                //     [LifetimeAnnotation(false, true)] event EventHandler E;
+                Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "LifetimeAnnotation(false, true)").WithArguments("System.Runtime.CompilerServices.LifetimeAnnotationAttribute").WithLocation(7, 6),
+                // (7,58): warning CS0067: The event 'Program.E' is never used
+                //     [LifetimeAnnotation(false, true)] event EventHandler E;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("Program.E").WithLocation(7, 58),
+                // (8,6): error CS8335: Do not use 'System.Runtime.CompilerServices.LifetimeAnnotationAttribute'. This is reserved for compiler usage.
+                //     [LifetimeAnnotation(false, true)] object P { get; }
+                Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "LifetimeAnnotation(false, true)").WithArguments("System.Runtime.CompilerServices.LifetimeAnnotationAttribute").WithLocation(8, 6),
+                // (9,6): error CS8335: Do not use 'System.Runtime.CompilerServices.LifetimeAnnotationAttribute'. This is reserved for compiler usage.
+                //     [LifetimeAnnotation(false, true)] static object M1() => throw null;
+                Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "LifetimeAnnotation(false, true)").WithArguments("System.Runtime.CompilerServices.LifetimeAnnotationAttribute").WithLocation(9, 6),
+                // (10,14): error CS8335: Do not use 'System.Runtime.CompilerServices.LifetimeAnnotationAttribute'. This is reserved for compiler usage.
+                //     [return: LifetimeAnnotation(false, true)] static object M2() => throw null;
+                Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "LifetimeAnnotation(false, true)").WithArguments("System.Runtime.CompilerServices.LifetimeAnnotationAttribute").WithLocation(10, 14),
+                // (11,21): error CS8335: Do not use 'System.Runtime.CompilerServices.LifetimeAnnotationAttribute'. This is reserved for compiler usage.
+                //     static void M3<[LifetimeAnnotation(false, true)] T>() { }
+                Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "LifetimeAnnotation(false, true)").WithArguments("System.Runtime.CompilerServices.LifetimeAnnotationAttribute").WithLocation(11, 21));
         }
 
         [Fact]
@@ -236,8 +298,8 @@ class Program
     }
 }";
             var comp = CreateCompilation(source1, references: new[] { ref0 });
-            // PROTOTYPE: Should we treat methods as not supported if a parameter has
-            // a [LifetimeAnnotation] attribute that uses an unrecognized constructor?
+            // https://github.com/dotnet/roslyn/issues/61647: If the [LifetimeAnnotation] scoped value is an int
+            // rather than a pair of bools, the compiler should reject attribute values that it does not recognize.
             comp.VerifyDiagnostics();
         }
 

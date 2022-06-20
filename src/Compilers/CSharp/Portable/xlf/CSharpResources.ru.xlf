@@ -442,6 +442,11 @@
         <target state="translated">Свойство контракта на равенство записей "{0}" должно иметь метод доступа get.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_EscapeVariable">
+        <source>Cannot use variable '{0}' in this context because it may expose referenced variables outside of their declaration scope</source>
+        <target state="new">Cannot use variable '{0}' in this context because it may expose referenced variables outside of their declaration scope</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExplicitImplementationOfOperatorsMustBeStatic">
         <source>Explicit implementation of a user-defined operator '{0}' must be declared static</source>
         <target state="translated">Явная реализация определяемого пользователем оператора "{0}" должна быть объявлена статической</target>
@@ -570,6 +575,11 @@
       <trans-unit id="ERR_FileScopedNamespaceNotBeforeAllMembers">
         <source>File-scoped namespace must precede all other members in a file.</source>
         <target state="translated">Пространство имен с файловой областью должно быть раньше всех остальных элементов в файле.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FixedFieldMustNotBeRef">
+        <source>A fixed field must not be a ref field.</source>
+        <target state="new">A fixed field must not be a ref field.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ForEachMissingMemberWrongAsync">
@@ -11078,8 +11088,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnParameter">
-        <source>Cannot return a parameter by reference '{0}' because it is not a ref or out parameter</source>
-        <target state="translated">Невозможно вернуть параметр "{0}" по ссылке, так как это не параметр ref или out</target>
+        <source>Cannot return a parameter by reference '{0}' because it is not a ref parameter</source>
+        <target state="needs-review-translation">Невозможно вернуть параметр "{0}" по ссылке, так как это не параметр ref или out</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnParameter2">
@@ -11105,11 +11115,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="ERR_EscapeOther">
         <source>Expression cannot be used in this context because it may indirectly expose variables outside of their declaration scope</source>
         <target state="translated">Выражение нельзя использовать в этом контексте, так как из-за этого переменные могут стать косвенно доступными за пределами их области объявления.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_EscapeLocal">
-        <source>Cannot use local '{0}' in this context because it may expose referenced variables outside of their declaration scope</source>
-        <target state="translated">Локальный "{0}" нельзя использовать в этом контексте, так как из-за этого переменные, на которые имеются ссылки, могут стать доступными за пределами их области объявления.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EscapeCall">

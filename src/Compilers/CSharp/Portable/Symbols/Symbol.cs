@@ -1378,6 +1378,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NativeIntegerAttribute = 1 << 9,
             CaseSensitiveExtensionAttribute = 1 << 10,
             RequiredMemberAttribute = 1 << 11,
+            LifetimeAnnotationAttribute = 1 << 12,
         }
 
         internal bool ReportExplicitUseOfReservedAttributes(in DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, ReservedAttributes reserved)
@@ -1437,6 +1438,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.
                 diagnostics.Add(ErrorCode.ERR_ExplicitRequiredMember, arguments.AttributeSyntaxOpt.Location);
+            }
+            else if ((reserved & ReservedAttributes.LifetimeAnnotationAttribute) != 0 &&
+                reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.LifetimeAnnotationAttribute))
+            {
             }
             else
             {

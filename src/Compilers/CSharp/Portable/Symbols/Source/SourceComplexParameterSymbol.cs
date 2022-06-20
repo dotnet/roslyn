@@ -742,7 +742,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ValidateCallerArgumentExpressionAttribute(arguments.AttributeSyntaxOpt, attribute, diagnostics);
             }
             else if (ReportExplicitUseOfReservedAttributes(in arguments,
-                ReservedAttributes.DynamicAttribute | ReservedAttributes.IsReadOnlyAttribute | ReservedAttributes.IsUnmanagedAttribute | ReservedAttributes.IsByRefLikeAttribute | ReservedAttributes.TupleElementNamesAttribute | ReservedAttributes.NullableAttribute | ReservedAttributes.NativeIntegerAttribute))
+                ReservedAttributes.DynamicAttribute |
+                ReservedAttributes.IsReadOnlyAttribute |
+                ReservedAttributes.IsUnmanagedAttribute |
+                ReservedAttributes.IsByRefLikeAttribute |
+                ReservedAttributes.TupleElementNamesAttribute |
+                ReservedAttributes.NullableAttribute |
+                ReservedAttributes.NativeIntegerAttribute |
+                ReservedAttributes.LifetimeAnnotationAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.AllowNullAttribute))

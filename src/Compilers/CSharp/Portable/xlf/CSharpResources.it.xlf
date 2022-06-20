@@ -442,6 +442,11 @@
         <target state="translated">La proprietà '{0}' del contratto di uguaglianza record deve contenere una funzione di accesso get.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_EscapeVariable">
+        <source>Cannot use variable '{0}' in this context because it may expose referenced variables outside of their declaration scope</source>
+        <target state="new">Cannot use variable '{0}' in this context because it may expose referenced variables outside of their declaration scope</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExplicitImplementationOfOperatorsMustBeStatic">
         <source>Explicit implementation of a user-defined operator '{0}' must be declared static</source>
         <target state="translated">L'implementazione esplicita di un operatore definito dall'utente '{0}' deve essere dichiarata come statica</target>
@@ -570,6 +575,11 @@
       <trans-unit id="ERR_FileScopedNamespaceNotBeforeAllMembers">
         <source>File-scoped namespace must precede all other members in a file.</source>
         <target state="translated">Lo spazio dei nomi con ambito file deve precedere tutti gli altri membri di un file.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FixedFieldMustNotBeRef">
+        <source>A fixed field must not be a ref field.</source>
+        <target state="new">A fixed field must not be a ref field.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ForEachMissingMemberWrongAsync">
@@ -11078,8 +11088,8 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnParameter">
-        <source>Cannot return a parameter by reference '{0}' because it is not a ref or out parameter</source>
-        <target state="translated">Non è possibile restituire un parametro '{0}' per riferimento perché non è un parametro out o ref</target>
+        <source>Cannot return a parameter by reference '{0}' because it is not a ref parameter</source>
+        <target state="needs-review-translation">Non è possibile restituire un parametro '{0}' per riferimento perché non è un parametro out o ref</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnParameter2">
@@ -11105,11 +11115,6 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
       <trans-unit id="ERR_EscapeOther">
         <source>Expression cannot be used in this context because it may indirectly expose variables outside of their declaration scope</source>
         <target state="translated">Non è possibile usare l'espressione in questo contesto perché potrebbe esporre indirettamente variabili all'esterno del relativo ambito di dichiarazione</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_EscapeLocal">
-        <source>Cannot use local '{0}' in this context because it may expose referenced variables outside of their declaration scope</source>
-        <target state="translated">Non è possibile usare la variabile locale '{0}' in questo contesto perché potrebbe esporre variabili di riferimento all'esterno del relativo ambito di dichiarazione</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EscapeCall">

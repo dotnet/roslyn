@@ -442,6 +442,11 @@
         <target state="translated">Die EqualityContract-Eigenschaft "{0}" für Datensätze muss eine get-Zugriffsmethode aufweisen.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_EscapeVariable">
+        <source>Cannot use variable '{0}' in this context because it may expose referenced variables outside of their declaration scope</source>
+        <target state="new">Cannot use variable '{0}' in this context because it may expose referenced variables outside of their declaration scope</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExplicitImplementationOfOperatorsMustBeStatic">
         <source>Explicit implementation of a user-defined operator '{0}' must be declared static</source>
         <target state="translated">Die explizite Implementierung eines benutzerdefinierten Operators "{0}" muss als statisch deklariert werden.</target>
@@ -570,6 +575,11 @@
       <trans-unit id="ERR_FileScopedNamespaceNotBeforeAllMembers">
         <source>File-scoped namespace must precede all other members in a file.</source>
         <target state="translated">Der Dateibereichsnamespace muss allen anderen Elementen in einer Datei vorangestellt sein.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FixedFieldMustNotBeRef">
+        <source>A fixed field must not be a ref field.</source>
+        <target state="new">A fixed field must not be a ref field.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ForEachMissingMemberWrongAsync">
@@ -11078,8 +11088,8 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnParameter">
-        <source>Cannot return a parameter by reference '{0}' because it is not a ref or out parameter</source>
-        <target state="translated">Ein Parameter kann nicht als Verweis "{0}" zurückgegeben werden, weil es sich nicht um einen ref- oder out-Parameter handelt.</target>
+        <source>Cannot return a parameter by reference '{0}' because it is not a ref parameter</source>
+        <target state="needs-review-translation">Ein Parameter kann nicht als Verweis "{0}" zurückgegeben werden, weil es sich nicht um einen ref- oder out-Parameter handelt.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnParameter2">
@@ -11105,11 +11115,6 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
       <trans-unit id="ERR_EscapeOther">
         <source>Expression cannot be used in this context because it may indirectly expose variables outside of their declaration scope</source>
         <target state="translated">Der Ausdruck kann in diesem Kontext nicht verwendet werden, weil Variablen dadurch möglicherweise außerhalb ihrer Deklaration indirekt verfügbar gemacht werden.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_EscapeLocal">
-        <source>Cannot use local '{0}' in this context because it may expose referenced variables outside of their declaration scope</source>
-        <target state="translated">"{0}" (lokal) kann in diesem Kontext nicht verwendet werden, weil referenzierte Variablen dadurch möglicherweise außerhalb ihres Deklarationsbereichs verfügbar gemacht werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EscapeCall">

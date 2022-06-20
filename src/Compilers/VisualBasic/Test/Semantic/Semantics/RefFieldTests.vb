@@ -44,7 +44,7 @@ BC30668: 'S(Of Integer)' is obsolete: 'Types with embedded references are not su
                     ~~~~~~~~~~~~~
 </expected>)
 
-            ' PROTOTYPE: RefKind should be RefKind.Ref, or a use-site diagnostic should be generated, or both.
+            ' https://github.com/dotnet/roslyn/issues/62121: RefKind should be RefKind.Ref, or a use-site diagnostic should be generated, or both.
             Dim field = compB.GetMember(Of FieldSymbol)("S.F")
             VerifyFieldSymbol(field, "S(Of T).F As T", Microsoft.CodeAnalysis.RefKind.None, {})
             Assert.Null(field.GetUseSiteErrorInfo())
@@ -73,11 +73,10 @@ Module Program
 End Module"
 
             Dim comp = CreateCompilation(sourceB, references:={refA})
-            ' PROTOTYPE: A use-site diagnostic should be generated.
+            ' https://github.com/dotnet/roslyn/issues/62121: RefKind should be RefKind.Ref, or a use-site diagnostic should be generated, or both.
             comp.AssertTheseDiagnostics(<expected></expected>)
 
-            ' PROTOTYPE: RefKind should be RefKind.Ref and RefCustomModifiers should contain two items,
-            ' or a use-site diagnostic should be generated, or both.
+            ' https://github.com/dotnet/roslyn/issues/62121: RefKind should be RefKind.Ref, or a use-site diagnostic should be generated, or both.
             Dim field = comp.GetMember(Of FieldSymbol)("A.F")
             VerifyFieldSymbol(field, "A(Of T).F As T", Microsoft.CodeAnalysis.RefKind.None, {})
             Assert.Null(field.GetUseSiteErrorInfo())
@@ -143,7 +142,7 @@ End Module"
                 }
             AssertEx.Equal(expectedMembers, fieldMembers.Select(Function(f) f.ToTestDisplayString()))
 
-            ' PROTOTYPE: Not differentiating fields that differ by RefKind or RefCustomModifiers.
+            ' https://github.com/dotnet/roslyn/issues/62121: Not differentiating fields that differ by RefKind or RefCustomModifiers.
             ' See MemberRefMetadataDecoder.FindFieldBySignature().
             Dim expectedReferences =
                 {

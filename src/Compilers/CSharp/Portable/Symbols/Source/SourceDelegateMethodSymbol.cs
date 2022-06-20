@@ -43,10 +43,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DelegateDeclarationSyntax syntax,
             BindingDiagnosticBag diagnostics)
         {
-            var compilation = delegateType.DeclaringCompilation;
             Binder binder = delegateType.GetBinder(syntax.ParameterList);
-            RefKind refKind;
-            TypeSyntax returnTypeSyntax = syntax.ReturnType.SkipRef(out refKind);
+            TypeSyntax returnTypeSyntax = syntax.ReturnType.SkipRef(out RefKind refKind, allowScoped: false, diagnostics);
             var returnType = binder.BindType(returnTypeSyntax, diagnostics);
 
             // reuse types to avoid reporting duplicate errors if missing:

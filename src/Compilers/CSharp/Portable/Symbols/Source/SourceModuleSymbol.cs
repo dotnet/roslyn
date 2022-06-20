@@ -520,7 +520,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
             else if (ReportExplicitUseOfReservedAttributes(in arguments,
-                ReservedAttributes.NullableContextAttribute | ReservedAttributes.NullablePublicOnlyAttribute))
+                ReservedAttributes.NullableContextAttribute | ReservedAttributes.NullablePublicOnlyAttribute | ReservedAttributes.LifetimeAnnotationAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.SkipLocalsInitAttribute))

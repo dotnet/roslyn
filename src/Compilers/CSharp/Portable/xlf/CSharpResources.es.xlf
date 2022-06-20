@@ -442,6 +442,11 @@
         <target state="translated">La propiedad del contrato de igualdad de registros "{0}" debe tener un descriptor de acceso get.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_EscapeVariable">
+        <source>Cannot use variable '{0}' in this context because it may expose referenced variables outside of their declaration scope</source>
+        <target state="new">Cannot use variable '{0}' in this context because it may expose referenced variables outside of their declaration scope</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExplicitImplementationOfOperatorsMustBeStatic">
         <source>Explicit implementation of a user-defined operator '{0}' must be declared static</source>
         <target state="translated">La implementación explícita de un operador definido por el usuario "{0}" se debe declarar como estático</target>
@@ -570,6 +575,11 @@
       <trans-unit id="ERR_FileScopedNamespaceNotBeforeAllMembers">
         <source>File-scoped namespace must precede all other members in a file.</source>
         <target state="translated">El espacio de nombres con ámbito de archivo debe preceder a todos los demás miembros de un archivo.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FixedFieldMustNotBeRef">
+        <source>A fixed field must not be a ref field.</source>
+        <target state="new">A fixed field must not be a ref field.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ForEachMissingMemberWrongAsync">
@@ -11078,8 +11088,8 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnParameter">
-        <source>Cannot return a parameter by reference '{0}' because it is not a ref or out parameter</source>
-        <target state="translated">No se pude devolver por referencia un parámetro '{0}' porque no es de tipo ref o out.</target>
+        <source>Cannot return a parameter by reference '{0}' because it is not a ref parameter</source>
+        <target state="needs-review-translation">No se pude devolver por referencia un parámetro '{0}' porque no es de tipo ref o out.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnParameter2">
@@ -11105,11 +11115,6 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
       <trans-unit id="ERR_EscapeOther">
         <source>Expression cannot be used in this context because it may indirectly expose variables outside of their declaration scope</source>
         <target state="translated">No se puede usar una expresión en este contexto porque puede exponer variables indirectamente fuera de su ámbito de declaración.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_EscapeLocal">
-        <source>Cannot use local '{0}' in this context because it may expose referenced variables outside of their declaration scope</source>
-        <target state="translated">No se puede usar un elemento "{0}" local en este contexto porque puede exponer variables a las que se hace referencia fuera de su ámbito de declaración.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EscapeCall">

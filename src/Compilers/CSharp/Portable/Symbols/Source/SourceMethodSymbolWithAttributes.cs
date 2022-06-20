@@ -528,7 +528,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
             }
             else if (ReportExplicitUseOfReservedAttributes(in arguments,
-                ReservedAttributes.IsReadOnlyAttribute | ReservedAttributes.IsUnmanagedAttribute | ReservedAttributes.IsByRefLikeAttribute | ReservedAttributes.NullableContextAttribute | ReservedAttributes.CaseSensitiveExtensionAttribute))
+                ReservedAttributes.IsReadOnlyAttribute |
+                ReservedAttributes.IsUnmanagedAttribute |
+                ReservedAttributes.IsByRefLikeAttribute |
+                ReservedAttributes.NullableContextAttribute |
+                ReservedAttributes.CaseSensitiveExtensionAttribute |
+                ReservedAttributes.LifetimeAnnotationAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.SecurityCriticalAttribute)
@@ -703,7 +708,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 MarshalAsAttributeDecoder<ReturnTypeWellKnownAttributeData, AttributeSyntax, CSharpAttributeData, AttributeLocation>.Decode(ref arguments, AttributeTargets.ReturnValue, MessageProvider.Instance);
             }
             else if (ReportExplicitUseOfReservedAttributes(in arguments,
-                ReservedAttributes.DynamicAttribute | ReservedAttributes.IsUnmanagedAttribute | ReservedAttributes.IsReadOnlyAttribute | ReservedAttributes.IsByRefLikeAttribute | ReservedAttributes.TupleElementNamesAttribute | ReservedAttributes.NullableAttribute | ReservedAttributes.NativeIntegerAttribute))
+                ReservedAttributes.DynamicAttribute |
+                ReservedAttributes.IsUnmanagedAttribute |
+                ReservedAttributes.IsReadOnlyAttribute |
+                ReservedAttributes.IsByRefLikeAttribute |
+                ReservedAttributes.TupleElementNamesAttribute |
+                ReservedAttributes.NullableAttribute |
+                ReservedAttributes.NativeIntegerAttribute |
+                ReservedAttributes.LifetimeAnnotationAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.MaybeNullAttribute))

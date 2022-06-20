@@ -442,6 +442,11 @@
         <target state="translated">Właściwość kontraktu równości rekordu „{0}” musi mieć metodę dostępu get.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_EscapeVariable">
+        <source>Cannot use variable '{0}' in this context because it may expose referenced variables outside of their declaration scope</source>
+        <target state="new">Cannot use variable '{0}' in this context because it may expose referenced variables outside of their declaration scope</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExplicitImplementationOfOperatorsMustBeStatic">
         <source>Explicit implementation of a user-defined operator '{0}' must be declared static</source>
         <target state="translated">Jawna implementacja operatora zdefiniowanego przez użytkownika „{0}” musi być zadeklarowana jako statyczna</target>
@@ -570,6 +575,11 @@
       <trans-unit id="ERR_FileScopedNamespaceNotBeforeAllMembers">
         <source>File-scoped namespace must precede all other members in a file.</source>
         <target state="translated">Przestrzeń nazw z określonym zakresem plików musi poprzedzać wszystkie inne składowe w pliku.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FixedFieldMustNotBeRef">
+        <source>A fixed field must not be a ref field.</source>
+        <target state="new">A fixed field must not be a ref field.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ForEachMissingMemberWrongAsync">
@@ -11078,8 +11088,8 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnParameter">
-        <source>Cannot return a parameter by reference '{0}' because it is not a ref or out parameter</source>
-        <target state="translated">Nie można zwrócić parametru „{0}” przez referencję, ponieważ to nie jest parametr ref ani out</target>
+        <source>Cannot return a parameter by reference '{0}' because it is not a ref parameter</source>
+        <target state="needs-review-translation">Nie można zwrócić parametru „{0}” przez referencję, ponieważ to nie jest parametr ref ani out</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnParameter2">
@@ -11105,11 +11115,6 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
       <trans-unit id="ERR_EscapeOther">
         <source>Expression cannot be used in this context because it may indirectly expose variables outside of their declaration scope</source>
         <target state="translated">Nie można używać wyrażenia w tym kontekście, ponieważ pośrednio może ujawniać zmienne poza ich zakresem deklaracji</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_EscapeLocal">
-        <source>Cannot use local '{0}' in this context because it may expose referenced variables outside of their declaration scope</source>
-        <target state="translated">Nie można używać lokalnego elementu „{0}” w tym kontekście, ponieważ może uwidaczniać przywoływane zmienne poza ich zakresem deklaracji</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EscapeCall">

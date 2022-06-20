@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             EOF();
         }
 
-        // PROTOTYPE: Should ref expressions be supported in object initializers?
+        // https://github.com/dotnet/roslyn/issues/62120: Support ref field assignment in object initializers.
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersionFacts.CSharpNext)]

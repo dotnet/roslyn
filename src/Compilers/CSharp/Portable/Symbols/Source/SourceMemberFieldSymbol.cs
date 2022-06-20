@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static DeclarationModifiers MakeModifiers(NamedTypeSymbol containingType, SyntaxToken firstIdentifier, SyntaxTokenList modifiers, BindingDiagnosticBag diagnostics, out bool modifierErrors)
+        internal static DeclarationModifiers MakeModifiers(NamedTypeSymbol containingType, SyntaxToken firstIdentifier, SyntaxTokenList modifiers, bool isRefField, BindingDiagnosticBag diagnostics, out bool modifierErrors)
         {
             bool isInterface = containingType.IsInterface;
             DeclarationModifiers defaultAccess =
@@ -173,35 +173,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if ((result & DeclarationModifiers.Fixed) != 0)
             {
-                if ((result & DeclarationModifiers.Static) != 0)
-                {
-                    // The modifier 'static' is not valid for this item
-                    diagnostics.Add(ErrorCode.ERR_BadMemberFlag, errorLocation, SyntaxFacts.GetText(SyntaxKind.StaticKeyword));
-                }
-
-                if ((result & DeclarationModifiers.ReadOnly) != 0)
-                {
-                    // The modifier 'readonly' is not valid for this item
-                    diagnostics.Add(ErrorCode.ERR_BadMemberFlag, errorLocation, SyntaxFacts.GetText(SyntaxKind.ReadOnlyKeyword));
-                }
-
-                if ((result & DeclarationModifiers.Const) != 0)
-                {
-                    // The modifier 'const' is not valid for this item
-                    diagnostics.Add(ErrorCode.ERR_BadMemberFlag, errorLocation, SyntaxFacts.GetText(SyntaxKind.ConstKeyword));
-                }
-
-                if ((result & DeclarationModifiers.Volatile) != 0)
-                {
-                    // The modifier 'volatile' is not valid for this item
-                    diagnostics.Add(ErrorCode.ERR_BadMemberFlag, errorLocation, SyntaxFacts.GetText(SyntaxKind.VolatileKeyword));
-                }
-
-                if ((result & DeclarationModifiers.Required) != 0)
-                {
-                    // The modifier 'required' is not valid for this item
-                    diagnostics.Add(ErrorCode.ERR_BadMemberFlag, errorLocation, SyntaxFacts.GetText(SyntaxKind.RequiredKeyword));
-                }
+                reportBadMemberFlagIfAny(result, DeclarationModifiers.Static, diagnostics, errorLocation);
+                reportBadMemberFlagIfAny(result, DeclarationModifiers.ReadOnly, diagnostics, errorLocation);
+                reportBadMemberFlagIfAny(result, DeclarationModifiers.Const, diagnostics, errorLocation);
+                reportBadMemberFlagIfAny(result, DeclarationModifiers.Volatile, diagnostics, errorLocation);
+                reportBadMemberFlagIfAny(result, DeclarationModifiers.Required, diagnostics, errorLocation);
 
                 result &= ~(DeclarationModifiers.Static | DeclarationModifiers.ReadOnly | DeclarationModifiers.Const | DeclarationModifiers.Volatile | DeclarationModifiers.Required);
                 Debug.Assert((result & ~(DeclarationModifiers.AccessibilityMask | DeclarationModifiers.Fixed | DeclarationModifiers.Unsafe | DeclarationModifiers.New)) == 0);
@@ -215,28 +191,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_StaticConstant, errorLocation, firstIdentifier.ValueText);
                 }
 
-                if ((result & DeclarationModifiers.ReadOnly) != 0)
-                {
-                    // The modifier 'readonly' is not valid for this item
-                    diagnostics.Add(ErrorCode.ERR_BadMemberFlag, errorLocation, SyntaxFacts.GetText(SyntaxKind.ReadOnlyKeyword));
-                }
+                reportBadMemberFlagIfAny(result, DeclarationModifiers.ReadOnly, diagnostics, errorLocation);
+                reportBadMemberFlagIfAny(result, DeclarationModifiers.Volatile, diagnostics, errorLocation);
+                reportBadMemberFlagIfAny(result, DeclarationModifiers.Unsafe, diagnostics, errorLocation);
 
-                if ((result & DeclarationModifiers.Volatile) != 0)
+                if (reportBadMemberFlagIfAny(result, DeclarationModifiers.Required, diagnostics, errorLocation))
                 {
-                    // The modifier 'volatile' is not valid for this item
-                    diagnostics.Add(ErrorCode.ERR_BadMemberFlag, errorLocation, SyntaxFacts.GetText(SyntaxKind.VolatileKeyword));
-                }
-
-                if ((result & DeclarationModifiers.Unsafe) != 0)
-                {
-                    // The modifier 'unsafe' is not valid for this item
-                    diagnostics.Add(ErrorCode.ERR_BadMemberFlag, errorLocation, SyntaxFacts.GetText(SyntaxKind.UnsafeKeyword));
-                }
-
-                if ((result & DeclarationModifiers.Required) != 0)
-                {
-                    // The modifier 'required' is not valid for this item
-                    diagnostics.Add(ErrorCode.ERR_BadMemberFlag, errorLocation, SyntaxFacts.GetText(SyntaxKind.RequiredKeyword));
                     result &= ~DeclarationModifiers.Required;
                 }
 
@@ -259,7 +219,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 containingType.CheckUnsafeModifier(result, errorLocation, diagnostics);
             }
 
+            if (isRefField)
+            {
+                reportBadMemberFlagIfAny(result, DeclarationModifiers.Static, diagnostics, errorLocation);
+                reportBadMemberFlagIfAny(result, DeclarationModifiers.Const, diagnostics, errorLocation);
+                reportBadMemberFlagIfAny(result, DeclarationModifiers.Volatile, diagnostics, errorLocation);
+            }
+
             return result;
+
+            static bool reportBadMemberFlagIfAny(DeclarationModifiers result, DeclarationModifiers modifier, BindingDiagnosticBag diagnostics, SourceLocation errorLocation)
+            {
+                if ((result & modifier) != 0)
+                {
+                    // The modifier '{0}' is not valid for this item
+                    diagnostics.Add(ErrorCode.ERR_BadMemberFlag, errorLocation, ModifierUtils.ConvertSingleModifierToSyntaxText(modifier));
+                    return true;
+                }
+                return false;
+            }
         }
 
         internal sealed override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
@@ -567,6 +545,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (ContainingType.TypeKind != TypeKind.Struct)
                     {
                         diagnostics.Add(ErrorCode.ERR_FixedNotInStruct, ErrorLocation);
+                    }
+
+                    if (refKind != RefKind.None)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_FixedFieldMustNotBeRef, ErrorLocation);
                     }
 
                     var elementType = ((PointerTypeSymbol)type.Type).PointedAtType;
