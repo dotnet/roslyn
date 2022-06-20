@@ -104,7 +104,11 @@ using System.Collections
 
 class Implementation : IEnumerable
 {
-}", expectedGlyphsNumberInMargin: 1, HangMitigatingCancellationToken);
+    public IEnumerator GetEnumerator()
+    {
+        throw new NotImplementedException();
+    }
+}", expectedGlyphsNumberInMargin: 2, HangMitigatingCancellationToken);
 
             await TestServices.InheritanceMargin.ClickTheGlyphOnLine(4, HangMitigatingCancellationToken);
 
@@ -113,6 +117,44 @@ class Implementation : IEnumerable
             // Navigate to 'IEnumerable'
             await TestServices.Input.SendAsync(VirtualKey.Enter);
             await TestServices.EditorVerifier.TextContainsAsync(@"public interface IEnumerable$$", assertCaretPosition: true);
+        }
+
+        [IdeFact]
+        public async Task TestNavigateToDifferentProjects()
+        {
+            await TestServices.InheritanceMargin.EnableOptionsAsync(LanguageNames.CSharp, cancellationToken: HangMitigatingCancellationToken);
+            await TestServices.InheritanceMargin.EnableOptionsAsync(LanguageNames.VisualBasic, cancellationToken: HangMitigatingCancellationToken);
+
+            var csharpProjectName = ProjectName;
+            var vbProjectName = "TestVBProject";
+            await TestServices.SolutionExplorer.AddProjectAsync(
+                vbProjectName, WellKnownProjectTemplates.VisualBasicNetStandardClassLibrary, LanguageNames.VisualBasic, cancellationToken: HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.AddFileAsync(vbProjectName, "Test.vb", @"
+Namespace MyNs
+    Public Interface IBar
+    End Interface
+End Namespace");
+
+            await TestServices.SolutionExplorer.AddFileAsync(csharpProjectName, "Test.cs", cancellationToken: HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.AddProjectReferenceAsync(csharpProjectName, vbProjectName, cancellationToken: HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.OpenFileAsync(csharpProjectName, "Test.cs", HangMitigatingCancellationToken);
+
+            await TestServices.InheritanceMargin.SetTextAndEnsureGlyphsAppearAsync(
+@"
+using TestVBProject.MyNs;
+
+class Implementation : IBar
+{
+}", expectedGlyphsNumberInMargin: 1, HangMitigatingCancellationToken);
+
+            await TestServices.InheritanceMargin.ClickTheGlyphOnLine(4, HangMitigatingCancellationToken);
+
+            // Move focus to menu item of 'class Implementation'
+            await TestServices.Input.SendAsync(VirtualKey.Tab);
+            // Navigate to 'IBar'
+            await TestServices.Input.SendAsync(VirtualKey.Enter);
+            await TestServices.EditorVerifier.TextContainsAsync(@"Public Interface IBar$$", assertCaretPosition: true);
+
         }
     }
 }
