@@ -4,11 +4,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
@@ -31,9 +28,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             CancellationToken cancellationToken)
         {
             return GetNewResultIdAsync(
-                documentToPreviousDiagnosticParams.ToDictionary(kvp => new ProjectOrDocumentId(kvp.Key.Id), kvp => kvp.Value),
-                new ProjectOrDocumentId(document.Id),
-                document.Project,
+                documentToPreviousDiagnosticParams,
+                document,
                 computeVersionAsync,
                 computeExpensiveVersionAsync: SpecializedTasks.Null<object>,
                 cancellationToken);
