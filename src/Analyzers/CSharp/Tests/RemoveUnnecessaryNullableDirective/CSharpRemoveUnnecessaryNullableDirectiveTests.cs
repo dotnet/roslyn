@@ -121,6 +121,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.RemoveUnnecessaryNul
                 """);
         }
 
+        [Fact]
+        public async Task TestUnnecessaryDisableIgnoredWhenFollowedByConditionalDirective()
+        {
+            var code =
+                """
+                #nullable enable
+                struct StructName
+                {
+                    string Field;
+                }
+                #nullable disable
+                #if false
+                #endif
+                """;
+
+            await VerifyCodeFixAsync(NullableContextOptions.Disable, code, code);
+        }
+
         private static string GetDisableDirectiveContext(NullableContextOptions options)
         {
             return options switch

@@ -140,6 +140,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryNullableDirective
                     currentOptionsDirective = nullableDirectiveTrivia;
                     currentOptions = CSharpRemoveRedundantNullableDirectiveDiagnosticAnalyzer.GetNullableContextOptions(compilationOptions, currentOptions, nullableDirectiveTrivia);
                 }
+                else if (directive.IsKind(SyntaxKind.IfDirectiveTrivia, SyntaxKind.ElifDirectiveTrivia, SyntaxKind.ElseDirectiveTrivia))
+                {
+                    possibleNullableImpactIntervalTree ??= new SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>(new TextSpanIntervalIntrospector(), values: null);
+                    possibleNullableImpactIntervalTree.AddIntervalInPlace(directive.Span);
+                }
             }
 
             // Once we reach the end of the file, check to see if we can remove the last directive
