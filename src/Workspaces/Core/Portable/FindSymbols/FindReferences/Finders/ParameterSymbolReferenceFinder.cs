@@ -42,8 +42,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            return FindReferencesInDocumentUsingIdentifierAsync(
-                symbol, symbol.Name, state, cancellationToken);
+            return FindReferencesInDocumentUsingIdentifierAsync(symbol, symbol.Name, state, cancellationToken);
         }
 
         protected override async Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
@@ -145,9 +144,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                         var convertedType2 = semanticModel.GetTypeInfo(lambdaNode, cancellationToken).ConvertedType;
 
                         if (convertedType1.Equals(convertedType2))
-                        {
                             results.Add(symbol);
-                        }
                     }
                 }
             }
@@ -155,12 +152,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         private static bool ParameterNamesMatch(ISyntaxFactsService syntaxFacts, IMethodSymbol methodSymbol1, IMethodSymbol methodSymbol2)
         {
-            for (var i = 0; i < methodSymbol1.Parameters.Length; i++)
+            for (int i = 0, n = methodSymbol1.Parameters.Length; i < n; i++)
             {
                 if (!syntaxFacts.TextMatch(methodSymbol1.Parameters[i].Name, methodSymbol2.Parameters[i].Name))
-                {
                     return false;
-                }
             }
 
             return true;
@@ -172,10 +167,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             {
                 var declaredSymbol = semanticModel.GetDeclaredSymbol(current);
 
-                if (declaredSymbol is IMethodSymbol method && method.MethodKind != MethodKind.AnonymousFunction)
-                {
+                if (declaredSymbol is IMethodSymbol { MethodKind: not MethodKind.AnonymousFunction } method)
                     return current;
-                }
             }
 
             return syntaxFactsService.GetContainingVariableDeclaratorOfFieldDeclaration(parameterNode);
@@ -190,21 +183,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             if (containingSymbol is IMethodSymbol containingMethod)
             {
                 if (containingMethod.AssociatedSymbol is IPropertySymbol property)
-                {
                     AddParameterAtIndex(results, ordinal, property.Parameters);
-                }
             }
             else if (containingSymbol is IPropertySymbol containingProperty)
             {
                 if (containingProperty.GetMethod != null && ordinal < containingProperty.GetMethod.Parameters.Length)
-                {
                     results.Add(containingProperty.GetMethod.Parameters[ordinal]);
-                }
 
                 if (containingProperty.SetMethod != null && ordinal < containingProperty.SetMethod.Parameters.Length)
-                {
                     results.Add(containingProperty.SetMethod.Parameters[ordinal]);
-                }
             }
         }
 
@@ -242,9 +229,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             ImmutableArray<IParameterSymbol>? parameters)
         {
             if (parameters != null && ordinal < parameters.Value.Length)
-            {
                 results.Add(parameters.Value[ordinal]);
-            }
         }
 
         private static void CascadeBetweenPartialMethodParameters(

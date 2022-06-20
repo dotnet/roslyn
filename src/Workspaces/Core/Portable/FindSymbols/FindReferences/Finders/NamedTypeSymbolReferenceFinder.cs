@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             var predefinedType = symbol.SpecialType.ToPredefinedType();
             if (predefinedType == PredefinedType.None)
-                return new ValueTask<ImmutableArray<FinderLocation>>(ImmutableArray<FinderLocation>.Empty);
+                return new(ImmutableArray<FinderLocation>.Empty);
 
             return FindReferencesInDocumentAsync(
                 symbol,
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             return TryGetNameWithoutAttributeSuffix(name, state.SyntaxFacts, out var nameWithoutSuffix)
                 ? FindReferencesInDocumentUsingIdentifierAsync(namedType, nameWithoutSuffix, state, cancellationToken)
-                : new ValueTask<ImmutableArray<FinderLocation>>(ImmutableArray<FinderLocation>.Empty);
+                : new(ImmutableArray<FinderLocation>.Empty);
         }
     }
 }
