@@ -404,6 +404,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
+        // <Metalama>
+        internal void LoadAssembly()
+        {
+            try
+            {
+                _ = this.GetAssembly();
+            }
+            catch (Exception e)
+            {
+                this.AnalyzerLoadFailed?.Invoke(this, CreateAnalyzerFailedArgs(e));
+            }
+        }
+        // </Metalama>
+
+
         private sealed class Extensions<TExtension>
             where TExtension : class
         {
@@ -499,7 +514,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 return _lazyExtensionTypeNameMap;
             }
-
+  
             internal void AddExtensions(ImmutableSortedDictionary<string, ImmutableArray<TExtension>>.Builder builder)
             {
                 ImmutableSortedDictionary<string, ImmutableSortedSet<string>> analyzerTypeNameMap;
