@@ -204,12 +204,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
 
             if (syntaxFacts.IsArgument(container.Parent))
             {
-                if (IsArgumentToParameterWithMatchingStringSyntaxAttribute(semanticModel, container.Parent, cancellationToken, out identifier))
+                if (IsArgumentWithMatchingStringSyntaxAttribute(semanticModel, container.Parent, cancellationToken, out identifier))
                     return true;
             }
             else if (syntaxFacts.IsAttributeArgument(container.Parent))
             {
-                if (IsArgumentToAttributeParameterWithMatchingStringSyntaxAttribute(semanticModel, container.Parent, cancellationToken, out identifier))
+                if (IsAttributeArgumentWithMatchingStringSyntaxAttribute(semanticModel, container.Parent, cancellationToken, out identifier))
                     return true;
             }
             else
@@ -264,23 +264,33 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
             return node;
         }
 
-        private bool IsArgumentToAttributeParameterWithMatchingStringSyntaxAttribute(
+        private bool IsAttributeArgumentWithMatchingStringSyntaxAttribute(
             SemanticModel semanticModel,
             SyntaxNode argument,
             CancellationToken cancellationToken,
             [NotNullWhen(true)] out string? identifier)
         {
-            var parameter = Info.SemanticFacts.FindParameterForAttributeArgument(semanticModel, argument, cancellationToken);
+            // First, see if this is an `X = "..."` argument that is binding to a field/prop on the attribute.
+            var fieldOrProperty = Info.SemanticFacts.FindFieldOrPropertyForAttributeArgument(semanticModel, argument, cancellationToken);
+            if (fieldOrProperty != null)
+                return HasMatchingStringSyntaxAttribute(fieldOrProperty, out identifier);
+
+            // Otherwise, see if it's a normal named/position argument to the attribute.
+            var parameter = Info.SemanticFacts.FindParameterForAttributeArgument(semanticModel, argument, allowUncertainCandidates: true, cancellationToken);
             return HasMatchingStringSyntaxAttribute(parameter, out identifier);
         }
 
-        private bool IsArgumentToParameterWithMatchingStringSyntaxAttribute(
+        private bool IsArgumentWithMatchingStringSyntaxAttribute(
             SemanticModel semanticModel,
             SyntaxNode argument,
             CancellationToken cancellationToken,
             [NotNullWhen(true)] out string? identifier)
         {
-            var parameter = Info.SemanticFacts.FindParameterForArgument(semanticModel, argument, cancellationToken);
+            var fieldOrProperty = Info.SemanticFacts.FindFieldOrPropertyForArgument(semanticModel, argument, cancellationToken);
+            if (fieldOrProperty != null)
+                return HasMatchingStringSyntaxAttribute(fieldOrProperty, out identifier);
+
+            var parameter = Info.SemanticFacts.FindParameterForArgument(semanticModel, argument, allowUncertainCandidates: true, cancellationToken);
             return HasMatchingStringSyntaxAttribute(parameter, out identifier);
         }
 

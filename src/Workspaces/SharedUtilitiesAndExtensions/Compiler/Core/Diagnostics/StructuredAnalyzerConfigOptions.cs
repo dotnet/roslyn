@@ -65,6 +65,9 @@ internal abstract class StructuredAnalyzerConfigOptions : AnalyzerConfigOptions
         return new Implementation(new DictionaryAnalyzerConfigOptions(options));
     }
 
+    public static StructuredAnalyzerConfigOptions Create(AnalyzerConfigOptions options)
+        => new Implementation(options);
+
     public static bool TryGetStructuredOptions(AnalyzerConfigOptions configOptions, [NotNullWhen(true)] out StructuredAnalyzerConfigOptions? options)
     {
         if (configOptions is StructuredAnalyzerConfigOptions structuredOptions)

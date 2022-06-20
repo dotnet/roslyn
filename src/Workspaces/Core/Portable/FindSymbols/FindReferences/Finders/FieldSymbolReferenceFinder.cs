@@ -44,10 +44,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             HashSet<string>? globalAliases,
             Document document,
             SemanticModel semanticModel,
+            FindReferenceCache cache,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var nameReferences = await FindReferencesInDocumentUsingSymbolNameAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
+            var nameReferences = await FindReferencesInDocumentUsingSymbolNameAsync(
+                symbol, document, semanticModel, cache, cancellationToken).ConfigureAwait(false);
             var suppressionReferences = await FindReferencesInDocumentInsideGlobalSuppressionsAsync(document, semanticModel, symbol, cancellationToken).ConfigureAwait(false);
             return nameReferences.Concat(suppressionReferences);
         }

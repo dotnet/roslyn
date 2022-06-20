@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.SourceGeneration;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -15,12 +16,17 @@ namespace Microsoft.CodeAnalysis
     internal sealed class PredicateSyntaxStrategy<T> : ISyntaxSelectionStrategy<T>
     {
         private readonly Func<GeneratorSyntaxContext, CancellationToken, T> _transformFunc;
+        private readonly ISyntaxHelper _syntaxHelper;
         private readonly Func<SyntaxNode, CancellationToken, bool> _filterFunc;
         private readonly object _filterKey = new object();
 
-        internal PredicateSyntaxStrategy(Func<SyntaxNode, CancellationToken, bool> filterFunc, Func<GeneratorSyntaxContext, CancellationToken, T> transformFunc)
+        internal PredicateSyntaxStrategy(
+            Func<SyntaxNode, CancellationToken, bool> filterFunc,
+            Func<GeneratorSyntaxContext, CancellationToken, T> transformFunc,
+            ISyntaxHelper syntaxHelper)
         {
             _transformFunc = transformFunc;
+            _syntaxHelper = syntaxHelper;
             _filterFunc = filterFunc;
         }
 
@@ -87,7 +93,7 @@ namespace Microsoft.CodeAnalysis
                     foreach (SyntaxNode node in nodes)
                     {
                         var stopwatch = SharedStopwatch.StartNew();
-                        var value = new GeneratorSyntaxContext(node, model);
+                        var value = new GeneratorSyntaxContext(node, model, _owner._syntaxHelper);
                         var transformed = _owner._transformFunc(value, cancellationToken);
 
                         // The SemanticModel we provide to GeneratorSyntaxContext is never guaranteed to be the same between runs,

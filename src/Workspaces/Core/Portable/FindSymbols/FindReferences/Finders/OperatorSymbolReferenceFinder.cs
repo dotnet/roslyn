@@ -35,14 +35,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             HashSet<string>? globalAliases,
             Document document,
             SemanticModel semanticModel,
+            FindReferenceCache cache,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var op = symbol.GetPredefinedOperator();
 
-            var opReferences = await FindReferencesInDocumentAsync(symbol, document, semanticModel, t =>
-                IsPotentialReference(syntaxFacts, op, t),
+            var opReferences = await FindReferencesInDocumentAsync(symbol, document, semanticModel, cache,
+                t => IsPotentialReference(syntaxFacts, op, t),
                 cancellationToken).ConfigureAwait(false);
             var suppressionReferences = await FindReferencesInDocumentInsideGlobalSuppressionsAsync(document, semanticModel, symbol, cancellationToken).ConfigureAwait(false);
 

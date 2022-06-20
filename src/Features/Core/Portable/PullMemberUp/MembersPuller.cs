@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 
             // Change the destination to abstract class if needed.
             if (!result.Destination.IsAbstract &&
-                result.MemberAnalysisResults.Any(analysis => analysis.Member.IsAbstract || analysis.MakeMemberDeclarationAbstract))
+                result.MemberAnalysisResults.Any(static analysis => analysis.Member.IsAbstract || analysis.MakeMemberDeclarationAbstract))
             {
                 var modifiers = DeclarationModifiers.From(result.Destination).WithIsAbstract(true);
                 newDestination = destinationEditor.Generator.WithModifiers(newDestination, modifiers);

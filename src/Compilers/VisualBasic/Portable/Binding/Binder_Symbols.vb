@@ -747,23 +747,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             ''' <summary>
-            ''' Check that the given symbol is a type. If it is a namespace, report an error into the diagnostic bag
-            ''' and return an error symbol.
-            ''' </summary>
-            Private Shared Function CheckSymbolIsType(sym As NamespaceOrTypeSymbol,
-                                                      syntax As VisualBasicSyntaxNode,
-                                                      binder As Binder,
-                                                      diagBag As BindingDiagnosticBag) As TypeSymbol
-                If sym.IsNamespace Then
-                    Dim diagInfo = New BadSymbolDiagnostic(sym, ERRID.ERR_UnrecognizedType)
-                    Binder.ReportDiagnostic(diagBag, syntax, diagInfo)
-                    Return Binder.GetErrorSymbol(sym.Name, diagInfo, ImmutableArray.Create(Of Symbol)(sym), LookupResultKind.NotATypeOrNamespace)
-                Else
-                    Return DirectCast(sym, TypeSymbol)
-                End If
-            End Function
-
-            ''' <summary>
             ''' Bind a built in type name to the correct type symbol.
             ''' </summary>
             Private Shared Function LookupPredefinedTypeName(predefinedTypeSyntax As PredefinedTypeSyntax,

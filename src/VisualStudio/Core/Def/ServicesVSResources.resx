@@ -1965,4 +1965,22 @@ Additional information: {1}</value>
   <data name="Collapse_sourcelink_embedded_decompiled_files_on_open" xml:space="preserve">
     <value>Collapse Source Link, Embedded, and Decompiled source to definitions on file open</value>
   </data>
+  <data name="Rename" xml:space="preserve">
+    <value>Rename</value>
+  </data>
+  <data name="Rename_asynchronously_experimental" xml:space="preserve">
+    <value>Rename asynchronously experimental</value>
+  </data>
+  <data name="Fix_analyzer_warnings_and_errors" xml:space="preserve">
+    <value>Fix analyzer warnings and errors</value>
+  </data>
+  <data name="Fix_analyzer_warnings_and_errors_set_in_EditorConfig" xml:space="preserve">
+    <value>Fix analyzer warnings and errors set in EditorConfig</value>
+  </data>
+  <data name="Fix_all_warnings_and_errors_set_in_EditorConfig" xml:space="preserve">
+    <value>Fix all warnings and errors set in EditorConfig</value>
+  </data>
+  <data name="Stack_Trace" xml:space="preserve">
+    <value>Stack Trace</value>
+  </data>
 </root>

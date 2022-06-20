@@ -31,7 +31,7 @@ jobs:
   timeoutInMinutes: 40
 
   steps:
-    - template: checkout-windows-task.yml
+    - template: checkout-task.yml
 
     - task: PowerShell@2
       displayName: Restore

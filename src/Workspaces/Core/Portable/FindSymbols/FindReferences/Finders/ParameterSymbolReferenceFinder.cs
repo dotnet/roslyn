@@ -41,21 +41,24 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             HashSet<string>? globalAliases,
             Document document,
             SemanticModel semanticModel,
+            FindReferenceCache cache,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var symbolsMatchAsync = GetParameterSymbolsMatchFunction(symbol, document.Project.Solution, cancellationToken);
+            var symbolsMatchAsync = GetParameterSymbolsMatchFunction(
+                symbol, document.Project.Solution, cache, cancellationToken);
 
             return FindReferencesInDocumentUsingIdentifierAsync(
-                symbol, symbol.Name, document, semanticModel, symbolsMatchAsync, cancellationToken);
+                symbol, symbol.Name, document, semanticModel, cache, symbolsMatchAsync, cancellationToken);
         }
 
         private static Func<SyntaxToken, SemanticModel, ValueTask<(bool matched, CandidateReason reason)>> GetParameterSymbolsMatchFunction(
-            IParameterSymbol parameter, Solution solution, CancellationToken cancellationToken)
+            IParameterSymbol parameter, Solution solution, FindReferenceCache cache, CancellationToken cancellationToken)
         {
             // Get the standard function for comparing parameters.  This function will just 
             // directly compare the parameter symbols for SymbolEquivalence.
-            var standardFunction = GetStandardSymbolsMatchFunction(parameter, findParentNode: null, solution, cancellationToken);
+            var standardFunction = GetStandardSymbolsMatchFunction(
+                parameter, findParentNode: null, solution, cache, cancellationToken);
 
             // HOwever, we also want to consider parameter symbols them same if they unify across
             // VB's synthesized AnonymousDelegate parameters. 
@@ -78,7 +81,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             // anonymous-delegate's invoke method.  So get he symbol match function that will chec
             // for equivalence with that parameter.
             var anonymousDelegateParameter = invokeMethod.Parameters[ordinal];
-            var anonParameterFunc = GetStandardSymbolsMatchFunction(anonymousDelegateParameter, findParentNode: null, solution, cancellationToken);
+            var anonParameterFunc = GetStandardSymbolsMatchFunction(
+                anonymousDelegateParameter, findParentNode: null, solution, cache, cancellationToken);
 
             // Return a new function which is a compound of the two functions we have.
             return async (token, model) =>

@@ -760,6 +760,12 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Creates a copy of the SymbolDisplayFormat but with added set of <seealso cref="SymbolDisplayCompilerInternalOptions"/>.
+        /// </summary>
+        internal SymbolDisplayFormat AddCompilerInternalOptions(SymbolDisplayCompilerInternalOptions options)
+            => WithCompilerInternalOptions(this.CompilerInternalOptions | options);
+
+        /// <summary>
         /// Creates a copy of the SymbolDisplayFormat but with replaced set of <seealso cref="SymbolDisplayCompilerInternalOptions"/>.
         /// </summary>
         internal SymbolDisplayFormat WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions options)

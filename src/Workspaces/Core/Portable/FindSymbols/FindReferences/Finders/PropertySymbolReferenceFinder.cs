@@ -127,11 +127,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             HashSet<string>? globalAliases,
             Document document,
             SemanticModel semanticModel,
+            FindReferenceCache cache,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             var nameReferences = await FindReferencesInDocumentUsingSymbolNameAsync(
-                symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
+                symbol, document, semanticModel, cache, cancellationToken).ConfigureAwait(false);
 
             if (options.AssociatePropertyReferencesWithSpecificAccessor)
             {
@@ -154,7 +155,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 : ImmutableArray<FinderLocation>.Empty;
 
             var indexerReferences = symbol.IsIndexer
-                ? await FindIndexerReferencesAsync(symbol, document, semanticModel, options, cancellationToken).ConfigureAwait(false)
+                ? await FindIndexerReferencesAsync(symbol, document, semanticModel, cache, options, cancellationToken).ConfigureAwait(false)
                 : ImmutableArray<FinderLocation>.Empty;
 
             var suppressionReferences = await FindReferencesInDocumentInsideGlobalSuppressionsAsync(document, semanticModel, symbol, cancellationToken).ConfigureAwait(false);
@@ -174,8 +175,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         private static async Task<ImmutableArray<FinderLocation>> FindIndexerReferencesAsync(
-            IPropertySymbol symbol, Document document, SemanticModel semanticModel,
-            FindReferencesSearchOptions options, CancellationToken cancellationToken)
+            IPropertySymbol symbol,
+            Document document,
+            SemanticModel semanticModel,
+            FindReferenceCache cache,
+            FindReferencesSearchOptions options,
+            CancellationToken cancellationToken)
         {
             if (options.AssociatePropertyReferencesWithSpecificAccessor)
             {
@@ -202,7 +207,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var (matched, candidateReason, indexerReference) = await ComputeIndexerInformationAsync(
-                    symbol, document, semanticModel, node, cancellationToken).ConfigureAwait(false);
+                    symbol, document, semanticModel, cache, node, cancellationToken).ConfigureAwait(false);
                 if (!matched)
                     continue;
 
@@ -221,11 +226,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         private static ValueTask<(bool matched, CandidateReason reason, SyntaxNode indexerReference)> ComputeIndexerInformationAsync(
-            IPropertySymbol symbol, Document document, SemanticModel semanticModel,
-            SyntaxNode node, CancellationToken cancellationToken)
+            IPropertySymbol symbol,
+            Document document,
+            SemanticModel semanticModel,
+            FindReferenceCache cache,
+            SyntaxNode node,
+            CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var symbolsMatchAsync = GetStandardSymbolsNodeMatchFunction(symbol, document.Project.Solution, cancellationToken);
+            var symbolsMatchAsync = GetStandardSymbolsNodeMatchFunction(
+                symbol, document.Project.Solution, cache, cancellationToken);
 
             if (syntaxFacts.IsElementAccessExpression(node))
             {
