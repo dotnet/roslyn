@@ -69,8 +69,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.RemoveUnnecessaryNul
                 """);
         }
 
-        [Fact]
-        public async Task TestUnnecessaryDisableAtEndOfFile()
+        [Theory]
+        [InlineData("disable")]
+        [InlineData("restore")]
+        public async Task TestUnnecessaryDisableAtEndOfFile(string keyword)
         {
             await VerifyCodeFixAsync(
                 NullableContextOptions.Disable,
@@ -80,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.RemoveUnnecessaryNul
                 {
                     string Field;
                 }
-                [|#nullable disable|]
+                [|#nullable {{keyword}}|]
 
                 """,
                 $$"""

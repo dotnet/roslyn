@@ -103,8 +103,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryNullableDirective
 
             using var diagnostics = TemporaryArray<Diagnostic>.Empty;
 
+            var compilationOptions = ((CSharpCompilationOptions)context.SemanticModel.Compilation.Options).NullableContextOptions;
+
             DirectiveTriviaSyntax? previousRetainedDirective = null;
-            NullableContextOptions? retainedOptions = ((CSharpCompilationOptions)context.SemanticModel.Compilation.Options).NullableContextOptions;
+            NullableContextOptions? retainedOptions = compilationOptions;
 
             DirectiveTriviaSyntax? currentOptionsDirective = null;
             var currentOptions = retainedOptions;
@@ -136,7 +138,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryNullableDirective
                     }
 
                     currentOptionsDirective = nullableDirectiveTrivia;
-                    currentOptions = CSharpRemoveRedundantNullableDirectiveDiagnosticAnalyzer.GetNullableContextOptions(currentOptions, nullableDirectiveTrivia);
+                    currentOptions = CSharpRemoveRedundantNullableDirectiveDiagnosticAnalyzer.GetNullableContextOptions(compilationOptions, currentOptions, nullableDirectiveTrivia);
                 }
             }
 
@@ -190,7 +192,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryNullableDirective
 
                     if (directive.IsKind(SyntaxKind.NullableDirectiveTrivia, out NullableDirectiveTriviaSyntax? nullableDirectiveTrivia))
                     {
-                        var newOptions = CSharpRemoveRedundantNullableDirectiveDiagnosticAnalyzer.GetNullableContextOptions(currentOptions, nullableDirectiveTrivia);
+                        var newOptions = CSharpRemoveRedundantNullableDirectiveDiagnosticAnalyzer.GetNullableContextOptions(compilationOptions, currentOptions, nullableDirectiveTrivia);
                         if (IsReducing(currentOptions, newOptions))
                         {
                             positionOfFirstReducingNullableDirective = directive.SpanStart;

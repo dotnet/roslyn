@@ -128,6 +128,51 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.RemoveUnnecessaryNul
                 """);
         }
 
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRedundantRestoreDiffersFromPriorContext(NullableContextOptions compilationContext)
+        {
+            var enable = compilationContext != NullableContextOptions.Enable;
+            await VerifyCodeFixAsync(
+                compilationContext,
+                $$"""
+                #nullable {{(enable ? "enable" : "disable")}}
+                #nullable restore
+                [|#nullable restore|]
+                class Program
+                {
+                }
+                """,
+                $$"""
+
+                #nullable {{(enable ? "enable" : "disable")}}
+                #nullable restore
+                class Program
+                {
+                }
+                """);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRedundantRestoreMatchesCompilation(NullableContextOptions compilationContext)
+        {
+            await VerifyCodeFixAsync(
+                compilationContext,
+                $$"""
+                [|#nullable restore|]
+                class Program
+                {
+                }
+                """,
+                """
+
+                class Program
+                {
+                }
+                """);
+        }
+
         private static string GetDisableDirectiveContext(NullableContextOptions options)
         {
             return options switch

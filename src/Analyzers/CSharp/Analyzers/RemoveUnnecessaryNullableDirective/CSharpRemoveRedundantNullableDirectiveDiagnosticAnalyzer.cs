@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.RemoveUnnecessaryNullableDirec
                     {
                         if (directive.DirectiveNameToken.IsKind(SyntaxKind.NullableKeyword))
                         {
-                            var newState = GetNullableContextOptions(currentState, (NullableDirectiveTriviaSyntax)directive);
+                            var newState = GetNullableContextOptions(defaultNullableContext, currentState, (NullableDirectiveTriviaSyntax)directive);
                             if (newState == currentState)
                                 context.ReportDiagnostic(Diagnostic.Create(Descriptor, directive.GetLocation()));
 
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.RemoveUnnecessaryNullableDirec
             });
         }
 
-        internal static NullableContextOptions? GetNullableContextOptions(NullableContextOptions? options, NullableDirectiveTriviaSyntax directive)
+        internal static NullableContextOptions? GetNullableContextOptions(NullableContextOptions compilationOptions, NullableContextOptions? options, NullableDirectiveTriviaSyntax directive)
         {
             if (!directive.TargetToken.IsKind(SyntaxKind.None))
             {
@@ -116,6 +116,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.RemoveUnnecessaryNullableDirec
             else if (directive.SettingToken.IsKind(SyntaxKind.DisableKeyword))
             {
                 return NullableContextOptions.Disable;
+            }
+            else if (directive.SettingToken.IsKind(SyntaxKind.RestoreKeyword))
+            {
+                return compilationOptions;
             }
             else
             {
