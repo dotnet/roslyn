@@ -19,7 +19,7 @@ internal readonly record struct ParsedDocument(DocumentId Id, SourceText Text, S
     {
         var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        return new ParsedDocument(document.Id, text, root, document.Project.LanguageServices);
+        return new ParsedDocument(document.Id, text, root, document.Project.GetExtendedLanguageServices());
     }
 
 #if !CODE_STYLE
@@ -27,7 +27,7 @@ internal readonly record struct ParsedDocument(DocumentId Id, SourceText Text, S
     {
         var text = document.GetTextSynchronously(cancellationToken);
         var root = document.GetRequiredSyntaxRootSynchronously(cancellationToken);
-        return new ParsedDocument(document.Id, text, root, document.Project.LanguageServices);
+        return new ParsedDocument(document.Id, text, root, document.Project.GetExtendedLanguageServices());
     }
 #endif
 
