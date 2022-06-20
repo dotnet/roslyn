@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
         int {|caret:|}i = 1;
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
+            using var testLspServer = await CreateTestLspServerAsync(markup);
 
             var caretLocation = testLspServer.GetLocations("caret").Single();
             var expected = CreateCodeAction(
@@ -86,16 +86,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
                     FeaturesResources.Introduce_constant + '|' + string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
                     caretLocation),
                 priority: VSInternalPriorityLevel.Normal,
-                groupName: "Roslyn3",
+                groupName: "Roslyn2",
                 applicableRange: new LSP.Range { Start = new Position { Line = 4, Character = 12 }, End = new Position { Line = 4, Character = 12 } },
                 diagnostics: null);
 
             var results = await RunGetCodeActionsAsync(testLspServer, CreateCodeActionParams(caretLocation));
-
-            var topLevelAction = Assert.Single(results.Where(action => action.Title == FeaturesResources.Introduce_constant));
-            var expectedChildActionTitle = FeaturesResources.Introduce_constant + '|' + string.Format(FeaturesResources.Introduce_constant_for_0, "1");
-            var introduceConstant = topLevelAction.Children.FirstOrDefault(
-                r => ((JObject)r.Data).ToObject<CodeActionResolveData>().UniqueIdentifier == expectedChildActionTitle);
+            var introduceConstant = results[0].Children.FirstOrDefault(
+                r => ((JObject)r.Data).ToObject<CodeActionResolveData>().UniqueIdentifier == FeaturesResources.Introduce_constant
+                + '|' + string.Format(FeaturesResources.Introduce_constant_for_0, "1"));
 
             AssertJsonEquals(expected, introduceConstant);
         }
@@ -202,6 +200,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
     }
 }";
             using var testLspServer = await CreateTestLspServerAsync(markup);
+
+            testLspServer.InitializeDiagnostics(BackgroundAnalysisScope.ActiveFile, DiagnosticMode.Default,
+                new TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap()));
+            await testLspServer.WaitForDiagnosticsAsync();
 
             var caret = testLspServer.GetLocations("caret").Single();
             var codeActionParams = new LSP.CodeActionParams
