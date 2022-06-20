@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 return nodeMatchAsync(symbol, state, parent, cancellationToken);
             };
         }
- 
+
         protected static Func<ISymbol, FindReferencesDocumentState, SyntaxNode, CancellationToken, ValueTask<(bool matched, CandidateReason reason)>> GetStandardSymbolsNodeMatchFunction()
         {
             return static async (searchSymbol, state, node, cancellationToken) =>
