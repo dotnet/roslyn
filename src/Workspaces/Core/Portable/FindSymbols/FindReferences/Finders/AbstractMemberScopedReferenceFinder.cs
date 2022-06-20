@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return null;
         }
 
-        protected ValueTask<ImmutableArray<FinderLocation>> FindReferencesInTokensWithSymbolNameAsync(
+        protected static ValueTask<ImmutableArray<FinderLocation>> FindReferencesInTokensWithSymbolNameAsync(
             TSymbol symbol,
             FindReferencesDocumentState state,
             IEnumerable<SyntaxToken> tokens,

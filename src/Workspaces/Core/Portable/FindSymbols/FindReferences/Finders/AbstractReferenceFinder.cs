@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         public abstract ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             ISymbol symbol, FindReferencesDocumentState state, FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
-        protected virtual ValueTask<(bool matched, CandidateReason reason)> SymbolsMatchAsync(
+        protected static ValueTask<(bool matched, CandidateReason reason)> SymbolsMatchAsync(
             ISymbol symbol, FindReferencesDocumentState state, SyntaxToken token, CancellationToken cancellationToken)
         {
             // delegates don't have exposed symbols for their constructors.  so when you do `new MyDel()`, that's only a
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             => syntaxFacts.IsIdentifier(token) && syntaxFacts.TextMatch(token.ValueText, name);
 
         [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1224834", OftenCompletesSynchronously = true)]
-        protected async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentUsingIdentifierAsync(
+        protected static async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentUsingIdentifierAsync(
             ISymbol symbol,
             string identifier,
             FindReferencesDocumentState state,
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected static Task<ImmutableArray<SyntaxToken>> FindMatchingIdentifierTokensAsync(FindReferencesDocumentState state, string identifier, CancellationToken cancellationToken)
             => state.Cache.FindMatchingIdentifierTokensAsync(state.Document, identifier, cancellationToken);
 
-        protected async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInTokensAsync<T>(
+        protected static async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInTokensAsync<T>(
             ISymbol symbol,
             FindReferencesDocumentState state,
             IEnumerable<SyntaxToken> tokens,
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return null;
         }
 
-        protected async Task<ImmutableArray<FinderLocation>> FindLocalAliasReferencesAsync(
+        protected static async Task<ImmutableArray<FinderLocation>> FindLocalAliasReferencesAsync(
             ArrayBuilder<FinderLocation> initialReferences,
             ISymbol symbol,
             FindReferencesDocumentState state,
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 : await FindReferencesThroughLocalAliasSymbolsAsync(symbol, state, aliasSymbols, cancellationToken).ConfigureAwait(false);
         }
 
-        protected async Task<ImmutableArray<FinderLocation>> FindLocalAliasReferencesAsync(
+        protected static async Task<ImmutableArray<FinderLocation>> FindLocalAliasReferencesAsync(
             ArrayBuilder<FinderLocation> initialReferences,
             FindReferencesDocumentState state,
             CancellationToken cancellationToken)
@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return aliasSymbols.ToImmutableAndClear();
         }
 
-        private async Task<ImmutableArray<FinderLocation>> FindReferencesThroughLocalAliasSymbolsAsync(
+        private static async Task<ImmutableArray<FinderLocation>> FindReferencesThroughLocalAliasSymbolsAsync(
             ISymbol symbol,
             FindReferencesDocumentState state,
             ImmutableArray<IAliasSymbol> localAliasSymbols,
@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return allAliasReferences.ToImmutable();
         }
 
-        private async Task<ImmutableArray<FinderLocation>> FindReferencesThroughLocalAliasSymbolsAsync(
+        private static async Task<ImmutableArray<FinderLocation>> FindReferencesThroughLocalAliasSymbolsAsync(
             FindReferencesDocumentState state,
             ImmutableArray<IAliasSymbol> localAliasSymbols,
             CancellationToken cancellationToken)
@@ -838,14 +838,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return SpecializedTasks.EmptyImmutableArray<ISymbol>();
         }
 
-        protected ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentUsingSymbolNameAsync(
+        protected static ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentUsingSymbolNameAsync(
             TSymbol symbol, FindReferencesDocumentState state, CancellationToken cancellationToken)
         {
             return FindReferencesInDocumentUsingIdentifierAsync(
                 symbol, symbol.Name, state, cancellationToken);
         }
 
-        protected ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync<T>(
+        protected static ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync<T>(
             TSymbol symbol,
             FindReferencesDocumentState state,
             Func<FindReferencesDocumentState, SyntaxToken, T, CancellationToken, bool> tokensMatch,

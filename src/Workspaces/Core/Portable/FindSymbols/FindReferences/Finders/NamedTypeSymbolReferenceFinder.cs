@@ -16,12 +16,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
     internal sealed class NamedTypeSymbolReferenceFinder : AbstractReferenceFinder<INamedTypeSymbol>
     {
-        public static readonly NamedTypeSymbolReferenceFinder Instance = new();
-
-        private NamedTypeSymbolReferenceFinder()
-        {
-        }
-
         protected override bool CanFind(INamedTypeSymbol symbol)
             => symbol.TypeKind != TypeKind.Error;
 
@@ -143,7 +137,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return initialReferences.ToImmutable();
         }
 
-        internal async ValueTask AddReferencesToTypeOrGlobalAliasToItAsync(
+        internal static async ValueTask AddReferencesToTypeOrGlobalAliasToItAsync(
             INamedTypeSymbol namedType,
             FindReferencesDocumentState state,
             ArrayBuilder<FinderLocation> nonAliasReferences,
@@ -170,7 +164,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// only if it referenced though <paramref name="name"/> (which might be the actual name
         /// of the type, or a global alias to it).
         /// </summary>
-        private async ValueTask AddNonAliasReferencesAsync(
+        private static async ValueTask AddNonAliasReferencesAsync(
             INamedTypeSymbol symbol,
             string name,
             FindReferencesDocumentState state,
@@ -184,7 +178,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 symbol, name, state, cancellationToken).ConfigureAwait(false));
         }
 
-        private ValueTask<ImmutableArray<FinderLocation>> FindOrdinaryReferencesAsync(
+        private static ValueTask<ImmutableArray<FinderLocation>> FindOrdinaryReferencesAsync(
             INamedTypeSymbol namedType,
             string name,
             FindReferencesDocumentState state,
@@ -199,7 +193,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 namedType, name, state, cancellationToken);
         }
 
-        private ValueTask<ImmutableArray<FinderLocation>> FindPredefinedTypeReferencesAsync(
+        private static ValueTask<ImmutableArray<FinderLocation>> FindPredefinedTypeReferencesAsync(
             INamedTypeSymbol symbol,
             FindReferencesDocumentState state,
             CancellationToken cancellationToken)
@@ -217,7 +211,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 cancellationToken);
         }
 
-        private ValueTask<ImmutableArray<FinderLocation>> FindAttributeReferencesAsync(
+        private static ValueTask<ImmutableArray<FinderLocation>> FindAttributeReferencesAsync(
             INamedTypeSymbol namedType,
             string name,
             FindReferencesDocumentState state,
