@@ -439,18 +439,17 @@ class C
     delegate*<$$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInInheritanceContext1()
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [InlineData("class")]
+        [InlineData("struct")]
+        [InlineData("interface")]
+        [InlineData("record")]
+        [InlineData("record class")]
+        [InlineData("record struct")]
+        public async Task TestNotInInheritanceContext(string typeKind)
         {
-            await VerifyAbsenceAsync(@"
-class C : $$");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInInheritanceContext2()
-        {
-            await VerifyAbsenceAsync(@"
-interface I : $$");
+            await VerifyAbsenceAsync($@"
+{typeKind} Test : $$");
         }
     }
 }

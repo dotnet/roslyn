@@ -1684,6 +1684,35 @@ class B : $$
 ", "C");
         }
 
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("record")]
+        [InlineData("record class")]
+        [InlineData("record struct")]
+        public async Task BaseList_NotRecord(string recordType)
+        {
+            await VerifyItemIsAbsentAsync($@"
+{recordType} R {{}}
+
+class B : $$
+", "R");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("record")]
+        [InlineData("record class")]
+        [InlineData("record struct")]
+        public async Task BaseList_Record_ValidNestedType(string recordType)
+        {
+            await VerifyItemExistsAsync($@"
+{recordType} R
+{{
+    class N {{}}
+}}
+
+class B : $$
+", "R");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task BaseList_NotEnum()
         {
@@ -1798,6 +1827,173 @@ interface I : $$
 {
     interface I2 {}
 }", "I");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [CombinatorialData]
+        public async Task BaseListRecord_RecordClass(
+            [CombinatorialValues("record", "record class")] string recordType1,
+            [CombinatorialValues("record", "record class")] string recordType2)
+        {
+            await VerifyItemExistsAsync($@"
+{recordType1} R {{}}
+
+{recordType2} B : $$
+", "R");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [CombinatorialData]
+        public async Task BaseListRecord_NotSealedRecordClass(
+            [CombinatorialValues("record", "record class")] string recordType1,
+            [CombinatorialValues("record", "record class")] string recordType2)
+        {
+            await VerifyItemIsAbsentAsync($@"
+sealed {recordType1} R {{}}
+
+{recordType2} B : $$
+", "R");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [CombinatorialData]
+        public async Task BaseListRecord_SealedRecordClass_ValidNestedType(
+            [CombinatorialValues("record", "record class")] string recordType1,
+            [CombinatorialValues("record", "record class")] string recordType2,
+            [CombinatorialValues("record", "record class")] string recordType3)
+        {
+            await VerifyItemExistsAsync($@"
+sealed {recordType1} R
+{{
+    {recordType3} R2 {{}}
+}}
+
+{recordType2} B : $$
+", "R");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("record")]
+        [InlineData("record class")]
+        [InlineData("record struct")]
+        public async Task BaseListAnyRecord_NotRecordStruct(string recordType)
+        {
+            await VerifyItemIsAbsentAsync($@"
+record struct R {{}}
+
+{recordType} B : $$
+", "R");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [CombinatorialData]
+        public async Task BaseListRecord_RecordStruct_ValidNestedType(
+            [CombinatorialValues("record", "record class")] string recordType1,
+            [CombinatorialValues("record", "record class")] string recordType2)
+        {
+            await VerifyItemExistsAsync($@"
+record struct R
+{{
+    {recordType2} R2 {{}}
+}}
+
+{recordType1} B : $$
+", "R");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("record")]
+        [InlineData("record class")]
+        [InlineData("record struct")]
+        public async Task BaseListAnyRecord_Interface(string recordType)
+        {
+            await VerifyItemExistsAsync($@"
+interface I {{}}
+
+{recordType} B : $$
+", "I");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("record")]
+        [InlineData("record class")]
+        [InlineData("record struct")]
+        public async Task BaseListAnyRecord_NotClass(string recordType)
+        {
+            await VerifyItemIsAbsentAsync($@"
+class C {{}}
+
+{recordType} B : $$
+", "C");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [CombinatorialData]
+        public async Task BaseListRecordClass_Class_ValidNestedType(
+            [CombinatorialValues("record", "record class")] string recordType1,
+            [CombinatorialValues("record", "record class")] string recordType2)
+        {
+            await VerifyItemExistsAsync($@"
+class C
+{{
+    {recordType2} R {{}}
+}}
+
+{recordType1} B : $$
+", "C");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("record")]
+        [InlineData("record class")]
+        [InlineData("record struct")]
+        public async Task BaseListAnyRecord_NotEnum(string recordType)
+        {
+            await VerifyItemIsAbsentAsync($@"
+enum C {{}}
+
+{recordType} B : $$
+", "C");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("record")]
+        [InlineData("record class")]
+        [InlineData("record struct")]
+        public async Task BaseListAnyRecord_NotDelegate(string recordType)
+        {
+            await VerifyItemIsAbsentAsync($@"
+delegate void C();
+
+{recordType} B : $$
+", "C");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("record")]
+        [InlineData("record class")]
+        public async Task BaseListRecordStruct_NotRecord(string recordType)
+        {
+            await VerifyItemIsAbsentAsync($@"
+{recordType} R {{}}
+
+record struct B : $$
+", "R");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("record")]
+        [InlineData("record class")]
+        public async Task BaseListRecordStruct_Record_ValidNestedType(string recordType)
+        {
+            await VerifyItemExistsAsync($@"
+{recordType} R
+{{
+    interface I {{}}
+}}
+
+record struct B : $$
+", "R");
         }
 
         #endregion

@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
         public bool IsAwaitKeywordContext { get; }
         public bool IsBaseClassContext { get; }
         public bool IsBaseInterfaceContext { get; }
+        public bool IsBaseRecordContext { get; }
         public bool IsEnumTypeMemberAccessContext { get; }
         public bool IsGenericConstraintContext { get; }
         public bool IsGlobalStatementContext { get; }
@@ -55,6 +56,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 
         public ImmutableArray<ITypeSymbol> InferredTypes { get; }
 
+        public bool IsInheritanceContext => IsBaseClassContext || IsBaseInterfaceContext || IsBaseRecordContext;
+
         protected SyntaxContext(
             Document document,
             SemanticModel semanticModel,
@@ -68,6 +71,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             bool isAwaitKeywordContext,
             bool isBaseClassContext,
             bool isBaseInterfaceContext,
+            bool isBaseRecordContext,
             bool isEnumTypeMemberAccessContext,
             bool isGenericConstraintContext,
             bool isGlobalStatementContext,
@@ -102,6 +106,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             this.IsAwaitKeywordContext = isAwaitKeywordContext;
             this.IsBaseClassContext = isBaseClassContext;
             this.IsBaseInterfaceContext = isBaseInterfaceContext;
+            this.IsBaseRecordContext = isBaseRecordContext;
             this.IsEnumTypeMemberAccessContext = isEnumTypeMemberAccessContext;
             this.IsGenericConstraintContext = isGenericConstraintContext;
             this.IsGlobalStatementContext = isGlobalStatementContext;

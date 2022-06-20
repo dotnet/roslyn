@@ -95,6 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 isAwaitKeywordContext:=isAwaitKeywordContext,
                 isBaseClassContext:=isBaseClassContext,
                 isBaseInterfaceContext:=isBaseInterfaceContext,
+                isBaseRecordContext:=False,
                 isEnumTypeMemberAccessContext:=isEnumTypeMemberAccessContext,
                 isGenericConstraintContext:=isGenericConstraintContext,
                 isGlobalStatementContext:=isGlobalStatementContext,

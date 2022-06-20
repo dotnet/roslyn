@@ -47,16 +47,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 // Just filter valid symbols. Nothing to preselect
                 return recommendedSymbols.NamedSymbols.SelectAsArray(IsValidForGenericConstraintContext, s => (s, preselect: false));
             }
-            // When inheriting from a class in C# both classes and interfaces are valid completions,
+            // When inheriting from a class/record in C# both classes/records and interfaces are valid completions,
             // so we need to check it all in one go
-            else if (context.IsBaseClassContext || context.IsBaseInterfaceContext)
+            else if (context.IsInheritanceContext)
             {
-                ISymbol? inheritingFrom = null;
+                INamedTypeSymbol? inheritingFrom = null;
 
                 // We know for sure that in both C# and VB syntax, that represents a type,
                 // is 2 steps up relatively to our current position
                 if (context.TargetToken.Parent?.Parent is not null and var typeSyntax)
-                    inheritingFrom = context.SemanticModel.GetDeclaredSymbol(typeSyntax, cancellationToken);
+                    inheritingFrom = context.SemanticModel.GetDeclaredSymbol(typeSyntax, cancellationToken) as INamedTypeSymbol;
 
                 return recommendedSymbols.NamedSymbols.SelectAsArray(s => IsValidForInheritanceContext(s, inheritingFrom, context), s => (s, preselect: false));
             }
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return true;
         }
 
-        private static bool IsValidForInheritanceContext(ISymbol symbol, ISymbol? inheritingFrom, TSyntaxContext context)
+        private static bool IsValidForInheritanceContext(ISymbol symbol, INamedTypeSymbol? inheritingFrom, TSyntaxContext context)
         {
             if (symbol is IAliasSymbol alias)
                 symbol = alias.Target;
@@ -155,7 +155,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             if (namedType.IsStructType() || namedType.IsModuleType())
                 return namedType.GetTypeMembers().Any(m => IsValidForInheritanceContext(m, inheritingFrom, context));
 
-            if (context.IsBaseClassContext && namedType.TypeKind is TypeKind.Class)
+            if ((context.IsBaseClassContext || context.IsBaseRecordContext) &&
+                namedType.TypeKind is TypeKind.Class &&
+                inheritingFrom?.TypeKind is not TypeKind.Struct)
             {
                 if (namedType.IsStatic || namedType.IsSealed)
                     return namedType.GetTypeMembers().Any(m => IsValidForInheritanceContext(m, inheritingFrom, context));
@@ -176,7 +178,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 if (namedType.Equals(inheritingFrom))
                     return namedType.GetTypeMembers().Any(m => m.IsInterfaceType());
 
-                return true;
+                // Classes can only inherit from classes, records - from records
+                return namedType.IsRecord == context.IsBaseRecordContext ||
+                       namedType.GetTypeMembers().Any(m => IsValidForInheritanceContext(m, inheritingFrom, context));
             }
 
             if (context.IsBaseInterfaceContext)

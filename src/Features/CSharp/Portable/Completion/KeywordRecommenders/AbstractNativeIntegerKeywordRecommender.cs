@@ -17,8 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             if (context.IsTaskLikeTypeContext ||
                 context.IsGenericConstraintContext ||
-                context.IsBaseClassContext ||
-                context.IsBaseInterfaceContext)
+                context.IsInheritanceContext)
             {
                 return false;
             }

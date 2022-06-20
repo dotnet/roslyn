@@ -3003,6 +3003,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             => targetToken.IsKind(SyntaxKind.ColonToken) && targetToken.Parent is BaseListSyntax { Parent: ClassDeclarationSyntax };
 
         public static bool IsBaseInterfaceContext(this SyntaxTree syntaxTree, SyntaxToken targetToken)
-            => targetToken.Parent is BaseListSyntax { Parent: ClassDeclarationSyntax or InterfaceDeclarationSyntax or StructDeclarationSyntax };
+            => targetToken.Parent is BaseListSyntax { Parent: ClassDeclarationSyntax or InterfaceDeclarationSyntax or StructDeclarationSyntax or RecordDeclarationSyntax };
+
+        public static bool IsBaseRecordContext(this SyntaxTree syntaxTree, SyntaxToken targetToken)
+            => targetToken.IsKind(SyntaxKind.ColonToken) && targetToken.Parent is BaseListSyntax { Parent: RecordDeclarationSyntax };
     }
 }
