@@ -51,6 +51,7 @@ jobs:
       changeLogType: issueBased
       changeLogLabels: |
         [
+          { "label" : "breaking change", "displayName" : "Breaking changes", "state" : "closed" },
           { "label" : "bug", "displayName" : "Fixes", "state" : "closed" },
           { "label" : "enhancement", "displayName": "Enhancements", "state" : "closed" }
         ]
