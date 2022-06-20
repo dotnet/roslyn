@@ -2090,6 +2090,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RefReturningPropertiesCannotBeRequired = 9043,
         ERR_ImplicitImplementationOfInaccessibleInterfaceMember = 9044,
         ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers = 9045,
+        ERR_BadAbstractEqualityOperatorSignature = 9046,
 
         #endregion
 
