@@ -6263,8 +6263,8 @@ public static class A
                 VerifyParameterSymbol(parameters[2], "in scoped R z3", RefKind.In, DeclarationScope.ValueScoped);
 
                 parameters = comp.GetMember<MethodSymbol>("A.F4").Parameters;
-                VerifyParameterSymbol(parameters[0], "scoped out R x4", RefKind.Out, DeclarationScope.RefScoped);
-                VerifyParameterSymbol(parameters[1], "scoped out R y4", RefKind.Out, DeclarationScope.RefScoped);
+                VerifyParameterSymbol(parameters[0], "out R x4", RefKind.Out, DeclarationScope.RefScoped);
+                VerifyParameterSymbol(parameters[1], "out R y4", RefKind.Out, DeclarationScope.RefScoped);
                 VerifyParameterSymbol(parameters[2], "out scoped R z4", RefKind.Out, DeclarationScope.ValueScoped);
             }
         }
@@ -6357,7 +6357,7 @@ class Program
                 VerifyParameterSymbol(localFunctions[0].Parameters[0], "scoped R x1", RefKind.None, DeclarationScope.ValueScoped);
                 VerifyParameterSymbol(localFunctions[1].Parameters[0], "scoped ref System.Int32 x2", RefKind.Ref, DeclarationScope.RefScoped);
                 VerifyParameterSymbol(localFunctions[2].Parameters[0], "scoped in System.Int32 x3", RefKind.In, DeclarationScope.RefScoped);
-                VerifyParameterSymbol(localFunctions[3].Parameters[0], "scoped out System.Int32 x4", RefKind.Out, DeclarationScope.RefScoped);
+                VerifyParameterSymbol(localFunctions[3].Parameters[0], "out System.Int32 x4", RefKind.Out, DeclarationScope.RefScoped);
                 VerifyParameterSymbol(localFunctions[4].Parameters[1], "ref scoped R x5", RefKind.Ref, DeclarationScope.ValueScoped);
             }
         }
@@ -6410,7 +6410,7 @@ class Program
                 verifyParameter(delegateTypesAndLambdas[0], 0, "scoped R", "x1", RefKind.None, DeclarationScope.ValueScoped);
                 verifyParameter(delegateTypesAndLambdas[1], 0, "scoped ref System.Int32", "x2", RefKind.Ref, DeclarationScope.RefScoped);
                 verifyParameter(delegateTypesAndLambdas[2], 0, "scoped in System.Int32", "x3", RefKind.In, DeclarationScope.RefScoped);
-                verifyParameter(delegateTypesAndLambdas[3], 0, "scoped out System.Int32", "x4", RefKind.Out, DeclarationScope.RefScoped);
+                verifyParameter(delegateTypesAndLambdas[3], 0, "out System.Int32", "x4", RefKind.Out, DeclarationScope.RefScoped);
                 verifyParameter(delegateTypesAndLambdas[4], 1, "ref scoped R", "x5", RefKind.Ref, DeclarationScope.ValueScoped);
             }
 
@@ -6681,16 +6681,16 @@ readonly ref struct R2
 
             VerifyParameterSymbol(comp.GetMember<MethodSymbol>("C..ctor").ThisParameter, "C this", RefKind.None, DeclarationScope.Unscoped);
             VerifyParameterSymbol(comp.GetMember<MethodSymbol>("C.F1").ThisParameter, "C this", RefKind.None, DeclarationScope.Unscoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S1..ctor").ThisParameter, "scoped out S1 this", RefKind.Out, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S1..ctor").ThisParameter, "out S1 this", RefKind.Out, DeclarationScope.RefScoped);
             VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S1.F1").ThisParameter, "scoped ref S1 this", RefKind.Ref, DeclarationScope.RefScoped);
             VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S1.F2").ThisParameter, "scoped in S1 this", RefKind.In, DeclarationScope.RefScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("R1..ctor").ThisParameter, "scoped out R1 this", RefKind.Out, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("R1..ctor").ThisParameter, "out R1 this", RefKind.Out, DeclarationScope.RefScoped);
             VerifyParameterSymbol(comp.GetMember<MethodSymbol>("R1.F1").ThisParameter, "scoped ref R1 this", RefKind.Ref, DeclarationScope.RefScoped);
             VerifyParameterSymbol(comp.GetMember<MethodSymbol>("R1.F2").ThisParameter, "scoped in R1 this", RefKind.In, DeclarationScope.RefScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S2..ctor").ThisParameter, "scoped out S2 this", RefKind.Out, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S2..ctor").ThisParameter, "out S2 this", RefKind.Out, DeclarationScope.RefScoped);
             VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S2.F1").ThisParameter, "scoped in S2 this", RefKind.In, DeclarationScope.RefScoped);
             VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S2.F2").ThisParameter, "scoped in S2 this", RefKind.In, DeclarationScope.RefScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("R2..ctor").ThisParameter, "scoped out R2 this", RefKind.Out, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("R2..ctor").ThisParameter, "out R2 this", RefKind.Out, DeclarationScope.RefScoped);
             VerifyParameterSymbol(comp.GetMember<MethodSymbol>("R2.F1").ThisParameter, "scoped in R2 this", RefKind.In, DeclarationScope.RefScoped);
             VerifyParameterSymbol(comp.GetMember<MethodSymbol>("R2.F2").ThisParameter, "scoped in R2 this", RefKind.In, DeclarationScope.RefScoped);
         }
