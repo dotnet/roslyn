@@ -179,6 +179,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string UseUTF8StringLiteralDiagnosticId = "IDE0230";
 
         public const string RemoveRedundantNullableDirectiveDiagnosticId = "IDE0240";
+        public const string RemoveUnnecessaryNullableDirectiveDiagnosticId = "IDE0241";
 
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";

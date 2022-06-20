@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.RemoveUnnecessaryNullableDirec
             });
         }
 
-        private static NullableContextOptions? GetNullableContextOptions(NullableContextOptions? options, NullableDirectiveTriviaSyntax directive)
+        internal static NullableContextOptions? GetNullableContextOptions(NullableContextOptions? options, NullableDirectiveTriviaSyntax directive)
         {
             if (!directive.TargetToken.IsKind(SyntaxKind.None))
             {
