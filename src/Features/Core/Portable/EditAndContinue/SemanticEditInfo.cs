@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// since different semantic edits might have been calculated against different solution snapshot and thus symbols are not directly comparable.
         /// When the edits are processed we map the <see cref="SymbolKey"/> to the current compilation.
         /// </summary>
-        public SymbolKey NewSymbolKey { get; }
+        public SymbolKey? DeletedSymbolContainer { get; }
 
         /// <summary>
         /// The syntax map for nodes in the tree for this edit, which will be merged with other maps from other trees for this type.
@@ -59,14 +59,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Func<SyntaxNode, SyntaxNode?>? syntaxMap,
             SyntaxTree? syntaxMapTree,
             SymbolKey? partialType,
-            SymbolKey? newSymbolKey = null)
+            SymbolKey? deletedSymbolContainer = null)
         {
             Kind = kind;
             Symbol = symbol;
             SyntaxMap = syntaxMap;
             SyntaxMapTree = syntaxMapTree;
             PartialType = partialType;
-            NewSymbolKey = newSymbolKey ?? symbol;
+            DeletedSymbolContainer = deletedSymbolContainer;
         }
     }
 }

@@ -674,9 +674,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
 
                 SymbolKeyResolution newResolution;
-                if (edit.Kind is SemanticEditKind.Update or SemanticEditKind.Insert or SemanticEditKind.Replace or SemanticEditKind.Delete)
+                if (edit.Kind is SemanticEditKind.Update or SemanticEditKind.Insert or SemanticEditKind.Replace)
                 {
-                    newResolution = edit.NewSymbolKey.Resolve(newCompilation, ignoreAssemblyKey: true, cancellationToken);
+                    newResolution = edit.Symbol.Resolve(newCompilation, ignoreAssemblyKey: true, cancellationToken);
+                    Contract.ThrowIfNull(newResolution.Symbol);
+                }
+                else if (edit.Kind == SemanticEditKind.Delete && edit.DeletedSymbolContainer is not null)
+                {
+                    // For deletes, we use NewSymbol to reference the containing type of the deleted member
+                    newResolution = edit.DeletedSymbolContainer.Value.Resolve(newCompilation, ignoreAssemblyKey: true, cancellationToken);
                     Contract.ThrowIfNull(newResolution.Symbol);
                 }
                 else

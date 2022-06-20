@@ -347,7 +347,7 @@ End Class
             edits.VerifySemantics(active,
                 semanticEdits:=
                 {
-                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.Goo"), newSymbolProvider:=Function(c) c.GetMember("C"))
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.Goo"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C"))
                 })
         End Sub
 

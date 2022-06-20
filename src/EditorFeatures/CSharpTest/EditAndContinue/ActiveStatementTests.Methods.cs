@@ -53,7 +53,7 @@ class C
                 new[]
                 {
                     DocumentResults(active,
-                    new[] { SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.Goo"), newSymbolProvider: c => c.GetMember("C")) })
+                    new[] { SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.Goo"), deletedSymbolContainerProvider: c => c.GetMember("C")) })
                 });
         }
 

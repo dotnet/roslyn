@@ -6,6 +6,7 @@
 
 using System;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.EditAndContinue;
@@ -2066,7 +2067,7 @@ interface I { void F() {} }
                     DocumentResults(
                         semanticEdits: new[]
                         {
-                            SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.F"), newSymbolProvider: c => c.GetMember("C"))
+                            SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.F"), deletedSymbolContainerProvider: c => c.GetMember("C"))
                         }),
 
                     DocumentResults(
@@ -5061,7 +5062,7 @@ class C
             edits.VerifySemantics(
                new[] {
                    SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.D")),
-                   SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.goo"), newSymbolProvider: c => c.GetMember("C"))
+                   SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.goo"), deletedSymbolContainerProvider: c => c.GetMember("C"))
                },
                capabilities: EditAndContinueCapabilities.Baseline);
 
@@ -5319,11 +5320,11 @@ class D<T>
                     DocumentResults(
                         semanticEdits: new[]
                         {
-                            SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("S.C.F2"), newSymbolProvider: c => c.GetMember("S.C"))
+                            SemanticEdit(SemanticEditKind.Delete, c =>  c.GetMembers("S.C.F2").FirstOrDefault(m => m.GetParameterTypes().Any(t => t.SpecialType == SpecialType.System_Byte))?.ISymbol, deletedSymbolContainerProvider: c => c.GetMember("S.C"))
                         }),
 
                     DocumentResults(
-                        semanticEdits: new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("S").GetMember<INamedTypeSymbol>("C").GetMember("F2")) })
+                        semanticEdits: new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMembers("S.C.F2").FirstOrDefault(m => m.GetParameterTypes().Any(t => t.SpecialType == SpecialType.System_Int32))?.ISymbol) })
                 },
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
@@ -6614,13 +6615,13 @@ partial class C
                     DocumentResults(
                         semanticEdits: new[]
                         {
-                            SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("S.F"))
+                            SemanticEdit(SemanticEditKind.Insert, c => c.GetMembers("S.F").FirstOrDefault(m => m.GetParameterCount() == 1)?.ISymbol)
                         }),
 
                     DocumentResults(
                         semanticEdits: new[]
                         {
-                            SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("S.F"), newSymbolProvider: c => c.GetMember("S"))
+                            SemanticEdit(SemanticEditKind.Delete, c => c.GetMembers("S.F").FirstOrDefault(m => m.GetParameterCount() == 0)?.ISymbol, deletedSymbolContainerProvider: c => c.GetMember("S"))
                         }),
                 },
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
@@ -6641,13 +6642,13 @@ partial class C
                     DocumentResults(
                         semanticEdits: new[]
                         {
-                            SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("S.F"))
+                            SemanticEdit(SemanticEditKind.Insert, c => c.GetMembers("S.F").FirstOrDefault(m => m.GetParameterTypes().Any(t => t.SpecialType == SpecialType.System_Byte))?.ISymbol)
                         }),
 
                     DocumentResults(
                         semanticEdits: new[]
                         {
-                            SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("S.F"), newSymbolProvider: c => c.GetMember("S"))
+                            SemanticEdit(SemanticEditKind.Delete, c => c.GetMembers("S.F").FirstOrDefault(m => m.GetParameterTypes().Any(t => t.SpecialType == SpecialType.System_Int32))?.ISymbol, deletedSymbolContainerProvider: c => c.GetMember("S"))
                         }),
                 },
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
@@ -6674,7 +6675,7 @@ partial class C
                     DocumentResults(
                         semanticEdits: new[]
                         {
-                            SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("S.F"), newSymbolProvider: c => c.GetMember("S"))
+                            SemanticEdit(SemanticEditKind.Delete, c => c.GetMembers("S.F").FirstOrDefault(m => m.GetMemberTypeParameters().Length == 0)?.ISymbol, deletedSymbolContainerProvider: c => c.GetMember("S"))
                         }),
                 });
         }
@@ -7134,7 +7135,7 @@ class C
                 "Delete [()]@26");
 
             edits.VerifySemantics(
-                new[] { SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.goo"), newSymbolProvider: c => c.GetMember("C")) },
+                new[] { SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.goo"), deletedSymbolContainerProvider: c => c.GetMember("C")) },
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
@@ -7196,7 +7197,7 @@ class C
                 "Delete [()]@25");
 
             edits.VerifySemantics(
-               new[] { SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.goo"), newSymbolProvider: c => c.GetMember("C")) },
+               new[] { SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.goo"), deletedSymbolContainerProvider: c => c.GetMember("C")) },
                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
@@ -7224,7 +7225,7 @@ class C
                 "Delete [int a]@43");
 
             edits.VerifySemantics(
-               new[] { SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.goo"), newSymbolProvider: c => c.GetMember("C")) },
+               new[] { SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.goo"), deletedSymbolContainerProvider: c => c.GetMember("C")) },
                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
@@ -8837,7 +8838,7 @@ public class SubClass : BaseClass, IConflict
                     DocumentResults(
                         semanticEdits: new[]
                         {
-                            SemanticEdit(SemanticEditKind.Delete, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IMethodSymbol>("F").PartialImplementationPart, newSymbolProvider: c => c.GetMember("C"))
+                            SemanticEdit(SemanticEditKind.Delete, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IMethodSymbol>("F"), deletedSymbolContainerProvider: c => c.GetMember("C"))
                         }),
                 });
         }
@@ -8860,7 +8861,7 @@ public class SubClass : BaseClass, IConflict
                     DocumentResults(
                         semanticEdits: new[]
                         {
-                            SemanticEdit(SemanticEditKind.Delete, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IMethodSymbol>("F").PartialImplementationPart, newSymbolProvider: c => c.GetMember("C"))
+                            SemanticEdit(SemanticEditKind.Delete, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IMethodSymbol>("F")?.PartialImplementationPart, deletedSymbolContainerProvider: c => c.GetMember("C"))
                         }),
                 });
         }

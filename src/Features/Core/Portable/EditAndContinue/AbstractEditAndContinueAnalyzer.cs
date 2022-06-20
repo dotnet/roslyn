@@ -2812,7 +2812,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                             if (oldSymbol is IMethodSymbol { MethodKind: MethodKind.Ordinary, IsExtern: false, ContainingType.TypeKind: TypeKind.Class or TypeKind.Struct } &&
                                                 oldSymbol.GetSymbolModifiers() is { IsVirtual: false, IsAbstract: false, IsOverride: false })
                                             {
-                                                semanticEdits.Add(new SemanticEditInfo(editKind, symbolKey, syntaxMap, syntaxMapTree: null, partialType: null, newSymbolKey: containingSymbolKey));
+                                                semanticEdits.Add(new SemanticEditInfo(editKind, symbolKey, syntaxMap, syntaxMapTree: null, partialType: null, deletedSymbolContainer: containingSymbolKey));
                                                 continue;
                                             }
                                         }

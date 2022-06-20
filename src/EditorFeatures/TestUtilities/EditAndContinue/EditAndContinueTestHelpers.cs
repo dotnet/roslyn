@@ -11,6 +11,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -275,8 +276,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         {
             // string comparison to simplify understanding why a test failed:
             AssertEx.Equal(
-                expectedSemanticEdits.Select(e => $"{e.Kind}: {e.NewSymbolProvider(newCompilation)}"),
-                actualSemanticEdits.NullToEmpty().Select(e => $"{e.Kind}: {e.NewSymbolKey.Resolve(newCompilation).Symbol}"),
+                expectedSemanticEdits.Select(e => $"{e.Kind}: {e.SymbolProvider(newCompilation)}"),
+                actualSemanticEdits.NullToEmpty().Select(e => $"{e.Kind}: {e.Symbol.Resolve(newCompilation).Symbol}"),
                 message: message);
 
             for (var i = 0; i < actualSemanticEdits.Length; i++)
@@ -287,19 +288,37 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
                 Assert.Equal(editKind, actualSemanticEdit.Kind);
 
-                var expectedNewSymbol = expectedSemanticEdit.NewSymbolProvider(newCompilation);
+                var expectedOldSymbol = (editKind is SemanticEditKind.Update or SemanticEditKind.Delete) ? expectedSemanticEdit.SymbolProvider(oldCompilation) : null;
+                var expectedNewSymbol = expectedSemanticEdit.SymbolProvider(newCompilation);
                 var symbolKey = actualSemanticEdit.Symbol;
-                var newSymbolKey = actualSemanticEdit.NewSymbolKey;
 
-                if (editKind is SemanticEditKind.Update or SemanticEditKind.Delete)
+                if (editKind == SemanticEditKind.Update)
                 {
-                    var expectedOldSymbol = expectedSemanticEdit.SymbolProvider(oldCompilation);
                     Assert.Equal(expectedOldSymbol, symbolKey.Resolve(oldCompilation, ignoreAssemblyKey: true).Symbol);
-                    Assert.Equal(expectedNewSymbol, newSymbolKey.Resolve(newCompilation, ignoreAssemblyKey: true).Symbol);
+                    Assert.Equal(expectedNewSymbol, symbolKey.Resolve(newCompilation, ignoreAssemblyKey: true).Symbol);
+                }
+                else if (editKind == SemanticEditKind.Delete)
+                {
+                    // Symbol key will happily resolve to a definition part that has no implementation, so we validate that
+                    // differently
+                    if (expectedOldSymbol is IMethodSymbol { IsPartialDefinition: true } &&
+                       symbolKey.Resolve(oldCompilation, ignoreAssemblyKey: true).Symbol is IMethodSymbol resolvedMethod)
+                    {
+                        Assert.Equal(expectedOldSymbol, resolvedMethod.PartialDefinitionPart);
+                        Assert.Equal(null, resolvedMethod.PartialImplementationPart);
+                    }
+                    else
+                    {
+                        Assert.Equal(expectedOldSymbol, symbolKey.Resolve(oldCompilation, ignoreAssemblyKey: true).Symbol);
+                        Assert.Equal(null, symbolKey.Resolve(newCompilation, ignoreAssemblyKey: true).Symbol);
+                    }
+
+                    var deletedSymbolContainer = actualSemanticEdit.DeletedSymbolContainer?.Resolve(newCompilation, ignoreAssemblyKey: true).Symbol;
+                    Assert.Equal(deletedSymbolContainer, expectedSemanticEdit.DeletedSymbolContainerProvider?.Invoke(newCompilation));
                 }
                 else if (editKind is SemanticEditKind.Insert or SemanticEditKind.Replace)
                 {
-                    Assert.Equal(expectedNewSymbol, newSymbolKey.Resolve(newCompilation, ignoreAssemblyKey: true).Symbol);
+                    Assert.Equal(expectedNewSymbol, symbolKey.Resolve(newCompilation, ignoreAssemblyKey: true).Symbol);
                 }
                 else
                 {

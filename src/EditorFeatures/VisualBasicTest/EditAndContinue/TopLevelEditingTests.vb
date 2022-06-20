@@ -1431,7 +1431,7 @@ End Class"
                 {
                     DocumentResults(semanticEdits:=
                     {
-                        SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.F"), newSymbolProvider:=Function(c) c.GetMember("C"))
+                        SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.F"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C"))
                     }),
                     DocumentResults(
                         semanticEdits:={
@@ -2912,7 +2912,7 @@ End Class
                 semanticEdits:=
                 {
                     SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.D")),
-                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.Goo"), newSymbolProvider:=Function(c) c.GetMember("C"))
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.Goo"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C"))
                 })
         End Sub
 
@@ -3099,11 +3099,11 @@ End Structure
                     DocumentResults(),
                     DocumentResults(semanticEdits:=
                     {
-                        SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("S.C.F2"), newSymbolProvider:=Function(c) c.GetMember("S.C"))
+                        SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMembers("S.C.F2").FirstOrDefault(Function(m) m.GetParameters().Any(Function(p) p.Type.SpecialType = SpecialType.System_Byte)), deletedSymbolContainerProvider:=Function(c) c.GetMember("S.C"))
                     }),
                     DocumentResults(semanticEdits:=
                     {
-                        SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("S").GetMember(Of NamedTypeSymbol)("C").GetMember("F2"))
+                        SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("S").GetMember(Of NamedTypeSymbol)("C").GetMembers("F2").FirstOrDefault(Function(m) m.GetParameters().Any(Function(p) p.Type.SpecialType = SpecialType.System_Int32)))
                     })
                 },
                 capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
@@ -4164,11 +4164,11 @@ End Structure
                 {
                     DocumentResults(semanticEdits:=
                     {
-                        SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("S.F"))
+                        SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMembers("S.F").FirstOrDefault(Function(m) m.GetParameters().Length = 1))
                     }),
                     DocumentResults(semanticEdits:=
                     {
-                        SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("S.F"), newSymbolProvider:=Function(c) c.GetMember("S"))
+                        SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMembers("S.F").FirstOrDefault(Function(m) m.GetParameters().Length = 0), deletedSymbolContainerProvider:=Function(c) c.GetMember("S"))
                     })
                 },
                 capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
@@ -4203,11 +4203,11 @@ End Structure
                 {
                     DocumentResults(semanticEdits:=
                     {
-                        SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("S.F"))
+                        SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMembers("S.F").FirstOrDefault(Function(m) m.GetParameters().Any(Function(p) p.Type.SpecialType = SpecialType.System_Byte)))
                     }),
                     DocumentResults(semanticEdits:=
                     {
-                        SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("S.F"), newSymbolProvider:=Function(c) c.GetMember("S"))
+                        SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMembers("S.F").FirstOrDefault(Function(m) m.GetParameters().Any(Function(p) p.Type.SpecialType = SpecialType.System_Int32)), deletedSymbolContainerProvider:=Function(c) c.GetMember("S"))
                     })
                 },
                 capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
@@ -4246,7 +4246,7 @@ End Structure
                     }),
                     DocumentResults(semanticEdits:=
                     {
-                        SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("S.F"), newSymbolProvider:=Function(c) c.GetMember("S"))
+                        SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMembers("S.F").FirstOrDefault(Function(m) m.GetTypeParameters().Length = 0), deletedSymbolContainerProvider:=Function(c) c.GetMember("S"))
                     })
                 })
         End Sub
@@ -4433,7 +4433,7 @@ End Structure
             edits.VerifySemantics(
                 semanticEdits:=
                 {
-                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.Goo"), newSymbolProvider:=Function(c) c.GetMember("C"))
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.Goo"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C"))
                 })
         End Sub
 
@@ -4465,7 +4465,7 @@ End Structure
             edits.VerifySemantics(
                 semanticEdits:=
                 {
-                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.goo"), newSymbolProvider:=Function(c) c.GetMember("C"))
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.goo"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C"))
                 })
         End Sub
 
@@ -4486,7 +4486,7 @@ End Structure
             edits.VerifySemantics(
                 semanticEdits:=
                 {
-                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.Goo"), newSymbolProvider:=Function(c) c.GetMember("C"))
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.Goo"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C"))
                 })
         End Sub
 
@@ -4672,7 +4672,7 @@ Imports System.Runtime.InteropServices
                 semanticEdits:=
                 {
                     SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.D.f")),
-                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.f"), newSymbolProvider:=Function(c) c.GetMember("C"))
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.f"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C"))
                 },
                 capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
         End Sub
@@ -5446,7 +5446,7 @@ End Interface
                     DocumentResults(
                         semanticEdits:=
                         {
-                            SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember(Of MethodSymbol)("F").PartialImplementationPart, newSymbolProvider:=Function(c) c.GetMember("C"))
+                            SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember(Of MethodSymbol)("F"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C"))
                         })
                 })
         End Sub
@@ -5466,7 +5466,7 @@ End Interface
                     DocumentResults(
                         semanticEdits:=
                         {
-                            SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember(Of MethodSymbol)("F").PartialImplementationPart, newSymbolProvider:=Function(c) c.GetMember("C"))
+                            SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember(Of MethodSymbol)("F")?.PartialImplementationPart, deletedSymbolContainerProvider:=Function(c) c.GetMember("C"))
                         }
                     )
                 })
