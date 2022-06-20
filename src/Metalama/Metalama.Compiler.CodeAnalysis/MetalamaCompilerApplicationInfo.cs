@@ -45,8 +45,13 @@ namespace Metalama.Compiler
         /// <inheritdoc />
         public DateTime BuildDate { get; }
 
+        /// <inheritdoc />
         public ProcessKind ProcessKind => ProcessKind.Compiler;
+
+        /// <inheritdoc />
         public bool IsUnattendedProcess(ILoggerFactory loggerFactory) => !_ignoreUnattendedProcess && ProcessUtilities.IsCurrentProcessUnattended(loggerFactory);
+
+        /// <inheritdoc />
         public bool IsLongRunningProcess { get; }
 
         /// <inheritdoc />
@@ -57,5 +62,13 @@ namespace Metalama.Compiler
 
         /// <inheritdoc />
         public bool IsPrerelease { get; }
+
+        /// <inheritdoc />
+        public bool IsTelemetryEnabled =>
+#if DEBUG
+            false;
+#else
+            true;
+#endif
     }
 }
