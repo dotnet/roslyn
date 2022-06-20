@@ -1367,11 +1367,6 @@
         <target state="translated">Using’leri sırala</target>
         <note />
       </trans-unit>
-      <trans-unit id="Stack_Trace">
-        <source>Stack Trace</source>
-        <target state="new">Stack Trace</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Stack_Trace_Explorer">
         <source>Stack Trace Explorer</source>
         <target state="translated">Yığın İzlemesi Gezgini</target>
