@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             // This named type may end up being locally aliased as well.  If so, now find all the references
             // to the local alias.
-            var symbolsMatch = GetStandardSymbolsMatchFunction(namedType);
+            var symbolsMatch = GetStandardSymbolsMatchFunction();
 
             initialReferences.AddRange(await FindLocalAliasReferencesAsync(
                 initialReferences, state, symbolsMatch, cancellationToken).ConfigureAwait(false));
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             // then the parent node of `b` won't be `a.b`, but rather `new a.b()`.  This will actually cause us to bind
             // to the constructor not the type.  That's a good thing as we don't want these object-creations to
             // associate with the type, but rather with the constructor itself.
-            var symbolsMatch = GetStandardSymbolsMatchFunction(namedType);
+            var symbolsMatch = GetStandardSymbolsMatchFunction();
 
             return FindReferencesInDocumentUsingIdentifierAsync(
                 namedType, name, state, symbolsMatch, cancellationToken);
@@ -205,9 +205,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 return new ValueTask<ImmutableArray<FinderLocation>>(ImmutableArray<FinderLocation>.Empty);
 
             return FindReferencesInDocumentAsync(
+                symbol,
                 state,
                 static (state, token, predefinedType, _) => IsPotentialReference(predefinedType, state.SyntaxFacts, token),
-                static (state, token, _) => ValueTaskFactory.FromResult((matched: true, reason: CandidateReason.None)),
+                static (_, state, token, _) => ValueTaskFactory.FromResult((matched: true, reason: CandidateReason.None)),
                 predefinedType,
                 cancellationToken);
         }
@@ -218,7 +219,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             FindReferencesDocumentState state,
             CancellationToken cancellationToken)
         {
-            var symbolsMatch = GetStandardSymbolsMatchFunction(namedType);
+            var symbolsMatch = GetStandardSymbolsMatchFunction();
             return TryGetNameWithoutAttributeSuffix(name, state.SyntaxFacts, out var nameWithoutSuffix)
                 ? FindReferencesInDocumentUsingIdentifierAsync(namedType, nameWithoutSuffix, state, symbolsMatch, cancellationToken)
                 : new ValueTask<ImmutableArray<FinderLocation>>(ImmutableArray<FinderLocation>.Empty);

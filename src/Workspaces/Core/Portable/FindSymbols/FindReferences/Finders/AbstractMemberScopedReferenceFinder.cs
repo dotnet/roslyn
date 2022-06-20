@@ -111,10 +111,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CancellationToken cancellationToken)
         {
             return FindReferencesInTokensAsync(
+                symbol,
                 state,
                 tokens,
                 static (state, token, name, _) => IdentifiersMatch(state.SyntaxFacts, name, token),
-                GetStandardSymbolsMatchFunction(symbol),
+                GetStandardSymbolsMatchFunction(),
                 symbol.Name,
                 cancellationToken);
         }
@@ -130,10 +131,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var tokens = declarations.SelectMany(r => r.GetSyntax(cancellationToken).DescendantTokens());
 
             return FindReferencesInTokensAsync(
+                symbol,
                 state,
                 tokens,
                 GetTokensMatchFunction(),
-                GetStandardSymbolsMatchFunction(symbol),
+                GetStandardSymbolsMatchFunction(),
                 symbol.Name,
                 cancellationToken);
         }

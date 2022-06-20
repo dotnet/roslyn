@@ -48,12 +48,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 cancellationToken);
         }
 
-        private static Func<FindReferencesDocumentState, SyntaxToken, CancellationToken, ValueTask<(bool matched, CandidateReason reason)>> GetParameterSymbolsMatchFunction(
+        private static Func<ISymbol, FindReferencesDocumentState, SyntaxToken, CancellationToken, ValueTask<(bool matched, CandidateReason reason)>> GetParameterSymbolsMatchFunction(
             IParameterSymbol parameter)
         {
             // Get the standard function for comparing parameters.  This function will just 
             // directly compare the parameter symbols for SymbolEquivalence.
-            var standardFunction = GetStandardSymbolsMatchFunction(parameter);
+            var standardFunction = GetStandardSymbolsMatchFunction();
 
             // HOwever, we also want to consider parameter symbols them same if they unify across
             // VB's synthesized AnonymousDelegate parameters. 
@@ -76,17 +76,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             // anonymous-delegate's invoke method.  So get he symbol match function that will check
             // for equivalence with that parameter.
             var anonymousDelegateParameter = invokeMethod.Parameters[ordinal];
-            var anonParameterFunc = GetStandardSymbolsMatchFunction(anonymousDelegateParameter);
+            var anonParameterFunc = GetStandardSymbolsMatchFunction();
 
             // Return a new function which is a compound of the two functions we have.
-            return async (state, token, cancellationToken) =>
+            return async (symbol, state, token, cancellationToken) =>
             {
                 // First try the standard function.
-                var result = await standardFunction(state, token, cancellationToken).ConfigureAwait(false);
+                var result = await standardFunction(parameter, state, token, cancellationToken).ConfigureAwait(false);
                 if (!result.matched)
                 {
                     // If it fails, fall back to the anon-delegate function.
-                    result = await anonParameterFunc(state, token, cancellationToken).ConfigureAwait(false);
+                    result = await anonParameterFunc(anonymousDelegateParameter, state, token, cancellationToken).ConfigureAwait(false);
                 }
 
                 return result;
