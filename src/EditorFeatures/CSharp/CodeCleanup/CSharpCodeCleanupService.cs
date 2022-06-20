@@ -267,8 +267,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpCodeCleanupService(ICodeFixService codeFixService, IDiagnosticAnalyzerService diagnosticAnalyzerService)
-            : base(codeFixService, diagnosticAnalyzerService)
+        public CSharpCodeCleanupService(ICodeFixService codeFixService)
+            : base(codeFixService)
         {
         }
 

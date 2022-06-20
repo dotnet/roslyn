@@ -27,10 +27,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                (s_diagnosticIdToLanguageSpecificOptionsMap.TryGetValue(language, out var map) &&
                 map.TryGetValue(diagnosticId, out options));
 
-        public static bool IsKnownIDEDiagnosticId(string diagnosticId)
-            => s_diagnosticIdToOptionMap.ContainsKey(diagnosticId) ||
-               s_diagnosticIdToLanguageSpecificOptionsMap.Values.Any(map => map.ContainsKey(diagnosticId));
-
         public static void AddOptionMapping(string diagnosticId, ImmutableHashSet<IPerLanguageOption> perLanguageOptions)
         {
             diagnosticId = diagnosticId ?? throw new ArgumentNullException(nameof(diagnosticId));

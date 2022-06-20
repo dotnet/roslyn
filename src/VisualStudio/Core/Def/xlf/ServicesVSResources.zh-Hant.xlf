@@ -467,21 +467,6 @@
         <target state="new">Fix text pasted into string literals (experimental)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fix_analyzer_warnings_and_errors">
-        <source>Fix analyzer warnings and errors</source>
-        <target state="new">Fix analyzer warnings and errors</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_all_warnings_and_errors_set_in_EditorConfig">
-        <source>Fix all warnings and errors set in EditorConfig</source>
-        <target state="new">Fix all warnings and errors set in EditorConfig</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_analyzer_warnings_and_errors_set_in_EditorConfig">
-        <source>Fix analyzer warnings and errors set in EditorConfig</source>
-        <target state="new">Fix analyzer warnings and errors set in EditorConfig</target>
-        <note />
-      </trans-unit>
       <trans-unit id="For_non_interface_members">
         <source>For non interface members</source>
         <target state="translated">對於非介面成員</target>
