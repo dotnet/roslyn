@@ -1,6 +1,10 @@
-# This script links all the artifacts described by _all.ps1
-# into a staging directory, reading for uploading to a cloud build artifact store.
-# It returns a sequence of objects with Name and Path properties.
+<#
+.SYNOPSIS
+    This script links all the artifacts described by _all.ps1
+    into a staging directory, reading for uploading to a cloud build artifact store.
+    It returns a sequence of objects with Name and Path properties.
+#>
+
 [CmdletBinding()]
 param (
     [string]$ArtifactNameSuffix

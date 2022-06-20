@@ -11,7 +11,7 @@ steps:
   displayName: ⚙ Update pipeline variables based on build outputs
   condition: succeededOrFailed()
 
-- powershell: azure-pipelines/artifacts/_pipelines.ps1 -ArtifactNameSuffix "-$(Agent.JobName)"
+- powershell: azure-pipelines/artifacts/_pipelines.ps1 -ArtifactNameSuffix "-$(Agent.JobName)" -Verbose
   failOnStderr: true
   displayName: 📢 Publish artifacts
   condition: succeededOrFailed()

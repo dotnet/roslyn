@@ -1,3 +1,7 @@
+[CmdletBinding()]
+Param(
+)
+
 $result = @{}
 
 if ($env:AGENT_TEMPDIRECTORY) {

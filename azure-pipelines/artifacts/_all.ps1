@@ -15,6 +15,7 @@
     Executes artifact scripts even if they have already been staged.
 #>
 
+[CmdletBinding(SupportsShouldProcess = $true)]
 param (
     [string]$ArtifactNameSuffix,
     [switch]$Force
