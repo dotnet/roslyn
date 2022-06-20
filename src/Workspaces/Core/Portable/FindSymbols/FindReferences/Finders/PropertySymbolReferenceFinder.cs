@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         private static async ValueTask<(bool matched, CandidateReason reason, SyntaxNode indexerReference)> ComputeIndexerMemberCRefInformationAsync(
-            ISymbol symbol, FindReferencesDocumentState state, SyntaxNode node, SymbolsMatchAsync symbolsMatchAsync, CancellationToken cancellationToken)
+            IPropertySymbol symbol, FindReferencesDocumentState state, SyntaxNode node, SymbolsMatchAsync symbolsMatchAsync, CancellationToken cancellationToken)
         {
             var (matched, reason) = await symbolsMatchAsync(symbol, state, node, cancellationToken).ConfigureAwait(false);
 
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         private static async ValueTask<(bool matched, CandidateReason reason, SyntaxNode indexerReference)> ComputeConditionalAccessInformationAsync(
-            ISymbol symbol, SyntaxNode node, FindReferencesDocumentState state, SymbolsMatchAsync symbolsMatchAsync, CancellationToken cancellationToken)
+            IPropertySymbol symbol, SyntaxNode node, FindReferencesDocumentState state, SymbolsMatchAsync symbolsMatchAsync, CancellationToken cancellationToken)
         {
             // For a ConditionalAccessExpression the whenNotNull component is the indexer reference we are looking for
             var syntaxFacts = state.SyntaxFacts;
@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         private static async ValueTask<(bool matched, CandidateReason reason, SyntaxNode? indexerReference)> ComputeElementAccessInformationAsync(
-            ISymbol symbol, SyntaxNode node, FindReferencesDocumentState state, SymbolsMatchAsync symbolsMatchAsync, CancellationToken cancellationToken)
+            IPropertySymbol symbol, SyntaxNode node, FindReferencesDocumentState state, SymbolsMatchAsync symbolsMatchAsync, CancellationToken cancellationToken)
         {
             // For an ElementAccessExpression the indexer we are looking for is the argumentList component.
             state.SyntaxFacts.GetPartsOfElementAccessExpression(node, out var expression, out var indexerReference);
