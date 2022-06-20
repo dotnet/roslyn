@@ -18,7 +18,6 @@ using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.IntegrationTests.InProcess;
 using Xunit;
-using static Microsoft.VisualStudio.VSConstants;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
 {
@@ -56,8 +55,38 @@ class Implementation : IBar
             await TestServices.Input.SendAsync(VirtualKey.Tab);
             // Navigate to the destination
             await TestServices.Input.SendAsync(VirtualKey.Enter);
-
             await TestServices.EditorVerifier.TextContainsAsync(@"class Implementation$$", assertCaretPosition: true);
+        }
+
+        [IdeFact]
+        public async Task TestMultipleItemsOnSameLine()
+        {
+            var project = ProjectName;
+            await TestServices.InheritanceMargin.EnableOptionsAsync(LanguageName, cancellationToken: HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.AddFileAsync(project, "Test.cs", cancellationToken: HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.OpenFileAsync(project, "Test.cs", HangMitigatingCancellationToken);
+
+            await TestServices.InheritanceMargin.SetTextAndEnsureGlyphsAppearAsync(
+@"
+interface IBar
+{
+    event EventHandler e1, e2;
+}
+
+class Implementation : IBar
+{
+    public event EventHandler e1, e2;
+}", expectedGlyphsNumberInMargin: 4, HangMitigatingCancellationToken);
+
+            await TestServices.InheritanceMargin.ClickTheGlyphOnLine(4, HangMitigatingCancellationToken);
+
+            // Move focus to menu item of 'event e1'
+            await TestServices.Input.SendAsync(VirtualKey.Tab);
+            // Expand the submenu
+            await TestServices.Input.SendAsync(VirtualKey.Enter);
+            // Navigate to the implemention
+            await TestServices.Input.SendAsync(VirtualKey.Enter);
+            await TestServices.EditorVerifier.TextContainsAsync(@"public event EventHandler e1$$, e2;", assertCaretPosition: true);
         }
     }
 }
