@@ -60,19 +60,18 @@ namespace Microsoft.CodeAnalysis
     /// <typeparam name="T">The type of the items tracked by this table</typeparam>
     internal sealed class NodeStateTable<T> : IStateTable
     {
-        internal static NodeStateTable<T> Empty { get; } = new NodeStateTable<T>(ImmutableArray<TableEntry>.Empty, ImmutableArray<IncrementalGeneratorRunStep>.Empty, isCompacted: true, hasTrackedSteps: true);
+        internal static NodeStateTable<T> Empty { get; } = new NodeStateTable<T>(ImmutableArray<TableEntry>.Empty, ImmutableArray<IncrementalGeneratorRunStep>.Empty, hasTrackedSteps: true);
 
         private readonly ImmutableArray<TableEntry> _states;
 
 
-        private NodeStateTable(ImmutableArray<TableEntry> states, ImmutableArray<IncrementalGeneratorRunStep> steps, bool isCompacted, bool hasTrackedSteps)
+        private NodeStateTable(ImmutableArray<TableEntry> states, ImmutableArray<IncrementalGeneratorRunStep> steps, bool hasTrackedSteps)
         {
-            Debug.Assert(!isCompacted || states.All(s => s.IsCached));
             Debug.Assert(!hasTrackedSteps || steps.Length == states.Length);
 
             _states = states;
             Steps = steps;
-            IsCached = isCompacted;
+            IsCached = !states.IsEmpty && states.All(s => s.IsCached);
             HasTrackedSteps = hasTrackedSteps;
         }
 
@@ -117,7 +116,7 @@ namespace Microsoft.CodeAnalysis
             }
             // When we're preparing a table for caching between runs, we drop the step information as we cannot guarantee the graph structure while also updating
             // the input states
-            return new NodeStateTable<T>(compacted.ToImmutableAndFree(), ImmutableArray<IncrementalGeneratorRunStep>.Empty, isCompacted: true, hasTrackedSteps: false);
+            return new NodeStateTable<T>(compacted.ToImmutableAndFree(), ImmutableArray<IncrementalGeneratorRunStep>.Empty, hasTrackedSteps: false);
         }
 
         IStateTable IStateTable.AsCached() => AsCached();
@@ -375,11 +374,9 @@ namespace Microsoft.CodeAnalysis
                     return NodeStateTable<T>.Empty;
                 }
 
-                var hasNonCached = _states.Any(static s => !s.IsCached);
                 return new NodeStateTable<T>(
                     _states.ToImmutableAndFree(),
                     TrackIncrementalSteps ? _steps.ToImmutableAndFree() : default,
-                    isCompacted: !hasNonCached,
                     hasTrackedSteps: TrackIncrementalSteps);
             }
 

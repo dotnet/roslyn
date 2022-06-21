@@ -1960,7 +1960,7 @@ class C { }
                         source =>
                         {
                             Assert.Empty((ImmutableArray<AdditionalText>)source.Source.Outputs[source.OutputIndex].Value);
-                            Assert.Equal(IncrementalStepRunReason.Cached, source.Source.Outputs[source.OutputIndex].Reason);
+                            Assert.Equal(IncrementalStepRunReason.Unchanged, source.Source.Outputs[source.OutputIndex].Reason);
                         });
                     Assert.Collection(step.Outputs,
                         output =>
@@ -2194,10 +2194,7 @@ class C { }
             // run the generator once, and check it was passed the parse options
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(disabledOutputs: IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
             driver = driver.RunGenerators(compilation);
-            GeneratorRunResult runResult = driver.GetRunResult().Results[0];
-            //Assert.Single(runResult.TrackedSteps["ParseOptions"]);
-            //var output = runResult.TrackedSteps["ParseOptions"][0].Outputs[0].Value;
-            //Assert.Equal(parseOptions, output);
+            Assert.True(driver.GetRunResult().Diagnostics.IsEmpty);
 
             // now update the source 
             var newSource = @"
@@ -2207,9 +2204,7 @@ class C { }
 
             // check we ran
             driver = driver.RunGenerators(newCompilation);
-            runResult = driver.GetRunResult().Results[0];
-            //Assert.Single(runResult.TrackedSteps["ParseOptions"]);
-            //output = runResult.TrackedSteps["ParseOptions"][0].Outputs[0].Value;
+            Assert.True(driver.GetRunResult().Diagnostics.IsEmpty);
             return;
 
             static void validate(Compilation compilation, ImmutableArray<ClassDeclarationSyntax> nodes)
