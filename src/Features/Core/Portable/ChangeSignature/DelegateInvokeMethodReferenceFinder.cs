@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         protected override bool CanFind(IMethodSymbol symbol)
             => symbol.MethodKind == MethodKind.DelegateInvoke;
 
-        protected override async Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+        protected override async ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
             IMethodSymbol symbol,
             Solution solution,
             FindReferencesSearchOptions options,

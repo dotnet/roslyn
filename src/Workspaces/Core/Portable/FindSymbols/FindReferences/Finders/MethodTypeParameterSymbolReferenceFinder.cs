@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected override bool CanFind(ITypeParameterSymbol symbol)
             => symbol.TypeParameterKind == TypeParameterKind.Method;
 
-        protected override Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+        protected override ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
             ITypeParameterSymbol symbol,
             Solution solution,
             FindReferencesSearchOptions options,
@@ -27,13 +27,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             if (ordinal >= 0)
             {
                 if (method.PartialDefinitionPart != null && ordinal < method.PartialDefinitionPart.TypeParameters.Length)
-                    return Task.FromResult(ImmutableArray.Create<ISymbol>(method.PartialDefinitionPart.TypeParameters[ordinal]));
+                    return new(ImmutableArray.Create<ISymbol>(method.PartialDefinitionPart.TypeParameters[ordinal]));
 
                 if (method.PartialImplementationPart != null && ordinal < method.PartialImplementationPart.TypeParameters.Length)
-                    return Task.FromResult(ImmutableArray.Create<ISymbol>(method.PartialImplementationPart.TypeParameters[ordinal]));
+                    return new(ImmutableArray.Create<ISymbol>(method.PartialImplementationPart.TypeParameters[ordinal]));
             }
 
-            return SpecializedTasks.EmptyImmutableArray<ISymbol>();
+            return new(ImmutableArray<ISymbol>.Empty);
         }
 
         protected sealed override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
