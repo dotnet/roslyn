@@ -529,6 +529,12 @@ namespace Microsoft.CodeAnalysis
                 if (resolvedReference != null)
                 {
                     resolvedReferences.Add(resolvedReference);
+                    
+                    // <Metalama>
+                    // In Metalama, we always load analyzer assemblies even if they don't contain analyzer types because
+                    // they may contain other compile-time types.
+                    resolvedReference.LoadAssembly();
+                    // <_Metalama>
 
                     // register the reference to the analyzer loader:
                     analyzerLoader.AddDependencyLocation(resolvedReference.FullPath);
