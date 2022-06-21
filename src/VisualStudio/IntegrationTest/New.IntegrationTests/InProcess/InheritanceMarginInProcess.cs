@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Extensibility.Testing;
@@ -76,8 +75,10 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess
             await WaitForApplicationIdleAsync(cancellationToken);
             var glyph = await GetTheGlyphOnLineAsync(lineNumber, cancellationToken);
 
-            // Ideally, we should not rely on creating WPF event, and simulate real mouse click to open the context menu.
-            glyph.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
+            var point = await GetCenterOfGlyphOnScreenAsync(glyph, cancellationToken);
+            await TestServices.Input.MoveMouseAsync(point);
+            await TestServices.Input.SendWithoutActivateAsync(
+                simulator => simulator.Mouse.LeftButtonClick());
         }
 
         public async Task<InheritanceMarginGlyph> GetTheGlyphOnLineAsync(int lineNumber, CancellationToken cancellationToken)
@@ -122,6 +123,13 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess
             var vsTextView = await vsTextManager.GetActiveViewAsync(JoinableTaskFactory, cancellationToken);
             var testViewHost = await vsTextView.GetTextViewHostAsync(JoinableTaskFactory, cancellationToken);
             return testViewHost.GetTextViewMargin(MarginName);
+        }
+
+        private async Task<Point> GetCenterOfGlyphOnScreenAsync(FrameworkElement glyph, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            var center = new Point(glyph.ActualWidth / 2, glyph.ActualHeight / 2);
+            return glyph.PointToScreen(center);
         }
     }
 }

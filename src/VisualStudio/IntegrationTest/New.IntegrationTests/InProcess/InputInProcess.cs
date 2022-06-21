@@ -5,9 +5,12 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using Microsoft.VisualStudio.Extensibility.Testing;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Interop;
 using Microsoft.VisualStudio.Threading;
 using WindowsInput;
 using Xunit;
@@ -103,6 +106,20 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             {
                 await WaitForApplicationIdleAsync(CancellationToken.None);
             });
+        }
+
+        internal async Task MoveMouseAsync(Point point)
+        {
+            var horizontalResolution = NativeMethods.GetSystemMetrics(NativeMethods.SM_CXSCREEN);
+            var verticalResolution = NativeMethods.GetSystemMetrics(NativeMethods.SM_CYSCREEN);
+            var virtualPoint = new ScaleTransform(65535.0 / horizontalResolution, 65535.0 / verticalResolution).Transform(point);
+
+            await SendAsync(simulator => simulator.Mouse.MoveMouseTo(virtualPoint.X, virtualPoint.Y));
+
+            // ⚠ The call to GetCursorPos is required for correct behavior.
+            var actualPoint = NativeMethods.GetCursorPos();
+            Assert.True(Math.Abs(actualPoint.X - point.X) <= 1, $"Expected '{Math.Abs(actualPoint.X - point.X)}' <= '1'. Move to '({point.X}, {point.Y})' produced '({actualPoint.X}, {actualPoint.Y})'.");
+            Assert.True(Math.Abs(actualPoint.Y - point.Y) <= 1, $"Expected '{Math.Abs(actualPoint.Y - point.Y)}' <= '1'. Move to '({point.X}, {point.Y})' produced '({actualPoint.X}, {actualPoint.Y})'.");
         }
     }
 }
