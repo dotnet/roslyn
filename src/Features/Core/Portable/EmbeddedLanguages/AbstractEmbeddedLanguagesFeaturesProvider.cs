@@ -3,25 +3,25 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime.LanguageServices;
+using Microsoft.CodeAnalysis.EmbeddedLanguages;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices;
 
-namespace Microsoft.CodeAnalysis.EmbeddedLanguages
+namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
 {
     /// <summary>
     /// Abstract implementation of the C# and VB embedded language providers.
     /// </summary>
-    internal abstract class AbstractEmbeddedLanguagesProvider : IEmbeddedLanguagesProvider
+    internal abstract class AbstractEmbeddedLanguageFeaturesProvider : AbstractEmbeddedLanguagesProvider
     {
-        public EmbeddedLanguageInfo EmbeddedLanguageInfo { get; }
-        public ImmutableArray<IEmbeddedLanguage> Languages { get; }
+        public override ImmutableArray<IEmbeddedLanguage> Languages { get; }
 
-        protected AbstractEmbeddedLanguagesProvider(EmbeddedLanguageInfo info)
+        protected AbstractEmbeddedLanguageFeaturesProvider(EmbeddedLanguageInfo info)
+            : base(info)
         {
-            EmbeddedLanguageInfo = info;
             Languages = ImmutableArray.Create<IEmbeddedLanguage>(
-                new DateAndTimeEmbeddedLanguage(info),
+                new DateAndTimeEmbeddedLanguageFeatures(info),
                 new RegexEmbeddedLanguage(this, info),
                 new JsonEmbeddedLanguage());
         }

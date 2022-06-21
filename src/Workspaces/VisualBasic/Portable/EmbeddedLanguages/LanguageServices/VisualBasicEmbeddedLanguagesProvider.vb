@@ -6,7 +6,6 @@ Imports System.Composition
 Imports Microsoft.CodeAnalysis.EmbeddedLanguages
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.VirtualChars
-Imports Microsoft.CodeAnalysis.VisualBasic.Features.EmbeddedLanguages
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.LanguageServices
@@ -14,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.LanguageServices
     Friend Class VisualBasicEmbeddedLanguagesProvider
         Inherits AbstractEmbeddedLanguagesProvider
 
-        Public Shared ReadOnly Info As New EmbeddedLanguageInfo(
+        Public Shared Info As New EmbeddedLanguageInfo(
             VisualBasicSyntaxFacts.Instance,
             VisualBasicSemanticFactsService.Instance,
             VisualBasicVirtualCharService.Instance)
@@ -24,9 +23,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.LanguageServices
         Public Sub New()
             MyBase.New(Info)
         End Sub
-
-        Public Overrides Function EscapeText(text As String, token As SyntaxToken) As String
-            Return EmbeddedLanguageUtilities.EscapeText(text)
-        End Function
     End Class
 End Namespace

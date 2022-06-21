@@ -11,16 +11,16 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices
 {
-    internal class RegexEmbeddedLanguage : IEmbeddedLanguage
+    internal class RegexEmbeddedLanguage : IEmbeddedLanguageFeatures
     {
         public readonly EmbeddedLanguageInfo Info;
 
-        private readonly AbstractEmbeddedLanguagesProvider _provider;
+        private readonly AbstractEmbeddedLanguageFeaturesProvider _provider;
 
         public EmbeddedLanguageCompletionProvider CompletionProvider { get; }
 
         public RegexEmbeddedLanguage(
-            AbstractEmbeddedLanguagesProvider provider,
+            AbstractEmbeddedLanguageFeaturesProvider provider,
             EmbeddedLanguageInfo info)
         {
             Info = info;
