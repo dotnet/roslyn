@@ -175,10 +175,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 
                     foreach (var region in branch.LeavingRegions)
                     {
-                        foreach (var local in region.Locals)
+                        /*foreach (var local in region.Locals)
                         {
                             _analysisData.CurrentBlockAnalysisData.Clear(local);
-                        }
+                        }*/
 
                         if (region.Kind == ControlFlowRegionKind.TryAndFinally)
                         {
