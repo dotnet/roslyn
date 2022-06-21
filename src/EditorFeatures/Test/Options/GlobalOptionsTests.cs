@@ -55,21 +55,9 @@ public class GlobalOptionsTests
             AccessedOptionKeys.Add(key);
         }
 
-        public T GetOption<T>(Option<T> option)
-        {
-            OnOptionAccessed(option);
-            return (T)GetNonEqualValue(typeof(T), option.DefaultValue);
-        }
-
         public T GetOption<T>(Option2<T> option)
         {
             OnOptionAccessed(new OptionKey(option));
-            return (T)GetNonEqualValue(typeof(T), option.DefaultValue);
-        }
-
-        public T GetOption<T>(PerLanguageOption<T> option, string? languageName)
-        {
-            OnOptionAccessed(new OptionKey(option, languageName));
             return (T)GetNonEqualValue(typeof(T), option.DefaultValue);
         }
 
@@ -99,12 +87,6 @@ public class GlobalOptionsTests
         public ImmutableArray<object?> GetOptions(ImmutableArray<OptionKey> optionKeys)
             => throw new NotImplementedException();
 
-        public IEnumerable<IOption> GetRegisteredOptions()
-            => throw new NotImplementedException();
-
-        public ImmutableHashSet<IOption> GetRegisteredSerializableOptions(ImmutableHashSet<string> languages)
-            => throw new NotImplementedException();
-
         public void RefreshOption(OptionKey optionKey, object? newValue)
             => throw new NotImplementedException();
 
@@ -115,9 +97,6 @@ public class GlobalOptionsTests
             => throw new NotImplementedException();
 
         public void SetOptions(OptionSet optionSet, IEnumerable<OptionKey> optionKeys)
-            => throw new NotImplementedException();
-
-        public bool TryMapEditorConfigKeyToOption(string key, string? language, [NotNullWhen(true)] out IEditorConfigStorageLocation2? storageLocation, out OptionKey optionKey)
             => throw new NotImplementedException();
 
         #endregion
