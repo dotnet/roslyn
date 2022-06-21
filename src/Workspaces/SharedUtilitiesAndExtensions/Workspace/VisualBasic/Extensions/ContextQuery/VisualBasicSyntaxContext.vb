@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             isInImportsDirective As Boolean,
             isInLambda As Boolean,
             isInQuery As Boolean,
-            isTaskLikeTypeContext As Boolean,
+            isInTaskLikeTypeContext As Boolean,
             isNameOfContext As Boolean,
             isNamespaceContext As Boolean,
             isNamespaceDeclarationNameContext As Boolean,
@@ -96,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 isGlobalStatementContext:=isGlobalStatementContext,
                 isInImportsDirective:=isInImportsDirective,
                 isInQuery:=isInQuery,
-                isTaskLikeTypeContext:=isTaskLikeTypeContext,
+                isInTaskLikeTypeContext:=isInTaskLikeTypeContext,
                 isNameOfContext:=isNameOfContext,
                 isNamespaceContext,
                 isNamespaceDeclarationNameContext,
@@ -134,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             Me.IsPreprocessorEndDirectiveKeywordContext = targetToken.FollowsBadEndDirective()
         End Sub
 
-        Private Shared Function ComputeIsTaskLikeTypeContext(targetToken As SyntaxToken) As Boolean
+        Private Shared Function ComputeIsInTaskLikeTypeContext(targetToken As SyntaxToken) As Boolean
             ' If we're after the 'as' in an async method declaration, then filter down to task-like types only.
             If targetToken.Kind() = SyntaxKind.AsKeyword Then
                 Dim asClause = TryCast(targetToken.Parent, AsClauseSyntax)
@@ -177,7 +177,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 isInImportsDirective:=leftToken.GetAncestor(Of ImportsStatementSyntax)() IsNot Nothing,
                 isInLambda:=leftToken.GetAncestor(Of LambdaExpressionSyntax)() IsNot Nothing,
                 isInQuery:=isInQuery,
-                isTaskLikeTypeContext:=ComputeIsTaskLikeTypeContext(targetToken),
+                isInTaskLikeTypeContext:=ComputeIsInTaskLikeTypeContext(targetToken),
                 isNameOfContext:=syntaxTree.IsNameOfContext(position, cancellationToken),
                 isNamespaceContext:=syntaxTree.IsNamespaceContext(position, targetToken, cancellationToken, semanticModel),
                 isNamespaceDeclarationNameContext:=syntaxTree.IsNamespaceDeclarationNameContext(position, cancellationToken),

@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var recommender = context.GetRequiredLanguageService<IRecommendationService>();
             var recommendedSymbols = recommender.GetRecommendedSymbolsInContext(context, recommendationOptions, cancellationToken);
 
-            if (context.IsTaskLikeTypeContext)
+            if (context.IsInTaskLikeTypeContext)
             {
                 // If we get 'Task' back, attempt to preselect that as the most likely result.
                 var taskType = context.SemanticModel.Compilation.TaskType();
@@ -92,8 +92,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                        namedType.Equals(compilation.IAsyncEnumeratorOfTType());
             }
 
-            return namedType.IsAwaitableNonDynamic(context.SemanticModel, context.Position) ||
-                   namedType.GetTypeMembers().Any(static (m, context) => IsValidForTaskLikeTypeOnlyContext(m, context), context);
+            return symbol.IsAwaitableNonDynamic(context.SemanticModel, context.Position);
         }
 
         private static bool IsValidForGenericConstraintContext(ISymbol symbol)

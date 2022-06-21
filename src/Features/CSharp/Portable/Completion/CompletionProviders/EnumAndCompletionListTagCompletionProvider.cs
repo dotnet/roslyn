@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var syntaxContext = await context.GetSyntaxContextWithExistingSpeculativeModelAsync(document, cancellationToken).ConfigureAwait(false);
                 var semanticModel = syntaxContext.SemanticModel;
 
-                if (syntaxContext.IsTaskLikeTypeContext)
+                if (syntaxContext.IsInTaskLikeTypeContext)
                     return;
 
                 var token = syntaxContext.TargetToken;
