@@ -48,6 +48,14 @@ namespace Microsoft.CodeAnalysis
                     RegisterOutputAndDeferredInput));
         }
 
+        internal IncrementalValuesProvider<SyntaxNode> CreateSyntaxOnlyProvider(Func<SyntaxNode, CancellationToken, bool> predicate)
+        {
+            return new IncrementalValuesProvider<SyntaxNode>(
+                new SyntaxInputNode<SyntaxNode>(
+                    new SyntaxOnlyStrategy(predicate.WrapUserFunction()),
+                    RegisterOutputAndDeferredInput));
+        }
+
         /// <summary>
         /// Creates a syntax receiver input node. Only used for back compat in <see cref="SourceGeneratorAdaptor"/>
         /// </summary>

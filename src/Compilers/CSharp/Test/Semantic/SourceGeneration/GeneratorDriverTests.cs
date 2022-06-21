@@ -3058,5 +3058,60 @@ public static readonly string F = ""a""
             Assert.NotEqual(TimeSpan.Zero, generatorTiming2.ElapsedTime);
             Assert.True(generatorTiming.ElapsedTime > generatorTiming2.ElapsedTime);
         }
+
+        [Fact]
+        public void SyntaxOnlyProvider_Only_Considers_Syntax()
+        {
+            var source = new[] { "class C{}", "class D{}" };
+
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            List<string> classesVisited = new List<string>();
+
+            var generator = new PipelineCallbackGenerator(ctx =>
+            {
+                var syntax = ctx.SyntaxProvider.CreateSyntaxOnlyProvider((n, _) =>
+                {
+                    if(n is ClassDeclarationSyntax cds)
+                    {
+                        classesVisited.Add(cds.Identifier.ToString());
+                        return true;
+                    }
+                    return false;
+                });
+                ctx.RegisterSourceOutput(syntax, (ctx, node) => ctx.AddSource(((ClassDeclarationSyntax)node).Identifier.ToString(), ""));
+
+            }).AsSourceGenerator();
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+
+            // run once
+            driver = driver.RunGenerators(compilation);
+            var runResult = driver.GetRunResult();
+            Assert.Equal(2, runResult.GeneratedTrees.Length);
+            Assert.Equal("C.cs", runResult.Results[0].GeneratedSources[0].HintName);
+            Assert.Equal("D.cs", runResult.Results[0].GeneratedSources[1].HintName);
+            Assert.Collection(classesVisited, s => Assert.Equal("C", s), s => Assert.Equal("D", s));
+
+            // run again
+            classesVisited.Clear();
+            runResult = driver.GetRunResult();
+            Assert.Equal(2, runResult.GeneratedTrees.Length);
+            Assert.Equal("C.cs", runResult.Results[0].GeneratedSources[0].HintName);
+            Assert.Equal("D.cs", runResult.Results[0].GeneratedSources[1].HintName);
+            Assert.Empty(classesVisited); // didn't look at C and D again
+
+            // remove D and replace with E
+            compilation = compilation.RemoveSyntaxTrees(compilation.SyntaxTrees.Last()).AddSyntaxTrees(CSharpSyntaxTree.ParseText("class E{}", parseOptions));
+
+            driver = driver.RunGenerators(compilation);
+            runResult = driver.GetRunResult();
+            Assert.Equal(2, runResult.GeneratedTrees.Length);
+            Assert.Equal("C.cs", runResult.Results[0].GeneratedSources[0].HintName);
+            Assert.Equal("E.cs", runResult.Results[0].GeneratedSources[1].HintName);
+            Assert.Single(classesVisited, "E"); // only looked at E
+        }
     }
 }
