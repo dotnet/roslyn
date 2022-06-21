@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
     internal class InheritanceMarginViewMargin : ForegroundThreadAffinitizedObject, IWpfTextViewMargin
     {
         // 16 (width of the crisp image) + 2 * 1 (width of the border) = 18
-        public const double HeightAndWidthOfMargin = 18;
+        internal const double HeightAndWidthOfMargin = 18;
         private readonly IWpfTextView _textView;
         private readonly ITagAggregator<InheritanceMarginTag> _tagAggregator;
         private readonly IGlobalOptionService _globalOptions;
@@ -176,7 +176,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             }
         }
 
-        internal void RefreshGlyphsOver(ITextViewLine textViewLine)
+        private void RefreshGlyphsOver(ITextViewLine textViewLine)
         {
             if (!_globalOptions.GetOption(FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin))
             {

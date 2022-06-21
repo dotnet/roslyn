@@ -48,6 +48,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess
 
             if (combinedWithIndicatorMargin)
             {
+                // Glyphs in Indicator margin are owned by editor, and we don't know when the glyphs would be added/removed.
                 optionService.SetGlobalOption(new OptionKey(FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin), false);
             }
         }
@@ -84,7 +85,8 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess
         {
             await WaitForApplicationIdleAsync(cancellationToken);
             var glyph = await GetTheGlyphOnLineAsync(lineNumber, cancellationToken);
-            // TODO: Ideally, we should not rely on creating WPF event, and using real mouse to click.
+
+            // Ideally, we should not rely on creating WPF event, and simulate real mouse click to open the context menu.
             glyph.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
         }
 
@@ -93,13 +95,12 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             var activeView = await TestServices.Editor.GetActiveTextViewAsync(cancellationToken);
             var wpfTextViewLine = activeView.TextViewLines[lineNumber - 1];
-            var viewTop = activeView.ViewportTop;
             var midOfTheLine = wpfTextViewLine.TextTop + wpfTextViewLine.Height / 2;
             var margin = await GetTextViewMarginAsync(cancellationToken);
 
             var grid = (Grid)margin.VisualElement;
+            // There will be only one Canvas element.
             Assert.True(grid.Children.Count == 1);
-
             var containingCanvas = (Canvas)((Grid)margin.VisualElement).Children[0];
 
             var glyphsOnLine = new List<InheritanceMarginGlyph>();
