@@ -17,7 +17,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
     internal abstract class AbstractMemberScopedReferenceFinder<TSymbol> : AbstractReferenceFinder<TSymbol>
         where TSymbol : ISymbol
     {
-        protected abstract Func<FindReferencesDocumentState, SyntaxToken, string, CancellationToken, bool> GetTokensMatchFunction();
+        protected abstract bool TokensMatch(
+            FindReferencesDocumentState state, SyntaxToken token, string name);
 
         protected sealed override bool CanFind(TSymbol symbol)
             => true;
@@ -32,20 +33,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             var location = symbol.Locations.FirstOrDefault();
             if (location == null || !location.IsInSource)
-            {
                 return SpecializedTasks.EmptyImmutableArray<Document>();
-            }
 
             var document = project.GetDocument(location.SourceTree);
             if (document == null)
-            {
                 return SpecializedTasks.EmptyImmutableArray<Document>();
-            }
 
             if (documents != null && !documents.Contains(document))
-            {
                 return SpecializedTasks.EmptyImmutableArray<Document>();
-            }
 
             return Task.FromResult(ImmutableArray.Create(document));
         }
@@ -74,9 +69,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             for (var current = symbol; current != null; current = current.ContainingSymbol)
             {
                 if (current is IPropertySymbol)
-                {
                     return current;
-                }
 
                 // If this is an initializer for a property's backing field, then we want to 
                 // search for results within the property itself.
@@ -93,12 +86,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     }
                 }
 
-                if (current is IMethodSymbol method &&
-                    method.MethodKind != MethodKind.AnonymousFunction &&
-                    method.MethodKind != MethodKind.LocalFunction)
-                {
+                if (current is IMethodSymbol { MethodKind: not MethodKind.AnonymousFunction and not MethodKind.LocalFunction } method)
                     return method;
-                }
             }
 
             return null;
@@ -110,22 +99,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             IEnumerable<SyntaxToken> tokens,
             CancellationToken cancellationToken)
         {
-            return FindReferencesInTokensWithSymbolNameAsync(
-                symbol, state, tokens, findParentNode: null, cancellationToken);
-        }
-
-        protected static ValueTask<ImmutableArray<FinderLocation>> FindReferencesInTokensWithSymbolNameAsync(
-            TSymbol symbol,
-            FindReferencesDocumentState state,
-            IEnumerable<SyntaxToken> tokens,
-            Func<FindReferencesDocumentState, SyntaxToken, SyntaxNode>? findParentNode,
-            CancellationToken cancellationToken)
-        {
             return FindReferencesInTokensAsync(
+                symbol,
                 state,
                 tokens,
                 static (state, token, name, _) => IdentifiersMatch(state.SyntaxFacts, name, token),
-                GetStandardSymbolsMatchFunction(symbol, findParentNode),
                 symbol.Name,
                 cancellationToken);
         }
@@ -136,27 +114,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             FindReferencesDocumentState state,
             CancellationToken cancellationToken)
         {
-            return FindReferencesInContainerAsync(
-                symbol, container, state, findParentNode: null, cancellationToken);
-        }
-
-        private ValueTask<ImmutableArray<FinderLocation>> FindReferencesInContainerAsync(
-            TSymbol symbol,
-            ISymbol container,
-            FindReferencesDocumentState state,
-            Func<FindReferencesDocumentState, SyntaxToken, SyntaxNode>? findParentNode,
-            CancellationToken cancellationToken)
-        {
             var service = state.Document.GetRequiredLanguageService<ISymbolDeclarationService>();
             var declarations = service.GetDeclarations(container);
             var tokens = declarations.SelectMany(r => r.GetSyntax(cancellationToken).DescendantTokens());
 
             return FindReferencesInTokensAsync(
+                symbol,
                 state,
                 tokens,
-                GetTokensMatchFunction(),
-                GetStandardSymbolsMatchFunction(symbol, findParentNode),
-                symbol.Name,
+                static (state, token, tuple, _) => tuple.self.TokensMatch(state, token, tuple.name),
+                (self: this, name: symbol.Name),
                 cancellationToken);
         }
     }

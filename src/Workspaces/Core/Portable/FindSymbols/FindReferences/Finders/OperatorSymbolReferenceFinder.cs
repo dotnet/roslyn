@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
@@ -28,6 +29,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var documentsWithOp = await FindDocumentsAsync(project, documents, op, cancellationToken).ConfigureAwait(false);
             var documentsWithGlobalAttributes = await FindDocumentsWithGlobalSuppressMessageAttributeAsync(project, documents, cancellationToken).ConfigureAwait(false);
             return documentsWithOp.Concat(documentsWithGlobalAttributes);
+        }
+
+        private static Task<ImmutableArray<Document>> FindDocumentsAsync(
+            Project project,
+            IImmutableSet<Document>? documents,
+            PredefinedOperator op,
+            CancellationToken cancellationToken)
+        {
+            if (op == PredefinedOperator.None)
+                return SpecializedTasks.EmptyImmutableArray<Document>();
+
+            return FindDocumentsWithPredicateAsync(
+                project, documents, static (index, op) => index.ContainsPredefinedOperator(op), op, cancellationToken);
         }
 
         protected sealed override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(

@@ -28,10 +28,12 @@ internal static class IdeAnalyzerOptionsStorage
             FadeOutUnusedImports = globalOptions.GetOption(FadeOutUnusedImports, language),
             FadeOutUnreachableCode = globalOptions.GetOption(FadeOutUnreachableCode, language),
             FadeOutComplexObjectInitialization = globalOptions.GetOption(FadeOutComplexObjectInitialization, language),
+            FadeOutComplexCollectionInitialization = globalOptions.GetOption(FadeOutComplexCollectionInitialization, language),
             ReportInvalidPlaceholdersInStringDotFormatCalls = globalOptions.GetOption(ReportInvalidPlaceholdersInStringDotFormatCalls, language),
             ReportInvalidRegexPatterns = globalOptions.GetOption(ReportInvalidRegexPatterns, language),
             ReportInvalidJsonPatterns = globalOptions.GetOption(ReportInvalidJsonPatterns, language),
             DetectAndOfferEditorFeaturesForProbableJsonStrings = globalOptions.GetOption(DetectAndOfferEditorFeaturesForProbableJsonStrings, language),
+            PreferSystemHashCode = globalOptions.GetOption(CodeStyleOptions2.PreferSystemHashCode, language),
             CleanCodeGenerationOptions = supportsLanguageSpecificOptions ? globalOptions.GetCleanCodeGenerationOptions(languageServices) : null,
             CodeStyleOptions = supportsLanguageSpecificOptions ? globalOptions.GetCodeStyleOptions(languageServices) : null,
         };

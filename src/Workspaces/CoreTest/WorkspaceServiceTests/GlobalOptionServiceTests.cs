@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
     [UseExportProvider]
     public class GlobalOptionServiceTests
     {
-        private static IGlobalOptionService GetGlobalOptionService(HostWorkspaceServices services, IOptionProvider? optionProvider = null, IOptionPersisterProvider? optionPersisterProvider = null)
+        private static IGlobalOptionService GetGlobalOptionService(HostWorkspaceServices services, IOptionPersisterProvider? optionPersisterProvider = null)
         {
             var mefHostServices = (IMefHostExportProvider)services.HostServices;
             var workspaceThreadingService = mefHostServices.GetExportedValues<IWorkspaceThreadingService>().SingleOrDefault();
@@ -34,16 +34,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
                 workspaceThreadingService,
                 new[]
                 {
-                    new Lazy<IOptionProvider, LanguageMetadata>(() => optionProvider ??= new TestOptionsProvider(), new LanguageMetadata(LanguageNames.CSharp))
-                },
-                new[]
-                {
                     new Lazy<IOptionPersisterProvider>(() => optionPersisterProvider ??= new TestOptionsPersisterProvider())
                 });
         }
 
-        private static ILegacyWorkspaceOptionService GetOptionService(HostWorkspaceServices services, IOptionProvider? optionProvider = null, IOptionPersisterProvider? optionPersisterProvider = null)
-            => new TestService(GetGlobalOptionService(services, optionProvider, optionPersisterProvider));
+        private static ILegacyWorkspaceOptionService GetOptionService(HostWorkspaceServices services, IOptionPersisterProvider? optionPersisterProvider = null)
+            => new TestService(GetGlobalOptionService(services, optionPersisterProvider));
 
         private sealed class TestService : ILegacyWorkspaceOptionService
         {
@@ -170,21 +166,21 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         {
             using var workspace = new AdhocWorkspace();
             var globalOptions = GetGlobalOptionService(workspace.Services);
-            var option1 = new Option<int>("Feature1", "Name1", defaultValue: 1);
-            var option2 = new Option<int>("Feature2", "Name2", defaultValue: 2);
-            var option3 = new Option<int>("Feature3", "Name3", defaultValue: 3);
+            var option1 = new Option2<int>("Feature1", "Name1", defaultValue: 1);
+            var option2 = new Option2<int>("Feature2", "Name2", defaultValue: 2);
+            var option3 = new Option2<int>("Feature3", "Name3", defaultValue: 3);
 
             var changedOptions = new List<OptionChangedEventArgs>();
 
             var handler = new EventHandler<OptionChangedEventArgs>((_, e) => changedOptions.Add(e));
             globalOptions.OptionChanged += handler;
 
-            var values = globalOptions.GetOptions(ImmutableArray.Create<OptionKey>(option1, option2));
+            var values = globalOptions.GetOptions(ImmutableArray.Create(new OptionKey(option1), new OptionKey(option2)));
             Assert.Equal(1, values[0]);
             Assert.Equal(2, values[1]);
 
             globalOptions.SetGlobalOptions(
-                ImmutableArray.Create<OptionKey>(option1, option2, option3),
+                ImmutableArray.Create<OptionKey>(new OptionKey(option1), new OptionKey(option2), new OptionKey(option3)),
                 ImmutableArray.Create<object?>(5, 6, 3));
 
             AssertEx.Equal(new[]
@@ -193,7 +189,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
                 "Name2=6",
             }, changedOptions.Select(e => $"{e.OptionKey.Option.Name}={e.Value}"));
 
-            values = globalOptions.GetOptions(ImmutableArray.Create<OptionKey>(option1, option2, option3));
+            values = globalOptions.GetOptions(ImmutableArray.Create(new OptionKey(option1), new OptionKey(option2), new OptionKey(option3)));
             Assert.Equal(5, values[0]);
             Assert.Equal(6, values[1]);
             Assert.Equal(3, values[2]);
@@ -338,7 +334,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             //  3. IOptionService validation
 
             optionService.GlobalOptions.SetOptions(newOptionSet, ((SolutionOptionSet)newOptionSet).GetChangedOptions());
-            Assert.Equal(newValueCodeStyleOption, optionService.GlobalOptions.GetOption(perLanguageOption, LanguageNames.CSharp));
             Assert.Equal(newValueCodeStyleOption2, optionService.GlobalOptions.GetOption(perLanguageOption2, LanguageNames.CSharp));
         }
 
@@ -385,7 +380,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             //  3. IOptionService validation
             optionService.GlobalOptions.SetOptions(newOptionSet, ((SolutionOptionSet)newOptionSet).GetChangedOptions());
-            Assert.Equal(newValueCodeStyleOption, optionService.GlobalOptions.GetOption(option));
             Assert.Equal(newValueCodeStyleOption2, optionService.GlobalOptions.GetOption(option2));
         }
 

@@ -17,15 +17,15 @@ internal static class DocumentationCommentOptionsStorage
         return new()
         {
             LineFormatting = lineFormattingOptions,
-            AutoXmlDocCommentGeneration = globalOptions.GetOption(AutoXmlDocCommentGeneration, document.Project.Language)
+            AutoXmlDocCommentGeneration = globalOptions.GetOption(AutoXmlDocCommentGeneration, document.Project.Language),
         };
     }
 
-    public static DocumentationCommentOptions GetDocumentationCommentOptions(this IGlobalOptionService globalOptions, SyntaxFormattingOptions formattingOptions, string language)
+    public static DocumentationCommentOptions GetDocumentationCommentOptions(this IGlobalOptionService globalOptions, LineFormattingOptions lineFormatting, string language)
       => new()
       {
-          LineFormatting = formattingOptions.LineFormatting,
-          AutoXmlDocCommentGeneration = globalOptions.GetOption(AutoXmlDocCommentGeneration, language)
+          LineFormatting = lineFormatting,
+          AutoXmlDocCommentGeneration = globalOptions.GetOption(AutoXmlDocCommentGeneration, language),
       };
 
     public static readonly PerLanguageOption2<bool> AutoXmlDocCommentGeneration = new(

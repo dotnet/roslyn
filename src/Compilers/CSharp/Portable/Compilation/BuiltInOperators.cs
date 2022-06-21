@@ -7,6 +7,8 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -25,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         //actual lazily-constructed caches of built-in operators.
         private ImmutableArray<UnaryOperatorSignature>[] _builtInUnaryOperators;
         private ImmutableArray<BinaryOperatorSignature>[][] _builtInOperators;
+        private StrongBox<BinaryOperatorSignature> _builtInUTF8Concatenation;
 
         internal BuiltInOperators(CSharpCompilation compilation)
         {
@@ -682,6 +685,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 operators.Add(op);
             }
+        }
+
+        internal void GetUTF8ConcatenationBuiltInOperator(TypeSymbol readonlySpanOfByte, ArrayBuilder<BinaryOperatorSignature> operators)
+        {
+            Debug.Assert(_compilation.IsReadOnlySpanType(readonlySpanOfByte));
+            Debug.Assert(((NamedTypeSymbol)readonlySpanOfByte).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Single().Type.SpecialType is SpecialType.System_Byte);
+
+            if (_builtInUTF8Concatenation is null)
+            {
+                Interlocked.CompareExchange(ref _builtInUTF8Concatenation,
+                    new StrongBox<BinaryOperatorSignature>(
+                        new BinaryOperatorSignature(BinaryOperatorKind.UTF8Addition, readonlySpanOfByte, readonlySpanOfByte, readonlySpanOfByte)), null);
+            }
+
+            operators.Add(_builtInUTF8Concatenation.Value);
         }
 
         internal BinaryOperatorSignature GetSignature(BinaryOperatorKind kind)
