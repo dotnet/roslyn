@@ -2525,6 +2525,11 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
         <target state="new">Replace conditional expression with statements</target>
         <note />
       </trans-unit>
+      <trans-unit id="Required">
+        <source>required</source>
+        <target state="new">required</target>
+        <note>Used in the object initializer completion.</note>
+      </trans-unit>
       <trans-unit id="Resolve_conflict_markers">
         <source>Resolve conflict markers</source>
         <target state="translated">Résoudre les marqueurs de conflit</target>
