@@ -149,6 +149,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsRemoveUnnecessaryCast = "CodeActions.RemoveUnnecessaryCast";
             public const string CodeActionsRemoveUnnecessaryDiscardDesignation = "CodeActions.RemoveUnnecessaryDiscardDesignation";
             public const string CodeActionsRemoveUnnecessaryImports = "CodeActions.RemoveUnnecessaryImports";
+            public const string CodeActionsRemoveUnnecessaryNullableDirective = "CodeActions.RemoveUnnecessaryNullableDirective";
             public const string CodeActionsRemoveUnnecessaryParentheses = "CodeActions.RemoveUnnecessaryParentheses";
             public const string CodeActionsRemoveUnreachableCode = "CodeActions.RemoveUnreachableCode";
             public const string CodeActionsRemoveUnusedLocalFunction = "CodeActions.RemoveUnusedLocalFunction";
