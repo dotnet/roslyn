@@ -4,6 +4,7 @@ steps:
 
   - script: |
       @echo on
+      set PATH=$(Agent.HomeDirectory)\externals;"%PATH%
       git init
       git remote add origin "$(Build.Repository.Uri)"
       git fetch --progress --no-tags --depth=1 origin "$(Build.SourceVersion)"
