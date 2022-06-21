@@ -108,19 +108,13 @@ namespace Microsoft.VisualStudio.LanguageServices
                 }
             };
 
-            var serializedParams = JToken.FromObject(parameterFactory);
-            JToken ParameterFactory(ITextSnapshot _)
-            {
-                return serializedParams;
-            }
-
             // TODO: proper workaround such that context.ClientCapabilities?.TextDocument?.DocumentSymbol?.HierarchicalDocumentSymbolSupport == true
             return await languageServiceBroker.RequestAsync(
                 textBuffer: textBuffer,
                 method: Methods.TextDocumentDocumentSymbolName,
                 capabilitiesFilter: (JToken x) => true,
                 languageServerName: WellKnownLspServerKinds.AlwaysActiveVSLspServer.ToUserVisibleString(),
-                parameterFactory: ParameterFactory,
+                parameterFactory: _ => JToken.FromObject(parameterFactory),
                 cancellationToken: CancellationToken.None).ConfigureAwait(false);
         }
 
