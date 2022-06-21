@@ -1624,7 +1624,7 @@ class B : Base$$, I
 
         [WorkItem(60935, "https://github.com/dotnet/roslyn/issues/60935")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task BaseList_NotSelfClass()
+        public async Task BaseList_NotSelf()
         {
             await VerifyItemIsAbsentAsync(@"
 class B : $$
@@ -1633,7 +1633,7 @@ class B : $$
 
         [WorkItem(60935, "https://github.com/dotnet/roslyn/issues/60935")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task BaseList_NotSelfClass_NestedClass()
+        public async Task BaseList_NotSelf_NestedClass()
         {
             await VerifyItemIsAbsentAsync(@"
 class B : $$
@@ -1644,7 +1644,7 @@ class B : $$
 
         [WorkItem(60935, "https://github.com/dotnet/roslyn/issues/60935")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task BaseList_SelfClass_NestedInterface()
+        public async Task BaseList_Self_NestedInterface()
         {
             await VerifyItemExistsAsync(@"
 class B : $$
@@ -1820,7 +1820,7 @@ interface I : $$
 
         [WorkItem(60935, "https://github.com/dotnet/roslyn/issues/60935")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task BaseListInterface_NotSelfEvenWithNestedTypes()
+        public async Task BaseListInterface_NotSelf_NestedInterface()
         {
             await VerifyItemIsAbsentAsync(@"
 interface I : $$
@@ -1994,6 +1994,46 @@ record struct B : $$
 
 record struct B : $$
 ", "R");
+        }
+
+        [WorkItem(60935, "https://github.com/dotnet/roslyn/issues/60935")]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("record")]
+        [InlineData("record class")]
+        [InlineData("record struct")]
+        public async Task BaseListAnyRecord_NotSelf(string recordType)
+        {
+            await VerifyItemIsAbsentAsync($@"
+{recordType} B : $$
+", "B");
+        }
+
+        [WorkItem(60935, "https://github.com/dotnet/roslyn/issues/60935")]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [CombinatorialData]
+        public async Task BaseListAnyRecord_NotSelf_NestedRecord(
+            [CombinatorialValues("record", "record class", "record struct")] string recordType1,
+            [CombinatorialValues("record", "record class", "record struct")] string recordType2)
+        {
+            await VerifyItemIsAbsentAsync($@"
+{recordType1} B : $$
+{{
+    {recordType2} R {{}}
+}}", "B");
+        }
+
+        [WorkItem(60935, "https://github.com/dotnet/roslyn/issues/60935")]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("record")]
+        [InlineData("record class")]
+        [InlineData("record struct")]
+        public async Task BaseListAnyRecord_Self_NestedInterface(string recordType)
+        {
+            await VerifyItemExistsAsync($@"
+{recordType} B : $$
+{{
+    interface I {{}}
+}}", "B");
         }
 
         #endregion
