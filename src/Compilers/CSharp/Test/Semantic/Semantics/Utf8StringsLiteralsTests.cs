@@ -3623,7 +3623,7 @@ class C
             CompileAndVerify(comp, expectedOutput: @"called", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void UserDefinedConcatenation_03()
         {
             var source = @"
@@ -3664,12 +3664,12 @@ namespace System
     }
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
 
             CompileAndVerify(comp, expectedOutput: @"called", verify: Verification.Fails).Diagnostics.Where(d => d.Code is not (int)ErrorCode.WRN_SameFullNameThisAggAgg).Verify();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void UserDefinedConcatenation_04()
         {
             var source = @"
@@ -3710,12 +3710,12 @@ namespace System
     }
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
 
             CompileAndVerify(comp, expectedOutput: @"called", verify: Verification.Fails).Diagnostics.Where(d => d.Code is not (int)ErrorCode.WRN_SameFullNameThisAggAgg).Verify();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void UserDefinedConcatenation_05()
         {
             var source = @"
@@ -3754,12 +3754,12 @@ namespace System
     }
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
 
             CompileAndVerify(comp, expectedOutput: @"called", verify: Verification.Fails).Diagnostics.Where(d => d.Code is not (int)ErrorCode.WRN_SameFullNameThisAggAgg).Verify();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void UserDefinedConcatenation_06()
         {
             var source = @"
@@ -3797,7 +3797,7 @@ namespace System
     }
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
 
             CompileAndVerify(comp, expectedOutput: @"called", verify: Verification.Fails).Diagnostics.Where(d => d.Code is not (int)ErrorCode.WRN_SameFullNameThisAggAgg).Verify();
         }
