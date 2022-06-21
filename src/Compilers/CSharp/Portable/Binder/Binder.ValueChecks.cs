@@ -1891,7 +1891,6 @@ moreArguments:
             return effectiveRefKind;
         }
 
-        // PROTOTYPE: Optional parameters are generated in binding now. Can TryGetUnmatchedInParameterAndFreeMatchedArgs() be removed?
         /// <summary>
         /// Gets a "in" parameter for which there is no argument supplied, if such exists. 
         /// That indicates an optional "in" parameter. We treat it as an RValue passed by reference via a temporary.
