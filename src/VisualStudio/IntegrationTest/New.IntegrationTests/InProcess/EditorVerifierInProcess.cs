@@ -245,36 +245,6 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
                 string.Join(Environment.NewLine, actualTags));
         }
 
-        public async Task VerifyActiveViewIsInMetadataWorkspaceAsync(CancellationToken cancellationToken)
-        {
-            var activeView = await TestServices.Editor.GetActiveTextViewAsync(cancellationToken);
-            var currentSnapshot = activeView.TextBuffer.CurrentSnapshot;
-            var document = currentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document is not null)
-            {
-                Assert.True(document.Project.Solution.Workspace.Kind is WorkspaceKind.MetadataAsSource);
-                return;
-            }
-
-            Assert.True(false, $"Can't find document for the snapshot");
-            throw ExceptionUtilities.Unreachable;
-        }
-
-        public async Task VerifyActiveViewIsNotInMetadataWorkspaceAsync(CancellationToken cancellationToken)
-        {
-            var activeView = await TestServices.Editor.GetActiveTextViewAsync(cancellationToken);
-            var currentSnapshot = activeView.TextBuffer.CurrentSnapshot;
-            var document = currentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document is not null)
-            {
-                Assert.True(document.Project.Solution.Workspace.Kind is not WorkspaceKind.MetadataAsSource);
-                return;
-            }
-
-            Assert.True(false, $"Can't find document for the snapshot");
-            throw ExceptionUtilities.Unreachable;
-        }
-
         private static WorkspaceEventRestorer WithWorkspaceChangedHandler(Workspace workspace, EventHandler<WorkspaceChangeEventArgs> eventHandler)
         {
             workspace.WorkspaceChanged += eventHandler;

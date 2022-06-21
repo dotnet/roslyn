@@ -118,7 +118,10 @@ class Implementation : IEnumerable
             // Navigate to 'IEnumerable'
             await TestServices.Input.SendAsync(VirtualKey.Enter);
             await TestServices.EditorVerifier.TextContainsAsync(@"public interface IEnumerable$$", assertCaretPosition: true);
-            await TestServices.EditorVerifier.VerifyActiveViewIsInMetadataWorkspaceAsync(HangMitigatingCancellationToken);
+
+            var document = await TestServices.Editor.GetActiveDocumentAsync(HangMitigatingCancellationToken);
+            RoslynDebug.AssertNotNull(document);
+            Assert.Equal(WorkspaceKind.MetadataAsSource, document.Project.Solution.Workspace.Kind);
         }
 
         [IdeFact]
@@ -156,7 +159,10 @@ class Implementation : IBar
             // Navigate to 'IBar'
             await TestServices.Input.SendAsync(VirtualKey.Enter);
             await TestServices.EditorVerifier.TextContainsAsync(@"Public Interface IBar$$", assertCaretPosition: true);
-            await TestServices.EditorVerifier.VerifyActiveViewIsNotInMetadataWorkspaceAsync(HangMitigatingCancellationToken);
+
+            var document = await TestServices.Editor.GetActiveDocumentAsync(HangMitigatingCancellationToken);
+            RoslynDebug.AssertNotNull(document);
+            Assert.NotEqual(WorkspaceKind.MetadataAsSource, document.Project.Solution.Workspace.Kind);
         }
     }
 }

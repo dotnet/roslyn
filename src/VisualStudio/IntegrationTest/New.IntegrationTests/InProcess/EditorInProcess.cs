@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Editor;
@@ -21,6 +22,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.GoToBase;
 using Microsoft.CodeAnalysis.GoToImplementation;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Editor;
@@ -104,6 +106,14 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             {
                 throw new InvalidOperationException("Unsupported document");
             }
+        }
+
+        public async Task<Document?> GetActiveDocumentAsync(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var view = await GetActiveTextViewAsync(cancellationToken);
+            return view.TextBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
         }
 
         public async Task SetTextAsync(string text, CancellationToken cancellationToken)
