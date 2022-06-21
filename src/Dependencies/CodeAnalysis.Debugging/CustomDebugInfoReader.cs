@@ -324,24 +324,6 @@ namespace Microsoft.CodeAnalysis.Debugging
         }
 
         /// <summary>
-        /// Returns the raw bytes of a record.
-        /// </summary>
-        private static void ReadRawRecordBody(byte[] bytes, ref int offset, int size, out ImmutableArray<byte> body)
-        {
-            var bodySize = size - CustomDebugInfoConstants.RecordHeaderSize;
-            body = ImmutableArray.Create(bytes, offset, bodySize);
-            offset += bodySize;
-        }
-
-        /// <summary>
-        /// Skips past a record.
-        /// </summary>
-        private static void SkipRecord(byte[] bytes, ref int offset, int size)
-        {
-            offset += size - CustomDebugInfoConstants.RecordHeaderSize;
-        }
-
-        /// <summary>
         /// Get the import strings for a given method, following forward pointers as necessary.
         /// </summary>
         /// <returns>
@@ -527,14 +509,6 @@ RETRY:
             }
 
             return importStrings;
-        }
-
-        private static void CheckVersion(byte globalVersion, int methodToken)
-        {
-            if (globalVersion != CustomDebugInfoConstants.Version)
-            {
-                throw new InvalidOperationException(string.Format("Method {0}: Expected version {1}, but found version {2}.", FormatMethodToken(methodToken), CustomDebugInfoConstants.Version, globalVersion));
-            }
         }
 
         private static int ReadInt32(ImmutableArray<byte> bytes, ref int offset)

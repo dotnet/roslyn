@@ -4,13 +4,16 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.InheritanceMargin;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -20,16 +23,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
     [UseExportProvider]
     public class InheritanceMarginTests
     {
-        private const string SearchAreaTag = "SeachTag";
+        private const string SearchAreaTag = nameof(SearchAreaTag);
+        private static readonly TestComposition s_inProcessComposition = EditorTestCompositions.EditorFeatures;
+        private static readonly TestComposition s_outOffProcessComposition = s_inProcessComposition.WithTestHostParts(TestHost.OutOfProcess);
 
         #region Helpers
 
-        private static Task VerifyNoItemForDocumentAsync(string markup, string languageName)
-            => VerifyInSingleDocumentAsync(markup, languageName);
+        private static Task VerifyNoItemForDocumentAsync(string markup, string languageName, TestHost testHost)
+            => VerifyInSingleDocumentAsync(markup, languageName, testHost);
 
-        private static Task VerifyInSingleDocumentAsync(
+        private static async Task VerifyInSingleDocumentAsync(
             string markup,
             string languageName,
+            TestHost testHost,
             params TestInheritanceMemberItem[] memberItems)
         {
             markup = @$"<![CDATA[
@@ -48,10 +54,39 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
 
             using var testWorkspace = TestWorkspace.Create(
                 workspaceFile,
-                composition: EditorTestCompositions.EditorFeatures);
+                composition: testHost == TestHost.InProcess ? s_inProcessComposition : s_outOffProcessComposition);
 
             var testHostDocument = testWorkspace.Documents[0];
-            return VerifyTestMemberInDocumentAsync(testWorkspace, testHostDocument, memberItems, cancellationToken);
+            await VerifyTestMemberInDocumentAsync(testWorkspace, testHostDocument, memberItems, cancellationToken).ConfigureAwait(false);
+        }
+
+        private static async Task VerifyInMultipleDocumentsAsync(
+            string markup1,
+            string markup2,
+            string languageName,
+            TestHost testHost,
+            params TestInheritanceMemberItem[] memberItems)
+        {
+            var workspaceFile = $@"
+<Workspace>
+   <Project Language=""{languageName}"" CommonReferences=""true"">
+       <Document>
+            <![CDATA[{markup1}]]>
+       </Document>
+       <Document>
+            <![CDATA[{markup2}]]>
+       </Document>
+   </Project>
+</Workspace>";
+
+            var cancellationToken = CancellationToken.None;
+
+            using var testWorkspace = TestWorkspace.Create(
+                workspaceFile,
+                composition: testHost == TestHost.InProcess ? s_inProcessComposition : s_outOffProcessComposition);
+
+            var testHostDocument = testWorkspace.Documents[0];
+            await VerifyTestMemberInDocumentAsync(testWorkspace, testHostDocument, memberItems, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task VerifyTestMemberInDocumentAsync(
@@ -73,6 +108,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
             var actualItems = await service.GetInheritanceMemberItemsAsync(
                 document,
                 searchingSpan,
+                includeGlobalImports: true,
+                frozenPartialSemantics: true,
                 cancellationToken).ConfigureAwait(false);
 
             var sortedActualItems = actualItems.OrderBy(item => item.LineNumber).ToImmutableArray();
@@ -94,21 +131,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
                 .Select(info => TestInheritanceTargetItem.Create(info, testWorkspace))
                 .OrderBy(target => target.TargetSymbolName)
                 .ToImmutableArray();
-            var sortedActualTargets = actualItem.TargetItems.OrderBy(t => t.DisplayName).ThenBy(t => t.LanguageName).ThenBy(t => t.ProjectName ?? "")
-                .ToImmutableArray();
+
             for (var i = 0; i < expectedTargets.Length; i++)
-            {
-                await VerifyInheritanceTargetAsync(expectedTargets[i], sortedActualTargets[i]);
-            }
+                await VerifyInheritanceTargetAsync(testWorkspace, expectedTargets[i], actualItem.TargetItems[i]);
         }
 
-        private static async Task VerifyInheritanceTargetAsync(TestInheritanceTargetItem expectedTarget, InheritanceTargetItem actualTarget)
+        private static async Task VerifyInheritanceTargetAsync(Workspace workspace, TestInheritanceTargetItem expectedTarget, InheritanceTargetItem actualTarget)
         {
             Assert.Equal(expectedTarget.TargetSymbolName, actualTarget.DisplayName);
             Assert.Equal(expectedTarget.RelationshipToMember, actualTarget.RelationToMember);
 
-            if (expectedTarget.LanguageName != null)
-                Assert.Equal(expectedTarget.LanguageName, actualTarget.LanguageName);
+            if (expectedTarget.LanguageGlyph != null)
+                Assert.Equal(expectedTarget.LanguageGlyph, actualTarget.LanguageGlyph);
 
             if (expectedTarget.ProjectName != null)
                 Assert.Equal(expectedTarget.ProjectName, actualTarget.ProjectName);
@@ -125,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
                 Assert.Equal(expectedDocumentSpans.Length, actualDocumentSpans.Length);
                 for (var i = 0; i < actualDocumentSpans.Length; i++)
                 {
-                    var docSpan = await actualDocumentSpans[i].TryRehydrateAsync(CancellationToken.None);
+                    var docSpan = await actualDocumentSpans[i].TryRehydrateAsync(workspace.CurrentSolution, CancellationToken.None);
                     Assert.Equal(expectedDocumentSpans[i].SourceSpan, docSpan.Value.SourceSpan);
                     Assert.Equal(expectedDocumentSpans[i].Document.FilePath, docSpan.Value.Document.FilePath);
                 }
@@ -148,7 +182,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
             (string markupInProject1, string languageName) markup1,
             (string markupInProject2, string languageName) markup2,
             TestInheritanceMemberItem[] memberItemsInMarkup1,
-            TestInheritanceMemberItem[] memberItemsInMarkup2)
+            TestInheritanceMemberItem[] memberItemsInMarkup2,
+            TestHost testHost)
         {
             var workspaceFile =
                 $@"
@@ -171,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
             var cancellationToken = CancellationToken.None;
             using var testWorkspace = TestWorkspace.Create(
                 workspaceFile,
-                composition: EditorTestCompositions.EditorFeatures);
+                composition: testHost == TestHost.InProcess ? s_inProcessComposition : s_outOffProcessComposition);
 
             var testHostDocument1 = testWorkspace.Documents.Single(doc => doc.Project.AssemblyName.Equals("Assembly1"));
             var testHostDocument2 = testWorkspace.Documents.Single(doc => doc.Project.AssemblyName.Equals("Assembly2"));
@@ -202,20 +237,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
             public readonly ImmutableArray<string> LocationTags;
             public readonly InheritanceRelationship Relationship;
             public readonly bool InMetadata;
-            public readonly string? LanguageName;
+            public readonly Glyph? LanguageGlyph;
             public readonly string? ProjectName;
 
             public TargetInfo(
                 string targetSymbolDisplayName,
                 string locationTag,
                 InheritanceRelationship relationship,
-                string? languageName = null,
+                Glyph? languageGlyph = null,
                 string? projectName = null)
             {
                 TargetSymbolDisplayName = targetSymbolDisplayName;
                 LocationTags = ImmutableArray.Create(locationTag);
                 Relationship = relationship;
-                LanguageName = languageName;
+                LanguageGlyph = languageGlyph;
                 InMetadata = false;
                 ProjectName = projectName;
             }
@@ -248,7 +283,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
             public readonly InheritanceRelationship RelationshipToMember;
             public readonly ImmutableArray<DocumentSpan> DocumentSpans;
             public readonly bool IsInMetadata;
-            public readonly string? LanguageName;
+            public readonly Glyph? LanguageGlyph;
             public readonly string? ProjectName;
 
             public TestInheritanceTargetItem(
@@ -256,14 +291,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
                 InheritanceRelationship relationshipToMember,
                 ImmutableArray<DocumentSpan> documentSpans,
                 bool isInMetadata,
-                string? languageName,
+                Glyph? languageGlyph,
                 string? projectName)
             {
                 TargetSymbolName = targetSymbolName;
                 RelationshipToMember = relationshipToMember;
                 DocumentSpans = documentSpans;
                 IsInMetadata = isInMetadata;
-                LanguageName = languageName;
+                LanguageGlyph = languageGlyph;
                 ProjectName = projectName;
             }
 
@@ -278,7 +313,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
                         targetInfo.Relationship,
                         ImmutableArray<DocumentSpan>.Empty,
                         isInMetadata: true,
-                        targetInfo.LanguageName,
+                        targetInfo.LanguageGlyph,
                         targetInfo.ProjectName);
                 }
                 else
@@ -308,7 +343,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
                         targetInfo.Relationship,
                         builder.ToImmutable(),
                         isInMetadata: false,
-                        targetInfo.LanguageName,
+                        targetInfo.LanguageGlyph,
                         targetInfo.ProjectName);
                 }
             }
@@ -318,18 +353,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
 
         #region TestsForCSharp
 
-        [Fact]
-        public Task TestCSharpClassWithErrorBaseType()
+        [Theory, CombinatorialData]
+        public Task TestCSharpClassWithErrorBaseType(TestHost testHost)
         {
             var markup = @"
 public class Bar : SomethingUnknown
 {
 }";
-            return VerifyNoItemForDocumentAsync(markup, LanguageNames.CSharp);
+            return VerifyNoItemForDocumentAsync(markup, LanguageNames.CSharp, testHost);
         }
 
-        [Fact]
-        public Task TestCSharpReferencingMetadata()
+        [Theory, CombinatorialData]
+        public Task TestCSharpReferencingMetadata(TestHost testHost)
         {
             var markup = @"
 using System.Collections;
@@ -353,11 +388,11 @@ public class Bar : IEnumerable
                         relationship: InheritanceRelationship.ImplementedMember,
                         inMetadata: true)));
 
-            return VerifyInSingleDocumentAsync(markup, LanguageNames.CSharp, itemForBar, itemForGetEnumerator);
+            return VerifyInSingleDocumentAsync(markup, LanguageNames.CSharp, testHost, itemForBar, itemForGetEnumerator);
         }
 
-        [Fact]
-        public Task TestCSharpClassImplementingInterface()
+        [Theory, CombinatorialData]
+        public Task TestCSharpClassImplementingInterface(TestHost testHost)
         {
             var markup = @"
 interface {|target1:IBar|} { }
@@ -385,12 +420,13 @@ public class {|target2:Bar|} : IBar
             return VerifyInSingleDocumentAsync(
                 markup,
                 LanguageNames.CSharp,
+                testHost,
                 itemOnLine2,
                 itemOnLine3);
         }
 
-        [Fact]
-        public Task TestCSharpInterfaceImplementingInterface()
+        [Theory, CombinatorialData]
+        public Task TestCSharpInterfaceImplementingInterface(TestHost testHost)
         {
             var markup = @"
         interface {|target1:IBar|} { }
@@ -418,12 +454,13 @@ public class {|target2:Bar|} : IBar
             return VerifyInSingleDocumentAsync(
                 markup,
                 LanguageNames.CSharp,
+                testHost,
                 itemOnLine2,
                 itemOnLine3);
         }
 
-        [Fact]
-        public Task TestCSharpClassInheritsClass()
+        [Theory, CombinatorialData]
+        public Task TestCSharpClassInheritsClass(TestHost testHost)
         {
             var markup = @"
         class {|target2:A|} { }
@@ -450,30 +487,39 @@ public class {|target2:Bar|} : IBar
             return VerifyInSingleDocumentAsync(
                 markup,
                 LanguageNames.CSharp,
+                testHost,
                 itemOnLine2,
                 itemOnLine3);
         }
 
         [Theory]
-        [InlineData("class")]
-        [InlineData("struct")]
-        [InlineData("enum")]
-        [InlineData("interface")]
-        public Task TestCSharpTypeWithoutBaseType(string typeName)
+        [InlineData("class", TestHost.InProcess)]
+        [InlineData("class", TestHost.OutOfProcess)]
+        [InlineData("struct", TestHost.InProcess)]
+        [InlineData("struct", TestHost.OutOfProcess)]
+        [InlineData("enum", TestHost.InProcess)]
+        [InlineData("enum", TestHost.OutOfProcess)]
+        [InlineData("interface", TestHost.InProcess)]
+        [InlineData("interface", TestHost.OutOfProcess)]
+        public Task TestCSharpTypeWithoutBaseType(string typeName, TestHost testHost)
         {
             var markup = $@"
         public {typeName} Bar
         {{
         }}";
-            return VerifyNoItemForDocumentAsync(markup, LanguageNames.CSharp);
+            return VerifyNoItemForDocumentAsync(markup, LanguageNames.CSharp, testHost);
         }
 
         [Theory]
-        [InlineData("public Bar() { }")]
-        [InlineData("public static void Bar3() { }")]
-        [InlineData("public static void ~Bar() { }")]
-        [InlineData("public static Bar operator +(Bar a, Bar b) => new Bar();")]
-        public Task TestCSharpSpecialMember(string memberDeclaration)
+        [InlineData("public Bar() { }", TestHost.InProcess)]
+        [InlineData("public Bar() { }", TestHost.OutOfProcess)]
+        [InlineData("public static void Bar3() { }", TestHost.InProcess)]
+        [InlineData("public static void Bar3() { }", TestHost.OutOfProcess)]
+        [InlineData("public static void ~Bar() { }", TestHost.InProcess)]
+        [InlineData("public static void ~Bar() { }", TestHost.OutOfProcess)]
+        [InlineData("public static Bar operator +(Bar a, Bar b) => new Bar();", TestHost.InProcess)]
+        [InlineData("public static Bar operator +(Bar a, Bar b) => new Bar();", TestHost.OutOfProcess)]
+        public Task TestCSharpSpecialMember(string memberDeclaration, TestHost testHost)
         {
             var markup = $@"
         public abstract class {{|target1:Bar1|}}
@@ -485,6 +531,7 @@ public class {|target2:Bar|} : IBar
             return VerifyInSingleDocumentAsync(
                 markup,
                 LanguageNames.CSharp,
+                testHost,
                 new TestInheritanceMemberItem(
                     lineNumber: 4,
                     memberName: "class Bar",
@@ -495,8 +542,8 @@ public class {|target2:Bar|} : IBar
                             relationship: InheritanceRelationship.BaseType))));
         }
 
-        [Fact]
-        public Task TestCSharpEventDeclaration()
+        [Theory, CombinatorialData]
+        public Task TestCSharpEventDeclaration(TestHost testHost)
         {
             var markup = @"
         using System;
@@ -546,14 +593,15 @@ public class {|target2:Bar|} : IBar
             return VerifyInSingleDocumentAsync(
                 markup,
                 LanguageNames.CSharp,
+                testHost,
                 itemForIBar,
                 itemForBar,
                 itemForEventInInterface,
                 itemForEventInClass);
         }
 
-        [Fact]
-        public Task TestCSharpEventFieldDeclarations()
+        [Theory, CombinatorialData]
+        public Task TestCSharpEventFieldDeclarations(TestHost testHost)
         {
             var markup = @"using System;
         interface {|target2:IBar|}
@@ -615,6 +663,7 @@ public class {|target2:Bar|} : IBar
             return VerifyInSingleDocumentAsync(
                 markup,
                 LanguageNames.CSharp,
+                testHost,
                 itemForIBar,
                 itemForBar,
                 itemForE1InInterface,
@@ -623,8 +672,8 @@ public class {|target2:Bar|} : IBar
                 itemForE2InClass);
         }
 
-        [Fact]
-        public Task TestCSharpInterfaceMembers()
+        [Theory, CombinatorialData]
+        public Task TestCSharpInterfaceMembers(TestHost testHost)
         {
             var markup = @"using System;
         interface {|target1:IBar|}
@@ -734,6 +783,7 @@ public class {|target2:Bar|} : IBar
             return VerifyInSingleDocumentAsync(
                 markup,
                 LanguageNames.CSharp,
+                testHost,
                 itemForEooInClass,
                 itemForEooInInterface,
                 itemForPooInInterface,
@@ -747,9 +797,11 @@ public class {|target2:Bar|} : IBar
         }
 
         [Theory]
-        [InlineData("abstract")]
-        [InlineData("virtual")]
-        public Task TestCSharpAbstractClassMembers(string modifier)
+        [InlineData("abstract", TestHost.InProcess)]
+        [InlineData("abstract", TestHost.OutOfProcess)]
+        [InlineData("virtual", TestHost.InProcess)]
+        [InlineData("virtual", TestHost.OutOfProcess)]
+        public Task TestCSharpAbstractClassMembers(string modifier, TestHost testHost)
         {
             var markup = $@"using System;
         public abstract class {{|target2:Bar|}}
@@ -833,6 +885,7 @@ public class {|target2:Bar|} : IBar
             return VerifyInSingleDocumentAsync(
                 markup,
                 LanguageNames.CSharp,
+                testHost,
                 itemForBar,
                 itemForBar2,
                 itemForFooInAbstractClass,
@@ -845,7 +898,7 @@ public class {|target2:Bar|} : IBar
 
         [Theory]
         [CombinatorialData]
-        public Task TestCSharpOverrideMemberCanFindImplementingInterface(bool testDuplicate)
+        public Task TestCSharpOverrideMemberCanFindImplementingInterface(bool testDuplicate, TestHost testHost)
         {
             var markup1 = @"using System;
         public interface {|target4:IBar|}
@@ -951,6 +1004,7 @@ public class {|target2:Bar|} : IBar
             return VerifyInSingleDocumentAsync(
                 testDuplicate ? markup2 : markup1,
                 LanguageNames.CSharp,
+                testHost,
                 itemForIBar,
                 itemForFooInIBar,
                 itemForBar1,
@@ -959,8 +1013,8 @@ public class {|target2:Bar|} : IBar
                 itemForFooInBar2);
         }
 
-        [Fact]
-        public Task TestCSharpFindGenericsBaseType()
+        [Theory, CombinatorialData]
+        public Task TestCSharpFindGenericsBaseType(TestHost testHost)
         {
             var markup = @"
 public interface {|target2:IBar|}<T>
@@ -1010,14 +1064,15 @@ public class {|target1:Bar2|} : IBar<int>, IBar<string>
             return VerifyInSingleDocumentAsync(
                 markup,
                 LanguageNames.CSharp,
+                testHost,
                 itemForIBar,
                 itemForFooInIBar,
                 itemForBar2,
                 itemForFooInBar2);
         }
 
-        [Fact]
-        public Task TestCSharpExplicitInterfaceImplementation()
+        [Theory, CombinatorialData]
+        public Task TestCSharpExplicitInterfaceImplementation(TestHost testHost)
         {
             var markup = @"
 interface {|target2:IBar|}<T>
@@ -1068,14 +1123,15 @@ abstract class {|target1:AbsBar|} : IBar<int>
             return VerifyInSingleDocumentAsync(
                 markup,
                 LanguageNames.CSharp,
+                testHost,
                 itemForIBar,
                 itemForFooInIBar,
                 itemForAbsBar,
                 itemForFooInAbsBar);
         }
 
-        [Fact]
-        public Task TestStaticAbstractMemberInterface()
+        [Theory, CombinatorialData]
+        public Task TestStaticAbstractMemberInterface(TestHost testHost)
         {
             var markup = @"
 interface {|target5:I1|}<T> where T : I1<T>
@@ -1194,6 +1250,7 @@ public class {|target1:Class1|} : I1<Class1>
             return VerifyInSingleDocumentAsync(
                 markup,
                 LanguageNames.CSharp,
+                testHost,
                 itemForI1,
                 itemForAbsClass1,
                 itemForM1InI1,
@@ -1208,8 +1265,8 @@ public class {|target1:Class1|} : I1<Class1>
                 itemForIntOperatorInClass1);
         }
 
-        [Fact]
-        public Task TestCSharpPartialClass()
+        [Theory, CombinatorialData]
+        public Task TestCSharpPartialClass(TestHost testHost)
         {
             var markup = @"
 interface {|target1:IBar|}
@@ -1252,17 +1309,95 @@ public partial class {|target3:Bar|}
             return VerifyInSingleDocumentAsync(
                 markup,
                 LanguageNames.CSharp,
+                testHost,
                 itemOnLine2,
                 itemOnLine6,
                 itemOnLine10);
+        }
+
+        [Theory, CombinatorialData]
+        public Task TestEmptyFileSingleGlobalImportInOtherFile(TestHost testHost)
+        {
+            var markup1 = @"";
+            var markup2 = @"{|target1:global using System;|}";
+
+            return VerifyInMultipleDocumentsAsync(
+                markup1, markup2, LanguageNames.CSharp,
+                testHost,
+                new TestInheritanceMemberItem(
+                lineNumber: 0,
+                memberName: string.Format(FeaturesResources.Directives_from_0, "Test2.cs"),
+                targets: ImmutableArray.Create(new TargetInfo(
+                    targetSymbolDisplayName: "System",
+                    relationship: InheritanceRelationship.InheritedImport, "target1"))));
+        }
+
+        [Theory, CombinatorialData]
+        public Task TestEmptyFileMultipleGlobalImportInOtherFile(TestHost testHost)
+        {
+            var markup1 = @"";
+            var markup2 = @"
+{|target1:global using System;|}
+{|target2:global using System.Collections;|}";
+
+            return VerifyInMultipleDocumentsAsync(
+                markup1, markup2, LanguageNames.CSharp,
+                testHost,
+                new TestInheritanceMemberItem(
+                lineNumber: 0,
+                memberName: string.Format(FeaturesResources.Directives_from_0, "Test2.cs"),
+                targets: ImmutableArray.Create(
+                    new TargetInfo(
+                        targetSymbolDisplayName: "System",
+                        relationship: InheritanceRelationship.InheritedImport, "target1"),
+                    new TargetInfo(
+                        targetSymbolDisplayName: "System.Collections",
+                        relationship: InheritanceRelationship.InheritedImport, "target2"))));
+        }
+
+        [Theory, CombinatorialData]
+        public Task TestFileWithUsing_SingleGlobalImportInOtherFile(TestHost testHost)
+        {
+            var markup1 = @"
+using System.Collections;";
+            var markup2 = @"{|target1:global using System;|}";
+
+            return VerifyInMultipleDocumentsAsync(
+                markup1, markup2, LanguageNames.CSharp,
+                testHost,
+                new TestInheritanceMemberItem(
+                lineNumber: 1,
+                memberName: string.Format(FeaturesResources.Directives_from_0, "Test2.cs"),
+                targets: ImmutableArray.Create(new TargetInfo(
+                    targetSymbolDisplayName: "System",
+                    relationship: InheritanceRelationship.InheritedImport, "target1"))));
+        }
+
+        [Theory, CombinatorialData]
+        public Task TestIgnoreGlobalImportFromSameFile(TestHost testHost)
+        {
+            var markup1 = @"
+global using System.Collections.Generic;
+using System.Collections;";
+            var markup2 = @"{|target1:global using System;|}";
+
+            return VerifyInMultipleDocumentsAsync(
+                markup1, markup2, LanguageNames.CSharp,
+                testHost,
+                new TestInheritanceMemberItem(
+                lineNumber: 1,
+                memberName: string.Format(FeaturesResources.Directives_from_0, "Test2.cs"),
+                targets: ImmutableArray.Create(new TargetInfo(
+                    targetSymbolDisplayName: "System",
+                    relationship: InheritanceRelationship.InheritedImport, "target1"))));
         }
 
         #endregion
 
         #region TestsForVisualBasic
 
-        [Fact]
-        public Task TestVisualBasicWithErrorBaseType()
+        [Theory, CombinatorialData]
+        public Task TestVisualBasicWithErrorBaseType(TestHost testHost)
         {
             var markup = @"
         Namespace MyNamespace
@@ -1271,11 +1406,11 @@ public partial class {|target3:Bar|}
             End Class
         End Namespace";
 
-            return VerifyNoItemForDocumentAsync(markup, LanguageNames.VisualBasic);
+            return VerifyNoItemForDocumentAsync(markup, LanguageNames.VisualBasic, testHost);
         }
 
-        [Fact]
-        public Task TestVisualBasicReferencingMetadata()
+        [Theory, CombinatorialData]
+        public Task TestVisualBasicReferencingMetadata(TestHost testHost)
         {
             var markup = @"
         Namespace MyNamespace
@@ -1302,11 +1437,11 @@ public partial class {|target3:Bar|}
                         relationship: InheritanceRelationship.ImplementedMember,
                         inMetadata: true)));
 
-            return VerifyInSingleDocumentAsync(markup, LanguageNames.VisualBasic, itemForBar, itemForGetEnumerator);
+            return VerifyInSingleDocumentAsync(markup, LanguageNames.VisualBasic, testHost, itemForBar, itemForGetEnumerator);
         }
 
-        [Fact]
-        public Task TestVisualBasicClassImplementingInterface()
+        [Theory, CombinatorialData]
+        public Task TestVisualBasicClassImplementingInterface(TestHost testHost)
         {
             var markup = @"
         Interface {|target2:IBar|}
@@ -1333,12 +1468,13 @@ public partial class {|target3:Bar|}
             return VerifyInSingleDocumentAsync(
                 markup,
                 LanguageNames.VisualBasic,
+                testHost,
                 itemForIBar,
                 itemForBar);
         }
 
-        [Fact]
-        public Task TestVisualBasicInterfaceImplementingInterface()
+        [Theory, CombinatorialData]
+        public Task TestVisualBasicInterfaceImplementingInterface(TestHost testHost)
         {
             var markup = @"
         Interface {|target2:IBar2|}
@@ -1362,11 +1498,11 @@ public partial class {|target3:Bar|}
                     targetSymbolDisplayName: "IBar2",
                     locationTag: "target2",
                     relationship: InheritanceRelationship.InheritedInterface)));
-            return VerifyInSingleDocumentAsync(markup, LanguageNames.VisualBasic, itemForIBar2, itemForIBar);
+            return VerifyInSingleDocumentAsync(markup, LanguageNames.VisualBasic, testHost, itemForIBar2, itemForIBar);
         }
 
-        [Fact]
-        public Task TestVisualBasicClassInheritsClass()
+        [Theory, CombinatorialData]
+        public Task TestVisualBasicClassInheritsClass(TestHost testHost)
         {
             var markup = @"
         Class {|target2:Bar2|}
@@ -1390,25 +1526,29 @@ public partial class {|target3:Bar|}
                     targetSymbolDisplayName: "Bar2",
                     locationTag: "target2",
                     relationship: InheritanceRelationship.BaseType)));
-            return VerifyInSingleDocumentAsync(markup, LanguageNames.VisualBasic, itemForBar2, itemForBar);
+            return VerifyInSingleDocumentAsync(markup, LanguageNames.VisualBasic, testHost, itemForBar2, itemForBar);
         }
 
         [Theory]
-        [InlineData("Class")]
-        [InlineData("Structure")]
-        [InlineData("Enum")]
-        [InlineData("Interface")]
-        public Task TestVisualBasicTypeWithoutBaseType(string typeName)
+        [InlineData("Class", TestHost.InProcess)]
+        [InlineData("Class", TestHost.OutOfProcess)]
+        [InlineData("Structure", TestHost.InProcess)]
+        [InlineData("Structure", TestHost.OutOfProcess)]
+        [InlineData("Enum", TestHost.InProcess)]
+        [InlineData("Enum", TestHost.OutOfProcess)]
+        [InlineData("Interface", TestHost.InProcess)]
+        [InlineData("Interface", TestHost.OutOfProcess)]
+        public Task TestVisualBasicTypeWithoutBaseType(string typeName, TestHost testHost)
         {
             var markup = $@"
         {typeName} Bar
         End {typeName}";
 
-            return VerifyNoItemForDocumentAsync(markup, LanguageNames.VisualBasic);
+            return VerifyNoItemForDocumentAsync(markup, LanguageNames.VisualBasic, testHost);
         }
 
-        [Fact]
-        public Task TestVisualBasicMetadataInterface()
+        [Theory, CombinatorialData]
+        public Task TestVisualBasicMetadataInterface(TestHost testHost)
         {
             var markup = @"
         Imports System.Collections
@@ -1418,6 +1558,14 @@ public partial class {|target3:Bar|}
             return VerifyInSingleDocumentAsync(
                 markup,
                 LanguageNames.VisualBasic,
+                testHost,
+                new TestInheritanceMemberItem(
+                    lineNumber: 2,
+                    memberName: VBFeaturesResources.Project_level_Imports,
+                    targets: ImmutableArray.Create(
+                        new TargetInfo("System", InheritanceRelationship.InheritedImport),
+                        new TargetInfo("System.Collections.Generic", InheritanceRelationship.InheritedImport),
+                        new TargetInfo("System.Linq", InheritanceRelationship.InheritedImport))),
                 new TestInheritanceMemberItem(
                     lineNumber: 3,
                     memberName: "Class Bar",
@@ -1428,8 +1576,8 @@ public partial class {|target3:Bar|}
                             inMetadata: true))));
         }
 
-        [Fact]
-        public Task TestVisualBasicEventStatement()
+        [Theory, CombinatorialData]
+        public Task TestVisualBasicEventStatement(TestHost testHost)
         {
             var markup = @"
         Interface {|target2:IBar|}
@@ -1475,14 +1623,15 @@ public partial class {|target3:Bar|}
             return VerifyInSingleDocumentAsync(
                 markup,
                 LanguageNames.VisualBasic,
+                testHost,
                 itemForIBar,
                 itemForBar,
                 itemForEventInInterface,
                 itemForEventInClass);
         }
 
-        [Fact]
-        public Task TestVisualBasicEventBlock()
+        [Theory, CombinatorialData]
+        public Task TestVisualBasicEventBlock(TestHost testHost)
         {
             var markup = @"
         Interface {|target2:IBar|}
@@ -1528,14 +1677,15 @@ public partial class {|target3:Bar|}
             return VerifyInSingleDocumentAsync(
                 markup,
                 LanguageNames.VisualBasic,
+                testHost,
                 itemForIBar,
                 itemForBar,
                 itemForEventInInterface,
                 itemForEventInClass);
         }
 
-        [Fact]
-        public Task TestVisualBasicInterfaceMembers()
+        [Theory, CombinatorialData]
+        public Task TestVisualBasicInterfaceMembers(TestHost testHost)
         {
             var markup = @"
         Interface {|target2:IBar|}
@@ -1607,6 +1757,7 @@ public partial class {|target3:Bar|}
             return VerifyInSingleDocumentAsync(
                 markup,
                 LanguageNames.VisualBasic,
+                testHost,
                 itemForIBar,
                 itemForBar,
                 itemForPooInInterface,
@@ -1615,8 +1766,8 @@ public partial class {|target3:Bar|}
                 itemForFooInClass);
         }
 
-        [Fact]
-        public Task TestVisualBasicMustInheritClassMember()
+        [Theory, CombinatorialData]
+        public Task TestVisualBasicMustInheritClassMember(TestHost testHost)
         {
             var markup = @"
         MustInherit Class {|target2:Bar1|}
@@ -1662,16 +1813,17 @@ public partial class {|target3:Bar|}
 
             return VerifyInSingleDocumentAsync(
                 markup,
-                 LanguageNames.VisualBasic,
+                LanguageNames.VisualBasic,
+                 testHost,
                 itemForBar1,
-                 itemForBar,
+                itemForBar,
                 itemForFooInBar1,
                 itemForFooInBar);
         }
 
         [Theory]
         [CombinatorialData]
-        public Task TestVisualBasicOverrideMemberCanFindImplementingInterface(bool testDuplicate)
+        public Task TestVisualBasicOverrideMemberCanFindImplementingInterface(bool testDuplicate, TestHost testHost)
         {
             var markup1 = @"
         Interface {|target4:IBar|}
@@ -1784,6 +1936,7 @@ public partial class {|target3:Bar|}
             return VerifyInSingleDocumentAsync(
                 testDuplicate ? markup2 : markup1,
                 LanguageNames.VisualBasic,
+                testHost,
                 itemForIBar,
                 itemForFooInIBar,
                 itemForBar1,
@@ -1792,8 +1945,8 @@ public partial class {|target3:Bar|}
                 itemForFooInBar2);
         }
 
-        [Fact]
-        public Task TestVisualBasicFindGenericsBaseType()
+        [Theory, CombinatorialData]
+        public Task TestVisualBasicFindGenericsBaseType(TestHost testHost)
         {
             var markup = @"
         Public Interface {|target5:IBar|}(Of T)
@@ -1860,6 +2013,7 @@ public partial class {|target3:Bar|}
             return VerifyInSingleDocumentAsync(
                 markup,
                 LanguageNames.VisualBasic,
+                testHost,
                 itemForIBar,
                 itemForFooInIBar,
                 itemForBar,
@@ -1869,8 +2023,8 @@ public partial class {|target3:Bar|}
 
         #endregion
 
-        [Fact]
-        public Task TestCSharpProjectReferencingVisualBasicProject()
+        [Theory, CombinatorialData]
+        public Task TestCSharpProjectReferencingVisualBasicProject(TestHost testHost)
         {
             var markup1 = @"
         using MyNamespace;
@@ -1925,11 +2079,12 @@ public partial class {|target3:Bar|}
                 (markup1, LanguageNames.CSharp),
                 (markup2, LanguageNames.VisualBasic),
                 new[] { itemForBar, itemForFooInMarkup1 },
-                new[] { itemForIBar, itemForFooInMarkup2 });
+                new[] { itemForIBar, itemForFooInMarkup2 },
+                testHost);
         }
 
-        [Fact]
-        public Task TestVisualBasicProjectReferencingCSharpProject()
+        [Theory, CombinatorialData]
+        public Task TestVisualBasicProjectReferencingCSharpProject(TestHost testHost)
         {
             var markup1 = @"
         Imports BarNs
@@ -1950,6 +2105,14 @@ public partial class {|target3:Bar|}
                 void {|target3:Foo|}();
             }
         }";
+            var itemForProjectImports =
+                new TestInheritanceMemberItem(
+                    lineNumber: 2,
+                    memberName: VBFeaturesResources.Project_level_Imports,
+                    targets: ImmutableArray.Create(
+                        new TargetInfo("System", InheritanceRelationship.InheritedImport),
+                        new TargetInfo("System.Collections.Generic", InheritanceRelationship.InheritedImport),
+                        new TargetInfo("System.Linq", InheritanceRelationship.InheritedImport)));
 
             var itemForBar44 = new TestInheritanceMemberItem(
                 lineNumber: 4,
@@ -1986,12 +2149,13 @@ public partial class {|target3:Bar|}
             return VerifyInDifferentProjectsAsync(
                 (markup1, LanguageNames.VisualBasic),
                 (markup2, LanguageNames.CSharp),
-                new[] { itemForBar44, itemForFooInMarkup1 },
-                new[] { itemForIBar, itemForFooInMarkup2 });
+                new[] { itemForProjectImports, itemForBar44, itemForFooInMarkup1 },
+                new[] { itemForIBar, itemForFooInMarkup2 },
+                testHost);
         }
 
-        [Fact]
-        public Task TestSameNameSymbolInDifferentLanguageProjects()
+        [Theory, CombinatorialData]
+        public Task TestSameNameSymbolInDifferentLanguageProjects(TestHost testHost)
         {
             var markup1 = @"
         using MyNamespace;
@@ -2028,13 +2192,13 @@ public partial class {|target3:Bar|}
                         targetSymbolDisplayName: "Bar",
                         locationTag: "target1",
                         relationship: InheritanceRelationship.ImplementingType,
-                        languageName: LanguageNames.CSharp,
+                        languageGlyph: Glyph.CSharpFile,
                         projectName: "Assembly1"),
                     new TargetInfo(
                         targetSymbolDisplayName: "Bar",
                         locationTag: "target3",
                         relationship: InheritanceRelationship.ImplementingType,
-                        languageName: LanguageNames.VisualBasic,
+                        languageGlyph: Glyph.BasicFile,
                         projectName: "Assembly2")));
 
             var itemForBarInMarkup2 = new TestInheritanceMemberItem(
@@ -2049,11 +2213,12 @@ public partial class {|target3:Bar|}
                 (markup1, LanguageNames.CSharp),
                 (markup2, LanguageNames.VisualBasic),
                 new[] { itemForBarInMarkup1 },
-                new[] { itemForIBar, itemForBarInMarkup2 });
+                new[] { itemForIBar, itemForBarInMarkup2 },
+                testHost);
         }
 
-        [Fact]
-        public Task TestSameNameSymbolInSameLanguageProjects()
+        [Theory, CombinatorialData]
+        public Task TestSameNameSymbolInSameLanguageProjects(TestHost testHost)
         {
             var markup1 = @"
         using MyNamespace;
@@ -2090,13 +2255,13 @@ public partial class {|target3:Bar|}
                         targetSymbolDisplayName: "Bar",
                         locationTag: "target1",
                         relationship: InheritanceRelationship.ImplementingType,
-                        languageName: LanguageNames.CSharp,
+                        languageGlyph: Glyph.CSharpFile,
                         projectName: "Assembly1"),
                     new TargetInfo(
                         targetSymbolDisplayName: "Bar",
                         locationTag: "target3",
                         relationship: InheritanceRelationship.ImplementingType,
-                        languageName: LanguageNames.CSharp,
+                        languageGlyph: Glyph.CSharpFile,
                         projectName: "Assembly2")));
 
             var itemForBarInMarkup2 = new TestInheritanceMemberItem(
@@ -2111,7 +2276,8 @@ public partial class {|target3:Bar|}
                 (markup1, LanguageNames.CSharp),
                 (markup2, LanguageNames.CSharp),
                 new[] { itemForBarInMarkup1 },
-                new[] { itemForIBar, itemForBarInMarkup2 });
+                new[] { itemForIBar, itemForBarInMarkup2 },
+                testHost);
         }
     }
 }

@@ -89,12 +89,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
                 Return
             End If
 
-            Dim semanticModel = Await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(False)
-            Dim syntaxContext = VisualBasicSyntaxContext.CreateContext(document, semanticModel, position, cancellationToken)
-            If syntaxContext.IsInTaskLikeTypeContext Then
-                Return
-            End If
-
             Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)()
             If IsInNonUserCode(syntaxTree, position, cancellationToken) Then
                 Return

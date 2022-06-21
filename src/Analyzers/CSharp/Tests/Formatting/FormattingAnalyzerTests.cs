@@ -69,25 +69,6 @@ class MyClass
         }
 
         [Fact]
-        public async Task TestParamNullChecking()
-        {
-            var testCode = @"
-class MyClass
-{
-    void MyMethod(string s!!)
-    {
-    }
-}
-";
-            await new Verify.Test
-            {
-                TestCode = testCode,
-                FixedCode = testCode,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext
-            }.RunAsync();
-        }
-
-        [Fact]
         public async Task TestNeedsIndentation()
         {
             var testCode = @"

@@ -182,7 +182,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             }
 
             // Local: return the name if it's the declaration, otherwise the type
-            if (symbol is ILocalSymbol localSymbol && !symbol.DeclaringSyntaxReferences.Any(d => d.GetSyntax().DescendantTokens().Contains(token)))
+            if (symbol is ILocalSymbol localSymbol && !symbol.DeclaringSyntaxReferences.Any(static (d, token) => d.GetSyntax().DescendantTokens().Contains(token), token))
             {
                 symbol = localSymbol.Type;
             }
@@ -385,6 +385,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                             ? "whereconstraint_CSharpKeyword"
                             : "whereclause_CSharpKeyword";
 
+                        return true;
+
+                    case SyntaxKind.RequiredKeyword:
+                        text = Keyword("required");
                         return true;
                 }
             }

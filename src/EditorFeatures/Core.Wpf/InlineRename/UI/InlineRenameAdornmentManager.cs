@@ -7,7 +7,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.InlineRename;
-using Microsoft.CodeAnalysis.Editor.InlineRename.Adornment;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text.Classification;
@@ -72,8 +71,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 var useInlineAdornment = _globalOptionService.GetOption(InlineRenameExperimentationOptions.UseInlineAdornment);
                 if (useInlineAdornment)
                 {
-                    var adornment = new InlineRenameAdornment(
-                        (InlineRenameAdornmentViewModel)s_createdViewModels.GetValue(_renameService.ActiveSession, session => new InlineRenameAdornmentViewModel(session)),
+                    if (!_textView.HasAggregateFocus)
+                    {
+                        // For the rename flyout, the adornment is dismissed on focus lost. There's
+                        // no need to keep an adornment on every textview for show/hide behaviors
+                        return;
+                    }
+
+                    var adornment = new RenameFlyout(
+                        (RenameFlyoutViewModel)s_createdViewModels.GetValue(_renameService.ActiveSession, session => new RenameFlyoutViewModel(session)),
                         _textView);
 
                     _adornmentLayer.AddAdornment(
@@ -85,13 +91,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
                 else
                 {
-                    var newAdornment = new Dashboard(
-                        (DashboardViewModel)s_createdViewModels.GetValue(_renameService.ActiveSession, session => new DashboardViewModel(session)),
+                    var newAdornment = new RenameDashboard(
+                        (RenameDashboardViewModel)s_createdViewModels.GetValue(_renameService.ActiveSession, session => new RenameDashboardViewModel(session)),
                         _editorFormatMapService,
                         _textView);
 
                     _adornmentLayer.AddAdornment(AdornmentPositioningBehavior.ViewportRelative, null, null, newAdornment,
-                        (tag, adornment) => ((Dashboard)adornment).Dispose());
+                        (tag, adornment) => ((RenameDashboard)adornment).Dispose());
                 }
             }
         }

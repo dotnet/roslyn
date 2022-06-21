@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
@@ -13,7 +14,7 @@ internal static class MetadataAsSourceOptionsStorage
 {
     public static MetadataAsSourceOptions GetMetadataAsSourceOptions(this IGlobalOptionService globalOptions, HostLanguageServices languageServices)
         => new(
-            CleanupOptions: globalOptions.GetCodeCleanupOptions(languageServices),
+            GenerationOptions: globalOptions.GetCleanCodeGenerationOptions(languageServices),
             NavigateToDecompiledSources: globalOptions.GetOption(NavigateToDecompiledSources),
             AlwaysUseDefaultSymbolServers: globalOptions.GetOption(AlwaysUseDefaultSymbolServers));
 

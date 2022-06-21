@@ -49,25 +49,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
             if (!acceptableLocation.SourceSpan.IntersectsWith(position))
                 return;
 
-            var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var option = optionSet.GetOption(CSharpCodeStyleOptions.PreferTopLevelStatements);
+            var options = await document.GetCSharpCodeFixOptionsProviderAsync(context.Options, cancellationToken).ConfigureAwait(false);
 
             var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-            if (!CanOfferUseProgramMain(option, root, compilation, forAnalyzer: false))
+            if (!CanOfferUseProgramMain(options.PreferTopLevelStatements, root, compilation, forAnalyzer: false))
                 return;
 
-            context.RegisterRefactoring(new MyCodeAction(
-                c => ConvertToProgramMainAsync(document, c)));
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            internal override CodeActionPriority Priority => CodeActionPriority.Low;
-
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Convert_to_Program_Main_style_program, createChangedDocument, nameof(ConvertToProgramMainCodeRefactoringProvider))
-            {
-            }
+            context.RegisterRefactoring(CodeAction.CreateWithPriority(
+                CodeActionPriority.Low,
+                CSharpAnalyzersResources.Convert_to_Program_Main_style_program,
+                c => ConvertToProgramMainAsync(document, options.AccessibilityModifiersRequired.Value, c),
+                nameof(CSharpAnalyzersResources.Convert_to_Program_Main_style_program)));
         }
     }
 }

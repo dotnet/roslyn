@@ -6,6 +6,8 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.InheritanceMargin;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -23,16 +25,20 @@ namespace Microsoft.CodeAnalysis.Remote
         {
         }
 
-        public ValueTask<ImmutableArray<SerializableInheritanceMarginItem>> GetInheritanceMarginItemsAsync(
+        public ValueTask<ImmutableArray<InheritanceMarginItem>> GetInheritanceMarginItemsAsync(
             Checksum solutionChecksum,
-            ProjectId projectId,
-            ImmutableArray<(SymbolKey symbolKey, int lineNumber)> symbolKeyAndLineNumbers,
+            DocumentId documentId,
+            TextSpan spanToSearch,
+            bool includeGlobalImports,
+            bool frozenPartialSemantics,
             CancellationToken cancellationToken)
-            => RunServiceAsync(solutionChecksum, async solution =>
+        {
+            return RunServiceAsync(solutionChecksum, solution =>
             {
-                return await InheritanceMarginServiceHelper
-                    .GetInheritanceMemberItemAsync(solution, projectId, symbolKeyAndLineNumbers, cancellationToken)
-                    .ConfigureAwait(false);
+                var document = solution.GetRequiredDocument(documentId);
+                var service = document.GetRequiredLanguageService<IInheritanceMarginService>();
+                return service.GetInheritanceMemberItemsAsync(document, spanToSearch, includeGlobalImports, frozenPartialSemantics, cancellationToken);
             }, cancellationToken);
+        }
     }
 }

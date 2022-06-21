@@ -373,7 +373,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ".", isSuppressed: false).WithArguments(".").WithLocation(1, 7),
                 // (1,20): error CS1003: Syntax error, ':' expected
                 // x?.y?!.z.ToString()
-                Diagnostic(ErrorCode.ERR_SyntaxError, "", isSuppressed: false).WithArguments(":", "").WithLocation(1, 20),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "", isSuppressed: false).WithArguments(":").WithLocation(1, 20),
                 // (1,20): error CS1733: Expected expression
                 // x?.y?!.z.ToString()
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "", isSuppressed: false).WithLocation(1, 20));
@@ -447,7 +447,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "[", isSuppressed: false).WithArguments("[").WithLocation(1, 7),
                 // (1,21): error CS1003: Syntax error, ':' expected
                 // x?.y?![0].ToString()
-                Diagnostic(ErrorCode.ERR_SyntaxError, "", isSuppressed: false).WithArguments(":", "").WithLocation(1, 21),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "", isSuppressed: false).WithArguments(":").WithLocation(1, 21),
                 // (1,21): error CS1733: Expected expression
                 // x?.y?![0].ToString()
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "", isSuppressed: false).WithLocation(1, 21));
@@ -528,7 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")", isSuppressed: false).WithArguments(")").WithLocation(1, 8),
                 // (1,20): error CS1003: Syntax error, ':' expected
                 // x?.y?!().ToString()
-                Diagnostic(ErrorCode.ERR_SyntaxError, "", isSuppressed: false).WithArguments(":", "").WithLocation(1, 20),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "", isSuppressed: false).WithArguments(":").WithLocation(1, 20),
                 // (1,20): error CS1733: Expected expression
                 // x?.y?!().ToString()
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "", isSuppressed: false).WithLocation(1, 20));
@@ -599,7 +599,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ".", isSuppressed: false).WithArguments(".").WithLocation(1, 8),
                 // (1,19): error CS1003: Syntax error, ':' expected
                 // x?.y!?!.ToString()
-                Diagnostic(ErrorCode.ERR_SyntaxError, "", isSuppressed: false).WithArguments(":", "").WithLocation(1, 19),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "", isSuppressed: false).WithArguments(":").WithLocation(1, 19),
                 // (1,19): error CS1733: Expected expression
                 // x?.y!?!.ToString()
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "", isSuppressed: false).WithLocation(1, 19));

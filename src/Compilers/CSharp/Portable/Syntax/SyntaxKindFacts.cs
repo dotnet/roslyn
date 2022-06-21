@@ -1191,6 +1191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.RecordKeyword:
                 case SyntaxKind.ManagedKeyword:
                 case SyntaxKind.UnmanagedKeyword:
+                case SyntaxKind.RequiredKeyword:
                 case SyntaxKind.ScopedKeyword:
                     return true;
                 default:
@@ -1311,6 +1312,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.ManagedKeyword;
                 case "unmanaged":
                     return SyntaxKind.UnmanagedKeyword;
+                case "required":
+                    return SyntaxKind.RequiredKeyword;
                 case "scoped":
                     return SyntaxKind.ScopedKeyword;
                 default:
@@ -1454,8 +1457,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "??=";
                 case SyntaxKind.DotDotToken:
                     return "..";
-                case SyntaxKind.ExclamationExclamationToken:
-                    return "!!";
 
                 // Keywords
                 case SyntaxKind.BoolKeyword:
@@ -1754,6 +1755,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "managed";
                 case SyntaxKind.UnmanagedKeyword:
                     return "unmanaged";
+                case SyntaxKind.RequiredKeyword:
+                    return "required";
                 case SyntaxKind.ScopedKeyword:
                     return "scoped";
                 default:

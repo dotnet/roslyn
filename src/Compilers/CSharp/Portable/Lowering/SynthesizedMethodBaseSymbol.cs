@@ -139,8 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     p.Scope,
                     // the synthesized parameter doesn't need to have the same ref custom modifiers as the base
                     refCustomModifiers: default,
-                    inheritAttributes ? p as SourceComplexParameterSymbolBase : null,
-                    isNullChecked: p.IsNullChecked));
+                    inheritAttributes ? p as SourceComplexParameterSymbolBase : null));
             }
             var extraSynthed = ExtraSynthesizedRefParameters;
             if (!extraSynthed.IsDefaultOrEmpty)

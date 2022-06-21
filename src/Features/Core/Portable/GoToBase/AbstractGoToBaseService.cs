@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.GoToBase
                     await context.OnDefinitionFoundAsync(definitionItem, cancellationToken).ConfigureAwait(false);
                     found = true;
                 }
-                else if (baseSymbol.Locations.Any(l => l.IsInMetadata))
+                else if (baseSymbol.Locations.Any(static l => l.IsInMetadata))
                 {
                     var definitionItem = baseSymbol.ToNonClassifiedDefinitionItem(
                         solution, FindReferencesSearchOptions.Default, includeHiddenLocations: true);

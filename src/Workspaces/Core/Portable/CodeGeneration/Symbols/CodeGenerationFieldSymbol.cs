@@ -78,6 +78,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public bool IsVolatile => false;
 
+        public bool IsRequired => Modifiers.IsRequired;
+
         public bool IsFixedSizeBuffer => false;
 
         public int FixedSize => 0;

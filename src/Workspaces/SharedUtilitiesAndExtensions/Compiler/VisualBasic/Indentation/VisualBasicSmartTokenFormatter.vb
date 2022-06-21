@@ -27,13 +27,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
                        root As CompilationUnitSyntax)
             Contract.ThrowIfNull(root)
 
-            Me._options = options
-            Me._formattingRules = formattingRules
+            _options = options
+            _formattingRules = formattingRules
 
-            Me._root = root
+            _root = root
         End Sub
 
-        Public Function FormatTokenAsync(token As SyntaxToken, cancellationToken As CancellationToken) As Tasks.Task(Of IList(Of TextChange)) Implements ISmartTokenFormatter.FormatTokenAsync
+        Public Function FormatToken(token As SyntaxToken, cancellationToken As CancellationToken) As IList(Of TextChange) Implements ISmartTokenFormatter.FormatToken
             Contract.ThrowIfTrue(token.Kind = SyntaxKind.None OrElse token.Kind = SyntaxKind.EndOfFileToken)
 
             ' get previous token
@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             Dim spans = SpecializedCollections.SingletonEnumerable(TextSpan.FromBounds(previousToken.SpanStart, token.Span.End))
             Dim formatter = VisualBasicSyntaxFormatting.Instance
             Dim result = formatter.GetFormattingResult(_root, spans, _options, _formattingRules, cancellationToken)
-            Return Task.FromResult(result.GetTextChanges(cancellationToken))
+            Return result.GetTextChanges(cancellationToken)
         End Function
     End Class
 End Namespace

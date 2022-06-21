@@ -319,7 +319,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "in").WithLocation(8, 32),
                 // (8,32): error CS1003: Syntax error, ',' expected
                 //         foreach(ref readonly v in ar)
-                Diagnostic(ErrorCode.ERR_SyntaxError, "in").WithArguments(",", "in").WithLocation(8, 32),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "in").WithArguments(",").WithLocation(8, 32),
                 // (8,35): error CS1002: ; expected
                 //         foreach(ref readonly v in ar)
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "ar").WithLocation(8, 35),
@@ -421,7 +421,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "readonly").WithLocation(4, 12),
                 // (4,30): error CS1003: Syntax error, ',' expected
                 //     void M(readonly ref int p)
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",", ")").WithLocation(4, 30),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(4, 30),
                 // (5,6): error CS1002: ; expected
                 //     {
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(5, 6),
@@ -487,7 +487,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "readonly").WithLocation(4, 16),
                 // (4,30): error CS1003: Syntax error, ',' expected
                 //     void M(ref readonly int p) => throw null;
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",", ")").WithLocation(4, 30),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(4, 30),
                 // (4,10): error CS0501: 'Test.M(ref ?)' must declare a body because it is not marked abstract, extern, or partial
                 //     void M(ref readonly int p) => throw null;
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M").WithArguments("Test.M(ref ?)").WithLocation(4, 10),

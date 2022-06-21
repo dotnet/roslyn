@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
         {
             var (document, textSpan, cancellationToken) = context;
             var service = document.GetLanguageService<AbstractExtractInterfaceService>();
-            var actions = await service.GetExtractInterfaceCodeActionAsync(document, textSpan, CodeCleanupOptions.CreateProvider(context.Options), cancellationToken).ConfigureAwait(false);
+            var actions = await service.GetExtractInterfaceCodeActionAsync(document, textSpan, context.Options, cancellationToken).ConfigureAwait(false);
             context.RegisterRefactorings(actions);
         }
     }

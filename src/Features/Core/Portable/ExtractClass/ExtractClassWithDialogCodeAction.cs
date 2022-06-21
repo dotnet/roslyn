@@ -28,10 +28,13 @@ namespace Microsoft.CodeAnalysis.ExtractClass
         private readonly ISymbol? _selectedMember;
         private readonly INamedTypeSymbol _selectedType;
         private readonly SyntaxNode _selectedTypeDeclarationNode;
+        private readonly CleanCodeGenerationOptionsProvider _fallbackOptions;
         private readonly IExtractClassOptionsService _service;
 
         public TextSpan Span { get; }
         public override string Title => FeaturesResources.Extract_base_class;
+
+        internal override CodeActionPriority Priority { get; }
 
         public ExtractClassWithDialogCodeAction(
             Document document,
@@ -39,14 +42,21 @@ namespace Microsoft.CodeAnalysis.ExtractClass
             IExtractClassOptionsService service,
             INamedTypeSymbol selectedType,
             SyntaxNode selectedTypeDeclarationNode,
-            ISymbol? selectedMember = null)
+            CleanCodeGenerationOptionsProvider fallbackOptions,
+            ISymbol? selectedMember)
         {
             _document = document;
             _service = service;
             _selectedType = selectedType;
             _selectedTypeDeclarationNode = selectedTypeDeclarationNode;
+            _fallbackOptions = fallbackOptions;
             _selectedMember = selectedMember;
             Span = span;
+
+            // If the user brought up the lightbulb on a class itself, it's more likely that they want to extract a base
+            // class.  on a member however, we deprioritize this as there are likely more member-specific operations
+            // they'd prefer to invoke instead.
+            Priority = selectedMember is null ? CodeActionPriority.Medium : CodeActionPriority.Low;
         }
 
         public override object? GetOptions(CancellationToken cancellationToken)
@@ -92,6 +102,7 @@ namespace Microsoft.CodeAnalysis.ExtractClass
                         symbolMapping.AnnotatedSolution.GetRequiredDocument(_document.Id),
                         newType,
                         symbolMapping,
+                        _fallbackOptions,
                         cancellationToken).ConfigureAwait(false)
                     : await ExtractTypeHelpers.AddTypeToNewFileAsync(
                         symbolMapping.AnnotatedSolution,
@@ -101,6 +112,7 @@ namespace Microsoft.CodeAnalysis.ExtractClass
                         _document.Folders,
                         newType,
                         _document,
+                        _fallbackOptions,
                         cancellationToken).ConfigureAwait(false);
 
                 // Update the original type to have the new base
@@ -205,7 +217,7 @@ namespace Microsoft.CodeAnalysis.ExtractClass
             var pullMemberUpOptions = PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(newType, pullMembersBuilder.ToImmutable());
             var updatedOriginalDocument = solution.GetRequiredDocument(_document.Id);
 
-            return await MembersPuller.PullMembersUpAsync(updatedOriginalDocument, pullMemberUpOptions, cancellationToken).ConfigureAwait(false);
+            return await MembersPuller.PullMembersUpAsync(updatedOriginalDocument, pullMemberUpOptions, _fallbackOptions, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<INamedTypeSymbol> GetNewTypeSymbolAsync(Document document, SyntaxAnnotation typeAnnotation, CancellationToken cancellationToken)

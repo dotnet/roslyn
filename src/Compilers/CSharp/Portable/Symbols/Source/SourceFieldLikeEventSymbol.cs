@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (inInterfaceType)
             {
-                if (IsAbstract && IsStatic)
+                if ((IsAbstract || IsVirtual) && IsStatic)
                 {
                     if (!ContainingAssembly.RuntimeSupportsStaticAbstractMembersInInterfaces)
                     {

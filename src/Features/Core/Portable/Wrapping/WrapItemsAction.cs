@@ -39,10 +39,8 @@ namespace Microsoft.CodeAnalysis.Wrapping
         //
         // This value is only relevant if this code action is the only one in its group,
         // and it ends up getting inlined as a top-level-action that is offered.
-        internal override CodeActionPriority Priority => CodeActionPriority.Low;
-
         public WrapItemsAction(string title, string parentTitle, Func<CancellationToken, Task<Document>> createChangedDocument)
-            : base(title, createChangedDocument, title)
+            : base(title, createChangedDocument, title, CodeActionPriority.Low)
         {
             ParentTitle = parentTitle;
             SortTitle = parentTitle + "_" + title;
@@ -65,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
         }
 
         public static ImmutableArray<CodeAction> SortActionsByMostRecentlyUsed(ImmutableArray<CodeAction> codeActions)
-            => SortByMostRecentlyUsed(codeActions, s_mruTitles, a => GetSortTitle(a));
+            => SortByMostRecentlyUsed(codeActions, s_mruTitles, GetSortTitle);
 
         public static ImmutableArray<T> SortByMostRecentlyUsed<T>(
             ImmutableArray<T> items, ImmutableArray<string> mostRecentlyUsedKeys, Func<T, string> getKey)
