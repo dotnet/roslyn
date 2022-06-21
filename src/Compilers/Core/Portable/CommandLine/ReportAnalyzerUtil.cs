@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis
                 consoleOutput.WriteLine();
             }
 
-            if (analyzerDriver is object)
+            if (analyzerDriver is { })
             {
                 ReportAnalyzerExecutionTime(consoleOutput, analyzerDriver, culture);
             }

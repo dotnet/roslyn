@@ -735,7 +735,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="trackIncrementalGeneratorSteps">Whether not incremental generator performance should be tracked.</param>
         /// <param name="generatorDiagnostics">Any diagnostics that were produced during generation.</param>
         /// <returns>A compilation that represents the original compilation with any additional, generated texts added to it.</returns>
-        private protected (Compilation, GeneratorDriverTimingInfo) RunGenerators(
+        private protected (Compilation Compilation, GeneratorDriverTimingInfo? DriverTimingInfo) RunGenerators(
             Compilation input,
             ParseOptions parseOptions,
             ImmutableArray<ISourceGenerator> generators,
@@ -759,8 +759,12 @@ namespace Microsoft.CodeAnalysis
                                                   .ReplaceAdditionalTexts(additionalTexts);
             }
 
-            var driverOptions = new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps);
-            driver ??= CreateGeneratorDriver(parseOptions, generators, analyzerConfigOptionsProvider, additionalTexts, driverOptions);
+            driver ??= CreateGeneratorDriver(
+                parseOptions,
+                generators,
+                analyzerConfigOptionsProvider,
+                additionalTexts,
+                new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps));
             driver = driver.RunGeneratorsAndUpdateCompilation(input, out var compilationOut, out var diagnostics);
             generatorDiagnostics.AddRange(diagnostics);
 
@@ -769,9 +773,9 @@ namespace Microsoft.CodeAnalysis
                 this.GeneratorDriverCache?.CacheGenerator(cacheKey, driver);
             }
 
-            var driverTimingInfo = trackIncrementalGeneratorSteps
+            GeneratorDriverTimingInfo? driverTimingInfo = trackIncrementalGeneratorSteps
                 ? driver.GetTimingInfo()
-                : default;
+                : null;
 
             return (compilationOut, driverTimingInfo);
 
@@ -1033,17 +1037,11 @@ namespace Microsoft.CodeAnalysis
                 {
                     // At this point we have a compilation with nothing yet computed. 
                     // We pass it to the generators, which will realize any symbols they require. 
-                    (compilation, var timingInfo) = RunGenerators(compilation, Arguments.ParseOptions, generators, analyzerConfigProvider, additionalTextFiles, Arguments.ReportAnalyzer, diagnostics);
+                    (compilation, generatorTimingInfo) = RunGenerators(compilation, Arguments.ParseOptions, generators, analyzerConfigProvider, additionalTextFiles, trackIncrementalGeneratorSteps: Arguments.ReportAnalyzer, diagnostics);
 
                     bool hasAnalyzerConfigs = !Arguments.AnalyzerConfigPaths.IsEmpty;
                     bool hasGeneratedOutputPath = !string.IsNullOrWhiteSpace(Arguments.GeneratedFilesOutputDirectory);
-                    if (Arguments.ReportAnalyzer)
-                    {
-                        generatorTimingInfo = timingInfo;
-                    }
-
                     var generatedSyntaxTrees = compilation.SyntaxTrees.Skip(Arguments.SourceFiles.Length).ToList();
-
                     var analyzerOptionsBuilder = hasAnalyzerConfigs ? ArrayBuilder<AnalyzerConfigOptionsResult>.GetInstance(generatedSyntaxTrees.Count) : null;
                     var embeddedTextBuilder = ArrayBuilder<EmbeddedText>.GetInstance(generatedSyntaxTrees.Count);
                     try
