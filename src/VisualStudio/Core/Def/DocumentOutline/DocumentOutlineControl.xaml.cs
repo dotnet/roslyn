@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -28,7 +29,7 @@ using Roslyn.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices
 {
     /// <summary>
-    /// Interaction logic for SampleToolboxUserControl.xaml
+    /// Interaction logic for DocumentOutlineControl.xaml
     /// </summary>
     internal partial class DocumentOutlineControl : UserControl, IOleCommandTarget
     {
@@ -271,21 +272,19 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         private void FollowCursor(object sender, EventArgs e)
         {
-            /*if (snapshot is not null && textView is not null && symbolsTreeItemsSource is not null)
+            if (Snapshot is not null && TextView is not null && SymbolsTreeItemsSource is not null)
             {
-                var caretPoint = textView.GetCaretPoint(snapshot.TextBuffer);
+                var caretPoint = TextView.GetCaretPoint(Snapshot.TextBuffer);
                 if (caretPoint.HasValue)
                 {
-                    var documentSymbols = new List<DocumentSymbolViewModel>();
-                    symbolsTreeItemsSource.ForEach(item => documentSymbols.Add(UnselectAllNodes(item)));
-                    symbolTree.ItemsSource = documentSymbols;
+                    SymbolsTreeItemsSource.Select(node => UnselectAllNodes(node));
                     caretPoint.Value.GetLineAndCharacter(out var lineNumber, out var characterIndex);
                     SelectNodeAtPosition(lineNumber, characterIndex);
                 }
-            }*/
+            }
         }
 
-        /*private DocumentSymbolViewModel UnselectAllNodes(DocumentSymbolViewModel treeItem)
+        private static DocumentSymbolViewModel UnselectAllNodes(DocumentSymbolViewModel treeItem)
         {
             treeItem.IsSelected = false;
             foreach (var childItem in treeItem.Children.OfType<DocumentSymbolViewModel>())
@@ -296,11 +295,16 @@ namespace Microsoft.VisualStudio.LanguageServices
             return treeItem;
         }
 
+        /*private void SelectNodeAtPosition(int lineNumber, int characterIndex)
+        {
+
+        }*/
+
         private void SelectNodeAtPosition(int lineNumber, int characterIndex)
         {
-            if (symbolsTreeItemsSource is not null)
+            if (SymbolsTreeItemsSource is not null)
             {
-                var documentSymbols = symbolsTreeItemsSource;
+                var documentSymbols = SymbolsTreeItemsSource;
                 var selectedNodeIndex = -1;
                 foreach (var node in documentSymbols)
                 {
@@ -312,34 +316,20 @@ namespace Microsoft.VisualStudio.LanguageServices
 
                 if (selectedNodeIndex == -1)
                 {
+                    symbolTree.ItemsSource = SymbolsTreeItemsSource.Select(node => UnselectAllNodes(node));
                     return;
                 }
 
-                symbolTree.SelectedItemChanged += SelectedNodeChanged;
-                var newNode = SelectNode(documentSymbols[selectedNodeIndex], lineNumber, characterIndex);
-                documentSymbols.Insert(selectedNodeIndex, newNode);
-                documentSymbols.RemoveAt(selectedNodeIndex + 1);
-                symbolTree.ItemsSource = documentSymbols;
+                SelectNode(documentSymbols[selectedNodeIndex], lineNumber, characterIndex);
             }
         }
 
-        private void SelectedNodeChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
-        {
-            var treeViewItem = symbolTree.ItemContainerGenerator.ContainerFromItem(symbolTree.SelectedItem) as TreeViewItem;
-            if (treeViewItem is not null)
-            {
-                treeViewItem.Focus();
-            }
-
-            symbolTree.SelectedItemChanged -= SelectedNodeChanged;
-        }
-
-        private DocumentSymbolViewModel SelectNode(DocumentSymbolViewModel node, int lineNumber, int characterIndex)
+        private void SelectNode(DocumentSymbolViewModel node, int lineNumber, int characterIndex)
         {
             if (node.Children.Count == 0)
             {
                 node.IsSelected = true;
-                return node;
+                return;
             }
 
             var selectedNodeIndex = -1;
@@ -367,11 +357,11 @@ namespace Microsoft.VisualStudio.LanguageServices
             }
             else
             {
-                node.Children[selectedNodeIndex] = SelectNode(node.Children[selectedNodeIndex], lineNumber, characterIndex);
+                SelectNode(node.Children[selectedNodeIndex], lineNumber, characterIndex);
             }
 
-            return node;
-        }*/
+            return;
+        }
 
         internal const int OLECMDERR_E_NOTSUPPORTED = unchecked((int)0x80040100);
 

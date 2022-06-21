@@ -4,6 +4,8 @@
 
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -12,8 +14,11 @@ namespace Microsoft.VisualStudio.LanguageServices
 {
     using SymbolKind = LanguageServer.Protocol.SymbolKind;
 
-    internal class DocumentSymbolViewModel
+    internal class DocumentSymbolViewModel : INotifyPropertyChanged
     {
+        private bool _isSelected;
+        private bool _isExpanded;
+
         public string Name { get; }
 
         public List<DocumentSymbolViewModel> Children { get; set; }
@@ -26,8 +31,30 @@ namespace Microsoft.VisualStudio.LanguageServices
         public SymbolKind SymbolKind { get; }
         public ImageMoniker ImgMoniker { get; }
 
-        public bool IsExpanded { get; set; }
-        public bool IsSelected { get; set; }
+        public bool IsExpanded
+        {
+            get => _isExpanded;
+            set
+            {
+                if (_isExpanded != value)
+                {
+                    _isExpanded = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
+        public bool IsSelected
+        {
+            get => _isSelected;
+            set
+            {
+                if (_isSelected != value)
+                {
+                    _isSelected = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
 
         public DocumentSymbolViewModel(DocumentSymbol documentSymbol)
         {
@@ -42,6 +69,11 @@ namespace Microsoft.VisualStudio.LanguageServices
             this.EndLine = documentSymbol.Range.End.Line;
             this.EndChar = documentSymbol.Range.End.Character;
         }
+
+        private void NotifyPropertyChanged([CallerMemberName] string? propertyName = null)
+            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+        public event PropertyChangedEventHandler? PropertyChanged;
 
         private static ImageMoniker GetImageMoniker(SymbolKind symbolKind)
         {

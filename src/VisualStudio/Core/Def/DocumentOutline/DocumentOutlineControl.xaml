@@ -124,10 +124,11 @@
                     </StackPanel>
                 </HierarchicalDataTemplate>
                 <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}"
-                     Color="Transparent" />
+                     Color="{StaticResource {x:Static vsshell:VsColors.ThreeDHighlightKey}}" />
                 <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}"
                      Color="{DynamicResource {x:Static SystemColors.HighlightTextColorKey}}"/>
-                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#38373d" />
+                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}"
+                     Color="{StaticResource {x:Static vsshell:VsColors.ThreeDHighlightKey}}" />
             </TreeView.Resources>
             <TreeView.ItemContainerStyle>
                 <Style TargetType="TreeViewItem" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTreeViewItemStyleKey}}">
