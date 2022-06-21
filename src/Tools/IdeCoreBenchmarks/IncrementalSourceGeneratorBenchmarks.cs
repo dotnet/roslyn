@@ -97,6 +97,9 @@ namespace IdeCoreBenchmarks
 
             var solution = _workspace.OpenSolutionAsync(_solutionPath, progress: null, CancellationToken.None).Result;
             Console.WriteLine("Finished opening roslyn: " + (DateTime.Now - start));
+
+            //foreach (var diag in _workspace.Diagnostics)
+            //    Console.WriteLine(diag);
             return Task.CompletedTask;
         }
 
@@ -113,27 +116,30 @@ namespace IdeCoreBenchmarks
             var generator = (new PipelineCallbackGenerator(ctx =>
             {
                 Console.WriteLine("Registering");
-#if true
+#if false
                 var input = ctx.SyntaxProvider.CreateSyntaxProvider<ClassDeclarationSyntax>(
-                    (c, _) =>
+                    (c, _) => 
                     {
                         return c is ClassDeclarationSyntax classDecl && classDecl.AttributeLists.Count > 0;
                     },
                     (ctx, _) =>
                     {
                         var node = (ClassDeclarationSyntax)ctx.Node;
-                        //var symbol = ctx.SemanticModel.GetDeclaredSymbol(node);
-                        //foreach (var attribute in symbol.GetAttributes())
-                        //{
-                        //    if (attribute.AttributeClass.ToDisplayString() == "System.Text.Json.Serialization.JsonSerializationAttribute")
-                        //    {
+                        var symbol = ctx.SemanticModel.GetDeclaredSymbol(node);
+                        foreach (var attribute in symbol.GetAttributes())
+                        {
+                            if (attribute.AttributeClass.ToDisplayString() == "System.Text.Json.Serialization.JsonSerializationAttribute")
+                            {
 
-                        //    }
-                        //}
+                            }
+                        }
                         return node;
                     });
 #else
-                // var input = ctx.ForAttributeWithMetadataName<ClassDeclarationSyntax>("System.Text.Json.Serialization.JsonSerializableAttribute");
+                var input = ctx.SyntaxProvider.ForAttributeWithMetadataName(
+                    "System.Text.Json.Serialization.JsonSerializableAttribute",
+                    (n, _) => n is ClassDeclarationSyntax,
+                    (ctx, _) => 0);
                 // var input = ctx.ForAttributeWithSimpleName<ClassDeclarationSyntax>("JsonSerializableAttribute");
 #endif
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
@@ -141,6 +147,11 @@ namespace IdeCoreBenchmarks
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(
                new ISourceGenerator[] { generator }, parseOptions: CSharpParseOptions.Default);
+
+            //foreach (var proj in _workspace.CurrentSolution.Projects)
+            //{
+            //    Console.WriteLine(proj.Name);
+            //}
 
             var project = _workspace.CurrentSolution.Projects.Single(p => p.Name == "Microsoft.CodeAnalysis.Workspaces(netstandard2.0)");
 
@@ -159,6 +170,7 @@ namespace IdeCoreBenchmarks
             var sourceText = syntaxTree.GetText();
 
             Console.WriteLine("Start profiling now");
+            Thread.Sleep(5000);
 
             var totalIncrementalTime = TimeSpan.Zero;
             for (var i = 0; i < 1000; i++)
@@ -170,7 +182,8 @@ namespace IdeCoreBenchmarks
                 start = DateTime.Now;
                 driver = driver.RunGenerators(changedCompilation);
                 var incrementalTime = DateTime.Now - start;
-                Console.WriteLine("Incremental time: " + incrementalTime);
+                if (i % 100 == 0)
+                    Console.WriteLine("Incremental time: " + incrementalTime);
                 totalIncrementalTime += incrementalTime;
             }
 
