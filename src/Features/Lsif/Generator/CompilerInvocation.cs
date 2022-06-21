@@ -197,8 +197,6 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 public string From { get; set; }
                 public string To { get; set; }
             }
-
-#nullable disable
         }
     }
 }
