@@ -670,7 +670,7 @@ record R
                 Assert.Equal(15, record.GetMembers().Length); // If a new record member is added, extend the test with its behavior regarding CompilerGeneratedAttribute.
 
                 var equalityContractGetter = record.GetMember("get_EqualityContract");
-                Assert.Empty(equalityContractGetter.GetAttributes());
+                validateCompilerGeneratedAttribute(equalityContractGetter);
 
                 var toString = record.GetMember(WellKnownMemberNames.ObjectToString);
                 validateCompilerGeneratedAttribute(toString);
@@ -806,7 +806,7 @@ namespace System.Runtime.CompilerServices
                 validateCompilerGeneratedAttribute(p1_backingField);
 
                 var equalityContractGetter = record.GetMember("get_EqualityContract");
-                Assert.Empty(equalityContractGetter.GetAttributes());
+                validateCompilerGeneratedAttribute(equalityContractGetter);
 
                 var get_P1 = record.GetMember("get_P1");
                 validateCompilerGeneratedAttribute(get_P1);
