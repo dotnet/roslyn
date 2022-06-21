@@ -3005,14 +3005,20 @@ end class"
                 factory.TextSpan = subjectDocument.SelectedSpans.Single()
 
                 Dim indentationLine = projectedDocument.GetTextBuffer().CurrentSnapshot.GetLineFromPosition(projectedDocument.CursorPosition.Value)
-                Dim point = projectedDocument.GetTextView().BufferGraph.MapDownToBuffer(indentationLine.Start, PointTrackingMode.Negative, subjectDocument.GetTextBuffer(), PositionAffinity.Predecessor)
+                Dim textBuffer = subjectDocument.GetTextBuffer()
+                Dim point = projectedDocument.GetTextView().BufferGraph.MapDownToBuffer(indentationLine.Start, PointTrackingMode.Negative, textBuffer, PositionAffinity.Predecessor)
+
+                Dim optionsFactory = workspace.GetService(Of IEditorOptionsFactoryService)
+                Dim editorOptions = optionsFactory.GetOptions(textBuffer)
+                editorOptions.SetOptionValue(DefaultOptions.IndentStyleId, IndentingStyle.Smart)
+
                 TestIndentation(
                     point.Value,
                     expectedIndentation,
                     projectedDocument.GetTextView(),
                     subjectDocument,
                     workspace.GlobalOptions,
-                    workspace.GetService(Of IEditorOptionsFactoryService),
+                    optionsFactory,
                     workspace.GetService(Of IIndentationManagerService))
             End Using
         End Sub

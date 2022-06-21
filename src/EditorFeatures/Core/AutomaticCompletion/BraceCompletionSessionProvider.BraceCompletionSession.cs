@@ -200,8 +200,12 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
 
                 var closingSnapshotPoint = ClosingPoint.GetPoint(snapshot);
 
-                if (!HasForwardTyping ||
-                    !TryGetBraceCompletionContext(out var context, cancellationToken) ||
+                if (HasForwardTyping)
+                {
+                    return;
+                }
+
+                if (!TryGetBraceCompletionContext(out var context, cancellationToken) ||
                     !_service.AllowOverType(context, cancellationToken))
                 {
                     return;
