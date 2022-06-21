@@ -151,6 +151,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
 
                 Dim textView = workspace.Documents.Single().GetTextView()
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService)().GetEditorOperations(textView)
+                textView.Options.GlobalOptions.SetOptionValue(DefaultOptions.IndentStyleId, IndentingStyle.Smart)
 
                 editorOperations.InsertText("line1")
                 editorOperations.InsertNewLine()
@@ -195,6 +196,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
 
                 Dim textView = workspace.Documents.Single().GetTextView()
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService)().GetEditorOperations(textView)
+                textView.Options.GlobalOptions.SetOptionValue(DefaultOptions.IndentStyleId, IndentingStyle.Smart)
 
                 editorOperations.InsertNewLine()
                 editorOperations.InsertText("line1")
