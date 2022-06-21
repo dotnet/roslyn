@@ -732,24 +732,21 @@ namespace Microsoft.CodeAnalysis
         /// <param name="generators">The generators to run</param>
         /// <param name="analyzerConfigOptionsProvider">A provider that returns analyzer config options.</param>
         /// <param name="additionalTexts">Any additional texts that should be passed to the generators when run.</param>
-        /// <param name="trackIncrementalGeneratorSteps">Whether not incremental generator performance should be tracked.</param>
         /// <param name="generatorDiagnostics">Any diagnostics that were produced during generation.</param>
         /// <returns>A compilation that represents the original compilation with any additional, generated texts added to it.</returns>
-        private protected (Compilation Compilation, GeneratorDriverTimingInfo? DriverTimingInfo) RunGenerators(
+        private protected (Compilation Compilation, GeneratorDriverTimingInfo DriverTimingInfo) RunGenerators(
             Compilation input,
             ParseOptions parseOptions,
             ImmutableArray<ISourceGenerator> generators,
             AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider,
             ImmutableArray<AdditionalText> additionalTexts,
-            bool trackIncrementalGeneratorSteps,
             DiagnosticBag generatorDiagnostics)
         {
             GeneratorDriver? driver = null;
             string cacheKey = string.Empty;
             bool disableCache =
                 !Arguments.ParseOptions.Features.ContainsKey("enable-generator-cache") ||
-                string.IsNullOrWhiteSpace(Arguments.OutputFileName) ||
-                trackIncrementalGeneratorSteps;
+                string.IsNullOrWhiteSpace(Arguments.OutputFileName);
             if (this.GeneratorDriverCache is object && !disableCache)
             {
                 cacheKey = deriveCacheKey();
@@ -759,12 +756,7 @@ namespace Microsoft.CodeAnalysis
                                                   .ReplaceAdditionalTexts(additionalTexts);
             }
 
-            driver ??= CreateGeneratorDriver(
-                parseOptions,
-                generators,
-                analyzerConfigOptionsProvider,
-                additionalTexts,
-                new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps));
+            driver ??= CreateGeneratorDriver(parseOptions, generators, analyzerConfigOptionsProvider, additionalTexts);
             driver = driver.RunGeneratorsAndUpdateCompilation(input, out var compilationOut, out var diagnostics);
             generatorDiagnostics.AddRange(diagnostics);
 
@@ -773,11 +765,7 @@ namespace Microsoft.CodeAnalysis
                 this.GeneratorDriverCache?.CacheGenerator(cacheKey, driver);
             }
 
-            GeneratorDriverTimingInfo? driverTimingInfo = trackIncrementalGeneratorSteps
-                ? driver.GetTimingInfo()
-                : null;
-
-            return (compilationOut, driverTimingInfo);
+            return (compilationOut, driver.GetTimingInfo());
 
             string deriveCacheKey()
             {
@@ -803,7 +791,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private protected abstract GeneratorDriver CreateGeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider, ImmutableArray<AdditionalText> additionalTexts, GeneratorDriverOptions generatorDriverOptions);
+        private protected abstract GeneratorDriver CreateGeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider, ImmutableArray<AdditionalText> additionalTexts);
 
         private int RunCore(TextWriter consoleOutput, ErrorLogger? errorLogger, CancellationToken cancellationToken)
         {
@@ -1037,7 +1025,11 @@ namespace Microsoft.CodeAnalysis
                 {
                     // At this point we have a compilation with nothing yet computed. 
                     // We pass it to the generators, which will realize any symbols they require. 
-                    (compilation, generatorTimingInfo) = RunGenerators(compilation, Arguments.ParseOptions, generators, analyzerConfigProvider, additionalTextFiles, trackIncrementalGeneratorSteps: Arguments.ReportAnalyzer, diagnostics);
+                    (compilation, var timingInfo) = RunGenerators(compilation, Arguments.ParseOptions, generators, analyzerConfigProvider, additionalTextFiles, diagnostics);
+                    if (Arguments.ReportAnalyzer)
+                    {
+                        generatorTimingInfo = timingInfo;
+                    }
 
                     bool hasAnalyzerConfigs = !Arguments.AnalyzerConfigPaths.IsEmpty;
                     bool hasGeneratedOutputPath = !string.IsNullOrWhiteSpace(Arguments.GeneratedFilesOutputDirectory);
