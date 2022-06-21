@@ -2437,6 +2437,57 @@ class Program
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "y").WithArguments("y").WithLocation(38, 16));
         }
 
+        [Fact]
+        public void MethodArgumentsMustMatch_04()
+        {
+            var source =
+@"ref struct R { }
+class Program
+{
+    static void F0(__arglist) { }
+    static void F1(ref R a, __arglist) { }
+
+    static void F00(ref R x, ref R y) { F0(__arglist(ref x, ref y)); }
+    static void F01(ref R x, ref R y) { F1(ref x, __arglist(ref y)); }
+    static void F10(ref R x, ref scoped R y) { F0(__arglist(ref x, ref y)); } // 1
+    static void F11(ref R x, ref scoped R y) { F1(ref x, __arglist(ref y)); } // 2
+    static void F20(ref R x, scoped ref R y) { F0(__arglist(ref x, ref y)); }
+    static void F21(ref R x, scoped ref R y) { F1(ref x, __arglist(ref y)); }
+    static void F30(ref scoped R x, ref scoped R y) { F0(__arglist(ref x, ref y)); }
+    static void F31(ref scoped R x, ref scoped R y) { F1(ref x, __arglist(ref y)); }
+    static void F40(ref scoped R x, scoped ref R y) { F0(__arglist(ref x, ref y)); } // 3
+    static void F41(ref scoped R x, scoped ref R y) { F1(ref x, __arglist(ref y)); } // 4
+    static void F50(scoped ref R x, scoped ref R y) { F0(__arglist(ref x, ref y)); }
+    static void F51(scoped ref R x, scoped ref R y) { F1(ref x, __arglist(ref y)); }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (9,48): error CS8350: This combination of arguments to 'Program.F0(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
+                //     static void F10(ref R x, ref scoped R y) { F0(__arglist(ref x, ref y)); } // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(__arglist(ref x, ref y))").WithArguments("Program.F0(__arglist)", "__arglist").WithLocation(9, 48),
+                // (9,72): error CS8352: Cannot use local 'ref R' in this context because it may expose referenced variables outside of their declaration scope
+                //     static void F10(ref R x, ref scoped R y) { F0(__arglist(ref x, ref y)); } // 1
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "y").WithArguments("ref R").WithLocation(9, 72),
+                // (10,48): error CS8350: This combination of arguments to 'Program.F1(ref R, __arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
+                //     static void F11(ref R x, ref scoped R y) { F1(ref x, __arglist(ref y)); } // 2
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F1(ref x, __arglist(ref y))").WithArguments("Program.F1(ref R, __arglist)", "__arglist").WithLocation(10, 48),
+                // (10,72): error CS8352: Cannot use local 'ref R' in this context because it may expose referenced variables outside of their declaration scope
+                //     static void F11(ref R x, ref scoped R y) { F1(ref x, __arglist(ref y)); } // 2
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "y").WithArguments("ref R").WithLocation(10, 72),
+                // (15,55): error CS8350: This combination of arguments to 'Program.F0(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
+                //     static void F40(ref scoped R x, scoped ref R y) { F0(__arglist(ref x, ref y)); } // 3
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(__arglist(ref x, ref y))").WithArguments("Program.F0(__arglist)", "__arglist").WithLocation(15, 55),
+                // (15,72): error CS8352: Cannot use local 'ref R' in this context because it may expose referenced variables outside of their declaration scope
+                //     static void F40(ref scoped R x, scoped ref R y) { F0(__arglist(ref x, ref y)); } // 3
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("ref R").WithLocation(15, 72),
+                // (16,55): error CS8350: This combination of arguments to 'Program.F1(ref R, __arglist)' is disallowed because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                //     static void F41(ref scoped R x, scoped ref R y) { F1(ref x, __arglist(ref y)); } // 4
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F1(ref x, __arglist(ref y))").WithArguments("Program.F1(ref R, __arglist)", "a").WithLocation(16, 55),
+                // (16,62): error CS8352: Cannot use local 'ref R' in this context because it may expose referenced variables outside of their declaration scope
+                //     static void F41(ref scoped R x, scoped ref R y) { F1(ref x, __arglist(ref y)); } // 4
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("ref R").WithLocation(16, 62));
+        }
+
         // PROTOTYPE: Test method-arguments-must-match with `out` and `in`, with and without `scoped`.
 
         [Fact]

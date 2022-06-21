@@ -1408,9 +1408,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool useRefEscape = effectiveRefKind switch
             {
                 RefKind.None or RefKind.Out => false,
-                // PROTOTYPE: This deviates from the spec which mentions ref parameters only
-                // ("[w]hen the return is a ref struct then ref-safe-to-escape of all ref arguments").
-                // Fix this or fix the spec.
                 RefKind.Ref or RefKind.In => isRefEscape || hasRefStructType(symbol),
                 _ => throw ExceptionUtilities.UnexpectedValue(effectiveRefKind),
             };
@@ -1747,7 +1744,7 @@ moreArguments:
                     updateEscapeTo(argument, parameter.RefKind, scopeOfTheContainingExpression, ref escapeTo);
                 }
 
-                if (argList != null) // PROTOTYPE: Test the __arglist case.
+                if (argList != null)
                 {
                     var argListArgs = argList.Arguments;
                     var argListRefKindsOpt = argList.ArgumentRefKindsOpt;
@@ -1774,7 +1771,7 @@ moreArguments:
                 {
                     // check val escape of all arguments
                     var argument = argsOpt[argIndex];
-                    if (argument.Kind == BoundKind.ArgListOperator) // PROTOTYPE: Test the __arglist case.
+                    if (argument.Kind == BoundKind.ArgListOperator)
                     {
                         Debug.Assert(argIndex == argsOpt.Length - 1, "vararg must be the last");
                         var argList = (BoundArgListOperator)argument;
