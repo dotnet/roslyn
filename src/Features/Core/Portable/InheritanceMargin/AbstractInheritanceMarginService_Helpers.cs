@@ -530,7 +530,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 topLevelDisplayText: null,
                 FindUsagesHelpers.GetDisplayParts(memberSymbol),
                 memberSymbol.GetGlyph(),
-                nonNullImplementedMemberItems.Concat(nonNullOverriddenMemberItems).Concat(nonNullOverridingMemberItems));
+                nonNullImplementedMemberItems.Concat(nonNullOverriddenMemberItems, nonNullOverridingMemberItems));
         }
 
         private static async ValueTask<InheritanceTargetItem?> CreateInheritanceItemAsync(
