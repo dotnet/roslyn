@@ -89,7 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             async Task UpdateAsync()
             {
                 var response = await DocumentSymbolsRequestAsync(textBuffer, languageServiceBroker).ConfigureAwait(false);
-                if (response is not null && response.Response is not null)
+                if (response?.Response is not null)
                 {
                     await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(CancellationToken.None);
                     var responseBody = response.Response.ToObject<DocumentSymbol[]>();
