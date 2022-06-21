@@ -50,7 +50,7 @@
 
             <Style TargetType="TreeView" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTreeViewStyleKey}}" >
                 <Setter Property="BorderThickness" Value="0" />
-                <Setter Property="Padding" Value="0, 5, 0, 0" />
+                <Setter Property="Padding" Value="0, 7, 0, 0" />
                 <Setter Property="FontFamily" Value="Segoe UI" />
                 <Setter Property="FontSize" Value="12" />
             </Style>
@@ -134,13 +134,8 @@
                 <Style TargetType="TreeViewItem" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTreeViewItemStyleKey}}">
                     <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
                     <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
-                    <Setter Property="Padding" Value="4, 0, 6, 0" />
+                    <Setter Property="Padding" Value="4, 0, 6, 1" />
                     <Setter Property="Margin" Value="0, 0, 0, 1" />
-                    <!--Style.Resources>
-                        <Style TargetType="{x:Type Border}">
-                            <Setter Property="Grid.ColumnSpan" Value="2" />
-                        </Style>
-                    </Style.Resources-->
                 </Style>
             </TreeView.ItemContainerStyle>
         </TreeView>

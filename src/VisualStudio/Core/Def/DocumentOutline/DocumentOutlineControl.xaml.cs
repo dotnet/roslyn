@@ -277,63 +277,16 @@ namespace Microsoft.VisualStudio.LanguageServices
                 var caretPoint = TextView.GetCaretPoint(Snapshot.TextBuffer);
                 if (caretPoint.HasValue)
                 {
-                    SymbolsTreeItemsSource.Select(node => UnselectAllNodes(node));
                     caretPoint.Value.GetLineAndCharacter(out var lineNumber, out var characterIndex);
-                    SelectNodeAtPosition(lineNumber, characterIndex);
+                    SymbolsTreeItemsSource.ForEach(node => SelectNode(node, lineNumber, characterIndex));
                 }
             }
         }
 
-        private static DocumentSymbolViewModel UnselectAllNodes(DocumentSymbolViewModel treeItem)
+        private void SelectNode(DocumentSymbolViewModel documentSymbol, int lineNumber, int characterIndex)
         {
-            treeItem.IsSelected = false;
-            foreach (var childItem in treeItem.Children.OfType<DocumentSymbolViewModel>())
-            {
-                UnselectAllNodes(childItem);
-            }
-
-            return treeItem;
-        }
-
-        /*private void SelectNodeAtPosition(int lineNumber, int characterIndex)
-        {
-
-        }*/
-
-        private void SelectNodeAtPosition(int lineNumber, int characterIndex)
-        {
-            if (SymbolsTreeItemsSource is not null)
-            {
-                var documentSymbols = SymbolsTreeItemsSource;
-                var selectedNodeIndex = -1;
-                foreach (var node in documentSymbols)
-                {
-                    if (node.StartLine <= lineNumber && node.EndLine >= lineNumber)
-                    {
-                        selectedNodeIndex = documentSymbols.IndexOf(node);
-                    }
-                }
-
-                if (selectedNodeIndex == -1)
-                {
-                    symbolTree.ItemsSource = SymbolsTreeItemsSource.Select(node => UnselectAllNodes(node));
-                    return;
-                }
-
-                SelectNode(documentSymbols[selectedNodeIndex], lineNumber, characterIndex);
-            }
-        }
-
-        private void SelectNode(DocumentSymbolViewModel node, int lineNumber, int characterIndex)
-        {
-            if (node.Children.Count == 0)
-            {
-                node.IsSelected = true;
-                return;
-            }
-
             var selectedNodeIndex = -1;
-            foreach (var child in node.Children)
+            foreach (var child in documentSymbol.Children)
             {
                 if (child.StartLine <= lineNumber && child.EndLine >= lineNumber)
                 {
@@ -341,26 +294,24 @@ namespace Microsoft.VisualStudio.LanguageServices
                     {
                         if (child.StartChar <= characterIndex && child.EndChar >= characterIndex)
                         {
-                            selectedNodeIndex = node.Children.IndexOf(child);
+                            selectedNodeIndex = documentSymbol.Children.IndexOf(child);
                         }
                     }
                     else
                     {
-                        selectedNodeIndex = node.Children.IndexOf(child);
+                        selectedNodeIndex = documentSymbol.Children.IndexOf(child);
                     }
                 }
             }
 
-            if (selectedNodeIndex == -1)
+            if (selectedNodeIndex != -1)
             {
-                node.IsSelected = true;
+                SelectNode(documentSymbol.Children[selectedNodeIndex], lineNumber, characterIndex);
             }
-            else
+            else if (documentSymbol.StartLine <= lineNumber && documentSymbol.EndLine >= lineNumber)
             {
-                SelectNode(node.Children[selectedNodeIndex], lineNumber, characterIndex);
+                documentSymbol.IsSelected = true;
             }
-
-            return;
         }
 
         internal const int OLECMDERR_E_NOTSUPPORTED = unchecked((int)0x80040100);
