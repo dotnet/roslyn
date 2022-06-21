@@ -44,7 +44,12 @@ namespace Microsoft.VisualStudio.LanguageServices
         private ResettableDelay? _delay;
         private readonly IAsynchronousOperationListener _asyncListener;
 
-        public DocumentOutlineControl(IWpfTextView textView, ITextBuffer textBuffer, ILanguageServiceBroker2 languageServiceBroker, IThreadingContext threadingContext, IAsynchronousOperationListener asyncListener)
+        public DocumentOutlineControl(
+            IWpfTextView textView,
+            ITextBuffer textBuffer,
+            ILanguageServiceBroker2 languageServiceBroker,
+            IThreadingContext threadingContext,
+            IAsynchronousOperationListener asyncListener)
         {
             InitializeComponent();
 
