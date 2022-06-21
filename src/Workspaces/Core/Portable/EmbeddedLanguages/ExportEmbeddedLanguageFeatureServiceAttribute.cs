@@ -22,9 +22,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
         public string Name { get; }
 
         /// <summary>
-        /// Names of the containing language hosting the embedded language.  e.g. C# or VB.
+        /// Name of the containing language hosting the embedded language.  e.g. C# or VB.
         /// </summary>
-        public string[] Languages { get; }
+        public string Language { get; }
 
         /// <summary>
         /// Identifiers in code (or StringSyntaxAttribute) used to identify an embedded language string. For example
@@ -40,17 +40,17 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
         internal bool SupportsUnannotatedAPIs { get; }
 
         public ExportEmbeddedLanguageFeatureServiceAttribute(
-            Type contractType, string name, string[] languages, params string[] identifiers)
-            : this(contractType, name, languages, supportsUnannotatedAPIs: false, identifiers)
+            Type contractType, string name, string language, params string[] identifiers)
+            : this(contractType, name, language, supportsUnannotatedAPIs: false, identifiers)
         {
         }
 
         internal ExportEmbeddedLanguageFeatureServiceAttribute(
-            Type contractType, string name, string[] languages, bool supportsUnannotatedAPIs, params string[] identifiers)
+            Type contractType, string name, string language, bool supportsUnannotatedAPIs, params string[] identifiers)
             : base(contractType)
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
-            Languages = languages ?? throw new ArgumentNullException(nameof(languages));
+            Language = language ?? throw new ArgumentNullException(nameof(language));
             Identifiers = identifiers ?? throw new ArgumentNullException(nameof(identifiers));
             SupportsUnannotatedAPIs = supportsUnannotatedAPIs;
 

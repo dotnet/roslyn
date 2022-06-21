@@ -8,14 +8,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages
 {
-    internal class EmbeddedLanguageMetadata : OrderableMetadata, ILanguagesMetadata
+    internal class EmbeddedLanguageMetadata : OrderableLanguageMetadata
     {
         /// <summary>
         /// The particular language-IDs this language supports (for example 'regex/regexp/etc.').
         /// </summary>
         public IEnumerable<string> Identifiers { get; }
-
-        public IEnumerable<string> Languages { get; }
 
         /// <summary>
         /// If this language supports strings being passed to APIs that do not have a <c>// lang=...</c> comment or a
@@ -29,16 +27,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
             : base(data)
         {
             this.Identifiers = ((IReadOnlyDictionary<string, object>)data).GetEnumerableMetadata<string>(nameof(Identifiers)).WhereNotNull();
-            this.Languages = ((IReadOnlyDictionary<string, object>)data).GetEnumerableMetadata<string>(nameof(Languages)).WhereNotNull();
             this.SupportsUnannotatedAPIs = data.GetValueOrDefault(nameof(SupportsUnannotatedAPIs)) is bool b ? b : false;
         }
 
         public EmbeddedLanguageMetadata(
-            string name, IEnumerable<string> languages, IEnumerable<string> after, IEnumerable<string> before, IEnumerable<string> identifiers, bool supportsUnannotatedAPIs)
-            : base(name, after, before)
+            string name, string language, IEnumerable<string> after, IEnumerable<string> before, IEnumerable<string> identifiers, bool supportsUnannotatedAPIs)
+            : base(name, language, after, before)
         {
             this.Identifiers = identifiers;
-            this.Languages = languages;
             SupportsUnannotatedAPIs = supportsUnannotatedAPIs;
         }
     }

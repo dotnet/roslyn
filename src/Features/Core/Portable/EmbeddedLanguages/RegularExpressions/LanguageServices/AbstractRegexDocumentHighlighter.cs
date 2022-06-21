@@ -4,32 +4,24 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices
 {
     using RegexToken = EmbeddedSyntaxToken<RegexKind>;
 
-    [ExportEmbeddedLanguageDocumentHighlighter(
-        PredefinedEmbeddedLanguageNames.Regex,
-        new[] { LanguageNames.CSharp, LanguageNames.VisualBasic },
-        supportsUnannotatedAPIs: true, "Regex", "Regexp"), Shared]
-    internal sealed class RegexDocumentHighlighter : IEmbeddedLanguageDocumentHighlighter
+    internal abstract class AbstractRegexDocumentHighlighter : IEmbeddedLanguageDocumentHighlighter
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RegexDocumentHighlighter()
-        {
-        }
+        private readonly EmbeddedLanguageInfo _info;
+
+        protected AbstractRegexDocumentHighlighter(EmbeddedLanguageInfo info)
+            => _info = info;
 
         public ImmutableArray<DocumentHighlights> GetDocumentHighlights(
             Document document, SemanticModel semanticModel, SyntaxToken token, int position, HighlightingOptions options, CancellationToken cancellationToken)
@@ -37,9 +29,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
             if (!options.HighlightRelatedRegexComponentsUnderCursor)
                 return default;
 
-            var info = document.GetRequiredLanguageService<IEmbeddedLanguagesProvider>().EmbeddedLanguageInfo;
-
-            var detector = RegexLanguageDetector.GetOrCreate(semanticModel.Compilation, info);
+            var detector = RegexLanguageDetector.GetOrCreate(semanticModel.Compilation, _info);
             var tree = detector.TryParseString(token, semanticModel, cancellationToken);
 
             return tree == null

@@ -2,14 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Composition;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices
 {
@@ -21,33 +17,27 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
     /// <summary>
     /// Classifier impl for embedded json strings.
     /// </summary>
-    [ExportEmbeddedLanguageClassifier(
-        PredefinedEmbeddedLanguageNames.Json,
-        new[] { LanguageNames.CSharp, LanguageNames.VisualBasic },
-        supportsUnannotatedAPIs: true, "Json"), Shared]
-    internal sealed class JsonClassifier : IEmbeddedLanguageClassifier
+    internal abstract class AbstractJsonClassifier : IEmbeddedLanguageClassifier
     {
         private static readonly ObjectPool<Visitor> s_visitorPool = new(() => new Visitor());
+        private readonly EmbeddedLanguageInfo _info;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public JsonClassifier()
+        public AbstractJsonClassifier(EmbeddedLanguageInfo info)
         {
+            _info = info;
         }
 
         public void RegisterClassifications(EmbeddedLanguageClassificationContext context)
         {
-            var info = context.Project.GetRequiredLanguageService<IEmbeddedLanguagesProvider>().EmbeddedLanguageInfo;
-
             var token = context.SyntaxToken;
-            if (!info.IsAnyStringLiteral(token.RawKind))
+            if (!_info.IsAnyStringLiteral(token.RawKind))
                 return;
 
             if (!context.Options.ColorizeJsonPatterns)
                 return;
 
             var semanticModel = context.SemanticModel;
-            var detector = JsonLanguageDetector.GetOrCreate(semanticModel.Compilation, info);
+            var detector = JsonLanguageDetector.GetOrCreate(semanticModel.Compilation, _info);
 
             // We do support json classification in strings that look very likely to be json, even if we aren't 100%
             // certain if it truly is json.

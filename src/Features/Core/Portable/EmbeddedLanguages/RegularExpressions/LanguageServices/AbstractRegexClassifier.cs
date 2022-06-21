@@ -2,15 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Composition;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices
 {
@@ -22,27 +18,21 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
     /// <summary>
     /// Classifier impl for embedded regex strings.
     /// </summary>
-    [ExtensionOrder(Before = PredefinedEmbeddedLanguageNames.Json)]
-    [ExportEmbeddedLanguageClassifier(
-        PredefinedEmbeddedLanguageNames.Regex,
-        new[] { LanguageNames.CSharp, LanguageNames.VisualBasic },
-        supportsUnannotatedAPIs: true, "Regex", "Regexp"), Shared]
-    internal sealed class RegexClassifier : IEmbeddedLanguageClassifier
+    internal abstract class AbstractRegexClassifier : IEmbeddedLanguageClassifier
     {
         private static readonly ObjectPool<Visitor> s_visitorPool = SharedPools.Default<Visitor>();
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RegexClassifier()
+        private readonly EmbeddedLanguageInfo _info;
+
+        protected AbstractRegexClassifier(EmbeddedLanguageInfo info)
         {
+            _info = info;
         }
 
         public void RegisterClassifications(EmbeddedLanguageClassificationContext context)
         {
-            var info = context.Project.GetRequiredLanguageService<IEmbeddedLanguagesProvider>().EmbeddedLanguageInfo;
-
             var token = context.SyntaxToken;
-            if (!info.IsAnyStringLiteral(token.RawKind))
+            if (!_info.IsAnyStringLiteral(token.RawKind))
                 return;
 
             if (!context.Options.ColorizeRegexPatterns)
@@ -51,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
             var semanticModel = context.SemanticModel;
             var cancellationToken = context.CancellationToken;
 
-            var detector = RegexLanguageDetector.GetOrCreate(semanticModel.Compilation, info);
+            var detector = RegexLanguageDetector.GetOrCreate(semanticModel.Compilation, _info);
             var tree = detector.TryParseString(token, semanticModel, cancellationToken);
             if (tree == null)
                 return;
