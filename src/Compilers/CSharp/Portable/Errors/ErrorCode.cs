@@ -2091,6 +2091,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ImplicitImplementationOfInaccessibleInterfaceMember = 9044,
         ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers = 9045,
         ERR_BadAbstractEqualityOperatorSignature = 9046,
+        ERR_BadBinaryReadOnlySpanConcatenation = 9047,
 
         #endregion
 
