@@ -371,4 +371,16 @@
   <data name="Use_UTF8_string_literal" xml:space="preserve">
     <value>Use UTF-8 string literal</value>
   </data>
+  <data name="Nullable_directive_is_unnecessary" xml:space="preserve">
+    <value>Nullable directive is unnecessary</value>
+  </data>
+  <data name="Remove_unnecessary_nullable_directive" xml:space="preserve">
+    <value>Remove unnecessary nullable directive</value>
+  </data>
+  <data name="Nullable_directive_is_redundant" xml:space="preserve">
+    <value>Nullable directive is redundant</value>
+  </data>
+  <data name="Remove_redundant_nullable_directive" xml:space="preserve">
+    <value>Remove redundant nullable directive</value>
+  </data>
 </root>
