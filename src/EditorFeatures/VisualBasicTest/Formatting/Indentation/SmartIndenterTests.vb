@@ -3007,7 +3007,13 @@ end class"
                 Dim indentationLine = projectedDocument.GetTextBuffer().CurrentSnapshot.GetLineFromPosition(projectedDocument.CursorPosition.Value)
                 Dim point = projectedDocument.GetTextView().BufferGraph.MapDownToBuffer(indentationLine.Start, PointTrackingMode.Negative, subjectDocument.GetTextBuffer(), PositionAffinity.Predecessor)
                 TestIndentation(
-                    point.Value, expectedIndentation, projectedDocument.GetTextView(), subjectDocument, workspace.GlobalOptions, workspace.GetService(Of IEditorOptionsFactoryService))
+                    point.Value,
+                    expectedIndentation,
+                    projectedDocument.GetTextView(),
+                    subjectDocument,
+                    workspace.GlobalOptions,
+                    workspace.GetService(Of IEditorOptionsFactoryService),
+                    workspace.GetService(Of IIndentationManagerService))
             End Using
         End Sub
 

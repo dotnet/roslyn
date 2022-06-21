@@ -11,26 +11,57 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 
 namespace Microsoft.CodeAnalysis.Options;
 
 internal static class EditorOptionProviders
 {
-    public static SyntaxFormattingOptions GetSyntaxFormattingOptions(this ITextBuffer textBuffer, IEditorOptionsFactoryService factory, IGlobalOptionService globalOptions, HostLanguageServices languageServices)
+    public static SyntaxFormattingOptions GetSyntaxFormattingOptions(this ITextBuffer textBuffer, IEditorOptionsFactoryService factory, IIndentationManagerService indentationManager, IGlobalOptionService globalOptions, HostLanguageServices languageServices, bool explicitFormat)
+        => GetSyntaxFormattingOptionsImpl(textBuffer, factory.GetOptions(textBuffer), indentationManager, globalOptions, languageServices, explicitFormat);
+
+    private static SyntaxFormattingOptions GetSyntaxFormattingOptionsImpl(ITextBuffer textBuffer, IEditorOptions editorOptions, IIndentationManagerService indentationManager, IGlobalOptionService globalOptions, HostLanguageServices languageServices, bool explicitFormat)
     {
-        var configOptions = new EditorAnalyzerConfigOptions(factory.GetOptions(textBuffer));
+        var configOptions = new EditorAnalyzerConfigOptions(editorOptions);
         var fallbackOptions = globalOptions.GetSyntaxFormattingOptions(languageServices);
-        return configOptions.GetSyntaxFormattingOptions(fallbackOptions, languageServices);
+        var options = configOptions.GetSyntaxFormattingOptions(fallbackOptions, languageServices);
+
+        indentationManager.GetIndentation(textBuffer, explicitFormat, out var convertTabsToSpaces, out var tabSize, out var indentSize);
+
+        return options.With(new LineFormattingOptions()
+        {
+            UseTabs = !convertTabsToSpaces,
+            IndentationSize = indentSize,
+            TabSize = tabSize,
+            NewLine = editorOptions.GetNewLineCharacter(),
+        });
     }
 
-    public static IndentationOptions GetIndentationOptions(this ITextBuffer textBuffer, IEditorOptionsFactoryService factory, IGlobalOptionService globalOptions, HostLanguageServices languageServices)
+    public static IndentationOptions GetIndentationOptions(this ITextBuffer textBuffer, IEditorOptionsFactoryService factory, IIndentationManagerService indentationManager, IGlobalOptionService globalOptions, HostLanguageServices languageServices, bool explicitFormat)
     {
-        var formattingOptions = textBuffer.GetSyntaxFormattingOptions(factory, globalOptions, languageServices);
+        var editorOptions = factory.GetOptions(textBuffer);
+        var formattingOptions = GetSyntaxFormattingOptionsImpl(textBuffer, factory.GetOptions(textBuffer), indentationManager, globalOptions, languageServices, explicitFormat);
 
         return new IndentationOptions(formattingOptions)
         {
             AutoFormattingOptions = globalOptions.GetAutoFormattingOptions(languageServices.Language),
-            IndentStyle = globalOptions.GetOption(IndentationOptionsStorage.SmartIndent, languageServices.Language)
+            IndentStyle = editorOptions.GetIndentStyle().ToIndentStyle()
         };
     }
+
+    public static IndentingStyle ToEditorIndentStyle(this FormattingOptions2.IndentStyle value)
+        => value switch
+        {
+            FormattingOptions2.IndentStyle.Smart => IndentingStyle.Smart,
+            FormattingOptions2.IndentStyle.Block => IndentingStyle.Block,
+            _ => IndentingStyle.None,
+        };
+
+    public static FormattingOptions2.IndentStyle ToIndentStyle(this IndentingStyle value)
+        => value switch
+        {
+            IndentingStyle.Smart => FormattingOptions2.IndentStyle.Smart,
+            IndentingStyle.Block => FormattingOptions2.IndentStyle.Block,
+            _ => FormattingOptions2.IndentStyle.None,
+        };
 }

@@ -59,6 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
         private readonly IEditorOptionsFactoryService _editorOptionsFactory;
+        private readonly IIndentationManagerService _indentationManager;
         private readonly IGlobalOptionService _globalOptions;
         private readonly ITextBufferFactoryService2 _textBufferFactoryService;
 
@@ -70,7 +71,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             IEditorOperationsFactoryService editorOperationsFactoryService,
             IGlobalOptionService globalOptions,
             ITextBufferFactoryService2 textBufferFactoryService,
-            IEditorOptionsFactoryService editorOptionsFactory)
+            IEditorOptionsFactoryService editorOptionsFactory,
+            IIndentationManagerService indentationManager)
         {
             _threadingContext = threadingContext;
             _undoHistoryRegistry = undoHistoryRegistry;
@@ -78,6 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             _globalOptions = globalOptions;
             _textBufferFactoryService = textBufferFactoryService;
             _editorOptionsFactory = editorOptionsFactory;
+            _indentationManager = indentationManager;
         }
 
         public string DisplayName => nameof(StringCopyPasteCommandHandler);
@@ -261,7 +264,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
             // Otherwise, we have a single-line raw string.  Determine the default indentation desired here.
             // We'll use that if we have to convert this single-line raw string to a multi-line one.
-            var indentationOptions = textBuffer.GetIndentationOptions(_editorOptionsFactory, _globalOptions, documentBeforePaste.LanguageServices);
+            var indentationOptions = textBuffer.GetIndentationOptions(_editorOptionsFactory, _indentationManager, _globalOptions, documentBeforePaste.LanguageServices, explicitFormat: false);
             return stringExpressionBeforePaste.GetFirstToken().GetPreferredIndentation(documentBeforePaste, indentationOptions, cancellationToken);
         }
 

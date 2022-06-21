@@ -53,6 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         private readonly ITextUndoHistoryRegistry _textUndoHistoryRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
         private readonly IEditorOptionsFactoryService _editorOptionsFactory;
+        private readonly IIndentationManagerService _indentationManager;
         private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
@@ -61,12 +62,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             ITextUndoHistoryRegistry textUndoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService,
             IEditorOptionsFactoryService editorOptionsFactory,
-            IGlobalOptionService globalOptions)
+            IGlobalOptionService globalOptions,
+            IIndentationManagerService indentationManager)
         {
             _textUndoHistoryRegistry = textUndoHistoryRegistry;
             _editorOperationsFactoryService = editorOperationsFactoryService;
             _editorOptionsFactory = editorOptionsFactory;
             _globalOptions = globalOptions;
+            _indentationManager = indentationManager;
         }
 
         public CommandState GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextCommandHandler)
@@ -153,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             if (!ConvertNamespaceAnalysis.CanOfferUseFileScoped(s_fileScopedNamespacePreferenceOption, (CompilationUnitSyntax)parsedDocument.Root, namespaceDecl, forAnalyzer: true, LanguageVersion.CSharp10))
                 return default;
 
-            var formattingOptions = subjectBuffer.GetSyntaxFormattingOptions(_editorOptionsFactory, _globalOptions, document.Project.LanguageServices);
+            var formattingOptions = subjectBuffer.GetSyntaxFormattingOptions(_editorOptionsFactory, _indentationManager, _globalOptions, document.Project.LanguageServices, explicitFormat: false);
             return ConvertNamespaceTransform.ConvertNamespaceDeclaration(parsedDocument, namespaceDecl, formattingOptions, cancellationToken);
         }
     }

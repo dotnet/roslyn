@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
         private readonly IThreadingContext _threadingContext;
         private readonly ITextBufferUndoManagerProvider _undoManager;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
+        private readonly IIndentationManagerService _indentationManager;
         private readonly IEditorOptionsFactoryService _editorOptionsFactory;
         private readonly IGlobalOptionService _globalOptions;
 
@@ -47,6 +48,7 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
             ITextBufferUndoManagerProvider undoManager,
             IEditorOperationsFactoryService editorOperationsFactoryService,
             IEditorOptionsFactoryService editorOptionsFactory,
+            IIndentationManagerService indentationManager,
             IGlobalOptionService globalOptions)
         {
             _threadingContext = threadingContext;
@@ -54,6 +56,7 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
             _editorOperationsFactoryService = editorOperationsFactoryService;
             _globalOptions = globalOptions;
             _editorOptionsFactory = editorOptionsFactory;
+            _indentationManager = indentationManager;
         }
 
         public bool TryCreateSession(ITextView textView, SnapshotPoint openingPoint, char openingBrace, char closingBrace, out IBraceCompletionSession session)
@@ -76,7 +79,7 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
                         var undoHistory = _undoManager.GetTextBufferUndoManager(textView.TextBuffer).TextBufferUndoHistory;
                         session = new BraceCompletionSession(
                             textView, openingPoint.Snapshot.TextBuffer, openingPoint, openingBrace, closingBrace,
-                            undoHistory, _editorOperationsFactoryService, _editorOptionsFactory,
+                            undoHistory, _editorOperationsFactoryService, _editorOptionsFactory, _indentationManager,
                             editorSession, _globalOptions, _threadingContext);
                         return true;
                     }
