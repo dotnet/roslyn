@@ -2108,10 +2108,10 @@ scoped scoped var b;
             UsingCompilationRoot(source, TestOptions.RegularNext,
                 // (1,15): error CS1003: Syntax error, ',' expected
                 // scoped scoped int a;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(",", "int").WithLocation(1, 15),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(",").WithLocation(1, 15),
                 // (2,8): error CS1031: Type expected
                 // scoped scoped var b;
-                Diagnostic(ErrorCode.ERR_TypeExpected, "scoped").WithArguments("scoped").WithLocation(2, 8));
+                Diagnostic(ErrorCode.ERR_TypeExpected, "scoped").WithLocation(2, 8));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2370,10 +2370,10 @@ readonly scoped record struct C();
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "int").WithLocation(1, 17),
                 // (1,17): error CS1003: Syntax error, '(' expected
                 // delegate scoped int A();
-                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments("(", "int").WithLocation(1, 17),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments("(").WithLocation(1, 17),
                 // (1,22): error CS1003: Syntax error, ',' expected
                 // delegate scoped int A();
-                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(",", "(").WithLocation(1, 22),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(",").WithLocation(1, 22),
                 // (1,23): error CS8124: Tuple must contain at least two elements.
                 // delegate scoped int A();
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(1, 23),

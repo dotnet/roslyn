@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
         {
             private readonly PreviewSolutionCrawlerRegistrationServiceFactory _owner;
             private readonly Workspace _workspace;
-            private readonly CancellationTokenSource _source;
+            private readonly CancellationTokenSource _source = new();
 
             // since we now have one service for each one specific instance of workspace,
             // we can have states for this specific workspace.
@@ -55,7 +55,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
             {
                 _owner = owner;
                 _workspace = workspace;
-                _source = new CancellationTokenSource();
             }
 
             public void Register(Workspace workspace)

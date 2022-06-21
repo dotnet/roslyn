@@ -19,7 +19,7 @@ The minimal required version of .NET Framework is 4.7.2.
     - Ensure C#, VB, MSBuild, .NET Core and Visual Studio Extensibility are included in the selected work loads
     - Ensure "Use previews of the .NET Core SDK" is checked in Tools -> Options -> Environment -> Preview Features
     - Restart Visual Studio
-1. [.NET 7.0 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/7.0) [Windows x64 installer](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/sdk-7.0.100-preview.3-windows-x64-installer)
+1. Install the latest [.NET 7.0 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/7.0)
 1. [PowerShell 5.0 or newer](https://docs.microsoft.com/en-us/powershell/scripting/setup/installing-windows-powershell). If you are on Windows 10, you are fine; you'll only need to upgrade if you're on earlier versions of Windows. The download link is under the ["Upgrading existing Windows PowerShell"](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-windows-powershell?view=powershell-6#upgrading-existing-windows-powershell) heading.
 1. Run Restore.cmd
 1. Open Roslyn.sln
@@ -54,6 +54,22 @@ Tests can be run and debugged from the Test Explorer window. For best performanc
 2. Use the Search box of Test Explorer to narrow the scope of visible tests to the feature(s) you are working on
 3. When you are not actively running tests, set the search query to `__NonExistent__` to hide all tests from the UI
 
+#### Testing in Linux using WSL
+
+Tests can be run and debugged under WSL. This requires a bit of setup the first time. After that, it is as easy as selecting WSL as the active environment in Test Explorer.
+
+1. Install WSL by running `wsl --install` ([details](https://docs.microsoft.com/en-us/windows/wsl/setup/environment#get-started))
+2. In the VS installer, install ".NET Debugging with WSL" as an individual component
+3. In Test Explorer, go into "Configure Remote Test Environments" (under the gear icon) and uncomment the wsl/Ubuntu environment:
+![image](https://user-images.githubusercontent.com/12466233/169365278-485573de-0b14-466e-a96d-b1de5e67e891.png)
+![image](https://user-images.githubusercontent.com/12466233/169365165-a2bfc6bc-96ba-45fa-8705-eb8e7997df62.png)
+4. Select that test environment from Test Explorer drop-down:
+![image](https://user-images.githubusercontent.com/12466233/169365451-681fcbb2-0b21-46f6-bc30-de58ce01bfdc.png)
+5. Run a test from Test Explorer test list. This will prompt you to install some dotnet bits into the WSL environment the first time.
+6. Debug a test. This will prompt you to install some remote debugging bits into the WSL environment the first time.
+
+[More details](https://docs.microsoft.com/en-us/visualstudio/debugger/debug-dotnet-core-in-wsl-2)
+
 ### WPF Test Runner
 
 To debug through tests, you can right click the test project that contains your
@@ -65,6 +81,13 @@ the source from
 give it a try.
 
 ## Trying Your Changes in Visual Studio
+
+### Deploying with command-line (recommended method)
+
+You can build and deploy with the following command:
+`.\Build.cmd -Configuration Release -deployExtensions -launch`.
+
+Then you can launch the `RoslynDev` hive with `devenv /rootSuffix RoslynDev`.
 
 ### Deploying with F5
 
@@ -140,13 +163,7 @@ your csproj. As shown below, you'll want to (1) add a nuget source pointing to y
 
 ![image](https://user-images.githubusercontent.com/12466233/81206129-7fbe8680-8f80-11ea-9438-acc0481a3585.png)
 
-
-### Deploying with command-line
-
-You can build and deploy with the following command:
-`.\Build.cmd -Configuration Release -deployExtensions -launch`.
-
-Then you can launch the `RoslynDev` hive with `devenv /rootSuffix RoslynDev`.
+## Various other tips
 
 ### Referencing bootstrap compiler
 
@@ -185,18 +202,7 @@ Run `build.cmd -testIOperation` which sets the `ROSLYN_TEST_IOPERATION` environm
 For running those tests in an IDE, the easiest is to find the `//#define ROSLYN_TEST_IOPERATION` directive and uncomment it.
 See more details in the [IOperation test hook](https://github.com/dotnet/roslyn/blob/main/docs/compilers/IOperation%20Test%20Hook.md) doc.
 
-### Running the PublicAPI fixer
-
-1. Install `dotnet-format` as a global tool. It does ship as part of the SDK, but a separate version can be installed as a global tool and invoked with `dotnet-format {options}`.
-`C:\Source\roslyn> dotnet tool install -g dotnet-format --version "6.*" --add-source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet6/nuget/v3/index.json`
-2. Restore and build `Compilers.sln`. This is necessary to ensure the source generator project is built and we can load the generator assembly when running `dotnet-format`.
-`C:\Source\roslyn> .\restore.cmd`
-`C:\Source\roslyn> .\build.cmd`
-3. Invoke the `dotnet-format` global tool. Running only the analyzers subcommand and fixing only the "missing Public API signature" diagnostic. We must also pass the `--include-generated` flag to include source generated documents in the analysis.
-`C:\Source\roslyn> cd ..`
-`C:\Source> dotnet-format analyzers .\roslyn\Compilers.sln --diagnostics=RS0016 --no-restore --include-generated -v diag`
-
-## Replicating Failures in the Used Assemblies leg
+### Replicating Failures in the Used Assemblies leg
 
 In order to replicate test failures in that leg, there are a few options:
 
@@ -209,6 +215,18 @@ drag the instruction pointer past the early check and return on `EnableVerifyUse
 When a test failure is isolated, please add a _dedicated_ test for this (ie. failing even when the Used Assemblies validation isn't enabled) to make it easier to avoid future regressions.  
 Preferrably, don't replicate the entire original test, just enough to hit the bug to ensure that it's protected against regressions.  
 Before pushing a relevant fix to CI, you can validate locally using the `-testUsedAssemblies` command-line option for `build.cmd`. For example: `build.cmd -testCoreClr -testCompilerOnly -testUsedAssemblies`.
+
+### Running the PublicAPI fixer
+
+1. Install `dotnet-format` as a global tool. It does ship as part of the SDK, but a separate version can be installed as a global tool and invoked with `dotnet-format {options}`.
+`C:\Source\roslyn> dotnet tool install -g dotnet-format --version "6.*" --add-source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet6/nuget/v3/index.json`
+2. Restore and build `Compilers.sln`. This is necessary to ensure the source generator project is built and we can load the generator assembly when running `dotnet-format`.
+`C:\Source\roslyn> .\restore.cmd`
+`C:\Source\roslyn> .\build.cmd`
+3. Invoke the `dotnet-format` global tool. Running only the analyzers subcommand and fixing only the "missing Public API signature" diagnostic. We must also pass the `--include-generated` flag to include source generated documents in the analysis.
+`C:\Source\roslyn> cd ..`
+`C:\Source> dotnet-format analyzers .\roslyn\Compilers.sln --diagnostics=RS0016 --no-restore --include-generated -v diag`
+
 
 ## Contributing
 

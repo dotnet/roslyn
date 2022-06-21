@@ -340,6 +340,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     binder = rootBinder.GetBinder(current);
                 }
+                else if (current is CheckedExpressionSyntax checkedExpression)
+                {
+                    if (LookupPosition.IsBetweenTokens(position, checkedExpression.OpenParenToken, checkedExpression.CloseParenToken))
+                    {
+                        binder = rootBinder.GetBinder(current);
+                    }
+                }
                 else
                 {
                     // If this ever breaks, make sure that all callers of
@@ -981,7 +988,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 enumeratorInfoOpt.MoveNextInfo.Method.GetPublicSymbol(),
                 currentProperty: ((PropertySymbol)enumeratorInfoOpt.CurrentPropertyGetter?.AssociatedSymbol).GetPublicSymbol(),
                 disposeMethod.GetPublicSymbol(),
-                enumeratorInfoOpt.ElementType.GetPublicSymbol(),
+                enumeratorInfoOpt.ElementTypeWithAnnotations.GetPublicSymbol(),
                 BoundNode.GetConversion(boundForEach.ElementConversion, boundForEach.ElementPlaceholder),
                 BoundNode.GetConversion(enumeratorInfoOpt.CurrentConversion, enumeratorInfoOpt.CurrentPlaceholder));
         }

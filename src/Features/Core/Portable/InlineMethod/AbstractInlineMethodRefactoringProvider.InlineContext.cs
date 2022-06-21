@@ -386,11 +386,11 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         private class LocalVariableDeclarationVisitor : OperationWalker
         {
             private readonly CancellationToken _cancellationToken;
-            private readonly HashSet<ISymbol> _allSymbols;
+            private readonly HashSet<ISymbol> _allSymbols = new();
+
             private LocalVariableDeclarationVisitor(CancellationToken cancellationToken)
             {
                 _cancellationToken = cancellationToken;
-                _allSymbols = new HashSet<ISymbol>();
             }
 
             public static ImmutableHashSet<ISymbol> GetAllSymbols(

@@ -26,11 +26,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
                 indenter.Rules, indenter.Root, indenter.LineToBeIndented, indenter.Options, out syntaxToken);
 
         protected override ISmartTokenFormatter CreateSmartTokenFormatter(
-            CompilationUnitSyntax root, TextLine lineToBeIndented,
+            CompilationUnitSyntax root, SourceText text, TextLine lineToBeIndented,
             IndentationOptions options, AbstractFormattingRule baseIndentationRule)
         {
             var rules = ImmutableArray.Create(baseIndentationRule).AddRange(CSharpSyntaxFormatting.Instance.GetDefaultFormattingRules());
-            return new CSharpSmartTokenFormatter(options, rules, root);
+            return new CSharpSmartTokenFormatter(options, rules, root, text);
         }
 
         protected override IndentationResult? GetDesiredIndentationWorker(Indenter indenter, SyntaxToken? tokenOpt, SyntaxTrivia? triviaOpt)
@@ -84,9 +84,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             if (token.IsKind(SyntaxKind.MultiLineRawStringLiteralToken))
             {
                 var endLine = sourceText.Lines.GetLineFromPosition(token.Span.End);
-                var nonWhitespaceOffset = endLine.GetFirstNonWhitespaceOffset();
-                Contract.ThrowIfNull(nonWhitespaceOffset);
-                return new IndentationResult(indenter.LineToBeIndented.Start, nonWhitespaceOffset.Value);
+                var minimumOffset = endLine.GetFirstNonWhitespaceOffset();
+                Contract.ThrowIfNull(minimumOffset);
+
+                // If possible, indent to match the indentation of the previous non-whitespace line contained in the
+                // same raw string. Otherwise, indent to match the ending line of the raw string.
+                var startLine = sourceText.Lines.GetLineFromPosition(token.SpanStart);
+                for (var currentLineNumber = indenter.LineToBeIndented.LineNumber - 1; currentLineNumber >= startLine.LineNumber + 1; currentLineNumber--)
+                {
+                    var currentLine = sourceText.Lines[currentLineNumber];
+                    if (currentLine.GetFirstNonWhitespaceOffset() is { } priorLineOffset)
+                    {
+                        if (priorLineOffset >= minimumOffset.Value)
+                        {
+                            return indenter.GetIndentationOfLine(currentLine);
+                        }
+                        else
+                        {
+                            // The prior line is not sufficiently indented, so use the ending delimiter for the indent
+                            break;
+                        }
+                    }
+                }
+
+                return indenter.GetIndentationOfLine(endLine);
             }
 
             // case 1: $"""$$
@@ -94,16 +115,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             // case 2: $"""
             //          text$$
             //          """
-            if (token.Kind() is SyntaxKind.InterpolatedMultiLineRawStringStartToken or SyntaxKind.InterpolatedStringTextToken)
+            // case 3: $"""
+            //          {value}$$
+            //          """
+            if (token.Kind() is SyntaxKind.InterpolatedMultiLineRawStringStartToken or SyntaxKind.InterpolatedStringTextToken
+                || (token.IsKind(SyntaxKind.CloseBraceToken) && token.Parent.IsKind(SyntaxKind.Interpolation)))
             {
                 var interpolatedExpression = token.GetAncestor<InterpolatedStringExpressionSyntax>();
                 Contract.ThrowIfNull(interpolatedExpression);
                 if (interpolatedExpression.StringStartToken.IsKind(SyntaxKind.InterpolatedMultiLineRawStringStartToken))
                 {
-                    var endLinePosition = sourceText.Lines.GetLineFromPosition(interpolatedExpression.StringEndToken.Span.End);
-                    var nonWhitespaceOffset = endLinePosition.GetFirstNonWhitespaceOffset();
-                    Contract.ThrowIfNull(nonWhitespaceOffset);
-                    return new IndentationResult(indenter.LineToBeIndented.Start, nonWhitespaceOffset.Value);
+                    var endLine = sourceText.Lines.GetLineFromPosition(interpolatedExpression.StringEndToken.Span.End);
+                    var minimumOffset = endLine.GetFirstNonWhitespaceOffset();
+                    Contract.ThrowIfNull(minimumOffset);
+
+                    // If possible, indent to match the indentation of the previous non-whitespace line contained in the
+                    // same raw string. Otherwise, indent to match the ending line of the raw string.
+                    var startLine = sourceText.Lines.GetLineFromPosition(interpolatedExpression.StringStartToken.SpanStart);
+                    for (var currentLineNumber = indenter.LineToBeIndented.LineNumber - 1; currentLineNumber >= startLine.LineNumber + 1; currentLineNumber--)
+                    {
+                        var currentLine = sourceText.Lines[currentLineNumber];
+                        if (!indenter.Root.FindToken(currentLine.Start, findInsideTrivia: true).IsKind(SyntaxKind.InterpolatedStringTextToken))
+                        {
+                            // Avoid trying to indent to match the content of an interpolation. Example:
+                            //
+                            // _ = $"""
+                            //     {
+                            //  0}         <-- the start of this line is not part of the text content
+                            //     """
+                            //
+                            continue;
+                        }
+
+                        if (currentLine.GetFirstNonWhitespaceOffset() is { } priorLineOffset)
+                        {
+                            if (priorLineOffset >= minimumOffset.Value)
+                            {
+                                return indenter.GetIndentationOfLine(currentLine);
+                            }
+                            else
+                            {
+                                // The prior line is not sufficiently indented, so use the ending delimiter for the indent
+                                break;
+                            }
+                        }
+                    }
+
+                    return indenter.GetIndentationOfLine(endLine);
                 }
             }
 

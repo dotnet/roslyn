@@ -3182,6 +3182,62 @@ public class Bar
 }}");
         }
 
+        [WpfFact]
+        public void TestConvertFieldToPropertyWithAttributeAndComment()
+        {
+            Test(@"
+public class Bar
+{
+    public int Property
+    {
+        $$
+    }
+
+    /// <summary>
+    /// </summary>
+    [SomeAttri]
+    public void Method() { }
+}",
+@"
+public class Bar
+{
+    public int Property$$
+
+    /// <summary>
+    /// </summary>
+    [SomeAttri]
+    public void Method() { }
+}");
+        }
+
+        [WpfFact]
+        public void TestConvertEventFieldToPropertyWithAttributeAndComment()
+        {
+            Test(@"
+public class Bar
+{
+    public event EventHandler MyEvent
+    {
+        $$
+    }
+
+    /// <summary>
+    /// </summary>
+    [SomeAttri]
+    public void Method() { }
+}",
+@"
+public class Bar
+{
+    public event EventHandler MyEvent$$
+
+    /// <summary>
+    /// </summary>
+    [SomeAttri]
+    public void Method() { }
+}");
+        }
+
         protected override string Language => LanguageNames.CSharp;
 
         protected override Action CreateNextHandler(TestWorkspace workspace)

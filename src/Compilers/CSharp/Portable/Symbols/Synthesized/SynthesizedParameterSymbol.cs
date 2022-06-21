@@ -28,8 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int ordinal,
             RefKind refKind,
             DeclarationScope scope,
-            string name,
-            bool isNullChecked)
+            string name)
         {
             Debug.Assert(type.HasType);
             Debug.Assert(name != null);
@@ -41,7 +40,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _refKind = refKind;
             _scope = scope;
             _name = name;
-            IsNullChecked = isNullChecked;
         }
 
         public override TypeWithAnnotations TypeWithAnnotations => _type;
@@ -136,8 +134,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<Location>.Empty; }
         }
 
-        public sealed override bool IsNullChecked { get; }
-
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
             get
@@ -159,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(type.Type, type.CustomModifiers.Length + this.RefCustomModifiers.Length, this.RefKind));
             }
 
-            if (type.Type.ContainsNativeInteger())
+            if (compilation.ShouldEmitNativeIntegerAttributes(type.Type))
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNativeIntegerAttribute(this, type.Type));
             }
@@ -203,9 +199,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int ordinal,
             RefKind refKind,
             DeclarationScope scope,
-            string name,
-            bool IsNullChecked)
-            : base(container, type, ordinal, refKind, scope, name, IsNullChecked)
+            string name)
+            : base(container, type, ordinal, refKind, scope, name)
         {
         }
 
@@ -217,12 +212,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string name = "",
             DeclarationScope scope = DeclarationScope.Unscoped,
             ImmutableArray<CustomModifier> refCustomModifiers = default,
-            SourceComplexParameterSymbolBase? baseParameterForAttributes = null,
-            bool isNullChecked = false)
+            SourceComplexParameterSymbolBase? baseParameterForAttributes = null)
         {
             if (refCustomModifiers.IsDefaultOrEmpty && baseParameterForAttributes is null)
             {
-                return new SynthesizedParameterSymbol(container, type, ordinal, refKind, scope, name, isNullChecked);
+                return new SynthesizedParameterSymbol(container, type, ordinal, refKind, scope, name);
             }
 
             return new SynthesizedComplexParameterSymbol(
@@ -233,8 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 scope,
                 name,
                 refCustomModifiers.NullToEmpty(),
-                baseParameterForAttributes,
-                isNullChecked);
+                baseParameterForAttributes);
         }
 
         /// <summary>
@@ -292,9 +285,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DeclarationScope scope,
             string name,
             ImmutableArray<CustomModifier> refCustomModifiers,
-            SourceComplexParameterSymbolBase? baseParameterForAttributes,
-            bool isNullChecked)
-            : base(container, type, ordinal, refKind, scope, name, isNullChecked)
+            SourceComplexParameterSymbolBase? baseParameterForAttributes)
+            : base(container, type, ordinal, refKind, scope, name)
         {
             Debug.Assert(!refCustomModifiers.IsDefault);
             Debug.Assert(!refCustomModifiers.IsEmpty || baseParameterForAttributes is object);

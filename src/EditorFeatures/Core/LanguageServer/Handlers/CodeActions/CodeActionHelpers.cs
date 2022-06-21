@@ -35,13 +35,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             CodeActionParams request,
             CodeActionsCache codeActionsCache,
             Document document,
-            CodeActionOptionsProvider options,
+            CodeActionOptionsProvider fallbackOptions,
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
             CancellationToken cancellationToken)
         {
             var actionSets = await GetActionSetsAsync(
-                document, options, codeFixService, codeRefactoringService, request.Range, cancellationToken).ConfigureAwait(false);
+                document, fallbackOptions, codeFixService, codeRefactoringService, request.Range, cancellationToken).ConfigureAwait(false);
             if (actionSets.IsDefaultOrEmpty)
                 return Array.Empty<VSInternalCodeAction>();
 
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
 
             static LSP.Diagnostic[]? GetApplicableDiagnostics(LSP.CodeActionContext context, IUnifiedSuggestedAction action)
             {
-                if (action is UnifiedCodeFixSuggestedAction codeFixAction)
+                if (action is UnifiedCodeFixSuggestedAction codeFixAction && context.Diagnostics != null)
                 {
                     // Associate the diagnostics from the request that match the diagnostic fixed by the code action by ID.
                     // The request diagnostics are already restricted to the code fix location by the request.
@@ -186,13 +186,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             CodeActionsCache codeActionsCache,
             Document document,
             LSP.Range selection,
-            CodeActionOptionsProvider options,
+            CodeActionOptionsProvider fallbackOptions,
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
             CancellationToken cancellationToken)
         {
             var actionSets = await GetActionSetsAsync(
-                document, options, codeFixService, codeRefactoringService, selection, cancellationToken).ConfigureAwait(false);
+                document, fallbackOptions, codeFixService, codeRefactoringService, selection, cancellationToken).ConfigureAwait(false);
             if (actionSets.IsDefaultOrEmpty)
                 return ImmutableArray<CodeAction>.Empty;
 
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
 
         private static async ValueTask<ImmutableArray<UnifiedSuggestedActionSet>> GetActionSetsAsync(
             Document document,
-            CodeActionOptionsProvider options,
+            CodeActionOptionsProvider fallbackOptions,
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
             LSP.Range selection,
@@ -254,10 +254,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             var codeFixes = await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixesAsync(
                 document.Project.Solution.Workspace, codeFixService, document, textSpan,
                 CodeActionRequestPriority.None,
-                options, addOperationScope: _ => null, cancellationToken).ConfigureAwait(false);
+                fallbackOptions, isBlocking: false, addOperationScope: _ => null, cancellationToken).ConfigureAwait(false);
 
             var codeRefactorings = await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeRefactoringsAsync(
-                document.Project.Solution.Workspace, codeRefactoringService, document, textSpan, CodeActionRequestPriority.None, options,
+                document.Project.Solution.Workspace, codeRefactoringService, document, textSpan, CodeActionRequestPriority.None, fallbackOptions, isBlocking: false,
                 addOperationScope: _ => null, filterOutsideSelection: false, cancellationToken).ConfigureAwait(false);
 
             var actionSets = UnifiedSuggestedActionsSource.FilterAndOrderActionSets(

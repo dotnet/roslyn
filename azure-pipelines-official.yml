@@ -54,7 +54,7 @@ variables:
   - name: _DevDivDropAccessToken
     value: $(dn-bot-devdiv-drop-rw-code-rw)
   - group: DotNet-Roslyn-Insertion-Variables
-    
+
   - name: BuildConfiguration
     value: release
   - name: Roslyn.GitHubEmail
@@ -82,11 +82,11 @@ stages:
     demands: ImageOverride -equals Build.Windows.Amd64.VS2022
 
   jobs:
-  - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev17.2') }}:
+  - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev17.3') }}:
     - template: /eng/common/templates/job/onelocbuild.yml
       parameters:
         MirrorRepo: roslyn
-        MirrorBranch: release/dev17.2
+        MirrorBranch: release/dev17.3
         LclSource: lclFilesfromPackage
         LclPackageId: 'LCL-JUNO-PROD-ROSLYN'
 
@@ -324,11 +324,12 @@ stages:
       name: NetCore1ESPool-Svc-Internal
       demands: ImageOverride -equals Build.Server.Amd64.VS2019
     steps:
+    - download: current
+      artifact: VSSetup
     - powershell: |
         $branchName = "$(Build.SourceBranch)".Substring("refs/heads/".Length)
         Write-Host "##vso[task.setvariable variable=ComponentBranchName]$branchName"
       displayName: Get Branch Name
-
     - template: eng/pipelines/insert.yml
       parameters:
         buildUserName: "dn-bot@microsoft.com"
@@ -339,6 +340,7 @@ stages:
         sourceBranch: "$(ComponentBranchName)"
         publishDataURI: "https://dev.azure.com/dnceng/internal/_apis/git/repositories/dotnet-roslyn/items?path=eng/config/PublishData.json&api-version=6.0"
         publishDataAccessToken: "$(System.AccessToken)"
+        dropPath: '$(Pipeline.Workspace)\VSSetup'
 
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
   - template: eng\common\templates\post-build\post-build.yml

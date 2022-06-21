@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     protected readonly IncrementalAnalyzerProcessor Processor;
 
-                    private readonly object _gate;
+                    private readonly object _gate = new();
                     private Lazy<ImmutableArray<IIncrementalAnalyzer>> _lazyAnalyzers;
 
                     public AbstractPriorityProcessor(
@@ -34,7 +34,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         CancellationToken shutdownToken)
                         : base(listener, globalOperationNotificationService, backOffTimeSpan, shutdownToken)
                     {
-                        _gate = new object();
                         _lazyAnalyzers = lazyAnalyzers;
 
                         Processor = processor;
@@ -124,6 +123,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         base.Shutdown();
 
                         Processor._documentTracker.NonRoslynBufferTextChanged -= OnNonRoslynBufferTextChanged;
+
+                        foreach (var analyzer in Analyzers)
+                        {
+                            analyzer.Shutdown();
+                        }
                     }
 
                     private void OnNonRoslynBufferTextChanged(object? sender, EventArgs e)

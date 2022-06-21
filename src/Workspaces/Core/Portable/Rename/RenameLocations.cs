@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Rename
                         var result = await client.TryInvokeAsync<IRemoteRenamerService, SerializableRenameLocations?>(
                             solution,
                             (service, solutionInfo, callbackId, cancellationToken) => service.FindRenameLocationsAsync(solutionInfo, callbackId, serializedSymbol, options, cancellationToken),
-                            callbackTarget: new RemoteOptionsProvider<CodeCleanupOptions>(solution.Workspace.Services, fallbackOptions.Invoke),
+                            callbackTarget: new RemoteOptionsProvider<CodeCleanupOptions>(solution.Workspace.Services, fallbackOptions),
                             cancellationToken).ConfigureAwait(false);
 
                         if (result.HasValue && result.Value != null)
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Rename
         {
             var locations = ImmutableHashSet.CreateBuilder<RenameLocation>();
             var referenceSymbols = await SymbolFinder.FindRenamableReferencesAsync(
-                symbol, solution, cancellationToken).ConfigureAwait(false);
+                ImmutableArray.Create(symbol), solution, cancellationToken).ConfigureAwait(false);
 
             foreach (var referencedSymbol in referenceSymbols)
             {

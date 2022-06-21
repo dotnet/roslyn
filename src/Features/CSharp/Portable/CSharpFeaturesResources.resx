@@ -621,4 +621,7 @@
     <value>Add 'await'</value>
     <comment>{Locked="await"} "await" is a C# keyword and should not be localized.</comment>
   </data>
+  <data name="Global_using_directives" xml:space="preserve">
+    <value>Global 'using' directives</value>
+  </data>
 </root>

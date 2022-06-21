@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
+    [Obsolete]
     internal readonly struct UnitTestingOptionChangedEventArgsWrapper
     {
         internal OptionChangedEventArgs UnderlyingObject { get; }

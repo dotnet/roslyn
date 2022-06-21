@@ -87,10 +87,9 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             var renameOptions = new SymbolRenameOptions();
-            var fallbackOptions = CodeCleanupOptions.CreateProvider(context.Options);
 
             var fieldLocations = await Renamer.FindRenameLocationsAsync(
-                solution, fieldSymbol, renameOptions, fallbackOptions, cancellationToken).ConfigureAwait(false);
+                solution, fieldSymbol, renameOptions, context.Options, cancellationToken).ConfigureAwait(false);
 
             // First, create the updated property we want to replace the old property with
             var isWrittenToOutsideOfConstructor = IsWrittenToOutsideOfConstructorOrProperty(fieldSymbol, fieldLocations, property, cancellationToken);
@@ -212,7 +211,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 editor.RemoveNode(nodeToRemove, syntaxRemoveOptions);
 
                 var newRoot = editor.GetChangedRoot();
-                newRoot = await FormatAsync(newRoot, fieldDocument, fallbackOptions, cancellationToken).ConfigureAwait(false);
+                newRoot = await FormatAsync(newRoot, fieldDocument, context.Options, cancellationToken).ConfigureAwait(false);
 
                 return solution.WithDocumentSyntaxRoot(fieldDocument.Id, newRoot);
             }
@@ -226,8 +225,8 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 Contract.ThrowIfNull(newFieldTreeRoot);
                 var newPropertyTreeRoot = propertyTreeRoot.ReplaceNode(property, updatedProperty);
 
-                newFieldTreeRoot = await FormatAsync(newFieldTreeRoot, fieldDocument, fallbackOptions, cancellationToken).ConfigureAwait(false);
-                newPropertyTreeRoot = await FormatAsync(newPropertyTreeRoot, propertyDocument, fallbackOptions, cancellationToken).ConfigureAwait(false);
+                newFieldTreeRoot = await FormatAsync(newFieldTreeRoot, fieldDocument, context.Options, cancellationToken).ConfigureAwait(false);
+                newPropertyTreeRoot = await FormatAsync(newPropertyTreeRoot, propertyDocument, context.Options, cancellationToken).ConfigureAwait(false);
 
                 var updatedSolution = solution.WithDocumentSyntaxRoot(fieldDocument.Id, newFieldTreeRoot);
                 updatedSolution = updatedSolution.WithDocumentSyntaxRoot(propertyDocument.Id, newPropertyTreeRoot);

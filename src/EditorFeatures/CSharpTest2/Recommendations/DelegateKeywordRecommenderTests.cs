@@ -63,6 +63,7 @@ $$");
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInUsingAliasTypeParameter()
         {
+            // Valid case: using Goo = System.Collections.Generic.IList<delegate*<void>[]>;
             await VerifyKeywordAsync(
 @"using Goo = T<$$");
         }
@@ -70,6 +71,7 @@ $$");
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInGlobalUsingAliasTypeParameter()
         {
+            // Valid case: global using Goo = System.Collections.Generic.IList<delegate*<void>[]>;
             await VerifyKeywordAsync(
 @"global using Goo = T<$$");
         }

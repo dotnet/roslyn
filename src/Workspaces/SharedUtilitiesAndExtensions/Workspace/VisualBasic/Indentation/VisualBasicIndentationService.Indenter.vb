@@ -39,6 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
 
         Protected Overrides Function CreateSmartTokenFormatter(
                 root As CompilationUnitSyntax,
+                text As SourceText,
                 lineToBeIndented As TextLine,
                 options As IndentationOptions,
                 baseIndentationRule As AbstractFormattingRule) As ISmartTokenFormatter

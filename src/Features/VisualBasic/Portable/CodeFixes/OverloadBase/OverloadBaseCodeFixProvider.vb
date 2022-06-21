@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
@@ -45,9 +46,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.OverloadBase
             End If
 
             If diagnostic.Descriptor.Id = BC40003 Then
-                context.RegisterCodeFix(New AddKeywordAction(context.Document, token.Parent, VBFeaturesResources.Add_Overloads, SyntaxKind.OverloadsKeyword, SyntaxFormattingOptions.CreateProvider(context.Options)), context.Diagnostics)
+                context.RegisterCodeFix(New AddKeywordAction(context.Document, token.Parent, VBFeaturesResources.Add_Overloads, SyntaxKind.OverloadsKeyword, context.Options), context.Diagnostics)
             ElseIf diagnostic.Descriptor.Id = BC40004 Then
-                context.RegisterCodeFix(New AddKeywordAction(context.Document, token.Parent, VBFeaturesResources.Add_Shadows, SyntaxKind.ShadowsKeyword, SyntaxFormattingOptions.CreateProvider(context.Options)), context.Diagnostics)
+                context.RegisterCodeFix(New AddKeywordAction(context.Document, token.Parent, VBFeaturesResources.Add_Shadows, SyntaxKind.ShadowsKeyword, context.Options), context.Diagnostics)
             End If
         End Function
     End Class

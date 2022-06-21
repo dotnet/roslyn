@@ -609,7 +609,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitReference:
                 case ConversionKind.Boxing:
                 case ConversionKind.ImplicitConstant:
-                case ConversionKind.ImplicitUtf8StringLiteral:
                 case ConversionKind.ImplicitPointer:
                 case ConversionKind.ImplicitPointerToVoid:
                 case ConversionKind.ImplicitTuple:
@@ -657,8 +656,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Conversion conversion = ClassifyImplicitBuiltInConversionFromExpression(sourceExpression, source, destination, ref useSiteInfo);
             if (conversion.Exists &&
-                !conversion.IsInterpolatedStringHandler &&
-                !conversion.IsUTF8StringLiteral) // UTF-8 string conversion is not a standard conversion.
+                !conversion.IsInterpolatedStringHandler)
             {
                 Debug.Assert(IsStandardImplicitConversionFromExpression(conversion.Kind));
                 return conversion;
@@ -1021,12 +1019,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return constantConversion;
             }
 
-            constantConversion = ClassifyImplicitUtf8StringLiteralConversion(sourceExpression, destination);
-            if (constantConversion.Exists)
-            {
-                return constantConversion;
-            }
-
             switch (sourceExpression.Kind)
             {
                 case BoundKind.Literal:
@@ -1106,35 +1098,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return Conversion.NoConversion;
         }
-
-#nullable enable
-        private Conversion ClassifyImplicitUtf8StringLiteralConversion(BoundExpression sourceExpression, TypeSymbol destination)
-        {
-            var compilation = Compilation;
-
-            // The language will allow conversions between string constants and byte sequences
-            // where the text is converted into the equivalent UTF8 byte representation.
-            // Specifically the compiler will allow for implicit conversions from string constants to
-            // byte[], Span<byte>, and ReadOnlySpan<byte>.
-            ConstantValue? constantValue = sourceExpression.ConstantValue;
-
-            TypeSymbol destinationOriginalDefinition = destination.OriginalDefinition;
-            if (constantValue is ({ IsString: true } or { IsNull: true }) &&
-                sourceExpression.Type?.SpecialType == SpecialType.System_String &&
-                (destination is ArrayTypeSymbol { IsSZArray: true, ElementType.SpecialType: SpecialType.System_Byte } || // byte[]
-                 (destinationOriginalDefinition.TypeKind == TypeKind.Struct && destinationOriginalDefinition.IsRefLikeType &&
-                  compilation is not null &&
-                  (destinationOriginalDefinition.Equals(compilation.GetWellKnownType(WellKnownType.System_Span_T), TypeCompareKind.AllIgnoreOptions) ||             // Span<T>
-                   destinationOriginalDefinition.Equals(compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions)) &&    // ReadOnlySpan<T>
-                  ((NamedTypeSymbol)destination).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Single().SpecialType == SpecialType.System_Byte)))               // T is byte
-            {
-                return Conversion.ImplicitUtf8StringLiteral;
-            }
-
-            Debug.Assert(compilation is not null);
-            return Conversion.NoConversion;
-        }
-#nullable disable
 
         private Conversion GetSwitchExpressionConversion(BoundExpression source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
@@ -1791,12 +1754,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ClassifyImplicitConversionFromType(source.Type, destination.Type, ref discardedUseSiteInfo).Kind != ConversionKind.NoConversion;
         }
 
-        public static bool HasIdentityConversionToAny<T>(T type, ArrayBuilder<T> targetTypes)
-            where T : TypeSymbol
+        private static bool HasIdentityConversionToAny(NamedTypeSymbol type, ArrayBuilder<(NamedTypeSymbol ParticipatingType, TypeParameterSymbol ConstrainedToTypeOpt)> targetTypes)
         {
             foreach (var targetType in targetTypes)
             {
-                if (HasIdentityConversionInternal(type, targetType, includeNullability: false))
+                if (HasIdentityConversionInternal(type, targetType.ParticipatingType, includeNullability: false))
                 {
                     return true;
                 }
@@ -1918,132 +1880,40 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private const bool F = false;
-        private const bool T = true;
-
-        // Notice that there is no implicit numeric conversion from a type to itself. That's an
-        // identity conversion.
-        private static readonly bool[,] s_implicitNumericConversions =
-        {
-            // to     sb  b  s  us i ui  l ul  c  f  d  m
-            // from
-            /* sb */
-         { F, F, T, F, T, F, T, F, F, T, T, T },
-            /*  b */
-         { F, F, T, T, T, T, T, T, F, T, T, T },
-            /*  s */
-         { F, F, F, F, T, F, T, F, F, T, T, T },
-            /* us */
-         { F, F, F, F, T, T, T, T, F, T, T, T },
-            /*  i */
-         { F, F, F, F, F, F, T, F, F, T, T, T },
-            /* ui */
-         { F, F, F, F, F, F, T, T, F, T, T, T },
-            /*  l */
-         { F, F, F, F, F, F, F, F, F, T, T, T },
-            /* ul */
-         { F, F, F, F, F, F, F, F, F, T, T, T },
-            /*  c */
-         { F, F, F, T, T, T, T, T, F, T, T, T },
-            /*  f */
-         { F, F, F, F, F, F, F, F, F, F, T, F },
-            /*  d */
-         { F, F, F, F, F, F, F, F, F, F, F, F },
-            /*  m */
-         { F, F, F, F, F, F, F, F, F, F, F, F }
-        };
-
-        private static readonly bool[,] s_explicitNumericConversions =
-        {
-            // to     sb  b  s us  i ui  l ul  c  f  d  m
-            // from
-            /* sb */
-         { F, T, F, T, F, T, F, T, T, F, F, F },
-            /*  b */
-         { T, F, F, F, F, F, F, F, T, F, F, F },
-            /*  s */
-         { T, T, F, T, F, T, F, T, T, F, F, F },
-            /* us */
-         { T, T, T, F, F, F, F, F, T, F, F, F },
-            /*  i */
-         { T, T, T, T, F, T, F, T, T, F, F, F },
-            /* ui */
-         { T, T, T, T, T, F, F, F, T, F, F, F },
-            /*  l */
-         { T, T, T, T, T, T, F, T, T, F, F, F },
-            /* ul */
-         { T, T, T, T, T, T, T, F, T, F, F, F },
-            /*  c */
-         { T, T, T, F, F, F, F, F, F, F, F, F },
-            /*  f */
-         { T, T, T, T, T, T, T, T, T, F, F, T },
-            /*  d */
-         { T, T, T, T, T, T, T, T, T, T, F, T },
-            /*  m */
-         { T, T, T, T, T, T, T, T, T, T, T, F }
-        };
-
-        private static int GetNumericTypeIndex(SpecialType specialType)
-        {
-            switch (specialType)
-            {
-                case SpecialType.System_SByte: return 0;
-                case SpecialType.System_Byte: return 1;
-                case SpecialType.System_Int16: return 2;
-                case SpecialType.System_UInt16: return 3;
-                case SpecialType.System_Int32: return 4;
-                case SpecialType.System_UInt32: return 5;
-                case SpecialType.System_Int64: return 6;
-                case SpecialType.System_UInt64: return 7;
-                case SpecialType.System_Char: return 8;
-                case SpecialType.System_Single: return 9;
-                case SpecialType.System_Double: return 10;
-                case SpecialType.System_Decimal: return 11;
-                default: return -1;
-            }
-        }
-
 #nullable enable
-        private static bool HasImplicitNumericConversion(TypeSymbol source, TypeSymbol destination)
+
+        private static ConversionKind GetNumericConversion(TypeSymbol source, TypeSymbol destination)
         {
             Debug.Assert((object)source != null);
             Debug.Assert((object)destination != null);
 
-            int sourceIndex = GetNumericTypeIndex(source.SpecialType);
-            if (sourceIndex < 0)
+            if (!IsNumericType(source) || !IsNumericType(destination))
             {
-                return false;
+                return ConversionKind.UnsetConversionKind;
             }
 
-            int destinationIndex = GetNumericTypeIndex(destination.SpecialType);
-            if (destinationIndex < 0)
+            if (source.SpecialType == destination.SpecialType)
             {
-                return false;
+                // Notice that there is no implicit numeric conversion from a type to itself. That's an
+                // identity conversion.
+                return ConversionKind.UnsetConversionKind;
             }
 
-            return s_implicitNumericConversions[sourceIndex, destinationIndex];
+            var conversionKind = ConversionEasyOut.ClassifyConversion(source, destination);
+            Debug.Assert(conversionKind is ConversionKind.ImplicitNumeric or ConversionKind.ExplicitNumeric);
+            return conversionKind;
+        }
+
+        private static bool HasImplicitNumericConversion(TypeSymbol source, TypeSymbol destination)
+        {
+            return GetNumericConversion(source, destination) == ConversionKind.ImplicitNumeric;
         }
 
         private static bool HasExplicitNumericConversion(TypeSymbol source, TypeSymbol destination)
         {
             // SPEC: The explicit numeric conversions are the conversions from a numeric-type to another 
             // SPEC: numeric-type for which an implicit numeric conversion does not already exist.
-            Debug.Assert((object)source != null);
-            Debug.Assert((object)destination != null);
-
-            int sourceIndex = GetNumericTypeIndex(source.SpecialType);
-            if (sourceIndex < 0)
-            {
-                return false;
-            }
-
-            int destinationIndex = GetNumericTypeIndex(destination.SpecialType);
-            if (destinationIndex < 0)
-            {
-                return false;
-            }
-
-            return s_explicitNumericConversions[sourceIndex, destinationIndex];
+            return GetNumericConversion(source, destination) == ConversionKind.ExplicitNumeric;
         }
 
         private static bool IsConstantNumericZero(ConstantValue value)

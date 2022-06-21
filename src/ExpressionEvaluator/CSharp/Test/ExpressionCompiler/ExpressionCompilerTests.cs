@@ -1610,13 +1610,13 @@ class C
                 context.CompileExpression("y", out resultProperties, out error);
                 Assert.Equal(DkmClrCompilationResultFlags.None, resultProperties.Flags);
                 context.CompileExpression("(bool)y", out resultProperties, out error);
-                Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.BoolResult | DkmClrCompilationResultFlags.ReadOnlyResult);
+                Assert.Equal(DkmClrCompilationResultFlags.BoolResult | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
                 context.CompileExpression("!y", out resultProperties, out error);
                 Assert.Equal(DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
                 context.CompileExpression("false", out resultProperties, out error);
-                Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.BoolResult | DkmClrCompilationResultFlags.ReadOnlyResult);
+                Assert.Equal(DkmClrCompilationResultFlags.BoolResult | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
                 context.CompileExpression("F()", out resultProperties, out error);
-                Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.BoolResult | DkmClrCompilationResultFlags.ReadOnlyResult | DkmClrCompilationResultFlags.PotentialSideEffect);
+                Assert.Equal(DkmClrCompilationResultFlags.BoolResult | DkmClrCompilationResultFlags.ReadOnlyResult | DkmClrCompilationResultFlags.PotentialSideEffect, resultProperties.Flags);
             });
         }
 
@@ -1668,7 +1668,7 @@ class C
                 expr: "this.M()",
                 resultProperties: out resultProperties,
                 error: out error);
-            Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+            Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
             var methodData = testData.GetMethodData("<>x.<>m0");
             var method = (MethodSymbol)methodData.Method;
             Assert.Equal(SpecialType.System_Void, method.ReturnType.SpecialType);
@@ -1841,97 +1841,6 @@ class C
         }
 
         [Fact]
-        public void EvaluateUTF8StringConversion_01()
-        {
-            var source =
-@"class C
-{
-    static void F()
-    {
-    }
-}";
-            var testData = Evaluate(
-                source,
-                OutputKind.DynamicallyLinkedLibrary,
-                methodName: "C.F",
-                expr: @"(byte[])""hello""");
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
-@"
-{
-  // Code size       18 (0x12)
-  .maxstack  3
-  IL_0000:  ldc.i4.5
-  IL_0001:  newarr     ""byte""
-  IL_0006:  dup
-  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=5 <PrivateImplementationDetails>.2CF24DBA5FB0A30E26E83B2AC5B9E29E1B161E5C1FA7425E73043362938B9824""
-  IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
-  IL_0011:  ret
-}
-");
-        }
-
-        [Fact]
-        public void EvaluateUTF8StringConversion_02()
-        {
-            var source =
-@"class C
-{
-    static void F()
-    {
-    }
-}";
-            var testData = Evaluate(
-                source,
-                OutputKind.DynamicallyLinkedLibrary,
-                targetFramework: TargetFramework.NetCoreApp,
-                methodName: "C.F",
-                expr: @"(System.Span<byte>)""hello""");
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
-@"
-{
-  // Code size       23 (0x17)
-  .maxstack  3
-  IL_0000:  ldc.i4.5
-  IL_0001:  newarr     ""byte""
-  IL_0006:  dup
-  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=5 <PrivateImplementationDetails>.2CF24DBA5FB0A30E26E83B2AC5B9E29E1B161E5C1FA7425E73043362938B9824""
-  IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
-  IL_0011:  newobj     ""System.Span<byte>..ctor(byte[])""
-  IL_0016:  ret
-}
-");
-        }
-
-        [Fact]
-        public void EvaluateUTF8StringConversion_03()
-        {
-            var source =
-@"class C
-{
-    static void F()
-    {
-    }
-}";
-            var testData = Evaluate(
-                source,
-                OutputKind.DynamicallyLinkedLibrary,
-                targetFramework: TargetFramework.NetCoreApp,
-                methodName: "C.F",
-                expr: @"(System.ReadOnlySpan<byte>)""hello""");
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
-@"
-{
-  // Code size       12 (0xc)
-  .maxstack  2
-  IL_0000:  ldsflda    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=5 <PrivateImplementationDetails>.2CF24DBA5FB0A30E26E83B2AC5B9E29E1B161E5C1FA7425E73043362938B9824""
-  IL_0005:  ldc.i4.5
-  IL_0006:  newobj     ""System.ReadOnlySpan<byte>..ctor(void*, int)""
-  IL_000b:  ret
-}
-");
-        }
-
-        [Fact]
         public void EvaluateUTF8StringLiteral_01()
         {
             var source =
@@ -1945,18 +1854,17 @@ class C
                 source,
                 OutputKind.DynamicallyLinkedLibrary,
                 methodName: "C.F",
-                expr: @"""hello""u8");
+                expr: @"""hello""u8",
+                targetFramework: TargetFramework.NetCoreApp);
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"
 {
-  // Code size       18 (0x12)
-  .maxstack  3
-  IL_0000:  ldc.i4.5
-  IL_0001:  newarr     ""byte""
-  IL_0006:  dup
-  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=5 <PrivateImplementationDetails>.2CF24DBA5FB0A30E26E83B2AC5B9E29E1B161E5C1FA7425E73043362938B9824""
-  IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
-  IL_0011:  ret
+  // Code size       12 (0xc)
+  .maxstack  2
+  IL_0000:  ldsflda    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=6 <PrivateImplementationDetails>.F3AEFE62965A91903610F0E23CC8A69D5B87CEA6D28E75489B0D2CA02ED7993C""
+  IL_0005:  ldc.i4.5
+  IL_0006:  newobj     ""System.ReadOnlySpan<byte>..ctor(void*, int)""
+  IL_000b:  ret
 }
 ");
         }
@@ -2930,7 +2838,7 @@ class B : A
                 expr: "((System.Func<object>)(() => this.G))()",
                 resultProperties: out resultProperties,
                 error: out error);
-            Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+            Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
             testData.GetMethodData("<>x.<>c__DisplayClass0_0.<<>m0>b__0()").VerifyIL(
 @"{
   // Code size       12 (0xc)
@@ -2947,7 +2855,7 @@ class B : A
                 expr: "((System.Func<object>)(() => this.F() ?? this.P))()",
                 resultProperties: out resultProperties,
                 error: out error);
-            Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+            Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
             testData.GetMethodData("<>x.<>c__DisplayClass0_0.<<>m0>b__0()").VerifyIL(
 @"{
   // Code size       27 (0x1b)
@@ -4382,7 +4290,7 @@ class C
                 resultProperties: out resultProperties,
                 error: out error);
 
-            Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+            Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
             testData.GetMethodData("<>x.<>c__DisplayClass0_0.<<>m0>b__0").VerifyIL(
 @"{
   // Code size       17 (0x11)

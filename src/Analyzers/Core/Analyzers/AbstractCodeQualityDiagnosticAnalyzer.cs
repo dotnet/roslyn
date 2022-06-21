@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CodeQuality
             bool isEnabledByDefault = true,
             bool isConfigurable = true,
             LocalizableString? description = null)
-#pragma warning disable RS0030 // Do not used banned APIs
+#pragma warning disable RS0030 // Do not use banned APIs
             => new(
                     id, title, messageFormat,
                     DiagnosticCategory.CodeQuality,
@@ -58,6 +58,6 @@ namespace Microsoft.CodeAnalysis.CodeQuality
                     description,
                     helpLinkUri: DiagnosticHelper.GetHelpLinkForDiagnosticId(id),
                     customTags: DiagnosticCustomTags.Create(isUnnecessary, isConfigurable, enforceOnBuild));
-#pragma warning disable RS0030 // Do not used banned APIs
+#pragma warning restore RS0030 // Do not use banned APIs
     }
 }

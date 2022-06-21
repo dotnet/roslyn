@@ -5033,27 +5033,28 @@ int (foo, bar) = (1, 2);",
 
         [Theory]
         [CombinatorialData]
+        [WorkItem(18956, "https://github.com/dotnet/roslyn/issues/18956")]
         public async Task TestListPattern(TestHost testHost)
         {
             await TestInMethodAsync(@"
-_ = new int[0] switch
+switch (new int[0])
 {
     case [1, 2]:
         break;
     case [1, .. var end]:
         break;
 }",
-testHost,
-            Identifier("_"),
-            Operators.Equals,
+            testHost,
+            ControlKeyword("switch"),
+            Punctuation.OpenParen,
             Keyword("new"),
             Keyword("int"),
             Punctuation.OpenBracket,
             Number("0"),
             Punctuation.CloseBracket,
-            ControlKeyword("switch"),
+            Punctuation.CloseParen,
             Punctuation.OpenCurly,
-            Keyword("case"),
+            ControlKeyword("case"),
             Punctuation.OpenBracket,
             Number("1"),
             Punctuation.Comma,
@@ -5062,18 +5063,65 @@ testHost,
             Punctuation.Colon,
             ControlKeyword("break"),
             Punctuation.Semicolon,
-            Keyword("case"),
+            ControlKeyword("case"),
             Punctuation.OpenBracket,
             Number("1"),
             Punctuation.Comma,
             Punctuation.DotDot,
-            Identifier("var"),
+            Keyword("var"),
             Identifier("end"),
             Punctuation.CloseBracket,
             Punctuation.Colon,
             ControlKeyword("break"),
             Punctuation.Semicolon,
             Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(18956, "https://github.com/dotnet/roslyn/issues/18956")]
+        public async Task TestListPattern2(TestHost testHost)
+        {
+            await TestInMethodAsync(@"
+_ = x switch
+{
+    [var start, .. var end] => 1
+}",
+            testHost,
+            Identifier("_"),
+            Operators.Equals,
+            Identifier("x"),
+            ControlKeyword("switch"),
+            Punctuation.OpenCurly,
+            Punctuation.OpenBracket,
+            Keyword("var"),
+            Identifier("start"),
+            Punctuation.Comma,
+            Punctuation.DotDot,
+            Keyword("var"),
+            Identifier("end"),
+            Punctuation.CloseBracket,
+            Operators.EqualsGreaterThan,
+            Number("1"),
+            Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(18956, "https://github.com/dotnet/roslyn/issues/18956")]
+        public async Task TestVarPattern(TestHost testHost)
+        {
+            await TestInMethodAsync(@"
+_ = 1 is var x;
+",
+            testHost,
+            Identifier("_"),
+            Operators.Equals,
+            Number("1"),
+            Keyword("is"),
+            Keyword("var"),
+            Identifier("x"),
+            Punctuation.Semicolon);
         }
 
         [Theory]
@@ -6432,10 +6480,72 @@ static T I1.operator checked >>>(T a, T b)
                 Punctuation.OpenParen,
                 Keyword("string"),
                 Parameter("v"),
-                Punctuation.ExclamationExclamation,
+                Operators.Exclamation,
+                Operators.Exclamation,
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        /// <seealso cref="SemanticClassifierTests.LocalFunctionUse"/>
+        /// <seealso cref="TotalClassifierTests.LocalFunctionDeclarationAndUse"/>
+        [Theory]
+        [CombinatorialData]
+        public async Task LocalFunctionDeclaration(TestHost testHost)
+        {
+            await TestAsync(
+                """
+                using System;
+
+                class C
+                {
+                    void M(Action action)
+                    {
+                        [|localFunction();
+                        staticLocalFunction();
+
+                        M(localFunction);
+                        M(staticLocalFunction);
+
+                        void localFunction() { }
+                        static void staticLocalFunction() { }|]
+                    }
+                }
+
+                """,
+                testHost,
+                Identifier("localFunction"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.Semicolon,
+                Identifier("staticLocalFunction"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.Semicolon,
+                Identifier("M"),
+                Punctuation.OpenParen,
+                Identifier("localFunction"),
+                Punctuation.CloseParen,
+                Punctuation.Semicolon,
+                Identifier("M"),
+                Punctuation.OpenParen,
+                Identifier("staticLocalFunction"),
+                Punctuation.CloseParen,
+                Punctuation.Semicolon,
+                Keyword("void"),
+                Method("localFunction"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Keyword("static"),
+                Keyword("void"),
+                Method("staticLocalFunction"),
+                Static("staticLocalFunction"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
                 Punctuation.CloseCurly);
         }
     }

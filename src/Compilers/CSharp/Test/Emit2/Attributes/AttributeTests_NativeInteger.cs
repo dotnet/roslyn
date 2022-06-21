@@ -1615,11 +1615,6 @@ C
             AssertEx.Equal(expectedNames, actualNames);
         }
 
-        private static void AssertNoNativeIntegerAttribute(ImmutableArray<CSharpAttributeData> attributes)
-        {
-            AssertAttributes(attributes);
-        }
-
         private static void AssertNativeIntegerAttribute(ImmutableArray<CSharpAttributeData> attributes)
         {
             AssertAttributes(attributes, "System.Runtime.CompilerServices.NativeIntegerAttribute");
@@ -1629,17 +1624,6 @@ C
         {
             var actualNames = attributes.Select(a => a.AttributeClass.ToTestDisplayString()).ToArray();
             AssertEx.Equal(expectedNames, actualNames);
-        }
-
-        private static void AssertNoNativeIntegerAttributes(CSharpCompilation comp)
-        {
-            var image = comp.EmitToArray();
-            using (var reader = new PEReader(image))
-            {
-                var metadataReader = reader.GetMetadataReader();
-                var attributes = metadataReader.GetCustomAttributeRows().Select(metadataReader.GetCustomAttributeName).ToArray();
-                Assert.False(attributes.Contains("NativeIntegerAttribute"));
-            }
         }
 
         private void AssertNativeIntegerAttributes(CSharpCompilation comp, string expected)

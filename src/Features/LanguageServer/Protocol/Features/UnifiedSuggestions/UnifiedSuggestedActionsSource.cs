@@ -37,7 +37,8 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             Document document,
             TextSpan selection,
             CodeActionRequestPriority priority,
-            CodeActionOptionsProvider options,
+            CodeActionOptionsProvider fallbackOptions,
+            bool isBlocking,
             Func<string, IDisposable?> addOperationScope,
             CancellationToken cancellationToken)
         {
@@ -47,7 +48,8 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                 document,
                 selection,
                 priority,
-                options,
+                fallbackOptions,
+                isBlocking,
                 addOperationScope,
                 cancellationToken), cancellationToken).ConfigureAwait(false);
 
@@ -413,6 +415,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             TextSpan selection,
             CodeActionRequestPriority priority,
             CodeActionOptionsProvider options,
+            bool isBlocking,
             Func<string, IDisposable?> addOperationScope,
             bool filterOutsideSelection,
             CancellationToken cancellationToken)
@@ -423,7 +426,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             // the UI thread.
             var refactorings = await Task.Run(
                 () => codeRefactoringService.GetRefactoringsAsync(
-                    document, selection, priority, options, addOperationScope,
+                    document, selection, priority, options, isBlocking, addOperationScope,
                     cancellationToken), cancellationToken).ConfigureAwait(false);
 
             var filteredRefactorings = FilterOnAnyThread(refactorings, selection, filterOutsideSelection);
@@ -454,7 +457,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                 ? null
                 : actions.Length == refactoring.CodeActions.Length
                     ? refactoring
-                    : new CodeRefactoring(refactoring.Provider, actions, refactoring.FixAllProviderInfo);
+                    : new CodeRefactoring(refactoring.Provider, actions, refactoring.FixAllProviderInfo, refactoring.CodeActionOptionsProvider);
 
             bool IsActionAndSpanApplicable((CodeAction action, TextSpan? applicableSpan) actionAndSpan)
             {
@@ -538,7 +541,8 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                 {
                     var fixAllSuggestedActionSet = await GetUnifiedFixAllSuggestedActionSetAsync(codeAction,
                         refactoring.CodeActions.Length, document, selection, refactoring.Provider,
-                        refactoring.FixAllProviderInfo, workspace, cancellationToken).ConfigureAwait(false);
+                        refactoring.FixAllProviderInfo, refactoring.CodeActionOptionsProvider,
+                        workspace, cancellationToken).ConfigureAwait(false);
 
                     return new UnifiedCodeRefactoringSuggestedAction(
                             workspace, codeAction, codeAction.Priority, refactoring.Provider, fixAllSuggestedActionSet);
@@ -556,6 +560,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             TextSpan selection,
             CodeRefactoringProvider provider,
             FixAllProviderInfo? fixAllProviderInfo,
+            CodeActionOptionsProvider optionsProvider,
             Workspace workspace,
             CancellationToken cancellationToken)
         {
@@ -577,7 +582,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             {
                 var fixAllState = new CodeRefactorings.FixAllState(
                     (CodeRefactorings.FixAllProvider)fixAllProviderInfo.FixAllProvider,
-                    document, selection, provider, scope, action);
+                    document, selection, provider, optionsProvider, scope, action);
 
                 if (scope is FixAllScope.ContainingMember or FixAllScope.ContainingType)
                 {
