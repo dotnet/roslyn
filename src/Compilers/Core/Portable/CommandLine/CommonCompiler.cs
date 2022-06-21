@@ -1786,7 +1786,10 @@ namespace Microsoft.CodeAnalysis
 
                 if (sourceSyntaxNode == null || isGeneratedCode)
                 {
-                    if (diagnostic.Severity >= DiagnosticSeverity.Error &&
+                    // We compare the DefaultSeverity, not the Severity, so that warnings-as-errors are elimitated
+                    // from the output.
+                    
+                    if (diagnostic.DefaultSeverity >= DiagnosticSeverity.Error &&
                         diagnostic.Id.StartsWith("CS", StringComparison.OrdinalIgnoreCase))
                     {
                         // If this is a C# compiler error, it means that we have invalid code.
