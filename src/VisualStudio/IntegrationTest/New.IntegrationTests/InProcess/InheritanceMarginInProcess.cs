@@ -4,27 +4,18 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
-using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.UnitTests;
-using Microsoft.VisualStudio.CorDebugInterop;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin;
 using Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph;
-using Microsoft.VisualStudio.LanguageServices.InheritanceMargin;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.TextManager.Interop;
-using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess
@@ -32,12 +23,11 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess
     [TestService]
     internal partial class InheritanceMarginInProcess
     {
-        private const double HeightAndWidthOfTheGlyph = InheritanceMarginViewMargin.HeightAndWidthOfMargin;
         private const string MarginName = nameof(InheritanceMarginViewMargin);
 
         public async Task EnableOptionsAsync(string languageName, CancellationToken cancellationToken)
         {
-            var optionService = await GetComponentModelServiceAsync<IGlobalOptionService>(cancellationToken).ConfigureAwait(false);
+            var optionService = await GetComponentModelServiceAsync<IGlobalOptionService>(cancellationToken);
             var showInheritanceMargin = optionService.GetOption(FeatureOnOffOptions.ShowInheritanceMargin, languageName);
             var combinedWithIndicatorMargin = optionService.GetOption(FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin);
 
@@ -56,27 +46,27 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess
         public async Task SetTextAndEnsureGlyphsAppearAsync(string text, int expectedGlyphsNumberInMargin, CancellationToken cancellationToken)
         {
             var margin = await GetTextViewMarginAsync(cancellationToken);
-            var marginCanvas = (InheritanceMarginCanvas)((Grid)margin.VisualElement).Children[0];
+            var marginCanvas = (Canvas)((Grid)margin.VisualElement).Children[0];
             var taskCompletionSource = new TaskCompletionSource<bool>();
-            using var _ = cancellationToken.Register(() => taskCompletionSource.SetCanceled());
+            using var _ = cancellationToken.Register(() => taskCompletionSource.TrySetCanceled());
 
             try
             {
-                marginCanvas.OnGlyphsChanged += OnGlyphChanged;
+                marginCanvas.LayoutUpdated += OnGlyphChanged;
 
                 await TestServices.Editor.SetTextAsync(text, cancellationToken);
                 await taskCompletionSource.Task;
             }
             finally
             {
-                marginCanvas.OnGlyphsChanged -= OnGlyphChanged;
+                marginCanvas.LayoutUpdated -= OnGlyphChanged;
             }
 
-            void OnGlyphChanged(object sender, (InheritanceMarginGlyph? glyphAdded, InheritanceMarginGlyph? glyphRemoved) _)
+            void OnGlyphChanged(object sender, EventArgs e)
             {
                 if (marginCanvas.Children.Count == expectedGlyphsNumberInMargin)
                 {
-                    taskCompletionSource.SetResult(true);
+                    taskCompletionSource.TrySetResult(true);
                 }
             }
         }
@@ -109,7 +99,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess
                 if (glyph is InheritanceMarginGlyph inheritanceMarginGlyph)
                 {
                     var glyphTop = Canvas.GetTop(inheritanceMarginGlyph);
-                    var glyphBottom = glyphTop + HeightAndWidthOfTheGlyph;
+                    var glyphBottom = glyphTop + inheritanceMarginGlyph.ActualHeight;
                     if (midOfTheLine > glyphTop && midOfTheLine < glyphBottom)
                     {
                         glyphsOnLine.Add(inheritanceMarginGlyph);
@@ -119,7 +109,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess
 
             if (glyphsOnLine.Count != 1)
             {
-                Assert.False(true, $"{glyphsOnLine.Count} glpyhs are found at line: {lineNumber}.");
+                Assert.False(true, $"{glyphsOnLine.Count} glyphs are found at line: {lineNumber}.");
             }
 
             return glyphsOnLine[0];
