@@ -56,7 +56,6 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess
         {
             var margin = await GetTextViewMarginAsync(cancellationToken);
             var marginCanvas = (InheritanceMarginCanvas)((Grid)margin.VisualElement).Children[0];
-            var currentGlyphsNumber = marginCanvas.Children.Count;
             var taskCompletionSource = new TaskCompletionSource<bool>();
             using var _ = cancellationToken.Register(() => taskCompletionSource.SetCanceled());
 
@@ -72,20 +71,9 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess
                 marginCanvas.OnGlyphsChanged -= OnGlyphChanged;
             }
 
-            void OnGlyphChanged(object sender, (InheritanceMarginGlyph? glyphAdded, InheritanceMarginGlyph? glyphRemoved) changedGlyphs)
+            void OnGlyphChanged(object sender, (InheritanceMarginGlyph? glyphAdded, InheritanceMarginGlyph? glyphRemoved) _)
             {
-                var (glyphAdded, glyphRemoved) = changedGlyphs;
-                if (glyphAdded is not null)
-                {
-                    currentGlyphsNumber++;
-                }
-
-                if (glyphRemoved is not null)
-                {
-                    currentGlyphsNumber--;
-                }
-
-                if (currentGlyphsNumber == expectedGlyphsNumberInMargin)
+                if (marginCanvas.Children.Count == expectedGlyphsNumberInMargin)
                 {
                     taskCompletionSource.SetResult(true);
                 }
@@ -108,8 +96,13 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess
             var viewTop = activeView.ViewportTop;
             var midOfTheLine = wpfTextViewLine.TextTop + wpfTextViewLine.Height / 2;
             var margin = await GetTextViewMarginAsync(cancellationToken);
+
+            var grid = (Grid)margin.VisualElement;
+            Assert.True(grid.Children.Count == 1);
+
             var containingCanvas = (Canvas)((Grid)margin.VisualElement).Children[0];
 
+            var glyphsOnLine = new List<InheritanceMarginGlyph>();
             foreach (var glyph in containingCanvas.Children)
             {
                 if (glyph is InheritanceMarginGlyph inheritanceMarginGlyph)
@@ -118,13 +111,17 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess
                     var glyphBottom = glyphTop + HeightAndWidthOfTheGlyph;
                     if (midOfTheLine > glyphTop && midOfTheLine < glyphBottom)
                     {
-                        return inheritanceMarginGlyph;
+                        glyphsOnLine.Add(inheritanceMarginGlyph);
                     }
                 }
             }
 
-            Assert.False(true, $"No {nameof(InheritanceMarginGlyph)} is found at line: {lineNumber}.");
-            throw ExceptionUtilities.Unreachable;
+            if (glyphsOnLine.Count != 1)
+            {
+                Assert.False(true, $"{glyphsOnLine.Count} glpyhs are found at line: {lineNumber}.");
+            }
+
+            return glyphsOnLine[0];
         }
 
         private async Task<IWpfTextViewMargin> GetTextViewMarginAsync(CancellationToken cancellationToken)

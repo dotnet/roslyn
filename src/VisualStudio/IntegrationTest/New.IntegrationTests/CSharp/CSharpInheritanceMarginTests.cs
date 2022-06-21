@@ -68,6 +68,7 @@ class Implementation : IBar
 
             await TestServices.InheritanceMargin.SetTextAndEnsureGlyphsAppearAsync(
 @"
+using System;
 interface IBar
 {
     event EventHandler e1, e2;
@@ -78,7 +79,7 @@ class Implementation : IBar
     public event EventHandler e1, e2;
 }", expectedGlyphsNumberInMargin: 4, HangMitigatingCancellationToken);
 
-            await TestServices.InheritanceMargin.ClickTheGlyphOnLine(4, HangMitigatingCancellationToken);
+            await TestServices.InheritanceMargin.ClickTheGlyphOnLine(5, HangMitigatingCancellationToken);
 
             // The context menu contains two members, e1 and e2.
             // Move focus to menu item of 'event e1'
@@ -100,7 +101,7 @@ class Implementation : IBar
 
             await TestServices.InheritanceMargin.SetTextAndEnsureGlyphsAppearAsync(
 @"
-using System.Collections
+using System.Collections;
 
 class Implementation : IEnumerable
 {
@@ -117,6 +118,7 @@ class Implementation : IEnumerable
             // Navigate to 'IEnumerable'
             await TestServices.Input.SendAsync(VirtualKey.Enter);
             await TestServices.EditorVerifier.TextContainsAsync(@"public interface IEnumerable$$", assertCaretPosition: true);
+            await TestServices.EditorVerifier.VerifyActiveViewIsInMetadataWorkspaceAsync(HangMitigatingCancellationToken);
         }
 
         [IdeFact]
@@ -154,7 +156,7 @@ class Implementation : IBar
             // Navigate to 'IBar'
             await TestServices.Input.SendAsync(VirtualKey.Enter);
             await TestServices.EditorVerifier.TextContainsAsync(@"Public Interface IBar$$", assertCaretPosition: true);
-
+            await TestServices.EditorVerifier.VerifyActiveViewIsNotInMetadataWorkspaceAsync(HangMitigatingCancellationToken);
         }
     }
 }

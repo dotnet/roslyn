@@ -20,10 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.InheritanceMargin
         protected override void OnVisualChildrenChanged(DependencyObject visualAdded, DependencyObject visualRemoved)
         {
             base.OnVisualChildrenChanged(visualAdded, visualRemoved);
-            if (OnGlyphsChanged != null)
-            {
-                OnGlyphsChanged(this, (visualAdded as InheritanceMarginGlyph, visualRemoved as InheritanceMarginGlyph));
-            }
+            OnGlyphsChanged?.Invoke(this, (visualAdded as InheritanceMarginGlyph, visualRemoved as InheritanceMarginGlyph));
         }
     }
 }
