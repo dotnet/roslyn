@@ -27,7 +27,6 @@ using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.LanguageServices.FindUsages;
@@ -45,6 +44,7 @@ using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.IntegrationTests.InProcess;
+using WindowsInput.Native;
 using Xunit;
 using IComponentModel = Microsoft.VisualStudio.ComponentModelHost.IComponentModel;
 using IObjectWithSite = Microsoft.VisualStudio.OLE.Interop.IObjectWithSite;
@@ -458,13 +458,13 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             }
 
             await ExpandNavigationBarAsync(index, cancellationToken);
-            await TestServices.Input.SendAsync(VirtualKey.Home);
+            await TestServices.Input.SendAsync(VirtualKeyCode.HOME);
             for (var i = 0; i < itemIndex; i++)
             {
-                await TestServices.Input.SendAsync(VirtualKey.Down);
+                await TestServices.Input.SendAsync(VirtualKeyCode.DOWN);
             }
 
-            await TestServices.Input.SendAsync(VirtualKey.Enter);
+            await TestServices.Input.SendAsync(VirtualKeyCode.RETURN);
 
             // Navigation and/or code generation following selection is tracked under FeatureAttribute.NavigationBar
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.NavigationBar, cancellationToken);
@@ -642,7 +642,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             {
                 // Workaround for extremely unstable async lightbulb (can dismiss itself when SuggestedActionsChanged
                 // fires while expanding the light bulb).
-                await TestServices.Input.SendAsync(new KeyPress(VirtualKey.Period, ShiftState.Ctrl));
+                await TestServices.Input.SendAsync((VirtualKeyCode.OEM_PERIOD, VirtualKeyCode.CONTROL));
                 await Task.Delay(5000, cancellationToken);
 
                 await TestServices.Editor.DismissLightBulbSessionAsync(cancellationToken);
