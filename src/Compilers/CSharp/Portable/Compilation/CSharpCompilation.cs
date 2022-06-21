@@ -1836,7 +1836,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (candidate.IsAsync)
                             {
-                                diagnostics.Add(ErrorCode.ERR_NonTaskMainCantBeAsync, candidate.Locations.First(), candidate);
+                                diagnostics.Add(ErrorCode.ERR_NonTaskMainCantBeAsync, candidate.Locations.First());
                             }
                             else
                             {
@@ -3800,7 +3800,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 memberTypes[i].EnsureCSharpSymbolOrNull($"{nameof(memberTypes)}[{i}]");
             }
 
-            if (!memberIsReadOnly.IsDefault && memberIsReadOnly.Any(v => !v))
+            if (!memberIsReadOnly.IsDefault && memberIsReadOnly.Any(static v => !v))
             {
                 throw new ArgumentException($"Non-ReadOnly members are not supported in C# anonymous types.");
             }
@@ -3996,6 +3996,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 return _lazyEmitNullablePublicOnly.Value();
             }
+        }
+
+        internal bool ShouldEmitNativeIntegerAttributes()
+        {
+            return !Assembly.RuntimeSupportsNumericIntPtr;
         }
 
         internal bool ShouldEmitNullableAttributes(Symbol symbol)

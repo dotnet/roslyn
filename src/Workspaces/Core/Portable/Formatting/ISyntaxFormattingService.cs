@@ -8,13 +8,14 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Indentation;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
     internal interface ISyntaxFormattingService : ISyntaxFormatting, ILanguageService
     {
-        Task<bool> ShouldFormatOnTypedCharacterAsync(Document document, char typedChar, int caretPosition, CancellationToken cancellationToken);
-        Task<ImmutableArray<TextChange>> GetFormattingChangesOnTypedCharacterAsync(Document document, int caretPosition, IndentationOptions indentationOptions, CancellationToken cancellationToken);
-        Task<ImmutableArray<TextChange>> GetFormattingChangesOnPasteAsync(Document document, TextSpan textSpan, SyntaxFormattingOptions options, CancellationToken cancellationToken);
+        bool ShouldFormatOnTypedCharacter(ParsedDocument document, char typedChar, int caretPosition, CancellationToken cancellationToken);
+        ImmutableArray<TextChange> GetFormattingChangesOnTypedCharacter(ParsedDocument document, int caretPosition, IndentationOptions indentationOptions, CancellationToken cancellationToken);
+        ImmutableArray<TextChange> GetFormattingChangesOnPaste(ParsedDocument document, TextSpan textSpan, SyntaxFormattingOptions options, CancellationToken cancellationToken);
     }
 }

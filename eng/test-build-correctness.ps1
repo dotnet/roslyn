@@ -50,6 +50,7 @@ try {
   # Verify the state of our various build artifacts
   Write-Host "Running BuildBoss"
   $buildBossPath = GetProjectOutputBinary "BuildBoss.exe"
+  Write-Host "$buildBossPath -r `"$RepoRoot/`" -c $configuration -p Roslyn.sln"
   Exec-Console $buildBossPath "-r `"$RepoRoot/`" -c $configuration" -p Roslyn.sln
   Write-Host ""
 

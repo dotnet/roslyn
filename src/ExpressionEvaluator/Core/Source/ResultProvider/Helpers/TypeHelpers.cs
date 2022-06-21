@@ -785,11 +785,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return false;
         }
 
-        private static bool IsMscorlib(this Assembly assembly)
-        {
-            return assembly.GetReferencedAssemblies().Length == 0;
-        }
-
         private static bool IsMscorlibType(this Type type, string @namespace, string name)
         {
             // Ignore IsMscorlib for now since type.Assembly returns

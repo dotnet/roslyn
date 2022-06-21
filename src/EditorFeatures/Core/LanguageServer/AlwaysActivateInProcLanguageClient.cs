@@ -31,21 +31,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
     [Export(typeof(AlwaysActivateInProcLanguageClient))]
     internal class AlwaysActivateInProcLanguageClient : AbstractInProcLanguageClient
     {
-        private readonly DefaultCapabilitiesProvider _defaultCapabilitiesProvider;
+        private readonly ExperimentalCapabilitiesProvider _experimentalCapabilitiesProvider;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
         public AlwaysActivateInProcLanguageClient(
-            RequestDispatcherFactory csharpVBRequestDispatcherFactory,
+            CSharpVisualBasicLspServiceProvider lspServiceProvider,
             IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider,
-            LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
-            DefaultCapabilitiesProvider defaultCapabilitiesProvider,
+            ExperimentalCapabilitiesProvider defaultCapabilitiesProvider,
             ILspLoggerFactory lspLoggerFactory,
             IThreadingContext threadingContext)
-            : base(csharpVBRequestDispatcherFactory, globalOptions, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext)
+            : base(lspServiceProvider, globalOptions, listenerProvider, lspLoggerFactory, threadingContext)
         {
-            _defaultCapabilitiesProvider = defaultCapabilitiesProvider;
+            _experimentalCapabilitiesProvider = defaultCapabilitiesProvider;
         }
 
         protected override ImmutableArray<string> SupportedLanguages => ProtocolConstants.RoslynLspLanguages;
@@ -56,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             var isLspEditorEnabled = GlobalOptions.GetOption(LspOptions.LspEditorFeatureFlag);
 
             var serverCapabilities = isLspEditorEnabled
-                ? (VSInternalServerCapabilities)_defaultCapabilitiesProvider.GetCapabilities(clientCapabilities)
+                ? (VSInternalServerCapabilities)_experimentalCapabilitiesProvider.GetCapabilities(clientCapabilities)
                 : new VSInternalServerCapabilities()
                 {
                     // Even if the flag is off, we want to include text sync capabilities.
@@ -98,11 +97,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                     Range = true,
                     Legend = new SemanticTokensLegend
                     {
-                        TokenTypes = SemanticTokenTypes.AllTypes.Concat(SemanticTokensHelpers.RoslynCustomTokenTypes).ToArray(),
+                        TokenTypes = SemanticTokensHelpers.AllTokenTypes.ToArray(),
                         TokenModifiers = new string[] { SemanticTokenModifiers.Static }
                     }
                 };
             }
+
+            serverCapabilities.SpellCheckingProvider = true;
 
             return serverCapabilities;
         }

@@ -708,7 +708,7 @@ public class Program
             comp.VerifyDiagnostics(
                 // (14,28): error CS8343: 'Program.S1': ref structs cannot implement interfaces
                 //     public ref struct S1 : IDisposable
-                Diagnostic(ErrorCode.ERR_RefStructInterfaceImpl, "IDisposable").WithArguments("Program.S1", "System.IDisposable").WithLocation(14, 28)
+                Diagnostic(ErrorCode.ERR_RefStructInterfaceImpl, "IDisposable").WithArguments("Program.S1").WithLocation(14, 28)
             );
         }
 

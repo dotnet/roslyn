@@ -8,6 +8,8 @@ using System.Runtime.Serialization;
 using MessagePack;
 using MessagePack.Formatters;
 using MessagePack.Resolvers;
+using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
@@ -27,7 +29,9 @@ namespace Microsoft.CodeAnalysis.Remote
             // ForceTypelessFormatter<T> needs to be listed here for each Roslyn abstract type T that is being serialized OOP.
             // TODO: add a resolver that provides these https://github.com/dotnet/roslyn/issues/60724
             new ForceTypelessFormatter<SimplifierOptions>(),
-            new ForceTypelessFormatter<SyntaxFormattingOptions>());
+            new ForceTypelessFormatter<SyntaxFormattingOptions>(),
+            new ForceTypelessFormatter<CodeGenerationOptions>(),
+            new ForceTypelessFormatter<IdeCodeStyleOptions>());
 
         private static readonly ImmutableArray<IFormatterResolver> s_resolvers = ImmutableArray.Create<IFormatterResolver>(
             StandardResolverAllowPrivate.Instance);

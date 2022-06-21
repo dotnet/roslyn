@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ExtractInterface;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -29,15 +30,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
     {
         private readonly IGlyphService _glyphService;
         private readonly IThreadingContext _threadingContext;
-        private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioExtractInterfaceOptionsService(IGlyphService glyphService, IThreadingContext threadingContext, IGlobalOptionService globalOptions)
+        public VisualStudioExtractInterfaceOptionsService(IGlyphService glyphService, IThreadingContext threadingContext)
         {
             _glyphService = glyphService;
             _threadingContext = threadingContext;
-            _globalOptions = globalOptions;
         }
 
         public async Task<ExtractInterfaceOptionsResult> GetExtractInterfaceOptionsAsync(
@@ -49,6 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
             string defaultNamespace,
             string generatedNameTypeParameterSuffix,
             string languageName,
+            CleanCodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -77,7 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
                     interfaceName: viewModel.DestinationViewModel.TypeName.Trim(),
                     fileName: viewModel.DestinationViewModel.FileName.Trim(),
                     location: GetLocation(viewModel.DestinationViewModel.Destination),
-                    _globalOptions.GetCodeCleanupOptionsProvider());
+                    fallbackOptions);
             }
             else
             {

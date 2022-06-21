@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -264,17 +265,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
             private readonly HostServices _hostServices;
             private readonly Workspace _workspace;
+            private readonly ILegacyWorkspaceOptionService _optionService = new MockOptionService();
+
             private static readonly ITaskSchedulerProvider s_taskSchedulerProvider = new MockTaskSchedulerProvider();
             private static readonly IWorkspaceAsynchronousOperationListenerProvider s_asyncListenerProvider = new MockWorkspaceAsynchronousOperationListenerProvider();
-            private readonly OptionServiceFactory.OptionService _optionService;
 
             public MockHostWorkspaceServices(HostServices hostServices, Workspace workspace)
             {
                 _hostServices = hostServices;
                 _workspace = workspace;
-
-                var globalOptionService = new GlobalOptionService(workspaceThreadingService: null, ImmutableArray<Lazy<IOptionProvider, LanguageMetadata>>.Empty, ImmutableArray<Lazy<IOptionPersisterProvider>>.Empty);
-                _optionService = new OptionServiceFactory.OptionService(globalOptionService, this);
             }
 
             public override HostServices HostServices => _hostServices;
@@ -302,6 +301,26 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 }
 
                 return default;
+            }
+
+            private sealed class MockOptionService : ILegacyWorkspaceOptionService
+            {
+                public IGlobalOptionService GlobalOptions { get; } =
+                    new GlobalOptionService(workspaceThreadingService: null, ImmutableArray<Lazy<IOptionPersisterProvider>>.Empty);
+
+                public void RegisterWorkspace(Workspace workspace)
+                {
+                }
+
+                public void UnregisterWorkspace(Workspace workspace)
+                {
+                }
+
+                public object GetOption(OptionKey key)
+                    => throw new NotImplementedException();
+
+                public void SetOptions(OptionSet optionSet, IEnumerable<OptionKey> optionKeys)
+                    => throw new NotImplementedException();
             }
         }
     }

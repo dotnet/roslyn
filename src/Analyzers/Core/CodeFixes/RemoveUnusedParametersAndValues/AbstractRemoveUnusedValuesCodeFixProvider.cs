@@ -105,6 +105,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             ISyntaxFactsService syntaxFacts);
 
         /// <summary>
+        /// Gets the replacement node for a var pattern.
+        /// We need just to change the identifier of the pattern, not the whole node
+        /// </summary>
+        protected abstract SyntaxNode GetReplacementNodeForVarPattern(SyntaxNode originalVarPattern, SyntaxNode newNameNode);
+
+        /// <summary>
         /// Rewrite the parent of a node which was rewritten by <see cref="TryUpdateNameForFlaggedNode"/>.
         /// </summary>
         /// <param name="parent">The original parent of the node rewritten by <see cref="TryUpdateNameForFlaggedNode"/>.</param>
@@ -146,17 +152,23 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                         title = CodeFixesResources.Use_discard_underscore;
 
+                        var syntaxFacts = context.Document.GetRequiredLanguageService<ISyntaxFactsService>();
+                        var root = await context.Document.GetRequiredSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+                        var node = root.FindNode(context.Span, getInnermostNodeForTie: true);
+
                         // Check if this is compound assignment which is not parented by an expression statement,
                         // for example "return x += M();" OR "=> x ??= new C();"
                         // If so, we will be replacing this compound assignment with the underlying binary operation.
                         // For the above examples, it will be "return x + M();" AND "=> x ?? new C();" respectively.
                         // For these cases, we want to show the title as "Remove redundant assignment" instead of "Use discard _".
-
-                        var syntaxFacts = context.Document.GetRequiredLanguageService<ISyntaxFactsService>();
-                        var root = await context.Document.GetRequiredSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-                        var node = root.FindNode(context.Span, getInnermostNodeForTie: true);
                         if (syntaxFacts.IsLeftSideOfCompoundAssignment(node) &&
                             !syntaxFacts.IsExpressionStatement(node.Parent))
+                        {
+                            title = CodeFixesResources.Remove_redundant_assignment;
+                        }
+                        // Also we want to show "Remove redundant assignment" title in pattern matching, e.g.
+                        // if (obj is SomeType someType) <-- "someType" will be fully removed here
+                        else if (syntaxFacts.IsDeclarationPattern(node.Parent))
                         {
                             title = CodeFixesResources.Remove_redundant_assignment;
                         }
@@ -173,7 +185,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             }
 
             RegisterCodeFix(context, title, GetEquivalenceKey(preference, isRemovableAssignment));
-            return;
         }
 
         private static bool IsForEachIterationVariableDiagnostic(Diagnostic diagnostic, Document document, CancellationToken cancellationToken)
@@ -259,7 +270,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
         protected sealed override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
-            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(GetSyntaxFormatting(), fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var options = await document.GetCodeFixOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var formattingOptions = options.GetFormattingOptions(GetSyntaxFormatting());
             var preprocessedDocument = await PreprocessDocumentAsync(document, diagnostics, cancellationToken).ConfigureAwait(false);
             var newRoot = await GetNewRootAsync(preprocessedDocument, formattingOptions, diagnostics, cancellationToken).ConfigureAwait(false);
             editor.ReplaceNode(editor.OriginalRoot, newRoot);
@@ -535,6 +547,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         // For example, "x += MethodCall();", where assignment to 'x' is redundant
                         // is replaced with "_ = MethodCall();" or "var unused = MethodCall();"
                         nodeReplacementMap.Add(node.GetRequiredParent(), GetReplacementNodeForCompoundAssignment(node.GetRequiredParent(), newNameNode, editor, syntaxFacts));
+                    }
+                    else if (syntaxFacts.IsVarPattern(node))
+                    {
+                        nodeReplacementMap.Add(node, GetReplacementNodeForVarPattern(node, newNameNode));
                     }
                     else
                     {

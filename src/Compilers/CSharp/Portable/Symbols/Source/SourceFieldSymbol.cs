@@ -47,11 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected void CheckAccessibility(BindingDiagnosticBag diagnostics)
         {
-            var info = ModifierUtils.CheckAccessibility(Modifiers, this, isExplicitInterfaceImplementation: false);
-            if (info != null)
-            {
-                diagnostics.Add(new CSDiagnostic(info, this.ErrorLocation));
-            }
+            ModifierUtils.CheckAccessibility(Modifiers, this, isExplicitInterfaceImplementation: false, diagnostics, ErrorLocation);
         }
 
         protected void ReportModifiersDiagnostics(BindingDiagnosticBag diagnostics)
@@ -114,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        protected sealed override void DecodeWellKnownAttributeImpl(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
             Debug.Assert(arguments.Diagnostics is BindingDiagnosticBag);
@@ -130,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                base.DecodeWellKnownAttribute(ref arguments);
+                base.DecodeWellKnownAttributeImpl(ref arguments);
             }
         }
 
@@ -144,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 compilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
             }
 
-            if (Type.ContainsNativeInteger())
+            if (compilation.ShouldEmitNativeIntegerAttributes(Type))
             {
                 compilation.EnsureNativeIntegerAttributeExists(diagnostics, location, modifyCompilation: true);
             }
@@ -163,6 +159,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return this.Name == WellKnownMemberNames.EnumBackingFieldName;
             }
         }
+
+        internal override bool IsRequired => (Modifiers & DeclarationModifiers.Required) != 0;
     }
 
     internal abstract class SourceFieldSymbolWithSyntaxReference : SourceFieldSymbol

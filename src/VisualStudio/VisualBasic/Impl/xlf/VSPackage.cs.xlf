@@ -29,6 +29,9 @@ JSON;
 Colorize JSON strings;
 Report invalid JSON strings;
 Detect and offer editor features for JSON strings;
+Collapse #regions on file open;
+Collapse Imports on file open;
+Collapse metadata implementations on file open;
 Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</source>
         <target state="translated">Podtrhnout znovu přiřazené proměnné;Zobrazovat vložené nápovědy;Automatické vložení koncových konstruktorů;Změnit nastavení přehledného výpisu;Změnit režim sbalení;Automatické vkládání členů Interface a MustOverride;Zobrazit nebo skrýt oddělovače řádků procedur;Zapnout nebo vypnout návrhy oprav chyb;Zapnout nebo vypnout zvýrazňování odkazů a klíčových slov;
 Regex;
@@ -41,6 +44,9 @@ JSON;
 Obarvit řetězce JSON;
 Nahlásit neplatné řetězce JSON;
 Rozpoznat a nabízet funkce editoru pro řetězce JSON;
+Při otevření souboru sbalit #regions;
+Při otevření souboru sbalit importy;
+Sbalit implementace metadat při otevření souboru;
 Používat rozšířené barvy;Barevné schéma editoru;Okraj dědičnosti;Direktivy importu;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>

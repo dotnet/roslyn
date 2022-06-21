@@ -166,10 +166,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 var fixesTask = GetCodeFixesAsync(
                     state, supportsFeatureService, requestedActionCategories, workspace, document, range,
-                    addOperationScope, priority, options, cancellationToken);
+                    addOperationScope, priority, options, isBlocking: false, cancellationToken);
                 var refactoringsTask = GetRefactoringsAsync(
                     state, supportsFeatureService, requestedActionCategories, GlobalOptions, workspace, document, selection,
-                    addOperationScope, priority, options, cancellationToken);
+                    addOperationScope, priority, options, isBlocking: false, cancellationToken);
 
                 await Task.WhenAll(fixesTask, refactoringsTask).ConfigureAwait(false);
 

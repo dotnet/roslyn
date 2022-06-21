@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "readonly").WithLocation(1, 18),
                 // (1,36): error CS1003: Syntax error, ',' expected
                 // class C { void M(readonly ref int i) { } }
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",", ")").WithLocation(1, 36),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(1, 36),
                 // (1,40): error CS1002: ; expected
                 // class C { void M(readonly ref int i) { } }
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(1, 40));

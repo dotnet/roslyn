@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis
             Task<VersionStamp> GetDependentSemanticVersionAsync(SolutionState solution, CancellationToken cancellationToken);
             Task<Checksum> GetDependentChecksumAsync(SolutionState solution, CancellationToken cancellationToken);
 
-            CompilationReference? GetPartialMetadataReference(ProjectState fromProject, ProjectReference projectReference);
+            MetadataReference? GetPartialMetadataReference(ProjectState fromProject, ProjectReference projectReference);
             ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(SolutionState solution, CancellationToken cancellationToken);
             ValueTask<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(SolutionState solution, CancellationToken cancellationToken);
 

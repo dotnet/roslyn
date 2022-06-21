@@ -450,7 +450,7 @@ class C
                 Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "(").WithLocation(4, 38),
                 // (4,39): error CS1003: Syntax error, '(' expected
                 //     public static C operator checked (C x) => default;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "C").WithArguments("(", "").WithLocation(4, 39)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "C").WithArguments("(").WithLocation(4, 39)
                 );
 
             var c = compilation1.SourceModule.GlobalNamespace.GetTypeMember("C");
@@ -477,7 +477,7 @@ class C
                 Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "(").WithLocation(4, 30),
                 // (4,31): error CS1003: Syntax error, '(' expected
                 //     public static C operator (C x) => default;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "C").WithArguments("(", "").WithLocation(4, 31)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "C").WithArguments("(").WithLocation(4, 31)
                 );
 
             var c = compilation1.SourceModule.GlobalNamespace.GetTypeMember("C");
@@ -1629,7 +1629,7 @@ class C
                 Diagnostic(ErrorCode.ERR_OvlBinaryOperatorExpected, "(").WithLocation(4, 38),
                 // (4,39): error CS1003: Syntax error, '(' expected
                 //     public static C operator checked (C x, C y) => default;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "C").WithArguments("(", "").WithLocation(4, 39)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "C").WithArguments("(").WithLocation(4, 39)
                 );
 
             var c = compilation1.SourceModule.GlobalNamespace.GetTypeMember("C");
@@ -1656,7 +1656,7 @@ class C
                 Diagnostic(ErrorCode.ERR_OvlBinaryOperatorExpected, "(").WithLocation(4, 30),
                 // (4,31): error CS1003: Syntax error, '(' expected
                 //     public static C operator (C x, C y) => default;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "C").WithArguments("(", "").WithLocation(4, 31)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "C").WithArguments("(").WithLocation(4, 31)
                 );
 
             var c = compilation1.SourceModule.GlobalNamespace.GetTypeMember("C");
@@ -2434,7 +2434,7 @@ class C
                 Diagnostic(ErrorCode.ERR_OvlOperatorExpected, "(").WithLocation(4, 38),
                 // (4,39): error CS1003: Syntax error, '(' expected
                 //     public static C operator checked () => default;
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("(", ")").WithLocation(4, 39)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("(").WithLocation(4, 39)
                 );
 
             var c = compilation1.SourceModule.GlobalNamespace.GetTypeMember("C");
@@ -2461,7 +2461,7 @@ class C
                 Diagnostic(ErrorCode.ERR_OvlOperatorExpected, "(").WithLocation(4, 30),
                 // (4,31): error CS1003: Syntax error, '(' expected
                 //     public static C operator () => default;
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("(", ")").WithLocation(4, 31)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("(").WithLocation(4, 31)
                 );
 
             var c = compilation1.SourceModule.GlobalNamespace.GetTypeMember("C");
@@ -7219,20 +7219,14 @@ checked C0
             Assert.Equal("System.Int64 C0.op_CheckedExplicit(C0 x)", model.ClassifyConversion(xNode.SpanStart, xNode, int64, isExplicitInSource: false).Method.ToTestDisplayString());
             Assert.Equal("System.Int64 C0.op_CheckedExplicit(C0 x)", model.ClassifyConversion(xNode.SpanStart, xNode, int64, isExplicitInSource: true).Method.ToTestDisplayString());
 
-            // !!! Expected System.Int64 C0.op_CheckedExplicit(C0 x) !!!
-            Assert.Equal("System.Int64 C0.op_Explicit(C0 x)", model.ClassifyConversion(yNode.SpanStart, yNode, int64, isExplicitInSource: false).Method.ToTestDisplayString());
-
-            // !!! Expected System.Int64 C0.op_CheckedExplicit(C0 x) !!!
-            Assert.Equal("System.Int64 C0.op_Explicit(C0 x)", model.ClassifyConversion(yNode.SpanStart, yNode, int64, isExplicitInSource: true).Method.ToTestDisplayString());
+            Assert.Equal("System.Int64 C0.op_CheckedExplicit(C0 x)", model.ClassifyConversion(yNode.SpanStart, yNode, int64, isExplicitInSource: false).Method.ToTestDisplayString());
+            Assert.Equal("System.Int64 C0.op_CheckedExplicit(C0 x)", model.ClassifyConversion(yNode.SpanStart, yNode, int64, isExplicitInSource: true).Method.ToTestDisplayString());
 
             Assert.Equal("System.Int64 C0.op_CheckedExplicit(C0 x)", model.ClassifyConversion(xNode, int64, isExplicitInSource: false).Method.ToTestDisplayString());
             Assert.Equal("System.Int64 C0.op_CheckedExplicit(C0 x)", model.ClassifyConversion(xNode, int64, isExplicitInSource: true).Method.ToTestDisplayString());
 
-            // !!! Expected System.Int64 C0.op_CheckedExplicit(C0 x) !!!
-            Assert.Equal("System.Int64 C0.op_Explicit(C0 x)", model.ClassifyConversion(yNode, int64, isExplicitInSource: false).Method.ToTestDisplayString());
-
-            // !!! Expected System.Int64 C0.op_CheckedExplicit(C0 x) !!!
-            Assert.Equal("System.Int64 C0.op_Explicit(C0 x)", model.ClassifyConversion(yNode, int64, isExplicitInSource: true).Method.ToTestDisplayString());
+            Assert.Equal("System.Int64 C0.op_CheckedExplicit(C0 x)", model.ClassifyConversion(yNode, int64, isExplicitInSource: false).Method.ToTestDisplayString());
+            Assert.Equal("System.Int64 C0.op_CheckedExplicit(C0 x)", model.ClassifyConversion(yNode, int64, isExplicitInSource: true).Method.ToTestDisplayString());
         }
 
         [Fact]
@@ -7368,20 +7362,14 @@ regular C0
             Assert.Equal("System.Int64 C0.op_Explicit(C0 x)", model.ClassifyConversion(xNode.SpanStart, xNode, int64, isExplicitInSource: false).Method.ToTestDisplayString());
             Assert.Equal("System.Int64 C0.op_Explicit(C0 x)", model.ClassifyConversion(xNode.SpanStart, xNode, int64, isExplicitInSource: true).Method.ToTestDisplayString());
 
-            // !!! Expected System.Int64 C0.op_Explicit(C0 x) !!!
-            Assert.Equal("System.Int64 C0.op_CheckedExplicit(C0 x)", model.ClassifyConversion(yNode.SpanStart, yNode, int64, isExplicitInSource: false).Method.ToTestDisplayString());
-
-            // !!! Expected System.Int64 C0.op_Explicit(C0 x) !!!
-            Assert.Equal("System.Int64 C0.op_CheckedExplicit(C0 x)", model.ClassifyConversion(yNode.SpanStart, yNode, int64, isExplicitInSource: true).Method.ToTestDisplayString());
+            Assert.Equal("System.Int64 C0.op_Explicit(C0 x)", model.ClassifyConversion(yNode.SpanStart, yNode, int64, isExplicitInSource: false).Method.ToTestDisplayString());
+            Assert.Equal("System.Int64 C0.op_Explicit(C0 x)", model.ClassifyConversion(yNode.SpanStart, yNode, int64, isExplicitInSource: true).Method.ToTestDisplayString());
 
             Assert.Equal("System.Int64 C0.op_Explicit(C0 x)", model.ClassifyConversion(xNode, int64, isExplicitInSource: false).Method.ToTestDisplayString());
             Assert.Equal("System.Int64 C0.op_Explicit(C0 x)", model.ClassifyConversion(xNode, int64, isExplicitInSource: true).Method.ToTestDisplayString());
 
-            // !!! Expected System.Int64 C0.op_Explicit(C0 x) !!!
-            Assert.Equal("System.Int64 C0.op_CheckedExplicit(C0 x)", model.ClassifyConversion(yNode, int64, isExplicitInSource: false).Method.ToTestDisplayString());
-
-            // !!! Expected System.Int64 C0.op_Explicit(C0 x) !!!
-            Assert.Equal("System.Int64 C0.op_CheckedExplicit(C0 x)", model.ClassifyConversion(yNode, int64, isExplicitInSource: true).Method.ToTestDisplayString());
+            Assert.Equal("System.Int64 C0.op_Explicit(C0 x)", model.ClassifyConversion(yNode, int64, isExplicitInSource: false).Method.ToTestDisplayString());
+            Assert.Equal("System.Int64 C0.op_Explicit(C0 x)", model.ClassifyConversion(yNode, int64, isExplicitInSource: true).Method.ToTestDisplayString());
         }
 
         [Fact]
@@ -7445,9 +7433,7 @@ checked C0
             var yNodeToSpeculate = SyntaxFactory.ParseExpression("-y");
 
             Assert.Equal("C0 C0.op_CheckedUnaryNegation(C0 a)", model.GetSpeculativeSymbolInfo(xNode.SpanStart, xNodeToSpeculate, SpeculativeBindingOption.BindAsExpression).Symbol.ToTestDisplayString());
-
-            // !!! Expected C0 C0.op_CheckedUnaryNegation(C0 a) !!!
-            Assert.Equal("C0 C0.op_UnaryNegation(C0 a)", model.GetSpeculativeSymbolInfo(yNode.SpanStart, yNodeToSpeculate, SpeculativeBindingOption.BindAsExpression).Symbol.ToTestDisplayString());
+            Assert.Equal("C0 C0.op_CheckedUnaryNegation(C0 a)", model.GetSpeculativeSymbolInfo(yNode.SpanStart, yNodeToSpeculate, SpeculativeBindingOption.BindAsExpression).Symbol.ToTestDisplayString());
         }
 
         [Fact]
@@ -7511,9 +7497,7 @@ regular C0
             var yNodeToSpeculate = SyntaxFactory.ParseExpression("-y");
 
             Assert.Equal("C0 C0.op_UnaryNegation(C0 a)", model.GetSpeculativeSymbolInfo(xNode.SpanStart, xNodeToSpeculate, SpeculativeBindingOption.BindAsExpression).Symbol.ToTestDisplayString());
-
-            // !!! Expected C0 C0.op_UnaryNegation(C0 a) !!!
-            Assert.Equal("C0 C0.op_CheckedUnaryNegation(C0 a)", model.GetSpeculativeSymbolInfo(yNode.SpanStart, yNodeToSpeculate, SpeculativeBindingOption.BindAsExpression).Symbol.ToTestDisplayString());
+            Assert.Equal("C0 C0.op_UnaryNegation(C0 a)", model.GetSpeculativeSymbolInfo(yNode.SpanStart, yNodeToSpeculate, SpeculativeBindingOption.BindAsExpression).Symbol.ToTestDisplayString());
         }
     }
 }

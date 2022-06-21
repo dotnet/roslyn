@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static bool IsReadOnly(SourceMemberContainerTypeSymbol containingType, ImmutableArray<Symbol> positionalMembers)
         {
-            return containingType.IsReadOnly || (containingType.IsRecordStruct && !positionalMembers.Any(m => hasNonReadOnlyGetter(m)));
+            return containingType.IsReadOnly || (containingType.IsRecordStruct && !positionalMembers.Any(static m => hasNonReadOnlyGetter(m)));
 
             static bool hasNonReadOnlyGetter(Symbol m)
             {

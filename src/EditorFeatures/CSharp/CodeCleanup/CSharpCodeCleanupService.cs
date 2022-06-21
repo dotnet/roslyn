@@ -178,9 +178,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                 //   csharp_style_conditional_delegate_call
                 new DiagnosticSet(CSharpFeaturesResources.Apply_conditional_delegate_call_preferences,
                     IDEDiagnosticIds.InvokeDelegateWithConditionalAccessId),
-                //   csharp_style_prefer_parameter_null_checking
-                new DiagnosticSet(CSharpFeaturesResources.Apply_parameter_null_preferences,
-                    IDEDiagnosticIds.UseParameterNullCheckingId),
 
                 // Modifier preferences
                 //   csharp_prefer_static_local_function
@@ -265,13 +262,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
 
                 new DiagnosticSet(FeaturesResources.Remove_unused_variables,
                     CSharpRemoveUnusedVariableCodeFixProvider.CS0168,
-                    CSharpRemoveUnusedVariableCodeFixProvider.CS0219)
+                    CSharpRemoveUnusedVariableCodeFixProvider.CS0219),
+
+                new DiagnosticSet(CSharpAnalyzersResources.Remove_unnecessary_nullable_directive,
+                    IDEDiagnosticIds.RemoveRedundantNullableDirectiveDiagnosticId,
+                    IDEDiagnosticIds.RemoveUnnecessaryNullableDirectiveDiagnosticId)
                 );
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpCodeCleanupService(ICodeFixService codeFixService)
-            : base(codeFixService)
+        public CSharpCodeCleanupService(ICodeFixService codeFixService, IDiagnosticAnalyzerService diagnosticAnalyzerService)
+            : base(codeFixService, diagnosticAnalyzerService)
         {
         }
 

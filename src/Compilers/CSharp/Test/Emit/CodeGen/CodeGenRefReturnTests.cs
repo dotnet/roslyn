@@ -1449,7 +1449,7 @@ class Program
         }
 
         [Fact]
-        private void RefReturnsAreValues()
+        public void RefReturnsAreValues()
         {
             var text = @"
 class Program

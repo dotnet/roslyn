@@ -1375,6 +1375,118 @@ class C<T, U, V> { }
         }
 
         [Fact]
+        public void TestNestedType1()
+        {
+            var text = @"
+class C
+{
+    class D
+    {
+    }
+}
+";
+
+            var format = new SymbolDisplayFormat(
+                memberOptions: SymbolDisplayMemberOptions.IncludeType,
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
+                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.UseArityForGenericTypes | SymbolDisplayCompilerInternalOptions.UsePlusForNestedTypes);
+
+            TestSymbolDescription(
+                text,
+                global => global.GetTypeMembers("C").Single().GetTypeMember("D"),
+                format,
+                "C+D",
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.ClassName);
+        }
+
+        [Fact]
+        public void TestNestedType2()
+        {
+            var text = @"
+class C
+{
+    class D<T>
+    {
+    }
+}
+";
+
+            var format = new SymbolDisplayFormat(
+                memberOptions: SymbolDisplayMemberOptions.IncludeType,
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
+                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.UseArityForGenericTypes | SymbolDisplayCompilerInternalOptions.UsePlusForNestedTypes);
+
+            TestSymbolDescription(
+                text,
+                global => global.GetTypeMembers("C").Single().GetTypeMember("D"),
+                format,
+                "C+D`1",
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.ClassName,
+                InternalSymbolDisplayPartKind.Arity);
+        }
+
+        [Fact]
+        public void TestNestedType3()
+        {
+            var text = @"
+class C<T>
+{
+    class D
+    {
+    }
+}
+";
+
+            var format = new SymbolDisplayFormat(
+                memberOptions: SymbolDisplayMemberOptions.IncludeType,
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
+                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.UseArityForGenericTypes | SymbolDisplayCompilerInternalOptions.UsePlusForNestedTypes);
+
+            TestSymbolDescription(
+                text,
+                global => global.GetTypeMembers("C").Single().GetTypeMember("D"),
+                format,
+                "C`1+D",
+                SymbolDisplayPartKind.ClassName,
+                InternalSymbolDisplayPartKind.Arity,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.ClassName);
+        }
+
+        [Fact]
+        public void TestNestedType4()
+        {
+            var text = @"
+class C<T>
+{
+    class D<U, V>
+    {
+    }
+}
+";
+
+            var format = new SymbolDisplayFormat(
+                memberOptions: SymbolDisplayMemberOptions.IncludeType,
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
+                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.UseArityForGenericTypes | SymbolDisplayCompilerInternalOptions.UsePlusForNestedTypes);
+
+            TestSymbolDescription(
+                text,
+                global => global.GetTypeMembers("C").Single().GetTypeMember("D"),
+                format,
+                "C`1+D`2",
+                SymbolDisplayPartKind.ClassName,
+                InternalSymbolDisplayPartKind.Arity,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.ClassName,
+                InternalSymbolDisplayPartKind.Arity);
+        }
+
+        [Fact]
         public void TestGenericTypeParameters()
         {
             var text = @"
@@ -2744,6 +2856,7 @@ namespace N1 {
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeTypeConstraints,
                 memberOptions:
+                    SymbolDisplayMemberOptions.IncludeModifiers |
                     SymbolDisplayMemberOptions.IncludeRef |
                     SymbolDisplayMemberOptions.IncludeType |
                     SymbolDisplayMemberOptions.IncludeParameters |
@@ -7990,6 +8103,40 @@ class C
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ParameterName,
                 SymbolDisplayPartKind.Punctuation);
+        }
+
+        [Fact]
+        public void TestRequiredProperty()
+        {
+            var source = @"
+class C
+{
+    required int Prop { get; set; }
+}
+";
+
+            var comp = CreateCompilation(source);
+            var propertySymbol = comp.GetMember<PropertySymbol>("C.Prop").GetPublicSymbol();
+
+            Verify(propertySymbol.ToDisplayParts(s_memberSignatureDisplayFormat), "required int C.Prop { get; set; }",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.PropertyName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation);
+
         }
 
         [Fact]

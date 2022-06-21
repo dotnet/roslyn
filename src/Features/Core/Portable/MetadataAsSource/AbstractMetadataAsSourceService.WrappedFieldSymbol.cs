@@ -43,6 +43,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public bool IsVolatile => _symbol.IsVolatile;
 
+            public bool IsRequired => _symbol.IsRequired;
+
             public bool IsFixedSizeBuffer => _symbol.IsFixedSizeBuffer;
 
             public int FixedSize => _symbol.FixedSize;

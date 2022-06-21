@@ -318,7 +318,11 @@ namespace Microsoft.CodeAnalysis
 
         System_ArgumentNullException,
 
+        System_Runtime_CompilerServices_RequiredMemberAttribute,
+        System_Diagnostics_CodeAnalysis_SetsRequiredMembersAttribute,
         System_MemoryExtensions,
+
+        System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute,
 
         NextAvailable,
         // Remember to update the AllWellKnownTypes tests when making changes here
@@ -630,7 +634,10 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.LifetimeAnnotationAttribute",
             "System.ArgumentNullException",
 
+            "System.Runtime.CompilerServices.RequiredMemberAttribute",
+            "System.Diagnostics.CodeAnalysis.SetsRequiredMembersAttribute",
             "System.MemoryExtensions",
+            "System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute",
         };
 
         private static readonly Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);

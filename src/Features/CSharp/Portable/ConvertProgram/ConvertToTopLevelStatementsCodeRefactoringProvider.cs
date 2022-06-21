@@ -45,9 +45,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
             if (methodDeclaration is null)
                 return;
 
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var option = options.GetOption(CSharpCodeStyleOptions.PreferTopLevelStatements);
-            if (!CanOfferUseTopLevelStatements(option, forAnalyzer: false))
+            var options = await document.GetCSharpCodeFixOptionsProviderAsync(context.Options, cancellationToken).ConfigureAwait(false);
+            if (!CanOfferUseTopLevelStatements(options.PreferTopLevelStatements, forAnalyzer: false))
                 return;
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -59,18 +58,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
                 return;
             }
 
-            context.RegisterRefactoring(new MyCodeAction(
-                c => ConvertToTopLevelStatementsAsync(document, methodDeclaration, CodeCleanupOptions.CreateProvider(context.Options), c)));
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            internal override CodeActionPriority Priority => CodeActionPriority.Low;
-
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Convert_to_top_level_statements, createChangedDocument, nameof(ConvertToTopLevelStatementsCodeRefactoringProvider))
-            {
-            }
+            context.RegisterRefactoring(CodeAction.CreateWithPriority(
+                CodeActionPriority.Low,
+                CSharpAnalyzersResources.Convert_to_top_level_statements,
+                c => ConvertToTopLevelStatementsAsync(document, methodDeclaration, context.Options, c),
+                nameof(CSharpAnalyzersResources.Convert_to_top_level_statements)));
         }
     }
 }

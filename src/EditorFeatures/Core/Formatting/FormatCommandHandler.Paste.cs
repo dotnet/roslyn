@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             var services = solution.Workspace.Services;
             var formattingRuleService = services.GetService<IHostDependentFormattingRuleFactoryService>();
-            if (formattingRuleService != null && formattingRuleService.ShouldNotFormatOrCommitOnPaste(document))
+            if (formattingRuleService != null && formattingRuleService.ShouldNotFormatOrCommitOnPaste(document.Id))
             {
                 return;
             }
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             var trackingSpan = caretPosition.Value.Snapshot.CreateTrackingSpan(caretPosition.Value.Position, 0, SpanTrackingMode.EdgeInclusive);
             var span = trackingSpan.GetSpan(args.SubjectBuffer.CurrentSnapshot).Span.ToTextSpan();
 
-            var changes = formattingService.GetFormattingChangesOnPasteAsync(document, span, cancellationToken).WaitAndGetResult(cancellationToken);
+            var changes = formattingService.GetFormattingChangesOnPasteAsync(document, args.SubjectBuffer, span, cancellationToken).WaitAndGetResult(cancellationToken);
             if (changes.IsEmpty)
             {
                 return;

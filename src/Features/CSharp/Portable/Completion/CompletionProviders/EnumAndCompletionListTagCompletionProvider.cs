@@ -69,10 +69,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 if (tree.IsInNonUserCode(position, cancellationToken))
                     return;
 
-                var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-                var syntaxContext = CSharpSyntaxContext.CreateContext(document, semanticModel, position, cancellationToken);
+                var syntaxContext = await context.GetSyntaxContextWithExistingSpeculativeModelAsync(document, cancellationToken).ConfigureAwait(false);
+                var semanticModel = syntaxContext.SemanticModel;
 
-                if (syntaxContext.IsInTaskLikeTypeContext)
+                if (syntaxContext.IsTaskLikeTypeContext)
                     return;
 
                 var token = syntaxContext.TargetToken;

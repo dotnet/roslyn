@@ -1501,7 +1501,9 @@ new List<ArgumentException>()
 
         public class M<T>
         {
+#pragma warning disable IDE0051 // Remove unused private members
             private int F() => 3;
+#pragma warning restore IDE0051 // Remove unused private members
             public T G() => default(T);
         }
 
