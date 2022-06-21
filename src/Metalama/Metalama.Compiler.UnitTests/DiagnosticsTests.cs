@@ -74,9 +74,43 @@ namespace Metalama.Compiler.UnitTests
             Assert.Contains("warning MY001: Found a class 'C'.", output);
             Assert.DoesNotContain("warning MY001: Found a class 'D'.", output);
 
-            // Errors should also be suppressed because they don't have the CS prefix.
+            // Errors should also be wrapped because they don't have the CS prefix.
             Assert.Contains("error MY002: Found a class 'C'.", output);
             Assert.DoesNotContain("error MY002: Found a class 'D'.", output);
+        }
+
+        [Fact]
+        public void DiagnosticsInGeneratedCodeAreNotEscalated()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText("class C { }");
+
+            var args = new[] { "/t:library", src.Path, "/warnaserror+" };
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+
+            var transformers = new ISourceTransformer[] { new AppendTransformer("class D { }") }
+                .ToImmutableArray();
+            var analyzers = new DiagnosticAnalyzer[]
+            {
+                new ReportDiagnosticForEachClassAnalyzer("MY001", DiagnosticSeverity.Warning, outWriter),
+            }.ToImmutableArray();
+            var csc = CreateCSharpCompiler(null, dir.Path, args, analyzers: analyzers, transformers: transformers);
+
+            var exitCode = csc.Run(outWriter);
+            var output = outWriter.ToString();
+
+            Assert.Equal(1, exitCode);
+
+            // Check that the analyzer ran.
+            Assert.Contains("Analyzer initialized.", output);
+            Assert.Contains("Analyzing syntax tree.", output);
+
+            // Check that the analyzer did not see the transformed code and that reported warnings come through.
+            Assert.Contains("Analyzing 'C'.", output);
+            Assert.Contains("Analyzing 'D'.", output);
+            Assert.Contains("MY001: Found a class 'C'.", output);
+            Assert.DoesNotContain("MY001: Found a class 'D'.", output);
         }
 
         [Fact]
