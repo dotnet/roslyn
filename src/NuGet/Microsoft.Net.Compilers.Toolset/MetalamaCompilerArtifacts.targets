@@ -51,7 +51,6 @@
       <CoreClrMetalamaCompilerBinArtifact Include="$(PkgSystem_Composition_Runtime)\lib\netstandard1.0\System.Composition.Runtime.dll"/>
       <CoreClrMetalamaCompilerBinArtifact Include="$(PkgSystem_Composition_TypedParts)\lib\netstandard1.0\System.Composition.TypedParts.dll"/>
       <CoreClrMetalamaCompilerBinArtifact Include="$(PkgMicrosoft_Bcl_AsyncInterfaces)\lib\netstandard2.1\Microsoft.Bcl.AsyncInterfaces.dll"/>
-      <CoreClrMetalamaCompilerToolsArtifact Include="$(ArtifactsBinDir)Metalama.Compiler.BuildTasks\$(Configuration)\net6.0\Metalama.Compiler.BuildTasks.dll" />      
     </ItemGroup>
 
     <ItemGroup>
@@ -66,7 +65,6 @@
       <DesktopMetalamaCompilerBinArtifact Include="$(PkgSystem_Composition_Runtime)\lib\portable-net45+win8+wp8+wpa81\System.Composition.Runtime.dll"/>
       <DesktopMetalamaCompilerBinArtifact Include="$(PkgSystem_Composition_TypedParts)\lib\portable-net45+win8+wp8+wpa81\System.Composition.TypedParts.dll"/>
       <DesktopMetalamaCompilerBinArtifact Include="$(PkgMicrosoft_Bcl_AsyncInterfaces)\lib\net461\Microsoft.Bcl.AsyncInterfaces.dll"/>
-      <DesktopMetalamaCompilerToolsArtifact Include="$(ArtifactsBinDir)Metalama.Compiler.BuildTasks\$(Configuration)\net472\Metalama.Compiler.BuildTasks.dll" />
     </ItemGroup>
 
   </Target>

@@ -11,12 +11,19 @@
   <Import Project="..\Metalama.Compiler.Shared\Metalama.Compiler.Shared.projitems" Label="Shared" />
 
   <ItemGroup>
-    <None Include="build\Metalama.Compiler.Sdk.targets" Pack="true" PackagePath="build" />
+    <None Include="buildTransitive\*" Pack="true" PackagePath="buildTransitive" />
+    <None Include="build\*" Pack="true" PackagePath="build" />
+    <None Include="$(ArtifactsBinDir)\Metalama.Compiler.BuildTasks\$(Configuration)\net6.0\Metalama.Compiler.BuildTasks.dll" Pack="true" PackagePath="tasks/net6.0" />
+    <None Include="$(ArtifactsBinDir)\Metalama.Compiler.BuildTasks\$(Configuration)\net472\Metalama.Compiler.BuildTasks.dll" Pack="true" PackagePath="tasks/net472" />
+
   </ItemGroup>
 
   <ItemGroup>
     <!-- The version here must be the LOWEST supported -->
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.0.0" />
+
+    <ProjectReference Include="..\Metalama.Compiler.BuildTasks\Metalama.Compiler.BuildTasks.csproj" PrivateAssets="All" ReferenceOutputAssembly="False" SetTargetFramework="TargetFramework=net6.0"/>
+    <ProjectReference Include="..\Metalama.Compiler.BuildTasks\Metalama.Compiler.BuildTasks.csproj" PrivateAssets="All" ReferenceOutputAssembly="False" SetTargetFramework="TargetFramework=net472"/>
   </ItemGroup>
 
   <!-- based on https://claires.site/2018/07/03/create-and-pack-reference-assemblies/ -->
