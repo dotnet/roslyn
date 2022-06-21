@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -35,14 +36,15 @@ namespace Microsoft.VisualStudio.LanguageServices
     {
         [MemberNotNullWhen(true, nameof(SymbolsTreeItemsSource))]
         private bool SymbolTreeInitialized { get; set; }
+
+        private readonly AsyncBatchingWorkQueue _uiUpdateQueue;
+
         private List<DocumentSymbolViewModel>? SymbolsTreeItemsSource { get; set; }
 
         private ITextSnapshot? Snapshot { get; set; }
         private IWpfTextView TextView { get; set; }
 
         private readonly string? _filePath;
-        private ResettableDelay? _delay;
-        private readonly IAsynchronousOperationListener _asyncListener;
 
         public DocumentOutlineControl(
             IWpfTextView textView,
@@ -53,50 +55,23 @@ namespace Microsoft.VisualStudio.LanguageServices
         {
             InitializeComponent();
 
-            _asyncListener = asyncListener;
             TextView = textView;
             _filePath = GetFilePath(textView);
             Snapshot = textBuffer.CurrentSnapshot;
             SymbolTreeInitialized = false;
 
-            threadingContext.JoinableTaskFactory.RunAsync(async () =>
-            {
-                await UpdateAsync().ConfigureAwait(false);
-            }).FileAndForget("Document Outline: Active Document Changed");
+            _uiUpdateQueue = new AsyncBatchingWorkQueue(
+                    DelayTimeSpan.Short,
+                    UpdateAsync,
+                    asyncListener,
+                    CancellationToken.None);
 
-            TextView.Caret.PositionChanged += FollowCursor;
-            TextView.TextBuffer.Changed += TextBuffer_Changed;
-
-            void TextBuffer_Changed(object sender, TextContentChangedEventArgs e)
-                => EnqueueUpdate();
-
-            void EnqueueUpdate()
-            {
-                const int UpdateDelay = 500;
-                var delay = _delay;
-                if (delay == null)
-                {
-                    var newDelay = new ResettableDelay(UpdateDelay, _asyncListener);
-                    if (Interlocked.CompareExchange(ref _delay, newDelay, null) == null)
-                    {
-                        var asyncToken = _asyncListener.BeginAsyncOperation("Updating Document Outline");
-                        newDelay.Task.SafeContinueWithFromAsync(_ => UpdateAsync(), CancellationToken.None, TaskScheduler.Default)
-                            .SafeContinueWith(_ => _delay = null, CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default)
-                            .CompletesAsyncOperation(asyncToken);
-                    }
-
-                    return;
-                }
-
-                delay.Reset();
-            }
-
-            async Task UpdateAsync()
+            async ValueTask UpdateAsync(CancellationToken cancellationToken)
             {
                 var response = await DocumentSymbolsRequestAsync(textBuffer, languageServiceBroker).ConfigureAwait(false);
                 if (response?.Response is not null)
                 {
-                    await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(CancellationToken.None);
+                    await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                     var responseBody = response.Response.ToObject<DocumentSymbol[]>();
                     var documentSymbols = DocumentOutlineHelper.GetNestedDocumentSymbols(responseBody);
                     var documentSymbolModels = DocumentOutlineHelper.GetDocumentSymbolModels(documentSymbols);
@@ -110,6 +85,17 @@ namespace Microsoft.VisualStudio.LanguageServices
                     SymbolsTreeItemsSource = new List<DocumentSymbolViewModel>();
                 }
             }
+
+            void TextBuffer_Changed(object sender, TextContentChangedEventArgs e)
+                => _uiUpdateQueue.AddWork();
+
+            TextView.Caret.PositionChanged += FollowCursor;
+            TextView.TextBuffer.Changed += TextBuffer_Changed;
+
+            threadingContext.JoinableTaskFactory.RunAsync(async () =>
+            {
+                await UpdateAsync(CancellationToken.None).ConfigureAwait(false);
+            }).FileAndForget("Document Outline: Active Document Changed");
         }
 
         private async Task<ManualInvocationResponse?> DocumentSymbolsRequestAsync(ITextBuffer textBuffer, ILanguageServiceBroker2 languageServiceBroker)
