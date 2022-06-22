@@ -152,7 +152,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         {
             if (SymbolTreeItemsSourceInitialized)
             {
-                if (searchBox.Text == ServicesVSResources.Search_Document_Outline || string.IsNullOrWhiteSpace(searchBox.Text))
+                if (string.IsNullOrWhiteSpace(searchBox.Text))
                 {
                     symbolTree.ItemsSource = SymbolsTreeItemsSource;
                 }
@@ -176,7 +176,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             {
                 Logger.Log(functionId);
                 // If there is an active search, only sort the filtered nodes
-                if (!(searchBox.Text == ServicesVSResources.Search_Document_Outline || string.IsNullOrWhiteSpace(searchBox.Text)))
+                if (!string.IsNullOrWhiteSpace(searchBox.Text))
                 {
                     var filteredDocumentSymbolModels = ArrayBuilder<DocumentSymbolViewModel>.GetInstance();
                     foreach (DocumentSymbolViewModel documentSymbolModel in symbolTree.ItemsSource)
