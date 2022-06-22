@@ -127,13 +127,13 @@ namespace Microsoft.VisualStudio.LanguageServices
                 return true;
             }
 
-            var found = false;
             foreach (var childItem in tree.Children)
             {
-                found = found || SearchNodeTree(childItem, search);
+                if (SearchNodeTree(childItem, search))
+                    return true;
             }
 
-            return found;
+            return false;
         }
     }
 }
