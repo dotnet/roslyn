@@ -1273,7 +1273,7 @@ class XAttribute : System.Attribute
         Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
 
-        Assert.Equal(IncrementalStepRunReason.Unchanged, runResult.TrackedSteps["individualFileGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
+        Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["individualFileGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
         Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["collectedGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
         Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["compilationGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
         Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["allUpGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
@@ -1322,7 +1322,7 @@ class XAttribute : System.Attribute
         Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
 
-        Assert.Equal(IncrementalStepRunReason.Unchanged, runResult.TrackedSteps["individualFileGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
+        Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["individualFileGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
         Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["collectedGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
         Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["compilationGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
         Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["allUpGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
@@ -1371,7 +1371,7 @@ class XAttribute : System.Attribute
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
 
         Assert.Collection(runResult.TrackedSteps["individualFileGlobalAliases_ForAttribute"],
-            s => Assert.Equal(IncrementalStepRunReason.Unchanged, s.Outputs.Single().Reason),
+            s => Assert.Equal(IncrementalStepRunReason.Cached, s.Outputs.Single().Reason),
             s => Assert.Equal(IncrementalStepRunReason.New, s.Outputs.Single().Reason));
         Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps["collectedGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
         Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["compilationGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
@@ -1419,7 +1419,7 @@ class XAttribute : System.Attribute
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
 
         Assert.Collection(runResult.TrackedSteps["individualFileGlobalAliases_ForAttribute"],
-            s => Assert.Equal(IncrementalStepRunReason.Unchanged, s.Outputs.Single().Reason),
+            s => Assert.Equal(IncrementalStepRunReason.Cached, s.Outputs.Single().Reason),
             s => Assert.Equal(IncrementalStepRunReason.New, s.Outputs.Single().Reason));
         Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps["collectedGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
         Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["compilationGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
@@ -1471,7 +1471,7 @@ class XAttribute : System.Attribute
                 t => Assert.True(t.Value is ClassDeclarationSyntax { Identifier.ValueText: "C2" })));
 
         Assert.Collection(runResult.TrackedSteps["individualFileGlobalAliases_ForAttribute"],
-            s => Assert.Equal(IncrementalStepRunReason.Unchanged, s.Outputs.Single().Reason),
+            s => Assert.Equal(IncrementalStepRunReason.Cached, s.Outputs.Single().Reason),
             s => Assert.Equal(IncrementalStepRunReason.New, s.Outputs.Single().Reason));
         Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps["collectedGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
         Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["compilationGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
@@ -1526,8 +1526,8 @@ class XAttribute : System.Attribute
             step => Assert.Collection(step.Outputs, t => Assert.True(t.Value is ClassDeclarationSyntax { Identifier.ValueText: "C2" })));
 
         Assert.Collection(runResult.TrackedSteps["individualFileGlobalAliases_ForAttribute"],
-            s => Assert.Equal(IncrementalStepRunReason.Unchanged, s.Outputs.Single().Reason),
-            s => Assert.Equal(IncrementalStepRunReason.Unchanged, s.Outputs.Single().Reason),
+            s => Assert.Equal(IncrementalStepRunReason.Cached, s.Outputs.Single().Reason),
+            s => Assert.Equal(IncrementalStepRunReason.Cached, s.Outputs.Single().Reason),
             s => Assert.Equal(IncrementalStepRunReason.New, s.Outputs.Single().Reason));
         Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps["collectedGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
         Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["compilationGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
@@ -1649,7 +1649,7 @@ class C { }
 
         Assert.Collection(runResult.TrackedSteps["individualFileGlobalAliases_ForAttribute"],
             s => Assert.Equal(IncrementalStepRunReason.Unchanged, s.Outputs.Single().Reason),
-            s => Assert.Equal(IncrementalStepRunReason.Unchanged, s.Outputs.Single().Reason));
+            s => Assert.Equal(IncrementalStepRunReason.Cached, s.Outputs.Single().Reason));
         Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["collectedGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
         Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["compilationGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
         Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["allUpGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
