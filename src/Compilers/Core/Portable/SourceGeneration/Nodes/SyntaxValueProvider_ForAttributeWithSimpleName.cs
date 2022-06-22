@@ -46,9 +46,6 @@ public partial struct SyntaxValueProvider
         var syntaxHelper = _context.SyntaxHelper;
 
         // Create a provider that provides (and updates) the global aliases for any particular file when it is edited.
-        //var individualFileGlobalAliasesProvider = this.CreateSyntaxOnlyProvider(
-        //    static (n, _) => n is ICompilationUnitSyntax).Select(
-        //    (n, _) => getGlobalAliasesInCompilationUnit(syntaxHelper, n)).WithTrackingName("individualFileGlobalAliases_ForAttribute");
 
         var syntaxTreesProvider = _context.CompilationProvider.SelectMany((c, _) => c.SyntaxTrees);
         var individualFileGlobalAliasesProvider = syntaxTreesProvider.Select(
