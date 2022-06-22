@@ -168,7 +168,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             unsafe
             {
                 // For an unmanaged memory stream, ModuleMetadata can take ownership directly.
-                var metadata = ModuleMetadata.CreateFromMetadata((IntPtr)stream.PositionPointer, (int)stream.Length, stream, disposeOwner: true);
+                var metadata = ModuleMetadata.CreateFromMetadata((IntPtr)stream.PositionPointer, (int)stream.Length, stream.Dispose);
 
                 // hold onto storage if requested
                 storages?.Add(storage);

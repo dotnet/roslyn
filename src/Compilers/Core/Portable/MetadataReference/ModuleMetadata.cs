@@ -22,47 +22,46 @@ namespace Microsoft.CodeAnalysis
         private readonly PEModule _module;
 
         /// <summary>
-        /// Optional data that should be kept alive as long as this <see cref="ModuleMetadata"/> is alive.  This can be
-        /// useful, for example, if there is backing memory that the metadata depends on that should be kept rooted so it
-        /// doesn't get garbage collected.
+        /// Optional action to invoke when this metadata is disposed.
         /// </summary>
-        private readonly IDisposable? _owner;
+        private readonly Action? _onDispose;
 
         /// <summary>
-        /// Whether or not <see cref="_owner"/> should be <see cref="IDisposable.Dispose"/>'d when this object is
-        /// Disposed.  Is controlled by the <c>leaveOpen</c> flag in <see cref="CreateFromStream(Stream, bool)"/>, or
-        /// the <see cref="PEStreamOptions.LeaveOpen"/> flag in <see cref="CreateFromStream(Stream, PEStreamOptions)"/>.
+        /// Whether or not to call _onDispose when this is disposed.  The reason that this is controlled by a flag is
+        /// that if we make a copy of this modulemetadata, we still want to keep the Action alive in it (as it may be
+        /// keeping alive underlying object this metadata needs).  However, the copy of the metadata should not call
+        /// the action as only the IsImageOwner metadata is responsible for that.
         /// </summary>
-        private readonly bool _disposeOwner;
+        private readonly bool _callOnDispose;
 
         private bool _isDisposed;
 
-        private ModuleMetadata(PEReader peReader, IDisposable? owner, bool disposeOwner)
+        private ModuleMetadata(PEReader peReader, Action? onDispose, bool callOnDispose)
             : base(isImageOwner: true, id: MetadataId.CreateNewId())
         {
             // If we've been asked to dispose the owner, then we better have an owner to dispose.
-            Debug.Assert(!disposeOwner || owner is not null);
+            Debug.Assert(!callOnDispose || onDispose is not null);
 
             _module = new PEModule(this, peReader: peReader, metadataOpt: IntPtr.Zero, metadataSizeOpt: 0, includeEmbeddedInteropTypes: false, ignoreAssemblyRefs: false);
-            _owner = owner;
-            _disposeOwner = disposeOwner;
+            _onDispose = onDispose;
+            _callOnDispose = callOnDispose;
         }
 
         private ModuleMetadata(
             IntPtr metadata,
             int size,
-            IDisposable? owner,
-            bool disposeOwner,
+            Action? onDispose,
+            bool callOnDispose,
             bool includeEmbeddedInteropTypes,
             bool ignoreAssemblyRefs)
             : base(isImageOwner: true, id: MetadataId.CreateNewId())
         {
             // If we've been asked to dispose the owner, then we better have an owner to dispose.
-            Debug.Assert(!disposeOwner || owner is not null);
+            Debug.Assert(!callOnDispose || onDispose is not null);
 
             _module = new PEModule(this, peReader: null, metadataOpt: metadata, metadataSizeOpt: size, includeEmbeddedInteropTypes: includeEmbeddedInteropTypes, ignoreAssemblyRefs: ignoreAssemblyRefs);
-            _owner = owner;
-            _disposeOwner = disposeOwner;
+            _onDispose = onDispose;
+            _callOnDispose = callOnDispose;
         }
 
         // creates a copy
@@ -70,10 +69,11 @@ namespace Microsoft.CodeAnalysis
             : base(isImageOwner: false, id: metadata.Id)
         {
             _module = metadata.Module;
-            // ensure that we keep the owner rooted so that it can't get GC'ed why we're alive.
-            _owner = metadata._owner;
-            // however, as we're not the image owner, we will never dispose the owner.  Only the single image owner can be responsible for that.
-            _disposeOwner = false;
+
+            // Keep the onDispose callback alive as it may be rooting data that this metadata needs. However, mark that
+            // we are not to dispose it ourselves, that's only the responsibility of the image owner (see IsImageOwner).
+            _onDispose = metadata._onDispose;
+            _callOnDispose = false;
         }
 
         /// <summary>
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="ArgumentNullException"><paramref name="metadata"/> is null.</exception>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="size"/> is not positive.</exception>
         public static ModuleMetadata CreateFromMetadata(IntPtr metadata, int size)
-            => CreateFromMetadataWorker(metadata, size, owner: null, disposeOwner: false);
+            => CreateFromMetadataWorker(metadata, size, onDispose: null);
 
         /// <summary>
         /// Create metadata module from a raw memory pointer to metadata directory of a PE image or .cormeta section of an object file.
@@ -93,29 +93,25 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="metadata">Pointer to the start of metadata block.</param>
         /// <param name="size">The size of the metadata block.</param>
-        /// <param name="owner">Data that should be kept alive as long as this <see cref="ModuleMetadata"/> is alive.  This can be
-        /// useful, for example, if there is backing memory that the metadata depends on that should be kept rooted so it
-        /// doesn't get garbage collected.</param>
-        /// <param name="disposeOwner">Whether or not <paramref name="owner"/> should be <see cref="IDisposable.Dispose"/>'d when this object is
-        /// Disposed.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="owner"/> is null.</exception>
+        /// <param name="onDispose">Action to run when the metadata module is disposed.  This will only be called then
+        /// this actual metadata instance is disposed.  Any instances created from this using <see
+        /// cref="Metadata.Copy"/> will not call this when they are disposed.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="onDispose"/> is null.</exception>
         public static unsafe ModuleMetadata CreateFromMetadata(
             IntPtr metadata,
             int size,
-            IDisposable owner,
-            bool disposeOwner)
+            Action onDispose)
         {
-            if (owner is null)
-                throw new ArgumentNullException(nameof(owner));
+            if (onDispose is null)
+                throw new ArgumentNullException(nameof(onDispose));
 
-            return CreateFromMetadataWorker(metadata, size, owner, disposeOwner);
+            return CreateFromMetadataWorker(metadata, size, onDispose);
         }
 
         private static ModuleMetadata CreateFromMetadataWorker(
             IntPtr metadata,
             int size,
-            IDisposable? owner,
-            bool disposeOwner)
+            Action? onDispose)
         {
             if (metadata == IntPtr.Zero)
             {
@@ -127,14 +123,14 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(CodeAnalysisResources.SizeHasToBePositive, nameof(size));
             }
 
-            return new ModuleMetadata(metadata, size, owner, disposeOwner, includeEmbeddedInteropTypes: false, ignoreAssemblyRefs: false);
+            return new ModuleMetadata(metadata, size, onDispose, callOnDispose: onDispose != null, includeEmbeddedInteropTypes: false, ignoreAssemblyRefs: false);
         }
 
         internal static ModuleMetadata CreateFromMetadata(IntPtr metadata, int size, bool includeEmbeddedInteropTypes, bool ignoreAssemblyRefs = false)
         {
             Debug.Assert(metadata != IntPtr.Zero);
             Debug.Assert(size > 0);
-            return new ModuleMetadata(metadata, size, owner: null, disposeOwner: false, includeEmbeddedInteropTypes, ignoreAssemblyRefs);
+            return new ModuleMetadata(metadata, size, onDispose: null, callOnDispose: false, includeEmbeddedInteropTypes, ignoreAssemblyRefs);
         }
 
         /// <summary>
@@ -145,9 +141,9 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="ArgumentNullException"><paramref name="peImage"/> is null.</exception>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="size"/> is not positive.</exception>
         public static unsafe ModuleMetadata CreateFromImage(IntPtr peImage, int size)
-            => CreateFromImage((byte*)peImage, size, owner: null, disposeOwner: false);
+            => CreateFromImage((byte*)peImage, size, onDispose: null);
 
-        private static unsafe ModuleMetadata CreateFromImage(byte* peImage, int size, IDisposable? owner, bool disposeOwner)
+        private static unsafe ModuleMetadata CreateFromImage(byte* peImage, int size, Action? onDispose)
         {
             if (peImage == null)
             {
@@ -159,7 +155,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(CodeAnalysisResources.SizeHasToBePositive, nameof(size));
             }
 
-            return new ModuleMetadata(new PEReader(peImage, size), owner, disposeOwner);
+            return new ModuleMetadata(new PEReader(peImage, size), onDispose, callOnDispose: onDispose != null);
         }
 
         /// <summary>
@@ -189,7 +185,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(peImage));
             }
 
-            return new ModuleMetadata(new PEReader(peImage), owner: null, disposeOwner: false);
+            return new ModuleMetadata(new PEReader(peImage), onDispose: null, callOnDispose: false);
         }
 
         /// <summary>
@@ -249,11 +245,14 @@ namespace Microsoft.CodeAnalysis
             {
                 unsafe
                 {
+                    Action? onDispose = options.HasFlag(PEStreamOptions.LeaveOpen)
+                        ? null
+                        : () => unmanagedMemoryStream.Dispose();
+
                     return CreateFromImage(
                         unmanagedMemoryStream.PositionPointer,
                         (int)Math.Min(unmanagedMemoryStream.Length, int.MaxValue),
-                        owner: unmanagedMemoryStream,
-                        disposeOwner: !options.HasFlag(PEStreamOptions.LeaveOpen));
+                        onDispose);
                 }
             }
 
@@ -265,7 +264,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // ownership of the stream is passed on PEReader:
-            return new ModuleMetadata(new PEReader(peStream, options), owner: null, disposeOwner: false);
+            return new ModuleMetadata(new PEReader(peStream, options), onDispose: null, callOnDispose: false);
         }
 
         /// <summary>
@@ -317,8 +316,8 @@ namespace Microsoft.CodeAnalysis
             {
                 _module.Dispose();
 
-                if (_disposeOwner)
-                    _owner!.Dispose();
+                if (_callOnDispose)
+                    _onDispose!.Invoke();
             }
         }
 
