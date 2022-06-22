@@ -49,7 +49,9 @@ public partial struct SyntaxValueProvider
         // using SyntaxTrees is purely syntax and will not update the incremental node for a tree when another tree is
         // changed. CreateSyntaxProvider will have to rerun all incremental nodes since it passes along the
         // SemanticModel, and that model is updated whenever any tree changes (since it is tied to the compilation).
-        var syntaxTreesProvider = _context.CompilationProvider.SelectMany((c, _) => c.SyntaxTrees).WithTrackingName("compilationUnit_ForAttribute");
+        var syntaxTreesProvider = _context.CompilationProvider
+            .SelectMany(static (c, _) => c.SyntaxTrees)
+            .WithTrackingName("compilationUnit_ForAttribute");
 
         // Create a provider that provides (and updates) the global aliases for any particular file when it is edited.
         var individualFileGlobalAliasesProvider = syntaxTreesProvider.Select(
