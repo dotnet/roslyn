@@ -25,6 +25,8 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
     {
         private readonly ITextUndoHistoryRegistry _undoRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
+        private readonly IEditorOptionsFactoryService _editorOptionsFactory;
+        private readonly IIndentationManagerService _indentationManager;
         public readonly IGlobalOptionService GlobalOptions;
 
         public string DisplayName => EditorFeaturesResources.Automatic_Line_Ender;
@@ -32,10 +34,14 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
         protected AbstractAutomaticLineEnderCommandHandler(
             ITextUndoHistoryRegistry undoRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService,
+            IEditorOptionsFactoryService editorOptionsFactory,
+            IIndentationManagerService indentationManager,
             IGlobalOptionService globalOptions)
         {
             _undoRegistry = undoRegistry;
             _editorOperationsFactoryService = editorOperationsFactoryService;
+            _editorOptionsFactory = editorOptionsFactory;
+            _indentationManager = indentationManager;
             GlobalOptions = globalOptions;
         }
 
@@ -142,7 +148,7 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
                 if (endingInsertionPosition != null)
                 {
                     using var transaction = args.TextView.CreateEditTransaction(EditorFeaturesResources.Automatic_Line_Ender, _undoRegistry, _editorOperationsFactoryService);
-                    var formattingOptions = document.GetSyntaxFormattingOptionsAsync(GlobalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
+                    var formattingOptions = args.SubjectBuffer.GetSyntaxFormattingOptions(_editorOptionsFactory, _indentationManager, GlobalOptions, document.Project.LanguageServices, explicitFormat: false);
                     InsertEnding(args.TextView, document, endingInsertionPosition.Value, caretPosition, formattingOptions, cancellationToken);
                     NextAction(operations, nextHandler);
                     transaction.Complete();

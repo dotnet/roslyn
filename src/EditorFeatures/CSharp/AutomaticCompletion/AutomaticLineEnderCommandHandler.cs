@@ -56,8 +56,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         public AutomaticLineEnderCommandHandler(
             ITextUndoHistoryRegistry undoRegistry,
             IEditorOperationsFactoryService editorOperations,
+            IEditorOptionsFactoryService editorOptionsFactory,
+            IIndentationManagerService indentationManager,
             IGlobalOptionService globalOptions)
-            : base(undoRegistry, editorOperations, globalOptions)
+            : base(undoRegistry, editorOperations, editorOptionsFactory, indentationManager, globalOptions)
         {
         }
 
