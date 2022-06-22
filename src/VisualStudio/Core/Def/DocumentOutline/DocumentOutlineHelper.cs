@@ -40,13 +40,12 @@ namespace Microsoft.VisualStudio.LanguageServices
             }
 
             var currentGroup = ArrayBuilder<DocumentSymbol>.GetInstance(1, allSymbols.First());
-            //var currentGroup = new List<DocumentSymbol> { allSymbols.First() };
-            var curRange = allSymbols.First().Range;
+            var currentRange = allSymbols.First().Range;
             for (var i = 1; i < allSymbols.Length; i++)
             {
                 var symbol = allSymbols[i];
                 // If the symbol's range is in the parent symbol's range
-                if (symbol.Range.Start.Line > curRange.Start.Line && symbol.Range.End.Line < curRange.End.Line)
+                if (symbol.Range.Start.Line > currentRange.Start.Line && symbol.Range.End.Line < currentRange.End.Line)
                 {
                     currentGroup.Add(symbol);
                 }
@@ -56,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                     documentSymbolGroups.Add(currentGroup.ToImmutableAndFree());
                     // Create new group with this symbol as the parent
                     currentGroup = ArrayBuilder<DocumentSymbol>.GetInstance(1, symbol);
-                    curRange = symbol.Range;
+                    currentRange = symbol.Range;
                 }
             }
 
