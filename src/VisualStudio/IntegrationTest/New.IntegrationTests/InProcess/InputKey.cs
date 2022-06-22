@@ -55,12 +55,47 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
         {
             if (Character is { } c)
             {
-                simulator.Keyboard.TextEntry(c);
+                if (c == '\n')
+                    simulator.Keyboard.KeyPress(VirtualKeyCode.RETURN);
+                else if (c == '\t')
+                    simulator.Keyboard.KeyPress(VirtualKeyCode.TAB);
+                else
+                    simulator.Keyboard.TextEntry(c);
+
                 return;
             }
             else if (Text is not null)
             {
-                simulator.Keyboard.TextEntry(Text);
+                var offset = 0;
+                while (offset < Text.Length)
+                {
+                    if (Text[offset] == '\r' && offset < Text.Length - 1 && Text[offset + 1] == '\n')
+                    {
+                        // Treat \r\n as a single RETURN character
+                        offset++;
+                        continue;
+                    }
+                    else if (Text[offset] == '\n')
+                    {
+                        simulator.Keyboard.KeyPress(VirtualKeyCode.RETURN);
+                        offset++;
+                        continue;
+                    }
+                    else if (Text[offset] == '\t')
+                    {
+                        simulator.Keyboard.KeyPress(VirtualKeyCode.TAB);
+                        offset++;
+                        continue;
+                    }
+                    else
+                    {
+                        var nextSpecial = Text.IndexOfAny(new[] { '\r', '\n', '\t' }, offset);
+                        var endOfCurrentSegment = nextSpecial < 0 ? Text.Length : nextSpecial;
+                        simulator.Keyboard.TextEntry(Text.Substring(offset, endOfCurrentSegment - offset));
+                        offset = endOfCurrentSegment;
+                    }
+                }
+
                 return;
             }
 
