@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.Cci;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
@@ -81,8 +82,21 @@ namespace Microsoft.CodeAnalysis.Emit
             return ToInternalSymbolArray(deleted);
         }
 
-        private static ImmutableArray<ISymbolInternal> ToInternalSymbolArray(IEnumerable<ISymbol> symbols)
-            => symbols.Select(GetISymbolInternalOrNull).WhereNotNull().ToImmutableArray();
+        private static ImmutableArray<ISymbolInternal> ToInternalSymbolArray(ISet<ISymbol> symbols)
+        {
+            var internalSymbols = ArrayBuilder<ISymbolInternal>.GetInstance();
+
+            foreach (var symbol in symbols)
+            {
+                var internalSymbol = GetISymbolInternalOrNull(symbol);
+                if (internalSymbol is not null)
+                {
+                    internalSymbols.Add(internalSymbol);
+                }
+            }
+
+            return internalSymbols.ToImmutableAndFree();
+        }
 
         public bool IsReplaced(IDefinition definition)
         {
