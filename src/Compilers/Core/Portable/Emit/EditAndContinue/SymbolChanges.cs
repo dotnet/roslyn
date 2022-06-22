@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Emit
         }
 
         private static ImmutableArray<ISymbolInternal> ToInternalSymbolArray(ISet<ISymbol> symbols)
-            => symbols.Select(GetISymbolInternalOrNull).WhereNotNull().ToImmutableArray()
+            => symbols.Select(GetISymbolInternalOrNull).WhereNotNull().ToImmutableArray();
 
         public bool IsReplaced(IDefinition definition)
         {
