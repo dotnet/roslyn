@@ -38,7 +38,13 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
                 return;
             }
 
-            var selectedType = semanticModel.GetEnclosingNamedType(span.Start, cancellationToken);
+            var selectedMember = semanticModel.GetDeclaredSymbol(memberDeclaration, cancellationToken);
+            if (selectedMember is null || selectedMember.ContainingType is null)
+            {
+                return;
+            }
+
+            var selectedType = selectedMember.ContainingType;
             if (selectedType == null)
             {
                 return;
@@ -55,7 +61,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
 
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-            var action = new MoveStaticMembersWithDialogCodeAction(document, span, service, selectedType, context.Options, selectedMember: selectedMembers[0]);
+            var action = new MoveStaticMembersWithDialogCodeAction(document, span, service, selectedType, context.Options, selectedMember: selectedMember);
 
             context.RegisterRefactoring(action, selectedMembers[0].DeclaringSyntaxReferences[0].Span);
         }

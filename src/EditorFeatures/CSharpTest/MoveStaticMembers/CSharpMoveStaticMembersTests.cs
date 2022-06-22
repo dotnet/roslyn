@@ -2326,6 +2326,38 @@ namespace TestNs1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        public async Task TestSelectInKeyWordOfMulitFieldDeclaration()
+        {
+            var initialMarkup = @"
+namespace TestNs1
+{
+    public class Class1
+    {
+        pub[||]lic static int TestField = 1, foo = 0;
+    }
+}";
+            var selectedDestinationName = "Class1Helpers";
+            var newFileName = "Class1Helpers.cs";
+            var selectedMembers = ImmutableArray.Create("TestField");
+            var expectedResult1 = @"
+namespace TestNs1
+{
+    public class Class1
+    {
+        public static int foo = 0;
+    }
+}";
+            var expectedResult2 = @"namespace TestNs1
+{
+    internal static class Class1Helpers
+    {
+        public static int TestField = 1;
+    }
+}";
+            await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
         public async Task TestSelectInKeyWordOfDeclaration2()
         {
             var initialMarkup = @"
@@ -2564,6 +2596,44 @@ namespace TestNs1
     }
 }";
             await TestNoRefactoringAsync(initialMarkup).ConfigureAwait(false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        public async Task TestSelectTopLevelDeclaration1_NoAction()
+        {
+            var initialMarkup = @"
+using System;
+
+[||]_ = 42;";
+            var test = new Test("", ImmutableArray<string>.Empty)
+            {
+                TestState =
+                {
+                    OutputKind = OutputKind.ConsoleApplication
+                },
+                TestCode = initialMarkup,
+                FixedCode = initialMarkup,
+            };
+            test.LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9;
+            await test.RunAsync().ConfigureAwait(false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        public async Task TestSelectTopLevelDeclaration2_NoAction()
+        {
+            var initialMarkup = @"
+[||]_ = 42;";
+            var test = new Test("", ImmutableArray<string>.Empty)
+            {
+                TestState =
+                {
+                    OutputKind = OutputKind.ConsoleApplication
+                },
+                TestCode = initialMarkup,
+                FixedCode = initialMarkup,
+            };
+            test.LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9;
+            await test.RunAsync().ConfigureAwait(false);
         }
         #endregion
 
