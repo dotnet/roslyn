@@ -152,6 +152,11 @@
         <target state="translated">Ein Parameter eines unären Operators muss der enthaltende Typ sein oder sein zugehöriger Typparameter, der darauf beschränkt ist.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadBinaryReadOnlySpanConcatenation">
+        <source>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF8 byte representations</source>
+        <target state="new">Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF8 byte representations</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadCallerArgumentExpressionParamWithoutDefaultValue">
         <source>The CallerArgumentExpressionAttribute may only be applied to parameters with default values</source>
         <target state="translated">Das CallerArgumentExpressionAttribute kann nur auf Parameter mit Standardwerten angewendet werden.</target>
