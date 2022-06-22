@@ -501,6 +501,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BindingDiagnosticBag diagnostics,
             CancellationToken cancellationToken)
         {
+            if (this.BaseTypeNoUseSiteDiagnostics?.IsErrorType() == true)
+            {
+                return;
+            }
+
             switch (this.TypeKind)
             {
                 // These checks don't make sense for enums and delegates:
