@@ -4,8 +4,10 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Roslyn.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
 using WindowsInput.Native;
@@ -46,6 +48,7 @@ class Implementation : IBar
             await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.TAB);
             // Navigate to the destination
             await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.RETURN);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.InheritanceMargin }, HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextContainsAsync(@"class Implementation$$", assertCaretPosition: true);
         }
 
@@ -79,6 +82,7 @@ class Implementation : IBar
             await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.RETURN);
             // Navigate to the implemention
             await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.RETURN);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.InheritanceMargin }, HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextContainsAsync(@"public event EventHandler e1$$, e2;", assertCaretPosition: true);
         }
 
@@ -108,6 +112,7 @@ class Implementation : IEnumerable
             await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.TAB);
             // Navigate to 'IEnumerable'
             await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.RETURN);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.InheritanceMargin }, HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextContainsAsync(@"public interface IEnumerable$$", assertCaretPosition: true);
 
             var document = await TestServices.Editor.GetActiveDocumentAsync(HangMitigatingCancellationToken);
@@ -149,6 +154,7 @@ class Implementation : IBar
             await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.TAB);
             // Navigate to 'IBar'
             await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.RETURN);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.InheritanceMargin }, HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextContainsAsync(@"Public Interface IBar$$", assertCaretPosition: true);
 
             var document = await TestServices.Editor.GetActiveDocumentAsync(HangMitigatingCancellationToken);
