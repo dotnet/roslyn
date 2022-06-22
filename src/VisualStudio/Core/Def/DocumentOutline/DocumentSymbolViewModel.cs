@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         public int EndChar { get; }
 
         public SymbolKind SymbolKind { get; }
-        public ImageMoniker ImgMoniker { get; }
+        public ImageMoniker ImageMoniker { get; }
 
         public bool IsExpanded
         {
@@ -60,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             this.Name = documentSymbol.Name;
             this.Children = ImmutableArray<DocumentSymbolViewModel>.Empty;
             this.SymbolKind = documentSymbol.Kind;
-            this.ImgMoniker = GetImageMoniker(documentSymbol.Kind);
+            this.ImageMoniker = GetImageMoniker(documentSymbol.Kind);
             this.IsExpanded = true;
             this.IsSelected = false;
             this.StartLine = documentSymbol.Range.Start.Line;
