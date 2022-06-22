@@ -304,4 +304,7 @@
     <UsingToolMicrosoftNetCompilers Condition="'$(BootstrapBuildPath)' == ''">true</UsingToolMicrosoftNetCompilers>
     <UseVSTestRunner>true</UseVSTestRunner>
   </PropertyGroup>
+  <PropertyGroup>
+    <MicrosoftNetCoreAppPackagesVersion>6.0.2</MicrosoftNetCoreAppPackagesVersion>
+  </PropertyGroup>
 </Project>
