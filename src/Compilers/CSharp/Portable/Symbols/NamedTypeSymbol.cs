@@ -487,9 +487,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return MetadataHelpers.ComposeAritySuffixedMetadataName(Name, Arity, this.AssociatedFileIdentifier());
+                return MangleName ? MetadataHelpers.ComposeAritySuffixedMetadataName(Name, Arity, this.AssociatedFileIdentifier()) : Name;
             }
         }
+
+        /// <summary>
+        /// If this type is a file type, returns the syntax tree where this type is visible. Otherwise, returns null.
+        /// </summary>
+        internal abstract SyntaxTree? AssociatedSyntaxTree { get; }
 #nullable disable
 
         /// <summary>

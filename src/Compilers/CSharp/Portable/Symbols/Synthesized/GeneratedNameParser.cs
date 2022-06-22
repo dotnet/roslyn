@@ -5,6 +5,7 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -168,6 +169,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             propertyName = null;
+            return false;
+        }
+
+        // <ContainingFile>FN__ClassName`OptionalArity
+        private static readonly Regex s_fileTypeOrdinalPattern = new Regex(@">F(\d)+__", RegexOptions.Compiled);
+
+        internal static bool TryParseFileTypeName(string unmangledTypeName, out int ordinal, out string originalTypeName)
+        {
+            if (s_fileTypeOrdinalPattern.Match(unmangledTypeName) is Match { Success: true, Groups: var groups, Length: var prefixEndsAt }
+                && int.TryParse(groups[1].Value, out ordinal))
+            {
+                originalTypeName = unmangledTypeName.Substring(prefixEndsAt + 1);
+                return true;
+            }
+
+            ordinal = -1;
+            originalTypeName = unmangledTypeName;
             return false;
         }
     }

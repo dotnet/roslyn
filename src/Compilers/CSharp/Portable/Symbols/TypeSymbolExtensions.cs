@@ -1364,20 +1364,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static string? AssociatedFileIdentifier(this NamedTypeSymbol type)
         {
-            if (type is not SourceMemberContainerTypeSymbol { AssociatedSyntaxTree: SyntaxTree tree })
+            if (type.AssociatedSyntaxTree is not SyntaxTree tree)
             {
                 return null;
             }
             var ordinal = type.DeclaringCompilation.GetSyntaxTreeOrdinal(tree);
             return GeneratedNames.MakeFileIdentifier(tree.FilePath, ordinal);
-        }
-
-        internal static string GetDisplayFileName(this SyntaxTree tree)
-        {
-            var pooledBuilder = PooledStringBuilder.GetInstance();
-            var sb = pooledBuilder.Builder;
-            GeneratedNames.AppendFileName(tree.FilePath, sb);
-            return pooledBuilder.ToStringAndFree();
         }
 
         public static bool IsPointerType(this TypeSymbol type)

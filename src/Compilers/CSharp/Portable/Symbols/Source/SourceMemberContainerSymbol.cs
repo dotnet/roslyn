@@ -826,8 +826,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal bool IsFile => HasFlag(DeclarationModifiers.File);
 
-        /// <summary>If this symbol is only available within a single syntax tree, returns that syntax tree. Otherwise, returns null.</summary>
-        internal SyntaxTree? AssociatedSyntaxTree => IsFile ? declaration.Declarations[0].Location.SourceTree : null;
+        internal sealed override SyntaxTree? AssociatedSyntaxTree => IsFile ? declaration.Declarations[0].Location.SourceTree : null;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool HasFlag(DeclarationModifiers flag) => (_declModifiers & flag) != 0;
@@ -927,7 +926,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return Arity > 0;
+                return Arity > 0 || IsFile;
             }
         }
 

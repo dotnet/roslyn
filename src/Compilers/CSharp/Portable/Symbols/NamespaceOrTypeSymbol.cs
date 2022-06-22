@@ -243,6 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!emittedTypeName.IsNull);
 
             NamespaceOrTypeSymbol scope = this;
+            Debug.Assert(scope is not MergedNamespaceSymbol);
 
             if (scope.Kind == SymbolKind.ErrorType)
             {
@@ -325,15 +326,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (isTopLevel && MetadataHelpers.DecodeFileType(emittedTypeName.UnmangledTypeName) is (not -1 and var ordinal, var typeName))
+Done:
+            if (isTopLevel && GeneratedNameParser.TryParseFileTypeName(emittedTypeName.UnmangledTypeName, out int ordinal, out string typeName))
             {
                 // also do a lookup for file types from source.
                 namespaceOrTypeMembers = scope.GetTypeMembers(typeName);
                 foreach (var named in namespaceOrTypeMembers)
                 {
-                    if (named is SourceMemberContainerTypeSymbol { AssociatedSyntaxTree: SyntaxTree tree }
+                    if (named.AssociatedSyntaxTree is SyntaxTree tree
                         && named.DeclaringCompilation.GetSyntaxTreeOrdinal(tree) == ordinal
-                        && (emittedTypeName.ForcedArity == -1 || emittedTypeName.ForcedArity == emittedTypeName.InferredArity)
                         && emittedTypeName.InferredArity == named.Arity)
                     {
                         if ((object?)namedType != null)
@@ -347,7 +348,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-Done:
             if ((object?)namedType == null)
             {
                 if (isTopLevel)

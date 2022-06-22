@@ -2962,6 +2962,10 @@ public class FileModifierTests : CSharpTestBase
         var sourceType = comp.GetTypeByMetadataName("<>F0__C");
         Assert.Equal(sourceMember, sourceType);
 
+        Assert.Null(comp.GetTypeByMetadataName("<>F0__D"));
+        Assert.Null(comp.GetTypeByMetadataName("<>F1__C"));
+        Assert.Null(comp.GetTypeByMetadataName("F0__C"));
+
         // from metadata
         var comp2 = CreateCompilation("", references: new[] { comp.EmitToImageReference() });
         comp2.VerifyDiagnostics();
@@ -2987,6 +2991,7 @@ public class FileModifierTests : CSharpTestBase
 
         var sourceType = comp.GetTypeByMetadataName("<>F0__C`1");
         Assert.Equal(sourceMember, sourceType);
+        Assert.Null(comp.GetTypeByMetadataName("<>F0__C"));
 
         // from metadata
         var comp2 = CreateCompilation("", references: new[] { comp.EmitToImageReference() });
@@ -3054,5 +3059,71 @@ public class FileModifierTests : CSharpTestBase
 
         var metadataType = comp2.GetTypeByMetadataName("<>F0__C");
         Assert.Equal(metadataMember, metadataType);
+    }
+
+    [Fact]
+    public void AssociatedSyntaxTree_01()
+    {
+        var source = """
+            file class C
+            {
+                void M(C c)
+                {
+                }
+            }
+            """;
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+        var node = tree.GetRoot().DescendantNodes().OfType<ParameterSyntax>().Single();
+        var type = model.GetTypeInfo(node.Type!).Type;
+        Assert.Equal("C@<tree 0>", type.ToTestDisplayString());
+        Assert.Equal(tree, type.GetSymbol<NamedTypeSymbol>()!.AssociatedSyntaxTree);
+    }
+
+    [Fact]
+    public void AssociatedSyntaxTree_02()
+    {
+        var source = """
+            class C
+            {
+                void M(C c)
+                {
+                }
+            }
+            """;
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+        var node = tree.GetRoot().DescendantNodes().OfType<ParameterSyntax>().Single();
+        var type = model.GetTypeInfo(node.Type!).Type;
+        Assert.Equal("C", type.ToTestDisplayString());
+        Assert.Null(type.GetSymbol<NamedTypeSymbol>()!.AssociatedSyntaxTree);
+    }
+
+    [Fact]
+    public void AssociatedSyntaxTree_03()
+    {
+        var source = """
+            file class C<T>
+            {
+                void M(C<int> c)
+                {
+                }
+            }
+            """;
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+        var node = tree.GetRoot().DescendantNodes().OfType<ParameterSyntax>().Single();
+        var type = model.GetTypeInfo(node.Type!).Type;
+        Assert.Equal("C<System.Int32>@<tree 0>", type.ToTestDisplayString());
+        Assert.Equal(tree, type.GetSymbol<NamedTypeSymbol>()!.AssociatedSyntaxTree);
     }
 }
