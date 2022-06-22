@@ -2167,7 +2167,7 @@ class C { }
         }
 
         [Fact, WorkItem(57455, "https://github.com/dotnet/roslyn/issues/57455")]
-        public void TODO2()
+        public void RemoveTriggeringSyntaxAndVerifySyntaxTreeConsistentWithCompilation()
         {
             var source = @"
 [System.Obsolete]
