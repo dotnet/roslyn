@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return ToInternalSymbolArray(deleted);
         }
 
-        private static ImmutableArray<ISymbolInternal> ToInternalSymbolArray(ISet<ISymbol> symbols)
+        private ImmutableArray<ISymbolInternal> ToInternalSymbolArray(ISet<ISymbol> symbols)
         {
             var internalSymbols = ArrayBuilder<ISymbolInternal>.GetInstance();
 
