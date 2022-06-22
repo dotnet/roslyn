@@ -613,12 +613,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // https://github.com/dotnet/roslyn/issues/61647: Use public API.
                     Debug.Assert((param as Symbols.PublicModel.ParameterSymbol)?.GetSymbol<ParameterSymbol>().Scope switch
-                        {
-                            null => true,
-                            DeclarationScope.Unscoped => true,
-                            DeclarationScope.RefScoped => param.RefKind == RefKind.Out,
-                            _ => false,
-                        });
+                    {
+                        null => true,
+                        DeclarationScope.Unscoped => param.RefKind != RefKind.Out,
+                        DeclarationScope.RefScoped => param.RefKind == RefKind.Out,
+                        _ => false,
+                    });
 
                     AddParameterRefKind(param.RefKind);
 
