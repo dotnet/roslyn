@@ -74,12 +74,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
                         mutablePotentialConversionTypes.Add((spanNode, conversionType))
                     End If
                 Case BC30518, BC30519
-                    Dim invocationNode = spanNode.GetAncestors(Of ExpressionSyntax).FirstOrDefault(
+                    Dim invocationNodeExpression = spanNode.GetAncestors(Of ExpressionSyntax).FirstOrDefault(
+                        Function(node) Not node.ChildNodes.OfType(Of ArgumentListSyntax).IsEmpty())
+
+                    Dim invocationNodeAttribute = spanNode.GetAncestors(Of AttributeSyntax).FirstOrDefault(
                         Function(node) Not node.ChildNodes.OfType(Of ArgumentListSyntax).IsEmpty())
 
                     ' Collect available cast pairs without target argument
-                    mutablePotentialConversionTypes.AddRange(
-                        GetPotentialConversionTypesWithInvocationNode(semanticModel, root, invocationNode, cancellationToken))
+                    If invocationNodeExpression IsNot Nothing Then
+                        mutablePotentialConversionTypes.AddRange(
+                            GetPotentialConversionTypesWithInvocationNode(semanticModel, root, invocationNodeExpression, cancellationToken))
+                    ElseIf invocationNodeAttribute IsNot Nothing Then
+                        mutablePotentialConversionTypes.AddRange(
+                            GetPotentialConversionTypesWithInvocationNode(semanticModel, root, invocationNodeAttribute, cancellationToken))
+                    End If
             End Select
 
             ' clear up duplicate types
