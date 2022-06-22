@@ -9236,16 +9236,55 @@ public class C { }
             Assert.False(parsedArgs.SkipAnalyzers);
         }
 
-        [Theory, CombinatorialData]
+        [Fact]
         [WorkItem(40926, "https://github.com/dotnet/roslyn/issues/40926")]
-        public void SkipAnalyzersSemantics(bool skipAnalyzers)
+        public void SkipAnalyzersFlagFiltersAnalyzers()
+        {
+            var srcFile = Temp.CreateFile().WriteAllText(@"class C {}");
+            var srcDirectory = Path.GetDirectoryName(srcFile.Path);
+
+            var args = new List<string>() { "/reportanalyzer", "/t:library", "/a:" + Assembly.GetExecutingAssembly().Location, srcFile.Path };
+            var csc = CreateCSharpCompiler(
+                responseFile: null,
+                srcDirectory,
+                args.ToArray());
+
+            csc.ResolveAnalyzersFromArguments(
+                skipAnalyzers: false,
+                out _,
+                out var analyzers,
+                out var generators);
+            Assert.NotEmpty(analyzers);
+            Assert.NotEmpty(generators);
+
+            csc.ResolveAnalyzersFromArguments(
+                skipAnalyzers: true,
+                out _,
+                out analyzers,
+                out generators);
+            Assert.Empty(analyzers);
+            Assert.NotEmpty(generators);
+
+            CleanupAllGeneratedFiles(srcFile.Path);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(40926, "https://github.com/dotnet/roslyn/issues/40926")]
+        public void NoAnalyzersReportSemantics(bool skipAnalyzers)
         {
             var srcFile = Temp.CreateFile().WriteAllText(@"class C {}");
             var srcDirectory = Path.GetDirectoryName(srcFile.Path);
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            var skipAnalyzersFlag = "/skipanalyzers" + (skipAnalyzers ? "+" : "-");
-            var csc = CreateCSharpCompiler(null, srcDirectory, new[] { skipAnalyzersFlag, "/reportanalyzer", "/t:library", "/a:" + Assembly.GetExecutingAssembly().Location, srcFile.Path });
+            var analyzers = skipAnalyzers
+                ? ImmutableArray<DiagnosticAnalyzer>.Empty
+                : ImmutableArray.Create<DiagnosticAnalyzer>(new HiddenDiagnosticAnalyzer(), new WarningDiagnosticAnalyzer());
+            var csc = CreateCSharpCompiler(
+                responseFile: null,
+                srcDirectory,
+                new[] { "/reportanalyzer", "/t:library", srcFile.Path },
+                analyzers: analyzers);
             var exitCode = csc.Run(outWriter);
             Assert.Equal(0, exitCode);
             var output = outWriter.ToString();
