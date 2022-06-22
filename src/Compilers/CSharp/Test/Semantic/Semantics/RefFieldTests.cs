@@ -6695,6 +6695,51 @@ class Program
         }
 
         [Fact]
+        public void ParameterScope_11()
+        {
+            var source0 =
+@".class private System.Runtime.CompilerServices.LifetimeAnnotationAttribute extends [mscorlib]System.Attribute
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor(bool isRefScoped, bool isValueScoped) cil managed { ret }
+}
+.class public A
+{
+  .method public static void F1([out] int32& i)
+  {
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.LifetimeAnnotationAttribute::.ctor(bool, bool) = ( 01 00 01 00 00 00 ) // LifetimeAnnotationAttribute(isRefScoped: true, isValueScoped: false)
+    ldnull
+    throw
+  }
+  .method public static void F2([out] int32& i)
+  {
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.LifetimeAnnotationAttribute::.ctor(bool, bool) = ( 01 00 00 00 00 00 ) // LifetimeAnnotationAttribute(isRefScoped: false, isValueScoped: false)
+    ldnull
+    throw
+  }
+}
+";
+            var ref0 = CompileIL(source0);
+
+            var source1 =
+@"class Program
+{
+    static void Main()
+    {
+        int i;
+        A.F1(out i);
+        A.F2(out i);
+    }
+}";
+            var comp = CreateCompilation(source1, references: new[] { ref0 });
+            comp.VerifyDiagnostics();
+
+            VerifyParameterSymbol(comp.GetMember<PEMethodSymbol>("A.F1").Parameters[0], "out System.Int32 i", RefKind.Out, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(comp.GetMember<PEMethodSymbol>("A.F2").Parameters[0], "out System.Int32 i", RefKind.Out, DeclarationScope.Unscoped);
+        }
+
+        [Fact]
         public void ThisScope()
         {
             var source =
