@@ -1343,9 +1343,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
         }
 
-        public override void VisitUTF8String(IUTF8StringOperation operation)
+        public override void VisitUtf8String(IUtf8StringOperation operation)
         {
-            LogString(nameof(IUTF8StringOperation));
+            LogString(nameof(IUtf8StringOperation));
             LogString(" (");
             LogString(operation.Value);
             LogString(")");

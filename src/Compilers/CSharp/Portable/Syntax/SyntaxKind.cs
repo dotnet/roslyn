@@ -504,9 +504,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         SingleLineRawStringLiteralToken = 8518,
         MultiLineRawStringLiteralToken = 8519,
 
-        UTF8StringLiteralToken = 8520,
-        UTF8SingleLineRawStringLiteralToken = 8521,
-        UTF8MultiLineRawStringLiteralToken = 8522,
+        Utf8StringLiteralToken = 8520,
+        Utf8SingleLineRawStringLiteralToken = 8521,
+        Utf8MultiLineRawStringLiteralToken = 8522,
 
         // trivia
         EndOfLineTrivia = 8539,
@@ -676,7 +676,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         FalseLiteralExpression = 8753,
         NullLiteralExpression = 8754,
         DefaultLiteralExpression = 8755,
-        UTF8StringLiteralExpression = 8756,
+        Utf8StringLiteralExpression = 8756,
 
         // primary function expressions
         TypeOfExpression = 8760,

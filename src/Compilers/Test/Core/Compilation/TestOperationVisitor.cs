@@ -868,9 +868,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Empty(operation.ChildOperations);
         }
 
-        public override void VisitUTF8String(IUTF8StringOperation operation)
+        public override void VisitUtf8String(IUtf8StringOperation operation)
         {
-            Assert.Equal(OperationKind.UTF8String, operation.Kind);
+            Assert.Equal(OperationKind.Utf8String, operation.Kind);
             Assert.Empty(operation.ChildOperations);
             Assert.NotNull(operation.Value);
         }

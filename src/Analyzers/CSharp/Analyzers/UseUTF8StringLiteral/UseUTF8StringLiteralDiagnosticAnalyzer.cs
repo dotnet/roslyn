@@ -19,10 +19,10 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
+namespace Microsoft.CodeAnalysis.CSharp.UseUtf8StringLiteral
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class UseUTF8StringLiteralDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    internal sealed class UseUtf8StringLiteralDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         public enum ArrayCreationOperationLocation
         {
@@ -31,12 +31,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
             Current
         }
 
-        public UseUTF8StringLiteralDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.UseUTF8StringLiteralDiagnosticId,
-                EnforceOnBuildValues.UseUTF8StringLiteral,
+        public UseUtf8StringLiteralDiagnosticAnalyzer()
+            : base(IDEDiagnosticIds.UseUtf8StringLiteralDiagnosticId,
+                EnforceOnBuildValues.UseUtf8StringLiteral,
                 CSharpCodeStyleOptions.PreferUtf8StringLiterals,
                 LanguageNames.CSharp,
-                new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_UTF8_string_literal), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
+                new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_Utf8_string_literal), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
         }
 
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
             if (arrayCreationOperation.Initializer is null)
                 return;
 
-            // Using UTF8 string literals as nested array initializers is invalid
+            // Using UTF-8 string literals as nested array initializers is invalid
             if (arrayCreationOperation.DimensionSizes.Length > 1)
                 return;
 
@@ -78,11 +78,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
             if (arrayCreationOperation.Type is not IArrayTypeSymbol { ElementType.SpecialType: SpecialType.System_Byte })
                 return;
 
-            // UTF8 strings are not valid to use in attributes
+            // UTF-8 strings are not valid to use in attributes
             if (arrayCreationOperation.Syntax.Ancestors().OfType<AttributeSyntax>().Any())
                 return;
 
-            // Can't use a UTF8 string inside an expression tree.
+            // Can't use a UTF-8 string inside an expression tree.
             var semanticModel = context.Operation.SemanticModel;
             Contract.ThrowIfNull(semanticModel);
             if (arrayCreationOperation.Syntax.IsInExpressionTree(semanticModel, expressionType, context.CancellationToken))
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
             if (arrayCreationOperation.IsImplicit && elements.Length == 0)
                 return;
 
-            if (!TryConvertToUTF8String(builder: null, elements))
+            if (!TryConvertToUtf8String(builder: null, elements))
                 return;
 
             if (arrayCreationOperation.Syntax is ImplicitArrayCreationExpressionSyntax or ArrayCreationExpressionSyntax)
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
                 DiagnosticHelper.Create(Descriptor, location, severity, additionalLocations, properties));
         }
 
-        internal static bool TryConvertToUTF8String(StringBuilder? builder, ImmutableArray<IOperation> arrayCreationElements)
+        internal static bool TryConvertToUtf8String(StringBuilder? builder, ImmutableArray<IOperation> arrayCreationElements)
         {
             for (var i = 0; i < arrayCreationElements.Length;)
             {

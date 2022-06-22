@@ -1557,7 +1557,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitUTF8String(BoundUTF8String node)
+        public override BoundNode VisitUtf8String(BoundUtf8String node)
         {
             return null;
         }

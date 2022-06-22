@@ -297,8 +297,8 @@ namespace Roslyn.Utilities
                     return ReadArray(kind);
 
                 case EncodingKind.EncodingName: return Encoding.GetEncoding(ReadString());
-                case EncodingKind.EncodingUTF8: return s_encodingUTF8;
-                case EncodingKind.EncodingUTF8_BOM: return Encoding.UTF8;
+                case EncodingKind.EncodingUtf8: return s_encodingUtf8;
+                case EncodingKind.EncodingUtf8_BOM: return Encoding.UTF8;
                 case EncodingKind.EncodingUTF32_BE: return s_encodingUTF32_BE;
                 case EncodingKind.EncodingUTF32_BE_BOM: return s_encodingUTF32_BE_BOM;
                 case EncodingKind.EncodingUTF32_LE: return s_encodingUTF32_LE;
@@ -313,7 +313,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        private static readonly Encoding s_encodingUTF8 = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+        private static readonly Encoding s_encodingUtf8 = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
         private static readonly Encoding s_encodingUTF32_BE = new UTF32Encoding(bigEndian: true, byteOrderMark: false);
         private static readonly Encoding s_encodingUTF32_BE_BOM = new UTF32Encoding(bigEndian: true, byteOrderMark: true);
         private static readonly Encoding s_encodingUTF32_LE = new UTF32Encoding(bigEndian: false, byteOrderMark: false);

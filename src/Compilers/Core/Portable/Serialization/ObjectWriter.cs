@@ -502,8 +502,8 @@ namespace Roslyn.Utilities
 
                     if (value.IsValidUnicodeString())
                     {
-                        // Usual case - the string can be encoded as UTF8:
-                        // We can use the UTF8 encoding of the binary writer.
+                        // Usual case - the string can be encoded as UTF-8:
+                        // We can use the UTF-8 encoding of the binary writer.
 
                         _writer.Write((byte)EncodingKind.StringUtf8);
                         _writer.Write(value);
@@ -832,7 +832,7 @@ namespace Roslyn.Utilities
 
                 case 65001:
                     Debug.Assert(HasPreamble(Encoding.UTF8));
-                    return (encoding.Equals(Encoding.UTF8) || HasPreamble(encoding)) ? EncodingKind.EncodingUTF8_BOM : EncodingKind.EncodingUTF8;
+                    return (encoding.Equals(Encoding.UTF8) || HasPreamble(encoding)) ? EncodingKind.EncodingUtf8_BOM : EncodingKind.EncodingUtf8;
 
                 default:
                     return EncodingKind.EncodingName;
@@ -1037,7 +1037,7 @@ namespace Roslyn.Utilities
             ObjectRef_4Bytes,
 
             /// <summary>
-            /// A string encoded as UTF8 (using BinaryWriter.Write(string))
+            /// A string encoded as UTF-8 (using BinaryWriter.Write(string))
             /// </summary>
             StringUtf8,
 
@@ -1307,8 +1307,8 @@ namespace Roslyn.Utilities
             EncodingName,
 
             // well-known encodings (parameterized by BOM)
-            EncodingUTF8,
-            EncodingUTF8_BOM,
+            EncodingUtf8,
+            EncodingUtf8_BOM,
             EncodingUTF32_BE,
             EncodingUTF32_BE_BOM,
             EncodingUTF32_LE,

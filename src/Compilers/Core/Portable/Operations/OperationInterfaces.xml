@@ -3273,13 +3273,13 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IUTF8StringOperation" Base="IOperation" HasType="true" HasConstantValue="false">
+  <Node Name="IUtf8StringOperation" Base="IOperation" HasType="true" HasConstantValue="false">
     <Comments>
       <summary>
-        Represents a UTF8 encoded byte representation of a string.
+        Represents a UTF-8 encoded byte representation of a string.
         <para>
           Current usage:
-          (1) C# UTF8 string literal expression.
+          (1) C# UTF-8 string literal expression.
         </para>
       </summary>
     </Comments>
