@@ -6971,27 +6971,13 @@ class Program
                 var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
                 var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
 
-                VerifyLocalSymbol(locals[0], "scoped R r1", RefKind.None, DeclarationScope.ValueScoped,
-                    expectedRefEscape: Binder.TopLevelScope,
-                    expectedValEscape: useUpdatedEscapeRules ? Binder.TopLevelScope : Binder.ExternalScope);
-                VerifyLocalSymbol(locals[1], "scoped ref R r2", RefKind.Ref, DeclarationScope.RefScoped,
-                    expectedRefEscape: useUpdatedEscapeRules ? Binder.TopLevelScope : Binder.ExternalScope,
-                    expectedValEscape: Binder.ExternalScope);
-                VerifyLocalSymbol(locals[2], "ref scoped R r3", RefKind.Ref, DeclarationScope.ValueScoped,
-                    expectedRefEscape: useUpdatedEscapeRules ? Binder.TopLevelScope : Binder.ExternalScope,
-                    expectedValEscape: useUpdatedEscapeRules ? Binder.TopLevelScope : Binder.ExternalScope);
-                VerifyLocalSymbol(locals[3], "ref scoped R r4", RefKind.Ref, DeclarationScope.ValueScoped,
-                    expectedRefEscape: useUpdatedEscapeRules ? Binder.TopLevelScope : Binder.ExternalScope,
-                    expectedValEscape: useUpdatedEscapeRules ? Binder.TopLevelScope : Binder.ExternalScope);
-                VerifyLocalSymbol(locals[4], "scoped ref readonly R r5", RefKind.RefReadOnly, DeclarationScope.RefScoped,
-                    expectedRefEscape: useUpdatedEscapeRules ? Binder.TopLevelScope : Binder.ExternalScope,
-                    expectedValEscape: Binder.ExternalScope);
-                VerifyLocalSymbol(locals[5], "ref readonly scoped R r6", RefKind.RefReadOnly, DeclarationScope.ValueScoped,
-                    expectedRefEscape: useUpdatedEscapeRules ? Binder.TopLevelScope : Binder.ExternalScope,
-                    expectedValEscape: useUpdatedEscapeRules ? Binder.TopLevelScope : Binder.ExternalScope);
-                VerifyLocalSymbol(locals[6], "ref readonly scoped R r7", RefKind.RefReadOnly, DeclarationScope.ValueScoped,
-                    expectedRefEscape: useUpdatedEscapeRules ? Binder.TopLevelScope : Binder.ExternalScope,
-                    expectedValEscape: useUpdatedEscapeRules ? Binder.TopLevelScope : Binder.ExternalScope);
+                VerifyLocalSymbol(locals[0], "scoped R r1", RefKind.None, DeclarationScope.ValueScoped);
+                VerifyLocalSymbol(locals[1], "scoped ref R r2", RefKind.Ref, DeclarationScope.RefScoped);
+                VerifyLocalSymbol(locals[2], "ref scoped R r3", RefKind.Ref, DeclarationScope.ValueScoped);
+                VerifyLocalSymbol(locals[3], "ref scoped R r4", RefKind.Ref, DeclarationScope.ValueScoped);
+                VerifyLocalSymbol(locals[4], "scoped ref readonly R r5", RefKind.RefReadOnly, DeclarationScope.RefScoped);
+                VerifyLocalSymbol(locals[5], "ref readonly scoped R r6", RefKind.RefReadOnly, DeclarationScope.ValueScoped);
+                VerifyLocalSymbol(locals[6], "ref readonly scoped R r7", RefKind.RefReadOnly, DeclarationScope.ValueScoped);
             }
         }
 
@@ -7193,20 +7179,20 @@ class Program
             var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
             var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
 
-            VerifyLocalSymbol(locals[0], "R r11", RefKind.None, DeclarationScope.Unscoped, expectedRefEscape: Binder.TopLevelScope, expectedValEscape: Binder.ExternalScope);
-            VerifyLocalSymbol(locals[1], "R r12", RefKind.None, DeclarationScope.Unscoped, expectedRefEscape: Binder.TopLevelScope, expectedValEscape: Binder.TopLevelScope);
-            VerifyLocalSymbol(locals[2], "scoped R r21", RefKind.None, DeclarationScope.ValueScoped, expectedRefEscape: Binder.TopLevelScope, expectedValEscape: Binder.TopLevelScope);
-            VerifyLocalSymbol(locals[3], "scoped R r22", RefKind.None, DeclarationScope.ValueScoped, expectedRefEscape: Binder.TopLevelScope, expectedValEscape: Binder.TopLevelScope);
+            VerifyLocalSymbol(locals[0], "R r11", RefKind.None, DeclarationScope.Unscoped);
+            VerifyLocalSymbol(locals[1], "R r12", RefKind.None, DeclarationScope.Unscoped);
+            VerifyLocalSymbol(locals[2], "scoped R r21", RefKind.None, DeclarationScope.ValueScoped);
+            VerifyLocalSymbol(locals[3], "scoped R r22", RefKind.None, DeclarationScope.ValueScoped);
 
-            VerifyLocalSymbol(locals[4], "ref R r31", RefKind.Ref, DeclarationScope.Unscoped, expectedRefEscape: Binder.ExternalScope, expectedValEscape: Binder.ExternalScope);
-            VerifyLocalSymbol(locals[5], "ref R r32", RefKind.Ref, DeclarationScope.Unscoped, expectedRefEscape: Binder.TopLevelScope, expectedValEscape: Binder.ExternalScope);
-            VerifyLocalSymbol(locals[6], "ref R r33", RefKind.Ref, DeclarationScope.Unscoped, expectedRefEscape: Binder.TopLevelScope, expectedValEscape: Binder.TopLevelScope);
-            VerifyLocalSymbol(locals[7], "scoped ref R r41", RefKind.Ref, DeclarationScope.RefScoped, expectedRefEscape: Binder.TopLevelScope, expectedValEscape: Binder.ExternalScope);
-            VerifyLocalSymbol(locals[8], "scoped ref R r42", RefKind.Ref, DeclarationScope.RefScoped, expectedRefEscape: Binder.TopLevelScope, expectedValEscape: Binder.ExternalScope);
-            VerifyLocalSymbol(locals[9], "scoped ref R r43", RefKind.Ref, DeclarationScope.RefScoped, expectedRefEscape: Binder.TopLevelScope, expectedValEscape: Binder.ExternalScope);
-            VerifyLocalSymbol(locals[10], "ref scoped R r51", RefKind.Ref, DeclarationScope.ValueScoped, expectedRefEscape: Binder.TopLevelScope, expectedValEscape: Binder.TopLevelScope);
-            VerifyLocalSymbol(locals[11], "ref scoped R r52", RefKind.Ref, DeclarationScope.ValueScoped, expectedRefEscape: Binder.TopLevelScope, expectedValEscape: Binder.TopLevelScope);
-            VerifyLocalSymbol(locals[12], "ref scoped R r53", RefKind.Ref, DeclarationScope.ValueScoped, expectedRefEscape: Binder.TopLevelScope, expectedValEscape: Binder.TopLevelScope);
+            VerifyLocalSymbol(locals[4], "ref R r31", RefKind.Ref, DeclarationScope.Unscoped);
+            VerifyLocalSymbol(locals[5], "ref R r32", RefKind.Ref, DeclarationScope.Unscoped);
+            VerifyLocalSymbol(locals[6], "ref R r33", RefKind.Ref, DeclarationScope.Unscoped);
+            VerifyLocalSymbol(locals[7], "scoped ref R r41", RefKind.Ref, DeclarationScope.RefScoped);
+            VerifyLocalSymbol(locals[8], "scoped ref R r42", RefKind.Ref, DeclarationScope.RefScoped);
+            VerifyLocalSymbol(locals[9], "scoped ref R r43", RefKind.Ref, DeclarationScope.RefScoped);
+            VerifyLocalSymbol(locals[10], "ref scoped R r51", RefKind.Ref, DeclarationScope.ValueScoped);
+            VerifyLocalSymbol(locals[11], "ref scoped R r52", RefKind.Ref, DeclarationScope.ValueScoped);
+            VerifyLocalSymbol(locals[12], "ref scoped R r53", RefKind.Ref, DeclarationScope.ValueScoped);
         }
 
         [Fact]
@@ -7229,19 +7215,11 @@ class Program
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "r3").WithArguments("ref R").WithLocation(6, 32));
         }
 
-        private static void VerifyLocalSymbol(LocalSymbol local, string expectedDisplayString, RefKind expectedRefKind, DeclarationScope expectedScope, uint? expectedRefEscape = null, uint? expectedValEscape = null)
+        private static void VerifyLocalSymbol(LocalSymbol local, string expectedDisplayString, RefKind expectedRefKind, DeclarationScope expectedScope)
         {
             Assert.Equal(expectedRefKind, local.RefKind);
             Assert.Equal(expectedScope, local.Scope);
             Assert.Equal(expectedDisplayString, local.ToDisplayString(displayFormatWithScoped));
-            if (expectedRefEscape.HasValue)
-            {
-                Assert.Equal(expectedRefEscape.GetValueOrDefault(), local.RefEscapeScope);
-            }
-            if (expectedValEscape.HasValue)
-            {
-                Assert.Equal(expectedValEscape.GetValueOrDefault(), local.ValEscapeScope);
-            }
 
             VerifyLocalSymbol(local.GetPublicSymbol(), expectedDisplayString, expectedRefKind, expectedScope);
         }
