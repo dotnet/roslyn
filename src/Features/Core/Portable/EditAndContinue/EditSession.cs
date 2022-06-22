@@ -776,7 +776,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     var oldProject = oldSolution.GetProject(newProject.Id);
                     if (oldProject == null)
                     {
-                        EditAndContinueWorkspaceService.Log.Write("EnC state of '{0}' [0x{1:X8}] queried: project not loaded", newProject.Id.DebugName, newProject.Id);
+                        EditAndContinueWorkspaceService.Log.Write("EnC state of '{0}' queried: project not loaded", newProject.FilePath);
 
                         // TODO (https://github.com/dotnet/roslyn/issues/1204):
                         //
@@ -815,7 +815,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     if (mvid == Guid.Empty)
                     {
-                        EditAndContinueWorkspaceService.Log.Write("Emitting update of '{0}' [0x{1:X8}]: project not built", newProject.Id.DebugName, newProject.Id);
+                        EditAndContinueWorkspaceService.Log.Write("Emitting update of '{0}': project not built", newProject.FilePath);
                         continue;
                     }
 
@@ -909,7 +909,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         continue;
                     }
 
-                    EditAndContinueWorkspaceService.Log.Write("Emitting update of '{0}' [0x{1:X8}]", newProject.Id.DebugName, newProject.Id);
+                    EditAndContinueWorkspaceService.Log.Write("Emitting update of '{0}'", newProject.FilePath);
 
                     var oldCompilation = await oldProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                     var newCompilation = await newProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
