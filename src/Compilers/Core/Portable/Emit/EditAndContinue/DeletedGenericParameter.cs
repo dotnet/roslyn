@@ -9,13 +9,13 @@ using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 {
-    internal class DeletedGenericParameter : IGenericMethodParameter
+    internal sealed class DeletedGenericParameter : IGenericMethodParameter
     {
         private readonly IGenericMethodParameter _oldParameter;
-        private readonly IMethodDefinition _method;
+        private readonly DeletedMethodDefinition _method;
         private readonly Dictionary<ITypeDefinition, DeletedTypeDefinition> _typesUsedByDeletedMembers;
 
-        public DeletedGenericParameter(IGenericMethodParameter oldParameter, IMethodDefinition method, Dictionary<ITypeDefinition, DeletedTypeDefinition> typesUsedByDeletedMembers)
+        public DeletedGenericParameter(IGenericMethodParameter oldParameter, DeletedMethodDefinition method, Dictionary<ITypeDefinition, DeletedTypeDefinition> typesUsedByDeletedMembers)
         {
             _oldParameter = oldParameter;
             _method = method;

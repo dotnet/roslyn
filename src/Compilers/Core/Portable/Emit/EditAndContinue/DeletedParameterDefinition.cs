@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 {
-    internal class DeletedParameterDefinition : IParameterDefinition
+    internal sealed class DeletedParameterDefinition : IParameterDefinition
     {
         private readonly IParameterDefinition _oldParameter;
         private readonly Dictionary<ITypeDefinition, DeletedTypeDefinition> _typesUsedByDeletedMembers;

@@ -8,7 +8,7 @@ using Microsoft.Cci;
 
 namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 {
-    internal class DeletedCustomAttribute : ICustomAttribute
+    internal sealed class DeletedCustomAttribute : ICustomAttribute
     {
         private readonly ICustomAttribute _oldAttribute;
         private readonly Dictionary<ITypeDefinition, DeletedTypeDefinition> _typesUsedByDeletedMembers;

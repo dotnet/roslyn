@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         /// <summary>
         /// A set of symbols, from the old compilation, that have been deleted from the new compilation
-        /// keyed by the containing type from the new 
+        /// keyed by the containing type from the new compilation.
         /// Populated based on semantic edits with <see cref="SemanticEditKind.Delete"/>.
         /// </summary>
         private readonly IReadOnlyDictionary<ISymbol, ISet<ISymbol>> _deletedMembers;
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 if (GetISymbolInternalOrNull(type.Key) is { } typeSymbol)
                 {
-                    builder.Add(typeSymbol, type.Value.Select(GetISymbolInternalOrNull).WhereNotNull().ToImmutableArray());
+                    builder.Add(typeSymbol, ToInternalSymbolArray(type.Value));
                 }
             }
 
@@ -78,8 +78,11 @@ namespace Microsoft.CodeAnalysis.Emit
                 return ImmutableArray<ISymbolInternal>.Empty;
             }
 
-            return deleted.Select(GetISymbolInternalOrNull).WhereNotNull().ToImmutableArray();
+            return ToInternalSymbolArray(deleted);
         }
+
+        private static ImmutableArray<ISymbolInternal> ToInternalSymbolArray(ISet<ISymbol> symbols)
+            => symbols.Select(GetISymbolInternalOrNull).WhereNotNull().ToImmutableArray()
 
         public bool IsReplaced(IDefinition definition)
         {

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
     /// <summary>
     /// Represents a type referenced from a deleted member (as distinct from a type that has been deleted)
     /// </summary>
-    internal class DeletedTypeDefinition : ITypeDefinition
+    internal sealed class DeletedTypeDefinition : ITypeDefinition
     {
         [return: NotNullIfNotNull("typeReference")]
         public static ITypeReference? TryCreate(ITypeReference? typeReference, Dictionary<ITypeDefinition, DeletedTypeDefinition> cache)

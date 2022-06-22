@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         private readonly Dictionary<ITypeDefinition, DeletedTypeDefinition> _typesUsedByDeletedMembers;
 
-        private readonly Dictionary<ITypeDefinition, List<DeletedMethodDefinition>> _deletedTypeMembers;
+        private readonly Dictionary<ITypeDefinition, ImmutableArray<DeletedMethodDefinition>> _deletedTypeMembers;
 
         private readonly DefinitionIndex<ITypeDefinition> _typeDefs;
         private readonly DefinitionIndex<IEventDefinition> _eventDefs;
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             _changedTypeDefs = new List<ITypeDefinition>();
             _typesUsedByDeletedMembers = new Dictionary<ITypeDefinition, DeletedTypeDefinition>(ReferenceEqualityComparer.Instance);
-            _deletedTypeMembers = new Dictionary<ITypeDefinition, List<DeletedMethodDefinition>>(ReferenceEqualityComparer.Instance);
+            _deletedTypeMembers = new Dictionary<ITypeDefinition, ImmutableArray<DeletedMethodDefinition>>(ReferenceEqualityComparer.Instance);
             _typeDefs = new DefinitionIndex<ITypeDefinition>(this.TryGetExistingTypeDefIndex, sizes[(int)TableIndex.TypeDef]);
             _eventDefs = new DefinitionIndex<IEventDefinition>(this.TryGetExistingEventDefIndex, sizes[(int)TableIndex.Event]);
             _fieldDefs = new DefinitionIndex<IFieldDefinition>(this.TryGetExistingFieldDefIndex, sizes[(int)TableIndex.Field]);
@@ -573,20 +573,23 @@ namespace Microsoft.CodeAnalysis.Emit
             var deletedMethods = _changes.GetDeletedMethods(typeDef);
             if (deletedMethods.Length > 0)
             {
-                var deletedTypeMembers = new List<DeletedMethodDefinition>();
+                var deletedTypeMembers = ArrayBuilder<DeletedMethodDefinition>.GetInstance();
                 foreach (var methodDef in deletedMethods)
                 {
                     var oldMethodDef = (IMethodDefinition)methodDef.GetCciAdapter();
                     deletedTypeMembers.Add(new DeletedMethodDefinition(oldMethodDef, typeDef, _typesUsedByDeletedMembers));
                 }
+
                 // Save for later, when processing references
-                _deletedTypeMembers.Add(typeDef, deletedTypeMembers);
+                _deletedTypeMembers.Add(typeDef, deletedTypeMembers.ToImmutable());
 
                 foreach (var newMethodDef in deletedTypeMembers)
                 {
                     _methodDefs.AddUpdated(newMethodDef);
                     CreateIndicesForMethod(newMethodDef, SymbolChange.Updated);
                 }
+
+                deletedTypeMembers.Free();
             }
 
             foreach (var propertyDef in typeDef.GetProperties(this.Context))
@@ -1419,7 +1422,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     // found it, we found the same one (ie, no item representing the same item is there twice),
                     // or it represents a deleted type. The deleted type, since we create it during emit, will
                     // never equal the original symbol that it wraps, even though it represents the same type,
-                    // and the map uses reference equality.
+                    // because the map uses reference equality.
                     Debug.Assert(!_map.TryGetValue(index, out var other) || ((object)other == (object)item) || other is DeletedTypeDefinition || item is DeletedTypeDefinition);
 #endif
 
@@ -1707,7 +1710,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private sealed class DeltaReferenceIndexer : ReferenceIndexer
         {
             private readonly SymbolChanges _changes;
-            private readonly Dictionary<ITypeDefinition, List<DeletedMethodDefinition>> _deletedTypeMembers;
+            private readonly Dictionary<ITypeDefinition, ImmutableArray<DeletedMethodDefinition>> _deletedTypeMembers;
 
             public DeltaReferenceIndexer(DeltaMetadataWriter writer)
                 : base(writer)
