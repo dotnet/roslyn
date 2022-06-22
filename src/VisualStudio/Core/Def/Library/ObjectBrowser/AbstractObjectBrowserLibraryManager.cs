@@ -42,10 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         private AbstractListItemFactory _listItemFactory;
         private readonly object _classMemberGate = new();
 
-        private readonly IStreamingFindUsagesPresenter _streamingPresenter;
-
-        public readonly IUIThreadOperationExecutor OperationExecutor;
-        public readonly IAsynchronousOperationListener AsynchronousOperationListener;
+        public readonly IComponentModel ComponentModel;
 
         protected AbstractObjectBrowserLibraryManager(
             string languageName,
@@ -57,14 +54,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         {
             _languageName = languageName;
 
+            ComponentModel = componentModel;
             Workspace = workspace;
             Workspace.WorkspaceChanged += OnWorkspaceChanged;
 
             _libraryService = new Lazy<ILibraryService>(() => Workspace.Services.GetLanguageServices(_languageName).GetService<ILibraryService>());
-            _streamingPresenter = componentModel.DefaultExportProvider.GetExportedValue<IStreamingFindUsagesPresenter>();
-
-            OperationExecutor = componentModel.DefaultExportProvider.GetExportedValue<IUIThreadOperationExecutor>();
-            AsynchronousOperationListener = componentModel.DefaultExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>().GetListener(FeatureAttribute.LibraryManager);
         }
 
         internal abstract AbstractDescriptionBuilder CreateDescriptionBuilder(
@@ -500,7 +494,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                                 // asynchronously added to the FindReferences window as they are computed.  The user
                                 // also knows something is happening as the window, with the progress-banner will pop up
                                 // immediately.
-                                _ = FindReferencesAsync(_streamingPresenter, symbolListItem, project);
+                                var streamingPresenter = ComponentModel.GetService<IStreamingFindUsagesPresenter>();
+                                _ = FindReferencesAsync(streamingPresenter, symbolListItem, project);
                                 return true;
                             }
                         }
