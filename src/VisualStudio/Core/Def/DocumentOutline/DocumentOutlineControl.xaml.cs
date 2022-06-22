@@ -62,11 +62,11 @@ namespace Microsoft.VisualStudio.LanguageServices
                     DelayTimeSpan.Short,
                     UpdateAsync,
                     asyncListener,
-                    CancellationToken.None);
+                    threadingContext.DisposalToken);
 
             async ValueTask UpdateAsync(CancellationToken cancellationToken)
             {
-                var response = await DocumentSymbolsRequestAsync(textBuffer, languageServiceBroker).ConfigureAwait(false);
+                var response = await DocumentSymbolsRequestAsync(textBuffer, languageServiceBroker, cancellationToken).ConfigureAwait(false);
                 if (response?.Response is not null)
                 {
                     await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -92,11 +92,14 @@ namespace Microsoft.VisualStudio.LanguageServices
 
             threadingContext.JoinableTaskFactory.RunAsync(async () =>
             {
-                await UpdateAsync(CancellationToken.None).ConfigureAwait(false);
+                await UpdateAsync(threadingContext.DisposalToken).ConfigureAwait(false);
             }).FileAndForget("Document Outline: Active Document Changed");
         }
 
-        private async Task<ManualInvocationResponse?> DocumentSymbolsRequestAsync(ITextBuffer textBuffer, ILanguageServiceBroker2 languageServiceBroker)
+        private async Task<ManualInvocationResponse?> DocumentSymbolsRequestAsync(
+            ITextBuffer textBuffer,
+            ILanguageServiceBroker2 languageServiceBroker,
+            CancellationToken cancellationToken)
         {
             var parameterFactory = new DocumentSymbolParams()
             {
@@ -113,7 +116,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                 capabilitiesFilter: (JToken x) => true,
                 languageServerName: WellKnownLspServerKinds.AlwaysActiveVSLspServer.ToUserVisibleString(),
                 parameterFactory: _ => JToken.FromObject(parameterFactory),
-                cancellationToken: CancellationToken.None).ConfigureAwait(false);
+                cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
         private static string? GetFilePath(IWpfTextView textView)
