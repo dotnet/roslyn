@@ -45,9 +45,13 @@ public partial struct SyntaxValueProvider
     {
         var syntaxHelper = _context.SyntaxHelper;
 
-        // Create a provider that provides (and updates) the global aliases for any particular file when it is edited.
-
+        // Create a provider over all the syntax trees in the compilation.  This is better than CreateSyntaxProvider as
+        // using SyntaxTrees is purely syntax and will not update the incremental node for a tree when another tree is
+        // changed. CreateSyntaxProvider will have to rerun all incremental nodes since it passes along the
+        // SemanticModel, and that model is updated whenever any tree changes (since it is tied to the compilation).
         var syntaxTreesProvider = _context.CompilationProvider.SelectMany((c, _) => c.SyntaxTrees);
+
+        // Create a provider that provides (and updates) the global aliases for any particular file when it is edited.
         var individualFileGlobalAliasesProvider = syntaxTreesProvider.Select(
             (s, c) => getGlobalAliasesInCompilationUnit(syntaxHelper, s.GetRoot(c))).WithTrackingName("individualFileGlobalAliases_ForAttribute");
 
@@ -78,9 +82,8 @@ public partial struct SyntaxValueProvider
             .WithTrackingName("allUpIncludingCompilationGlobalAliases_ForAttribute");
 
         // Create a syntax provider for every compilation unit.
-        var compilationUnitProvider = this.CreateSyntaxProvider(
-            static (n, _) => n is ICompilationUnitSyntax,
-            static (context, _) => context.Node).WithTrackingName("compilationUnit_ForAttribute");
+        var compilationUnitProvider = syntaxTreesProvider.Select(
+            (t, c) => t.GetRoot(c)).WithTrackingName("compilationUnit_ForAttribute");
 
         // Combine the two providers so that we reanalyze every file if the global aliases change, or we reanalyze a
         // particular file when it's compilation unit changes.

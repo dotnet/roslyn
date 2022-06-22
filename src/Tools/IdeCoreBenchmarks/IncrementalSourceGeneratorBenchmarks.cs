@@ -188,7 +188,7 @@ namespace IdeCoreBenchmarks
             }
 
             Console.WriteLine("Total incremental time: " + totalIncrementalTime);
-            Console.ReadLine();
+            Environment.Exit(0);
         }
     }
 
