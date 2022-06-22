@@ -43,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public InheritanceMarginViewMarginProvider(
-            VisualStudioWorkspaceImpl workspace,
+            VisualStudioWorkspace workspace,
             IThreadingContext threadingContext,
             IStreamingFindUsagesPresenter streamingFindUsagesPresenter,
             ClassificationTypeMap classificationTypeMap,
