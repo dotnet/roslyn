@@ -324,12 +324,6 @@ namespace Microsoft.CodeAnalysis
                 return tableEntry;
             }
 
-            public void AddEntries(TableEntry entry, TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, EntryState overallInputState)
-            {
-                _states.Add(entry);
-                RecordStepInfoForLastEntry(elapsedTime, stepInputs, overallInputState);
-            }
-
             private void RecordStepInfoForLastEntry(TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, EntryState overallInputState)
             {
                 Debug.Assert(stepInputs.IsDefault == !TrackIncrementalSteps);
