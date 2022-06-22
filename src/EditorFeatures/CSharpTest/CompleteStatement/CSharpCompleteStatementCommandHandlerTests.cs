@@ -4245,6 +4245,40 @@ public class ClassC
                     globalOptions.SetGlobalOption(new OptionKey(FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon), false);
                 });
         }
+
+        [WpfFact]
+        public void Test()
+        {
+            var code = @"
+public class Bar
+{
+    public void Test(string myString)
+    {
+        var a = myString switch
+        {
+            ""Hello"" => 1,
+            ""World"" => 2,
+            _ => 3$$
+        }
+    }
+}";
+
+            var expected = @"
+public class Bar
+{
+    public void Test(string myString)
+    {
+        var a = myString switch
+        {
+            ""Hello"" => 1,
+            ""World"" => 2,
+            _ => 3
+        };$$
+    }
+}";
+            VerifyTypingSemicolon(code, expected);
+        }
+
         protected override TestWorkspace CreateTestWorkspace(string code)
             => TestWorkspace.CreateCSharp(code);
     }
