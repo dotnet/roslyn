@@ -4,8 +4,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -15,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -34,12 +34,10 @@ namespace Microsoft.VisualStudio.LanguageServices
     /// </summary>
     internal partial class DocumentOutlineControl : UserControl, IOleCommandTarget
     {
-        [MemberNotNullWhen(true, nameof(SymbolsTreeItemsSource))]
-        private bool SymbolTreeInitialized { get; set; }
-
         private readonly AsyncBatchingWorkQueue _uiUpdateQueue;
 
-        private List<DocumentSymbolViewModel>? SymbolsTreeItemsSource { get; set; }
+        private bool SymbolTreeItemsSourceInitialized { get; set; }
+        private ImmutableArray<DocumentSymbolViewModel> SymbolsTreeItemsSource { get; set; }
 
         private ITextSnapshot? Snapshot { get; set; }
         private IWpfTextView TextView { get; set; }
@@ -58,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             TextView = textView;
             _filePath = GetFilePath(textView);
             Snapshot = textBuffer.CurrentSnapshot;
-            SymbolTreeInitialized = false;
+            SymbolTreeItemsSourceInitialized = false;
 
             _uiUpdateQueue = new AsyncBatchingWorkQueue(
                     DelayTimeSpan.Short,
@@ -74,15 +72,15 @@ namespace Microsoft.VisualStudio.LanguageServices
                     await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                     var responseBody = response.Response.ToObject<DocumentSymbol[]>();
                     var documentSymbols = DocumentOutlineHelper.GetNestedDocumentSymbols(responseBody);
-                    var documentSymbolModels = DocumentOutlineHelper.GetDocumentSymbolModels(documentSymbols);
-                    SymbolTreeInitialized = true;
-                    SymbolsTreeItemsSource = documentSymbolModels;
-                    symbolTree.ItemsSource = documentSymbolModels;
+                    SymbolTreeItemsSourceInitialized = true;
+                    SymbolsTreeItemsSource = DocumentOutlineHelper.GetDocumentSymbolModels(documentSymbols);
+                    symbolTree.ItemsSource = SymbolsTreeItemsSource;
                 }
                 else
                 {
-                    symbolTree.ItemsSource = new List<DocumentSymbolViewModel>();
-                    SymbolsTreeItemsSource = new List<DocumentSymbolViewModel>();
+                    SymbolTreeItemsSourceInitialized = false;
+                    symbolTree.ItemsSource = ImmutableArray<DocumentSymbolViewModel>.Empty;
+                    SymbolsTreeItemsSource = ImmutableArray<DocumentSymbolViewModel>.Empty;
                 }
             }
 
@@ -133,50 +131,26 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         private void ExpandAll(object sender, RoutedEventArgs e)
         {
-            if (SymbolTreeInitialized)
-            {
-                var documentSymbolModels = new List<DocumentSymbolViewModel>();
-                foreach (var documentSymbolModel in SymbolsTreeItemsSource)
-                {
-                    documentSymbolModels.Add(SetIsExpanded(documentSymbolModel, true));
-                }
-
-                SymbolsTreeItemsSource = documentSymbolModels;
-                symbolTree.ItemsSource = documentSymbolModels;
-            }
+            SetIsExpanded((IEnumerable<DocumentSymbolViewModel>)symbolTree.ItemsSource, true);
         }
 
         private void CollapseAll(object sender, RoutedEventArgs e)
         {
-            if (SymbolTreeInitialized)
-            {
-                var documentSymbolModels = new List<DocumentSymbolViewModel>();
-                foreach (var documentSymbolModel in SymbolsTreeItemsSource)
-                {
-                    documentSymbolModels.Add(SetIsExpanded(documentSymbolModel, false));
-                }
-
-                SymbolsTreeItemsSource = documentSymbolModels;
-                symbolTree.ItemsSource = documentSymbolModels;
-            }
+            SetIsExpanded((IEnumerable<DocumentSymbolViewModel>)symbolTree.ItemsSource, false);
         }
 
-        private DocumentSymbolViewModel SetIsExpanded(DocumentSymbolViewModel documentSymbolModel, bool isExpanded)
+        private void SetIsExpanded(IEnumerable<DocumentSymbolViewModel> documentSymbolModels, bool isExpanded)
         {
-            documentSymbolModel.IsExpanded = isExpanded;
-            var documentSymbolModelChildren = new List<DocumentSymbolViewModel>();
-            foreach (var documentSymbolModelChild in documentSymbolModel.Children)
+            foreach (var documentSymbolModel in documentSymbolModels)
             {
-                documentSymbolModelChildren.Add(SetIsExpanded(documentSymbolModelChild, isExpanded));
+                documentSymbolModel.IsExpanded = isExpanded;
+                SetIsExpanded(documentSymbolModel.Children, isExpanded);
             }
-
-            documentSymbolModel.Children = documentSymbolModelChildren;
-            return documentSymbolModel;
         }
 
         private void Search(object sender, EventArgs e)
         {
-            if (SymbolsTreeItemsSource is not null)
+            if (SymbolTreeItemsSourceInitialized)
             {
                 if (searchBox.Text == ServicesVSResources.Search_Document_Outline || string.IsNullOrWhiteSpace(searchBox.Text))
                 {
@@ -184,36 +158,37 @@ namespace Microsoft.VisualStudio.LanguageServices
                 }
                 else
                 {
-                    var documentSymbols = new List<DocumentSymbolViewModel>();
+                    var documentSymbols = ArrayBuilder<DocumentSymbolViewModel>.GetInstance();
                     foreach (var item in SymbolsTreeItemsSource)
                     {
                         if (DocumentOutlineHelper.SearchNodeTree(item, searchBox.Text))
-                        {
                             documentSymbols.Add(item);
-                        }
                     }
 
-                    symbolTree.ItemsSource = documentSymbols;
+                    symbolTree.ItemsSource = documentSymbols.ToImmutableAndFree();
                 }
             }
         }
 
         private void Sort(SortOption sortOption, FunctionId functionId)
         {
-            if (SymbolTreeInitialized)
+            if (SymbolTreeItemsSourceInitialized)
             {
                 Logger.Log(functionId);
                 // If there is an active search, only sort the filtered nodes
                 if (!(searchBox.Text == ServicesVSResources.Search_Document_Outline || string.IsNullOrWhiteSpace(searchBox.Text)))
                 {
-                    symbolTree.ItemsSource = DocumentOutlineHelper.Sort(
-                        new List<DocumentSymbolViewModel>((IEnumerable<DocumentSymbolViewModel>)symbolTree.ItemsSource), sortOption);
+                    var filteredDocumentSymbolModels = ArrayBuilder<DocumentSymbolViewModel>.GetInstance();
+                    foreach (DocumentSymbolViewModel documentSymbolModel in symbolTree.ItemsSource)
+                        filteredDocumentSymbolModels.Add(documentSymbolModel);
+
+                    symbolTree.ItemsSource = DocumentOutlineHelper.Sort(filteredDocumentSymbolModels.ToImmutableAndFree(), sortOption);
+                    SymbolsTreeItemsSource = DocumentOutlineHelper.Sort(SymbolsTreeItemsSource, sortOption);
                 }
                 else
                 {
-                    var sortedDocumentSymbolModels = DocumentOutlineHelper.Sort(SymbolsTreeItemsSource, sortOption);
-                    SymbolsTreeItemsSource = sortedDocumentSymbolModels;
-                    symbolTree.ItemsSource = sortedDocumentSymbolModels;
+                    SymbolsTreeItemsSource = DocumentOutlineHelper.Sort(SymbolsTreeItemsSource, sortOption);
+                    symbolTree.ItemsSource = SymbolsTreeItemsSource;
                 }
             }
         }
@@ -257,13 +232,24 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         private void FollowCursor(object sender, EventArgs e)
         {
-            if (Snapshot is not null && TextView is not null && SymbolsTreeItemsSource is not null)
+            if (Snapshot is not null && TextView is not null)
             {
                 var caretPoint = TextView.GetCaretPoint(Snapshot.TextBuffer);
                 if (caretPoint.HasValue)
                 {
                     caretPoint.Value.GetLineAndCharacter(out var lineNumber, out var characterIndex);
-                    SymbolsTreeItemsSource.ForEach(node => SelectNode(node, lineNumber, characterIndex));
+                    UnselectAll((IEnumerable<DocumentSymbolViewModel>)symbolTree.ItemsSource);
+                    foreach (DocumentSymbolViewModel documentSymbolModel in symbolTree.ItemsSource)
+                        SelectNode(documentSymbolModel, lineNumber, characterIndex);
+                }
+            }
+
+            static void UnselectAll(IEnumerable<DocumentSymbolViewModel> documentSymbolModels)
+            {
+                foreach (var documentSymbolModel in documentSymbolModels)
+                {
+                    documentSymbolModel.IsSelected = false;
+                    UnselectAll(documentSymbolModel.Children);
                 }
             }
         }
@@ -293,9 +279,9 @@ namespace Microsoft.VisualStudio.LanguageServices
             {
                 SelectNode(documentSymbol.Children[selectedNodeIndex], lineNumber, characterIndex);
             }
-            else if (documentSymbol.StartLine <= lineNumber && documentSymbol.EndLine >= lineNumber)
+            else
             {
-                documentSymbol.IsSelected = true;
+                documentSymbol.IsSelected = documentSymbol.StartLine <= lineNumber && documentSymbol.EndLine >= lineNumber;
             }
         }
 

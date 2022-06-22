@@ -50,7 +50,7 @@
 
             <Style TargetType="TreeView" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTreeViewStyleKey}}" >
                 <Setter Property="BorderThickness" Value="0" />
-                <Setter Property="Padding" Value="0, 7, 0, 0" />
+                <Setter Property="Padding" Value="0, 5, 0, 0" />
                 <Setter Property="FontFamily" Value="Segoe UI" />
                 <Setter Property="FontSize" Value="12" />
             </Style>

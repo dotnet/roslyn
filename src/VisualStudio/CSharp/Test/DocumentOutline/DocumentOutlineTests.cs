@@ -20,7 +20,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
         private const int NumChildNodes = 3;
 
         // Mocks a DocumentSymbol[] returned from an LSP document symbol request
-        private static DocumentSymbol[] GetDocumentSymbols()
+        /*private static DocumentSymbol[] GetDocumentSymbols()
         {
             var documentSymbols = Array.Empty<DocumentSymbol>();
             for (var i = 0; i < NumParentNodes; i++)
@@ -225,6 +225,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             {
                 Assert.False(DocumentOutlineHelper.SearchNodeTree(documentSymbolModel, "xxx"));
             }
-        }
+        }*/
     }
 }

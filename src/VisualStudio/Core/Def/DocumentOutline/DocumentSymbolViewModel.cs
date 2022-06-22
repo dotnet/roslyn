@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
+using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Microsoft.VisualStudio.Imaging;
@@ -21,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         public string Name { get; }
 
-        public List<DocumentSymbolViewModel> Children { get; set; }
+        public ImmutableArray<DocumentSymbolViewModel> Children { get; set; }
 
         public int StartLine { get; }
         public int StartChar { get; }
@@ -59,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         public DocumentSymbolViewModel(DocumentSymbol documentSymbol)
         {
             this.Name = documentSymbol.Name;
-            this.Children = new List<DocumentSymbolViewModel>();
+            this.Children = ImmutableArray<DocumentSymbolViewModel>.Empty;
             this.SymbolKind = documentSymbol.Kind;
             this.ImgMoniker = GetImageMoniker(documentSymbol.Kind);
             this.IsExpanded = true;

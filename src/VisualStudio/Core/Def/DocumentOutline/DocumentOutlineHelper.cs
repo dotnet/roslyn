@@ -3,12 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
+using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.VisualStudio.LanguageServices
 {
@@ -24,83 +22,94 @@ namespace Microsoft.VisualStudio.LanguageServices
                 .Concat(documentSymbols)
                 .OrderBy(x => x.Range.Start.Line)
                 .ThenBy(x => x.Range.Start.Character)
-                .ToList();
+                .ToImmutableArray();
 
             return GroupDocumentSymbolTrees(allSymbols)
                 .Select(group => CreateDocumentSymbolTree(group))
                 .ToArray();
         }
 
-        // Groups a flat list of document symbols into lists containing the symbols of a tree
-        // The first symbol in a list is always the parent (determines the group's position range)
-        private static List<List<DocumentSymbol>> GroupDocumentSymbolTrees(List<DocumentSymbol> allSymbols)
+        // Groups an array of document symbols into arrays containing the symbols of a tree
+        // The first symbol in an array is always the parent (determines the group's position range)
+        private static ImmutableArray<ImmutableArray<DocumentSymbol>> GroupDocumentSymbolTrees(ImmutableArray<DocumentSymbol> allSymbols)
         {
-            var documentSymbolGroups = new List<List<DocumentSymbol>>();
-            if (allSymbols.Count == 0)
+            var documentSymbolGroups = ArrayBuilder<ImmutableArray<DocumentSymbol>>.GetInstance();
+            if (allSymbols.Length == 0)
             {
-                return documentSymbolGroups;
+                return documentSymbolGroups.ToImmutableAndFree();
             }
 
-            var curGroup = new List<DocumentSymbol> { allSymbols.First() };
+            var currentGroup = ArrayBuilder<DocumentSymbol>.GetInstance(1, allSymbols.First());
+            //var currentGroup = new List<DocumentSymbol> { allSymbols.First() };
             var curRange = allSymbols.First().Range;
-            for (var i = 1; i < allSymbols.Count; i++)
+            for (var i = 1; i < allSymbols.Length; i++)
             {
                 var symbol = allSymbols[i];
                 // If the symbol's range is in the parent symbol's range
                 if (symbol.Range.Start.Line > curRange.Start.Line && symbol.Range.End.Line < curRange.End.Line)
                 {
-                    curGroup.Add(symbol);
+                    currentGroup.Add(symbol);
                 }
                 else
                 {
                     // Push existing group
-                    documentSymbolGroups.Add(curGroup);
+                    documentSymbolGroups.Add(currentGroup.ToImmutableAndFree());
                     // Create new group with this symbol as the parent
-                    curGroup = new List<DocumentSymbol> { symbol };
+                    currentGroup = ArrayBuilder<DocumentSymbol>.GetInstance(1, symbol);
                     curRange = symbol.Range;
                 }
             }
 
-            documentSymbolGroups.Add(curGroup);
-            return documentSymbolGroups;
+            documentSymbolGroups.Add(currentGroup.ToImmutableAndFree());
+            return documentSymbolGroups.ToImmutableAndFree();
         }
 
-        private static DocumentSymbol CreateDocumentSymbolTree(List<DocumentSymbol> documentSymbols)
+        private static DocumentSymbol CreateDocumentSymbolTree(ImmutableArray<DocumentSymbol> documentSymbols)
         {
             var node = documentSymbols.First();
-            documentSymbols.RemoveAt(0);
-            node.Children = GroupDocumentSymbolTrees(documentSymbols)
+            var childDocumentSymbols = documentSymbols.RemoveAt(0);
+            node.Children = GroupDocumentSymbolTrees(childDocumentSymbols)
                 .Select(group => CreateDocumentSymbolTree(group))
                 .ToArray();
             return node;
         }
 
-        internal static List<DocumentSymbolViewModel> GetDocumentSymbolModels(DocumentSymbol[]? documentSymbols)
+        internal static ImmutableArray<DocumentSymbolViewModel> GetDocumentSymbolModels(DocumentSymbol[] documentSymbols)
         {
-            var documentSymbolModels = new List<DocumentSymbolViewModel>();
-            if (documentSymbols is null || documentSymbols.Length == 0)
+            var documentSymbolModels = ArrayBuilder<DocumentSymbolViewModel>.GetInstance();
+            if (documentSymbols.Length == 0)
             {
-                return documentSymbolModels;
+                return documentSymbolModels.ToImmutableAndFree();
             }
 
             foreach (var documentSymbol in documentSymbols)
             {
                 var documentSymbolModel = new DocumentSymbolViewModel(documentSymbol);
-                documentSymbolModel.Children = GetDocumentSymbolModels(documentSymbol.Children);
+                if (documentSymbol.Children is not null)
+                    documentSymbolModel.Children = GetDocumentSymbolModels(documentSymbol.Children);
                 documentSymbolModels.Add(documentSymbolModel);
             }
 
-            return Sort(documentSymbolModels, SortOption.Order);
+            return documentSymbolModels.ToImmutableAndFree();
         }
 
-        internal static List<DocumentSymbolViewModel> Sort(List<DocumentSymbolViewModel> documentSymbolModels, SortOption sortOption)
+        internal static ImmutableArray<DocumentSymbolViewModel> Sort(ImmutableArray<DocumentSymbolViewModel> documentSymbolModels, SortOption sortOption)
         {
             var sortedDocumentSymbolModels = sortOption switch
             {
-
-                SortOption.Name => documentSymbolModels.OrderBy(x => x.Name),
-                SortOption.Order => documentSymbolModels.OrderBy(x => x.StartLine).ThenBy(x => x.StartChar),
-                SortOption.Type => documentSymbolModels.OrderBy(x => x.SymbolKind).ThenBy(x => x.Name),
+                SortOption.Name => documentSymbolModels.Sort((x, y) => x.Name.CompareTo(y.Name)),
+                SortOption.Order => documentSymbolModels.Sort((x, y) =>
+                {
+                    if (x.StartLine == y.StartLine)
+                        return x.StartChar - y.StartChar;
+                    return x.StartLine - y.StartLine;
+                }),
+                SortOption.Type => documentSymbolModels.Sort((x, y) =>
+                {
+                    if (x.SymbolKind == y.SymbolKind)
+                        return x.Name.CompareTo(y.Name);
+                    return x.SymbolKind - y.SymbolKind;
+                }),
                 _ => throw new NotImplementedException()
             };
 
@@ -109,7 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                 documentSymbolModel.Children = Sort(documentSymbolModel.Children, sortOption);
             }
 
-            return new List<DocumentSymbolViewModel>(sortedDocumentSymbolModels);
+            return sortedDocumentSymbolModels;
         }
 
         internal static bool SearchNodeTree(DocumentSymbolViewModel tree, string search)
