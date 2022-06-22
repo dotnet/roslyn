@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return ToInternalSymbolArray(deleted);
         }
 
-        private static ImmutableArray<ISymbolInternal> ToInternalSymbolArray(ISet<ISymbol> symbols)
+        private static ImmutableArray<ISymbolInternal> ToInternalSymbolArray(IEnumerable<ISymbol> symbols)
             => symbols.Select(GetISymbolInternalOrNull).WhereNotNull().ToImmutableArray();
 
         public bool IsReplaced(IDefinition definition)
