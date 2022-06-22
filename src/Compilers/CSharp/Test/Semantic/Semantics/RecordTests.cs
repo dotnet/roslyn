@@ -14054,7 +14054,7 @@ public class Program
 $@"
 record A(int X)
 {{
-    { accessibility } A(A a)
+    {accessibility} A(A a)
         => throw null;
 }}
 ";
@@ -14075,7 +14075,7 @@ record A(int X)
 $@"
 record A(int X)
 {{
-    { accessibility } A(A a)
+    {accessibility} A(A a)
         => System.Console.Write(""RAN"");
 
     public static void Main()
@@ -14101,7 +14101,7 @@ record A(int X)
 $@"
 sealed record A(int X)
 {{
-    { accessibility } A(A a)
+    {accessibility} A(A a)
         => System.Console.Write(""RAN"");
 
     public static void Main()
@@ -14134,7 +14134,7 @@ sealed record A(int X)
 $@"
 sealed record A(int X)
 {{
-    { accessibility } A(A a)
+    {accessibility} A(A a)
         => System.Console.Write(""RAN"");
 
     public static void Main()
@@ -15599,7 +15599,7 @@ record B(int X, int Y) : A(X)
 $@"
 record A(int X)
 {{
-    { accessibility } void Deconstruct(out int a)
+    {accessibility} void Deconstruct(out int a)
         => throw null;
 }}
 ";
@@ -18488,7 +18488,7 @@ True
 $@"
 record A
 {{
-    { accessibility } virtual bool Equals(A x)
+    {accessibility} virtual bool Equals(A x)
         => throw null;
 
     bool System.IEquatable<A>.Equals(A x) => throw null;
@@ -18514,7 +18514,7 @@ record A
 $@"
 record A
 {{
-    { accessibility } virtual bool Equals(A x)
+    {accessibility} virtual bool Equals(A x)
         => throw null;
 
     bool System.IEquatable<A>.Equals(A x) => throw null;
@@ -19049,7 +19049,7 @@ True
 $@"
 record A
 {{
-    { accessibility } virtual System.Type EqualityContract
+    {accessibility} virtual System.Type EqualityContract
         => throw null;
 }}
 ";
@@ -19070,7 +19070,7 @@ record A
 $@"
 record A
 {{
-    { accessibility } virtual System.Type EqualityContract
+    {accessibility} virtual System.Type EqualityContract
         => throw null;
 
     bool System.IEquatable<A>.Equals(A x) => throw null;

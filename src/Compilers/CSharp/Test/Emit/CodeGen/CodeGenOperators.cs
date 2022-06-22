@@ -5173,7 +5173,7 @@ class Test
 
     public static long Calculate1(long[] f)
     {
-" + $"        return { BuildSequenceOfBinaryExpressions_01() };" + @"
+" + $"        return {BuildSequenceOfBinaryExpressions_01()};" + @"
     }
 
     public static long Calculate2(long[] f)
@@ -5233,7 +5233,7 @@ class Test
 
     public static double Calculate(long[] f)
     {
-" + $"        return checked({ BuildSequenceOfBinaryExpressions_01() });" + @"
+" + $"        return checked({BuildSequenceOfBinaryExpressions_01()});" + @"
     }
 }
 ";
@@ -5264,7 +5264,7 @@ class Test
 
     public static bool Calculate(bool[] a, bool[] f)
     {
-" + $"        return { BuildSequenceOfBinaryExpressions_03(count) };" + @"
+" + $"        return {BuildSequenceOfBinaryExpressions_03(count)};" + @"
     }
 }
 ";
@@ -5323,7 +5323,7 @@ class Test
 
     public static double? Calculate(float?[] f)
     {
-" + $"        return { BuildSequenceOfBinaryExpressions_01() };" + @"
+" + $"        return {BuildSequenceOfBinaryExpressions_01()};" + @"
     }
 }
 ";
@@ -5364,7 +5364,7 @@ class Test
 
     public static double? Calculate(double?[] f)
     {
-" + $"        return { BuildSequenceOfBinaryExpressions_01(count) };" + @"
+" + $"        return {BuildSequenceOfBinaryExpressions_01(count)};" + @"
     }
 
     static void Test2()
@@ -5380,7 +5380,7 @@ class Test
 
     public static double Calculate(double[] f)
     {
-" + $"        return { BuildSequenceOfBinaryExpressions_01(count) };" + @"
+" + $"        return {BuildSequenceOfBinaryExpressions_01(count)};" + @"
     }
 }
 ";
@@ -5403,7 +5403,7 @@ class Test
 
     public static bool Calculate(S1[] a, S1[] f)
     {
-" + $"        return { BuildSequenceOfBinaryExpressions_03() };" + @"
+" + $"        return {BuildSequenceOfBinaryExpressions_03()};" + @"
     }
 }
 

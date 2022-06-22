@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
     {
         private static readonly string s_compilerVersion = CommonCompiler.GetProductVersion(typeof(CSharpInteractiveCompiler));
 
-        private string LogoAndHelpPrompt => $@"{ string.Format(CSharpScriptingResources.LogoLine1, s_compilerVersion) }
+        private string LogoAndHelpPrompt => $@"{string.Format(CSharpScriptingResources.LogoLine1, s_compilerVersion)}
 {CSharpScriptingResources.LogoLine2}
 
 {ScriptingResources.HelpPrompt}";
@@ -128,7 +128,7 @@ $@"{LogoAndHelpPrompt}
 .   return new int[] {{ 1, 2, 3, 4, 5 }};
 . }}
 «Yellow»
-(1,19): warning CS1998: { CSharpResources.WRN_AsyncLacksAwaits }
+(1,19): warning CS1998: {CSharpResources.WRN_AsyncLacksAwaits}
 «Gray»
 > from x in await GetStuffAsync()
 . where x > 2
@@ -137,7 +137,7 @@ Enumerable.WhereSelectArrayIterator<int, int> {{ 9, 16, 25 }}
 > ", runner.Console.Out.ToString());
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-                $@"(1,19): warning CS1998: { CSharpResources.WRN_AsyncLacksAwaits }",
+                $@"(1,19): warning CS1998: {CSharpResources.WRN_AsyncLacksAwaits}",
                 runner.Console.Error.ToString());
         }
 
@@ -146,10 +146,10 @@ Enumerable.WhereSelectArrayIterator<int, int> {{ 9, 16, 25 }}
         public void TestDisplayResultsWithCurrentUICulture1()
         {
             // logoOutput needs to be retrieved before the runner is started, because the runner changes the culture to de-DE. 
-            var logoOutput = $@"{ string.Format(CSharpScriptingResources.LogoLine1, s_compilerVersion) }
-{ CSharpScriptingResources.LogoLine2}
+            var logoOutput = $@"{string.Format(CSharpScriptingResources.LogoLine1, s_compilerVersion)}
+{CSharpScriptingResources.LogoLine2}
 
-{ ScriptingResources.HelpPrompt}";
+{ScriptingResources.HelpPrompt}";
             var runner = CreateRunner(input:
 @"using System.Globalization;
 CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(""en-GB"", useUserOverride: false)
@@ -160,7 +160,7 @@ Math.PI
             runner.RunInteractive();
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-$@"{ logoOutput }
+$@"{logoOutput}
 > using System.Globalization;
 > CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(""en-GB"", useUserOverride: false)
 [en-GB]
@@ -179,10 +179,10 @@ $@"{ logoOutput }
         public void TestDisplayResultsWithCurrentUICulture2()
         {
             // logoOutput needs to be retrieved before the runner is started, because the runner changes the culture to de-DE. 
-            var logoOutput = $@"{ string.Format(CSharpScriptingResources.LogoLine1, s_compilerVersion) }
-{ CSharpScriptingResources.LogoLine2}
+            var logoOutput = $@"{string.Format(CSharpScriptingResources.LogoLine1, s_compilerVersion)}
+{CSharpScriptingResources.LogoLine2}
 
-{ ScriptingResources.HelpPrompt}";
+{ScriptingResources.HelpPrompt}";
             // Tests that DefaultThreadCurrentUICulture is respected and not DefaultThreadCurrentCulture.
             var runner = CreateRunner(input:
 @"using System.Globalization;
@@ -195,7 +195,7 @@ Math.PI
             runner.RunInteractive();
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-$@"{ logoOutput }
+$@"{logoOutput}
 > using System.Globalization;
 > CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(""en-GB"", useUserOverride: false)
 [en-GB]
@@ -325,7 +325,7 @@ $@"{LogoAndHelpPrompt}
 
             runner.RunInteractive();
 
-            var error = $@"error CS2001: { string.Format(CSharpResources.ERR_FileNotFound, Path.Combine(AppContext.BaseDirectory, "@arg1"))}";
+            var error = $@"error CS2001: {string.Format(CSharpResources.ERR_FileNotFound, Path.Combine(AppContext.BaseDirectory, "@arg1"))}";
             AssertEx.AssertEqualToleratingWhitespaceDifferences(error, runner.Console.Out.ToString());
             AssertEx.AssertEqualToleratingWhitespaceDifferences(error, runner.Console.Error.ToString());
         }
@@ -472,7 +472,7 @@ $@"""@arg1""
 
             Assert.Equal(1, runner.RunInteractive());
 
-            var error = $@"error CS2001: { string.Format(CSharpResources.ERR_FileNotFound, Path.Combine(AppContext.BaseDirectory, "a + b")) }";
+            var error = $@"error CS2001: {string.Format(CSharpResources.ERR_FileNotFound, Path.Combine(AppContext.BaseDirectory, "a + b"))}";
             AssertEx.AssertEqualToleratingWhitespaceDifferences(error, runner.Console.Out.ToString());
             AssertEx.AssertEqualToleratingWhitespaceDifferences(error, runner.Console.Error.ToString());
         }
@@ -485,7 +485,7 @@ $@"""@arg1""
             Assert.Equal(0, runner.RunInteractive());
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-$@"{ string.Format(CSharpScriptingResources.LogoLine1, s_compilerVersion) }
+$@"{string.Format(CSharpScriptingResources.LogoLine1, s_compilerVersion)}
 {CSharpScriptingResources.LogoLine2}
 
 {CSharpScriptingResources.InteractiveHelp}
@@ -526,7 +526,7 @@ $@"{ string.Format(CSharpScriptingResources.LogoLine1, s_compilerVersion) }
 
             Assert.Equal(1, runner.RunInteractive());
 
-            var error = $@"error CS0246: { string.Format(CSharpResources.ERR_SingleTypeNameNotFound, "Alpha") }";
+            var error = $@"error CS0246: {string.Format(CSharpResources.ERR_SingleTypeNameNotFound, "Alpha")}";
             AssertEx.AssertEqualToleratingWhitespaceDifferences(error, runner.Console.Out.ToString());
             AssertEx.AssertEqualToleratingWhitespaceDifferences(error, runner.Console.Error.ToString());
         }
@@ -541,12 +541,12 @@ $@"{ string.Format(CSharpScriptingResources.LogoLine1, s_compilerVersion) }
 $@"{LogoAndHelpPrompt}
 > nameof(Microsoft.Missing)
 «Red»
-(1,8): error CS0234: { string.Format(CSharpResources.ERR_DottedTypeNameNotFoundInNS, "Missing", "Microsoft") }
+(1,8): error CS0234: {string.Format(CSharpResources.ERR_DottedTypeNameNotFoundInNS, "Missing", "Microsoft")}
 «Gray»
 > ", runner.Console.Out.ToString());
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-                $"(1,8): error CS0234: { string.Format(CSharpResources.ERR_DottedTypeNameNotFoundInNS, "Missing", "Microsoft") }",
+                $"(1,8): error CS0234: {string.Format(CSharpResources.ERR_DottedTypeNameNotFoundInNS, "Missing", "Microsoft")}",
                 runner.Console.Error.ToString());
         }
 
@@ -683,7 +683,7 @@ X
 SearchPaths {{ }}
 > #load ""a.csx""
 «Red»
-(1,7): error CS1504: { string.Format(CSharpResources.ERR_NoSourceFile, "a.csx", CSharpResources.CouldNotFindFile) }
+(1,7): error CS1504: {string.Format(CSharpResources.ERR_NoSourceFile, "a.csx", CSharpResources.CouldNotFindFile)}
 «Gray»
 > SourcePaths.Add(@""{dir.Path}"")
 > #load ""a.csx""
@@ -693,7 +693,7 @@ SearchPaths {{ }}
 ", runner.Console.Out.ToString());
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-                $@"(1,7): error CS1504: { string.Format(CSharpResources.ERR_NoSourceFile, "a.csx", CSharpResources.CouldNotFindFile) }",
+                $@"(1,7): error CS1504: {string.Format(CSharpResources.ERR_NoSourceFile, "a.csx", CSharpResources.CouldNotFindFile)}",
                 runner.Console.Error.ToString());
         }
 
@@ -719,7 +719,7 @@ new C()
 SearchPaths {{ }}
 > #r ""C.dll""
 «Red»
-(1,1): error CS0006: { string.Format(CSharpResources.ERR_NoMetadataFile, "C.dll")  }
+(1,1): error CS0006: {string.Format(CSharpResources.ERR_NoMetadataFile, "C.dll")}
 «Gray»
 > ReferencePaths.Add(@""{dir.Path}"")
 > #r ""C.dll""
@@ -729,7 +729,7 @@ C {{ }}
 ", runner.Console.Out.ToString());
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-                $@"(1,1): error CS0006: { string.Format(CSharpResources.ERR_NoMetadataFile, "C.dll") }",
+                $@"(1,1): error CS0006: {string.Format(CSharpResources.ERR_NoMetadataFile, "C.dll")}",
                 runner.Console.Error.ToString());
         }
 
@@ -805,7 +805,7 @@ int X = 1;
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
 «Red»
-{init.Path}(2,3): error CS1002: { CSharpResources.ERR_SemicolonExpected }
+{init.Path}(2,3): error CS1002: {CSharpResources.ERR_SemicolonExpected}
 «Gray»
 > new C()
 C {{ }}
@@ -813,7 +813,7 @@ C {{ }}
 ", runner.Console.Out.ToString());
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-                $@"{init.Path}(2,3): error CS1002: { CSharpResources.ERR_SemicolonExpected }",
+                $@"{init.Path}(2,3): error CS1002: {CSharpResources.ERR_SemicolonExpected}",
                 runner.Console.Error.ToString());
         }
 
@@ -828,7 +828,7 @@ C {{ }}
             Assert.Equal(
 $@"{LogoAndHelpPrompt}
 > #help
-{ ScriptingResources.HelpText }
+{ScriptingResources.HelpText}
 > ", runner.Console.Out.ToString());
         }
 
@@ -919,7 +919,7 @@ $@"{LogoAndHelpPrompt}
 > #r ""{file2.Path}""
 > var l2 = new Lib2();
 «Red»
-{ string.Format(ScriptingResources.AssemblyAlreadyLoaded, libBaseName, "0.0.0.0", fileBase1.Path, fileBase2.Path) }
+{string.Format(ScriptingResources.AssemblyAlreadyLoaded, libBaseName, "0.0.0.0", fileBase1.Path, fileBase2.Path)}
 «Gray»
 > ", runner.Console.Out.ToString());
         }
@@ -940,7 +940,7 @@ $@"{LogoAndHelpPrompt}
 > int i = 100;
 > int j = 20; throw new System.Exception(""Bang!""); int k = 3;
 «Yellow»
-(1,58): warning CS0162: { CSharpResources.WRN_UnreachableCode }
+(1,58): warning CS0162: {CSharpResources.WRN_UnreachableCode}
 «Red»
 System.Exception: Bang!
 «Gray»
@@ -949,7 +949,7 @@ System.Exception: Bang!
 > ", runner.Console.Out.ToString());
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-$@"(1,58): warning CS0162: { CSharpResources.WRN_UnreachableCode }
+$@"(1,58): warning CS0162: {CSharpResources.WRN_UnreachableCode}
 System.Exception: Bang!",
                 runner.Console.Error.ToString());
         }
@@ -984,7 +984,7 @@ Print(t.a);
             runner.RunInteractive();
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-$@"{ string.Format(CSharpScriptingResources.LogoLine1, s_compilerVersion) }
+$@"{string.Format(CSharpScriptingResources.LogoLine1, s_compilerVersion)}
 {CSharpScriptingResources.LogoLine2}
 {ScriptingResources.HelpPrompt}
 > var a = 1;

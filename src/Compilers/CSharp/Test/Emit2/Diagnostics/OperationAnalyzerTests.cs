@@ -1328,7 +1328,7 @@ class Test
     public static long Calculate1(long[] f)
     {
         long x;
-" + $"        x = { buildSequenceOfBinaryExpressions(8192) };" + @"
+" + $"        x = {buildSequenceOfBinaryExpressions(8192)};" + @"
         return x;
     }
 }";
@@ -1336,8 +1336,8 @@ class Test
             CreateCompilationWithMscorlib45(source)
             .VerifyDiagnostics()
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new AssignmentOperationSyntaxTestAnalyzer() }, null, null,
-                Diagnostic(AssignmentOperationSyntaxTestAnalyzer.AssignmentOperationDescriptor.Id, $"x = { buildSequenceOfBinaryExpressions(8192) }").WithLocation(7, 9),
-                Diagnostic(AssignmentOperationSyntaxTestAnalyzer.AssignmentSyntaxDescriptor.Id, $"x = { buildSequenceOfBinaryExpressions(8192) }").WithLocation(7, 9));
+                Diagnostic(AssignmentOperationSyntaxTestAnalyzer.AssignmentOperationDescriptor.Id, $"x = {buildSequenceOfBinaryExpressions(8192)}").WithLocation(7, 9),
+                Diagnostic(AssignmentOperationSyntaxTestAnalyzer.AssignmentSyntaxDescriptor.Id, $"x = {buildSequenceOfBinaryExpressions(8192)}").WithLocation(7, 9));
         }
 
         [WorkItem(9020, "https://github.com/dotnet/roslyn/issues/9020")]

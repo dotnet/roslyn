@@ -669,7 +669,7 @@ class C
                     out errorMessage);
 
                 Assert.Equal(2, numRetries); // Ensure that we actually retried and that we bailed out on the second retry if the same identity was seen in the diagnostics.
-                Assert.Equal($"error CS0012: { string.Format(CSharpResources.ERR_NoTypeDef, "MissingType", missingIdentity)}", errorMessage);
+                Assert.Equal($"error CS0012: {string.Format(CSharpResources.ERR_NoTypeDef, "MissingType", missingIdentity)}", errorMessage);
             });
         }
 

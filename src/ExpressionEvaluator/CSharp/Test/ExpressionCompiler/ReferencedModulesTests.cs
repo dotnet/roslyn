@@ -914,7 +914,7 @@ public class B
 
             // Duplicate extension method, at method scope.
             ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "x.F()", ImmutableArray<Alias>.Empty, contextFactory, getMetaDataBytesPtr: null, errorMessage: out errorMessage, testData: out testData);
-            Assert.Equal($"error CS0121: { string.Format(CSharpResources.ERR_AmbigCall, "N.E.F(A)", "N.E.F(A)") }", errorMessage);
+            Assert.Equal($"error CS0121: {string.Format(CSharpResources.ERR_AmbigCall, "N.E.F(A)", "N.E.F(A)")}", errorMessage);
 
             // Same tests as above but in library that does not directly reference duplicates.
             GetContextState(runtime, "A", out blocks, out moduleVersionId, out symReader, out typeToken, out localSignatureToken);
