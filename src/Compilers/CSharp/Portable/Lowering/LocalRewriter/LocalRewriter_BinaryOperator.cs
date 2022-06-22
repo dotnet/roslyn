@@ -117,6 +117,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return LowerPartsToString(data, parts, node.Syntax, node.Type);
             }
 
+            if (node.OperatorKind is BinaryOperatorKind.UTF8Addition)
+            {
+                Debug.Assert(applyParentUnaryOperator is null);
+                return VisitUTF8Addition(node);
+            }
+
             // In machine-generated code we frequently end up with binary operator trees that are deep on the left,
             // such as a + b + c + d ...
             // To avoid blowing the call stack, we make an explicit stack of the binary operators to the left, 
@@ -127,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (BoundBinaryOperator? current = node; current != null && current.ConstantValue == null; current = current.Left as BoundBinaryOperator)
             {
                 // The regular visit mechanism will handle this.
-                if (current.InterpolatedStringHandlerData is not null)
+                if (current.InterpolatedStringHandlerData is not null || current.OperatorKind is BinaryOperatorKind.UTF8Addition)
                 {
                     Debug.Assert(stack.Count >= 1);
                     break;
@@ -512,6 +518,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         goto default;
+
+                    case BinaryOperatorKind.UTF8Addition:
+                        throw ExceptionUtilities.UnexpectedValue(operatorKind);
 
                     default:
                         break;
