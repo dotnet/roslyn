@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public const string CompletionSet = nameof(CompletionSet);
         public const string DesignerAttributes = nameof(DesignerAttributes);
         public const string DiagnosticService = nameof(DiagnosticService);
+        public const string DocumentOutline = nameof(DocumentOutline);
         public const string EncapsulateField = nameof(EncapsulateField);
         public const string ErrorList = nameof(ErrorList);
         public const string ErrorSquiggles = nameof(ErrorSquiggles);
