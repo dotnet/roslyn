@@ -191,6 +191,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void ConstantValueToStringTest01()
         {
+            Assert.False(true, $"JCOUV {System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription} + {typeof(string).Assembly.Location}");
+
             var cv = ConstantValue.Create(null, ConstantValueTypeDiscriminator.Null);
             Assert.Equal($"ConstantValueNull(null: Null)", cv.ToString());
 
