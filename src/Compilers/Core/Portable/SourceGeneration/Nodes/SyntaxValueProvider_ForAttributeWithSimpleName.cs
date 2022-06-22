@@ -49,7 +49,7 @@ public partial struct SyntaxValueProvider
         // using SyntaxTrees is purely syntax and will not update the incremental node for a tree when another tree is
         // changed. CreateSyntaxProvider will have to rerun all incremental nodes since it passes along the
         // SemanticModel, and that model is updated whenever any tree changes (since it is tied to the compilation).
-        var syntaxTreesProvider = _context.CompilationProvider.SelectMany((c, _) => c.SyntaxTrees);
+        var syntaxTreesProvider = _context.CompilationProvider.SelectMany((c, _) => c.SyntaxTrees).WithTrackingName("compilationUnit_ForAttribute");
 
         // Create a provider that provides (and updates) the global aliases for any particular file when it is edited.
         var individualFileGlobalAliasesProvider = syntaxTreesProvider.Select(
@@ -81,18 +81,14 @@ public partial struct SyntaxValueProvider
             .Select((tuple, _) => GlobalAliases.Concat(tuple.Left, tuple.Right))
             .WithTrackingName("allUpIncludingCompilationGlobalAliases_ForAttribute");
 
-        // Create a syntax provider for every compilation unit.
-        var compilationUnitProvider = syntaxTreesProvider.Select(
-            (t, c) => t.GetRoot(c)).WithTrackingName("compilationUnit_ForAttribute");
-
         // Combine the two providers so that we reanalyze every file if the global aliases change, or we reanalyze a
         // particular file when it's compilation unit changes.
-        var compilationUnitAndGlobalAliasesProvider = compilationUnitProvider
+        var syntaxTreeAndGlobalAliasesProvider = syntaxTreesProvider
             .Combine(allUpGlobalAliasesProvider)
             .WithTrackingName("compilationUnitAndGlobalAliases_ForAttribute");
 
         // For each pair of compilation unit + global aliases, walk the compilation unit 
-        var result = compilationUnitAndGlobalAliasesProvider
+        var result = syntaxTreeAndGlobalAliasesProvider
             .SelectMany((globalAliasesAndCompilationUnit, cancellationToken) => GetMatchingNodes(
                 syntaxHelper, globalAliasesAndCompilationUnit.Right, globalAliasesAndCompilationUnit.Left, simpleName, predicate, cancellationToken))
             .WithTrackingName("result_ForAttribute");
@@ -115,11 +111,13 @@ public partial struct SyntaxValueProvider
     private static ImmutableArray<SyntaxNode> GetMatchingNodes(
         ISyntaxHelper syntaxHelper,
         GlobalAliases globalAliases,
-        SyntaxNode compilationUnit,
+        SyntaxTree syntaxTree,
         string name,
         Func<SyntaxNode, CancellationToken, bool> predicate,
         CancellationToken cancellationToken)
     {
+        var compilationUnit = syntaxTree.GetRoot(cancellationToken);
+
         Debug.Assert(compilationUnit is ICompilationUnitSyntax);
 
         var isCaseSensitive = syntaxHelper.IsCaseSensitive;
