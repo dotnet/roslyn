@@ -119,7 +119,7 @@
             <TreeView.Resources>
                 <HierarchicalDataTemplate DataType="{x:Type self:DocumentSymbolViewModel}" ItemsSource="{Binding Children}">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" MouseDown="JumpToContent">
-                        <imaging:CrispImage Moniker="{Binding ImgMoniker}" Margin="0, 0, 5, 0" />
+                        <imaging:CrispImage Moniker="{Binding ImageMoniker}" Margin="0, 0, 5, 0" />
                         <TextBlock Text="{Binding Name}" />
                     </StackPanel>
                 </HierarchicalDataTemplate>

@@ -87,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             void TextBuffer_Changed(object sender, TextContentChangedEventArgs e)
                 => _uiUpdateQueue.AddWork();
 
-            TextView.Caret.PositionChanged += FollowCursor;
+            TextView.Caret.PositionChanged += FollowCaret;
             TextView.TextBuffer.Changed += TextBuffer_Changed;
 
             threadingContext.JoinableTaskFactory.RunAsync(async () =>
@@ -208,7 +208,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             Sort(SortOption.Type, FunctionId.DocumentOutline_SortByType);
         }
 
-        // When symbol node clicked, selects corresponding code
+        // When symbol node clicked, select the corresponding code
         private void JumpToContent(object sender, EventArgs e)
         {
             RoslynDebug.AssertNotNull(Snapshot);
@@ -219,20 +219,24 @@ namespace Microsoft.VisualStudio.LanguageServices
                     var position = Snapshot.GetLineFromLineNumber(symbol.StartLine).Start.Position;
                     if (position >= 0 && position <= Snapshot.Length)
                     {
-                        TextView.Caret.PositionChanged -= FollowCursor;
+                        // Avoids highlighting the node after moving the caret ourselves 
+                        // (The node is already highlighted on user click)
+                        TextView.Caret.PositionChanged -= FollowCaret;
                         var point = new SnapshotPoint(Snapshot, position);
                         var snapshotSpan = new SnapshotSpan(point, point);
                         TextView.SetSelection(snapshotSpan);
                         TextView.ViewScroller.EnsureSpanVisible(snapshotSpan);
-                        TextView.Caret.PositionChanged += FollowCursor;
+                        // We want to continue highlighting nodes when the user moves the caret
+                        TextView.Caret.PositionChanged += FollowCaret;
                     }
                 }
             }
         }
 
-        private void FollowCursor(object sender, EventArgs e)
+        // On caret position change, highlight the corresponding symbol node
+        private void FollowCaret(object sender, EventArgs e)
         {
-            if (Snapshot is not null && TextView is not null)
+            if (Snapshot is not null && TextView is not null && SymbolTreeItemsSourceInitialized)
             {
                 var caretPoint = TextView.GetCaretPoint(Snapshot.TextBuffer);
                 if (caretPoint.HasValue)
