@@ -200,6 +200,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundForEachStatement BindForEachPartsWorker(BindingDiagnosticBag diagnostics, Binder originalBinder)
         {
+            if (IsAsync)
+            {
+                CheckFeatureAvailability(_syntax, MessageID.IDS_FeatureAsyncStreams, diagnostics, _syntax.AwaitKeyword.GetLocation());
+            }
+
             // Use the right binder to avoid seeing iteration variable
             BoundExpression collectionExpr = originalBinder.GetBinder(_syntax.Expression).BindRValueWithoutTargetType(_syntax.Expression, diagnostics);
 
@@ -428,7 +433,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // but it turns out that these are equivalent (when both are available).
 
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            Conversion elementConversionClassification = this.Conversions.ClassifyConversionFromType(inferredType.Type, iterationVariableType.Type, ref useSiteInfo, forCast: true);
+            Conversion elementConversionClassification = this.Conversions.ClassifyConversionFromType(inferredType.Type, iterationVariableType.Type, isChecked: CheckOverflowAtRuntime, ref useSiteInfo, forCast: true);
 
             var elementPlaceholder = new BoundValuePlaceholder(_syntax, inferredType.Type).MakeCompilerGenerated();
             BindingDiagnosticBag createConversionDiagnostics;
@@ -476,8 +481,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Spec (§8.8.4):
             // If the type X of expression is dynamic then there is an implicit conversion from >>expression<< (not the type of the expression) 
             // to the System.Collections.IEnumerable interface (§6.1.8). 
-            Conversion collectionConversionClassification = this.Conversions.ClassifyConversionFromExpression(collectionExpr, builder.CollectionType, ref useSiteInfo);
-            Conversion currentConversionClassification = this.Conversions.ClassifyConversionFromType(builder.CurrentPropertyGetter.ReturnType, builder.ElementType, ref useSiteInfo);
+            Conversion collectionConversionClassification = this.Conversions.ClassifyConversionFromExpression(collectionExpr, builder.CollectionType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
+            Conversion currentConversionClassification = this.Conversions.ClassifyConversionFromType(builder.CurrentPropertyGetter.ReturnType, builder.ElementType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
 
             TypeSymbol getEnumeratorType = getEnumeratorMethod.ReturnType;
 
@@ -995,33 +1000,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol enumeratorType = builder.GetEnumeratorInfo.Method.ReturnType;
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
 
-            // For async foreach, we don't do the runtime check
-            if ((!enumeratorType.IsSealed && !isAsync) ||
-                this.Conversions.ClassifyImplicitConversionFromType(enumeratorType,
-                    isAsync ? this.Compilation.GetWellKnownType(WellKnownType.System_IAsyncDisposable) : this.Compilation.GetSpecialType(SpecialType.System_IDisposable),
-                    ref useSiteInfo).IsImplicit)
+            MethodSymbol patternDisposeMethod = null;
+            if (enumeratorType.IsRefLikeType || isAsync)
             {
-                builder.NeedsDisposal = true;
-            }
-            else if (Compilation.IsFeatureEnabled(MessageID.IDS_FeatureUsingDeclarations) &&
-                    (enumeratorType.IsRefLikeType || isAsync))
-            {
-                // if it wasn't directly convertable to IDisposable, see if it is pattern-disposable
-                // again, we throw away any binding diagnostics, and assume it's not disposable if we encounter errors
+                // we throw away any binding diagnostics, and assume it's not disposable if we encounter errors
                 var receiver = new BoundDisposableValuePlaceholder(_syntax, enumeratorType);
-                MethodSymbol disposeMethod = TryFindDisposePatternMethod(receiver, _syntax, isAsync, BindingDiagnosticBag.Discarded);
-                if (disposeMethod is object)
+                patternDisposeMethod = TryFindDisposePatternMethod(receiver, _syntax, isAsync, BindingDiagnosticBag.Discarded);
+                if (patternDisposeMethod is object)
                 {
-                    Debug.Assert(!disposeMethod.IsExtensionMethod);
-                    Debug.Assert(disposeMethod.ParameterRefKinds.IsDefaultOrEmpty);
+                    Debug.Assert(!patternDisposeMethod.IsExtensionMethod);
+                    Debug.Assert(patternDisposeMethod.ParameterRefKinds.IsDefaultOrEmpty);
 
-                    var argsBuilder = ArrayBuilder<BoundExpression>.GetInstance(disposeMethod.ParameterCount);
+                    var argsBuilder = ArrayBuilder<BoundExpression>.GetInstance(patternDisposeMethod.ParameterCount);
                     var argsToParams = default(ImmutableArray<int>);
-                    bool expanded = disposeMethod.HasParamsParameter();
+                    bool expanded = patternDisposeMethod.HasParamsParameter();
 
                     BindDefaultArguments(
                         _syntax,
-                        disposeMethod.Parameters,
+                        patternDisposeMethod.Parameters,
                         argsBuilder,
                         argumentRefKindsBuilder: null,
                         ref argsToParams,
@@ -1031,11 +1027,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagnostics);
 
                     builder.NeedsDisposal = true;
-                    builder.PatternDisposeInfo = new MethodArgumentInfo(disposeMethod, argsBuilder.ToImmutableAndFree(), argsToParams, defaultArguments, expanded);
+                    builder.PatternDisposeInfo = new MethodArgumentInfo(patternDisposeMethod, argsBuilder.ToImmutableAndFree(), argsToParams, defaultArguments, expanded);
+
+                    if (!isAsync)
+                    {
+                        // We already checked feature availability for async scenarios
+                        CheckFeatureAvailability(expr.Syntax, MessageID.IDS_FeatureDisposalPattern, diagnostics);
+                    }
                 }
             }
 
-            diagnostics.Add(_syntax, useSiteInfo);
+            if (!enumeratorType.IsRefLikeType && patternDisposeMethod is null)
+            {
+                // If it wasn't pattern-disposable, see if it's directly convertable to IDisposable
+                // For async foreach, we don't do the runtime check in unsealed case
+                if ((!enumeratorType.IsSealed && !isAsync) ||
+                    this.Conversions.ClassifyImplicitConversionFromType(enumeratorType,
+                        isAsync ? this.Compilation.GetWellKnownType(WellKnownType.System_IAsyncDisposable) : this.Compilation.GetSpecialType(SpecialType.System_IDisposable),
+                        ref useSiteInfo).IsImplicit)
+                {
+                    builder.NeedsDisposal = true;
+                }
+
+                diagnostics.Add(_syntax, useSiteInfo);
+            }
         }
 
         private ForEachEnumeratorInfo.Builder GetDefaultEnumeratorInfo(ForEachEnumeratorInfo.Builder builder, BindingDiagnosticBag diagnostics, TypeSymbol collectionExprType)
@@ -1285,7 +1300,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                var collectionConversion = this.Conversions.ClassifyConversionFromExpression(collectionExpr, result.Parameters[0].Type, ref useSiteInfo);
+                var collectionConversion = this.Conversions.ClassifyConversionFromExpression(collectionExpr, result.Parameters[0].Type, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
                 diagnostics.Add(_syntax, useSiteInfo);
 
                 // Unconditionally convert here, to match what we set the ConvertedExpression to in the main BoundForEachStatement node.

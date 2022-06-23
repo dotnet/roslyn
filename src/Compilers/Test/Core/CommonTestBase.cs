@@ -23,11 +23,15 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
+    [Flags]
     public enum Verification
     {
-        Passes = 0,
-        Fails,
-        Skipped
+        Skipped = 0,
+        Passes = 1 << 1,
+
+        FailsPEVerify = 1 << 2,
+        FailsILVerify = 1 << 3,
+        Fails = FailsPEVerify | FailsILVerify,
     }
 
     /// <summary>
@@ -159,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             if (assemblyValidator != null || symbolValidator != null)
             {
                 // We're dual-purposing emitters here.  In this context, it
-                // tells the validator the version of Emit that is calling it. 
+                // tells the validator the version of Emit that is calling it.
                 RunValidators(verifier, assemblyValidator, symbolValidator);
             }
 
@@ -621,7 +625,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 // all operations from spine should belong to the operation tree set
                 VerifyOperationTreeSpine(semanticModel, set, child.Syntax);
 
-                // operation tree's node must be part of root of semantic model which is 
+                // operation tree's node must be part of root of semantic model which is
                 // owner of operation's lifetime
                 Assert.True(semanticModel.Root.FullSpan.Contains(child.Syntax.FullSpan));
             }

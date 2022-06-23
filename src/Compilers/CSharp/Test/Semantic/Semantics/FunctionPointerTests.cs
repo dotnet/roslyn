@@ -2832,6 +2832,7 @@ unsafe
         [Fact, WorkItem(50096, "https://github.com/dotnet/roslyn/issues/50096")]
         public void FunctionPointerInference_ExactInferenceThroughArray_RefKindMatch()
         {
+            // ILVerify: Unexpected type on the stack. ImportCalli not implemented
             var verifier = CompileAndVerify(@"
 unsafe
 {
@@ -2845,7 +2846,7 @@ unsafe
         System.Console.Write(t);
     }
 }
-", expectedOutput: "11", options: TestOptions.UnsafeReleaseExe, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped);
+", expectedOutput: "11", options: TestOptions.UnsafeReleaseExe, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.FailsILVerify : Verification.Skipped);
 
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
@@ -3821,7 +3822,7 @@ unsafe class C
                 Diagnostic(ErrorCode.ERR_TypeExpected, "__arglist").WithLocation(4, 64),
                 // (4,64): error CS1003: Syntax error, ',' expected
                 //     static void M(delegate*<string, int, void> ptr1, delegate*<__arglist, void> ptr2)
-                Diagnostic(ErrorCode.ERR_SyntaxError, "__arglist").WithArguments(",", "__arglist").WithLocation(4, 64),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "__arglist").WithArguments(",").WithLocation(4, 64),
                 // (6,14): error CS1503: Argument 1: cannot convert from '__arglist' to 'string'
                 //         ptr1(__arglist(string.Empty, 1), 1);
                 Diagnostic(ErrorCode.ERR_BadArgType, "__arglist(string.Empty, 1)").WithArguments("1", "__arglist", "string").WithLocation(6, 14),
@@ -3990,7 +3991,7 @@ unsafe class C
             comp.VerifyDiagnostics(
                 // (6,38): error CS1003: Syntax error, ',' expected
                 //         delegate*<void> ptr = new () => {};
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(6, 38),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(6, 38),
                 // (6,41): error CS1002: ; expected
                 //         delegate*<void> ptr = new () => {};
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(6, 41),

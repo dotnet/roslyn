@@ -618,14 +618,15 @@ class Program
 
             VisualStudio.Editor.SendKeys(VirtualKey.Home, VirtualKey.Delete, VirtualKey.P, VirtualKey.Enter);
 
-            VisualStudio.SolutionExplorer.Verify.FileContents(project, "program.cs",
-@"
+            AssertEx.EqualOrDiff(
+                @"
 class program
 {
     static void Main(string[] args)
     {
     }
-}");
+}",
+                VisualStudio.SolutionExplorer.GetFileContents(project, "program.cs"));
         }
     }
 }

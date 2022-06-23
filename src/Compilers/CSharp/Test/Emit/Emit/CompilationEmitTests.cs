@@ -4584,8 +4584,7 @@ class C
 
         [Fact]
         [WorkItem(545651, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545651")]
-
-        private void TestReferenceToNestedGenericType()
+        public void TestReferenceToNestedGenericType()
         {
             string p1 = @"public class Goo<T> { }";
             string p2 = @"using System;
@@ -5027,6 +5026,8 @@ public interface IUsePlatform
         {
             var comp = CreateEmptyCompilation("", new[] { TestReferences.SymbolsTests.netModule.x64COFF }, options: TestOptions.DebugDll);
             // modules not supported in ref emit
+            // PEVerify: [HRESULT 0x8007000B] - An attempt was made to load a program with an incorrect format.
+            // ILVerify: Internal.IL.VerifierException : No system module specified
             CompileAndVerify(comp, verify: Verification.Fails);
             Assert.NotSame(comp.Assembly.CorLibrary, comp.Assembly);
             comp.GetSpecialType(SpecialType.System_Int32);
@@ -5532,7 +5533,8 @@ public class DerivingClass<T> : BaseClass<T>
             var modRef = CreateCompilation("public class A { }", options: TestOptions.ReleaseModule, assemblyName: "refMod").EmitToImageReference();
             var comp = CreateCompilation("public class B : A { }", references: new[] { modRef }, assemblyName: "sourceMod");
 
-            CompileAndVerify(comp, symbolValidator: module =>
+            // ILVerify: Assembly or module not found: refMod
+            CompileAndVerify(comp, verify: Verification.FailsILVerify, symbolValidator: module =>
             {
                 var b = module.GlobalNamespace.GetTypeMember("B");
                 Assert.Equal("B", b.Name);

@@ -21,9 +21,8 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using static TestResources.NetFX.ValueTuple;
 using static Roslyn.Test.Utilities.TestMetadata;
-using System.Runtime.CompilerServices;
+using static TestResources.NetFX.ValueTuple;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
@@ -233,12 +232,12 @@ namespace System
                 // (7,20): warning CS0169: The field '(T1, T2).Item2' is never used
                 //         private T2 Item2;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "Item2").WithArguments("(T1, T2).Item2").WithLocation(7, 20),
-                // (8,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller
+                // (8,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
                 //         public ValueTuple(T1 item1, T2 item2)
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item2").WithLocation(8, 16),
-                // (8,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "ValueTuple").WithArguments("(T1, T2).Item2", "preview").WithLocation(8, 16),
+                // (8,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
                 //         public ValueTuple(T1 item1, T2 item2)
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item2").WithLocation(8, 16),
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "ValueTuple").WithArguments("(T1, T2).Item2", "preview").WithLocation(8, 16),
                 // (11,18): error CS0229: Ambiguity between '(T1, T2).Item2' and '(T1, T2).Item2'
                 //             this.Item2 = item2;
                 Diagnostic(ErrorCode.ERR_AmbigMember, "Item2").WithArguments("(T1, T2).Item2", "(T1, T2).Item2").WithLocation(11, 18)
@@ -4462,18 +4461,6 @@ namespace System
                 // (21,18): error CS0229: Ambiguity between '(T1, T2).Item2' and '(T1, T2).Item2'
                 //             this.Item2 = 2;
                 Diagnostic(ErrorCode.ERR_AmbigMember, "Item2").WithArguments("(T1, T2).Item2", "(T1, T2).Item2").WithLocation(21, 18),
-                // (18,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller
-                //         public ValueTuple(T1 item1, T2 item2)
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item2").WithLocation(18, 16),
-                // (18,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller
-                //         public ValueTuple(T1 item1, T2 item2)
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item2").WithLocation(18, 16),
-                // (18,16): error CS0171: Field '(T1, T2).Item1' must be fully assigned before control is returned to the caller
-                //         public ValueTuple(T1 item1, T2 item2)
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item1").WithLocation(18, 16),
-                // (18,16): error CS0171: Field '(T1, T2).Item1' must be fully assigned before control is returned to the caller
-                //         public ValueTuple(T1 item1, T2 item2)
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item1").WithLocation(18, 16),
                 // (7,39): error CS0229: Ambiguity between '(string, string).Item1' and '(string, string).Item1'
                 //         System.Console.WriteLine($"{x.Item1}");
                 Diagnostic(ErrorCode.ERR_AmbigMember, "Item1").WithArguments("(string, string).Item1", "(string, string).Item1").WithLocation(7, 39),
@@ -4582,15 +4569,6 @@ namespace System
                 // (28,18): error CS0229: Ambiguity between '(T1, T2).Item2' and '(T1, T2).Item2'
                 //             this.Item2 = 2;
                 Diagnostic(ErrorCode.ERR_AmbigMember, "Item2").WithArguments("(T1, T2).Item2", "(T1, T2).Item2").WithLocation(28, 18),
-                // (26,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller
-                //         public ValueTuple(T1 item1, T2 item2)
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item2").WithLocation(26, 16),
-                // (26,16): error CS0171: Field '(T1, T2).Item1' must be fully assigned before control is returned to the caller
-                //         public ValueTuple(T1 item1, T2 item2)
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item1").WithLocation(26, 16),
-                // (26,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller
-                //         public ValueTuple(T1 item1, T2 item2)
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item2").WithLocation(26, 16),
                 // (7,39): error CS8128: Member 'Item1' was not found on type '(T1, T2)' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         System.Console.WriteLine($"{x.Item1}");
                 Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "Item1").WithArguments("Item1", "(T1, T2)", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 39),
@@ -4682,15 +4660,6 @@ namespace System
                 // (7,39): error CS8128: Member 'Item1' was not found on type '(T1, T2)' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         System.Console.WriteLine($"{x.a}");
                 Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "a").WithArguments("Item1", "(T1, T2)", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 39),
-                // (17,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller
-                //         public ValueTuple(T1 item1, T2 item2)
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item2").WithLocation(17, 16),
-                // (17,16): error CS0171: Field '(T1, T2).Item1' must be fully assigned before control is returned to the caller
-                //         public ValueTuple(T1 item1, T2 item2)
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item1").WithLocation(17, 16),
-                // (17,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller
-                //         public ValueTuple(T1 item1, T2 item2)
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item2").WithLocation(17, 16),
                 // (19,18): error CS0229: Ambiguity between '(T1, T2).Item2' and '(T1, T2).Item2'
                 //             this.Item2 = 2;
                 Diagnostic(ErrorCode.ERR_AmbigMember, "Item2").WithArguments("(T1, T2).Item2", "(T1, T2).Item2").WithLocation(19, 18)
@@ -13209,15 +13178,6 @@ partial class C
                 // (25,16): warning CS0612: '(T1, T2)' is obsolete
                 //         return (1, 1);
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(1, 1)").WithArguments("(T1, T2)").WithLocation(25, 16),
-                // (58,16): error CS0843: Auto-implemented property '(T1, T2).I1.P1' must be fully assigned before control is returned to the caller.
-                //         public ValueTuple(T1 item1, T2 item2)
-                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "ValueTuple").WithArguments("(T1, T2).I1.P1").WithLocation(58, 16),
-                // (58,16): error CS0843: Auto-implemented property '(T1, T2).P2' must be fully assigned before control is returned to the caller.
-                //         public ValueTuple(T1 item1, T2 item2)
-                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "ValueTuple").WithArguments("(T1, T2).P2").WithLocation(58, 16),
-                // (58,16): error CS0171: Field '(T1, T2).E2' must be fully assigned before control is returned to the caller
-                //         public ValueTuple(T1 item1, T2 item2)
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).E2").WithLocation(58, 16),
                 // (30,34): warning CS0612: '(int, int).Item1' is obsolete
                 //         System.Console.WriteLine(M10().Item1);
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "M10().Item1").WithArguments("(int, int).Item1").WithLocation(30, 34),
@@ -13401,14 +13361,10 @@ namespace System
 }
 " + tupleattributes_cs;
 
-            var comp = CreateCompilationWithMscorlib40(source);
+            var comp = CreateCompilationWithMscorlib40(source, assemblyName: "test");
             comp.VerifyEmitDiagnostics(
-                // (7,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller
-                //         public ValueTuple(string s) { }
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item2").WithLocation(7, 16),
-                // (7,16): error CS0171: Field '(T1, T2).Item1' must be fully assigned before control is returned to the caller
-                //         public ValueTuple(string s) { }
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item1").WithLocation(7, 16)
+                // error CS7038: Failed to emit module 'test': Unable to determine specific cause of the failure.
+                Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments("test", "Unable to determine specific cause of the failure.").WithLocation(1, 1)
                 );
         }
 
@@ -13426,14 +13382,10 @@ namespace System
 }
 " + tupleattributes_cs;
 
-            var comp = CreateCompilationWithMscorlib40(source);
+            var comp = CreateCompilationWithMscorlib40(source, assemblyName: "test");
             comp.VerifyEmitDiagnostics(
-                // (7,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller
-                //         public ValueTuple(string s) { }
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item2").WithLocation(7, 16),
-                // (7,16): error CS0171: Field '(T1, T2).Item1' must be fully assigned before control is returned to the caller
-                //         public ValueTuple(string s) { }
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item1").WithLocation(7, 16)
+                // error CS7038: Failed to emit module 'test': Unable to determine specific cause of the failure.
+                Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments("test", "Unable to determine specific cause of the failure.").WithLocation(1, 1)
                 );
         }
 
@@ -19227,7 +19179,7 @@ public class C
             Assert.Equal("(System.Int32 a, dynamic c) x2", x2.ToTestDisplayString());
         }
 
-        [Fact]
+        [Fact, WorkItem(60046, "https://github.com/dotnet/roslyn/issues/60046")]
         [WorkItem(16825, "https://github.com/dotnet/roslyn/issues/16825")]
         public void NullCoalescingOperatorWithTupleNames()
         {
@@ -19276,6 +19228,7 @@ public class D
                 //         var x8 = new C() ?? (a: 1, c: 3); // C
                 Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "c: 3").WithArguments("c", "(int, int)").WithLocation(18, 36)
                 );
+            _ = comp.GetEmitDiagnostics();
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -19310,6 +19263,44 @@ public class D
 
             var x6double = model.GetDeclaredSymbol(nodes.OfType<VariableDeclaratorSyntax>().ElementAt(11));
             Assert.Equal("(System.Double d, System.Int32 c) x6double", x6double.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem(60046, "https://github.com/dotnet/roslyn/issues/60046")]
+        public void NullCoalescingOperatorWithTupleNames_IdentityConversionOnUserDefinedConversion()
+        {
+            // LHS has identity conversion (for tuple names) on top of user-defined conversion
+            var source = @"
+System.Console.Write(new D() ?? (a: 1, c: 3));
+
+public class D
+{
+    public static implicit operator (int d1, int d2) (D x) { return (42, 43); }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            _ = comp.GetEmitDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "(42, 43)");
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       35 (0x23)
+  .maxstack  2
+  .locals init (D V_0)
+  IL_0000:  newobj     ""D..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  brtrue.s   IL_0012
+  IL_0009:  ldc.i4.1
+  IL_000a:  ldc.i4.3
+  IL_000b:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
+  IL_0010:  br.s       IL_0018
+  IL_0012:  ldloc.0
+  IL_0013:  call       ""System.ValueTuple<int, int> D.op_Implicit(D)""
+  IL_0018:  box        ""System.ValueTuple<int, int>""
+  IL_001d:  call       ""void System.Console.Write(object)""
+  IL_0022:  ret
+}
+");
         }
 
         [Fact]
@@ -25457,7 +25448,7 @@ class P
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(6, 41),
                 // (6,41): error CS1003: Syntax error, ':' expected
                 //         var x1 = (1, 1) is (int, int a)?;
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(":", ";").WithLocation(6, 41),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(":").WithLocation(6, 41),
                 // (6,41): error CS1525: Invalid expression term ';'
                 //         var x1 = (1, 1) is (int, int a)?;
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(6, 41)
@@ -26187,7 +26178,7 @@ public class C
 
         [Fact]
         [WorkItem(21785, "https://github.com/dotnet/roslyn/issues/21785")]
-        void TypelessTupleInArrayInitializer()
+        public void TypelessTupleInArrayInitializer()
         {
             string source = @"
 class C
@@ -28562,41 +28553,33 @@ class C
         [Fact]
         public void TupleWithElementNamedWithDefaultName()
         {
-            // Instrumenting test as part of investigating flakiness: https://github.com/dotnet/roslyn/issues/52658
-            for (int i = 0; i < 1000; i++)
-            {
-                string source = @"
+            string source = @"
 class C
 {
     (int Item1, int Item2) M() => throw null;
 }
 ";
-                var comp = CreateCompilation(source);
-                var m = (MethodSymbol)comp.GetMember("C.M");
-                var tuple = m.ReturnType;
-                Assert.Equal("(System.Int32 Item1, System.Int32 Item2)", tuple.ToTestDisplayString());
-                Assert.IsType<ConstructedNamedTypeSymbol>(tuple);
+            var comp = CreateCompilation(source);
+            var m = (MethodSymbol)comp.GetMember("C.M");
+            var tuple = m.ReturnType;
+            Assert.Equal("(System.Int32 Item1, System.Int32 Item2)", tuple.ToTestDisplayString());
+            Assert.IsType<ConstructedNamedTypeSymbol>(tuple);
 
-                var item1 = tuple.GetMember<TupleElementFieldSymbol>("Item1");
-                // Instrumenting test as part of investigating flakiness: https://github.com/dotnet/roslyn/issues/52658
-                RoslynDebug.AssertOrFailFast(0 == item1.TupleElementIndex);
+            var item1 = tuple.GetMember<TupleElementFieldSymbol>("Item1");
+            Assert.Equal(0, item1.TupleElementIndex);
 
-                var item1Underlying = item1.TupleUnderlyingField;
-                Assert.IsType<SubstitutedFieldSymbol>(item1Underlying);
-                Assert.Equal("System.Int32 (System.Int32 Item1, System.Int32 Item2).Item1", item1Underlying.ToTestDisplayString());
-                // Instrumenting test as part of investigating flakiness: https://github.com/dotnet/roslyn/issues/52658
-                RoslynDebug.AssertOrFailFast(0 == item1Underlying.TupleElementIndex);
-                Assert.Same(item1Underlying, item1Underlying.TupleUnderlyingField);
+            var item1Underlying = item1.TupleUnderlyingField;
+            Assert.IsType<SubstitutedFieldSymbol>(item1Underlying);
+            Assert.Equal("System.Int32 (System.Int32 Item1, System.Int32 Item2).Item1", item1Underlying.ToTestDisplayString());
+            Assert.Equal(0, item1Underlying.TupleElementIndex);
+            Assert.Same(item1Underlying, item1Underlying.TupleUnderlyingField);
 
-                var item2 = tuple.GetMember<TupleElementFieldSymbol>("Item2");
-                // Instrumenting test as part of investigating flakiness: https://github.com/dotnet/roslyn/issues/52658
-                RoslynDebug.AssertOrFailFast(1 == item2.TupleElementIndex);
-                var item2Underlying = item2.TupleUnderlyingField;
-                Assert.IsType<SubstitutedFieldSymbol>(item2Underlying);
-                // Instrumenting test as part of investigating flakiness: https://github.com/dotnet/roslyn/issues/52658
-                RoslynDebug.AssertOrFailFast(1 == item2Underlying.TupleElementIndex);
-                Assert.Same(item2Underlying, item2Underlying.TupleUnderlyingField);
-            }
+            var item2 = tuple.GetMember<TupleElementFieldSymbol>("Item2");
+            Assert.Equal(1, item2.TupleElementIndex);
+            var item2Underlying = item2.TupleUnderlyingField;
+            Assert.IsType<SubstitutedFieldSymbol>(item2Underlying);
+            Assert.Equal(1, item2Underlying.TupleElementIndex);
+            Assert.Same(item2Underlying, item2Underlying.TupleUnderlyingField);
         }
 
         [Fact]
@@ -28614,6 +28597,19 @@ class C
             Assert.Equal("(System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32)",
                 tuple.ToTestDisplayString());
             Assert.IsType<ConstructedNamedTypeSymbol>(tuple);
+
+            var item1 = tuple.GetMember<TupleElementFieldSymbol>("Item1");
+            Assert.Equal("System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item1",
+                item1.ToTestDisplayString());
+            Assert.Equal(0, item1.TupleElementIndex);
+
+            var item1Underlying = item1.TupleUnderlyingField;
+            Assert.Equal("System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item1",
+                item1Underlying.ToTestDisplayString());
+            Assert.IsType<SubstitutedFieldSymbol>(item1Underlying);
+            Assert.Equal(-1, item1Underlying.TupleElementIndex); // should be zero, tracked by https://github.com/dotnet/roslyn/issues/58499
+
+            Assert.Same(tuple, item1Underlying.ContainingType);
 
             var item8 = tuple.GetMember<TupleElementFieldSymbol>("Item8");
             Assert.Equal("System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item8",

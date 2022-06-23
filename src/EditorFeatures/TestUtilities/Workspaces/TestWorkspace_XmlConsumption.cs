@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     out var code, out var cursorPosition, out IDictionary<string, ImmutableArray<TextSpan>> spans);
 
                 var documentFilePath = typeof(SingleFileTestGenerator).Assembly.GetName().Name + '\\' + typeof(SingleFileTestGenerator).FullName + '\\' + name;
-                var document = new TestHostDocument(exportProvider, languageServices, code, name, documentFilePath, cursorPosition, spans, isSourceGenerated: true);
+                var document = new TestHostDocument(exportProvider, languageServices, code, name, documentFilePath, cursorPosition, spans, generator: testGenerator);
                 documents.Add(document);
 
                 testGenerator.AddSource(code, name);
@@ -788,7 +788,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
 
             var markupAttribute = documentElement.Attribute(MarkupAttributeName);
-            var isMarkup = markupAttribute == null || (bool)markupAttribute == true;
+            var isMarkup = markupAttribute == null || (string)markupAttribute == "true" || (string)markupAttribute == "SpansOnly";
 
             string code;
             int? cursorPosition;
@@ -796,7 +796,23 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             if (isMarkup)
             {
+                // if the caller doesn't want us caring about positions, then replace any $'s with a character unlikely
+                // to ever show up in the doc naturally.  Then, after we convert things, change that character back. We
+                // do this as a single character so that all the positions of the spans do not change.
+                if ((string)markupAttribute == "SpansOnly")
+                    markupCode = markupCode.Replace("$", "\uD7FF");
+
                 TestFileMarkupParser.GetPositionAndSpans(markupCode, out code, out cursorPosition, out spans);
+
+                // if we were told SpansOnly then that means that $$ isn't actually a caret (but is something like a raw
+                // interpolated string delimiter.  In that case, if we did see a $$ add it back it at the location we
+                // found it, and set the cursor back to null as the test will be specifying that location manually
+                // itself.
+                if ((string)markupAttribute == "SpansOnly")
+                {
+                    Contract.ThrowIfTrue(cursorPosition != null);
+                    code = code.Replace("\uD7FF", "$");
+                }
             }
             else
             {
@@ -1022,7 +1038,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 ((bool?)net45).HasValue &&
                 ((bool?)net45).Value)
             {
-                references = new List<MetadataReference> { TestBase.MscorlibRef_v4_0_30316_17626, TestBase.SystemRef_v4_0_30319_17929, TestBase.SystemCoreRef_v4_0_30319_17929 };
+                references = new List<MetadataReference> { TestBase.MscorlibRef_v4_0_30316_17626, TestBase.SystemRef_v4_0_30319_17929, TestBase.SystemCoreRef_v4_0_30319_17929, TestBase.SystemRuntimeSerializationRef_v4_0_30319_17929 };
                 if (GetLanguage(workspace, element) == LanguageNames.VisualBasic)
                 {
                     references.Add(TestBase.MsvbRef);

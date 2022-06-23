@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis
             _state = state;
         }
 
-        internal Solution(Workspace workspace, SolutionInfo.SolutionAttributes solutionAttributes, SerializableOptionSet options, IReadOnlyList<AnalyzerReference> analyzerReferences)
+        internal Solution(Workspace workspace, SolutionInfo.SolutionAttributes solutionAttributes, SolutionOptionSet options, IReadOnlyList<AnalyzerReference> analyzerReferences)
             : this(new SolutionState(workspace.PrimaryBranchId, new SolutionServices(workspace), solutionAttributes, options, analyzerReferences))
         {
         }
@@ -1759,6 +1759,21 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Undoes the operation of <see cref="WithFrozenSourceGeneratedDocument"/>; any frozen source generated document is allowed
+        /// to have it's real output again.
+        /// </summary>
+        internal Solution WithoutFrozenSourceGeneratedDocuments()
+        {
+            var newState = _state.WithoutFrozenSourceGeneratedDocuments();
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
+        }
+
+        /// <summary>
         /// Gets an objects that lists the added, changed and removed projects between
         /// this solution and the specified solution.
         /// </summary>
@@ -1801,7 +1816,7 @@ namespace Microsoft.CodeAnalysis
         {
             return options switch
             {
-                SerializableOptionSet serializableOptions => WithOptions(serializableOptions),
+                SolutionOptionSet serializableOptions => WithOptions(serializableOptions),
                 null => throw new ArgumentNullException(nameof(options)),
                 _ => throw new ArgumentException(WorkspacesResources.Options_did_not_come_from_specified_Solution, paramName: nameof(options))
             };
@@ -1810,7 +1825,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new solution instance with the specified serializable <paramref name="options"/>.
         /// </summary>
-        internal Solution WithOptions(SerializableOptionSet options)
+        internal Solution WithOptions(SolutionOptionSet options)
         {
             var newState = _state.WithOptions(options: options);
             if (newState == _state)

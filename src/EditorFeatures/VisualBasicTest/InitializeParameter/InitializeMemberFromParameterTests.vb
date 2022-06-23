@@ -902,19 +902,19 @@ end class", index:=3)
 
         Private ReadOnly Property OmitIfDefault_Warning As TestParameters
             Get
-                Return New TestParameters(options:=[Option](CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault, NotificationOption2.Warning))
+                Return New TestParameters(options:=[Option](CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.OmitIfDefault, NotificationOption2.Warning))
             End Get
         End Property
 
         Private ReadOnly Property Never_Warning As TestParameters
             Get
-                Return New TestParameters(options:=[Option](CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Never, NotificationOption2.Warning))
+                Return New TestParameters(options:=[Option](CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.Never, NotificationOption2.Warning))
             End Get
         End Property
 
         Private ReadOnly Property Always_Warning As TestParameters
             Get
-                Return New TestParameters(options:=[Option](CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Always, NotificationOption2.Warning))
+                Return New TestParameters(options:=[Option](CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.Always, NotificationOption2.Warning))
             End Get
         End Property
     End Class

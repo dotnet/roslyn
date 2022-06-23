@@ -14,12 +14,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.LanguageServices;
-
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using Microsoft.CodeAnalysis.Options;
-#endif
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 {
@@ -116,7 +111,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
         }
 
         public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
-        public bool OpenFileOnly(OptionSet options) => false;
+        public bool OpenFileOnly(SimplifierOptions? options) => false;
 
         public override void Initialize(AnalysisContext context)
         {
@@ -142,7 +137,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
                 // for us appropriately.
                 unnecessaryImports = MergeImports(unnecessaryImports);
 
-                var fadeOut = ShouldFade(context.Options, tree, language, cancellationToken);
+                var fadeOut = context.GetIdeAnalyzerOptions().FadeOutUnusedImports;
 
                 DiagnosticDescriptor descriptor;
                 if (GeneratedCodeUtilities.IsGeneratedCode(tree, IsRegularCommentOrDocComment, cancellationToken))
@@ -163,15 +158,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
                 {
                     context.ReportDiagnostic(diagnostic);
                 }
-            }
-
-            static bool ShouldFade(AnalyzerOptions options, SyntaxTree tree, string language, CancellationToken cancellationToken)
-            {
-#if CODE_STYLE
-                return true;
-#else
-                return options.GetOption(Fading.FadingOptions.FadeOutUnusedImports, language, tree, cancellationToken);
-#endif
             }
         }
 

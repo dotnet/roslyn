@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.Internal.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Composition;
@@ -29,6 +30,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         internal static readonly ImmutableArray<Assembly> RemoteHostAssemblies =
             MefHostServices.DefaultAssemblies
+                .Add(typeof(AspNetCoreEmbeddedLanguageClassifier).Assembly)
                 .Add(typeof(BrokeredServiceBase).Assembly)
                 .Add(typeof(RemoteWorkspacesResources).Assembly);
 
@@ -68,12 +70,44 @@ namespace Microsoft.CodeAnalysis.Remote
         public virtual RemoteWorkspace GetWorkspace()
             => _lazyPrimaryWorkspace.Value;
 
-        public ValueTask<Solution> GetSolutionAsync(ServiceBrokerClient client, PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
+        /// <summary>
+        /// Not ideal that we exposing the workspace solution, while not ensuring it stays alive for other calls using
+        /// the same <paramref name="solutionChecksum"/>). However, this is used by Pythia/Razor/UnitTesting which all
+        /// assume they can get that solution instance and use as desired by them.
+        /// </summary>
+        [Obsolete("Use RunServiceAsync (that is passsed a Solution) instead", error: false)]
+        public async ValueTask<Solution> GetSolutionAsync(ServiceBrokerClient client, Checksum solutionChecksum, CancellationToken cancellationToken)
         {
             var assetSource = new SolutionAssetSource(client);
             var workspace = GetWorkspace();
-            var assetProvider = workspace.CreateAssetProvider(solutionInfo, SolutionAssetCache, assetSource);
-            return workspace.GetSolutionAsync(assetProvider, solutionInfo.SolutionChecksum, solutionInfo.FromPrimaryBranch, solutionInfo.WorkspaceVersion, solutionInfo.ProjectId, cancellationToken);
+            var assetProvider = workspace.CreateAssetProvider(solutionChecksum, SolutionAssetCache, assetSource);
+
+            var (solution, _) = await workspace.RunWithSolutionAsync(
+                assetProvider,
+                solutionChecksum,
+                static _ => ValueTaskFactory.FromResult(false),
+                cancellationToken).ConfigureAwait(false);
+
+            return solution;
+        }
+
+        public async ValueTask<T> RunServiceAsync<T>(
+            ServiceBrokerClient client,
+            Checksum solutionChecksum,
+            Func<Solution, ValueTask<T>> implementation,
+            CancellationToken cancellationToken)
+        {
+            var assetSource = new SolutionAssetSource(client);
+            var workspace = GetWorkspace();
+            var assetProvider = workspace.CreateAssetProvider(solutionChecksum, SolutionAssetCache, assetSource);
+
+            var (_, result) = await workspace.RunWithSolutionAsync(
+                assetProvider,
+                solutionChecksum,
+                implementation,
+                cancellationToken).ConfigureAwait(false);
+
+            return result;
         }
 
         private sealed class SimpleAssemblyLoader : IAssemblyLoader

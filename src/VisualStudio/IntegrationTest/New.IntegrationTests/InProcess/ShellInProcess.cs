@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -16,6 +17,32 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 {
     internal partial class ShellInProcess
     {
+        internal async Task<bool> IsActiveTabProvisionalAsync(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var shellMonitorSelection = await GetRequiredGlobalServiceAsync<SVsShellMonitorSelection, IVsMonitorSelection>(cancellationToken);
+            if (!ErrorHandler.Succeeded(shellMonitorSelection.GetCurrentElementValue((uint)VSConstants.VSSELELEMID.SEID_DocumentFrame, out var windowFrameObject)))
+            {
+                throw new InvalidOperationException("Tried to get the active document frame but no documents were open.");
+            }
+
+            var windowFrame = (IVsWindowFrame)windowFrameObject;
+            if (!ErrorHandler.Succeeded(windowFrame.GetProperty((int)VsFramePropID.IsProvisional, out var isProvisionalObject)))
+            {
+                throw new InvalidOperationException("The active window frame did not have an 'IsProvisional' property.");
+            }
+
+            return (bool)isProvisionalObject;
+        }
+
+        internal async Task<IntPtr> GetMainWindowAsync(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>(cancellationToken);
+            return dte.MainWindow.HWnd;
+        }
+
         public async Task<PauseFileChangesRestorer> PauseFileChangesAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);

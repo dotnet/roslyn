@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 Dim streamingPresenter = workspace.ExportProvider.GetExport(Of IStreamingFindUsagesPresenter)()
                 Return Await IntellisenseQuickInfoBuilder.BuildItemAsync(
                     trackingSpan.Object, quickInfoItem, document,
-                    threadingContext, operationExecutor,
+                    ClassificationOptions.Default, threadingContext, operationExecutor,
                     AsynchronousOperationListenerProvider.NullListener,
                     streamingPresenter, CancellationToken.None)
             End Using
@@ -77,9 +77,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)()
                 Dim operationExecutor = workspace.ExportProvider.GetExportedValue(Of IUIThreadOperationExecutor)()
                 Dim streamingPresenter = workspace.ExportProvider.GetExport(Of IStreamingFindUsagesPresenter)()
+                Dim classificationOptions = workspace.GlobalOptions.GetClassificationOptions(document.Project.Language)
                 Return Await IntellisenseQuickInfoBuilder.BuildItemAsync(
                     trackingSpan.Object, codeAnalysisQuickInfoItem, document,
-                    threadingContext, operationExecutor,
+                    classificationOptions, threadingContext, operationExecutor,
                     AsynchronousOperationListenerProvider.NullListener,
                     streamingPresenter, CancellationToken.None)
             End Using

@@ -3,9 +3,9 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Editor.FindReferences
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.FindReferences
 Imports Microsoft.CodeAnalysis.FindUsages
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
@@ -38,7 +38,7 @@ class C
 
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
 
-                Dim context = New FindReferencesTests.TestContext(workspace.GlobalOptions)
+                Dim context = New FindReferencesTests.TestContext()
                 Dim commandHandler = New FindReferencesCommandHandler(
                     New MockStreamingFindReferencesPresenter(context),
                     workspace.GlobalOptions,

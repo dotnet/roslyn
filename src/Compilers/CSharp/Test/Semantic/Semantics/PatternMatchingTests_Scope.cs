@@ -13694,10 +13694,10 @@ public unsafe struct X
             compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
                 // (8,28): error CS1003: Syntax error, '[' expected
                 //     fixed bool d[2], Test3 (string.Empty is var x3);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(8, 28),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[").WithLocation(8, 28),
                 // (8,51): error CS1003: Syntax error, ']' expected
                 //     fixed bool d[2], Test3 (string.Empty is var x3);
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(8, 51),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]").WithLocation(8, 51),
                 // (8,29): error CS0029: Cannot implicitly convert type 'bool' to 'int'
                 //     fixed bool d[2], Test3 (string.Empty is var x3);
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "string.Empty is var x3").WithArguments("bool", "int").WithLocation(8, 29)

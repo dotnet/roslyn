@@ -278,6 +278,7 @@ namespace My
             sbyte @sbyte;
             short @short;
             string @string = @"""/*";
+            var utf8String = @"""/*"u8;
             uint @uint;
             ulong @ulong;
             ushort @ushort;
@@ -839,6 +840,7 @@ namespace Comments.XmlComments.UndocumentedKeywords
             b = true &amp;&amp; false || true;/*&amp;&amp; ||*/
             i &lt;&lt; 5;/*&lt;&lt;*/
             i &gt;&gt; 5;/*&gt;&gt;*/
+            i &gt;&gt;&gt; 5;/*&gt;&gt;&gt;*/
             b = i == i &amp;&amp; i != i &amp;&amp; i &lt;= i &amp;&amp; i &gt;= i;/*= == &amp;&amp; != &lt;= &gt;=*/
             i += 5.0;/*+=*/
             i -= i;/*-=*/
@@ -850,6 +852,7 @@ namespace Comments.XmlComments.UndocumentedKeywords
             i ^= i;/*^=*/
             i &lt;&lt;= i;/*&lt;&lt;=*/
             i &gt;&gt;= i;/*&gt;&gt;=*/
+            i &gt;&gt;&gt;= i;/*&gt;&gt;&gt;=*/
             object s = x =&gt; x + 1;/*=&gt;*/
             var index = ^1;
             var range = 1..2;

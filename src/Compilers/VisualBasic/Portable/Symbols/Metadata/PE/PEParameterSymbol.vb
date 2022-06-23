@@ -655,5 +655,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Return DirectCast(_containingSymbol.ContainingModule, PEModuleSymbol).Module
             End Get
         End Property
+
+        Friend Function DeriveCompilerFeatureRequiredDiagnostic(decoder As MetadataDecoder) As DiagnosticInfo
+            Return DeriveCompilerFeatureRequiredAttributeDiagnostic(Me, DirectCast(Me.ContainingModule, PEModuleSymbol), Handle, CompilerFeatureRequiredFeatures.None, decoder)
+        End Function
+
+        Public Overrides ReadOnly Property HasUnsupportedMetadata As Boolean
+            Get
+                Dim containingModule = DirectCast(Me.ContainingModule, PEModuleSymbol)
+                Dim containingMethod = TryCast(Me.ContainingSymbol, PEMethodSymbol)
+                Dim decoder = If(containingMethod IsNot Nothing,
+                    New MetadataDecoder(containingModule, containingMethod),
+                    New MetadataDecoder(containingModule, DirectCast(ContainingType, PENamedTypeSymbol)))
+
+                Dim info = DeriveCompilerFeatureRequiredDiagnostic(decoder)
+
+                Return (info IsNot Nothing AndAlso (info.Code = ERRID.ERR_UnsupportedType1 OrElse info.Code = ERRID.ERR_UnsupportedCompilerFeature)) OrElse MyBase.HasUnsupportedMetadata
+            End Get
+        End Property
     End Class
 End Namespace

@@ -1155,6 +1155,8 @@ class C
             comp = CreateEmptyCompilation(source1, references: new[] { ref0, SystemCoreRef });
             comp.VerifyDiagnostics();
             // Make sure we emit without errors when System.Boolean is missing.
+            // PEVerify: Type load failed.
+            // ILVerify: Failed to load type 'System.String' from assembly ...
             CompileAndVerify(comp, verify: Verification.Fails);
         }
 
@@ -1189,6 +1191,8 @@ class C
             comp = CreateEmptyCompilation(source1, references: new[] { ref0, SystemCoreRef });
             comp.VerifyDiagnostics();
             // Make sure we emit without errors when System.Boolean is missing.
+            // PEVerify: Type load failed.
+            // ILVerify: Internal.TypeSystem.TypeSystemException+TypeLoadException : Failed to load type 'System.String' from assembly ...
             CompileAndVerify(comp, verify: Verification.Fails);
         }
 

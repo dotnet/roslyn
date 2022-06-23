@@ -2,20 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class ConversionsBase
     {
-        public static void AddTypesParticipatingInUserDefinedConversion(ArrayBuilder<TypeSymbol> result, TypeSymbol type, bool includeBaseTypes, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        public static void AddTypesParticipatingInUserDefinedConversion(ArrayBuilder<(NamedTypeSymbol ParticipatingType, TypeParameterSymbol? ConstrainedToTypeOpt)> result, TypeSymbol type, bool includeBaseTypes, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             // CONSIDER: These sets are usually small; if they are large then this is an O(n^2)
             // CONSIDER: algorithm. We could use a hash table instead to build up the set.
@@ -52,23 +51,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (type is TypeParameterSymbol typeParameter)
             {
                 NamedTypeSymbol effectiveBaseClass = typeParameter.EffectiveBaseClass(ref useSiteInfo);
-
                 addFromClassOrStruct(result, excludeExisting, effectiveBaseClass, includeBaseTypes, ref useSiteInfo);
 
-                switch (effectiveBaseClass.SpecialType)
+                ImmutableArray<NamedTypeSymbol> interfaces = includeBaseTypes ?
+                    typeParameter.AllEffectiveInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo) :
+                    typeParameter.EffectiveInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo);
+
+                foreach (NamedTypeSymbol iface in interfaces)
                 {
-                    case SpecialType.System_ValueType:
-                    case SpecialType.System_Enum:
-                    case SpecialType.System_Array:
-                    case SpecialType.System_Object:
-                        if (!excludeExisting || !HasIdentityConversionToAny(typeParameter, result))
-                        {
-                            // Add the type parameter to the set as well. This will be treated equivalent to adding its 
-                            // effective interfaces to the set. We are not doing that here because we still need to know 
-                            // the originating type parameter as "constrained to" type.
-                            result.Add(typeParameter);
-                        }
-                        break;
+                    if (!excludeExisting || !HasIdentityConversionToAny(iface, result))
+                    {
+                        result.Add((iface, typeParameter));
+                    }
                 }
             }
             else
@@ -76,13 +70,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 addFromClassOrStruct(result, excludeExisting, type, includeBaseTypes, ref useSiteInfo);
             }
 
-            static void addFromClassOrStruct(ArrayBuilder<TypeSymbol> result, bool excludeExisting, TypeSymbol type, bool includeBaseTypes, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            static void addFromClassOrStruct(ArrayBuilder<(NamedTypeSymbol ParticipatingType, TypeParameterSymbol? ConstrainedToTypeOpt)> result, bool excludeExisting, TypeSymbol type, bool includeBaseTypes, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {
                 if (type.IsClassType() || type.IsStructType())
                 {
-                    if (!excludeExisting || !HasIdentityConversionToAny(type, result))
+                    var namedType = (NamedTypeSymbol)type;
+                    if (!excludeExisting || !HasIdentityConversionToAny(namedType, result))
                     {
-                        result.Add(type);
+                        result.Add((namedType, null));
                     }
                 }
 
@@ -96,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (!excludeExisting || !HasIdentityConversionToAny(t, result))
                     {
-                        result.Add(t);
+                        result.Add((t, null));
                     }
 
                     t = t.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo);

@@ -1042,7 +1042,7 @@ next:;
             }
         }
 
-        internal sealed override void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        protected sealed override void DecodeWellKnownAttributeImpl(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
             var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
@@ -1110,7 +1110,16 @@ next:;
                 diagnostics.Add(ErrorCode.ERR_CantUseRequiredAttribute, arguments.AttributeSyntaxOpt.Name.Location);
             }
             else if (ReportExplicitUseOfReservedAttributes(in arguments,
-                ReservedAttributes.DynamicAttribute | ReservedAttributes.IsReadOnlyAttribute | ReservedAttributes.IsUnmanagedAttribute | ReservedAttributes.IsByRefLikeAttribute | ReservedAttributes.TupleElementNamesAttribute | ReservedAttributes.NullableAttribute | ReservedAttributes.NullableContextAttribute | ReservedAttributes.NativeIntegerAttribute | ReservedAttributes.CaseSensitiveExtensionAttribute))
+                ReservedAttributes.DynamicAttribute
+                | ReservedAttributes.IsReadOnlyAttribute
+                | ReservedAttributes.IsUnmanagedAttribute
+                | ReservedAttributes.IsByRefLikeAttribute
+                | ReservedAttributes.TupleElementNamesAttribute
+                | ReservedAttributes.NullableAttribute
+                | ReservedAttributes.NullableContextAttribute
+                | ReservedAttributes.NativeIntegerAttribute
+                | ReservedAttributes.CaseSensitiveExtensionAttribute
+                | ReservedAttributes.RequiredMemberAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.SecurityCriticalAttribute)
@@ -1461,7 +1470,7 @@ next:;
                 if (data == null || data.GuidString == null)
                 {
                     int index = boundAttributes.IndexOfAttribute(this, AttributeDescription.ComImportAttribute);
-                    diagnostics.Add(ErrorCode.ERR_ComImportWithoutUuidAttribute, allAttributeSyntaxNodes[index].Name.Location, this.Name);
+                    diagnostics.Add(ErrorCode.ERR_ComImportWithoutUuidAttribute, allAttributeSyntaxNodes[index].Name.Location);
                 }
 
                 if (this.TypeKind == TypeKind.Class)
@@ -1548,17 +1557,24 @@ next:;
                 var obsoleteData = ObsoleteAttributeData;
                 Debug.Assert(obsoleteData != ObsoleteAttributeData.Uninitialized, "getting synthesized attributes before attributes are decoded");
 
-                // If user specified an Obsolete attribute, we cannot emit ours.
-                // NB: we do not check the kind of deprecation. 
-                //     we will not emit Obsolete even if Deprecated or Experimental was used.
-                //     we do not want to get into a scenario where different kinds of deprecation are combined together.
-                //
-                if (obsoleteData == null && !this.IsRestrictedType(ignoreSpanLikeTypes: true))
+                if (!this.IsRestrictedType(ignoreSpanLikeTypes: true))
                 {
-                    AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_ObsoleteAttribute__ctor,
-                        ImmutableArray.Create(
-                            new TypedConstant(compilation.GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, PEModule.ByRefLikeMarker), // message
-                            new TypedConstant(compilation.GetSpecialType(SpecialType.System_Boolean), TypedConstantKind.Primitive, true)), // error=true
+                    // If user specified an Obsolete attribute, we cannot emit ours.
+                    // NB: we do not check the kind of deprecation. 
+                    //     we will not emit Obsolete even if Deprecated or Experimental was used.
+                    //     we do not want to get into a scenario where different kinds of deprecation are combined together.
+                    //
+                    if (obsoleteData == null)
+                    {
+                        AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_ObsoleteAttribute__ctor,
+                            ImmutableArray.Create(
+                                new TypedConstant(compilation.GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, PEModule.ByRefLikeMarker), // message
+                                new TypedConstant(compilation.GetSpecialType(SpecialType.System_Boolean), TypedConstantKind.Primitive, true)), // error=true
+                            isOptionalUse: true));
+                    }
+
+                    AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor,
+                        ImmutableArray.Create(new TypedConstant(compilation.GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, nameof(CompilerFeatureRequiredFeatures.RefStructs))),
                         isOptionalUse: true));
                 }
             }
@@ -1583,6 +1599,13 @@ next:;
                 AddSynthesizedAttribute(ref attributes,
                     this.DeclaringCompilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
             }
+
+            if (HasDeclaredRequiredMembers)
+            {
+                AddSynthesizedAttribute(
+                    ref attributes,
+                    compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_RequiredMemberAttribute__ctor));
+            }
         }
 
         #endregion
@@ -1590,6 +1613,10 @@ next:;
         internal override NamedTypeSymbol AsNativeInteger()
         {
             Debug.Assert(this.SpecialType == SpecialType.System_IntPtr || this.SpecialType == SpecialType.System_UIntPtr);
+            if (ContainingAssembly.RuntimeSupportsNumericIntPtr)
+            {
+                return this;
+            }
 
             return ContainingAssembly.GetNativeIntegerType(this);
         }
@@ -1608,7 +1635,44 @@ next:;
         {
             get
             {
-                return this.declaration.Declarations.Any(d => d.IsSimpleProgram);
+                return this.declaration.Declarations.Any(static d => d.IsSimpleProgram);
+            }
+        }
+
+        protected override void AfterMembersCompletedChecks(BindingDiagnosticBag diagnostics)
+        {
+            base.AfterMembersCompletedChecks(diagnostics);
+
+            // We need to give warnings if Obsolete is applied to any required members and there are constructors where a user would be forced to set that member,
+            // unless:
+            //  1. We're in an obsolete context ourselves, or
+            //  2. All constructors of this type are obsolete or attributed with SetsRequiredMembersAttribute
+            // We don't warn for obsolete required members from base types, as the user either has a warning that they're depending on an obsolete constructor/type
+            // already, or the original author ignored this warning.
+
+            // Obsolete states should have already been calculated by this point in the pipeline.
+            Debug.Assert(ObsoleteKind != ObsoleteAttributeKind.Uninitialized);
+            Debug.Assert(GetMembers().All(m => m.ObsoleteKind != ObsoleteAttributeKind.Uninitialized));
+
+            if (ObsoleteKind != ObsoleteAttributeKind.None
+                || GetMembers().All(m => m is not MethodSymbol { MethodKind: MethodKind.Constructor, ObsoleteKind: ObsoleteAttributeKind.None } method
+                                         || !method.ShouldCheckRequiredMembers()))
+            {
+                return;
+            }
+
+            foreach (var member in GetMembers())
+            {
+                if (!member.IsRequired())
+                {
+                    continue;
+                }
+
+                if (member.ObsoleteKind != ObsoleteAttributeKind.None)
+                {
+                    // Required member '{0}' should not be attributed with 'ObsoleteAttribute' unless the containing type is obsolete or all constructors are obsolete.
+                    diagnostics.Add(ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired, member.Locations[0], member);
+                }
             }
         }
     }

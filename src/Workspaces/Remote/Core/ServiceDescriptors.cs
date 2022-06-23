@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CodeLens;
@@ -58,9 +59,9 @@ namespace Microsoft.CodeAnalysis.Remote
             (typeof(IRemoteDiagnosticAnalyzerService), null),
             (typeof(IRemoteSemanticClassificationService), null),
             (typeof(IRemoteDocumentHighlightsService), null),
-            (typeof(IRemoteEncapsulateFieldService), null),
-            (typeof(IRemoteRenamerService), null),
-            (typeof(IRemoteConvertTupleToStructCodeRefactoringService), null),
+            (typeof(IRemoteEncapsulateFieldService), typeof(IRemoteEncapsulateFieldService.ICallback)),
+            (typeof(IRemoteRenamerService), typeof(IRemoteRenamerService.ICallback)),
+            (typeof(IRemoteConvertTupleToStructCodeRefactoringService), typeof(IRemoteConvertTupleToStructCodeRefactoringService.ICallback)),
             (typeof(IRemoteSymbolFinderService), typeof(IRemoteSymbolFinderService.ICallback)),
             (typeof(IRemoteFindUsagesService), typeof(IRemoteFindUsagesService.ICallback)),
             (typeof(IRemoteNavigateToSearchService), typeof(IRemoteNavigateToSearchService.ICallback)),
@@ -120,18 +121,23 @@ namespace Microsoft.CodeAnalysis.Remote
             return (descriptor64, descriptor64ServerGC, descriptorCoreClr64, descriptorCoreClr64ServerGC);
         }
 
-        public ServiceDescriptor GetServiceDescriptorForServiceFactory(Type serviceType)
-            => GetServiceDescriptor(serviceType, isRemoteHostServerGC: GCSettings.IsServerGC, isRemoteHostCoreClr: RemoteHostOptions.IsCurrentProcessRunningOnCoreClr());
+        public static bool IsCurrentProcessRunningOnCoreClr()
+            => !RuntimeInformation.FrameworkDescription.StartsWith(".NET Framework") &&
+               !RuntimeInformation.FrameworkDescription.StartsWith(".NET Native");
 
-        public ServiceDescriptor GetServiceDescriptor(Type serviceType, bool isRemoteHostServerGC, bool isRemoteHostCoreClr)
+        public ServiceDescriptor GetServiceDescriptorForServiceFactory(Type serviceType)
+            => GetServiceDescriptor(serviceType, RemoteProcessConfiguration.ServerGC | (IsCurrentProcessRunningOnCoreClr() ? RemoteProcessConfiguration.Core : 0));
+
+        public ServiceDescriptor GetServiceDescriptor(Type serviceType, RemoteProcessConfiguration configuration)
         {
             var (descriptor64, descriptor64ServerGC, descriptorCoreClr64, descriptorCoreClr64ServerGC) = _descriptors[serviceType];
-            return (isRemoteHostServerGC, isRemoteHostCoreClr) switch
+            return (configuration & (RemoteProcessConfiguration.Core | RemoteProcessConfiguration.ServerGC)) switch
             {
-                (false, false) => descriptor64,
-                (false, true) => descriptorCoreClr64,
-                (true, false) => descriptor64ServerGC,
-                (true, true) => descriptorCoreClr64ServerGC,
+                0 => descriptor64,
+                RemoteProcessConfiguration.Core => descriptorCoreClr64,
+                RemoteProcessConfiguration.ServerGC => descriptor64ServerGC,
+                RemoteProcessConfiguration.Core | RemoteProcessConfiguration.ServerGC => descriptorCoreClr64ServerGC,
+                _ => throw ExceptionUtilities.Unreachable
             };
         }
 

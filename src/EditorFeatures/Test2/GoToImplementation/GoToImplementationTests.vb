@@ -3,7 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Remote.Testing
-Imports Microsoft.CodeAnalysis.Editor.FindUsages
+Imports Microsoft.CodeAnalysis.FindUsages
 Imports System.Threading
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToImplementation
@@ -696,6 +696,36 @@ interface I { void $$M(); }
         <Document>
 class C : I { public abstract void [|M|](); }
 interface I { void $$M(); }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace, host)
+        End Function
+
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        Public Async Function TestUnsignedRightShiftImplementation_01(host As TestHost) As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C : I&lt;C&gt; { public static C operator [|>>>|](C x, int y) { return x; } }
+interface I&lt;T&gt; { static abstract T operator $$>>>(T x, int y); }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace, host)
+        End Function
+
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        Public Async Function TestUnsignedRightShiftImplementation_02(host As TestHost) As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C : I&lt;C&gt; { static C I&lt;C&gt;.operator [|>>>|](C x, int y) { return x; } }
+interface I&lt;T&gt; { static abstract T operator $$>>>(T x, int y); }
         </Document>
     </Project>
 </Workspace>

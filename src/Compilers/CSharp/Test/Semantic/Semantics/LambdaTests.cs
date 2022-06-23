@@ -1973,7 +1973,7 @@ class C { C() { string.Empty.Select(x => Unbound1, Unbound2 Unbound2); } }";
             CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
     // (2,61): error CS1003: Syntax error, ',' expected
     // class C { C() { string.Empty.Select(x => Unbound1, Unbound2 Unbound2); } }
-    Diagnostic(ErrorCode.ERR_SyntaxError, "Unbound2").WithArguments(",", "").WithLocation(2, 61),
+    Diagnostic(ErrorCode.ERR_SyntaxError, "Unbound2").WithArguments(",").WithLocation(2, 61),
     // (2,52): error CS0103: The name 'Unbound2' does not exist in the current context
     // class C { C() { string.Empty.Select(x => Unbound1, Unbound2 Unbound2); } }
     Diagnostic(ErrorCode.ERR_NameNotInContext, "Unbound2").WithArguments("Unbound2").WithLocation(2, 52),
@@ -3858,10 +3858,23 @@ class Program
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
-            var attributeSyntaxes = tree.GetRoot().DescendantNodes().OfType<AttributeSyntax>();
-            var actualAttributes = attributeSyntaxes.Select(a => model.GetSymbolInfo(a).Symbol.GetSymbol<MethodSymbol>()).ToImmutableArray();
-            var expectedAttributes = new[] { "AAttribute", "BAttribute", "CAttribute", "DAttribute" }.Select(a => comp.GetTypeByMetadataName(a).InstanceConstructors.Single()).ToImmutableArray();
-            AssertEx.Equal(expectedAttributes, actualAttributes);
+            var attributeSyntaxes = tree.GetRoot().DescendantNodes().OfType<AttributeSyntax>().ToImmutableArray();
+            Assert.Equal(4, attributeSyntaxes.Length);
+            verify(attributeSyntaxes[0], "AAttribute");
+            verify(attributeSyntaxes[1], "BAttribute");
+            verify(attributeSyntaxes[2], "CAttribute");
+            verify(attributeSyntaxes[3], "DAttribute");
+
+            void verify(AttributeSyntax attributeSyntax, string expectedAttributeName)
+            {
+                var expectedAttributeConstructor = comp.GetTypeByMetadataName(expectedAttributeName).InstanceConstructors.Single().GetPublicSymbol();
+                var expectedAttributeType = expectedAttributeConstructor.ContainingType;
+                var typeInfo = model.GetTypeInfo(attributeSyntax);
+                Assert.Equal(expectedAttributeType, typeInfo.Type);
+                Assert.Equal(expectedAttributeType, typeInfo.ConvertedType);
+                var symbol = model.GetSymbolInfo(attributeSyntax).Symbol;
+                Assert.Equal(expectedAttributeConstructor, symbol);
+            }
         }
 
         [Theory]
@@ -4756,7 +4769,7 @@ class Program
 }";
             var comp = CreateCompilation(new[] { source, UnmanagedCallersOnlyAttributeDefinition }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (7,21): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                // (7,21): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
                 //         Action a = [UnmanagedCallersOnly] static () => { };
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(7, 21));
         }
@@ -5378,6 +5391,138 @@ class Program
                 // (8,27): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'Func<string>' (possibly because of nullability attributes).
                 //         Func<string> f2 = string? () => { if (x is not null) return x; return y; };
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "string? () =>").WithArguments("lambda expression", "System.Func<string>").WithLocation(8, 27));
+        }
+
+        [Fact]
+        public void LambdaReturnType_18()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void F<T, U, V>(T t, U u, V v) where U : T
+    {
+        Func<T> f1 = T () => u;
+        Func<T> f2 = T () => v;
+        Func<U> f3 = U () => t;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,30): error CS0029: Cannot implicitly convert type 'V' to 'T'
+                //         Func<T> f2 = T () => v;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "v").WithArguments("V", "T").WithLocation(7, 30),
+                // (7,30): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+                //         Func<T> f2 = T () => v;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "v").WithArguments("lambda expression").WithLocation(7, 30),
+                // (8,30): error CS0266: Cannot implicitly convert type 'T' to 'U'. An explicit conversion exists (are you missing a cast?)
+                //         Func<U> f3 = U () => t;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "t").WithArguments("T", "U").WithLocation(8, 30),
+                // (8,30): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+                //         Func<U> f3 = U () => t;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "t").WithArguments("lambda expression").WithLocation(8, 30));
+        }
+
+        [Fact]
+        public void LambdaReturnType_19()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void F<T, U, V>(T t, U u, V v) where U : T
+    {
+        Delegate d;
+        d = T () => u;
+        d = T () => v;
+        d = U () => t;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,21): error CS0029: Cannot implicitly convert type 'V' to 'T'
+                //         d = T () => v;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "v").WithArguments("V", "T").WithLocation(8, 21),
+                // (8,21): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+                //         d = T () => v;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "v").WithArguments("lambda expression").WithLocation(8, 21),
+                // (9,21): error CS0266: Cannot implicitly convert type 'T' to 'U'. An explicit conversion exists (are you missing a cast?)
+                //         d = U () => t;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "t").WithArguments("T", "U").WithLocation(9, 21),
+                // (9,21): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+                //         d = U () => t;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "t").WithArguments("lambda expression").WithLocation(9, 21));
+        }
+
+        [Fact]
+        public void LambdaReturnType_20()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void F<T, U, V>(T t, U u, V v) where U : T
+    {
+        Func<T> f1 = T () => { if (t is null) return t; return u; };
+        Func<U> f2 = U () => { if (t is null) return t; return u; };
+        Func<T> f3 = T () => { if (t is null) return t; return v; };
+        Func<V> f4 = V () => { if (t is null) return t; return v; };
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (7,54): error CS0266: Cannot implicitly convert type 'T' to 'U'. An explicit conversion exists (are you missing a cast?)
+                //         Func<U> f2 = U () => { if (t is null) return t; return u; };
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "t").WithArguments("T", "U").WithLocation(7, 54),
+                // (7,54): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+                //         Func<U> f2 = U () => { if (t is null) return t; return u; };
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "t").WithArguments("lambda expression").WithLocation(7, 54),
+                // (8,64): error CS0029: Cannot implicitly convert type 'V' to 'T'
+                //         Func<T> f3 = T () => { if (t is null) return t; return v; };
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "v").WithArguments("V", "T").WithLocation(8, 64),
+                // (8,64): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+                //         Func<T> f3 = T () => { if (t is null) return t; return v; };
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "v").WithArguments("lambda expression").WithLocation(8, 64),
+                // (9,54): error CS0029: Cannot implicitly convert type 'T' to 'V'
+                //         Func<V> f4 = V () => { if (t is null) return t; return v; };
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "t").WithArguments("T", "V").WithLocation(9, 54),
+                // (9,54): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+                //         Func<V> f4 = V () => { if (t is null) return t; return v; };
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "t").WithArguments("lambda expression").WithLocation(9, 54));
+        }
+
+        [Fact]
+        public void LambdaReturnType_SemanticModel()
+        {
+            var source =
+@"class Program
+{
+    static void F<T>()
+    {
+        var x = T () => default;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var lambdaSyntax = tree.GetRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
+
+            var expectedType = comp.GetMember<MethodSymbol>("Program.F").TypeParameters.Single().GetPublicSymbol();
+            Assert.Equal(TypeKind.TypeParameter, expectedType.TypeKind);
+            Assert.Equal("T", expectedType.ToTestDisplayString());
+
+            var method = (IMethodSymbol)model.GetSymbolInfo(lambdaSyntax).Symbol;
+            Assert.Equal(MethodKind.LambdaMethod, method.MethodKind);
+
+            var returnTypeSyntax = lambdaSyntax.ReturnType;
+            var typeInfo = model.GetTypeInfo(returnTypeSyntax);
+            Assert.Equal(expectedType, typeInfo.Type);
+            Assert.Equal(expectedType, typeInfo.ConvertedType);
+
+            var symbolInfo = model.GetSymbolInfo(returnTypeSyntax);
+            Assert.Equal(expectedType, symbolInfo.Symbol);
         }
 
         [Fact]
@@ -6163,6 +6308,429 @@ class A : Attribute { }
                 // Expression<Func<int, int>> e = [return: A] ([A] x) => x;
                 Diagnostic(ErrorCode.ERR_LambdaWithAttributesToExpressionTree, "[return: A] ([A] x) => x").WithLocation(5, 32)
                 );
+        }
+
+        [Fact]
+        [WorkItem(60661, "https://github.com/dotnet/roslyn/issues/60661")]
+        public void KeywordParameterName_01()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Action<int> a = int => { };
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,25): error CS1041: Identifier expected; 'int' is a keyword
+                //         Action<int> a = int => { };
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "int").WithArguments("", "int").WithLocation(6, 25));
+        }
+
+        [Fact]
+        [WorkItem(60661, "https://github.com/dotnet/roslyn/issues/60661")]
+        public void KeywordParameterName_02()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Action<int> a = ref => { };
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,25): error CS1041: Identifier expected; 'ref' is a keyword
+                //         Action<int> a = ref => { };
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "ref").WithArguments("", "ref").WithLocation(6, 25));
+        }
+
+        [Fact]
+        [WorkItem(60661, "https://github.com/dotnet/roslyn/issues/60661")]
+        public void KeywordParameterName_03()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Action<int> a = ref int => { };
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,21): error CS8171: Cannot initialize a by-value variable with a reference
+                //         Action<int> a = ref int => { };
+                Diagnostic(ErrorCode.ERR_InitializeByValueVariableWithReference, "a = ref int => { }").WithLocation(6, 21),
+                // (6,29): error CS1041: Identifier expected; 'int' is a keyword
+                //         Action<int> a = ref int => { };
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "int").WithArguments("", "int").WithLocation(6, 29));
+        }
+
+        /// <summary>
+        /// Look for usages of "parameter" and verify the index-th one.
+        /// </summary>
+        private void VerifyParameter(CSharpCompilation comp, int index)
+        {
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var parameterUsages = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>()
+                .Where(i => i.Identifier.ValueText == "parameter")
+                .Where(i => i.Ancestors().Any(a => a.IsKind(SyntaxKind.Attribute) || a.IsKind(SyntaxKind.DefaultExpression) || a.IsKind(SyntaxKind.InvocationExpression)))
+                .ToArray();
+
+            var parameterUsage = parameterUsages[index];
+
+            Assert.Null(model.GetSymbolInfo(parameterUsage).Symbol);
+            Assert.True(model.GetTypeInfo(parameterUsage).Type.IsErrorType());
+            Assert.DoesNotContain("parameter", model.LookupSymbols(parameterUsage.Position).ToTestDisplayStrings());
+        }
+
+        [Fact]
+        public void ParameterScope_NotInMethodAttributeTypeOf()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+
+        var _ =
+            [My(typeof(parameter))] // 1
+            void(int parameter) => { };
+    }
+
+    [My(typeof(parameter))] // 2
+    void M2(int parameter) { }
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+");
+            comp.VerifyDiagnostics(
+                // (8,24): error CS0246: The type or namespace name 'parameter' could not be found (are you missing a using directive or an assembly reference?)
+                //             [My(typeof(parameter))] // 1
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameter").WithLocation(8, 24),
+                // (12,16): error CS0246: The type or namespace name 'parameter' could not be found (are you missing a using directive or an assembly reference?)
+                //     [My(typeof(parameter))] // 2
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameter").WithLocation(12, 16)
+                );
+
+            VerifyParameter(comp, 0);
+            VerifyParameter(comp, 1);
+        }
+
+        [Fact]
+        public void ParameterScope_NotInMethodAttribute()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        var _ =
+            [My(parameter)] // 1
+            void (int parameter) => { };
+    }
+
+    [My(parameter)] // 2
+    void M2(int parameter) { }
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(object o) { }
+}
+");
+            comp.VerifyDiagnostics(
+                // (7,17): error CS0103: The name 'parameter' does not exist in the current context
+                //             [My(parameter)] // 1
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(7, 17),
+                // (11,9): error CS0103: The name 'parameter' does not exist in the current context
+                //     [My(parameter)] // 2
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(11, 9)
+                );
+
+            VerifyParameter(comp, 0);
+            VerifyParameter(comp, 1);
+        }
+
+        [Fact]
+        public void ParameterScope_NotInMethodAttributeTypeArgument()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        var _ =
+            [My<parameter>] // 1
+            void (int parameter) => { };
+    }
+
+    [My<parameter>] // 2
+    void M2(int parameter) { }
+}
+
+public class MyAttribute<T> : System.Attribute
+{
+}
+");
+            comp.VerifyDiagnostics(
+                // (7,17): error CS0246: The type or namespace name 'parameter' could not be found (are you missing a using directive or an assembly reference?)
+                //             [My<parameter>] // 1
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameter").WithLocation(7, 17),
+                // (11,9): error CS0246: The type or namespace name 'parameter' could not be found (are you missing a using directive or an assembly reference?)
+                //     [My<parameter>] // 2
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameter").WithLocation(11, 9)
+                );
+
+            VerifyParameter(comp, 0);
+            VerifyParameter(comp, 1);
+        }
+
+        [Fact]
+        public void ParameterScope_NotAsMethodAttributeType()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        var _ =
+            [parameter] // 1
+            void (System.Attribute parameter) => { };
+    }
+
+    [parameter] // 2
+    void M2(System.Attribute parameter) { }
+}
+");
+            comp.VerifyDiagnostics(
+                // (7,14): error CS0246: The type or namespace name 'parameterAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                //             [parameter] // 1
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameterAttribute").WithLocation(7, 14),
+                // (7,14): error CS0246: The type or namespace name 'parameter' could not be found (are you missing a using directive or an assembly reference?)
+                //             [parameter] // 1
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameter").WithLocation(7, 14),
+                // (11,6): error CS0246: The type or namespace name 'parameterAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                //     [parameter] // 2
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameterAttribute").WithLocation(11, 6),
+                // (11,6): error CS0246: The type or namespace name 'parameter' could not be found (are you missing a using directive or an assembly reference?)
+                //     [parameter] // 2
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameter").WithLocation(11, 6)
+                );
+
+            VerifyParameter(comp, 0);
+            VerifyParameter(comp, 1);
+        }
+
+        [Fact]
+        public void ParameterScope_NotInParameterAttribute()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        var _ = void ([My(parameter)] int parameter) => throw null;
+    }
+
+    void M2([My(parameter)] int parameter) => throw null;
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+");
+            comp.VerifyDiagnostics(
+                // (6,27): error CS0103: The name 'parameter' does not exist in the current context
+                //         var _ = void ([My(parameter)] int parameter) => throw null;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(6, 27),
+                // (9,17): error CS0103: The name 'parameter' does not exist in the current context
+                //     void M2([My(parameter)] int parameter) => throw null;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(9, 17)
+                );
+
+            VerifyParameter(comp, 0);
+            VerifyParameter(comp, 1);
+        }
+
+        [Fact]
+        public void ParameterScope_InParameterDefaultValueNameOf()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        var _ = void (string parameter = nameof(parameter)) => throw null;
+    }
+
+    void M2(string parameter = nameof(parameter)) => throw null;
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+");
+            comp.VerifyDiagnostics(
+                // (6,40): error CS1065: Default values are not valid in this context.
+                //         var _ = void (string parameter = nameof(parameter)) => throw null;
+                Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(6, 40),
+                // (9,39): error CS0103: The name 'parameter' does not exist in the current context
+                //     void M2(string parameter = nameof(parameter)) => throw null;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(9, 39)
+                );
+        }
+
+        [Fact]
+        public void ParameterScope_NotAsParameterAttributeType()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        var _ = void ([parameter] System.Attribute parameter) => throw null;
+    }
+
+    void M2([parameter] System.Attribute parameter) => throw null;
+}
+");
+            comp.VerifyDiagnostics(
+                // (6,24): error CS0246: The type or namespace name 'parameterAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                //         var _ = void ([parameter] System.Attribute parameter) => throw null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameterAttribute").WithLocation(6, 24),
+                // (6,24): error CS0246: The type or namespace name 'parameter' could not be found (are you missing a using directive or an assembly reference?)
+                //         var _ = void ([parameter] System.Attribute parameter) => throw null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameter").WithLocation(6, 24),
+                // (9,14): error CS0246: The type or namespace name 'parameterAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                //     void M2([parameter] System.Attribute parameter) => throw null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameterAttribute").WithLocation(9, 14),
+                // (9,14): error CS0246: The type or namespace name 'parameter' could not be found (are you missing a using directive or an assembly reference?)
+                //     void M2([parameter] System.Attribute parameter) => throw null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameter").WithLocation(9, 14)
+                );
+
+            VerifyParameter(comp, 0);
+            VerifyParameter(comp, 1);
+        }
+
+        [Fact]
+        public void ParameterScope_NotInReturnType()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        var _ = parameter (int parameter) => throw null;
+    }
+
+    parameter M2(int parameter) => throw null;
+}
+");
+            comp.VerifyDiagnostics(
+                // (6,17): error CS0246: The type or namespace name 'parameter' could not be found (are you missing a using directive or an assembly reference?)
+                //         var _ = parameter (int parameter) => throw null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameter").WithLocation(6, 17),
+                // (9,5): error CS0246: The type or namespace name 'parameter' could not be found (are you missing a using directive or an assembly reference?)
+                //     parameter M2(int parameter) => throw null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameter").WithLocation(9, 5)
+                );
+        }
+
+        [Fact]
+        public void ParameterScope_NotInParameterType()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        var _ = void (parameter parameter) => throw null;
+    }
+
+    void M2(parameter parameter) => throw null;
+}
+");
+            comp.VerifyDiagnostics(
+                // (6,23): error CS0246: The type or namespace name 'parameter' could not be found (are you missing a using directive or an assembly reference?)
+                //         var _ = void (parameter parameter) => throw null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameter").WithLocation(6, 23),
+                // (9,13): error CS0246: The type or namespace name 'parameter' could not be found (are you missing a using directive or an assembly reference?)
+                //     void M2(parameter parameter) => throw null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameter").WithLocation(9, 13)
+                );
+        }
+
+        [Fact, WorkItem(61143, "https://github.com/dotnet/roslyn/issues/61143")]
+        public void ParameterScope_LambdaDiscardParameter()
+        {
+            var comp = CreateCompilation(@"
+class AAttribute : System.Attribute
+{
+    public AAttribute(string s) { }
+}
+
+class C
+{
+    void M(int _)
+    {
+        System.Func<string, string, int> a = [A(nameof(_))] (_, _) => 0;
+    }
+}
+");
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var discard = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>()
+                .Where(i => i.Identifier.ValueText == "_")
+                .Where(i => i.Ancestors().Any(a => a.IsKind(SyntaxKind.InvocationExpression)))
+                .Single();
+
+            Assert.Equal("System.Int32 _", model.GetSymbolInfo(discard).Symbol.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem(61143, "https://github.com/dotnet/roslyn/issues/61143")]
+        public void ParameterScope_LambdaUnderscoreParameter()
+        {
+            var comp = CreateCompilation(@"
+class AAttribute : System.Attribute
+{
+    public AAttribute(string s) { }
+}
+
+class C
+{
+    void M(int _)
+    {
+        System.Func<string, string, int> a = [A(nameof(_))] (_, x) => 0;
+    }
+}
+");
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var underscore = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>()
+                .Where(i => i.Identifier.ValueText == "_")
+                .Where(i => i.Ancestors().Any(a => a.IsKind(SyntaxKind.InvocationExpression)))
+                .Single();
+
+            Assert.Equal("System.String _", model.GetSymbolInfo(underscore).Symbol.ToTestDisplayString());
         }
     }
 }

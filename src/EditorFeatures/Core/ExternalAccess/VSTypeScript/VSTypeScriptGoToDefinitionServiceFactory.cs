@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
+using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
@@ -26,8 +27,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
         public VSTypeScriptGoToDefinitionServiceFactory(IVSTypeScriptGoToDefinitionServiceFactoryImplementation impl)
             => _impl = impl;
 
-        public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-            => new ServiceWrapper(_impl.CreateLanguageService(languageServices));
+        public ILanguageService? CreateLanguageService(HostLanguageServices languageServices)
+        {
+            var service = _impl.CreateLanguageService(languageServices);
+            return (service != null) ? new ServiceWrapper(service) : null;
+        }
 
         private sealed class ServiceWrapper : IGoToDefinitionService
         {

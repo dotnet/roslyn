@@ -209,7 +209,7 @@ class C
   }
 }";
 
-            verifier = CompileAndVerify(source: source3, expectedOutput: "1", verify: Verification.Fails);
+            verifier = CompileAndVerify(source: source3, expectedOutput: "1", verify: Verification.FailsPEVerify);
             verifier = CompileAndVerify(source: source3, expectedOutput: "1", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
         }
 
@@ -268,7 +268,7 @@ class C
 ";
             foreach (string type in new[] { "int", "ushort", "byte", "long", "float", "decimal" })
             {
-                CompileAndVerify(source: source4.Replace("TYPE", type), expectedOutput: "0", verify: Verification.Fails);
+                CompileAndVerify(source: source4.Replace("TYPE", type), expectedOutput: "0", verify: Verification.FailsPEVerify);
                 CompileAndVerify(source: source4.Replace("TYPE", type), expectedOutput: "0", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
             }
         }
@@ -1191,6 +1191,7 @@ class C
                 { "/", "divide" },
                 { "%", "remainder" },
                 { ">>", "rshift" },
+                { ">>>", "urshift" },
                 { "<<", "lshift" },
                 { "&", "and" },
                 { "|", "or" },
@@ -1280,6 +1281,7 @@ class C
                 // UNDONE: so this test is disabled:
                 // UNDONE: Tuple.Create("-", enumSubtraction),
                 Tuple.Create(">>", shift1),
+                Tuple.Create(">>>", shift1),
                 Tuple.Create("<<", shift2),
                 Tuple.Create("&", logical1),
                 Tuple.Create("|", logical2),

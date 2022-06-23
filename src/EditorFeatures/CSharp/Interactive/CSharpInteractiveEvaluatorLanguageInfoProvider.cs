@@ -7,7 +7,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.CSharp.Scripting.Hosting;
-using Microsoft.CodeAnalysis.Editor.Interactive;
+using Microsoft.CodeAnalysis.Interactive;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
 {
@@ -51,5 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
 
         public override Type ReplServiceProviderType
             => typeof(CSharpReplServiceProvider);
+
+        public override string Extension => ".csx";
     }
 }

@@ -62,12 +62,6 @@ namespace Microsoft.CodeAnalysis.AddImport
                 _symbolSearchService = symbolSearchService;
                 _options = options;
                 _packageSources = packageSources;
-
-                if (options.SearchReferenceAssemblies || packageSources.Length > 0)
-                {
-                    Contract.ThrowIfNull(symbolSearchService);
-                }
-
                 _syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
                 _namespacesInScope = GetNamespacesInScope(cancellationToken);
@@ -351,9 +345,9 @@ namespace Microsoft.CodeAnalysis.AddImport
             private bool HasAccessibleStaticFieldOrProperty(INamedTypeSymbol namedType, string fieldOrPropertyName)
             {
                 return namedType.GetMembers(fieldOrPropertyName)
-                                .Any(m => (m is IFieldSymbol || m is IPropertySymbol) &&
+                                .Any(static (m, self) => (m is IFieldSymbol || m is IPropertySymbol) &&
                                           m.IsStatic &&
-                                          m.IsAccessibleWithin(_semanticModel.Compilation.Assembly));
+                                          m.IsAccessibleWithin(self._semanticModel.Compilation.Assembly), this);
             }
 
             /// <summary>

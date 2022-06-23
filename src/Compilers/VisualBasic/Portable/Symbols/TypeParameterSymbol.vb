@@ -420,6 +420,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return visitor.VisitTypeParameter(Me)
         End Function
 
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As SymbolVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitTypeParameter(Me, argument)
+        End Function
+
         Public Overrides Sub Accept(visitor As VisualBasicSymbolVisitor)
             visitor.VisitTypeParameter(Me)
         End Sub

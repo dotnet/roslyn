@@ -50,6 +50,8 @@ namespace Microsoft.CodeAnalysis.Classification
             ClassificationOptions options,
             CancellationToken cancellationToken);
 
+        string? GetSyntacticClassificationForIdentifier(SyntaxToken identifier);
+
         /// <inheritdoc cref="IClassificationService.AdjustStaleClassification"/>
         ClassifiedSpan FixClassification(SourceText text, ClassifiedSpan classifiedSpan);
 

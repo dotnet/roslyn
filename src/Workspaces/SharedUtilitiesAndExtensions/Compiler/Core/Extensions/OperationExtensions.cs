@@ -376,6 +376,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="operation">The starting operation.</param>
         /// <returns>The inner non conversion operation or the starting operation if it wasn't a conversion operation.</returns>
+        [return: NotNullIfNotNull("operation")]
         public static IOperation? WalkDownConversion(this IOperation? operation)
         {
             while (operation is IConversionOperation conversionOperation)

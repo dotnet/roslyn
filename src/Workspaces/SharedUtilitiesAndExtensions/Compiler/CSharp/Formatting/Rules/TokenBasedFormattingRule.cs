@@ -474,13 +474,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
 
-            // paramName!!
-            if (currentToken.IsKind(SyntaxKind.ExclamationExclamationToken) &&
-                currentToken.Parent.IsKind(SyntaxKind.Parameter))
-            {
-                return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
-            }
-
             // pointer case for regular pointers
             if (currentToken.Kind() == SyntaxKind.AsteriskToken && currentToken.Parent is PointerTypeSyntax)
             {

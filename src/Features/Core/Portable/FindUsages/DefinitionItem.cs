@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.MetadataAsSource;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Tags;
 using Roslyn.Utilities;
 
@@ -159,24 +160,19 @@ namespace Microsoft.CodeAnalysis.FindUsages
             }
         }
 
-        [Obsolete("Override CanNavigateToAsync instead", error: false)]
-        public abstract bool CanNavigateTo(Workspace workspace, CancellationToken cancellationToken);
-        [Obsolete("Override TryNavigateToAsync instead", error: false)]
-        public abstract bool TryNavigateTo(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken);
+        [Obsolete("Use GetNavigableLocationAsync instead")]
+        public Task<bool> TryNavigateToAsync(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
+            => TryNavigateToAsync(workspace, new NavigationOptions(showInPreviewTab, activateTab), cancellationToken);
 
-        public virtual Task<bool> CanNavigateToAsync(Workspace workspace, CancellationToken cancellationToken)
+        [Obsolete("Use GetNavigableLocationAsync instead")]
+        public async Task<bool> TryNavigateToAsync(Workspace workspace, NavigationOptions options, CancellationToken cancellationToken)
         {
-#pragma warning disable CS0618 // Type or member is obsolete
-            return Task.FromResult(CanNavigateTo(workspace, cancellationToken));
-#pragma warning restore CS0618 // Type or member is obsolete
+            var location = await GetNavigableLocationAsync(workspace, cancellationToken).ConfigureAwait(false);
+            return location != null &&
+                await location.NavigateToAsync(options, cancellationToken).ConfigureAwait(false);
         }
 
-        public virtual Task<bool> TryNavigateToAsync(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
-        {
-#pragma warning disable CS0618 // Type or member is obsolete
-            return Task.FromResult(TryNavigateTo(workspace, showInPreviewTab, activateTab, cancellationToken));
-#pragma warning restore CS0618 // Type or member is obsolete
-        }
+        public abstract Task<INavigableLocation?> GetNavigableLocationAsync(Workspace workspace, CancellationToken cancellationToken);
 
         public static DefinitionItem Create(
             ImmutableArray<string> tags,
@@ -325,5 +321,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
             return ImmutableArray<TaggedText>.Empty;
         }
+
+        public DetachedDefinitionItem Detach()
+            => new(Tags, DisplayParts, NameDisplayParts, OriginationParts, SourceSpans.SelectAsArray(ss => (DocumentIdSpan)ss), Properties, DisplayableProperties, DisplayIfNoReferences);
     }
 }

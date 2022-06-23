@@ -11,6 +11,7 @@ using System.Linq;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
@@ -2037,35 +2038,35 @@ outerDefault:
             // NB: OriginalDefinition, not ConstructedFrom.  Substitutions into containing symbols
             // must also be ignored for this tie-breaker.
 
-            var uninst1 = ArrayBuilder<TypeSymbol>.GetInstance();
-            var uninst2 = ArrayBuilder<TypeSymbol>.GetInstance();
-            var m1Original = m1.LeastOverriddenMember.OriginalDefinition.GetParameters();
-            var m2Original = m2.LeastOverriddenMember.OriginalDefinition.GetParameters();
-            for (i = 0; i < arguments.Count; ++i)
+            using (var uninst1 = TemporaryArray<TypeSymbol>.Empty)
+            using (var uninst2 = TemporaryArray<TypeSymbol>.Empty)
             {
-                // If these are both applicable varargs methods and we're looking at the __arglist argument
-                // then clearly neither of them is going to be better in this argument.
-                if (arguments[i].Kind == BoundKind.ArgListOperator)
+                var m1Original = m1.LeastOverriddenMember.OriginalDefinition.GetParameters();
+                var m2Original = m2.LeastOverriddenMember.OriginalDefinition.GetParameters();
+                for (i = 0; i < arguments.Count; ++i)
                 {
-                    Debug.Assert(i == arguments.Count - 1);
-                    Debug.Assert(m1.Member.GetIsVararg() && m2.Member.GetIsVararg());
-                    continue;
+                    // If these are both applicable varargs methods and we're looking at the __arglist argument
+                    // then clearly neither of them is going to be better in this argument.
+                    if (arguments[i].Kind == BoundKind.ArgListOperator)
+                    {
+                        Debug.Assert(i == arguments.Count - 1);
+                        Debug.Assert(m1.Member.GetIsVararg() && m2.Member.GetIsVararg());
+                        continue;
+                    }
+
+                    var parameter1 = GetParameter(i, m1.Result, m1Original);
+                    uninst1.Add(GetParameterType(parameter1, m1.Result));
+
+                    var parameter2 = GetParameter(i, m2.Result, m2Original);
+                    uninst2.Add(GetParameterType(parameter2, m2.Result));
                 }
 
-                var parameter1 = GetParameter(i, m1.Result, m1Original);
-                uninst1.Add(GetParameterType(parameter1, m1.Result));
+                result = MoreSpecificType(ref uninst1.AsRef(), ref uninst2.AsRef(), ref useSiteInfo);
 
-                var parameter2 = GetParameter(i, m2.Result, m2Original);
-                uninst2.Add(GetParameterType(parameter2, m2.Result));
-            }
-
-            result = MoreSpecificType(uninst1, uninst2, ref useSiteInfo);
-            uninst1.Free();
-            uninst2.Free();
-
-            if (result != BetterResult.Neither)
-            {
-                return result;
+                if (result != BetterResult.Neither)
+                {
+                    return result;
+                }
             }
 
             // UNDONE: Otherwise if one member is a non-lifted operator and the other is a lifted
@@ -2123,7 +2124,7 @@ outerDefault:
                 return false;
             }
 
-            return conversionsOpt.Any(c => c.Kind == ConversionKind.FunctionType);
+            return conversionsOpt.Any(static c => c.Kind == ConversionKind.FunctionType);
         }
 
         private static BetterResult PreferValOverInOrRefInterpolatedHandlerParameters<TMember>(
@@ -2223,7 +2224,7 @@ outerDefault:
             }
         }
 
-        private static BetterResult MoreSpecificType(ArrayBuilder<TypeSymbol> t1, ArrayBuilder<TypeSymbol> t2, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private static BetterResult MoreSpecificType(ref TemporaryArray<TypeSymbol> t1, ref TemporaryArray<TypeSymbol> t2, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(t1.Count == t2.Count);
 
@@ -2332,15 +2333,13 @@ outerDefault:
             // Task equivalents) have the same OriginalDefinition but we don't have a Compilation
             // here for NormalizeTaskTypes.
 
-            var allTypeArgs1 = ArrayBuilder<TypeSymbol>.GetInstance();
-            var allTypeArgs2 = ArrayBuilder<TypeSymbol>.GetInstance();
-            n1.GetAllTypeArguments(allTypeArgs1, ref useSiteInfo);
-            n2.GetAllTypeArguments(allTypeArgs2, ref useSiteInfo);
+            using var allTypeArgs1 = TemporaryArray<TypeSymbol>.Empty;
+            using var allTypeArgs2 = TemporaryArray<TypeSymbol>.Empty;
+            n1.GetAllTypeArguments(ref allTypeArgs1.AsRef(), ref useSiteInfo);
+            n2.GetAllTypeArguments(ref allTypeArgs2.AsRef(), ref useSiteInfo);
 
-            var result = MoreSpecificType(allTypeArgs1, allTypeArgs2, ref useSiteInfo);
+            var result = MoreSpecificType(ref allTypeArgs1.AsRef(), ref allTypeArgs2.AsRef(), ref useSiteInfo);
 
-            allTypeArgs1.Free();
-            allTypeArgs2.Free();
             return result;
         }
 
@@ -2691,6 +2690,7 @@ outerDefault:
 
         private const int BetterConversionTargetRecursionLimit = 100;
 
+#if DEBUG
         private BetterResult BetterConversionTarget(
             TypeSymbol type1,
             TypeSymbol type2,
@@ -2699,6 +2699,7 @@ outerDefault:
             bool okToDowngradeToNeither;
             return BetterConversionTargetCore(null, type1, default(Conversion), type2, default(Conversion), ref useSiteInfo, out okToDowngradeToNeither, BetterConversionTargetRecursionLimit);
         }
+#endif
 
         private BetterResult BetterConversionTargetCore(
             TypeSymbol type1,
@@ -3033,7 +3034,7 @@ outerDefault:
                 case SpecialType.System_Int16:
                 case SpecialType.System_Int32:
                 case SpecialType.System_Int64:
-                case SpecialType.System_IntPtr:
+                case SpecialType.System_IntPtr when type.IsNativeIntegerType:
                     return true;
 
                 default:
@@ -3054,7 +3055,7 @@ outerDefault:
                 case SpecialType.System_UInt16:
                 case SpecialType.System_UInt32:
                 case SpecialType.System_UInt64:
-                case SpecialType.System_UIntPtr:
+                case SpecialType.System_UIntPtr when type.IsNativeIntegerType:
                     return true;
 
                 default:

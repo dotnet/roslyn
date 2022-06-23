@@ -8,6 +8,7 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
@@ -689,6 +690,30 @@ public class C
             {
                 await VerifyItemExistsAsync(markup, "context1", glyph: (int)Glyph.Parameter);
             }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(36248, "https://github.com/dotnet/roslyn/issues/36248")]
+        public async Task Parameter13()
+        {
+            using var workspaceFixture = GetOrCreateWorkspaceFixture();
+
+            var workspace = workspaceFixture.Target.GetWorkspace(ExportProvider);
+
+            var options = new CompletionOptions()
+            {
+                NamingStyleFallbackOptions = ParameterCamelCaseWithPascalCaseFallback()
+            };
+
+            var markup = @"
+using System.Threading;
+public class C
+{
+    void Goo(CancellationToken $$
+}
+";
+            await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter, options: options);
+            await VerifyItemIsAbsentAsync(markup, "CancellationToken", options: options);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -2149,6 +2174,7 @@ public class Class1
         }
 
         [WorkItem(1220195, "https://developercommunity2.visualstudio.com/t/Regression-from-1675-Suggested-varia/1220195")]
+        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TypeIsNullableStructInLocalWithNullableTypeName()
         {
@@ -2165,10 +2191,11 @@ public class Class1
   }
 }
 ";
-            await VerifyItemExistsAsync(markup, "vs");
+            await VerifyItemExistsAsync(markup, "ints");
         }
 
         [WorkItem(1220195, "https://developercommunity2.visualstudio.com/t/Regression-from-1675-Suggested-varia/1220195")]
+        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TypeIsNullableStructInLocalWithQuestionMark()
         {
@@ -2185,10 +2212,11 @@ public class Class1
   }
 }
 ";
-            await VerifyItemExistsAsync(markup, "vs");
+            await VerifyItemExistsAsync(markup, "ints");
         }
 
         [WorkItem(1220195, "https://developercommunity2.visualstudio.com/t/Regression-from-1675-Suggested-varia/1220195")]
+        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TypeIsNullableReferenceInLocal()
         {
@@ -2205,10 +2233,11 @@ public class Class1
   }
 }
 ";
-            await VerifyItemExistsAsync(markup, "vs");
+            await VerifyItemExistsAsync(markup, "ints");
         }
 
         [WorkItem(1220195, "https://developercommunity2.visualstudio.com/t/Regression-from-1675-Suggested-varia/1220195")]
+        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TypeIsNullableStructInParameterWithNullableTypeName()
         {
@@ -2224,10 +2253,11 @@ public class Class1
   }
 }
 ";
-            await VerifyItemExistsAsync(markup, "vs");
+            await VerifyItemExistsAsync(markup, "ints");
         }
 
         [WorkItem(1220195, "https://developercommunity2.visualstudio.com/t/Regression-from-1675-Suggested-varia/1220195")]
+        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TypeIsNullableStructInParameterWithQuestionMark()
         {
@@ -2241,10 +2271,11 @@ public class Class1
   }
 }
 ";
-            await VerifyItemExistsAsync(markup, "vs");
+            await VerifyItemExistsAsync(markup, "ints");
         }
 
         [WorkItem(1220195, "https://developercommunity2.visualstudio.com/t/Regression-from-1675-Suggested-varia/1220195")]
+        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TypeIsNullableReferenceInParameter()
         {
@@ -2260,7 +2291,126 @@ public class Class1
   }
 }
 ";
-            await VerifyItemExistsAsync(markup, "vs");
+            await VerifyItemExistsAsync(markup, "ints");
+        }
+
+        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task EnumerableParameterOfUnmanagedType()
+        {
+            var markup = @"
+using System.Collections.Generic;
+
+public class Class1
+{
+  public void Method(IEnumerable<int> $$)
+  {
+  }
+}
+";
+            await VerifyItemExistsAsync(markup, "ints");
+        }
+
+        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task EnumerableParameterOfObject()
+        {
+            var markup = @"
+using System.Collections.Generic;
+
+public class Class1
+{
+  public void Method(IEnumerable<object> $$)
+  {
+  }
+}
+";
+            await VerifyItemExistsAsync(markup, "objects");
+        }
+
+        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task EnumerableParameterOfString()
+        {
+            var markup = @"
+using System.Collections.Generic;
+
+public class Class1
+{
+  public void Method(IEnumerable<string> $$)
+  {
+  }
+}
+";
+            await VerifyItemExistsAsync(markup, "strings");
+        }
+
+        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task EnumerableGenericTParameter()
+        {
+            var markup = @"
+using System.Collections.Generic;
+
+public class Class1
+{
+  public void Method<T>(IEnumerable<T> $$)
+  {
+  }
+}
+";
+            await VerifyItemExistsAsync(markup, "values");
+        }
+
+        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task EnumerableGenericTNameParameter()
+        {
+            var markup = @"
+using System.Collections.Generic;
+
+public class Class1
+{
+  public void Method<TResult>(IEnumerable<TResult> $$)
+  {
+  }
+}
+";
+            await VerifyItemExistsAsync(markup, "results");
+        }
+
+        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task EnumerableGenericUnexpectedlyNamedParameter()
+        {
+            var markup = @"
+using System.Collections.Generic;
+
+public class Class1
+{
+  public void Method<Arg>(IEnumerable<Arg> $$)
+  {
+  }
+}
+";
+            await VerifyItemExistsAsync(markup, "args");
+        }
+
+        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task EnumerableGenericUnexpectedlyNamedParameterBeginsWithT()
+        {
+            var markup = @"
+using System.Collections.Generic;
+
+public class Class1
+{
+  public void Method<Type>(IEnumerable<Type> $$)
+  {
+  }
+}
+";
+            await VerifyItemExistsAsync(markup, "types");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -2269,9 +2419,11 @@ public class Class1
             using var workspaceFixture = GetOrCreateWorkspaceFixture();
 
             var workspace = workspaceFixture.Target.GetWorkspace(ExportProvider);
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options.WithChangedOption(
-                new OptionKey2(NamingStyleOptions.NamingPreferences, LanguageNames.CSharp),
-                NamesEndWithSuffixPreferences())));
+
+            var options = new CompletionOptions()
+            {
+                NamingStyleFallbackOptions = NamesEndWithSuffixPreferences()
+            };
 
             var markup = @"
 class Configuration
@@ -2280,13 +2432,13 @@ class Configuration
 }
 ";
             await VerifyItemExistsAsync(markup, "ConfigurationField", glyph: (int)Glyph.FieldPublic,
-                expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+                expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name, options: options);
             await VerifyItemExistsAsync(markup, "ConfigurationProperty", glyph: (int)Glyph.PropertyPublic,
-                expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+                expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name, options: options);
             await VerifyItemExistsAsync(markup, "ConfigurationMethod", glyph: (int)Glyph.MethodPublic,
-                expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
-            await VerifyItemIsAbsentAsync(markup, "ConfigurationLocal");
-            await VerifyItemIsAbsentAsync(markup, "ConfigurationLocalFunction");
+                expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name, options: options);
+            await VerifyItemIsAbsentAsync(markup, "ConfigurationLocal", options: options);
+            await VerifyItemIsAbsentAsync(markup, "ConfigurationLocalFunction", options: options);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -2295,9 +2447,11 @@ class Configuration
             using var workspaceFixture = GetOrCreateWorkspaceFixture();
 
             var workspace = workspaceFixture.Target.GetWorkspace(ExportProvider);
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options.WithChangedOption(
-                new OptionKey2(NamingStyleOptions.NamingPreferences, LanguageNames.CSharp),
-                NamesEndWithSuffixPreferences())));
+
+            var options = new CompletionOptions()
+            {
+                NamingStyleFallbackOptions = NamesEndWithSuffixPreferences()
+            };
 
             var markup = @"
 class Configuration
@@ -2309,12 +2463,12 @@ class Configuration
 }
 ";
             await VerifyItemExistsAsync(markup, "ConfigurationLocal", glyph: (int)Glyph.Local,
-                expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+                expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name, options: options);
             await VerifyItemExistsAsync(markup, "ConfigurationLocalFunction", glyph: (int)Glyph.MethodPublic,
-                expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
-            await VerifyItemIsAbsentAsync(markup, "ConfigurationField");
-            await VerifyItemIsAbsentAsync(markup, "ConfigurationMethod");
-            await VerifyItemIsAbsentAsync(markup, "ConfigurationProperty");
+                expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name, options: options);
+            await VerifyItemIsAbsentAsync(markup, "ConfigurationField", options: options);
+            await VerifyItemIsAbsentAsync(markup, "ConfigurationMethod", options: options);
+            await VerifyItemIsAbsentAsync(markup, "ConfigurationProperty", options: options);
         }
 
         [WorkItem(31304, "https://github.com/dotnet/roslyn/issues/31304")]
@@ -2707,15 +2861,31 @@ class ClassA
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestNotForUnboundAsync()
+        {
+            var markup = @"
+class C
+{
+    async $$
+}
+";
+            await VerifyItemIsAbsentAsync(markup, "async");
+            await VerifyItemIsAbsentAsync(markup, "Async");
+            await VerifyItemIsAbsentAsync(markup, "GetAsync");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(43816, "https://github.com/dotnet/roslyn/pull/43816")]
         public async Task ConflictingLocalVariable()
         {
             using var workspaceFixture = GetOrCreateWorkspaceFixture();
 
             var workspace = workspaceFixture.Target.GetWorkspace(ExportProvider);
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options.WithChangedOption(
-                new OptionKey2(NamingStyleOptions.NamingPreferences, LanguageNames.CSharp),
-                MultipleCamelCaseLocalRules())));
+
+            var options = new CompletionOptions()
+            {
+                NamingStyleFallbackOptions = MultipleCamelCaseLocalRules()
+            };
 
             var markup = @"
 public class MyClass
@@ -2727,7 +2897,7 @@ public class MyClass
     }
 }
 ";
-            await VerifyItemExistsAsync(markup, "myClass1", glyph: (int)Glyph.Local);
+            await VerifyItemExistsAsync(markup, "myClass1", glyph: (int)Glyph.Local, options: options);
         }
 
         private static NamingStylePreferences MultipleCamelCaseLocalRules()
@@ -2748,8 +2918,8 @@ public class MyClass
             static (SymbolSpecification specification, NamingStyle style) SpecificationStyle(SymbolKindOrTypeKind kind, string name)
             {
                 var symbolSpecification = new SymbolSpecification(
-                    id: null,
-                    symbolSpecName: name,
+                    Guid.NewGuid(),
+                    name,
                     ImmutableArray.Create(kind));
 
                 var namingStyle = new NamingStyle(
@@ -2782,8 +2952,8 @@ public class MyClass
             static (SymbolSpecification specification, NamingStyle style) SpecificationStyle(SymbolKindOrTypeKind kind, string suffix)
             {
                 var symbolSpecification = new SymbolSpecification(
-                    id: null,
-                    symbolSpecName: suffix,
+                    Guid.NewGuid(),
+                    name: suffix,
                     ImmutableArray.Create(kind),
                     accessibilityList: default,
                     modifiers: default);
@@ -2798,6 +2968,44 @@ public class MyClass
 
                 return (symbolSpecification, namingStyle);
             }
+        }
+
+        private static NamingStylePreferences ParameterCamelCaseWithPascalCaseFallback()
+        {
+            var symbolSpecifications = ImmutableArray.Create(
+                new SymbolSpecification(
+                    id: Guid.NewGuid(),
+                    name: "parameters",
+                    ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Parameter)),
+                    accessibilityList: default,
+                    modifiers: default),
+                new SymbolSpecification(
+                    id: Guid.NewGuid(),
+                    name: "fallback",
+                    ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Parameter), new SymbolKindOrTypeKind(SymbolKind.Local)),
+                    accessibilityList: default,
+                    modifiers: default));
+            var namingStyles = ImmutableArray.Create(
+                new NamingStyle(
+                    Guid.NewGuid(),
+                    name: "parameter",
+                    capitalizationScheme: Capitalization.CamelCase,
+                    prefix: "",
+                    suffix: "",
+                    wordSeparator: ""),
+                new NamingStyle(
+                    Guid.NewGuid(),
+                    name: "any_symbol",
+                    capitalizationScheme: Capitalization.PascalCase,
+                    prefix: "",
+                    suffix: "",
+                    wordSeparator: ""));
+            return new NamingStylePreferences(
+                symbolSpecifications,
+                namingStyles,
+                namingRules: ImmutableArray.Create(
+                    CreateRule(symbolSpecifications[0], namingStyles[0]),
+                    CreateRule(symbolSpecifications[1], namingStyles[1])));
         }
 
         private static SerializableNamingRule CreateRule(SymbolSpecification specification, NamingStyle style)

@@ -2,11 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching;
+using Microsoft.CodeAnalysis.BraceMatching;
+using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.BraceMatching
@@ -16,7 +18,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BraceMatching
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpEmbeddedLanguageBraceMatcher()
+        public CSharpEmbeddedLanguageBraceMatcher(
+            [ImportMany] IEnumerable<Lazy<IEmbeddedLanguageBraceMatcher, EmbeddedLanguageMetadata>> services)
+            : base(LanguageNames.CSharp, CSharpEmbeddedLanguagesProvider.Info, CSharpSyntaxKinds.Instance, services)
         {
         }
     }

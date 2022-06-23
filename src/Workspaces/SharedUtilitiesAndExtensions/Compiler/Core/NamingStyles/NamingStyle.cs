@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -19,18 +20,34 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NamingStyles
 {
-    internal partial struct NamingStyle : IEquatable<NamingStyle>, IObjectWritable
+    [DataContract]
+    internal readonly partial record struct NamingStyle : IObjectWritable
     {
-        public Guid ID { get; }
-        public string Name { get; }
-        public string Prefix { get; }
-        public string Suffix { get; }
-        public string WordSeparator { get; }
-        public Capitalization CapitalizationScheme { get; }
+        [DataMember(Order = 0)]
+        public Guid ID { get; init; }
+
+        [DataMember(Order = 1)]
+        public string Name { get; init; }
+
+        [DataMember(Order = 2)]
+        public string Prefix { get; init; }
+
+        [DataMember(Order = 3)]
+        public string Suffix { get; init; }
+
+        [DataMember(Order = 4)]
+        public string WordSeparator { get; init; }
+
+        [DataMember(Order = 5)]
+        public Capitalization CapitalizationScheme { get; init; }
 
         public NamingStyle(
-            Guid id, string name = null, string prefix = null, string suffix = null,
-            string wordSeparator = null, Capitalization capitalizationScheme = Capitalization.PascalCase) : this()
+            Guid id,
+            string name = null,
+            string prefix = null,
+            string suffix = null,
+            string wordSeparator = null,
+            Capitalization capitalizationScheme = Capitalization.PascalCase)
         {
             ID = id;
             Name = name;
@@ -38,58 +55,6 @@ namespace Microsoft.CodeAnalysis.NamingStyles
             Suffix = suffix ?? "";
             WordSeparator = wordSeparator ?? "";
             CapitalizationScheme = capitalizationScheme;
-        }
-
-        public NamingStyle With(
-          Optional<string> name = default,
-          Optional<string> prefix = default,
-          Optional<string> suffix = default,
-          Optional<string> wordSeparator = default,
-          Optional<Capitalization> capitalizationScheme = default)
-        {
-            var newName = name.HasValue ? name.Value : this.Name;
-            var newPrefix = prefix.HasValue ? prefix.Value : this.Prefix;
-            var newSuffix = suffix.HasValue ? suffix.Value : this.Suffix;
-            var newWordSeparator = wordSeparator.HasValue ? wordSeparator.Value : this.WordSeparator;
-            var newCapitalizationScheme = capitalizationScheme.HasValue ? capitalizationScheme.Value : this.CapitalizationScheme;
-
-            if (newName == this.Name &&
-                newPrefix == this.Prefix &&
-                newSuffix == this.Suffix &&
-                newWordSeparator == this.WordSeparator &&
-                newCapitalizationScheme == this.CapitalizationScheme)
-            {
-                return this;
-            }
-
-            return new NamingStyle(this.ID,
-                newName, newPrefix, newSuffix, newWordSeparator, newCapitalizationScheme);
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj is NamingStyle other
-                && Equals(other);
-        }
-
-        public bool Equals(NamingStyle other)
-        {
-            return ID == other.ID
-                && Name == other.Name
-                && Prefix == other.Prefix
-                && Suffix == other.Suffix
-                && WordSeparator == other.WordSeparator
-                && CapitalizationScheme == other.CapitalizationScheme;
-        }
-
-        public override int GetHashCode()
-        {
-            return Hash.Combine(ID.GetHashCode(),
-                Hash.Combine(Name?.GetHashCode() ?? 0,
-                    Hash.Combine(Prefix?.GetHashCode() ?? 0,
-                        Hash.Combine(Suffix?.GetHashCode() ?? 0,
-                            Hash.Combine(WordSeparator?.GetHashCode() ?? 0,
-                                (int)CapitalizationScheme)))));
         }
 
         public string CreateName(ImmutableArray<string> words)

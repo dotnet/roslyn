@@ -1233,5 +1233,31 @@ class C
                 FixedCode = fixedSource,
             }.RunAsync();
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        [WorkItem(49347, "https://github.com/dotnet/roslyn/issues/49347")]
+        public async Task TestNotInExpressionTree()
+        {
+            var source =
+@"
+using System;
+using System.Linq.Expressions;
+
+class C
+{
+    void M()
+    {
+        Expression<Func<string, int, string>> e = (s, i) => s.Substring(i);
+    }
+}
+";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = source,
+            }.RunAsync();
+        }
     }
 }

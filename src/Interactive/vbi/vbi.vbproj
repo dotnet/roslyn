@@ -6,6 +6,7 @@
     <OutputType>Exe</OutputType>
     <StartupObject>Sub Main</StartupObject>
     <TargetFrameworks>net6.0;net472</TargetFrameworks>
+    <UseAppHost Condition="'$(DotNetBuildFromSource)' == 'true'">false</UseAppHost>
     <RootNamespace></RootNamespace>
   </PropertyGroup>
   <ItemGroup Label="Project References">
@@ -27,9 +28,6 @@
       <Link>vbi.rsp</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Scripting.Desktop.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="My Project\" />

@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             var bracePair = node.GetBracePair();
 
             // don't put block indentation operation if the block only contains lambda expression body block
-            if (node.IsLambdaBodyBlock() || !bracePair.IsValidBracePair())
+            if (node.IsLambdaBodyBlock() || !bracePair.IsValidBracketOrBracePair())
             {
                 return;
             }

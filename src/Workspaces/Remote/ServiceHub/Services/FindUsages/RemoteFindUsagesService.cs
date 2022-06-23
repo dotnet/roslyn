@@ -7,7 +7,6 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -31,15 +30,14 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public ValueTask FindReferencesAsync(
-            PinnedSolutionInfo solutionInfo,
+            Checksum solutionChecksum,
             RemoteServiceCallbackId callbackId,
             SerializableSymbolAndProjectId symbolAndProjectId,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async cancellationToken =>
+            return RunServiceAsync(solutionChecksum, async solution =>
             {
-                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
                 var project = solution.GetProject(symbolAndProjectId.ProjectId);
 
                 var symbol = await symbolAndProjectId.TryRehydrateAsync(
@@ -55,14 +53,13 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public ValueTask FindImplementationsAsync(
-            PinnedSolutionInfo solutionInfo,
+            Checksum solutionChecksum,
             RemoteServiceCallbackId callbackId,
             SerializableSymbolAndProjectId symbolAndProjectId,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async cancellationToken =>
+            return RunServiceAsync(solutionChecksum, async solution =>
             {
-                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
                 var project = solution.GetProject(symbolAndProjectId.ProjectId);
 
                 var symbol = await symbolAndProjectId.TryRehydrateAsync(

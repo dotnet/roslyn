@@ -3,11 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
+using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -20,6 +22,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
     /// </summary>
     internal class JsonLanguageDetector : AbstractLanguageDetector<JsonOptions, JsonTree>
     {
+        public static readonly ImmutableArray<string> LanguageIdentifiers = ImmutableArray.Create("Json");
+
         private const string JsonParameterName = "json";
         private const string ParseMethodName = "Parse";
 
@@ -35,17 +39,10 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
 
         private readonly ISet<INamedTypeSymbol> _typesOfInterest;
 
-        /// <summary>
-        /// Helps match patterns of the form: language=json
-        /// 
-        /// All matching is case insensitive, with spaces allowed between the punctuation.
-        /// </summary>
-        private static readonly LanguageCommentDetector<JsonOptions> s_languageCommentDetector = new("json");
-
         public JsonLanguageDetector(
             EmbeddedLanguageInfo info,
             ISet<INamedTypeSymbol> typesOfInterest)
-            : base("Json", info, s_languageCommentDetector)
+            : base(info, LanguageIdentifiers)
         {
             _typesOfInterest = typesOfInterest;
         }
@@ -63,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
         private static JsonLanguageDetector Create(
             Compilation compilation, EmbeddedLanguageInfo info)
         {
-            var types = s_typeNamesOfInterest.Select(t => compilation.GetTypeByMetadataName(t)).WhereNotNull().ToSet();
+            var types = s_typeNamesOfInterest.Select(compilation.GetTypeByMetadataName).WhereNotNull().ToSet();
             return new JsonLanguageDetector(info, types);
         }
 
@@ -76,6 +73,62 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
 
         protected override JsonTree? TryParse(VirtualCharSequence chars, JsonOptions options)
             => JsonParser.TryParse(chars, options);
+
+        /// <inheritdoc cref="TryParseString(SyntaxToken, SemanticModel, bool, CancellationToken)"/>
+        /// <summary>
+        /// If <paramref name="includeProbableStrings"/> is true, then this will also succeed on a string-literal like
+        /// <paramref name="token"/> that strongly appears to have JSON in it.  This allows some features to light up
+        /// automatically on code that is strongly believed to be JSON, but which is not passed to a known JSON api,
+        /// and does not have a comment on it stating it is JSON.
+        /// </summary>
+        public JsonTree? TryParseString(SyntaxToken token, SemanticModel semanticModel, bool includeProbableStrings, CancellationToken cancellationToken)
+        {
+            var result = TryParseString(token, semanticModel, cancellationToken);
+            if (result != null)
+                return result;
+
+            if (includeProbableStrings && IsProbablyJson(token, out var tree))
+                return tree;
+
+            return null;
+        }
+
+        /// <summary>
+        /// Returns <see langword="true"/> if this string-like <paramref name="token"/> is likely a JSON literal.  As
+        /// many simple strings are legal JSON (like <c>0</c>) we require enough structure here to feel confident that
+        /// this truly is JSON.  Currently, this means it must have at least one <c>{ ... }</c> object literal, and that
+        /// literal must have at least one <c>"prop": val</c> property in it.
+        /// </summary>
+        public bool IsProbablyJson(SyntaxToken token, [NotNullWhen(true)] out JsonTree? tree)
+        {
+            var chars = this.Info.VirtualCharService.TryConvertToVirtualChars(token);
+            tree = JsonParser.TryParse(chars, JsonOptions.Loose);
+            if (tree == null || !tree.Diagnostics.IsEmpty)
+                return false;
+
+            return ContainsProbableJsonObject(tree.Root);
+        }
+
+        private static bool ContainsProbableJsonObject(JsonNode node)
+        {
+            if (node.Kind == JsonKind.Object)
+            {
+                var objNode = (JsonObjectNode)node;
+                if (objNode.Sequence.Length >= 1)
+                    return true;
+            }
+
+            foreach (var child in node)
+            {
+                if (child.IsNode)
+                {
+                    if (ContainsProbableJsonObject(child.Node))
+                        return true;
+                }
+            }
+
+            return false;
+        }
 
         protected override bool IsArgumentToWellKnownAPI(
             SyntaxToken token,
@@ -129,9 +182,9 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
                 syntaxFacts.IsImplicitObjectCreationExpression(expr))
             {
                 syntaxFacts.GetPartsOfBaseObjectCreationExpression(expr, out var argumentList, out var objectInitializer);
-                if (objectInitializer != null)
+                if (syntaxFacts.IsObjectMemberInitializer(objectInitializer))
                 {
-                    var initializers = syntaxFacts.GetMemberInitializersOfInitializer(objectInitializer);
+                    var initializers = syntaxFacts.GetInitializersOfObjectMemberInitializer(objectInitializer);
                     foreach (var initializer in initializers)
                     {
                         if (syntaxFacts.IsNamedMemberInitializer(initializer))
@@ -159,14 +212,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
         private bool IsArgumentToSuitableParameter(
             SemanticModel semanticModel, SyntaxNode argumentNode, CancellationToken cancellationToken)
         {
-            var parameter = Info.SemanticFacts.FindParameterForArgument(semanticModel, argumentNode, cancellationToken);
+            var parameter = Info.SemanticFacts.FindParameterForArgument(semanticModel, argumentNode, allowUncertainCandidates: true, cancellationToken);
             return parameter?.Name == JsonParameterName;
-        }
-
-        internal static class TestAccessor
-        {
-            public static bool TryMatch(string text, out JsonOptions options)
-                => s_languageCommentDetector.TryMatch(text, out options);
         }
     }
 }
