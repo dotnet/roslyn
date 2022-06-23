@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis
             return sourceBuilder.ToImmutableAndFree();
         }
 
-        public Builder ToBuilder(string? stepName, bool stepTrackingEnabled, IEqualityComparer<T>? equalityComparer)
+        public Builder ToBuilder(string? stepName, bool stepTrackingEnabled, IEqualityComparer<T>? equalityComparer = null)
         {
             return new Builder(this, stepName, stepTrackingEnabled, equalityComparer);
         }
