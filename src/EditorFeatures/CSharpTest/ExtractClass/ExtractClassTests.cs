@@ -539,6 +539,102 @@ class Test : MyBase
         }
 
         [Fact]
+        public async Task TestFieldSelectInKeywords()
+        {
+            var input = @"
+class Test
+{
+    priva[||]te int MyField;
+}";
+
+            var expected1 = @"
+class Test : MyBase
+{
+}";
+            var expected2 = @"internal class MyBase
+{
+    private int MyField;
+}";
+
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2
+                    }
+                }
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestFieldSelectAfterSemicolon()
+        {
+            var input = @"
+class Test
+{
+    private int MyField;[||]
+}";
+
+            var expected1 = @"
+class Test : MyBase
+{
+}";
+            var expected2 = @"internal class MyBase
+{
+    private int MyField;
+}";
+
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2
+                    }
+                }
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestFieldSelectEntireDeclaration()
+        {
+            var input = @"
+class Test
+{
+    [|private int MyField;|]
+}";
+
+            var expected1 = @"
+class Test : MyBase
+{
+}";
+            var expected2 = @"internal class MyBase
+{
+    private int MyField;
+}";
+
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2
+                    }
+                }
+            }.RunAsync();
+        }
+
+        [Fact]
         public async Task TestFileHeader_FromExistingFile()
         {
             var input = @"// this is my document header

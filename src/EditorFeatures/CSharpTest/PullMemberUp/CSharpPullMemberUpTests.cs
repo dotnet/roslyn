@@ -5897,6 +5897,153 @@ namespace PushUpTest
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
+        [Fact]
+        public async Task TestRefactoringSelectionFieldKeyword()
+        {
+            var text = @"
+public class BaseClass
+{
+}
+
+public class Bar : BaseClass
+{
+    pub[||]lic int Goo = 10;
+}";
+            var expected = @"
+public class BaseClass
+{
+    public int Goo = 10;
+}
+
+public class Bar : BaseClass
+{
+}";
+            await TestWithPullMemberDialogAsync(text, expected);
+        }
+
+        [Fact]
+        public async Task TestRefactoringSelectionFieldAfterSemicolon()
+        {
+            var text = @"
+public class BaseClass
+{
+}
+
+public class Bar : BaseClass
+{
+    public int Goo = 10;[||]
+}";
+            var expected = @"
+public class BaseClass
+{
+    public int Goo = 10;
+}
+
+public class Bar : BaseClass
+{
+}";
+            await TestWithPullMemberDialogAsync(text, expected);
+        }
+
+        [Fact]
+        public async Task TestRefactoringSelectionFieldEntireDeclaration()
+        {
+            var text = @"
+public class BaseClass
+{
+}
+
+public class Bar : BaseClass
+{
+    [|public int Goo = 10;|]
+}";
+            var expected = @"
+public class BaseClass
+{
+    public int Goo = 10;
+}
+
+public class Bar : BaseClass
+{
+}";
+            await TestWithPullMemberDialogAsync(text, expected);
+        }
+
+        [Fact]
+        public async Task TestRefactoringSelectionMultipleFieldsInDeclaration1()
+        {
+            var text = @"
+public class BaseClass
+{
+}
+
+public class Bar : BaseClass
+{
+    [|public int Goo = 10, Foo = 9;|]
+}";
+            var expected = @"
+public class BaseClass
+{
+    public int Goo = 10;
+}
+
+public class Bar : BaseClass
+{
+    public int Foo = 9;
+}";
+            await TestWithPullMemberDialogAsync(text, expected);
+        }
+
+        [Fact]
+        public async Task TestRefactoringSelectionMultipleFieldsInDeclaration2()
+        {
+            var text = @"
+public class BaseClass
+{
+}
+
+public class Bar : BaseClass
+{
+    public int Go[||]o = 10, Foo = 9;
+}";
+            var expected = @"
+public class BaseClass
+{
+    public int Goo = 10;
+}
+
+public class Bar : BaseClass
+{
+    public int Foo = 9;
+}";
+            await TestWithPullMemberDialogAsync(text, expected);
+        }
+
+        [Fact]
+        public async Task TestRefactoringSelectionMultipleFieldsInDeclaration3()
+        {
+            var text = @"
+public class BaseClass
+{
+}
+
+public class Bar : BaseClass
+{
+    public int Goo = 10, [||]Foo = 9;
+}";
+            var expected = @"
+public class BaseClass
+{
+    public int Foo = 9;
+}
+
+public class Bar : BaseClass
+{
+    public int Goo = 10;
+}";
+            await TestWithPullMemberDialogAsync(text, expected);
+        }
+
         #endregion
     }
 }
