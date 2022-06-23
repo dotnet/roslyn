@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis
             HasTrackedSteps = hasTrackedSteps;
         }
 
-        public int Count { get => _states.Length; }
+        public int Count => _states.Length;
 
         /// <summary>
         /// Indicates if every entry in this table has a state of <see cref="EntryState.Cached"/>
@@ -163,7 +163,10 @@ namespace Microsoft.CodeAnalysis
 
         public sealed class Builder
         {
-            private readonly ArrayBuilder<TableEntry> _states;
+            /// <summary>
+            /// Only mutate this field from within <see cref="AddState(TableEntry)"/>.
+            /// </summary>
+            private readonly ArrayBuilder<TableEntry> _states_doNotMutateDirectly;
             private readonly NodeStateTable<T> _previous;
 
             private readonly string? _name;
@@ -172,9 +175,11 @@ namespace Microsoft.CodeAnalysis
             [MemberNotNullWhen(true, nameof(_steps))]
             public bool TrackIncrementalSteps => _steps is not null;
 
+            private bool _unchangedFromPrevious = true;
+
             internal Builder(NodeStateTable<T> previous, string? name, bool stepTrackingEnabled)
             {
-                _states = ArrayBuilder<TableEntry>.GetInstance();
+                _states_doNotMutateDirectly = ArrayBuilder<TableEntry>.GetInstance(previous.Count);
                 _previous = previous;
                 _name = name;
                 if (stepTrackingEnabled)
@@ -183,17 +188,29 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
+            private void AddState(TableEntry entry)
+            {
+                var currentindex = _states_doNotMutateDirectly.Count;
+                _states_doNotMutateDirectly.Add(entry);
+
+                if (_unchangedFromPrevious && currentindex < _previous._states.Length)
+                {
+                    var previousEntry = _previous._states[currentindex];
+                    _unchangedFromPrevious = entry.Matches(previousEntry);
+                }
+            }
+
             public bool TryRemoveEntries(TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs)
             {
-                if (_previous._states.Length <= _states.Count)
+                if (_previous._states.Length <= _states_doNotMutateDirectly.Count)
                 {
                     // The previous table had less node executions than this one, so we don't have any entries from a previous corresponding node execution to remove.
                     return false;
                 }
 
                 // Mark the corresponding entries to this node execution in the previous table as removed.
-                var previousEntries = _previous._states[_states.Count].AsRemoved();
-                _states.Add(previousEntries);
+                var previousEntries = _previous._states[_states_doNotMutateDirectly.Count].AsRemoved();
+                AddState(previousEntries);
                 RecordStepInfoForLastEntry(elapsedTime, stepInputs, EntryState.Removed);
                 return true;
             }
@@ -206,22 +223,22 @@ namespace Microsoft.CodeAnalysis
                     return false;
                 }
 
-                entries = _states[^1].ToImmutableArray();
+                entries = _states_doNotMutateDirectly[^1].ToImmutableArray();
                 return true;
             }
 
             public bool TryUseCachedEntries(TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs)
             {
-                if (_previous._states.Length <= _states.Count)
+                if (_previous._states.Length <= _states_doNotMutateDirectly.Count)
                 {
                     // The previous table had less node executions than this one, so we don't have any entries from a previous corresponding node execution to copy as cached.
                     return false;
                 }
 
-                var previousEntries = _previous._states[_states.Count];
+                var previousEntries = _previous._states[_states_doNotMutateDirectly.Count];
                 Debug.Assert(previousEntries.IsCached);
 
-                _states.Add(previousEntries);
+                AddState(previousEntries);
                 RecordStepInfoForLastEntry(elapsedTime, stepInputs, EntryState.Cached);
                 return true;
             }
@@ -234,28 +251,28 @@ namespace Microsoft.CodeAnalysis
                     return false;
                 }
 
-                entries = _states[^1].ToImmutableArray();
+                entries = _states_doNotMutateDirectly[^1].ToImmutableArray();
                 return true;
             }
 
             public bool TryModifyEntry(T value, IEqualityComparer<T> comparer, TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, EntryState overallInputState)
             {
-                if (_previous._states.Length <= _states.Count)
+                if (_previous._states.Length <= _states_doNotMutateDirectly.Count)
                 {
                     // The previous table had less node executions than this one, so we don't have any entries from a previous corresponding node execution to try to modify.
                     return false;
                 }
 
-                Debug.Assert(_previous._states[_states.Count].Count == 1);
-                var (chosen, state) = GetModifiedItemAndState(_previous._states[_states.Count].GetItem(0), value, comparer);
-                _states.Add(new TableEntry(chosen, state));
+                Debug.Assert(_previous._states[_states_doNotMutateDirectly.Count].Count == 1);
+                var (chosen, state) = GetModifiedItemAndState(_previous._states[_states_doNotMutateDirectly.Count].GetItem(0), value, comparer);
+                AddState(new TableEntry(chosen, state));
                 RecordStepInfoForLastEntry(elapsedTime, stepInputs, overallInputState);
                 return true;
             }
 
             public bool TryModifyEntries(ImmutableArray<T> outputs, IEqualityComparer<T> comparer, TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, EntryState overallInputState)
             {
-                if (_previous._states.Length <= _states.Count)
+                if (_previous._states.Length <= _states_doNotMutateDirectly.Count)
                 {
                     return false;
                 }
@@ -267,12 +284,12 @@ namespace Microsoft.CodeAnalysis
                 // - Removed when old item position > outputs.length
                 // - Added when new item position < previousTable.length
 
-                var previousEntry = _previous._states[_states.Count];
+                var previousEntry = _previous._states[_states_doNotMutateDirectly.Count];
 
                 // when both entries have no items, we can short circuit
                 if (previousEntry.Count == 0 && outputs.Length == 0)
                 {
-                    _states.Add(previousEntry);
+                    AddState(previousEntry);
                     if (TrackIncrementalSteps)
                     {
                         RecordStepInfoForLastEntry(elapsedTime, stepInputs, EntryState.Cached);
@@ -305,20 +322,20 @@ namespace Microsoft.CodeAnalysis
                     modified.Add(outputs[i], EntryState.Added);
                 }
 
-                _states.Add(modified.ToImmutableAndFree());
+                AddState(modified.ToImmutableAndFree());
                 RecordStepInfoForLastEntry(elapsedTime, stepInputs, overallInputState);
                 return true;
             }
 
             public void AddEntry(T value, EntryState state, TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, EntryState overallInputState)
             {
-                _states.Add(new TableEntry(value, state));
+                AddState(new TableEntry(value, state));
                 RecordStepInfoForLastEntry(elapsedTime, stepInputs, overallInputState);
             }
 
             public void AddEntries(ImmutableArray<T> values, EntryState state, TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, EntryState overallInputState)
             {
-                _states.Add(new TableEntry(values, state));
+                AddState(new TableEntry(values, state));
                 RecordStepInfoForLastEntry(elapsedTime, stepInputs, overallInputState);
             }
 
@@ -328,9 +345,9 @@ namespace Microsoft.CodeAnalysis
                 if (TrackIncrementalSteps)
                 {
                     // We should have already recorded step information for all steps before the most recently recorded step.
-                    Debug.Assert(_steps.Count + 1 == _states.Count);
+                    Debug.Assert(_steps.Count + 1 == _states_doNotMutateDirectly.Count);
 
-                    TableEntry outputInfo = _states[^1];
+                    TableEntry outputInfo = _states_doNotMutateDirectly[^1];
 
                     var stepOutputBuilder = ArrayBuilder<(object, IncrementalStepRunReason)>.GetInstance(outputInfo.Count);
 
@@ -367,20 +384,31 @@ namespace Microsoft.CodeAnalysis
 
             public NodeStateTable<T> ToImmutableAndFree()
             {
-                Debug.Assert(!TrackIncrementalSteps || _states.Count == _steps.Count);
+                Debug.Assert(!TrackIncrementalSteps || _states_doNotMutateDirectly.Count == _steps.Count);
 
-                if (_states.Count == 0)
+                if (_states_doNotMutateDirectly.Count == 0)
                 {
-                    _states.Free();
+                    _states_doNotMutateDirectly.Free();
                     return NodeStateTable<T>.Empty;
                 }
 
-                var hasNonCached = _states.Any(static s => !s.IsCached);
+                var steps = TrackIncrementalSteps ? _steps.ToImmutableAndFree() : default;
+
+                var hasNonCached = _states_doNotMutateDirectly.Any(static s => !s.IsCached);
+                var isCompacted = !hasNonCached;
+
+                // if we added the exact same entries as before, then we can use the same table as before.
+                if (_unchangedFromPrevious && _states_doNotMutateDirectly.Count == _previous._states.Length)
+                {
+                    _states_doNotMutateDirectly.Free();
+                    return new NodeStateTable<T>(
+                        _previous._states,
+                        steps, isCompacted, hasTrackedSteps: TrackIncrementalSteps);
+                }
+
                 return new NodeStateTable<T>(
-                    _states.ToImmutableAndFree(),
-                    TrackIncrementalSteps ? _steps.ToImmutableAndFree() : default,
-                    isCompacted: !hasNonCached,
-                    hasTrackedSteps: TrackIncrementalSteps);
+                    _states_doNotMutateDirectly.ToImmutableAndFree(),
+                    steps, isCompacted, hasTrackedSteps: TrackIncrementalSteps);
             }
 
             private static (T chosen, EntryState state) GetModifiedItemAndState(T previous, T replacement, IEqualityComparer<T> comparer)
@@ -423,6 +451,23 @@ namespace Microsoft.CodeAnalysis
                 this._item = item;
                 this._items = items;
                 this._states = states;
+            }
+
+            public bool Matches(TableEntry entry)
+            {
+                if (_states.SequenceEqual(entry._states))
+                    return false;
+
+                if (this.Count != entry.Count)
+                    return false;
+
+                for (int i = 0, n = this.Count; i < n; i++)
+                {
+                    if (!EqualityComparer<T>.Default.Equals(this.GetItem(i), entry.GetItem(i)))
+                        return false;
+                }
+
+                return true;
             }
 
             public bool IsCached => this._states == s_allCachedEntries || this._states.All(s => s == EntryState.Cached);
