@@ -82,6 +82,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
             GlobalFlowStateAnalysisDomainInstance.Intersect(value1, value2, GlobalFlowStateAnalysisValueSetDomain.Intersect) :
             GlobalFlowStateAnalysisDomainInstance.Merge(value1, value2);
 
+        protected sealed override GlobalFlowStateAnalysisData MergeAnalysisDataForBackEdge(GlobalFlowStateAnalysisData value1, GlobalFlowStateAnalysisData value2, BasicBlock forBlock)
+        {
+            // If we are merging analysis data for back edge, we have done at least one analysis pass for the block
+            // and should replace 'Unset' value with 'Empty' value for the next pass.
+            if (value1.TryGetValue(GlobalEntity, out var value) && value == GlobalFlowStateAnalysisValueSet.Unset)
+                value1[GlobalEntity] = GlobalFlowStateAnalysisValueSet.Empty;
+
+            if (value2.TryGetValue(GlobalEntity, out value) && value == GlobalFlowStateAnalysisValueSet.Unset)
+                value2[GlobalEntity] = GlobalFlowStateAnalysisValueSet.Empty;
+
+            return base.MergeAnalysisDataForBackEdge(value1, value2, forBlock);
+        }
+
         protected sealed override GlobalFlowStateAnalysisData GetExitBlockOutputData(GlobalFlowStateAnalysisResult analysisResult)
             => new(analysisResult.ExitBlockOutput.Data);
 
