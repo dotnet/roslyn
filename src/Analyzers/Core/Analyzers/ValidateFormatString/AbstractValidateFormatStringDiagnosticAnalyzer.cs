@@ -351,16 +351,14 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
 
                 if (!PlaceholderIndexIsValid(textInsideBrackets, numberOfPlaceholderArguments))
                 {
-                    var invalidPlaceholderText = "{" + textInsideBrackets + "}";
                     var invalidPlaceholderLocation = Location.Create(
                         context.Node.SyntaxTree,
                         new Text.TextSpan(
                             formatStringPosition + match.Index,
-                            invalidPlaceholderText.Length));
+                            textInsideBrackets.Length + 2)); // The invalid placeholder text is textInsideBrackets surrounded by '{' and '}', hence the + 2
                     var diagnostic = Diagnostic.Create(
                         Rule,
-                        invalidPlaceholderLocation,
-                        invalidPlaceholderText);
+                        invalidPlaceholderLocation);
                     context.ReportDiagnostic(diagnostic);
                 }
             }

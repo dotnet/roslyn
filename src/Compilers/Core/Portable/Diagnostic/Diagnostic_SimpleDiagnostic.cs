@@ -100,12 +100,16 @@ namespace Microsoft.CodeAnalysis
                 try
                 {
 #if DEBUG
-                    for (int i = 0; i < _messageArgs.Length; i++)
+                    // Used in unit testing.
+                    if (Id != "MockAdditionalDiagnostic")
                     {
-                        if (!localizedMessageFormat.Contains($"{{{i}}}"))
+                        for (int i = 0; i < _messageArgs.Length; i++)
                         {
-                            // This happens when the number of _messageArgs is larger than the placeholders.
-                            Debug.Fail($"Descriptor '{Id}' is passing an argument with index '{i}', but no corresponding placeholder was found.");
+                            if (!localizedMessageFormat.Contains($"{{{i}}}"))
+                            {
+                                // This happens when the number of _messageArgs is larger than the placeholders.
+                                Debug.Fail($"Descriptor '{Id}' is passing an argument with index '{i}', but no corresponding placeholder was found.");
+                            }
                         }
                     }
 #endif
