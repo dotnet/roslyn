@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
@@ -327,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
 Done:
-            if (isTopLevel && GeneratedNameParser.TryParseFileTypeName(emittedTypeName.UnmangledTypeName, out int ordinal, out string typeName))
+            if (isTopLevel && scope is not PENamespaceSymbol && GeneratedNameParser.TryParseFileTypeName(emittedTypeName.UnmangledTypeName, out int ordinal, out string typeName))
             {
                 // also do a lookup for file types from source.
                 namespaceOrTypeMembers = scope.GetTypeMembers(typeName);
