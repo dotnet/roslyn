@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var (document, span, cancellationToken) = context;
+            var (document, _, cancellationToken) = context;
 
             var service = document.Project.Solution.Workspace.Services.GetService<IMoveStaticMembersOptionsService>();
             if (service == null)
@@ -39,31 +39,15 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             }
 
             var selectedMember = semanticModel.GetDeclaredSymbol(memberDeclaration, cancellationToken);
-            if (selectedMember is null || selectedMember.ContainingType is null)
+            if (selectedMember is null || selectedMember.ContainingType is null ||
+                !selectedMember.IsStatic || !MemberAndDestinationValidator.IsMemberValid(selectedMember))
             {
                 return;
             }
 
-            var selectedType = selectedMember.ContainingType;
-            if (selectedType == null)
-            {
-                return;
-            }
+            var action = new MoveStaticMembersWithDialogCodeAction(document, memberDeclaration.Span, service, selectedMember.ContainingType, context.Options, selectedMember: selectedMember);
 
-            var selectedMembers = selectedType.GetMembers()
-                .WhereAsArray(m => m.IsStatic &&
-                    MemberAndDestinationValidator.IsMemberValid(m) &&
-                    m.DeclaringSyntaxReferences.Any(static (sr, memberDeclaration) => memberDeclaration.FullSpan.Contains(sr.Span), memberDeclaration));
-            if (selectedMembers.IsEmpty)
-            {
-                return;
-            }
-
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-
-            var action = new MoveStaticMembersWithDialogCodeAction(document, span, service, selectedType, context.Options, selectedMember: selectedMember);
-
-            context.RegisterRefactoring(action, selectedMembers[0].DeclaringSyntaxReferences[0].Span);
+            context.RegisterRefactoring(action);
         }
     }
 }
