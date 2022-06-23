@@ -33,8 +33,35 @@ jobs:
   steps:
     - template: checkout-windows-task.yml
 
+    - task: CacheBeta@1
+      displayName: .tools Cache
+      inputs:
+        key: 'tools | $(Agent.OS) | $(Build.SourcesDirectory)/global.json'
+        path: $(Build.SourcesDirectory)/.tools
+      continueOnError: true
+
+    - task: CacheBeta@1
+      displayName: .dotnet Cache
+      inputs:
+        key: 'dotnet | $(Agent.OS) | $(Build.SourcesDirectory)/global.json'
+        path: $(Build.SourcesDirectory)/.dotnet
+      continueOnError: true
+
+    - powershell: Write-Host "##vso[task.setvariable variable=NUGET_PACKAGES]$(Build.SourcesDirectory)/.packages"
+      displayName: Set Nuet Packages Directory
+
+    - task: CacheBeta@1
+      displayName: .packages Cache
+      inputs:
+        key: 'nuget | $(Agent.OS) | $(Build.SourcesDirectory)/global.json | $(Build.SourcesDirectory)/eng/Versions.props | $(Build.SourcesDirectory)/eng/Version.Details.xml'
+        path: $(NUGET_PACKAGES)
+        cacheHitVar: NUGET_CACHE_RESTORED
+      continueOnError: true
+
     - task: PowerShell@2
       displayName: Restore
+      env:
+        NUGET_PACKAGES: $(NUGET_PACKAGES)
       inputs:
         filePath: eng/build.ps1
         arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -restore -binaryLog
