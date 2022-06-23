@@ -99,6 +99,7 @@ End Module
 
             Assert.False(await TestServices.Editor.IsSavedAsync(HangMitigatingCancellationToken));
             await TestServices.Input.SendAsync((VirtualKeyCode.VK_S, VirtualKeyCode.CONTROL));
+            await TestServices.SolutionExplorerVerifier.ActiveDocumentIsSavedAsync(HangMitigatingCancellationToken);
             Assert.True(await TestServices.Editor.IsSavedAsync(HangMitigatingCancellationToken));
             AssertEx.EqualOrDiff(@"Module Module1
     Sub Main(x As Integer)

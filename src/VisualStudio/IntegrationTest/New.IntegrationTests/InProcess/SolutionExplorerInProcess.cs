@@ -229,6 +229,9 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         public async Task SaveAllAsync(CancellationToken cancellationToken)
         {
             await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd97CmdID.SaveSolution, cancellationToken);
+
+            // Verify documents are truly saved after a Save Solution operation
+            await TestServices.SolutionExplorerVerifier.AllDocumentsAreSavedAsync(cancellationToken);
         }
 
         public async Task OpenFileAsync(string projectName, string relativeFilePath, CancellationToken cancellationToken)
