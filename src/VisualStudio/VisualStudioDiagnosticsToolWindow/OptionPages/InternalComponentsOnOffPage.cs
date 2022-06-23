@@ -6,18 +6,16 @@
 
 using System;
 using System.Runtime.InteropServices;
-using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.VisualStudio.LanguageServices;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
 
-namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
-    [Guid(Guids.RoslynOptionPagePerformanceFunctionIdIdString)]
-    internal class PerformanceFunctionIdPage : AbstractOptionPage
+    [Guid(Guids.RoslynOptionPageFeatureManagerComponentsIdString)]
+    internal class InternalComponentsOnOffPage : AbstractOptionPage
     {
         protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
         {
-            return new InternalOptionsControl(nameof(FunctionIdOptions), optionStore);
+            return new InternalOptionsControl(nameof(EditorComponentOnOffOptions), optionStore);
         }
     }
 }

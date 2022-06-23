@@ -44,20 +44,26 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             configurationService.Clear();
 
             var globalOptions = await GetComponentModelServiceAsync<IGlobalOptionService>(cancellationToken);
-            ResetOption(globalOptions, MetadataAsSourceOptionsStorage.NavigateToDecompiledSources);
-            ResetOption(globalOptions, WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspace);
+            ResetOption2(globalOptions, MetadataAsSourceOptionsStorage.NavigateToDecompiledSources);
+            ResetOption2(globalOptions, WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspace);
             ResetPerLanguageOption(globalOptions, NavigationBarViewOptions.ShowNavigationBar);
-            ResetPerLanguageOption(globalOptions, VisualStudioNavigationOptions.NavigateToObjectBrowser);
-            ResetPerLanguageOption(globalOptions, FeatureOnOffOptions.AddImportsOnPaste);
-            ResetPerLanguageOption(globalOptions, FeatureOnOffOptions.PrettyListing);
-            ResetPerLanguageOption(globalOptions, CompletionViewOptions.EnableArgumentCompletionSnippets);
+            ResetPerLanguageOption2(globalOptions, VisualStudioNavigationOptions.NavigateToObjectBrowser);
+            ResetPerLanguageOption2(globalOptions, FeatureOnOffOptions.AddImportsOnPaste);
+            ResetPerLanguageOption2(globalOptions, FeatureOnOffOptions.PrettyListing);
+            ResetPerLanguageOption2(globalOptions, CompletionViewOptions.EnableArgumentCompletionSnippets);
 
-            static void ResetOption<T>(IGlobalOptionService globalOptions, Option2<T> option)
+            static void ResetOption2<T>(IGlobalOptionService globalOptions, Option2<T> option)
             {
                 globalOptions.SetGlobalOption(new OptionKey(option, language: null), option.DefaultValue);
             }
 
-            static void ResetPerLanguageOption<T>(IGlobalOptionService globalOptions, PerLanguageOption2<T> option)
+            static void ResetPerLanguageOption<T>(IGlobalOptionService globalOptions, PerLanguageOption<T> option)
+            {
+                globalOptions.SetGlobalOption(new OptionKey(option, LanguageNames.CSharp), option.DefaultValue);
+                globalOptions.SetGlobalOption(new OptionKey(option, LanguageNames.VisualBasic), option.DefaultValue);
+            }
+
+            static void ResetPerLanguageOption2<T>(IGlobalOptionService globalOptions, PerLanguageOption2<T> option)
             {
                 globalOptions.SetGlobalOption(new OptionKey(option, LanguageNames.CSharp), option.DefaultValue);
                 globalOptions.SetGlobalOption(new OptionKey(option, LanguageNames.VisualBasic), option.DefaultValue);

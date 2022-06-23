@@ -10,7 +10,6 @@ using System.Windows.Controls;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.NavigateTo;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.VisualStudio.LanguageServices;
@@ -19,15 +18,17 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
 {
     [Guid(Guids.RoslynOptionPageFeatureManagerFeaturesIdString)]
-    internal class ForceLowMemoryModePage : AbstractOptionPage
+    internal class InternalFeaturesOnOffPage : AbstractOptionPage
     {
         protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
-            => new Control(optionStore);
-
-        internal sealed class Control : InternalOptionsControl
         {
-            public Control(OptionStore optionStore)
-                : base(Array.Empty<IOption>(), optionStore)
+            return new InternalFeaturesOptionsControl(nameof(InternalFeatureOnOffOptions), optionStore);
+        }
+
+        internal class InternalFeaturesOptionsControl : InternalOptionsControl
+        {
+            public InternalFeaturesOptionsControl(string featureOptionName, OptionStore optionStore)
+                : base(featureOptionName, optionStore)
             {
             }
 
@@ -47,6 +48,14 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
                 lowMemoryGroup.Children.Add(new TextBlock { Text = "megabytes of extra memory in devenv.exe" });
 
                 panel.Children.Add(lowMemoryGroup);
+
+                // add OOP feature options
+                var oopFeatureGroup = new StackPanel();
+
+                panel.Children.Add(oopFeatureGroup);
+
+                // and add the rest of the options
+                base.AddOptions(panel);
             }
         }
     }

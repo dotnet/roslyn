@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
         public AnalyzerConfigOptions ToAnalyzerConfigOptions(HostLanguageServices languageServices)
         {
-            var optionService = languageServices.WorkspaceServices.GetRequiredService<IEditorConfigOptionMappingService>();
+            var optionService = languageServices.WorkspaceServices.GetRequiredService<ILegacyWorkspaceOptionService>();
             return ToOptionSet().AsAnalyzerConfigOptions(optionService, languageServices.Language);
         }
 

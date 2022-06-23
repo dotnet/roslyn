@@ -43,7 +43,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
                 _workspaceServices = workspace.Services;
             }
 
-            return new InternalOptionsControl(FunctionIdOptions.GetOptions(), optionStore);
+            return new InternalOptionsControl(nameof(LoggerOptions), optionStore);
         }
 
         protected override void OnApply(PageApplyEventArgs e)
