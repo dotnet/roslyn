@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 SyntaxKind.UncheckedExpression,
                 SyntaxKind.TypeOfExpression,
                 SyntaxKind.TupleExpression,
-                SyntaxKind.SwitchExpression) || currentNode is InitializerExpressionSyntax)
+                SyntaxKind.SwitchExpression))
             {
                 // make sure the closing delimiter exists
                 if (RequiredDelimiterIsMissing(currentNode))
@@ -485,6 +485,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         }
 
         private static bool IsSyntaxNodeWithBracesCouldBeFollowedBySemicolon(SyntaxNode node)
-            => node is SwitchExpressionSyntax or InitializerExpressionSyntax;
+            => node is SwitchExpressionSyntax;
     }
 }

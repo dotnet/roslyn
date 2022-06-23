@@ -4299,59 +4299,6 @@ public class Bar
             VerifyNoSpecialSemicolonHandling(code);
         }
 
-        [WpfFact]
-        public void TestInitializer()
-        {
-            var code = @"
-using System.Collections;
-public class Bar
-{
-    public void Test()
-    {
-        var l = new List<int>()
-        {
-            1,
-            2$$
-        }
-    }
-}";
-
-            var expected = @"
-using System.Collections;
-public class Bar
-{
-    public void Test()
-    {
-        var l = new List<int>()
-        {
-            1,
-            2
-        };$$
-    }
-}";
-            VerifyTypingSemicolon(code, expected);
-        }
-
-        [WpfFact]
-        public void TestOutsideInitializer()
-        {
-            var code = @"
-using System.Collections;
-public class Bar
-{
-    public void Test()
-    {
-        var l = new List<int>()
-        $${
-            1,
-            2
-        }
-    }
-}";
-
-            VerifyNoSpecialSemicolonHandling(code);
-        }
-
         protected override TestWorkspace CreateTestWorkspace(string code)
             => TestWorkspace.CreateCSharp(code);
     }
