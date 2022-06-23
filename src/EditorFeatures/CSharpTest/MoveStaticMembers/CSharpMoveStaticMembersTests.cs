@@ -2613,8 +2613,9 @@ using System;
                 },
                 TestCode = initialMarkup,
                 FixedCode = initialMarkup,
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
             };
-            test.LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9;
+
             await test.RunAsync().ConfigureAwait(false);
         }
 
@@ -2631,8 +2632,9 @@ using System;
                 },
                 TestCode = initialMarkup,
                 FixedCode = initialMarkup,
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
             };
-            test.LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9;
+
             await test.RunAsync().ConfigureAwait(false);
         }
         #endregion

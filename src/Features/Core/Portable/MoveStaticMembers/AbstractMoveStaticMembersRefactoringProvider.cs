@@ -39,15 +39,14 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             }
 
             var selectedMember = semanticModel.GetDeclaredSymbol(memberDeclaration, cancellationToken);
-            if (selectedMember is null || selectedMember.ContainingType is null ||
-                !selectedMember.IsStatic || !MemberAndDestinationValidator.IsMemberValid(selectedMember))
+            if (selectedMember?.ContainingType is null || !selectedMember.IsStatic || !MemberAndDestinationValidator.IsMemberValid(selectedMember))
             {
                 return;
             }
 
             var action = new MoveStaticMembersWithDialogCodeAction(document, memberDeclaration.Span, service, selectedMember.ContainingType, context.Options, selectedMember: selectedMember);
 
-            context.RegisterRefactoring(action);
+            context.RegisterRefactoring(action, memberDeclaration.Span);
         }
     }
 }
