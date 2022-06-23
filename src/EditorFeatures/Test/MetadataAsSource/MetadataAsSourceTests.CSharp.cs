@@ -470,7 +470,6 @@ public record [|R|] : IEquatable<R>
     [CompilerGenerated]
     protected R(R original);
 
-    [CompilerGenerated]
     protected virtual Type EqualityContract {{ get; }}
 
     [CompilerGenerated]
@@ -503,16 +502,6 @@ using System.Text;
 
 public record [|R|]
 {{
-    [CompilerGenerated]
-    protected virtual Type EqualityContract
-    {{
-        [CompilerGenerated]
-        get
-        {{
-            return typeof(R);
-        }}
-    }}
-
     [CompilerGenerated]
     public override string ToString()
     {{
