@@ -131,6 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                     if (part.Kind == SymbolDisplayPartKind.Keyword && part.ToString() == SyntaxFacts.GetText(SyntaxKind.WhereKeyword))
                     {
                         builder.AddRange(LineBreak());
+                        builder.AddRange(Space(4));
                     }
 
                     builder.Add(part);
