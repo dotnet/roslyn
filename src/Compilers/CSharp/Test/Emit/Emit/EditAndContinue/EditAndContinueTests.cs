@@ -12954,7 +12954,7 @@ namespace N
                 Handle(22, TableIndex.TypeRef),
                 Handle(10, TableIndex.MethodDef),
                 Handle(3, TableIndex.Param),
-                Handle(21, TableIndex.CustomAttribute),
+                Handle(22, TableIndex.CustomAttribute),
                 Handle(3, TableIndex.StandAloneSig),
                 Handle(4, TableIndex.TypeSpec),
                 Handle(2, TableIndex.AssemblyRef));
