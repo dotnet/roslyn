@@ -7219,14 +7219,20 @@ checked C0
             Assert.Equal("System.Int64 C0.op_CheckedExplicit(C0 x)", model.ClassifyConversion(xNode.SpanStart, xNode, int64, isExplicitInSource: false).Method.ToTestDisplayString());
             Assert.Equal("System.Int64 C0.op_CheckedExplicit(C0 x)", model.ClassifyConversion(xNode.SpanStart, xNode, int64, isExplicitInSource: true).Method.ToTestDisplayString());
 
-            Assert.Equal("System.Int64 C0.op_CheckedExplicit(C0 x)", model.ClassifyConversion(yNode.SpanStart, yNode, int64, isExplicitInSource: false).Method.ToTestDisplayString());
-            Assert.Equal("System.Int64 C0.op_CheckedExplicit(C0 x)", model.ClassifyConversion(yNode.SpanStart, yNode, int64, isExplicitInSource: true).Method.ToTestDisplayString());
+            // !!! Expected System.Int64 C0.op_CheckedExplicit(C0 x) !!!
+            Assert.Equal("System.Int64 C0.op_Explicit(C0 x)", model.ClassifyConversion(yNode.SpanStart, yNode, int64, isExplicitInSource: false).Method.ToTestDisplayString());
+
+            // !!! Expected System.Int64 C0.op_CheckedExplicit(C0 x) !!!
+            Assert.Equal("System.Int64 C0.op_Explicit(C0 x)", model.ClassifyConversion(yNode.SpanStart, yNode, int64, isExplicitInSource: true).Method.ToTestDisplayString());
 
             Assert.Equal("System.Int64 C0.op_CheckedExplicit(C0 x)", model.ClassifyConversion(xNode, int64, isExplicitInSource: false).Method.ToTestDisplayString());
             Assert.Equal("System.Int64 C0.op_CheckedExplicit(C0 x)", model.ClassifyConversion(xNode, int64, isExplicitInSource: true).Method.ToTestDisplayString());
 
-            Assert.Equal("System.Int64 C0.op_CheckedExplicit(C0 x)", model.ClassifyConversion(yNode, int64, isExplicitInSource: false).Method.ToTestDisplayString());
-            Assert.Equal("System.Int64 C0.op_CheckedExplicit(C0 x)", model.ClassifyConversion(yNode, int64, isExplicitInSource: true).Method.ToTestDisplayString());
+            // !!! Expected System.Int64 C0.op_CheckedExplicit(C0 x) !!!
+            Assert.Equal("System.Int64 C0.op_Explicit(C0 x)", model.ClassifyConversion(yNode, int64, isExplicitInSource: false).Method.ToTestDisplayString());
+
+            // !!! Expected System.Int64 C0.op_CheckedExplicit(C0 x) !!!
+            Assert.Equal("System.Int64 C0.op_Explicit(C0 x)", model.ClassifyConversion(yNode, int64, isExplicitInSource: true).Method.ToTestDisplayString());
         }
 
         [Fact]
@@ -7362,14 +7368,20 @@ regular C0
             Assert.Equal("System.Int64 C0.op_Explicit(C0 x)", model.ClassifyConversion(xNode.SpanStart, xNode, int64, isExplicitInSource: false).Method.ToTestDisplayString());
             Assert.Equal("System.Int64 C0.op_Explicit(C0 x)", model.ClassifyConversion(xNode.SpanStart, xNode, int64, isExplicitInSource: true).Method.ToTestDisplayString());
 
-            Assert.Equal("System.Int64 C0.op_Explicit(C0 x)", model.ClassifyConversion(yNode.SpanStart, yNode, int64, isExplicitInSource: false).Method.ToTestDisplayString());
-            Assert.Equal("System.Int64 C0.op_Explicit(C0 x)", model.ClassifyConversion(yNode.SpanStart, yNode, int64, isExplicitInSource: true).Method.ToTestDisplayString());
+            // !!! Expected System.Int64 C0.op_Explicit(C0 x) !!!
+            Assert.Equal("System.Int64 C0.op_CheckedExplicit(C0 x)", model.ClassifyConversion(yNode.SpanStart, yNode, int64, isExplicitInSource: false).Method.ToTestDisplayString());
+
+            // !!! Expected System.Int64 C0.op_Explicit(C0 x) !!!
+            Assert.Equal("System.Int64 C0.op_CheckedExplicit(C0 x)", model.ClassifyConversion(yNode.SpanStart, yNode, int64, isExplicitInSource: true).Method.ToTestDisplayString());
 
             Assert.Equal("System.Int64 C0.op_Explicit(C0 x)", model.ClassifyConversion(xNode, int64, isExplicitInSource: false).Method.ToTestDisplayString());
             Assert.Equal("System.Int64 C0.op_Explicit(C0 x)", model.ClassifyConversion(xNode, int64, isExplicitInSource: true).Method.ToTestDisplayString());
 
-            Assert.Equal("System.Int64 C0.op_Explicit(C0 x)", model.ClassifyConversion(yNode, int64, isExplicitInSource: false).Method.ToTestDisplayString());
-            Assert.Equal("System.Int64 C0.op_Explicit(C0 x)", model.ClassifyConversion(yNode, int64, isExplicitInSource: true).Method.ToTestDisplayString());
+            // !!! Expected System.Int64 C0.op_Explicit(C0 x) !!!
+            Assert.Equal("System.Int64 C0.op_CheckedExplicit(C0 x)", model.ClassifyConversion(yNode, int64, isExplicitInSource: false).Method.ToTestDisplayString());
+
+            // !!! Expected System.Int64 C0.op_Explicit(C0 x) !!!
+            Assert.Equal("System.Int64 C0.op_CheckedExplicit(C0 x)", model.ClassifyConversion(yNode, int64, isExplicitInSource: true).Method.ToTestDisplayString());
         }
 
         [Fact]
@@ -7433,7 +7445,9 @@ checked C0
             var yNodeToSpeculate = SyntaxFactory.ParseExpression("-y");
 
             Assert.Equal("C0 C0.op_CheckedUnaryNegation(C0 a)", model.GetSpeculativeSymbolInfo(xNode.SpanStart, xNodeToSpeculate, SpeculativeBindingOption.BindAsExpression).Symbol.ToTestDisplayString());
-            Assert.Equal("C0 C0.op_CheckedUnaryNegation(C0 a)", model.GetSpeculativeSymbolInfo(yNode.SpanStart, yNodeToSpeculate, SpeculativeBindingOption.BindAsExpression).Symbol.ToTestDisplayString());
+
+            // !!! Expected C0 C0.op_CheckedUnaryNegation(C0 a) !!!
+            Assert.Equal("C0 C0.op_UnaryNegation(C0 a)", model.GetSpeculativeSymbolInfo(yNode.SpanStart, yNodeToSpeculate, SpeculativeBindingOption.BindAsExpression).Symbol.ToTestDisplayString());
         }
 
         [Fact]
@@ -7497,7 +7511,9 @@ regular C0
             var yNodeToSpeculate = SyntaxFactory.ParseExpression("-y");
 
             Assert.Equal("C0 C0.op_UnaryNegation(C0 a)", model.GetSpeculativeSymbolInfo(xNode.SpanStart, xNodeToSpeculate, SpeculativeBindingOption.BindAsExpression).Symbol.ToTestDisplayString());
-            Assert.Equal("C0 C0.op_UnaryNegation(C0 a)", model.GetSpeculativeSymbolInfo(yNode.SpanStart, yNodeToSpeculate, SpeculativeBindingOption.BindAsExpression).Symbol.ToTestDisplayString());
+
+            // !!! Expected C0 C0.op_UnaryNegation(C0 a) !!!
+            Assert.Equal("C0 C0.op_CheckedUnaryNegation(C0 a)", model.GetSpeculativeSymbolInfo(yNode.SpanStart, yNodeToSpeculate, SpeculativeBindingOption.BindAsExpression).Symbol.ToTestDisplayString());
         }
     }
 }

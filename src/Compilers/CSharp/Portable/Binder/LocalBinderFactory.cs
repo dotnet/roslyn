@@ -611,13 +611,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitCommonForEachStatement(node);
         }
 
-        public override void VisitCheckedExpression(CheckedExpressionSyntax node)
-        {
-            Binder binder = _enclosing.WithCheckedOrUncheckedRegion(@checked: node.Kind() == SyntaxKind.CheckedExpression);
-            AddToMap(node, binder);
-            Visit(node.Expression, binder);
-        }
-
         public override void VisitCheckedStatement(CheckedStatementSyntax node)
         {
             Binder binder = _enclosing.WithCheckedOrUncheckedRegion(@checked: node.Kind() == SyntaxKind.CheckedStatement);
