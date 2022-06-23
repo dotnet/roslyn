@@ -551,8 +551,7 @@ public class C
 public class C
 {
     public long Length                   //N
-
-        // N = N1 + N2
+                                         // N = N1 + N2
         => 1 + 2;
 }";
             await TestWithUseExpressionBody(code, fixedCode);

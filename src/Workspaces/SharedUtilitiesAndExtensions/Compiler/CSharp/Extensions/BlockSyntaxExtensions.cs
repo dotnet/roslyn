@@ -65,8 +65,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 if (block.GetRequiredParent().Kind() == SyntaxKind.GetAccessorDeclaration)
                 {
-                    arrowExpression = arrowExpression.WithLeadingTrivia(
-                        block.GetRequiredParent().GetLeadingTrivia());
+                    var comments = block.GetRequiredParent().GetLeadingTrivia().Where(t => t.IsSingleOrMultiLineComment());
+                    if (!comments.IsEmpty())
+                    {
+                        arrowExpression = arrowExpression.WithLeadingTrivia(
+                            block.GetRequiredParent().GetLeadingTrivia());
+                    }
                 }
 
                 return true;
