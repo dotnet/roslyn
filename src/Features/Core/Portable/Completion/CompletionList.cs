@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// The completion items to present to the user.
         /// </summary>
+        [Obsolete("Use ItemsList instead")]
         public ImmutableArray<CompletionItem> Items => _lazyItems.Value;
 
         /// <summary>
