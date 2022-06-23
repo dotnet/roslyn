@@ -34,11 +34,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AliasAmbiguousType
             => $@"
 namespace N1
 {{
-    { typeDefinion }
+    {typeDefinion}
 }}
 namespace N2
 {{
-    { typeDefinion }
+    {typeDefinion}
 }}";
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]

@@ -960,7 +960,7 @@ public class C
 public class Test
 {{
     public object M(C c)
-        => { subStringCode };
+        => {subStringCode};
 }}";
             var fixedSource =
 @$"
@@ -971,7 +971,7 @@ public class C
 public class Test
 {{
     public object M(C c)
-        => { rangeCode };
+        => {rangeCode};
 }}";
             await new VerifyCS.Test
             {
