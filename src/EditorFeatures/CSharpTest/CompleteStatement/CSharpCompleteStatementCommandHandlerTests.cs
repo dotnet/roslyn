@@ -4257,8 +4257,8 @@ public class Bar
         var a = myString switch
         {
             ""Hello"" => 1,
-            ""World"" => 2,
-            _ => 3$$
+           $$ ""World"" => 2,
+            _ => 3
         }
     }
 }";
@@ -4280,6 +4280,26 @@ public class Bar
         }
 
         [WpfFact]
+        public void TestNotInBracesSwitchExpression()
+        {
+            var code = @"
+public class Bar
+{
+    public void Test(string myString)
+    {
+        var a = myString switch
+        $${
+            ""Hello"" => 1,
+            ""World"" => 2,
+            _ => 3
+        }
+    }
+}";
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfFact]
         public void TestInitializer()
         {
             var code = @"
@@ -4288,7 +4308,11 @@ public class Bar
 {
     public void Test()
     {
-        var l = new List<int>() { 1, 2 $$}
+        var l = new List<int>()
+        {
+            1,
+            2$$
+        }
     }
 }";
 
@@ -4298,10 +4322,34 @@ public class Bar
 {
     public void Test()
     {
-        var l = new List<int>() { 1, 2 };$$
+        var l = new List<int>()
+        {
+            1,
+            2
+        };$$
     }
 }";
             VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact]
+        public void TestOutsideInitializer()
+        {
+            var code = @"
+using System.Collections;
+public class Bar
+{
+    public void Test()
+    {
+        var l = new List<int>()
+        $${
+            1,
+            2
+        }
+    }
+}";
+
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         protected override TestWorkspace CreateTestWorkspace(string code)
