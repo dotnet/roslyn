@@ -64,7 +64,6 @@ namespace Microsoft.CodeAnalysis
 
         private readonly ImmutableArray<TableEntry> _states;
 
-
         private NodeStateTable(ImmutableArray<TableEntry> states, ImmutableArray<IncrementalGeneratorRunStep> steps, bool isCompacted, bool hasTrackedSteps)
         {
             Debug.Assert(!isCompacted || states.All(s => s.IsCached));
@@ -177,6 +176,11 @@ namespace Microsoft.CodeAnalysis
             [MemberNotNullWhen(true, nameof(_steps))]
             public bool TrackIncrementalSteps => _steps is not null;
 
+            /// <summary>
+            /// Tracks if the new table we're building has all the same entries as the previous table.  If we end up
+            /// with the same set of entries at the end, we can just point our new table at that same array, avoiding a
+            /// costly allocation.
+            /// </summary>
             private bool _unchangedFromPrevious = true;
 
             internal Builder(NodeStateTable<T> previous, string? name, bool stepTrackingEnabled, IEqualityComparer<T>? equalityComparer)
