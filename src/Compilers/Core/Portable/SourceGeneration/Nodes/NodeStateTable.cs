@@ -143,15 +143,15 @@ namespace Microsoft.CodeAnalysis
             return sourceBuilder.ToImmutableAndFree();
         }
 
-        public Builder ToBuilder(string? stepName, bool stepTrackingEnabled)
+        public Builder ToBuilder(string? stepName, bool stepTrackingEnabled, IEqualityComparer<T>? equalityComparer)
         {
-            return new Builder(this, stepName, stepTrackingEnabled);
+            return new Builder(this, stepName, stepTrackingEnabled, equalityComparer);
         }
 
-        public NodeStateTable<T> CreateCachedTableWithUpdatedSteps<TInput>(NodeStateTable<TInput> inputTable, string? stepName)
+        public NodeStateTable<T> CreateCachedTableWithUpdatedSteps<TInput>(NodeStateTable<TInput> inputTable, string? stepName, IEqualityComparer<T> equalityComparer)
         {
             Debug.Assert(inputTable.HasTrackedSteps && inputTable.IsCached);
-            NodeStateTable<T>.Builder builder = ToBuilder(stepName, stepTrackingEnabled: true);
+            NodeStateTable<T>.Builder builder = ToBuilder(stepName, stepTrackingEnabled: true, equalityComparer);
             foreach (var entry in inputTable)
             {
                 var inputs = ImmutableArray.Create((entry.Step!, entry.OutputIndex));
@@ -169,6 +169,8 @@ namespace Microsoft.CodeAnalysis
             private readonly ArrayBuilder<TableEntry> _states_doNotMutateDirectly;
             private readonly NodeStateTable<T> _previous;
 
+            private readonly IEqualityComparer<T> _equalityComparer;
+
             private readonly string? _name;
             private readonly ArrayBuilder<IncrementalGeneratorRunStep>? _steps;
 
@@ -177,11 +179,12 @@ namespace Microsoft.CodeAnalysis
 
             private bool _unchangedFromPrevious = true;
 
-            internal Builder(NodeStateTable<T> previous, string? name, bool stepTrackingEnabled)
+            internal Builder(NodeStateTable<T> previous, string? name, bool stepTrackingEnabled, IEqualityComparer<T>? equalityComparer)
             {
                 _states_doNotMutateDirectly = ArrayBuilder<TableEntry>.GetInstance(previous.Count);
                 _previous = previous;
                 _name = name;
+                _equalityComparer = equalityComparer ?? EqualityComparer<T>.Default;
                 if (stepTrackingEnabled)
                 {
                     _steps = ArrayBuilder<IncrementalGeneratorRunStep>.GetInstance();
@@ -196,7 +199,7 @@ namespace Microsoft.CodeAnalysis
                 if (_unchangedFromPrevious && currentindex < _previous._states.Length)
                 {
                     var previousEntry = _previous._states[currentindex];
-                    _unchangedFromPrevious = entry.Matches(previousEntry);
+                    _unchangedFromPrevious = entry.Matches(previousEntry, _equalityComparer);
                 }
             }
 
@@ -453,7 +456,7 @@ namespace Microsoft.CodeAnalysis
                 this._states = states;
             }
 
-            public bool Matches(TableEntry entry)
+            public bool Matches(TableEntry entry, IEqualityComparer<T> equalityComparer)
             {
                 if (_states.SequenceEqual(entry._states))
                     return false;
@@ -463,7 +466,7 @@ namespace Microsoft.CodeAnalysis
 
                 for (int i = 0, n = this.Count; i < n; i++)
                 {
-                    if (!EqualityComparer<T>.Default.Equals(this.GetItem(i), entry.GetItem(i)))
+                    if (!equalityComparer.Equals(this.GetItem(i), entry.GetItem(i)))
                         return false;
                 }
 
