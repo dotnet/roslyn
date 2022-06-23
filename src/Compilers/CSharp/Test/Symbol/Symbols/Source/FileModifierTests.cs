@@ -2965,6 +2965,7 @@ public class FileModifierTests : CSharpTestBase
         Assert.Null(comp.GetTypeByMetadataName("<>F0__D"));
         Assert.Null(comp.GetTypeByMetadataName("<>F1__C"));
         Assert.Null(comp.GetTypeByMetadataName("F0__C"));
+        Assert.Null(comp.GetTypeByMetadataName("<file>F0__C"));
 
         // from metadata
         var comp2 = CreateCompilation("", references: new[] { comp.EmitToImageReference() });

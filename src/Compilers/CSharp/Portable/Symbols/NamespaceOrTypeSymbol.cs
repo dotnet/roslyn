@@ -2,12 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
@@ -328,15 +330,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
 Done:
-            if (isTopLevel && scope is not PENamespaceSymbol && GeneratedNameParser.TryParseFileTypeName(emittedTypeName.UnmangledTypeName, out int ordinal, out string typeName))
+            if (isTopLevel && scope is not PENamespaceSymbol && GeneratedNameParser.TryParseFileTypeName(emittedTypeName.UnmangledTypeName, out string? displayFileName, out int ordinal, out string? sourceName))
             {
                 // also do a lookup for file types from source.
-                namespaceOrTypeMembers = scope.GetTypeMembers(typeName);
+                namespaceOrTypeMembers = scope.GetTypeMembers(sourceName);
                 foreach (var named in namespaceOrTypeMembers)
                 {
                     if (named.AssociatedSyntaxTree is SyntaxTree tree
+                        && getDisplayName(tree) == displayFileName
                         && named.DeclaringCompilation.GetSyntaxTreeOrdinal(tree) == ordinal
-                        && emittedTypeName.InferredArity == named.Arity)
+                        && named.Arity == emittedTypeName.InferredArity)
                     {
                         if ((object?)namedType != null)
                         {
@@ -362,6 +365,13 @@ Done:
             }
 
             return namedType;
+
+            static string getDisplayName(SyntaxTree tree)
+            {
+                var sb = PooledStringBuilder.GetInstance();
+                GeneratedNames.AppendFileName(tree.FilePath, sb);
+                return sb.ToStringAndFree();
+            }
         }
 
         /// <summary>
