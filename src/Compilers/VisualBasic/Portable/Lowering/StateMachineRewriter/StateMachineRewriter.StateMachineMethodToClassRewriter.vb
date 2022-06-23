@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Protected Friend ReadOnly F As SyntheticBoundNodeFactory
 
             Private ReadOnly _resumableStateAllocator As ResumableStateMachineStateAllocator
-            Private _nextFinalizerState As Integer = StateMachineStates.FirstIteratorFinalizeState
+            Private _nextFinalizerState As Integer
 
             ''' <summary>
             ''' The "state" of the state machine that is the translation of the iterator method.
@@ -57,7 +57,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private _tryBlockSyntaxForNextFinalizerState As SyntaxNode
 
             ''' <summary>
-            ''' If hasFinalizerState is true, this is the state for finalization from anywhere in this try block.
+            ''' If <see cref="_tryBlockSyntaxForNextFinalizerState"/> is not Nothing,
+            ''' this is the state for finalization from anywhere in this try block.
             ''' Initially set to -1, representing the no-op finalization required at the top level.
             ''' </summary>
             Private _currentFinalizerState As Integer = -1

@@ -3054,7 +3054,7 @@ End Class")
     IL_000f:  ldloc.0
     IL_0010:  ldc.i4.0
     IL_0011:  blt.s      IL_001e
-    IL_0013:  ldstr      ""Edit and Continue can't resume suspended asynchronous method since the corresponding await expression has been deleted""
+    IL_0013:  ldstr      """ & CodeAnalysisResources.EncCannotResumeSuspendedAsyncMethod & """
     IL_0018:  newobj     ""Sub System.InvalidOperationException..ctor(String)""
     IL_001d:  throw
     IL_001e:  nop
@@ -4548,7 +4548,7 @@ End Class"
         End Sub
 
         <Fact>
-        Public Sub UpdateIterator_Yeild_AddRemove_Lambda()
+        Public Sub UpdateIterator_Yield_AddRemove_Lambda()
             Dim source0 = MarkedSource("
 Imports System
 Imports System.Collections.Generic
