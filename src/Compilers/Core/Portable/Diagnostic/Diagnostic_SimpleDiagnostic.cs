@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis
                 {
 #if DEBUG
                     // Used in unit testing.
-                    if (Id != "MockAdditionalDiagnostic")
+                    if (Id != "MockAdditionalDiagnostic" && Id != "MockProjectDiagnostic")
                     {
                         for (int i = 0; i < _messageArgs.Length; i++)
                         {
