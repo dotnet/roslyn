@@ -2,8 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Immutable
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -20,8 +18,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings
             If fieldDeclaration IsNot Nothing Then
                 ' Since field declarations can contain multiple variables (each of which are a "member"), we need to find one to choose
                 ' We'll do this by selecting the one closest to the start of the span
-                Dim span As TextSpan, cancellationToken As CancellationToken
-                context.Deconstruct(Nothing, span, cancellationToken)
+                Dim span As TextSpan
+                context.Deconstruct(Nothing, span, Nothing)
                 Dim closestDeclarator As ModifiedIdentifierSyntax = Nothing
                 Dim leastDistance = Integer.MaxValue
                 For Each candidate In fieldDeclaration.Declarators.SelectMany(Function(vds) vds.Names)
