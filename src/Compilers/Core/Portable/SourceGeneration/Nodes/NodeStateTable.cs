@@ -458,7 +458,7 @@ namespace Microsoft.CodeAnalysis
 
             public bool Matches(TableEntry entry, IEqualityComparer<T> equalityComparer)
             {
-                if (_states.SequenceEqual(entry._states))
+                if (!_states.SequenceEqual(entry._states))
                     return false;
 
                 if (this.Count != entry.Count)
