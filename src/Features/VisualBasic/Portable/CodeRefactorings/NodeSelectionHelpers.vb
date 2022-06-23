@@ -15,25 +15,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings
             End If
             ' Gets field variable declarations (not including the keywords like Public/Shared, etc), which are not methods
             Dim fieldDeclaration = Await context.TryGetRelevantNodeAsync(Of FieldDeclarationSyntax).ConfigureAwait(False)
-            If fieldDeclaration IsNot Nothing Then
+            If fieldDeclaration Is Nothing Then
+                ' Gets the identifier + type of the field itself (ex. TestField As Integer), since it is nested in the variable declaration
+                ' And so the token's parent is not a variable declaration
+                Return Await context.TryGetRelevantNodeAsync(Of ModifiedIdentifierSyntax).ConfigureAwait(False)
+            Else
                 ' Since field declarations can contain multiple variables (each of which are a "member"), we need to find one to choose
-                ' We'll do this by selecting the one closest to the start of the span
-                Dim span As TextSpan
-                context.Deconstruct(Nothing, span, Nothing)
-                Dim closestDeclarator As ModifiedIdentifierSyntax = Nothing
-                Dim leastDistance = Integer.MaxValue
-                For Each candidate In fieldDeclaration.Declarators.SelectMany(Function(vds) vds.Names)
-                    Dim dist = Math.Min(Math.Abs(candidate.SpanStart - span.Start), Math.Abs(candidate.Span.End - span.Start))
-                    If (dist < leastDistance) Then
-                        closestDeclarator = candidate
-                        leastDistance = dist
-                    End If
-                Next
-                Return closestDeclarator
+                ' First we break the field declaration into variable declaration(s), then each of those into modified identifier(s)
+                ' Then we selecting the modified identifier (e.g. Foo As Integer) closest to the start of the span
+                Dim span = context.Span
+                Dim modifiedIdentifiers = fieldDeclaration.Declarators.SelectMany(Function(vds) vds.Names)
+                Return modifiedIdentifiers.OrderBy(
+                    Function(mi) Math.Min(Math.Abs(mi.SpanStart - span.Start), Math.Abs(mi.Span.End - span.Start))).First()
             End If
-            ' Gets the identifier + type of the field itself (ex. TestField As Integer), since it is nested in the variable declaration
-            ' And so the token's parent is not a variable declaration
-            Return Await context.TryGetRelevantNodeAsync(Of ModifiedIdentifierSyntax).ConfigureAwait(False)
         End Function
     End Module
 End Namespace
