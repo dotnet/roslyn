@@ -5,6 +5,7 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.AutomaticCompletion;
 using Microsoft.CodeAnalysis.CSharp;
@@ -155,6 +156,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 delimiters = startingNode.GetBrackets();
             }
 
+            if (delimiters == default && TryGetParentsWithBraces(startingNode, out var parentsWithBraces))
+            {
+                delimiters = parentsWithBraces.GetBraces();
+            }
+
             var (openingDelimiter, closingDelimiter) = delimiters;
             if (!openingDelimiter.IsKind(SyntaxKind.None) && openingDelimiter.Span.Start >= caretPosition
                 || !closingDelimiter.IsKind(SyntaxKind.None) && closingDelimiter.Span.End <= caretPosition)
@@ -194,7 +200,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 SyntaxKind.CheckedExpression,
                 SyntaxKind.UncheckedExpression,
                 SyntaxKind.TypeOfExpression,
-                SyntaxKind.TupleExpression))
+                SyntaxKind.TupleExpression,
+                SyntaxKind.SwitchExpression) || currentNode is InitializerExpressionSyntax)
             {
                 // make sure the closing delimiter exists
                 if (RequiredDelimiterIsMissing(currentNode))
@@ -460,7 +467,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         private static bool RequiredDelimiterIsMissing(SyntaxNode currentNode)
         {
             return currentNode.GetBrackets().closeBracket.IsMissing ||
-                currentNode.GetParentheses().closeParen.IsMissing;
+                currentNode.GetParentheses().closeParen.IsMissing ||
+                currentNode.GetBraces().closeBrace.IsMissing;
         }
+
+        private static bool TryGetParentsWithBraces(SyntaxNode currentNode, [NotNullWhen(true)] out SyntaxNode? parentsWithBraces)
+        {
+            // Switch Expression could be followed by semicolon.
+            if (currentNode.GetAncestorsOrThis(IsSyntaxNodeWithBracesCouldBeFollowedBySemicolon).FirstOrDefault() is { } parent)
+            {
+                parentsWithBraces = parent;
+                return true;
+            }
+
+            parentsWithBraces = null;
+            return false;
+        }
+
+        private static bool IsSyntaxNodeWithBracesCouldBeFollowedBySemicolon(SyntaxNode node)
+            => node is SwitchExpressionSyntax or InitializerExpressionSyntax;
     }
 }

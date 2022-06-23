@@ -4247,7 +4247,7 @@ public class ClassC
         }
 
         [WpfFact]
-        public void Test()
+        public void TestSwitchExpression()
         {
             var code = @"
 public class Bar
@@ -4274,6 +4274,31 @@ public class Bar
             ""World"" => 2,
             _ => 3
         };$$
+    }
+}";
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact]
+        public void TestInitializer()
+        {
+            var code = @"
+using System.Collections;
+public class Bar
+{
+    public void Test()
+    {
+        var l = new List<int>() { 1, 2 $$}
+    }
+}";
+
+            var expected = @"
+using System.Collections;
+public class Bar
+{
+    public void Test()
+    {
+        var l = new List<int>() { 1, 2 };$$
     }
 }";
             VerifyTypingSemicolon(code, expected);
