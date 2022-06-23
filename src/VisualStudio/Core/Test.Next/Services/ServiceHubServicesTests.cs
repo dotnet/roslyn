@@ -39,6 +39,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         private static TestWorkspace CreateWorkspace(Type[] additionalParts = null)
              => new TestWorkspace(composition: FeaturesTestCompositions.Features.WithTestHostParts(TestHost.OutOfProcess).AddParts(additionalParts));
 
+        private static Solution WithChangedOptionsFromRemoteWorkspace(Solution solution, RemoteWorkspace remoteWorkpace)
+            => solution.WithChangedOptionsFrom(remoteWorkpace.Options);
+
         [Fact]
         public async Task TestRemoteHostSynchronize()
         {
@@ -55,6 +58,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             await VerifyAssetStorageAsync(client, solution);
 
             var remoteWorkpace = client.GetRemoteWorkspace();
+
+            solution = WithChangedOptionsFromRemoteWorkspace(solution, remoteWorkpace);
 
             Assert.Equal(
                 await solution.State.GetChecksumAsync(CancellationToken.None),
@@ -266,12 +271,15 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             // See "RemoteSupportedLanguages.IsSupported"
             Assert.Empty(remoteWorkspace.CurrentSolution.Projects);
 
+            solution = WithChangedOptionsFromRemoteWorkspace(solution, remoteWorkspace);
+
             // No serializable remote options affect options checksum, so the checksums should match.
             Assert.Equal(
                 await solution.State.GetChecksumAsync(CancellationToken.None),
                 await remoteWorkspace.CurrentSolution.State.GetChecksumAsync(CancellationToken.None));
 
             solution = solution.RemoveProject(solution.ProjectIds.Single());
+            solution = WithChangedOptionsFromRemoteWorkspace(solution, remoteWorkspace);
 
             Assert.Equal(
                 await solution.State.GetChecksumAsync(CancellationToken.None),
@@ -295,6 +303,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             solution = workspace.CurrentSolution;
             await UpdatePrimaryWorkspace(client, solution);
             await VerifyAssetStorageAsync(client, solution);
+
+            solution = WithChangedOptionsFromRemoteWorkspace(solution, remoteWorkspace);
 
             Assert.Equal(
                 await solution.State.GetChecksumAsync(CancellationToken.None),

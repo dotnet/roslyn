@@ -42,6 +42,7 @@ namespace Microsoft.CodeAnalysis
         private readonly SolutionInfo.SolutionAttributes _solutionAttributes;
         private readonly SolutionServices _solutionServices;
         private readonly ImmutableDictionary<ProjectId, ProjectState> _projectIdToProjectStateMap;
+        private readonly ImmutableHashSet<string> _remoteSupportedLanguages;
         private readonly ImmutableDictionary<string, ImmutableArray<DocumentId>> _filePathToDocumentIdsMap;
         private readonly ProjectDependencyGraph _dependencyGraph;
 
@@ -78,9 +79,10 @@ namespace Microsoft.CodeAnalysis
             SolutionServices solutionServices,
             SolutionInfo.SolutionAttributes solutionAttributes,
             IReadOnlyList<ProjectId> projectIds,
-            SolutionOptionSet options,
+            SerializableOptionSet options,
             IReadOnlyList<AnalyzerReference> analyzerReferences,
             ImmutableDictionary<ProjectId, ProjectState> idToProjectStateMap,
+            ImmutableHashSet<string> remoteSupportedLanguages,
             ImmutableDictionary<ProjectId, ICompilationTracker> projectIdToTrackerMap,
             ImmutableDictionary<string, ImmutableArray<DocumentId>> filePathToDocumentIdsMap,
             ProjectDependencyGraph dependencyGraph,
@@ -95,6 +97,7 @@ namespace Microsoft.CodeAnalysis
             Options = options;
             AnalyzerReferences = analyzerReferences;
             _projectIdToProjectStateMap = idToProjectStateMap;
+            _remoteSupportedLanguages = remoteSupportedLanguages;
             _projectIdToTrackerMap = projectIdToTrackerMap;
             _filePathToDocumentIdsMap = filePathToDocumentIdsMap;
             _dependencyGraph = dependencyGraph;
@@ -116,7 +119,7 @@ namespace Microsoft.CodeAnalysis
             BranchId primaryBranchId,
             SolutionServices solutionServices,
             SolutionInfo.SolutionAttributes solutionAttributes,
-            SolutionOptionSet options,
+            SerializableOptionSet options,
             IReadOnlyList<AnalyzerReference> analyzerReferences)
             : this(
                 primaryBranchId,
@@ -127,6 +130,7 @@ namespace Microsoft.CodeAnalysis
                 options,
                 analyzerReferences,
                 idToProjectStateMap: ImmutableDictionary<ProjectId, ProjectState>.Empty,
+                remoteSupportedLanguages: ImmutableHashSet<string>.Empty,
                 projectIdToTrackerMap: ImmutableDictionary<ProjectId, ICompilationTracker>.Empty,
                 filePathToDocumentIdsMap: ImmutableDictionary.Create<string, ImmutableArray<DocumentId>>(StringComparer.OrdinalIgnoreCase),
                 dependencyGraph: ProjectDependencyGraph.Empty,
@@ -158,7 +162,7 @@ namespace Microsoft.CodeAnalysis
 
         public SolutionServices Services => _solutionServices;
 
-        public SolutionOptionSet Options { get; }
+        public SerializableOptionSet Options { get; }
 
         /// <summary>
         /// branch id of this solution
@@ -205,22 +209,28 @@ namespace Microsoft.CodeAnalysis
             Contract.ThrowIfFalse(_projectIdToProjectStateMap.Count == _dependencyGraph.ProjectIds.Count);
 
             // Only run this in debug builds; even the .Any() call across all projects can be expensive when there's a lot of them.
+
 #if DEBUG
+
             // An id shouldn't point at a tracker for a different project.
             Contract.ThrowIfTrue(_projectIdToTrackerMap.Any(kvp => kvp.Key != kvp.Value.ProjectState.Id));
 
             // project ids must be the same:
             Debug.Assert(_projectIdToProjectStateMap.Keys.SetEquals(ProjectIds));
             Debug.Assert(_projectIdToProjectStateMap.Keys.SetEquals(_dependencyGraph.ProjectIds));
+
+            Debug.Assert(_remoteSupportedLanguages.SetEquals(GetRemoteSupportedProjectLanguages(_projectIdToProjectStateMap)));
+
 #endif
         }
 
         private SolutionState Branch(
             SolutionInfo.SolutionAttributes? solutionAttributes = null,
             IReadOnlyList<ProjectId>? projectIds = null,
-            SolutionOptionSet? options = null,
+            SerializableOptionSet? options = null,
             IReadOnlyList<AnalyzerReference>? analyzerReferences = null,
             ImmutableDictionary<ProjectId, ProjectState>? idToProjectStateMap = null,
+            ImmutableHashSet<string>? remoteSupportedProjectLanguages = null,
             ImmutableDictionary<ProjectId, ICompilationTracker>? projectIdToTrackerMap = null,
             ImmutableDictionary<string, ImmutableArray<DocumentId>>? filePathToDocumentIdsMap = null,
             ProjectDependencyGraph? dependencyGraph = null,
@@ -228,10 +238,17 @@ namespace Microsoft.CodeAnalysis
         {
             var branchId = GetBranchId();
 
+            if (idToProjectStateMap is not null)
+            {
+                Contract.ThrowIfNull(remoteSupportedProjectLanguages);
+            }
+
             solutionAttributes ??= _solutionAttributes;
             projectIds ??= ProjectIds;
             idToProjectStateMap ??= _projectIdToProjectStateMap;
-            options ??= Options;
+            remoteSupportedProjectLanguages ??= _remoteSupportedLanguages;
+            Debug.Assert(remoteSupportedProjectLanguages.SetEquals(GetRemoteSupportedProjectLanguages(idToProjectStateMap)));
+            options ??= Options.UnionWithLanguages(remoteSupportedProjectLanguages);
             analyzerReferences ??= AnalyzerReferences;
             projectIdToTrackerMap ??= _projectIdToTrackerMap;
             filePathToDocumentIdsMap ??= _filePathToDocumentIdsMap;
@@ -263,6 +280,7 @@ namespace Microsoft.CodeAnalysis
                 options,
                 analyzerReferences,
                 idToProjectStateMap,
+                remoteSupportedProjectLanguages,
                 projectIdToTrackerMap,
                 filePathToDocumentIdsMap,
                 dependencyGraph,
@@ -291,6 +309,7 @@ namespace Microsoft.CodeAnalysis
                 Options,
                 AnalyzerReferences,
                 _projectIdToProjectStateMap,
+                _remoteSupportedLanguages,
                 _projectIdToTrackerMap,
                 _filePathToDocumentIdsMap,
                 _dependencyGraph,
@@ -474,6 +493,9 @@ namespace Microsoft.CodeAnalysis
 
             var newProjectIds = ProjectIds.ToImmutableArray().Add(projectId);
             var newStateMap = _projectIdToProjectStateMap.Add(projectId, projectState);
+            var newLanguages = RemoteSupportedLanguages.IsSupported(projectState.Language)
+                ? _remoteSupportedLanguages.Add(projectState.Language)
+                : _remoteSupportedLanguages;
 
             var newDependencyGraph = _dependencyGraph
                 .WithAdditionalProject(projectId)
@@ -503,6 +525,7 @@ namespace Microsoft.CodeAnalysis
                 solutionAttributes: newSolutionAttributes,
                 projectIds: newProjectIds,
                 idToProjectStateMap: newStateMap,
+                remoteSupportedProjectLanguages: newLanguages,
                 projectIdToTrackerMap: newTrackerMap,
                 filePathToDocumentIdsMap: newFilePathToDocumentIdsMap,
                 dependencyGraph: newDependencyGraph);
@@ -586,6 +609,31 @@ namespace Microsoft.CodeAnalysis
 
             var newProjectIds = ProjectIds.ToImmutableArray().Remove(projectId);
             var newStateMap = _projectIdToProjectStateMap.Remove(projectId);
+
+            // Remote supported languages only changes if the removed project is the last project of a supported language.
+            var newLanguages = _remoteSupportedLanguages;
+            if (_projectIdToProjectStateMap.TryGetValue(projectId, out var projectState)
+                && RemoteSupportedLanguages.IsSupported(projectState.Language))
+            {
+                var stillSupportsLanguage = false;
+                foreach (var (id, state) in _projectIdToProjectStateMap)
+                {
+                    if (id == projectId)
+                        continue;
+
+                    if (state.Language == projectState.Language)
+                    {
+                        stillSupportsLanguage = true;
+                        break;
+                    }
+                }
+
+                if (!stillSupportsLanguage)
+                {
+                    newLanguages = newLanguages.Remove(projectState.Language);
+                }
+            }
+
             var newDependencyGraph = _dependencyGraph.WithProjectRemoved(projectId);
             var newTrackerMap = CreateCompilationTrackerMap(projectId, newDependencyGraph);
             var newFilePathToDocumentIdsMap = CreateFilePathToDocumentIdsMapWithRemovedDocuments(GetDocumentStates(_projectIdToProjectStateMap[projectId]));
@@ -594,6 +642,7 @@ namespace Microsoft.CodeAnalysis
                 solutionAttributes: newSolutionAttributes,
                 projectIds: newProjectIds,
                 idToProjectStateMap: newStateMap,
+                remoteSupportedProjectLanguages: newLanguages,
                 projectIdToTrackerMap: newTrackerMap.Remove(projectId),
                 filePathToDocumentIdsMap: newFilePathToDocumentIdsMap,
                 dependencyGraph: newDependencyGraph);
@@ -1492,6 +1541,12 @@ namespace Microsoft.CodeAnalysis
             Contract.ThrowIfFalse(_projectIdToProjectStateMap.ContainsKey(projectId));
             var newStateMap = _projectIdToProjectStateMap.SetItem(projectId, newProjectState);
 
+            // Remote supported languages can only change if the project changes language. This is an unexpected edge
+            // case, so it's not optimized for incremental updates.
+            var newLanguages = !_projectIdToProjectStateMap.TryGetValue(projectId, out var projectState) || projectState.Language != newProjectState.Language
+                ? GetRemoteSupportedProjectLanguages(newStateMap)
+                : _remoteSupportedLanguages;
+
             newDependencyGraph ??= _dependencyGraph;
             var newTrackerMap = CreateCompilationTrackerMap(projectId, newDependencyGraph);
             // If we have a tracker for this project, then fork it as well (along with the
@@ -1508,6 +1563,7 @@ namespace Microsoft.CodeAnalysis
 
             return this.Branch(
                 idToProjectStateMap: newStateMap,
+                remoteSupportedProjectLanguages: newLanguages,
                 projectIdToTrackerMap: newTrackerMap,
                 dependencyGraph: newDependencyGraph,
                 filePathToDocumentIdsMap: newFilePathToDocumentIdsMap ?? _filePathToDocumentIdsMap);
@@ -1562,7 +1618,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public SolutionState WithOptions(SolutionOptionSet options)
+        public SolutionState WithOptions(SerializableOptionSet options)
             => Branch(options: options);
 
         public SolutionState AddAnalyzerReferences(IReadOnlyCollection<AnalyzerReference> analyzerReferences)
@@ -1660,10 +1716,12 @@ namespace Microsoft.CodeAnalysis
 
                     Contract.ThrowIfFalse(_projectIdToProjectStateMap.ContainsKey(documentId.ProjectId));
                     var newIdToProjectStateMap = _projectIdToProjectStateMap.SetItem(documentId.ProjectId, newTracker.ProjectState);
+                    var newLanguages = _remoteSupportedLanguages;
                     var newIdToTrackerMap = _projectIdToTrackerMap.SetItem(documentId.ProjectId, newTracker);
 
                     currentPartialSolution = this.Branch(
                         idToProjectStateMap: newIdToProjectStateMap,
+                        remoteSupportedProjectLanguages: newLanguages,
                         projectIdToTrackerMap: newIdToTrackerMap,
                         dependencyGraph: CreateDependencyGraph(ProjectIds, newIdToProjectStateMap));
 
@@ -1978,6 +2036,23 @@ namespace Microsoft.CodeAnalysis
 
         internal bool ContainsTransitiveReference(ProjectId fromProjectId, ProjectId toProjectId)
             => _dependencyGraph.GetProjectsThatThisProjectTransitivelyDependsOn(fromProjectId).Contains(toProjectId);
+
+        internal ImmutableHashSet<string> GetRemoteSupportedProjectLanguages()
+            => _remoteSupportedLanguages;
+
+        private static ImmutableHashSet<string> GetRemoteSupportedProjectLanguages(ImmutableDictionary<ProjectId, ProjectState> projectStates)
+        {
+            var builder = ImmutableHashSet.CreateBuilder<string>();
+            foreach (var projectState in projectStates)
+            {
+                if (RemoteSupportedLanguages.IsSupported(projectState.Value.Language))
+                {
+                    builder.Add(projectState.Value.Language);
+                }
+            }
+
+            return builder.ToImmutable();
+        }
 
         internal TestAccessor GetTestAccessor() => new TestAccessor(this);
 

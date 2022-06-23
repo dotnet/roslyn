@@ -35,7 +35,6 @@ using Roslyn.Utilities;
 using Xunit;
 using CS = Microsoft.CodeAnalysis.CSharp;
 using static Microsoft.CodeAnalysis.UnitTests.SolutionTestHelpers;
-using Microsoft.CodeAnalysis.Indentation;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -3266,16 +3265,16 @@ class C
                     projectReferences: new[] { new ProjectReference(dependsOnVbNormalProject.Id) }));
         }
 
-        [Fact]
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestOptionChangesForLanguagesNotInSolution()
         {
             // Create an empty solution with no projects.
             using var workspace = CreateWorkspace();
             var s0 = workspace.CurrentSolution;
-            var optionService = workspace.Services.GetRequiredService<ILegacyWorkspaceOptionService>();
+            var optionService = workspace.Services.GetRequiredService<IOptionService>();
 
             // Apply an option change to a C# option.
-            var option = FormattingOptions.UseTabs;
+            var option = GenerationOptions.PlaceSystemNamespaceFirst;
             var defaultValue = option.DefaultValue;
             var changedValue = !defaultValue;
             var options = s0.Options.WithChangedOption(option, LanguageNames.CSharp, changedValue);

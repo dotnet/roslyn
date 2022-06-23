@@ -10,7 +10,6 @@ using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.Commanding;
@@ -75,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
             // WPF is required for some reason: https://github.com/dotnet/roslyn/issues/46286
             using var workspace = TestWorkspace.Create(Language, compilationOptions: null, parseOptions: null, new[] { markupCode }, composition: EditorTestCompositions.EditorFeaturesWpf);
 
-            workspace.GlobalOptions.SetGlobalOption(new OptionKey(FormattingOptions2.UseTabs, Language), useTabs);
+            workspace.SetOptions(workspace.Options.WithChangedOption(FormattingOptions2.UseTabs, Language, useTabs));
 
             var view = workspace.Documents.Single().GetTextView();
             var buffer = workspace.Documents.Single().GetTextBuffer();

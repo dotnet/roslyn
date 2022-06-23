@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
-using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -59,8 +58,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             MockCompletionSession = new Mock<ICompletionSession>(MockBehavior.Strict);
         }
 
-        internal virtual OptionsCollection NonCompletionOptions
-            => null;
+        protected virtual OptionSet WithChangedNonCompletionOptions(OptionSet options)
+            => options;
 
         private CompletionOptions GetCompletionOptions()
         {
@@ -258,7 +257,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 var position = workspaceFixture.Target.Position;
 
                 // Set options that are not CompletionOptions
-                NonCompletionOptions?.SetGlobalOptions(workspace.GlobalOptions);
+                workspace.SetOptions(WithChangedNonCompletionOptions(workspace.Options));
 
                 await VerifyWorkerAsync(
                     code, position, expectedItemOrNull, expectedDescriptionOrNull,
@@ -275,7 +274,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var workspace = workspaceFixture.Target.GetWorkspace(markup, ExportProvider, workspaceKind: workspaceKind);
 
             // Set options that are not CompletionOptions
-            NonCompletionOptions?.SetGlobalOptions(workspace.GlobalOptions);
+            workspace.SetOptions(WithChangedNonCompletionOptions(workspace.Options));
 
             var currentDocument = workspace.CurrentSolution.GetDocument(workspaceFixture.Target.CurrentDocument.Id);
             var position = workspaceFixture.Target.Position;
@@ -453,7 +452,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var workspace = workspaceFixture.Target.GetWorkspace();
 
             // Set options that are not CompletionOptions
-            NonCompletionOptions?.SetGlobalOptions(workspace.GlobalOptions);
+            workspace.SetOptions(WithChangedNonCompletionOptions(workspace.Options));
 
             var document1 = workspaceFixture.Target.UpdateDocument(codeBeforeCommit, sourceCodeKind);
             await VerifyCustomCommitProviderCheckResultsAsync(document1, codeBeforeCommit, position, itemToCommit, expectedCodeAfterCommit, commitChar);
@@ -575,7 +574,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var workspace = workspaceFixture.Target.GetWorkspace();
 
             // Set options that are not CompletionOptions
-            NonCompletionOptions?.SetGlobalOptions(workspace.GlobalOptions);
+            workspace.SetOptions(WithChangedNonCompletionOptions(workspace.Options));
 
             var document1 = workspaceFixture.Target.UpdateDocument(codeBeforeCommit, sourceCodeKind);
             await VerifyProviderCommitCheckResultsAsync(document1, position, itemToCommit, expectedCodeAfterCommit, commitChar);
