@@ -824,11 +824,11 @@ namespace Roslyn.Utilities
 
                 case 12000:
                     Debug.Assert(HasPreamble(Encoding.UTF32));
-                    return (encoding.Equals(Encoding.UTF32) || HasPreamble(encoding)) ? EncodingKind.EncodingUTF32_LE_BOM : EncodingKind.EncodingUTF32_LE;
+                    return (encoding.Equals(Encoding.UTF32) || HasPreamble(encoding)) ? EncodingKind.EncodingUtf32_LE_BOM : EncodingKind.EncodingUtf32_LE;
 
                 case 12001:
                     Debug.Assert(HasPreamble(Encoding.UTF32));
-                    return (encoding.Equals(Encoding.UTF32) || HasPreamble(encoding)) ? EncodingKind.EncodingUTF32_BE_BOM : EncodingKind.EncodingUTF32_BE;
+                    return (encoding.Equals(Encoding.UTF32) || HasPreamble(encoding)) ? EncodingKind.EncodingUtf32_BE_BOM : EncodingKind.EncodingUtf32_BE;
 
                 case 65001:
                     Debug.Assert(HasPreamble(Encoding.UTF8));
@@ -1309,10 +1309,10 @@ namespace Roslyn.Utilities
             // well-known encodings (parameterized by BOM)
             EncodingUtf8,
             EncodingUtf8_BOM,
-            EncodingUTF32_BE,
-            EncodingUTF32_BE_BOM,
-            EncodingUTF32_LE,
-            EncodingUTF32_LE_BOM,
+            EncodingUtf32_BE,
+            EncodingUtf32_BE_BOM,
+            EncodingUtf32_LE,
+            EncodingUtf32_LE_BOM,
             EncodingUnicode_BE,
             EncodingUnicode_BE_BOM,
             EncodingUnicode_LE,
