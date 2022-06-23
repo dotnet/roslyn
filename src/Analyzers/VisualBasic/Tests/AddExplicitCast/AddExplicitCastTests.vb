@@ -483,6 +483,15 @@ End Module")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function TestClassAttribute() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Option Strict On
+<System.Runtime.InteropServices.ClassInterface([|1|])>
+Class Program
+End Class")
+        End Function
+
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
         Public Async Function TestMultiline() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On

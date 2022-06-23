@@ -74,11 +74,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
                         mutablePotentialConversionTypes.Add((spanNode, conversionType))
                     End If
                 Case BC30518, BC30519
-                    Dim invocationNodeExpression = spanNode.GetAncestors(Of ExpressionSyntax).FirstOrDefault(
-                        Function(node) Not node.ChildNodes.OfType(Of ArgumentListSyntax).IsEmpty())
+                    Dim invocationNodeExpression = spanNode.GetAncestors(Of InvocationExpressionSyntax).FirstOrDefault(
+                        Function(node) node.ArgumentList IsNot Nothing)
 
                     Dim invocationNodeAttribute = spanNode.GetAncestors(Of AttributeSyntax).FirstOrDefault(
-                        Function(node) Not node.ChildNodes.OfType(Of ArgumentListSyntax).IsEmpty())
+                        Function(node) node.ArgumentList IsNot Nothing)
 
                     ' Collect available cast pairs without target argument
                     If invocationNodeExpression IsNot Nothing Then
