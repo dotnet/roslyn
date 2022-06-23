@@ -27,7 +27,7 @@ namespace Xunit.Threading
                 () =>
                 {
                     var tcs = new TaskCompletionSource<decimal>();
-                    tcs.SetException(_exception);
+                    tcs.SetException(new InvalidOperationException("Test execution was skipped due to a prior exception in the harness.", _exception));
                     return tcs.Task;
                 });
         }
