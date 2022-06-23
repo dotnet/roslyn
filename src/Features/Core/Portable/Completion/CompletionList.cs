@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -22,6 +23,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// The completion items to present to the user.
         /// </summary>
         [Obsolete($"This property is obsolete. Use {nameof(ItemsList)} instead", true)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public ImmutableArray<CompletionItem> Items => _lazyItems.Value;
 
         /// <summary>
