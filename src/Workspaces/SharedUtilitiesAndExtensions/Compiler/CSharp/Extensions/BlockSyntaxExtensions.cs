@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 {
                     // The close brace of the block may have important trivia on it (like 
                     // comments or directives).  Preserve them on the semicolon when we
-                    // convert to an expression body.
+                    // convert to an expression body
                     semicolonToken = semicolonToken.WithAppendedTrailingTrivia(
                         block.CloseBraceToken.LeadingTrivia.Where(t => !t.IsWhitespaceOrEndOfLine()));
                     return true;
@@ -62,6 +62,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 block.TryConvertToExpressionBody(languageVersion, preference, out var expression, out semicolonToken))
             {
                 arrowExpression = SyntaxFactory.ArrowExpressionClause(expression);
+                arrowExpression = arrowExpression.WithPrependedLeadingTrivia(
+                        block.GetAncestors().FirstOrDefault().GetLeadingTrivia());
+                arrowExpression = arrowExpression.WithPrependedLeadingTrivia(
+                        block.GetAncestors().FirstOrDefault().GetTrailingTrivia());
                 return true;
             }
 
