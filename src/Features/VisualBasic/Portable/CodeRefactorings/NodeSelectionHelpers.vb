@@ -22,10 +22,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings
                 ' We'll do this by selecting the one closest to the start of the span
                 Dim span As TextSpan, cancellationToken As CancellationToken
                 context.Deconstruct(Nothing, span, cancellationToken)
-                Dim closestDeclarator As VariableDeclaratorSyntax = Nothing
+                Dim closestDeclarator As ModifiedIdentifierSyntax = Nothing
                 Dim leastDistance = Integer.MaxValue
-                Dim candidates = (Await fieldDeclaration.Declarators.SelectManyAsArrayAsync(Of VariableDeclaratorSyntax, ModifiedIdentifierSyntax)(Function(vds As VariableDeclaratorSyntax, cancellationToken) vds.Names.AsImmutable()).ConfigureAwait(False)).
-                For Each candidate In fieldDeclaration.Declarators
+                For Each candidate In fieldDeclaration.Declarators.SelectMany(Function(vds) vds.Names)
                     Dim dist = Math.Min(Math.Abs(candidate.SpanStart - span.Start), Math.Abs(candidate.Span.End - span.Start))
                     If (dist < leastDistance) Then
                         closestDeclarator = candidate
