@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis
 
             public TableEntry AsRemoved() => new(_item, _items, s_allRemovedEntries);
 
-            [MemberNotNullWhen(true, new[] { nameof(_item) })]
+            [MemberNotNullWhen(true, nameof(_item))]
             private bool IsSingle => this._items.IsDefault;
 
             private static ImmutableArray<EntryState> GetSingleArray(EntryState state) => state switch
