@@ -433,7 +433,7 @@ dotnet_naming_rule.{(CompilerExtensionsResources.Types + "_should_be_" + Compile
 dotnet_naming_rule.{(CompilerExtensionsResources.Types + "_should_be_" + CompilerExtensionsResources.Pascal_Case.Replace(' ', '_')).ToLowerInvariant()}.style = {CompilerExtensionsResources.Pascal_Case.Replace(' ', '_').ToLowerInvariant()}
 
 dotnet_naming_rule.{(CompilerExtensionsResources.Non_Field_Members.Replace(' ', '_').Replace('-', '_') + "_should_be_" + CompilerExtensionsResources.Pascal_Case.Replace(' ', '_')).ToLowerInvariant()}.severity = suggestion
-dotnet_naming_rule.{(CompilerExtensionsResources.Non_Field_Members.Replace(' ', '_').Replace('-', '_') + "_should_be_" + CompilerExtensionsResources.Pascal_Case.Replace(' ', '_')).ToLowerInvariant()}.symbols = { CompilerExtensionsResources.Non_Field_Members.Replace(' ', '_').Replace('-', '_').ToLowerInvariant()}
+dotnet_naming_rule.{(CompilerExtensionsResources.Non_Field_Members.Replace(' ', '_').Replace('-', '_') + "_should_be_" + CompilerExtensionsResources.Pascal_Case.Replace(' ', '_')).ToLowerInvariant()}.symbols = {CompilerExtensionsResources.Non_Field_Members.Replace(' ', '_').Replace('-', '_').ToLowerInvariant()}
 dotnet_naming_rule.{(CompilerExtensionsResources.Non_Field_Members.Replace(' ', '_').Replace('-', '_') + "_should_be_" + CompilerExtensionsResources.Pascal_Case.Replace(' ', '_')).ToLowerInvariant()}.style = {CompilerExtensionsResources.Pascal_Case.Replace(' ', '_').ToLowerInvariant()}
 
 # {CompilerExtensionsResources.Symbol_specifications}

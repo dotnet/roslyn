@@ -550,7 +550,7 @@ class C
 {{
     void M()
     {{
-        var data = (n$$) { (hasNewline ? Environment.NewLine : string.Empty) } M();
+        var data = (n$$) {(hasNewline ? Environment.NewLine : string.Empty)} M();
     }}
 }}";
 
@@ -588,7 +588,7 @@ class C
             var markup =
 $@"class C
 {{
-    bool Prop => (t$$)  { (hasExpression ? "n" : string.Empty) }
+    bool Prop => (t$$)  {(hasExpression ? "n" : string.Empty)}
     private int n;
 }}";
             if (hasExpression)

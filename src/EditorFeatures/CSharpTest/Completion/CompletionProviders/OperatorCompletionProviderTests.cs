@@ -666,7 +666,7 @@ public class Program
         s.$$
     }}
 }}";
-            await VerifyItemExistsAsync(string.Format(template, $"public static bool operator {operatorSign}(S a, S b)"), operatorSign, inlineDescription: $"x { operatorSign } y");
+            await VerifyItemExistsAsync(string.Format(template, $"public static bool operator {operatorSign}(S a, S b)"), operatorSign, inlineDescription: $"x {operatorSign} y");
             await VerifyNoItemsExistAsync(string.Format(template, $"public static int operator {operatorSign}(S a, S b)"));
             await VerifyNoItemsExistAsync(string.Format(template, $"public static bool operator {operatorSign}(S a, S b, S c)"));
             await VerifyNoItemsExistAsync(string.Format(template, $"public static bool operator {operatorSign}(S a, object b)"));
