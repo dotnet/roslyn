@@ -27,6 +27,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CommentSelection
             var expected = @"[|/**/|]";
 
             ToggleComment(markup, expected);
+
+            Assert.False(true);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
