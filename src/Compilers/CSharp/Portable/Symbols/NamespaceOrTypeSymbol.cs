@@ -330,7 +330,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
 Done:
-            if (isTopLevel && scope is not PENamespaceSymbol && GeneratedNameParser.TryParseFileTypeName(emittedTypeName.UnmangledTypeName, out string? displayFileName, out int ordinal, out string? sourceName))
+            if (isTopLevel
+                && scope is not PENamespaceSymbol
+                && GeneratedNameParser.TryParseFileTypeName(
+                    emittedTypeName.UnmangledTypeName,
+                    out string? displayFileName,
+                    out int ordinal,
+                    out string? sourceName))
             {
                 // also do a lookup for file types from source.
                 namespaceOrTypeMembers = scope.GetTypeMembers(sourceName);
