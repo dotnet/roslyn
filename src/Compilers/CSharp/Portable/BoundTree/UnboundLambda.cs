@@ -615,8 +615,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             var parameterTypesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(ParameterCount);
             for (int i = 0; i < ParameterCount; i++)
             {
-                parameterRefKindsBuilder.Add(RefKind(i));
-                parameterScopesBuilder.Add(Scope(i));
+                var refKind = RefKind(i);
+                var scope = Scope(i);
+                if (scope == DeclarationScope.Unscoped && refKind == Microsoft.CodeAnalysis.RefKind.Out)
+                {
+                    scope = DeclarationScope.RefScoped;
+                }
+                parameterRefKindsBuilder.Add(refKind);
+                parameterScopesBuilder.Add(scope);
                 parameterTypesBuilder.Add(ParameterTypeWithAnnotations(i));
             }
             var parameterRefKinds = parameterRefKindsBuilder.ToImmutableAndFree();

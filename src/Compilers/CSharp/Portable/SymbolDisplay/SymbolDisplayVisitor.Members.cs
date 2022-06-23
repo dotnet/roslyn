@@ -612,7 +612,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var param in symbol.Parameters)
                 {
                     // https://github.com/dotnet/roslyn/issues/61647: Use public API.
-                    Debug.Assert((param as Symbols.PublicModel.ParameterSymbol)?.GetSymbol<ParameterSymbol>().Scope is null or DeclarationScope.Unscoped);
+                    Debug.Assert((param as Symbols.PublicModel.ParameterSymbol)?.GetSymbol<ParameterSymbol>().Scope switch
+                    {
+                        null => true,
+                        DeclarationScope.Unscoped => param.RefKind != RefKind.Out,
+                        DeclarationScope.RefScoped => param.RefKind == RefKind.Out,
+                        _ => false,
+                    });
 
                     AddParameterRefKind(param.RefKind);
 
@@ -1074,6 +1080,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // https://github.com/dotnet/roslyn/issues/61647: Use public API.
                 if ((symbol as Symbols.PublicModel.ParameterSymbol)?.GetSymbol<ParameterSymbol>().Scope == DeclarationScope.RefScoped &&
+                    symbol.RefKind != RefKind.Out &&
                     format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeScoped))
                 {
                     AddKeyword(SyntaxKind.ScopedKeyword);

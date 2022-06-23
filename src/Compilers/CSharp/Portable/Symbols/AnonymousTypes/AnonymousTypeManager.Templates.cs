@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (allValidTypeArguments(typeDescr))
             {
                 var fields = typeDescr.Fields;
-                Debug.Assert(fields.All(f => f.Scope == DeclarationScope.Unscoped));
+                Debug.Assert(fields.All(f => hasDefaultScope(f)));
 
                 bool returnsVoid = fields.Last().Type.IsVoidType();
                 int nTypeArguments = fields.Length - (returnsVoid ? 1 : 0);
@@ -258,9 +258,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return returnParameter.Type.IsVoidType() || isValidTypeArgument(returnParameter);
             }
 
+            static bool hasDefaultScope(AnonymousTypeField field) =>
+                (field.Scope == DeclarationScope.Unscoped && field.RefKind != RefKind.Out) || (field.Scope == DeclarationScope.RefScoped && field.RefKind == RefKind.Out);
+
             static bool isValidTypeArgument(AnonymousTypeField field)
             {
-                return field.Scope == DeclarationScope.Unscoped &&
+                return hasDefaultScope(field) &&
                     field.Type is { } type &&
                     !type.IsPointerOrFunctionPointer() &&
                     !type.IsRestrictedType();

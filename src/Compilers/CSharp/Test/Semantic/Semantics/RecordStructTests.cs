@@ -7968,10 +7968,19 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
                 // (9,26): error CS8352: Cannot use local 'local' in this context because it may expose referenced variables outside of their declaration scope
                 //         sp = MayWrap(ref local) with { }; // 1, 2
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "local").WithArguments("local").WithLocation(9, 26),
+                // (9,14): error CS8347: Cannot use a result of 'Program.MayWrap(ref Span<int>)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
+                //         sp = MayWrap(ref local) with { }; // 1, 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "MayWrap(ref local)").WithArguments("Program.MayWrap(ref System.Span<int>)", "arg").WithLocation(9, 14)
+                );
+
+            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (9,26): error CS8168: Cannot return local 'local' by reference because it is not a ref local
+                //         sp = MayWrap(ref local) with { }; // 1, 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "local").WithArguments("local").WithLocation(9, 26),
                 // (9,14): error CS8347: Cannot use a result of 'Program.MayWrap(ref Span<int>)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
                 //         sp = MayWrap(ref local) with { }; // 1, 2
                 Diagnostic(ErrorCode.ERR_EscapeCall, "MayWrap(ref local)").WithArguments("Program.MayWrap(ref System.Span<int>)", "arg").WithLocation(9, 14)

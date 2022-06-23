@@ -10012,19 +10012,19 @@ class Program
 5
 <>A{00000002}`1[System.Int32]
 6
-<>f__AnonymousDelegate2
+<>A{00000002}`1[System.Int32]
 7
 <>A{00000001}`1[System.Byte]
 8
-<>f__AnonymousDelegate3
+<>f__AnonymousDelegate2
 9
 <>A{00000003}`1[System.Byte]
 10
-<>f__AnonymousDelegate4
+<>f__AnonymousDelegate3
 11
 <>A{00000002}`1[System.Byte]
 12
-<>f__AnonymousDelegate5
+<>A{00000002}`1[System.Byte]
 ");
         }
 

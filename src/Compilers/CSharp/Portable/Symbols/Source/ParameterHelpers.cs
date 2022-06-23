@@ -145,6 +145,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     diagnostics.Add(ErrorCode.ERR_ThisInBadContext, thisKeyword.GetLocation());
                 }
+                if (refKind == RefKind.Out && scope == DeclarationScope.Unscoped)
+                {
+                    scope = DeclarationScope.RefScoped;
+                }
 
                 if (parameterSyntax is ParameterSyntax concreteParam)
                 {
@@ -302,6 +306,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal static bool RequiresLifetimeAnnotationAttribute(ParameterSymbol parameter)
+        {
+            Debug.Assert(!parameter.IsThis);
+
+            var scope = parameter.Scope;
+            if (scope == DeclarationScope.Unscoped)
+            {
+                return false;
+            }
+            if (parameter.RefKind == RefKind.Out)
+            {
+                return scope == DeclarationScope.ValueScoped;
+            }
+            return true;
+        }
+
         internal static void EnsureLifetimeAnnotationAttributeExists(PEModuleBuilder moduleBuilder, ImmutableArray<ParameterSymbol> parameters)
         {
             EnsureLifetimeAnnotationAttributeExists(moduleBuilder.Compilation, parameters, diagnostics: null, modifyCompilation: false, moduleBuilder);
@@ -323,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             foreach (var parameter in parameters)
             {
-                if (parameter.Scope != DeclarationScope.Unscoped)
+                if (RequiresLifetimeAnnotationAttribute(parameter))
                 {
                     if (moduleBuilder is { })
                     {

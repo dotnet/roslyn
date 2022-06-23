@@ -1710,9 +1710,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return Compilation.TrySynthesizeAttribute(member, arguments, isOptionalUse: true);
         }
 
-        internal SynthesizedAttributeData SynthesizeLifetimeAnnotationAttribute(Symbol symbol, DeclarationScope scope)
+        internal SynthesizedAttributeData SynthesizeLifetimeAnnotationAttribute(ParameterSymbol symbol, DeclarationScope scope)
         {
             Debug.Assert(scope != DeclarationScope.Unscoped);
+            Debug.Assert(symbol.RefKind != RefKind.Out || scope == DeclarationScope.ValueScoped);
+            Debug.Assert(!symbol.IsThis);
 
             if ((object)Compilation.SourceModule != symbol.ContainingModule)
             {

@@ -777,13 +777,60 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private static bool CheckParameterRefEscape(SyntaxNode node, BoundParameter parameter, uint escapeTo, bool checkingReceiver, BindingDiagnosticBag diagnostics)
+        private uint GetParameterValEscape(ParameterSymbol parameter)
         {
-            ParameterSymbol parameterSymbol = parameter.ParameterSymbol;
+            if (UseUpdatedEscapeRules)
+            {
+                return parameter.Scope == DeclarationScope.ValueScoped ?
+                    Binder.TopLevelScope :
+                    Binder.ExternalScope;
+            }
+            else
+            {
+                return Binder.ExternalScope;
+            }
+        }
 
-            // byval parameters can escape to method's top level. Others can escape further.
-            // NOTE: "method" here means nearest containing method, lambda or local function.
-            if (escapeTo == Binder.ExternalScope && parameterSymbol.RefKind == RefKind.None)
+        private uint GetParameterRefEscape(ParameterSymbol parameter)
+        {
+            if (UseUpdatedEscapeRules)
+            {
+                return parameter.RefKind is RefKind.None || parameter.Scope != DeclarationScope.Unscoped ? Binder.TopLevelScope : Binder.ExternalScope;
+            }
+            else
+            {
+                // byval parameters can escape to method's top level. Others can escape further.
+                // NOTE: "method" here means nearest containing method, lambda or local function.
+                return parameter.RefKind == RefKind.None ? Binder.TopLevelScope : Binder.ExternalScope;
+            }
+        }
+
+        private bool CheckParameterValEscape(SyntaxNode node, BoundParameter parameter, uint escapeTo, BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(escapeTo == Binder.ExternalScope);
+            if (UseUpdatedEscapeRules)
+            {
+                var parameterSymbol = parameter.ParameterSymbol;
+                if (GetParameterValEscape(parameterSymbol) > escapeTo)
+                {
+                    // PROTOTYPE: Add specific error.
+                    Error(diagnostics, ErrorCode.ERR_EscapeLocal, node, parameterSymbol);
+                    return false;
+                }
+                return true;
+            }
+            else
+            {
+                // always returnable
+                return true;
+            }
+        }
+
+        private bool CheckParameterRefEscape(SyntaxNode node, BoundParameter parameter, uint escapeTo, bool checkingReceiver, BindingDiagnosticBag diagnostics)
+        {
+            var parameterSymbol = parameter.ParameterSymbol;
+
+            if (GetParameterRefEscape(parameterSymbol) > escapeTo)
             {
                 if (checkingReceiver)
                 {
@@ -927,7 +974,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private static bool CheckFieldRefEscape(SyntaxNode node, BoundFieldAccess fieldAccess, uint escapeFrom, uint escapeTo, BindingDiagnosticBag diagnostics)
+        private uint GetFieldRefEscape(BoundFieldAccess fieldAccess, uint scopeOfTheContainingExpression)
+        {
+            var fieldSymbol = fieldAccess.FieldSymbol;
+
+            // fields that are static or belong to reference types can ref escape anywhere
+            if (fieldSymbol.IsStatic || fieldSymbol.ContainingType.IsReferenceType)
+            {
+                return Binder.ExternalScope;
+            }
+
+            if (UseUpdatedEscapeRules)
+            {
+                // SPEC: If `F` is a `ref` field its ref-safe-to-escape scope is the safe-to-escape scope of `e`.
+                if (fieldSymbol.RefKind != RefKind.None)
+                {
+                    return GetValEscape(fieldAccess.ReceiverOpt, scopeOfTheContainingExpression);
+                }
+            }
+
+            // for other fields defer to the receiver.
+            return GetRefEscape(fieldAccess.ReceiverOpt, scopeOfTheContainingExpression);
+        }
+
+        private bool CheckFieldRefEscape(SyntaxNode node, BoundFieldAccess fieldAccess, uint escapeFrom, uint escapeTo, BindingDiagnosticBag diagnostics)
         {
             var fieldSymbol = fieldAccess.FieldSymbol;
             // fields that are static or belong to reference types can ref escape anywhere
@@ -936,11 +1006,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
+            Debug.Assert(fieldAccess.ReceiverOpt is { });
+
+            if (UseUpdatedEscapeRules)
+            {
+                // SPEC: If `F` is a `ref` field its ref-safe-to-escape scope is the safe-to-escape scope of `e`.
+                if (fieldSymbol.RefKind != RefKind.None)
+                {
+                    return CheckValEscape(node, fieldAccess.ReceiverOpt, escapeFrom, escapeTo, checkingReceiver: true, diagnostics);
+                }
+            }
+
             // for other fields defer to the receiver.
             return CheckRefEscape(node, fieldAccess.ReceiverOpt, escapeFrom, escapeTo, checkingReceiver: true, diagnostics: diagnostics);
         }
 
-        private static bool CheckFieldLikeEventRefEscape(SyntaxNode node, BoundEventAccess eventAccess, uint escapeFrom, uint escapeTo, BindingDiagnosticBag diagnostics)
+        private bool CheckFieldLikeEventRefEscape(SyntaxNode node, BoundEventAccess eventAccess, uint escapeFrom, uint escapeTo, BindingDiagnosticBag diagnostics)
         {
             var eventSymbol = eventAccess.EventSymbol;
 
@@ -1332,10 +1413,59 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal static uint GetInterpolatedStringHandlerConversionEscapeScope(
+        internal uint GetInterpolatedStringHandlerConversionEscapeScope(
             InterpolatedStringHandlerData data,
             uint scopeOfTheContainingExpression)
             => GetValEscape(data.Construction, scopeOfTheContainingExpression);
+
+#nullable enable
+
+        /// <summary>
+        /// Returns true if the argument contributes _ref-safe-to-escape_;
+        /// returns false if the argument contributes _safe-to-escape_; and
+        /// returns null if the argument contributes neither.
+        /// </summary>
+        private bool? UseRefEscapeOfInvocationArgument(Symbol symbol, RefKind effectiveRefKind, bool isRefEscape, DeclarationScope scope)
+        {
+            if (!UseUpdatedEscapeRules)
+            {
+                return effectiveRefKind != RefKind.None && isRefEscape;
+            }
+
+            bool useRefEscape = effectiveRefKind switch
+            {
+                RefKind.None or RefKind.Out => false,
+                RefKind.Ref or RefKind.In => isRefEscape || hasRefStructType(symbol),
+                _ => throw ExceptionUtilities.UnexpectedValue(effectiveRefKind),
+            };
+
+            if (useRefEscape ?
+                scope != DeclarationScope.Unscoped :
+                scope == DeclarationScope.ValueScoped)
+            {
+                // SPEC: For a given argument `a` that is passed to parameter `p`:
+                // SPEC: 1. If `p` is `scoped ref` then `a` does not contribute *ref-safe-to-escape* when considering arguments. Note that `ref scoped` is included here as it implies `scoped ref scoped`.
+                // SPEC: 2. If `p` is `scoped` or `ref scoped` then `a` does not contribute *safe-to-escape* when considering arguments.
+                return null;
+            }
+
+            return useRefEscape;
+
+            static bool hasRefStructType(Symbol symbol)
+            {
+                switch (symbol)
+                {
+                    case MethodSymbol method:
+                        return method.MethodKind == MethodKind.Constructor ?
+                            method.ContainingType.IsRefLikeType :
+                            method.ReturnType.IsRefLikeType;
+                    case PropertySymbol property:
+                        return property.Type.IsRefLikeType;
+                    default:
+                        return false;
+                }
+            }
+        }
 
         /// <summary>
         /// Computes the scope to which the given invocation can escape
@@ -1345,9 +1475,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// NOTE: we need scopeOfTheContainingExpression as some expressions such as optional <c>in</c> parameters or <c>ref dynamic</c> behave as 
         ///       local variables declared at the scope of the invocation.
         /// </summary>
-        internal static uint GetInvocationEscapeScope(
+        internal uint GetInvocationEscapeScope(
             Symbol symbol,
-            BoundExpression receiverOpt,
+            BoundExpression? receiver,
             ImmutableArray<ParameterSymbol> parameters,
             ImmutableArray<BoundExpression> argsOpt,
             ImmutableArray<RefKind> argRefKindsOpt,
@@ -1371,13 +1501,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!symbol.RequiresInstanceReceiver())
             {
                 // ignore receiver when symbol is static
-                receiverOpt = null;
+                receiver = null;
             }
 
             //by default it is safe to escape
             uint escapeScope = Binder.ExternalScope;
 
-            ArrayBuilder<bool> inParametersMatchedWithArgs = null;
+            ArrayBuilder<bool>? inParametersMatchedWithArgs = null;
 
             if (!argsOpt.IsDefault)
             {
@@ -1401,7 +1531,7 @@ moreArguments:
                         goto moreArguments;
                     }
 
-                    RefKind effectiveRefKind = GetEffectiveRefKindAndMarkMatchedInParameter(argIndex, argRefKindsOpt, parameters, argsToParamsOpt, ref inParametersMatchedWithArgs);
+                    RefKind effectiveRefKind = GetEffectiveRefKindAndMarkMatchedInParameter(argIndex, argRefKindsOpt, parameters, argsToParamsOpt, ref inParametersMatchedWithArgs, out DeclarationScope scope);
 
                     // ref escape scope is the narrowest of 
                     // - ref escape of all byref arguments
@@ -1410,7 +1540,13 @@ moreArguments:
                     // val escape scope is the narrowest of 
                     // - val escape of all byval arguments  (refs cannot be wrapped into values, so their ref escape is irrelevant, only use val escapes)
 
-                    var argEscape = effectiveRefKind != RefKind.None && isRefEscape ?
+                    bool? useRefEscape = UseRefEscapeOfInvocationArgument(symbol, effectiveRefKind, isRefEscape, scope);
+                    if (useRefEscape == null)
+                    {
+                        continue;
+                    }
+
+                    var argEscape = useRefEscape.GetValueOrDefault() ?
                                         GetRefEscape(argument, scopeOfTheContainingExpression) :
                                         GetValEscape(argument, scopeOfTheContainingExpression);
 
@@ -1428,7 +1564,7 @@ moreArguments:
             }
 
             // handle omitted optional "in" parameters if there are any
-            ParameterSymbol unmatchedInParameter = TryGetunmatchedInParameterAndFreeMatchedArgs(parameters, ref inParametersMatchedWithArgs);
+            ParameterSymbol? unmatchedInParameter = TryGetUnmatchedInParameterAndFreeMatchedArgs(parameters, ref inParametersMatchedWithArgs);
 
             // unmatched "in" parameter is the same as a literal, its ref escape is scopeOfTheContainingExpression  (can't get any worse)
             //                                                    its val escape is ExternalScope                   (does not affect overall result)
@@ -1438,9 +1574,9 @@ moreArguments:
             }
 
             // check receiver if ref-like
-            if (receiverOpt?.Type?.IsRefLikeType == true)
+            if (receiver?.Type?.IsRefLikeType == true)
             {
-                escapeScope = Math.Max(escapeScope, GetValEscape(receiverOpt, scopeOfTheContainingExpression));
+                escapeScope = Math.Max(escapeScope, GetValEscape(receiver, scopeOfTheContainingExpression));
             }
 
             return escapeScope;
@@ -1454,10 +1590,10 @@ moreArguments:
         /// NOTE: we need scopeOfTheContainingExpression as some expressions such as optional <c>in</c> parameters or <c>ref dynamic</c> behave as 
         ///       local variables declared at the scope of the invocation.
         /// </summary>
-        private static bool CheckInvocationEscape(
+        private bool CheckInvocationEscape(
             SyntaxNode syntax,
             Symbol symbol,
-            BoundExpression receiverOpt,
+            BoundExpression? receiver,
             ImmutableArray<ParameterSymbol> parameters,
             ImmutableArray<BoundExpression> argsOpt,
             ImmutableArray<RefKind> argRefKindsOpt,
@@ -1478,14 +1614,13 @@ moreArguments:
             if (!symbol.RequiresInstanceReceiver())
             {
                 // ignore receiver when symbol is static
-                receiverOpt = null;
+                receiver = null;
             }
 
-            ArrayBuilder<bool> inParametersMatchedWithArgs = null;
+            ArrayBuilder<bool>? inParametersMatchedWithArgs = null;
 
             if (!argsOpt.IsDefault)
             {
-
 moreArguments:
                 for (var argIndex = 0; argIndex < argsOpt.Length; argIndex++)
                 {
@@ -1506,7 +1641,7 @@ moreArguments:
                         goto moreArguments;
                     }
 
-                    RefKind effectiveRefKind = GetEffectiveRefKindAndMarkMatchedInParameter(argIndex, argRefKindsOpt, parameters, argsToParamsOpt, ref inParametersMatchedWithArgs);
+                    RefKind effectiveRefKind = GetEffectiveRefKindAndMarkMatchedInParameter(argIndex, argRefKindsOpt, parameters, argsToParamsOpt, ref inParametersMatchedWithArgs, out DeclarationScope scope);
 
                     // ref escape scope is the narrowest of 
                     // - ref escape of all byref arguments
@@ -1514,7 +1649,14 @@ moreArguments:
                     //
                     // val escape scope is the narrowest of 
                     // - val escape of all byval arguments  (refs cannot be wrapped into values, so their ref escape is irrelevant, only use val escapes)
-                    var valid = effectiveRefKind != RefKind.None && isRefEscape ?
+
+                    bool? useRefEscape = UseRefEscapeOfInvocationArgument(symbol, effectiveRefKind, isRefEscape, scope);
+                    if (useRefEscape == null)
+                    {
+                        continue;
+                    }
+
+                    var valid = useRefEscape.GetValueOrDefault() ?
                                         CheckRefEscape(argument.Syntax, argument, escapeFrom, escapeTo, false, diagnostics) :
                                         CheckValEscape(argument.Syntax, argument, escapeFrom, escapeTo, false, diagnostics);
 
@@ -1548,7 +1690,7 @@ moreArguments:
             }
 
             // handle omitted optional "in" parameters if there are any
-            ParameterSymbol unmatchedInParameter = TryGetunmatchedInParameterAndFreeMatchedArgs(parameters, ref inParametersMatchedWithArgs);
+            ParameterSymbol? unmatchedInParameter = TryGetUnmatchedInParameterAndFreeMatchedArgs(parameters, ref inParametersMatchedWithArgs);
 
             // unmatched "in" parameter is the same as a literal, its ref escape is scopeOfTheContainingExpression  (can't get any worse)
             //                                                    its val escape is ExternalScope                   (does not affect overall result)
@@ -1564,9 +1706,9 @@ moreArguments:
             }
 
             // check receiver if ref-like
-            if (receiverOpt?.Type?.IsRefLikeType == true)
+            if (receiver?.Type?.IsRefLikeType == true)
             {
-                return CheckValEscape(receiverOpt.Syntax, receiverOpt, escapeFrom, escapeTo, false, diagnostics);
+                return CheckValEscape(receiver.Syntax, receiver, escapeFrom, escapeTo, false, diagnostics);
             }
 
             return true;
@@ -1576,10 +1718,10 @@ moreArguments:
         /// Validates whether the invocation is valid per no-mixing rules.
         /// Returns <see langword="false"/> when it is not valid and produces diagnostics (possibly more than one recursively) that helps to figure the reason.
         /// </summary>
-        private static bool CheckInvocationArgMixing(
+        private bool CheckInvocationArgMixing(
             SyntaxNode syntax,
             Symbol symbol,
-            BoundExpression receiverOpt,
+            BoundExpression? receiverOpt,
             ImmutableArray<ParameterSymbol> parameters,
             ImmutableArray<BoundExpression> argsOpt,
             ImmutableArray<int> argsToParamsOpt,
@@ -1609,7 +1751,7 @@ moreArguments:
 
             if (!argsOpt.IsDefault)
             {
-                BoundArgListOperator argList = null;
+                BoundArgListOperator? argList = null;
                 for (var argIndex = 0; argIndex < argsOpt.Length; argIndex++)
                 {
                     var argument = argsOpt[argIndex];
@@ -1620,11 +1762,13 @@ moreArguments:
                         break;
                     }
 
-                    var paramIndex = argsToParamsOpt.IsDefault ? argIndex : argsToParamsOpt[argIndex];
-                    if (parameters[paramIndex].RefKind.IsWritableReference() && argument.Type?.IsRefLikeType == true)
+                    var parameter = getParameter(parameters, argsToParamsOpt, argIndex);
+                    if (!considerParameter(parameter))
                     {
-                        escapeTo = Math.Min(escapeTo, GetValEscape(argument, scopeOfTheContainingExpression));
+                        continue;
                     }
+
+                    updateEscapeTo(argument, parameter.RefKind, scopeOfTheContainingExpression, ref escapeTo);
                 }
 
                 if (argList != null)
@@ -1636,10 +1780,7 @@ moreArguments:
                     {
                         var argument = argListArgs[argIndex];
                         var refKind = argListRefKindsOpt.IsDefault ? RefKind.None : argListRefKindsOpt[argIndex];
-                        if (refKind.IsWritableReference() && argument.Type?.IsRefLikeType == true)
-                        {
-                            escapeTo = Math.Min(escapeTo, GetValEscape(argument, scopeOfTheContainingExpression));
-                        }
+                        updateEscapeTo(argument, refKind, scopeOfTheContainingExpression, ref escapeTo);
                     }
                 }
             }
@@ -1670,21 +1811,17 @@ moreArguments:
                         goto moreArguments;
                     }
 
+                    var parameter = (parameters.Length > 0) ? getParameter(parameters, argsToParamsOpt, argIndex) : null;
+                    if (!considerParameter(parameter))
+                    {
+                        continue;
+                    }
+
                     var valid = CheckValEscape(argument.Syntax, argument, scopeOfTheContainingExpression, escapeTo, false, diagnostics);
 
                     if (!valid)
                     {
-                        string parameterName;
-                        if (parameters.Length > 0)
-                        {
-                            var paramIndex = argsToParamsOpt.IsDefault ? argIndex : argsToParamsOpt[argIndex];
-                            parameterName = parameters[paramIndex].Name;
-                        }
-                        else
-                        {
-                            parameterName = "__arglist";
-                        }
-
+                        string parameterName = parameter is null ? "__arglist" : parameter.Name;
                         Error(diagnostics, ErrorCode.ERR_CallArgMixing, syntax, symbol, parameterName);
                         return false;
                     }
@@ -1697,10 +1834,40 @@ moreArguments:
             // check val escape of receiver if ref-like
             if (receiverOpt?.Type?.IsRefLikeType == true)
             {
+                // Should we also report ErrorCode.ERR_CallArgMixing if CheckValEscape() fails?
                 return CheckValEscape(receiverOpt.Syntax, receiverOpt, scopeOfTheContainingExpression, escapeTo, false, diagnostics);
             }
 
             return true;
+
+            static ParameterSymbol getParameter(ImmutableArray<ParameterSymbol> parameters, ImmutableArray<int> argsToParamsOpt, int argIndex)
+            {
+                var paramIndex = argsToParamsOpt.IsDefault ? argIndex : argsToParamsOpt[argIndex];
+                return parameters[paramIndex];
+            }
+
+            bool considerParameter(ParameterSymbol? parameter)
+            {
+                if (UseUpdatedEscapeRules)
+                {
+                    // SPEC: For a given argument `a` that is passed to parameter `p`:
+                    // SPEC:  1. ...
+                    // SPEC: 2. If `p` is `scoped` or `ref scoped` then `a` does not contribute *safe-to-escape* when considering arguments.
+                    if (parameter?.Scope == DeclarationScope.ValueScoped)
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            void updateEscapeTo(BoundExpression argument, RefKind refKind, uint scopeOfTheContainingExpression, ref uint escapeTo)
+            {
+                if (refKind.IsWritableReference() && argument.Type?.IsRefLikeType == true)
+                {
+                    escapeTo = Math.Min(escapeTo, GetValEscape(argument, scopeOfTheContainingExpression));
+                }
+            }
 
             static bool isReceiverRefReadOnly(Symbol methodOrPropertySymbol) => methodOrPropertySymbol switch
             {
@@ -1728,13 +1895,17 @@ moreArguments:
             ImmutableArray<RefKind> argRefKindsOpt,
             ImmutableArray<ParameterSymbol> parameters,
             ImmutableArray<int> argsToParamsOpt,
-            ref ArrayBuilder<bool> inParametersMatchedWithArgs)
+            ref ArrayBuilder<bool>? inParametersMatchedWithArgs,
+            out DeclarationScope scope)
         {
-            var effectiveRefKind = argRefKindsOpt.IsDefault ? RefKind.None : argRefKindsOpt[argIndex];
-            if ((effectiveRefKind == RefKind.None || effectiveRefKind == RefKind.In) && argIndex < parameters.Length)
-            {
-                var paramIndex = argsToParamsOpt.IsDefault ? argIndex : argsToParamsOpt[argIndex];
+            int paramIndex = argIndex < parameters.Length ?
+                (argsToParamsOpt.IsDefault ? argIndex : argsToParamsOpt[argIndex]) :
+                -1;
 
+            var effectiveRefKind = argRefKindsOpt.IsDefault ? RefKind.None : argRefKindsOpt[argIndex];
+
+            if ((effectiveRefKind == RefKind.None || effectiveRefKind == RefKind.In) && paramIndex >= 0)
+            {
                 if (parameters[paramIndex].RefKind == RefKind.In)
                 {
                     effectiveRefKind = RefKind.In;
@@ -1743,6 +1914,7 @@ moreArguments:
                 }
             }
 
+            scope = paramIndex >= 0 ? parameters[paramIndex].Scope : DeclarationScope.Unscoped;
             return effectiveRefKind;
         }
 
@@ -1751,7 +1923,7 @@ moreArguments:
         /// That indicates an optional "in" parameter. We treat it as an RValue passed by reference via a temporary.
         /// The effective scope of such variable is the immediately containing scope.
         /// </summary>
-        private static ParameterSymbol TryGetunmatchedInParameterAndFreeMatchedArgs(ImmutableArray<ParameterSymbol> parameters, ref ArrayBuilder<bool> inParametersMatchedWithArgs)
+        private static ParameterSymbol? TryGetUnmatchedInParameterAndFreeMatchedArgs(ImmutableArray<ParameterSymbol> parameters, ref ArrayBuilder<bool>? inParametersMatchedWithArgs)
         {
             try
             {
@@ -1783,6 +1955,8 @@ moreArguments:
                 inParametersMatchedWithArgs = null;
             }
         }
+
+#nullable disable
 
         private static ErrorCode GetStandardCallEscapeError(bool checkingReceiver)
         {
@@ -2042,7 +2216,7 @@ moreArguments:
         ///       There are few cases where RValues are permitted to be passed by reference which implies that a temporary local proxy is passed instead.
         ///       We reflect such behavior by constraining the escape value to the narrowest scope possible. 
         /// </summary>
-        internal static uint GetRefEscape(BoundExpression expr, uint scopeOfTheContainingExpression)
+        internal uint GetRefEscape(BoundExpression expr, uint scopeOfTheContainingExpression)
         {
             // cannot infer anything from errors
             if (expr.HasAnyErrors)
@@ -2090,11 +2264,7 @@ moreArguments:
                     break;
 
                 case BoundKind.Parameter:
-                    var parameter = ((BoundParameter)expr).ParameterSymbol;
-
-                    // byval parameters can escape to method's top level. Others can escape further.
-                    // NOTE: "method" here means nearest containing method, lambda or local function.
-                    return parameter.RefKind == RefKind.None ? Binder.TopLevelScope : Binder.ExternalScope;
+                    return GetParameterRefEscape(((BoundParameter)expr).ParameterSymbol);
 
                 case BoundKind.Local:
                     return ((BoundLocal)expr).LocalSymbol.RefEscapeScope;
@@ -2126,17 +2296,7 @@ moreArguments:
                     break;
 
                 case BoundKind.FieldAccess:
-                    var fieldAccess = (BoundFieldAccess)expr;
-                    var fieldSymbol = fieldAccess.FieldSymbol;
-
-                    // fields that are static or belong to reference types can ref escape anywhere
-                    if (fieldSymbol.IsStatic || fieldSymbol.ContainingType.IsReferenceType)
-                    {
-                        return Binder.ExternalScope;
-                    }
-
-                    // for other fields defer to the receiver.
-                    return GetRefEscape(fieldAccess.ReceiverOpt, scopeOfTheContainingExpression);
+                    return GetFieldRefEscape((BoundFieldAccess)expr, scopeOfTheContainingExpression);
 
                 case BoundKind.EventAccess:
                     var eventAccess = (BoundEventAccess)expr;
@@ -2190,7 +2350,7 @@ moreArguments:
 
                         return GetInvocationEscapeScope(
                             methodSymbol,
-                            receiverOpt: null,
+                            receiver: null,
                             methodSymbol.Parameters,
                             ptrInvocation.Arguments,
                             ptrInvocation.ArgumentRefKindsOpt,
@@ -2296,7 +2456,7 @@ moreArguments:
         /// The result indicates whether the escape is possible. 
         /// Additionally, the method emits diagnostics (possibly more than one, recursively) that would help identify the cause for the failure.
         /// </summary>
-        internal static bool CheckRefEscape(SyntaxNode node, BoundExpression expr, uint escapeFrom, uint escapeTo, bool checkingReceiver, BindingDiagnosticBag diagnostics)
+        internal bool CheckRefEscape(SyntaxNode node, BoundExpression expr, uint escapeFrom, uint escapeTo, bool checkingReceiver, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(!checkingReceiver || expr.Type.IsValueType || expr.Type.IsTypeParameter());
 
@@ -2587,7 +2747,7 @@ moreArguments:
             return false;
         }
 
-        internal static uint GetBroadestValEscape(BoundTupleExpression expr, uint scopeOfTheContainingExpression)
+        internal uint GetBroadestValEscape(BoundTupleExpression expr, uint scopeOfTheContainingExpression)
         {
             uint broadest = scopeOfTheContainingExpression;
             foreach (var element in expr.Arguments)
@@ -2613,7 +2773,7 @@ moreArguments:
         /// 
         /// NOTE: unless the type of expression is ref-like, the result is Binder.ExternalScope since ordinary values can always be returned from methods. 
         /// </summary>
-        internal static uint GetValEscape(BoundExpression expr, uint scopeOfTheContainingExpression)
+        internal uint GetValEscape(BoundExpression expr, uint scopeOfTheContainingExpression)
         {
             // cannot infer anything from errors
             if (expr.HasAnyErrors)
@@ -2639,11 +2799,13 @@ moreArguments:
             {
                 case BoundKind.DefaultLiteral:
                 case BoundKind.DefaultExpression:
-                case BoundKind.Parameter:
                 case BoundKind.ThisReference:
                 case BoundKind.UTF8String:
                     // always returnable
                     return Binder.ExternalScope;
+
+                case BoundKind.Parameter:
+                    return GetParameterValEscape(((BoundParameter)expr).ParameterSymbol);
 
                 case BoundKind.FromEndIndexExpression:
                     // We are going to call a constructor that takes an integer and a bool. Cannot leak any references through them.
@@ -2731,7 +2893,7 @@ moreArguments:
 
                     return GetInvocationEscapeScope(
                         ptrSymbol,
-                        receiverOpt: null,
+                        receiver: null,
                         ptrSymbol.Parameters,
                         ptrInvocation.Arguments,
                         ptrInvocation.ArgumentRefKindsOpt,
@@ -2964,7 +3126,7 @@ moreArguments:
             }
         }
 
-        private static uint GetTupleValEscape(ImmutableArray<BoundExpression> elements, uint scopeOfTheContainingExpression)
+        private uint GetTupleValEscape(ImmutableArray<BoundExpression> elements, uint scopeOfTheContainingExpression)
         {
             uint narrowestScope = scopeOfTheContainingExpression;
             foreach (var element in elements)
@@ -2975,7 +3137,7 @@ moreArguments:
             return narrowestScope;
         }
 
-        private static uint GetValEscapeOfObjectInitializer(BoundObjectInitializerExpression initExpr, uint scopeOfTheContainingExpression)
+        private uint GetValEscapeOfObjectInitializer(BoundObjectInitializerExpression initExpr, uint scopeOfTheContainingExpression)
         {
             var result = Binder.ExternalScope;
             foreach (var expression in initExpr.Initializers)
@@ -2997,7 +3159,7 @@ moreArguments:
             return result;
         }
 
-        private static uint GetValEscape(ImmutableArray<BoundExpression> expressions, uint scopeOfTheContainingExpression)
+        private uint GetValEscape(ImmutableArray<BoundExpression> expressions, uint scopeOfTheContainingExpression)
         {
             var result = Binder.ExternalScope;
             foreach (var expression in expressions)
@@ -3013,7 +3175,7 @@ moreArguments:
         /// The result indicates whether the escape is possible.
         /// Additionally, the method emits diagnostics (possibly more than one, recursively) that would help identify the cause for the failure.
         /// </summary>
-        internal static bool CheckValEscape(SyntaxNode node, BoundExpression expr, uint escapeFrom, uint escapeTo, bool checkingReceiver, BindingDiagnosticBag diagnostics)
+        internal bool CheckValEscape(SyntaxNode node, BoundExpression expr, uint escapeFrom, uint escapeTo, bool checkingReceiver, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(!checkingReceiver || expr.Type.IsValueType || expr.Type.IsTypeParameter());
 
@@ -3045,11 +3207,13 @@ moreArguments:
             {
                 case BoundKind.DefaultLiteral:
                 case BoundKind.DefaultExpression:
-                case BoundKind.Parameter:
                 case BoundKind.ThisReference:
                 case BoundKind.UTF8String:
                     // always returnable
                     return true;
+
+                case BoundKind.Parameter:
+                    return CheckParameterValEscape(node, (BoundParameter)expr, escapeTo, diagnostics);
 
                 case BoundKind.TupleLiteral:
                 case BoundKind.ConvertedTupleLiteral:
@@ -3176,7 +3340,7 @@ moreArguments:
                     return CheckInvocationEscape(
                         ptrInvocation.Syntax,
                         ptrSymbol,
-                        receiverOpt: null,
+                        receiver: null,
                         ptrSymbol.Parameters,
                         ptrInvocation.Arguments,
                         ptrInvocation.ArgumentRefKindsOpt,
@@ -3585,7 +3749,7 @@ moreArguments:
             }
         }
 
-        private static bool CheckTupleValEscape(ImmutableArray<BoundExpression> elements, uint escapeFrom, uint escapeTo, BindingDiagnosticBag diagnostics)
+        private bool CheckTupleValEscape(ImmutableArray<BoundExpression> elements, uint escapeFrom, uint escapeTo, BindingDiagnosticBag diagnostics)
         {
             foreach (var element in elements)
             {
@@ -3598,7 +3762,7 @@ moreArguments:
             return true;
         }
 
-        private static bool CheckValEscapeOfObjectInitializer(BoundObjectInitializerExpression initExpr, uint escapeFrom, uint escapeTo, BindingDiagnosticBag diagnostics)
+        private bool CheckValEscapeOfObjectInitializer(BoundObjectInitializerExpression initExpr, uint escapeFrom, uint escapeTo, BindingDiagnosticBag diagnostics)
         {
             foreach (var expression in initExpr.Initializers)
             {
@@ -3628,7 +3792,7 @@ moreArguments:
             return true;
         }
 
-        private static bool CheckValEscape(ImmutableArray<BoundExpression> expressions, uint escapeFrom, uint escapeTo, BindingDiagnosticBag diagnostics)
+        private bool CheckValEscape(ImmutableArray<BoundExpression> expressions, uint escapeFrom, uint escapeTo, BindingDiagnosticBag diagnostics)
         {
             foreach (var expression in expressions)
             {
@@ -3641,9 +3805,8 @@ moreArguments:
             return true;
         }
 
-        private static bool CheckInterpolatedStringHandlerConversionEscape(BoundExpression expression, uint escapeFrom, uint escapeTo, BindingDiagnosticBag diagnostics)
+        private bool CheckInterpolatedStringHandlerConversionEscape(BoundExpression expression, uint escapeFrom, uint escapeTo, BindingDiagnosticBag diagnostics)
         {
-
             var data = expression.GetInterpolatedStringHandlerData();
 
             // We need to check to see if any values could potentially escape outside the max depth via the handler type.

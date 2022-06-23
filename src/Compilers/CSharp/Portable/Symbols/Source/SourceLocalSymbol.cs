@@ -109,9 +109,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _scopeBinder.ScopeDesignator; }
         }
 
-        internal override uint RefEscapeScope => _refEscapeScope;
+        // From https://github.com/dotnet/csharplang/blob/main/proposals/low-level-struct-improvements.md:
+        //
+        // | Parameter or Local     | ref-safe-to-escape | safe-to-escape |
+        // |------------------------|--------------------|----------------|
+        // | Span<int> s            | current method     | calling method |
+        // | scoped Span<int> s     | current method     | current method |
+        // | ref Span<int> s        | calling method     | calling method |
+        // | scoped ref Span<int> s | current method     | calling method |
+        // | ref scoped Span<int> s | current method     | current method |
 
-        internal override uint ValEscapeScope => _valEscapeScope;
+        internal sealed override uint RefEscapeScope
+        {
+            get
+            {
+                if (!_scopeBinder.UseUpdatedEscapeRules ||
+                    _scope == DeclarationScope.Unscoped)
+                {
+                    return _refEscapeScope;
+                }
+                return Binder.TopLevelScope;
+            }
+        }
+
+        internal sealed override uint ValEscapeScope
+        {
+            get
+            {
+                if (!_scopeBinder.UseUpdatedEscapeRules ||
+                    _scope == DeclarationScope.Unscoped)
+                {
+                    return _valEscapeScope;
+                }
+                return _scope == DeclarationScope.ValueScoped ?
+                    Binder.TopLevelScope :
+                    Binder.ExternalScope;
+            }
+        }
 
         internal sealed override DeclarationScope Scope => _scope;
 
@@ -630,12 +664,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal override void SetRefEscape(uint value)
             {
+                Debug.Assert(!_scopeBinder.UseUpdatedEscapeRules || _scope == DeclarationScope.Unscoped);
                 Debug.Assert(value <= _refEscapeScope);
                 _refEscapeScope = value;
             }
 
             internal override void SetValEscape(uint value)
             {
+                Debug.Assert(!_scopeBinder.UseUpdatedEscapeRules || _scope == DeclarationScope.Unscoped);
                 Debug.Assert(value <= _valEscapeScope);
                 _valEscapeScope = value;
             }

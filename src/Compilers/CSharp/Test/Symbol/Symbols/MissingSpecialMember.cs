@@ -545,6 +545,7 @@ namespace System
                     || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__VirtualStaticsInInterfaces
                     || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__UnmanagedSignatureCallingConvention
                     || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__NumericIntPtr
+                    || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__ByRefFields
                     || special == SpecialMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor)
                 {
                     Assert.Null(symbol); // Not available

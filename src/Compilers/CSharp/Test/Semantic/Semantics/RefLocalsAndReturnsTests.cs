@@ -764,7 +764,7 @@ class C
         [Fact]
         public void RefReassignOutDefiniteAssignment2()
         {
-            var comp = CreateCompilation(@"
+            var source = @"
 class C
 {
     void M(out int x)
@@ -773,11 +773,18 @@ class C
         int y;
         x = ref y;
     }
-}");
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
                 // (8,9): error CS8356: Cannot ref-assign 'y' to 'x' because 'y' has a narrower escape scope than 'x'.
                 //         x = ref y;
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "x = ref y").WithArguments("x", "y").WithLocation(8, 9),
+                // (8,17): error CS0165: Use of unassigned local variable 'y'
+                //         x = ref y;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(8, 17));
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
                 // (8,17): error CS0165: Use of unassigned local variable 'y'
                 //         x = ref y;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(8, 17));
