@@ -200,6 +200,7 @@ namespace Microsoft.CodeAnalysis
                 var currentindex = _states_doNotMutateDirectly.Count;
                 _states_doNotMutateDirectly.Add(entry);
 
+                // Keep checking if we're producing the same entries as in _previous.
                 if (_unchangedFromPrevious && currentindex < _previous._states.Length)
                 {
                     var previousEntry = _previous._states[currentindex];
@@ -404,7 +405,8 @@ namespace Microsoft.CodeAnalysis
                 var hasNonCached = _states_doNotMutateDirectly.Any(static s => !s.IsCached);
                 var isCompacted = !hasNonCached;
 
-                // if we added the exact same entries as before, then we can use the same table as before.
+                // if we added the exact same entries as before, then we can directly embed previous' entry array,
+                // avoiding a costly allocation of the same data.
                 if (_unchangedFromPrevious && _states_doNotMutateDirectly.Count == _previous._states.Length)
                 {
                     _states_doNotMutateDirectly.Free();
