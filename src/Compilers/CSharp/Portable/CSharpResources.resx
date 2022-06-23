@@ -7136,4 +7136,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_BadBinaryReadOnlySpanConcatenation" xml:space="preserve">
     <value>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF8 byte representations</value>
   </data>
+  <data name="ERR_FunctionPointersCannotBeNullable" xml:space="preserve">
+    <value>Function Pointers are not a nullable type</value>
+  </data>
 </root>

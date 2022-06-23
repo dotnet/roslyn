@@ -602,6 +602,11 @@
         <target state="translated">Nie można wywołać wskaźnika funkcji przy użyciu argumentów nazwanych.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FunctionPointersCannotBeNullable">
+        <source>Function Pointers are not a nullable type</source>
+        <target state="new">Function Pointers are not a nullable type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers">
         <source>The interface '{0}' cannot be used as type argument. Static member '{1}' does not have a most specific implementation in the interface.</source>
         <target state="new">The interface '{0}' cannot be used as type argument. Static member '{1}' does not have a most specific implementation in the interface.</target>

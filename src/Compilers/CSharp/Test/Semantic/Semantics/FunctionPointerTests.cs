@@ -4022,6 +4022,7 @@ public class C
 
         [Fact, WorkItem(48071, "https://github.com/dotnet/roslyn/issues/48071")]
         public void FunctionPointerCalledWithNamedArguments2()
+
         {
             var comp = CreateCompilationWithFunctionPointers(@"
 public class C
@@ -4036,6 +4037,27 @@ public class C
                 // (6,13): error CS8904: A function pointer cannot be called with named arguments.
                 //         ptr(arg0: "a", arg1: 1);
                 Diagnostic(ErrorCode.ERR_FunctionPointersCannotBeCalledWithNamedArguments, "arg0").WithLocation(6, 13)
+            );
+        }
+
+        [Fact, WorkItem(53973, "https://github.com/dotnet/roslyn/issues/53973")]
+        public void FunctionPointerNullable()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+public class C
+{
+    
+    public unsafe void M(delegate*<void>? f) {
+    }
+}
+");
+            comp.VerifyDiagnostics(
+                // (5,26): error CS9047: Function Pointers are not a nullable type
+                //     public unsafe void M(delegate*<void>? f) {
+                Diagnostic(ErrorCode.ERR_FunctionPointersCannotBeNullable, "delegate*<void>?").WithLocation(5, 26),
+                // (5,43): error CS0306: The type 'delegate*<void>' may not be used as a type argument
+                //     public unsafe void M(delegate*<void>? f) {
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "f").WithArguments("delegate*<void>").WithLocation(5, 43)
             );
         }
     }

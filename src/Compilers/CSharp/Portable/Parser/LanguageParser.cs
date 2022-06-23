@@ -6813,7 +6813,6 @@ tryAgain:
         {
             Debug.Assert(mode != ParseTypeMode.NewExpression);
             ScanTypeFlags result;
-            bool isFunctionPointer = false;
 
             if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
             {
@@ -6903,7 +6902,6 @@ tryAgain:
             }
             else if (IsFunctionPointerStart())
             {
-                isFunctionPointer = true;
                 result = ScanFunctionPointerType(out lastTokenOfType);
             }
             else
@@ -6920,8 +6918,7 @@ tryAgain:
                 {
                     case SyntaxKind.QuestionToken
                             when lastTokenOfType.Kind != SyntaxKind.QuestionToken && // don't allow `Type??`
-                                 lastTokenOfType.Kind != SyntaxKind.AsteriskToken && // don't allow `Type*?`
-                                 !isFunctionPointer: // don't allow `delegate*<...>?`
+                                 lastTokenOfType.Kind != SyntaxKind.AsteriskToken: // don't allow `Type*?`
                         lastTokenOfType = this.EatToken();
                         result = ScanTypeFlags.NullableType;
                         break;
@@ -6945,7 +6942,6 @@ tryAgain:
                                 goto done;
                             default:
                                 lastTokenOfType = this.EatToken();
-                                isFunctionPointer = false;
                                 if (result == ScanTypeFlags.GenericTypeOrExpression || result == ScanTypeFlags.NonGenericTypeOrExpression)
                                 {
                                     result = ScanTypeFlags.PointerOrMultiplication;
@@ -6972,7 +6968,6 @@ tryAgain:
                         }
 
                         lastTokenOfType = this.EatToken();
-                        isFunctionPointer = false;
                         result = ScanTypeFlags.MustBeType;
                         break;
                     default:
@@ -7258,7 +7253,7 @@ done:
                         {
                             // These are the fast tests for (in)applicability.
                             // More expensive tests are in `EatNullableQualifierIfApplicable`
-                            if (type.Kind == SyntaxKind.NullableType || type.Kind == SyntaxKind.PointerType || type.Kind == SyntaxKind.FunctionPointerType)
+                            if (type.Kind == SyntaxKind.NullableType || type.Kind == SyntaxKind.PointerType)
                                 return false;
                             if (this.PeekToken(1).Kind == SyntaxKind.OpenBracketToken)
                                 return true;
