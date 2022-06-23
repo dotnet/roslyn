@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -12,6 +13,10 @@ namespace Microsoft.VisualStudio.LanguageServices
 {
     internal static class DocumentOutlineHelper
     {
+        /// <summary>
+        /// Given an array of all Document Symbols in a document, returns an array containing the 
+        /// top-level Document Symbols and their nested children
+        /// </summary>
         internal static DocumentSymbol[] GetNestedDocumentSymbols(DocumentSymbol[]? documentSymbols)
         {
             if (documentSymbols is null || documentSymbols.Length == 0)
@@ -29,8 +34,12 @@ namespace Microsoft.VisualStudio.LanguageServices
                 .ToArray();
         }
 
-        // Groups an array of document symbols into arrays containing the symbols of a tree
-        // The first symbol in an array is always the parent (determines the group's position range)
+        /// <summary>
+        /// Groups a flat array of Document Symbols into arrays containing the symbols of each tree
+        /// </summary>
+        /// <remarks>
+        /// The first symbol in an array is always the parent (determines the group's position range)
+        /// </remarks>
         private static ImmutableArray<ImmutableArray<DocumentSymbol>> GroupDocumentSymbolTrees(ImmutableArray<DocumentSymbol> allSymbols)
         {
             var documentSymbolGroups = ArrayBuilder<ImmutableArray<DocumentSymbol>>.GetInstance();
@@ -63,6 +72,10 @@ namespace Microsoft.VisualStudio.LanguageServices
             return documentSymbolGroups.ToImmutableAndFree();
         }
 
+        /// <summary>
+        /// Given an array containing a Document Symbol and its descendants, returns the Document Symbol
+        /// with its descendants recursively nested
+        /// </summary>
         private static DocumentSymbol CreateDocumentSymbolTree(ImmutableArray<DocumentSymbol> documentSymbols)
         {
             var node = documentSymbols.First();
@@ -73,6 +86,9 @@ namespace Microsoft.VisualStudio.LanguageServices
             return node;
         }
 
+        /// <summary>
+        /// Converts an array of type DocumentSymbol to an array of type DocumentSymbolViewModel
+        /// </summary>
         internal static ImmutableArray<DocumentSymbolViewModel> GetDocumentSymbolModels(DocumentSymbol[] documentSymbols)
         {
             var documentSymbolModels = ArrayBuilder<DocumentSymbolViewModel>.GetInstance();
@@ -94,6 +110,16 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         internal static ImmutableArray<DocumentSymbolViewModel> Sort(ImmutableArray<DocumentSymbolViewModel> documentSymbolModels, SortOption sortOption)
         {
+            var functionId = sortOption switch
+            {
+                SortOption.Name => FunctionId.DocumentOutline_SortByName,
+                SortOption.Order => FunctionId.DocumentOutline_SortByOrder,
+                SortOption.Type => FunctionId.DocumentOutline_SortByType,
+                _ => throw new NotImplementedException(),
+            };
+
+            Logger.Log(functionId);
+
             var sortedDocumentSymbolModels = sortOption switch
             {
                 SortOption.Name => documentSymbolModels.Sort((x, y) => x.Name.CompareTo(y.Name)),
@@ -120,20 +146,63 @@ namespace Microsoft.VisualStudio.LanguageServices
             return sortedDocumentSymbolModels;
         }
 
-        internal static bool SearchNodeTree(DocumentSymbolViewModel tree, string search)
+        internal static ImmutableArray<DocumentSymbolViewModel> Search(ImmutableArray<DocumentSymbolViewModel> documentSymbolModels, string query)
         {
-            if (tree.Name.IndexOf(search, StringComparison.OrdinalIgnoreCase) >= 0)
+            var documentSymbols = ArrayBuilder<DocumentSymbolViewModel>.GetInstance();
+            foreach (var documentSymbol in documentSymbolModels)
+            {
+                if (SearchNodeTree(documentSymbol, query))
+                    documentSymbols.Add(documentSymbol);
+            }
+
+            return documentSymbols.ToImmutableAndFree();
+        }
+
+        internal static bool SearchNodeTree(DocumentSymbolViewModel tree, string query)
+        {
+            if (tree.Name.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0)
             {
                 return true;
             }
 
             foreach (var childItem in tree.Children)
             {
-                if (SearchNodeTree(childItem, search))
+                if (SearchNodeTree(childItem, query))
                     return true;
             }
 
             return false;
+        }
+
+        internal static void SelectNode(DocumentSymbolViewModel documentSymbol, int lineNumber, int characterIndex)
+        {
+            var selectedNodeIndex = -1;
+            foreach (var child in documentSymbol.Children)
+            {
+                if (child.StartLine <= lineNumber && child.EndLine >= lineNumber)
+                {
+                    if (child.StartLine == child.EndLine)
+                    {
+                        if (child.StartChar <= characterIndex && child.EndChar >= characterIndex)
+                        {
+                            selectedNodeIndex = documentSymbol.Children.IndexOf(child);
+                        }
+                    }
+                    else
+                    {
+                        selectedNodeIndex = documentSymbol.Children.IndexOf(child);
+                    }
+                }
+            }
+
+            if (selectedNodeIndex != -1)
+            {
+                SelectNode(documentSymbol.Children[selectedNodeIndex], lineNumber, characterIndex);
+            }
+            else
+            {
+                documentSymbol.IsSelected = documentSymbol.StartLine <= lineNumber && documentSymbol.EndLine >= lineNumber;
+            }
         }
     }
 }
