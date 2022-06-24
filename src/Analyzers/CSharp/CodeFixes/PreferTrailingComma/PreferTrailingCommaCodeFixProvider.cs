@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.PreferTrailingComma
 {
@@ -41,18 +42,24 @@ namespace Microsoft.CodeAnalysis.CSharp.PreferTrailingComma
         {
             foreach (var diagnostic in diagnostics)
             {
-                var node = diagnostic.Location.FindNode(cancellationToken).Parent;
-                if (node is EnumDeclarationSyntax enumDeclaration)
-                {
-                    var nodesAndTokens = enumDeclaration.Members.GetWithSeparators();
-                    var lastNode = nodesAndTokens[^1];
-                    nodesAndTokens = nodesAndTokens.ReplaceRange(lastNode, ImmutableArray.Create(lastNode.WithTrailingTrivia(), SyntaxFactory.Token(leading: default, SyntaxKind.CommaToken, trailing: lastNode.GetTrailingTrivia())));
-                    var newEnumDeclaration = enumDeclaration.WithMembers(SyntaxFactory.SeparatedList<EnumMemberDeclarationSyntax>(nodesAndTokens));
-                    editor.ReplaceNode(enumDeclaration, newEnumDeclaration);
-                }
+                var node = diagnostic.Location.FindNode(cancellationToken).GetRequiredParent();
+                var nodesAndTokens = PreferTrailingCommaDiagnosticAnalyzer.GetNodesWithSeparators(node);
+                var lastNode = nodesAndTokens[^1];
+                nodesAndTokens = nodesAndTokens.ReplaceRange(lastNode, ImmutableArray.Create(lastNode.WithTrailingTrivia(), SyntaxFactory.Token(leading: default, SyntaxKind.CommaToken, trailing: lastNode.GetTrailingTrivia())));
+                editor.ReplaceNode(node, GetReplacement(node, nodesAndTokens));
             }
 
             return Task.CompletedTask;
+        }
+
+        private static SyntaxNode GetReplacement(SyntaxNode node, SyntaxNodeOrTokenList nodesAndTokens)
+        {
+            return node switch
+            {
+                EnumDeclarationSyntax enumDeclaration => enumDeclaration.WithMembers(SyntaxFactory.SeparatedList<EnumMemberDeclarationSyntax>(nodesAndTokens)),
+                PropertyPatternClauseSyntax propertyPattern => propertyPattern.WithSubpatterns(SyntaxFactory.SeparatedList<SubpatternSyntax>(nodesAndTokens)),
+                _ => throw ExceptionUtilities.Unreachable,
+            };
         }
     }
 }

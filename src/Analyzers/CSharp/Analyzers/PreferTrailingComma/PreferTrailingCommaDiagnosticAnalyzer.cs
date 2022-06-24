@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PreferTrailingComma
             // anonymous object creation
             // initializer expression
             // switch expression
-            context.RegisterSyntaxNodeAction(AnalyzeSyntaxNode, SyntaxKind.EnumDeclaration);
+            context.RegisterSyntaxNodeAction(AnalyzeSyntaxNode, SyntaxKind.EnumDeclaration, SyntaxKind.PropertyPatternClause);
         }
 
         private void AnalyzeSyntaxNode(SyntaxNodeAnalysisContext context)
@@ -44,20 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PreferTrailingComma
             if (!option.Value)
                 return;
 
-            var node = context.Node;
-            switch (node)
-            {
-                case EnumDeclarationSyntax enumDeclaration:
-                    AnalyzeEnumDeclaration(context, enumDeclaration, option.Notification.Severity);
-                    break;
-                default:
-                    throw ExceptionUtilities.Unreachable;
-            }
-        }
-
-        private void AnalyzeEnumDeclaration(SyntaxNodeAnalysisContext context, EnumDeclarationSyntax enumDeclaration, ReportDiagnostic severity)
-        {
-            var nodesWithSeparators = enumDeclaration.Members.GetWithSeparators();
+            var nodesWithSeparators = GetNodesWithSeparators(context.Node);
             if (nodesWithSeparators.Count < 1)
             {
                 return;
@@ -71,8 +58,18 @@ namespace Microsoft.CodeAnalysis.CSharp.PreferTrailingComma
 
             if (lastNodeOrSeparator.IsNode)
             {
-                context.ReportDiagnostic(DiagnosticHelper.Create(Descriptor, lastNodeOrSeparator.AsNode()!.GetLocation(), severity, additionalLocations: null, properties: null));
+                context.ReportDiagnostic(DiagnosticHelper.Create(Descriptor, lastNodeOrSeparator.AsNode()!.GetLocation(), option.Notification.Severity, additionalLocations: null, properties: null));
             }
+        }
+
+        internal static SyntaxNodeOrTokenList GetNodesWithSeparators(SyntaxNode node)
+        {
+            return node switch
+            {
+                EnumDeclarationSyntax enumDeclaration => enumDeclaration.Members.GetWithSeparators(),
+                PropertyPatternClauseSyntax propertyPattern => propertyPattern.Subpatterns.GetWithSeparators(),
+                _ => throw ExceptionUtilities.Unreachable,
+            };
         }
     }
 }

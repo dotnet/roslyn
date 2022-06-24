@@ -118,5 +118,83 @@ csharp_style_prefer_trailing_comma = true")
 ";
             await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
         }
+
+        [Fact]
+        public async Task TestPropertyPattern()
+        {
+            var code = @"class C
+{
+    void M(string s)
+    {
+        if (s is { Length: 0, [|Length: 0|] })
+        {
+        }
+    }
+}
+";
+            var fixedCode = @"class C
+{
+    void M(string s)
+    {
+        if (s is { Length: 0, Length: 0, })
+        {
+        }
+    }
+}
+";
+            await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
+        }
+
+        [Fact]
+        public async Task TestPropertyPatternHasTrailingComma()
+        {
+            var code = @"class C
+{
+    void M(string s)
+    {
+        if (s is { Length: 0, Length: 0, })
+        {
+        }
+    }
+}
+";
+            await VerifyCS.VerifyCodeFixAsync(code, code);
+        }
+
+        [Fact]
+        public async Task TestTriviaOnPropertyPattern()
+        {
+            var code = @"class C
+{
+    void M(string s)
+    {
+        if (s is
+            {
+                Length: 0,
+                // comment 1
+                [|Length: 0|] // comment 2
+            })
+        {
+        }
+    }
+}
+";
+            var fixedCode = @"class C
+{
+    void M(string s)
+    {
+        if (s is
+            {
+                Length: 0,
+                // comment 1
+                Length: 0, // comment 2
+            })
+        {
+        }
+    }
+}
+";
+            await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
+        }
     }
 }
