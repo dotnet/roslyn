@@ -142,6 +142,21 @@ static R CreateDefault()
 }
 ```
 
+A possible workaround, if the `ref` or `in` argument is not captured in the `ref struct` return value, is to declare the parameter as `scoped ref` or `scoped in`.
+
+```csharp
+class Program
+{
+    static R CannotCaptureArg(scoped ref int i) => new R();
+
+    static R Create()
+    {
+        int i = 0;
+        return CannotCaptureArg(ref i); // ok
+    }
+}
+```
+
 ## Unsigned right shift operator
 
 ***Introduced in .NET SDK 6.0.400, Visual Studio 2022 version 17.3.***
