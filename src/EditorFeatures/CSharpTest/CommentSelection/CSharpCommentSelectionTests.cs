@@ -119,6 +119,8 @@ class C
             var commandHandler = new CommentUncommentSelectionCommandHandler(
                 workspace.GetService<ITextUndoHistoryRegistry>(),
                 workspace.GetService<IEditorOperationsFactoryService>(),
+                workspace.GetService<IEditorOptionsFactoryService>(),
+                workspace.GetService<IIndentationManagerService>(),
                 workspace.GlobalOptions);
 
             var textView = doc.GetTextView();

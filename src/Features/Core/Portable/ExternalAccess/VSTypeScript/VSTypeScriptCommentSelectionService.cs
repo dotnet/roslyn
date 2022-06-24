@@ -25,9 +25,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
         {
         }
 
-        public Task<Document> FormatAsync(Document document, ImmutableArray<TextSpan> changes, SyntaxFormattingOptions formattingOptions, CancellationToken cancellationToken)
-            => Task.FromResult(document);
-
         public CommentSelectionInfo GetInfo()
             => new(
                 supportsSingleLineComment: true,

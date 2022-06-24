@@ -26,11 +26,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.CommentSelection
         {
         }
 
-        public Task<Document> FormatAsync(Document document, ImmutableArray<TextSpan> changes, SyntaxFormattingOptions formattingOptions, CancellationToken cancellationToken)
-        {
-            return Task.FromResult(document);
-        }
-
         public CommentSelectionInfo GetInfo()
             => new(
                 supportsSingleLineComment: true,

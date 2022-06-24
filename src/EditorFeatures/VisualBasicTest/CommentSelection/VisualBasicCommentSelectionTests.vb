@@ -85,6 +85,8 @@ End Module</code>
                 Dim commandHandler = New CommentUncommentSelectionCommandHandler(
                     workspace.GetService(Of ITextUndoHistoryRegistry),
                     workspace.GetService(Of IEditorOperationsFactoryService),
+                    workspace.GetService(Of IEditorOptionsFactoryService),
+                    workspace.GetService(Of IIndentationManagerService),
                     workspace.GlobalOptions)
                 Dim textView = doc.GetTextView()
                 Dim textBuffer = doc.GetTextBuffer()

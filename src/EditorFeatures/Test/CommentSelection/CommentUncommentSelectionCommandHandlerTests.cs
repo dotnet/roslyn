@@ -761,7 +761,9 @@ class A
             var textUndoHistoryRegistry = exportProvider.GetExportedValue<ITextUndoHistoryRegistry>();
             var editorOperationsFactory = exportProvider.GetExportedValue<IEditorOperationsFactoryService>();
             var globalOptions = exportProvider.GetExportedValue<IGlobalOptionService>();
-            var commandHandler = new CommentUncommentSelectionCommandHandler(textUndoHistoryRegistry, editorOperationsFactory, globalOptions);
+            var editorOptionsFactory = exportProvider.GetExportedValue<IEditorOptionsFactoryService>();
+            var indentationManager = exportProvider.GetExportedValue<IIndentationManagerService>();
+            var commandHandler = new CommentUncommentSelectionCommandHandler(textUndoHistoryRegistry, editorOperationsFactory, editorOptionsFactory, indentationManager, globalOptions);
             var service = new MockCommentSelectionService(supportBlockComments);
 
             var edits = commandHandler.CollectEdits(

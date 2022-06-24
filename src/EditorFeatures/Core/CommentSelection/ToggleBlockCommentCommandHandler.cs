@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 
 namespace Microsoft.CodeAnalysis.CommentSelection
@@ -32,8 +33,10 @@ namespace Microsoft.CodeAnalysis.CommentSelection
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService,
             ITextStructureNavigatorSelectorService navigatorSelectorService,
+            IEditorOptionsFactoryService editorOptionsFactory,
+            IIndentationManagerService indentationManager,
             IGlobalOptionService globalOptions)
-            : base(undoHistoryRegistry, editorOperationsFactoryService, navigatorSelectorService, globalOptions)
+            : base(undoHistoryRegistry, editorOperationsFactoryService, navigatorSelectorService, editorOptionsFactory, indentationManager, globalOptions)
         {
         }
 

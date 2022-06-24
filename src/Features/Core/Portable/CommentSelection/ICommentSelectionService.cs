@@ -14,7 +14,5 @@ namespace Microsoft.CodeAnalysis.CommentSelection
     internal interface ICommentSelectionService : ILanguageService
     {
         CommentSelectionInfo GetInfo();
-
-        Task<Document> FormatAsync(Document document, ImmutableArray<TextSpan> changes, SyntaxFormattingOptions formattingOptions, CancellationToken cancellationToken);
     }
 }
