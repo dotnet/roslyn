@@ -235,6 +235,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static TypeSyntax SkipRef(this TypeSyntax syntax, out RefKind refKind, bool allowScoped, BindingDiagnosticBag? diagnostics)
         {
+            Debug.Assert(allowScoped || diagnostics is { });
+
             if (syntax.Kind() == SyntaxKind.RefType)
             {
                 var refType = (RefTypeSyntax)syntax;
