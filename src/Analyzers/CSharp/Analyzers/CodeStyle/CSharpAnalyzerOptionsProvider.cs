@@ -50,6 +50,7 @@ internal readonly struct CSharpAnalyzerOptionsProvider
     public CodeStyleOption2<bool> AllowEmbeddedStatementsOnSameLine => GetOption(CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, FallbackSimplifierOptions.AllowEmbeddedStatementsOnSameLine);
     public CodeStyleOption2<bool> PreferThrowExpression => GetOption(CSharpCodeStyleOptions.PreferThrowExpression, FallbackSimplifierOptions.PreferThrowExpression);
     public CodeStyleOption2<PreferBracesPreference> PreferBraces => GetOption(CSharpCodeStyleOptions.PreferBraces, FallbackSimplifierOptions.PreferBraces);
+    public CodeStyleOption2<bool> PreferTrailingComma => GetOption(CSharpCodeStyleOptions.PreferTrailingComma, FallbackSimplifierOptions.PreferTrailingComma);
 
     internal CSharpSimplifierOptions GetSimplifierOptions()
         => _options.GetCSharpSimplifierOptions(FallbackSimplifierOptions);

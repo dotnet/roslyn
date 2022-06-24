@@ -38,5 +38,6 @@ internal static class CSharpSimplifierOptionsStorage
             AllowEmbeddedStatementsOnSameLine = globalOptions.GetOption(CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine),
             PreferBraces = globalOptions.GetOption(CSharpCodeStyleOptions.PreferBraces),
             PreferThrowExpression = globalOptions.GetOption(CSharpCodeStyleOptions.PreferThrowExpression),
+            PreferTrailingComma = globalOptions.GetOption(CSharpCodeStyleOptions.PreferTrailingComma),
         };
 }
