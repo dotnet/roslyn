@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         {
             Contract.ThrowIfNull(workspace.Kind);
 
-            var correlationId = CorrelationIdFactory.GetNextId();
+            var correlationId = LogAggregator.GetNextId();
 
             lock (_gate)
             {

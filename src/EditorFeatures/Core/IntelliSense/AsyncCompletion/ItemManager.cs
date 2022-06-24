@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var stopwatch = SharedStopwatch.StartNew();
             var items = SortCompletionitems(data, cancellationToken).ToImmutableArray();
 
-            AsyncCompletionLogger.LogItemManagerSortTicksDataPoint(stopwatch.Elapsed);
+            AsyncCompletionLogger.LogItemManagerSortTicksDataPoint((int)stopwatch.Elapsed.TotalMilliseconds);
             return Task.FromResult(items);
         }
 
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var stopwatch = SharedStopwatch.StartNew();
             var itemList = session.CreateCompletionList(SortCompletionitems(data, cancellationToken));
 
-            AsyncCompletionLogger.LogItemManagerSortTicksDataPoint(stopwatch.Elapsed);
+            AsyncCompletionLogger.LogItemManagerSortTicksDataPoint((int)stopwatch.Elapsed.TotalMilliseconds);
             return Task.FromResult(itemList);
         }
 
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
             finally
             {
-                AsyncCompletionLogger.LogItemManagerUpdateDataPoint(stopwatch.Elapsed, isCanceled: cancellationToken.IsCancellationRequested);
+                AsyncCompletionLogger.LogItemManagerUpdateDataPoint((int)stopwatch.Elapsed.TotalMilliseconds, isCanceled: cancellationToken.IsCancellationRequested);
             }
         }
 
