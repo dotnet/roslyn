@@ -532,8 +532,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ReservedAttributes.IsUnmanagedAttribute |
                 ReservedAttributes.IsByRefLikeAttribute |
                 ReservedAttributes.NullableContextAttribute |
-                ReservedAttributes.CaseSensitiveExtensionAttribute |
-                ReservedAttributes.LifetimeAnnotationAttribute))
+                ReservedAttributes.CaseSensitiveExtensionAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.SecurityCriticalAttribute)
@@ -714,8 +713,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ReservedAttributes.IsByRefLikeAttribute |
                 ReservedAttributes.TupleElementNamesAttribute |
                 ReservedAttributes.NullableAttribute |
-                ReservedAttributes.NativeIntegerAttribute |
-                ReservedAttributes.LifetimeAnnotationAttribute))
+                ReservedAttributes.NativeIntegerAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.MaybeNullAttribute))

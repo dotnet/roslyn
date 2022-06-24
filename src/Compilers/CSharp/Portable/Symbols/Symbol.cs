@@ -1378,7 +1378,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             NativeIntegerAttribute = 1 << 9,
             CaseSensitiveExtensionAttribute = 1 << 10,
             RequiredMemberAttribute = 1 << 11,
-            LifetimeAnnotationAttribute = 1 << 12,
         }
 
         internal bool ReportExplicitUseOfReservedAttributes(in DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, ReservedAttributes reserved)

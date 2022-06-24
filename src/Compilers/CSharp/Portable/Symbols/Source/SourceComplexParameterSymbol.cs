@@ -748,8 +748,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ReservedAttributes.IsByRefLikeAttribute |
                 ReservedAttributes.TupleElementNamesAttribute |
                 ReservedAttributes.NullableAttribute |
-                ReservedAttributes.NativeIntegerAttribute |
-                ReservedAttributes.LifetimeAnnotationAttribute))
+                ReservedAttributes.NativeIntegerAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.AllowNullAttribute))
