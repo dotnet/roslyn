@@ -21475,5 +21475,375 @@ class Test
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "new Derived()").WithArguments("Derived", "Test").WithLocation(10, 18)
                 );
         }
+
+        [Fact]
+        [WorkItem(61264, "https://github.com/dotnet/roslyn/issues/61264")]
+        public void ForwardObsoleteType_01()
+        {
+            var source1 = @"
+using System;
+
+[Obsolete(""Error"", error: true)]
+public class C1
+{
+}
+
+[Obsolete(""Warning"", error: false)]
+public class C2
+{
+}
+";
+
+            var comp1 = CreateCompilation(source1, assemblyName: "Lib1");
+            comp1.VerifyDiagnostics();
+
+            var source2 = @"
+using System.Runtime.CompilerServices;
+
+[assembly: TypeForwardedTo(typeof(C1))]
+[assembly: TypeForwardedTo(typeof(C2))]
+";
+
+            var comp2 = CreateCompilation(source2, references: new[] { comp1.ToMetadataReference() });
+            comp2.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(61264, "https://github.com/dotnet/roslyn/issues/61264")]
+        public void ForwardObsoleteType_02()
+        {
+            var source1 = @"
+using System;
+
+[Obsolete(""Error"", error: true)]
+public class C1
+{
+}
+
+[Obsolete(""Warning"", error: false)]
+public class C2
+{
+}
+";
+
+            var source2 = @"
+using System.Runtime.CompilerServices;
+
+[assembly: TypeForwardedTo(typeof(C1))]
+[assembly: TypeForwardedTo(typeof(C2))]
+";
+
+            var comp2 = CreateCompilation(new[] { source1, source2 });
+            comp2.VerifyEmitDiagnostics(
+                // (4,12): error CS0729: Type 'C1' is defined in this assembly, but a type forwarder is specified for it
+                // [assembly: TypeForwardedTo(typeof(C1))]
+                Diagnostic(ErrorCode.ERR_ForwardedTypeInThisAssembly, "TypeForwardedTo(typeof(C1))").WithArguments("C1").WithLocation(4, 12),
+                // (5,12): error CS0729: Type 'C2' is defined in this assembly, but a type forwarder is specified for it
+                // [assembly: TypeForwardedTo(typeof(C2))]
+                Diagnostic(ErrorCode.ERR_ForwardedTypeInThisAssembly, "TypeForwardedTo(typeof(C2))").WithArguments("C2").WithLocation(5, 12)
+                );
+        }
+
+        [Fact]
+        [WorkItem(61264, "https://github.com/dotnet/roslyn/issues/61264")]
+        public void ForwardObsoleteType_03()
+        {
+            // Other attributes are not affected
+            var source1 = @"
+using System;
+
+[Obsolete(""Error"", error: true)]
+public class C1
+{
+}
+
+[Obsolete(""Warning"", error: false)]
+public class C2
+{
+}
+";
+
+            var comp1 = CreateCompilation(source1, assemblyName: "Lib1");
+            comp1.VerifyDiagnostics();
+
+            var source2 = @"
+[assembly: TypeForwarded_2(typeof(C1))]
+[assembly: TypeForwarded_2(typeof(C2))]
+
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true)]
+class TypeForwarded_2Attribute : System.Attribute
+{
+    public TypeForwarded_2Attribute(System.Type type) { }
+}
+";
+
+            var comp2 = CreateCompilation(source2, references: new[] { comp1.ToMetadataReference() });
+            comp2.VerifyEmitDiagnostics(
+                // (2,35): error CS0619: 'C1' is obsolete: 'Error'
+                // [assembly: TypeForwarded_2(typeof(C1))]
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "C1").WithArguments("C1", "Error").WithLocation(2, 35),
+                // (3,35): warning CS0618: 'C2' is obsolete: 'Warning'
+                // [assembly: TypeForwarded_2(typeof(C2))]
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "C2").WithArguments("C2", "Warning").WithLocation(3, 35)
+                );
+        }
+
+        [Fact]
+        [WorkItem(61264, "https://github.com/dotnet/roslyn/issues/61264")]
+        public void ForwardObsoleteType_04()
+        {
+            // Other attributes in the same file are not affected
+            var source1 = @"
+using System;
+
+[Obsolete(""Error"", error: true)]
+public class C1
+{
+}
+
+[Obsolete(""Warning"", error: false)]
+public class C2
+{
+}
+";
+
+            var comp1 = CreateCompilation(source1, assemblyName: "Lib1");
+            comp1.VerifyDiagnostics();
+
+            var source2 = @"
+using System.Runtime.CompilerServices;
+
+[assembly: TypeForwardedTo(typeof(C1))]
+
+[assembly: TypeForwarded_2(typeof(C1))]
+[assembly: TypeForwarded_2(typeof(C2))]
+
+[assembly: TypeForwardedTo(typeof(C2))]
+
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true)]
+class TypeForwarded_2Attribute : System.Attribute
+{
+    public TypeForwarded_2Attribute(System.Type type) { }
+}
+";
+
+            var comp2 = CreateCompilation(source2, references: new[] { comp1.ToMetadataReference() });
+            comp2.VerifyEmitDiagnostics(
+                // (6,35): error CS0619: 'C1' is obsolete: 'Error'
+                // [assembly: TypeForwarded_2(typeof(C1))]
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "C1").WithArguments("C1", "Error").WithLocation(6, 35),
+                // (7,35): warning CS0618: 'C2' is obsolete: 'Warning'
+                // [assembly: TypeForwarded_2(typeof(C2))]
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "C2").WithArguments("C2", "Warning").WithLocation(7, 35)
+                );
+        }
+
+        [Fact]
+        [WorkItem(61264, "https://github.com/dotnet/roslyn/issues/61264")]
+        public void ForwardObsoleteType_05()
+        {
+            // Other attributes in a different file at the same position are not affected
+            var source1 = @"
+using System;
+
+[Obsolete(""Error"", error: true)]
+public class C1
+{
+}
+
+[Obsolete(""Warning"", error: false)]
+public class C2
+{
+}
+";
+
+            var comp1 = CreateCompilation(source1, assemblyName: "Lib1");
+            comp1.VerifyDiagnostics();
+
+            var source2 = @"
+[assembly: {0}(typeof(C1))]
+[assembly: {0}(typeof(C2))]
+";
+            var source3 = @"
+global using System.Runtime.CompilerServices;
+
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true)]
+class TypeForwarded_2Attribute : System.Attribute
+{
+    public TypeForwarded_2Attribute(System.Type type) { }
+}
+";
+
+            var comp2 = CreateCompilation(new[] { string.Format(source2, "TypeForwarded_2"), string.Format(source2, "TypeForwardedTo"), source3 }, references: new[] { comp1.ToMetadataReference() });
+            comp2.VerifyEmitDiagnostics(
+                // (2,35): error CS0619: 'C1' is obsolete: 'Error'
+                // [assembly: TypeForwarded_2(typeof(C1))]
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "C1").WithArguments("C1", "Error").WithLocation(2, 35),
+                // (3,35): warning CS0618: 'C2' is obsolete: 'Warning'
+                // [assembly: TypeForwarded_2(typeof(C2))]
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "C2").WithArguments("C2", "Warning").WithLocation(3, 35)
+                );
+
+            comp2.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, comp2.SyntaxTrees[0], filterSpanWithinTree: null, includeEarlierStages: true).Verify(
+                // (2,35): error CS0619: 'C1' is obsolete: 'Error'
+                // [assembly: TypeForwarded_2(typeof(C1))]
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "C1").WithArguments("C1", "Error").WithLocation(2, 35),
+                // (3,35): warning CS0618: 'C2' is obsolete: 'Warning'
+                // [assembly: TypeForwarded_2(typeof(C2))]
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "C2").WithArguments("C2", "Warning").WithLocation(3, 35)
+                );
+        }
+
+        [Fact]
+        [WorkItem(61264, "https://github.com/dotnet/roslyn/issues/61264")]
+        public void ForwardObsoleteType_06()
+        {
+            // Attributes on other targets are not affected, including mistaken application of TypeForwardedTo
+            var source1 = @"
+using System;
+
+[Obsolete(""Error"", error: true)]
+public class C1
+{
+}
+
+[Obsolete(""Warning"", error: false)]
+public class C2
+{
+}
+";
+
+            var comp1 = CreateCompilation(source1, assemblyName: "Lib1");
+            comp1.VerifyDiagnostics();
+
+            var source2 = @"
+using System.Runtime.CompilerServices;
+
+[module: TypeForwardedTo(typeof(C1))]
+[module: TypeForwarded_2(typeof(C2))]
+
+[TypeForwardedTo(typeof(C1))][TypeForwarded_2(typeof(C2))] class C3
+{
+    [TypeForwardedTo(typeof(C1))][TypeForwarded_2(typeof(C2))]void M1()
+    {}
+}
+
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true)]
+class TypeForwarded_2Attribute : System.Attribute
+{
+    public TypeForwarded_2Attribute(System.Type type) { }
+}
+";
+
+            var comp2 = CreateCompilation(source2, references: new[] { comp1.ToMetadataReference() });
+            comp2.VerifyEmitDiagnostics(
+                // (4,10): error CS0592: Attribute 'TypeForwardedTo' is not valid on this declaration type. It is only valid on 'assembly' declarations.
+                // [module: TypeForwardedTo(typeof(C1))]
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "TypeForwardedTo").WithArguments("TypeForwardedTo", "assembly").WithLocation(4, 10),
+                // (4,33): error CS0619: 'C1' is obsolete: 'Error'
+                // [module: TypeForwardedTo(typeof(C1))]
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "C1").WithArguments("C1", "Error").WithLocation(4, 33),
+                // (5,33): warning CS0618: 'C2' is obsolete: 'Warning'
+                // [module: TypeForwarded_2(typeof(C2))]
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "C2").WithArguments("C2", "Warning").WithLocation(5, 33),
+                // (7,2): error CS0592: Attribute 'TypeForwardedTo' is not valid on this declaration type. It is only valid on 'assembly' declarations.
+                // [TypeForwardedTo(typeof(C1))][TypeForwarded_2(typeof(C2))] class C3
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "TypeForwardedTo").WithArguments("TypeForwardedTo", "assembly").WithLocation(7, 2),
+                // (7,25): error CS0619: 'C1' is obsolete: 'Error'
+                // [TypeForwardedTo(typeof(C1))][TypeForwarded_2(typeof(C2))] class C3
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "C1").WithArguments("C1", "Error").WithLocation(7, 25),
+                // (7,54): warning CS0618: 'C2' is obsolete: 'Warning'
+                // [TypeForwardedTo(typeof(C1))][TypeForwarded_2(typeof(C2))] class C3
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "C2").WithArguments("C2", "Warning").WithLocation(7, 54),
+                // (9,6): error CS0592: Attribute 'TypeForwardedTo' is not valid on this declaration type. It is only valid on 'assembly' declarations.
+                //     [TypeForwardedTo(typeof(C1))][TypeForwarded_2(typeof(C2))]void M1()
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "TypeForwardedTo").WithArguments("TypeForwardedTo", "assembly").WithLocation(9, 6),
+                // (9,29): error CS0619: 'C1' is obsolete: 'Error'
+                //     [TypeForwardedTo(typeof(C1))][TypeForwarded_2(typeof(C2))]void M1()
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "C1").WithArguments("C1", "Error").WithLocation(9, 29),
+                // (9,58): warning CS0618: 'C2' is obsolete: 'Warning'
+                //     [TypeForwardedTo(typeof(C1))][TypeForwarded_2(typeof(C2))]void M1()
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "C2").WithArguments("C2", "Warning").WithLocation(9, 58)
+                );
+        }
+
+        [Fact]
+        [WorkItem(61264, "https://github.com/dotnet/roslyn/issues/61264")]
+        public void ForwardObsoleteType_07()
+        {
+            // Other errors within the same span are not affected
+
+            // IL is equivalent to:
+            // 
+            // using System;
+            // using System.Runtime.CompilerServices;
+            // 
+            // [Obsolete("Error", error: true)]
+            // [CompilerFeatureRequired("SomeFeatureIsRequired")]
+            // public class C1
+            // {
+            // }
+
+        var ilSsource1 = @"
+.class public auto ansi beforefieldinit C1
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string, bool) = (
+        01 00 05 45 72 72 6f 72 01 00 00
+    )
+    .custom instance void System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::.ctor(string) = (
+        01 00 15 53 6f 6d 65 46 65 61 74 75 72 65 49 73
+        52 65 71 75 69 72 65 64 00 00
+    )
+    // Methods
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: nop
+        IL_0007: ret
+    } // end of method C1::.ctor
+
+} // end of class C1
+
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute
+    extends [mscorlib]System.Attribute
+{
+    .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = (
+        01 00 ff 7f 00 00 02 00 54 02 0d 41 6c 6c 6f 77
+        4d 75 6c 74 69 70 6c 65 01 54 02 09 49 6e 68 65
+        72 69 74 65 64 00
+    )
+
+    // Methods
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor (
+            string featureName
+        ) cil managed 
+    {
+        IL_000f: ret
+    } // end of method CompilerFeatureRequiredAttribute::.ctor
+} // end of class System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute
+";
+
+            var source2 = @"
+using System.Runtime.CompilerServices;
+
+[assembly: TypeForwardedTo(typeof(C1))]
+";
+
+            var comp2 = CreateCompilationWithIL(source2, ilSsource1);
+            comp2.VerifyEmitDiagnostics(
+                // (4,12): error CS9041: 'C1' requires compiler feature 'SomeFeatureIsRequired', which is not supported by this version of the C# compiler.
+                // [assembly: TypeForwardedTo(typeof(C1))]
+                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "TypeForwardedTo(typeof(C1))").WithArguments("C1", "SomeFeatureIsRequired").WithLocation(4, 12),
+                // (4,35): error CS9041: 'C1' requires compiler feature 'SomeFeatureIsRequired', which is not supported by this version of the C# compiler.
+                // [assembly: TypeForwardedTo(typeof(C1))]
+                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "C1").WithArguments("C1", "SomeFeatureIsRequired").WithLocation(4, 35)
+                );
+        }
     }
 }
