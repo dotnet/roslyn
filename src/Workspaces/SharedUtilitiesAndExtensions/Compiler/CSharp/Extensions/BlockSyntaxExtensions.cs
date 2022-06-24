@@ -63,13 +63,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 arrowExpression = SyntaxFactory.ArrowExpressionClause(expression);
 
-                if (block.GetRequiredParent().Kind() == SyntaxKind.GetAccessorDeclaration)
+                var parent = block.GetRequiredParent();
+
+                if (parent.Kind() == SyntaxKind.GetAccessorDeclaration)
                 {
-                    var comments = block.GetRequiredParent().GetLeadingTrivia().Where(t => !t.IsWhitespaceOrEndOfLine());
+                    var comments = parent.GetLeadingTrivia().Where(t => !t.IsWhitespaceOrEndOfLine());
                     if (!comments.IsEmpty())
                     {
                         arrowExpression = arrowExpression.WithLeadingTrivia(
-                            block.GetRequiredParent().GetLeadingTrivia());
+                            parent.GetLeadingTrivia());
                     }
                 }
 
