@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             var boundAttribute = boundAttributeArray[i];
                             Debug.Assert(boundAttribute is not null);
-                            NullableWalker.AnalyzeIfNeeded(binders[i], boundAttribute, boundAttribute.Syntax, diagnostics.DiagnosticBag);
+                            NullableWalker.AnalyzeIfNeeded(binders[i], boundAttribute, boundAttribute.Syntax, diagnostics.DiagnosticBag!);
                         }
                     }
 
