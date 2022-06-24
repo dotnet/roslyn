@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 },
                 Logger,
                 cancellationToken: default);
-            Assert.True(response is RejectedBuildResponse);
+            Assert.True(response is CannotConnectResponse);
             Assert.True(ran);
         }
 
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     },
                     Logger,
                     cancellationToken: default);
-                Assert.True(response is RejectedBuildResponse);
+                Assert.True(response is CannotConnectResponse);
             }
 
             Assert.Equal(5, count);
