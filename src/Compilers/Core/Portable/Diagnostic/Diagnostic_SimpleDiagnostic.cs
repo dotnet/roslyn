@@ -90,6 +90,8 @@ namespace Microsoft.CodeAnalysis
 
             public override string GetMessage(IFormatProvider? formatProvider = null)
             {
+                var localizedMessageFormat = _descriptor.MessageFormat.ToString(formatProvider);
+
 #if DEBUG
                 try
                 {
@@ -120,10 +122,8 @@ namespace Microsoft.CodeAnalysis
 #endif
                 if (_messageArgs.Length == 0)
                 {
-                    return _descriptor.MessageFormat.ToString(formatProvider);
+                    return localizedMessageFormat;
                 }
-
-                var localizedMessageFormat = _descriptor.MessageFormat.ToString(formatProvider);
 
                 try
                 {
