@@ -4,7 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
-using System.IO;
+using PrepareTests;
 
 namespace RunTests
 {
@@ -69,7 +69,7 @@ namespace RunTests
     internal readonly struct TestResult
     {
         internal TestResultInfo TestResultInfo { get; }
-        internal AssemblyInfo AssemblyInfo { get; }
+        internal WorkItemInfo WorkItemInfo { get; }
         internal string CommandLine { get; }
         internal string? Diagnostics { get; }
 
@@ -78,9 +78,7 @@ namespace RunTests
         /// </summary>
         internal ImmutableArray<ProcessResult> ProcessResults { get; }
 
-        internal string AssemblyPath => AssemblyInfo.AssemblyPath;
-        internal string AssemblyName => Path.GetFileName(AssemblyPath);
-        internal string DisplayName => AssemblyInfo.DisplayName;
+        internal string DisplayName => WorkItemInfo.DisplayName;
         internal bool Succeeded => ExitCode == 0;
         internal int ExitCode => TestResultInfo.ExitCode;
         internal TimeSpan Elapsed => TestResultInfo.Elapsed;
@@ -88,9 +86,9 @@ namespace RunTests
         internal string ErrorOutput => TestResultInfo.ErrorOutput;
         internal string? ResultsDisplayFilePath => TestResultInfo.HtmlResultsFilePath ?? TestResultInfo.ResultsFilePath;
 
-        internal TestResult(AssemblyInfo assemblyInfo, TestResultInfo testResultInfo, string commandLine, ImmutableArray<ProcessResult> processResults = default, string? diagnostics = null)
+        internal TestResult(WorkItemInfo workItemInfo, TestResultInfo testResultInfo, string commandLine, ImmutableArray<ProcessResult> processResults = default, string? diagnostics = null)
         {
-            AssemblyInfo = assemblyInfo;
+            WorkItemInfo = workItemInfo;
             TestResultInfo = testResultInfo;
             CommandLine = commandLine;
             ProcessResults = processResults.IsDefault ? ImmutableArray<ProcessResult>.Empty : processResults;

@@ -8,11 +8,14 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using System.Xml.XPath;
+using PrepareTests;
 
 namespace RunTests
 {
@@ -25,7 +28,7 @@ namespace RunTests
             Options = options;
         }
 
-        public string GetCommandLineArguments(AssemblyInfo assemblyInfo, bool useSingleQuotes, bool isHelix)
+        public string GetCommandLineArguments(WorkItemInfo workItem, bool useSingleQuotes, Options options)
         {
             // http://www.gnu.org/software/bash/manual/html_node/Single-Quotes.html
             // Single quotes are needed in bash to avoid the need to escape characters such as backtick (`) which are found in metadata names.
@@ -35,8 +38,11 @@ namespace RunTests
 
             var builder = new StringBuilder();
             builder.Append($@"test");
-            builder.Append($@" {sep}{assemblyInfo.AssemblyName}{sep}");
-            var typeInfoList = assemblyInfo.PartitionInfo.TypeInfoList;
+
+            var escapedAssemblyPaths = workItem.TypesToTest.Keys.Select(assembly => $"{sep}{assembly.AssemblyPath}{sep}");
+            builder.Append($@" {string.Join(" ", escapedAssemblyPaths)}");
+
+            var typeInfoList = workItem.TypesToTest.Values.SelectMany(type => type).ToImmutableArray();
             if (typeInfoList.Length > 0 || !string.IsNullOrWhiteSpace(Options.TestFilter))
             {
                 builder.Append($@" --filter {sep}");
@@ -48,7 +54,7 @@ namespace RunTests
                     // We want to avoid matching other test classes whose names are prefixed with this test class's name.
                     // For example, avoid running 'AttributeTests_WellKnownMember', when the request here is to run 'AttributeTests'.
                     // We append a '.', assuming that all test methods in the class *will* match it, but not methods in other classes.
-                    builder.Append(typeInfo.FullName);
+                    builder.Append(typeInfo.Name);
                     builder.Append('.');
                 }
                 builder.Append(sep);
@@ -70,13 +76,12 @@ namespace RunTests
                 }
             }
 
-            builder.Append($@" --arch {assemblyInfo.Architecture}");
-            builder.Append($@" --framework {assemblyInfo.TargetFramework}");
-            builder.Append($@" --logger {sep}xunit;LogFilePath={GetResultsFilePath(assemblyInfo, "xml")}{sep}");
+            builder.Append($@" --arch {options.Architecture}");
+            builder.Append($@" --logger {sep}xunit;LogFilePath={GetResultsFilePath(workItem, options, "xml")}{sep}");
 
             if (Options.IncludeHtml)
             {
-                builder.AppendFormat($@" --logger {sep}html;LogFileName={GetResultsFilePath(assemblyInfo, "html")}{sep}");
+                builder.AppendFormat($@" --logger {sep}html;LogFileName={GetResultsFilePath(workItem, options, "html")}{sep}");
             }
 
             if (!Options.CollectDumps)
@@ -94,46 +99,46 @@ namespace RunTests
             //
             // Helix timeout is 15 minutes as helix jobs fully timeout in 30minutes.  So in order to capture dumps we need the timeout
             // to be 2x shorter than the expected test run time (15min) in case only the last test hangs.
-            var timeout = isHelix ? "15minutes" : "25minutes";
+            var timeout = options.UseHelix ? "15minutes" : "25minutes";
 
             builder.Append($" --blame-hang-dump-type full --blame-hang-timeout {timeout}");
 
             return builder.ToString();
         }
 
-        private string GetResultsFilePath(AssemblyInfo assemblyInfo, string suffix = "xml")
+        private string GetResultsFilePath(WorkItemInfo workItemInfo, Options options, string suffix = "xml")
         {
-            var fileName = $"{assemblyInfo.DisplayName}_{assemblyInfo.TargetFramework}_{assemblyInfo.Architecture}_test_results.{suffix}";
+            var fileName = $"WorkItem_{workItemInfo.PartitionIndex}_{options.Architecture}_test_results.{suffix}";
             return Path.Combine(Options.TestResultsDirectory, fileName);
         }
 
-        public async Task<TestResult> RunTestAsync(AssemblyInfo assemblyInfo, CancellationToken cancellationToken)
+        public async Task<TestResult> RunTestAsync(WorkItemInfo workItemInfo, Options options, CancellationToken cancellationToken)
         {
-            var result = await RunTestAsyncInternal(assemblyInfo, retry: false, cancellationToken);
+            var result = await RunTestAsyncInternal(workItemInfo, options, isRetry: false, cancellationToken);
 
             // For integration tests (TestVsi), we make one more attempt to re-run failed tests.
-            if (Options.Retry && !HasBuiltInRetry(assemblyInfo) && !Options.IncludeHtml && !result.Succeeded)
+            if (Options.Retry && !HasBuiltInRetry(workItemInfo) && !Options.IncludeHtml && !result.Succeeded)
             {
-                return await RunTestAsyncInternal(assemblyInfo, retry: true, cancellationToken);
+                return await RunTestAsyncInternal(workItemInfo, options, isRetry: true, cancellationToken);
             }
 
             return result;
 
-            static bool HasBuiltInRetry(AssemblyInfo assemblyInfo)
+            static bool HasBuiltInRetry(WorkItemInfo workItemInfo)
             {
                 // vs-extension-testing handles test retry internally.
-                return assemblyInfo.AssemblyName == "Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll";
+                return workItemInfo.TypesToTest.Keys.Any(assembly => assembly.AssemblyName == "Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll");
             }
         }
 
-        private async Task<TestResult> RunTestAsyncInternal(AssemblyInfo assemblyInfo, bool retry, CancellationToken cancellationToken)
+        private async Task<TestResult> RunTestAsyncInternal(WorkItemInfo workItemInfo, Options options, bool isRetry, CancellationToken cancellationToken)
         {
             try
             {
-                var commandLineArguments = GetCommandLineArguments(assemblyInfo, useSingleQuotes: false, isHelix: false);
-                var resultsFilePath = GetResultsFilePath(assemblyInfo);
+                var commandLineArguments = GetCommandLineArguments(workItemInfo, useSingleQuotes: false, options);
+                var resultsFilePath = GetResultsFilePath(workItemInfo, options);
                 var resultsDir = Path.GetDirectoryName(resultsFilePath);
-                var htmlResultsFilePath = Options.IncludeHtml ? GetResultsFilePath(assemblyInfo, "html") : null;
+                var htmlResultsFilePath = Options.IncludeHtml ? GetResultsFilePath(workItemInfo, options, "html") : null;
                 var processResultList = new List<ProcessResult>();
                 ProcessInfo? procDumpProcessInfo = null;
 
@@ -144,7 +149,7 @@ namespace RunTests
                 var environmentVariables = new Dictionary<string, string>();
                 Options.ProcDumpInfo?.WriteEnvironmentVariables(environmentVariables);
 
-                if (retry && File.Exists(resultsFilePath))
+                if (isRetry && File.Exists(resultsFilePath))
                 {
                     ConsoleUtil.WriteLine("Starting a retry. Tests which failed will run a second time to reduce flakiness.");
                     try
@@ -178,23 +183,22 @@ namespace RunTests
                     ProcessRunner.CreateProcessStartInfo(
                         Options.DotnetFilePath,
                         commandLineArguments,
-                        workingDirectory: Path.GetDirectoryName(assemblyInfo.AssemblyPath),
                         displayWindow: false,
                         captureOutput: true,
                         environmentVariables: environmentVariables),
                     lowPriority: false,
                     cancellationToken: cancellationToken);
-                Logger.Log($"Create xunit process with id {dotnetProcessInfo.Id} for test {assemblyInfo.DisplayName}");
+                Logger.Log($"Create xunit process with id {dotnetProcessInfo.Id} for test {workItemInfo.DisplayName}");
 
                 var xunitProcessResult = await dotnetProcessInfo.Result;
                 var span = DateTime.UtcNow - start;
 
-                Logger.Log($"Exit xunit process with id {dotnetProcessInfo.Id} for test {assemblyInfo.DisplayName} with code {xunitProcessResult.ExitCode}");
+                Logger.Log($"Exit xunit process with id {dotnetProcessInfo.Id} for test {workItemInfo.DisplayName} with code {xunitProcessResult.ExitCode}");
                 processResultList.Add(xunitProcessResult);
                 if (procDumpProcessInfo != null)
                 {
                     var procDumpProcessResult = await procDumpProcessInfo.Value.Result;
-                    Logger.Log($"Exit procdump process with id {procDumpProcessInfo.Value.Id} for {dotnetProcessInfo.Id} for test {assemblyInfo.DisplayName} with code {procDumpProcessResult.ExitCode}");
+                    Logger.Log($"Exit procdump process with id {procDumpProcessInfo.Value.Id} for {dotnetProcessInfo.Id} for test {workItemInfo.DisplayName} with code {procDumpProcessResult.ExitCode}");
                     processResultList.Add(procDumpProcessResult);
                 }
 
@@ -223,7 +227,7 @@ namespace RunTests
                     }
                 }
 
-                Logger.Log($"Command line {assemblyInfo.DisplayName} completed in {span.TotalSeconds} seconds: {Options.DotnetFilePath} {commandLineArguments}");
+                Logger.Log($"Command line {workItemInfo.DisplayName} completed in {span.TotalSeconds} seconds: {Options.DotnetFilePath} {commandLineArguments}");
                 var standardOutput = string.Join(Environment.NewLine, xunitProcessResult.OutputLines) ?? "";
                 var errorOutput = string.Join(Environment.NewLine, xunitProcessResult.ErrorLines) ?? "";
 
@@ -236,14 +240,14 @@ namespace RunTests
                     errorOutput: errorOutput);
 
                 return new TestResult(
-                    assemblyInfo,
+                    workItemInfo,
                     testResultInfo,
                     commandLineArguments,
                     processResults: ImmutableArray.CreateRange(processResultList));
             }
             catch (Exception ex)
             {
-                throw new Exception($"Unable to run {assemblyInfo.AssemblyPath} with {Options.DotnetFilePath}. {ex}");
+                throw new Exception($"Unable to run {workItemInfo.DisplayName} with {Options.DotnetFilePath}. {ex}");
             }
         }
     }

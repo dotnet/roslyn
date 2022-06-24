@@ -13,6 +13,8 @@ using System.Threading.Tasks;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
+using PrepareTests;
+using System.Xml.Linq;
 
 namespace RunTests
 {
@@ -129,20 +131,20 @@ namespace RunTests
             var testExecutor = CreateTestExecutor(options);
             var testRunner = new TestRunner(options, testExecutor);
             var start = DateTime.Now;
-            var assemblyInfoList = GetAssemblyList(options);
-            if (assemblyInfoList.Count == 0)
+            var workItems = GetWorkItems(options);
+            if (workItems.Length == 0)
             {
+                WriteLogFile(options);
                 ConsoleUtil.WriteLine(ConsoleColor.Red, "No assemblies to test");
                 return ExitFailure;
             }
 
-            var assemblyCount = assemblyInfoList.GroupBy(x => x.AssemblyPath).Count();
             ConsoleUtil.WriteLine($"Proc dump location: {options.ProcDumpFilePath}");
-            ConsoleUtil.WriteLine($"Running {assemblyCount} test assemblies in {assemblyInfoList.Count} partitions");
+            ConsoleUtil.WriteLine($"Running tests in {workItems.Length} partitions");
 
             var result = options.UseHelix
-                ? await testRunner.RunAllOnHelixAsync(assemblyInfoList, cancellationToken).ConfigureAwait(true)
-                : await testRunner.RunAllAsync(assemblyInfoList, cancellationToken).ConfigureAwait(true);
+                ? await testRunner.RunAllOnHelixAsync(workItems, options, cancellationToken).ConfigureAwait(true)
+                : await testRunner.RunAllAsync(workItems, cancellationToken).ConfigureAwait(true);
             var elapsed = DateTime.Now - start;
 
             ConsoleUtil.WriteLine($"Test execution time: {elapsed}");
@@ -280,83 +282,59 @@ namespace RunTests
             return null;
         }
 
-        private static List<AssemblyInfo> GetAssemblyList(Options options)
+        private static ImmutableArray<WorkItemInfo> GetWorkItems(Options options)
         {
             var scheduler = new AssemblyScheduler(options);
-            var list = new List<AssemblyInfo>();
             var assemblyPaths = GetAssemblyFilePaths(options);
-
-            foreach (var assemblyPath in assemblyPaths.OrderByDescending(x => new FileInfo(x.FilePath).Length))
-            {
-                list.AddRange(scheduler.Schedule(assemblyPath.FilePath).Select(x => new AssemblyInfo(x, assemblyPath.TargetFramework, options.Architecture)));
-            }
-
-            return list;
+            var workItems = scheduler.Schedule(assemblyPaths);
+            return workItems;
         }
 
-        private static List<(string FilePath, string TargetFramework)> GetAssemblyFilePaths(Options options)
+        private static ImmutableArray<AssemblyInfo> GetAssemblyFilePaths(Options options)
         {
-            var list = new List<(string, string)>();
+            var list = new List<AssemblyInfo>();
             var binDirectory = Path.Combine(options.ArtifactsDirectory, "bin");
-            foreach (var project in Directory.EnumerateDirectories(binDirectory, "*", SearchOption.TopDirectoryOnly))
-            {
-                var name = Path.GetFileName(project);
 
+            var assemblies = ListTests.GetTestAssemblyFilePaths(binDirectory, ShouldSkip, options.Configuration, options.TargetFrameworks);
+
+            return assemblies;
+
+            bool ShouldSkip(string projectDirectory)
+            {
+                var name = Path.GetFileName(projectDirectory);
                 if (!shouldInclude(name, options) || shouldExclude(name, options))
                 {
-                    continue;
+                    Logger.Log($"Skipped {name} as it was not included");
+                    return true;
                 }
 
-                var fileName = $"{name}.dll";
-                foreach (var targetFramework in options.TargetFrameworks)
+                return false;
+
+                static bool shouldInclude(string name, Options options)
                 {
-                    var fileContainingDirectory = Path.Combine(project, options.Configuration, targetFramework);
-                    var filePath = Path.Combine(fileContainingDirectory, fileName);
-                    if (File.Exists(filePath))
+                    foreach (var pattern in options.IncludeFilter)
                     {
-                        list.Add((filePath, targetFramework));
-                    }
-                    else if (Directory.Exists(fileContainingDirectory) && Directory.GetFiles(fileContainingDirectory, searchPattern: "*.UnitTests.dll") is { Length: > 0 } matches)
-                    {
-                        // If the unit test assembly name doesn't match the project folder name, but still matches our "unit test" name pattern, we want to run it.
-                        // If more than one such assembly is present in a project output folder, we assume something is wrong with the build configuration.
-                        // For example, one unit test project might be referencing another unit test project.
-                        if (matches.Length > 1)
+                        if (Regex.IsMatch(name, pattern.Trim('\'', '"')))
                         {
-                            var message = $"Multiple unit test assemblies found in '{fileContainingDirectory}'. Please adjust the build to prevent this. Matches:{Environment.NewLine}{string.Join(Environment.NewLine, matches)}";
-                            throw new Exception(message);
+                            return true;
                         }
-                        list.Add((matches[0], targetFramework));
                     }
+
+                    return false;
                 }
-            }
 
-            return list;
-
-            static bool shouldInclude(string name, Options options)
-            {
-                foreach (var pattern in options.IncludeFilter)
+                static bool shouldExclude(string name, Options options)
                 {
-                    if (Regex.IsMatch(name, pattern.Trim('\'', '"')))
+                    foreach (var pattern in options.ExcludeFilter)
                     {
-                        return true;
+                        if (Regex.IsMatch(name, pattern.Trim('\'', '"')))
+                        {
+                            return true;
+                        }
                     }
+
+                    return false;
                 }
-
-                return false;
-            }
-
-            static bool shouldExclude(string name, Options options)
-            {
-                foreach (var pattern in options.ExcludeFilter)
-                {
-                    if (Regex.IsMatch(name, pattern.Trim('\'', '"')))
-                    {
-                        return true;
-                    }
-                }
-
-                return false;
             }
         }
 

@@ -384,8 +384,6 @@ _italic\_&nbsp;\*\*text\*\*_
                 testLspServer,
                 expectedLocation).ConfigureAwait(false);
             Assert.Equal(expectedMarkdown, results.Contents.Third.Value);
-
-            Assert.False(true);
         }
 
         private static async Task<LSP.Hover> RunGetHoverAsync(

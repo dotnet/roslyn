@@ -4,357 +4,175 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Reflection.Metadata;
-using System.Reflection.PortableExecutable;
-using System.Text;
+using System.Text.Json;
+using PrepareTests;
+using TypeInfo = PrepareTests.TypeInfo;
 
 namespace RunTests
 {
-    internal readonly struct AssemblyInfo
+
+    /// <summary>
+    /// Defines a single work item to run.  The work item may contain tests from multiple assemblies
+    /// that should be run together in the same work item.
+    /// </summary>
+    internal readonly record struct WorkItemInfo(ImmutableSortedDictionary<AssemblyInfo, ImmutableArray<TypeInfo>> TypesToTest, int PartitionIndex)
     {
-        internal PartitionInfo PartitionInfo { get; }
-        internal string TargetFramework { get; }
-        internal string Architecture { get; }
-
-        internal string AssemblyPath => PartitionInfo.AssemblyPath;
-        internal string AssemblyName => Path.GetFileName(PartitionInfo.AssemblyPath);
-        internal string DisplayName => PartitionInfo.DisplayName;
-
-        internal AssemblyInfo(PartitionInfo partitionInfo, string targetFramework, string architecture)
+        internal string DisplayName
         {
-            PartitionInfo = partitionInfo;
-            TargetFramework = targetFramework;
-            Architecture = architecture;
-        }
-    }
-
-    internal readonly struct PartitionInfo
-    {
-        internal int? AssemblyPartitionId { get; }
-        internal string AssemblyPath { get; }
-        internal string DisplayName { get; }
-
-        /// <summary>
-        /// Specific set of types to test in the assembly. Will be empty when testing the entire assembly
-        /// </summary>
-        internal readonly ImmutableArray<TypeInfo> TypeInfoList;
-
-        internal PartitionInfo(
-            int assemblyPartitionId,
-            string assemblyPath,
-            string displayName,
-            ImmutableArray<TypeInfo> typeInfoList)
-        {
-            AssemblyPartitionId = assemblyPartitionId;
-            AssemblyPath = assemblyPath;
-            DisplayName = displayName;
-            TypeInfoList = typeInfoList;
+            get
+            {
+                var assembliesString = string.Join("_", TypesToTest.Keys.Select(assembly => Path.GetFileNameWithoutExtension(assembly.AssemblyName).Replace(".", string.Empty)));
+                return $"{assembliesString}_{PartitionIndex}";
+            }
         }
 
-        internal PartitionInfo(string assemblyPath)
-        {
-            AssemblyPartitionId = null;
-            AssemblyPath = assemblyPath;
-            DisplayName = Path.GetFileName(assemblyPath);
-            TypeInfoList = ImmutableArray<TypeInfo>.Empty;
-        }
-
-        public override string ToString() => DisplayName;
-    }
-
-    public readonly struct TypeInfo
-    {
-        internal readonly string FullName;
-        internal readonly int MethodCount;
-
-        internal TypeInfo(string fullName, int methodCount)
-        {
-            FullName = fullName;
-            MethodCount = methodCount;
-        }
+        internal static WorkItemInfo CreateFullAssembly(AssemblyInfo assembly, int partitionIndex)
+            => new(ImmutableSortedDictionary<AssemblyInfo, ImmutableArray<TypeInfo>>.Empty.Add(assembly, ImmutableArray<TypeInfo>.Empty), partitionIndex);
     }
 
     internal sealed class AssemblyScheduler
     {
         /// <summary>
-        /// This is a test class inserted into assemblies to guard against a .NET desktop bug.  The tests
-        /// inside of it counteract the underlying issue.  If this test is included in any assembly it 
-        /// must be added to every partition to ensure the work around is present
-        /// 
-        /// https://github.com/dotnet/corefx/issues/3793
-        /// https://github.com/dotnet/roslyn/issues/8936
-        /// </summary>
-        private const string EventListenerGuardFullName = "Microsoft.CodeAnalysis.UnitTests.EventListenerGuard";
-
-        private static class AssemblyInfoBuilder
-        {
-            internal static void Build(string assemblyPath, int methodLimit, List<TypeInfo> typeInfoList, out ImmutableArray<PartitionInfo> partitionInfoList)
-            {
-                var list = new List<PartitionInfo>();
-                var hasEventListenerGuard = typeInfoList.Any(x => x.FullName == EventListenerGuardFullName);
-                var currentTypeInfoList = new List<TypeInfo>();
-                var currentClassNameLengthSum = -1;
-                var currentId = 0;
-
-                BeginPartition();
-
-                foreach (var typeInfo in typeInfoList)
-                {
-                    currentTypeInfoList.Add(typeInfo);
-                    currentClassNameLengthSum += typeInfo.FullName.Length;
-                    CheckForPartitionLimit(done: false);
-                }
-
-                CheckForPartitionLimit(done: true);
-
-                partitionInfoList = ImmutableArray.CreateRange(list);
-
-                void BeginPartition()
-                {
-                    currentId++;
-                    currentTypeInfoList.Clear();
-                    currentClassNameLengthSum = 0;
-
-                    // Ensure the EventListenerGuard is in every partition.
-                    if (hasEventListenerGuard)
-                    {
-                        currentClassNameLengthSum += EventListenerGuardFullName.Length;
-                    }
-                }
-
-                void CheckForPartitionLimit(bool done)
-                {
-                    if (done)
-                    {
-                        // The builder is done looking at types.  If there are any TypeInfo that have not
-                        // been added to a partition then do it now.
-                        if (currentTypeInfoList.Count > 0)
-                        {
-                            FinishPartition();
-                        }
-
-                        return;
-                    }
-
-                    // One item we have to consider here is the maximum command line length in 
-                    // Windows which is 32767 characters (XP is smaller but don't care).  Once
-                    // we get close then create a partition and move on. 
-                    if (currentTypeInfoList.Sum(x => x.MethodCount) >= methodLimit ||
-                        currentClassNameLengthSum > 25000)
-                    {
-                        FinishPartition();
-                        BeginPartition();
-                    }
-
-                    void FinishPartition()
-                    {
-                        var partitionInfo = new PartitionInfo(
-                            currentId,
-                            assemblyPath,
-                            $"{Path.GetFileName(assemblyPath)}.{currentId}",
-                            ImmutableArray.CreateRange(currentTypeInfoList));
-                        list.Add(partitionInfo);
-                    }
-                }
-            }
-        }
-
-        /// <summary>
         /// Default number of methods to include per partition.
         /// </summary>
         internal const int DefaultMethodLimit = 2000;
 
-        /// <summary>
-        /// Number of methods to include per Helix work item.
-        /// </summary>
-        internal const int HelixMethodLimit = 500;
-
         private readonly Options _options;
-        private readonly int _methodLimit;
 
         internal AssemblyScheduler(Options options)
         {
             _options = options;
-            _methodLimit = options.UseHelix ? AssemblyScheduler.HelixMethodLimit : AssemblyScheduler.DefaultMethodLimit;
         }
 
-        public ImmutableArray<PartitionInfo> Schedule(string assemblyPath, bool force = false)
+        public ImmutableArray<WorkItemInfo> Schedule(ImmutableArray<AssemblyInfo> assemblies)
         {
+            Logger.Log($"Scheduling {assemblies.Length} assemblies");
             if (_options.Sequential)
             {
-                return ImmutableArray.Create(new PartitionInfo(assemblyPath));
+                Logger.Log("Building sequential work items");
+                // return individual work items per assembly that contain all the tests in that assembly.
+                return assemblies
+                    .Select(WorkItemInfo.CreateFullAssembly)
+                    .ToImmutableArray();
             }
 
-            var typeInfoList = GetTypeInfoList(assemblyPath);
-            AssemblyInfoBuilder.Build(assemblyPath, _methodLimit, typeInfoList, out var partitionList);
+            var orderedTypeInfos = assemblies.ToImmutableSortedDictionary(assembly => assembly, GetTestData);
 
-            // If the scheduling didn't actually produce multiple partition then send back an unpartitioned
-            // representation.
-            if (partitionList.Length == 1 && !force)
+            var testsPerPartition = DefaultMethodLimit;
+            var totalTestCount = orderedTypeInfos.Values.SelectMany(type => type).Sum(type => type.TestCount);
+
+            // We've calculated the optimal number of helix partitions based on the queuing time and test run times.
+            // Currently that number is 56 - TODO fill out details of computing this number.
+            var partitionCount = 56;
+
+            // We then determine how many tests we need to run in each partition based on the total number of tests to run.
+            if (_options.UseHelix)
             {
-                Logger.Log($"Assembly schedule produced a single partition {assemblyPath}");
-                return ImmutableArray.Create(new PartitionInfo(assemblyPath));
+                testsPerPartition = totalTestCount / partitionCount;
             }
 
-            Logger.Log($"Assembly Schedule: {Path.GetFileName(assemblyPath)}");
-            foreach (var partition in partitionList)
+            ConsoleUtil.WriteLine($"Found {totalTestCount} tests to run, building {partitionCount} partitions with {testsPerPartition} each");
+
+            // Build work items by adding tests from each type until we hit the limit of tests for each partition.
+            // This won't always result in exactly the desired number of partitions with exactly the same number of tests - this is because
+            // we only filter by type name in arguments to dotnet test to avoid command length errors.
+            //
+            // While we do our best to run tests from the same assembly together (by building work items in assembly order) it is expected
+            // that some work items will run tests from multiple assemblies due to large variances in the number of tests per assembly.
+            var workItems = BuildWorkItems(orderedTypeInfos, testsPerPartition);
+            LogWorkItems(workItems);
+            return workItems;
+        }
+
+        private static ImmutableArray<TypeInfo> GetTestData(AssemblyInfo assembly)
+        {
+            var testDataFile = ListTests.GetTestDataFilePath(assembly);
+            Logger.Log($"Reading assembly test data for {assembly.AssemblyName} from {testDataFile}");
+
+            using var readStream = File.OpenRead(testDataFile);
+            var testData = JsonSerializer.Deserialize<ImmutableArray<TypeInfo>>(readStream);
+            return testData;
+        }
+
+        private static ImmutableArray<WorkItemInfo> BuildWorkItems(ImmutableSortedDictionary<AssemblyInfo, ImmutableArray<TypeInfo>> typeInfos, int methodLimit)
+        {
+            var workItems = new List<WorkItemInfo>();
+
+            var currentClassNameLengthSum = 0;
+            var currentTestCount = 0;
+            var workItemIndex = 0;
+
+            var currentAssemblies = new Dictionary<AssemblyInfo, List<TypeInfo>>();
+
+            // Iterate through each assembly and type and build up the work items to run.
+            // We add types from assemblies 1 by 1 until we hit the work item test limits / command line length limits.
+            foreach (var (assembly, types) in typeInfos)
             {
-                var methodCount = partition.TypeInfoList.Sum(x => x.MethodCount);
-                var delta = methodCount - _methodLimit;
-                Logger.Log($"  Partition: {partition.AssemblyPartitionId} method count {methodCount} delta {delta}");
-                foreach (var typeInfo in partition.TypeInfoList)
+                Logger.Log($"Building commands for {assembly.AssemblyName} with {types.Length} types and {types.Sum(type => type.TestCount)} tests");
+                foreach (var type in types)
                 {
-                    Logger.Log($"    {typeInfo.FullName} {typeInfo.MethodCount}");
+                    if (type.TestCount + currentTestCount >= methodLimit)
+                    {
+                        // Adding this type would put us over the method limit for this partition.
+                        // Add our accumulated types and assemblies and end the work item
+                        AddWorkItem(currentAssemblies);
+                        currentAssemblies = new Dictionary<AssemblyInfo, List<TypeInfo>>();
+                    }
+                    else if (currentClassNameLengthSum > 25000)
+                    {
+                        // One item we have to consider here is the maximum command line length in 
+                        // Windows which is 32767 characters (XP is smaller but don't care).
+                        // Once we get close we start a new work item.
+                        AddWorkItem(currentAssemblies);
+                        currentAssemblies = new Dictionary<AssemblyInfo, List<TypeInfo>>();
+                    }
+
+                    AddType(currentAssemblies, assembly, type);
                 }
             }
 
-            return partitionList;
-        }
+            // Add any remaining tests to the work item.
+            AddWorkItem(currentAssemblies);
+            return workItems.ToImmutableArray();
 
-        private static List<TypeInfo> GetTypeInfoList(string assemblyPath)
-        {
-            using (var stream = File.OpenRead(assemblyPath))
-            using (var peReader = new PEReader(stream))
+            void AddWorkItem(Dictionary<AssemblyInfo, List<TypeInfo>> typesToTest)
             {
-                var metadataReader = peReader.GetMetadataReader();
-                return GetTypeInfoList(metadataReader);
-            }
-        }
-
-        private static List<TypeInfo> GetTypeInfoList(MetadataReader reader)
-        {
-            var list = new List<TypeInfo>();
-            foreach (var handle in reader.TypeDefinitions)
-            {
-                var type = reader.GetTypeDefinition(handle);
-                if (!IsValidIdentifier(reader, type.Name))
+                if (typesToTest.Any())
                 {
-                    continue;
+                    workItems.Add(new WorkItemInfo(typesToTest.ToImmutableSortedDictionary(kvp => kvp.Key, kvp => kvp.Value.ToImmutableArray()), workItemIndex));
                 }
 
-                var methodCount = GetMethodCount(reader, type);
-                if (!ShouldIncludeType(reader, type, methodCount))
-                {
-                    continue;
-                }
-
-                var fullName = GetFullName(reader, type);
-                list.Add(new TypeInfo(fullName, methodCount));
+                currentTestCount = 0;
+                currentClassNameLengthSum = 0;
+                workItemIndex++;
             }
 
-            // Ensure we get classes back in a deterministic order.
-            list.Sort((x, y) => x.FullName.CompareTo(y.FullName));
-            return list;
+            void AddType(Dictionary<AssemblyInfo, List<TypeInfo>> dictionary, AssemblyInfo assemblyInfo, TypeInfo typeInfo)
+            {
+                var list = dictionary.TryGetValue(assemblyInfo, out var result) ? result : new List<TypeInfo>();
+                list.Add(typeInfo);
+                dictionary[assemblyInfo] = list;
+
+                currentTestCount += typeInfo.TestCount;
+                currentClassNameLengthSum += typeInfo.Name.Length;
+            }
         }
 
-        /// <summary>
-        /// Determine if this type should be one of the <c>class</c> values passed to xunit.  This
-        /// code doesn't actually resolve base types or trace through inherrited Fact attributes
-        /// hence we have to error on the side of including types with no tests vs. excluding them.
-        /// </summary>
-        private static bool ShouldIncludeType(MetadataReader reader, TypeDefinition type, int testMethodCount)
+
+        private static void LogWorkItems(ImmutableArray<WorkItemInfo> workItems)
         {
-            // xunit only handles public, non-abstract classes
-            var isPublic =
-                TypeAttributes.Public == (type.Attributes & TypeAttributes.Public) ||
-                TypeAttributes.NestedPublic == (type.Attributes & TypeAttributes.NestedPublic);
-            if (!isPublic ||
-                TypeAttributes.Abstract == (type.Attributes & TypeAttributes.Abstract) ||
-                TypeAttributes.Class != (type.Attributes & TypeAttributes.Class))
+            Logger.Log("==== Work Item List ====");
+            foreach (var workItem in workItems)
             {
-                return false;
-            }
-
-            // Compiler generated types / methods have the shape of the heuristic that we are looking
-            // at here.  Filter them out as well.
-            if (!IsValidIdentifier(reader, type.Name))
-            {
-                return false;
-            }
-
-            if (testMethodCount > 0)
-            {
-                return true;
-            }
-
-            // The case we still have to consider at this point is a class with 0 defined methods, 
-            // inheritting from a class with > 0 defined test methods.  That is a completely valid
-            // xunit scenario.  For now we're just going to exclude types that inherit from object
-            // or other built-in base types because they clearly don't fit that category.
-            return !InheritsFromFrameworkBaseType(reader, type);
-        }
-
-        private static int GetMethodCount(MetadataReader reader, TypeDefinition type)
-        {
-            var count = 0;
-            foreach (var handle in type.GetMethods())
-            {
-                var methodDefinition = reader.GetMethodDefinition(handle);
-                if (methodDefinition.GetCustomAttributes().Count == 0 ||
-                    !IsValidIdentifier(reader, methodDefinition.Name))
+                Logger.Log($"- Work Item ({workItem.TypesToTest.Values.SelectMany(w => w).Sum(assembly => assembly.TestCount)} tests)");
+                foreach (var assembly in workItem.TypesToTest)
                 {
-                    continue;
-                }
-
-                count++;
-            }
-
-            return count;
-        }
-
-        private static bool IsValidIdentifier(MetadataReader reader, StringHandle handle)
-        {
-            var name = reader.GetString(handle);
-            for (int i = 0; i < name.Length; i++)
-            {
-                switch (name[i])
-                {
-                    case '<':
-                    case '>':
-                    case '$':
-                        return false;
+                    Logger.Log($"    - {assembly.Key.AssemblyName} with {assembly.Value.Sum(type => type.TestCount)} tests");
                 }
             }
-
-            return true;
-        }
-
-        private static bool InheritsFromFrameworkBaseType(MetadataReader reader, TypeDefinition type)
-        {
-            if (type.BaseType.Kind != HandleKind.TypeReference)
-            {
-                return false;
-            }
-
-            var typeRef = reader.GetTypeReference((TypeReferenceHandle)type.BaseType);
-            return
-                reader.GetString(typeRef.Namespace) == "System" &&
-                reader.GetString(typeRef.Name) is "Object" or "ValueType" or "Enum";
-        }
-
-        private static string GetFullName(MetadataReader reader, TypeDefinition type)
-        {
-            var typeName = reader.GetString(type.Name);
-
-            if (TypeAttributes.NestedPublic == (type.Attributes & TypeAttributes.NestedPublic))
-            {
-                // Need to take into account the containing type.
-                var declaringType = reader.GetTypeDefinition(type.GetDeclaringType());
-                var declaringTypeFullName = GetFullName(reader, declaringType);
-                return $"{declaringTypeFullName}+{typeName}";
-            }
-
-            var namespaceName = reader.GetString(type.Namespace);
-            if (string.IsNullOrEmpty(namespaceName))
-            {
-                return typeName;
-            }
-
-            return $"{namespaceName}.{typeName}";
         }
     }
 }
