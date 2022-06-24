@@ -4,7 +4,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -31,7 +33,6 @@ namespace Microsoft.CodeAnalysis.CSharp.PreferTrailingComma
         {
             // TODO:
             // list patterns
-            // property pattern
             // anonymous object creation
             // initializer expression
             // switch expression
@@ -58,8 +59,19 @@ namespace Microsoft.CodeAnalysis.CSharp.PreferTrailingComma
 
             if (lastNodeOrSeparator.IsNode)
             {
-                context.ReportDiagnostic(DiagnosticHelper.Create(Descriptor, lastNodeOrSeparator.AsNode()!.GetLocation(), option.Notification.Severity, additionalLocations: null, properties: null));
+                var lastNode = lastNodeOrSeparator.AsNode()!;
+                if (CommaWillBeLastTokenOnLine(lastNode, context.CancellationToken))
+                    context.ReportDiagnostic(DiagnosticHelper.Create(Descriptor, lastNode.GetLocation(), option.Notification.Severity, additionalLocations: null, properties: null));
             }
+        }
+
+        private static bool CommaWillBeLastTokenOnLine(SyntaxNode node, CancellationToken cancellationToken)
+        {
+            var lines = node.SyntaxTree.GetText(cancellationToken).Lines;
+            var lastCurrentToken = node.DescendantTokens().Last();
+            var line1 = lines.GetLineFromPosition(lastCurrentToken.Span.End).LineNumber;
+            var line2 = lines.GetLineFromPosition(lastCurrentToken.GetNextToken().SpanStart).LineNumber;
+            return line1 != line2;
         }
 
         internal static SyntaxNodeOrTokenList GetNodesWithSeparators(SyntaxNode node)

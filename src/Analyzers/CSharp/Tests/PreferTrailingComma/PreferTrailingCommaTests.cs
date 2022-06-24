@@ -126,7 +126,11 @@ csharp_style_prefer_trailing_comma = true")
 {
     void M(string s)
     {
-        if (s is { Length: 0, [|Length: 0|] })
+        if (s is
+            {
+                Length: 0,
+                [|Length: 0|]
+            })
         {
         }
     }
@@ -136,7 +140,11 @@ csharp_style_prefer_trailing_comma = true")
 {
     void M(string s)
     {
-        if (s is { Length: 0, Length: 0, })
+        if (s is
+            {
+                Length: 0,
+                Length: 0,
+            })
         {
         }
     }
@@ -152,7 +160,11 @@ csharp_style_prefer_trailing_comma = true")
 {
     void M(string s)
     {
-        if (s is { Length: 0, Length: 0, })
+        if (s is
+            {
+                Length: 0,
+                Length: 0,
+            })
         {
         }
     }
@@ -195,6 +207,22 @@ csharp_style_prefer_trailing_comma = true")
 }
 ";
             await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
+        }
+
+        [Fact]
+        public async Task TestPropertyPatternOnSameLine()
+        {
+            var code = @"class C
+{
+    void M(string s)
+    {
+        if (s is { Length: 0, Length: 0 })
+        {
+        }
+    }
+}
+";
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
     }
 }
