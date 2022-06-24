@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PreferTrailingComma
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             foreach (var diagnostic in context.Diagnostics)
-                RegisterCodeFix(context, "", "", diagnostic);
+                RegisterCodeFix(context, CSharpCodeFixesResources.Add_trailing_comma, nameof(CSharpCodeFixesResources.Add_trailing_comma), diagnostic);
 
             return Task.CompletedTask;
         }
@@ -58,6 +58,10 @@ namespace Microsoft.CodeAnalysis.CSharp.PreferTrailingComma
             {
                 EnumDeclarationSyntax enumDeclaration => enumDeclaration.WithMembers(SyntaxFactory.SeparatedList<EnumMemberDeclarationSyntax>(nodesAndTokens)),
                 PropertyPatternClauseSyntax propertyPattern => propertyPattern.WithSubpatterns(SyntaxFactory.SeparatedList<SubpatternSyntax>(nodesAndTokens)),
+                SwitchExpressionSyntax switchExpression => switchExpression.WithArms(SyntaxFactory.SeparatedList<SwitchExpressionArmSyntax>(nodesAndTokens)),
+                InitializerExpressionSyntax initializerExpression => initializerExpression.WithExpressions(SyntaxFactory.SeparatedList<ExpressionSyntax>(nodesAndTokens)),
+                AnonymousObjectCreationExpressionSyntax anonymousObjectCreation => anonymousObjectCreation.WithInitializers(SyntaxFactory.SeparatedList<AnonymousObjectMemberDeclaratorSyntax>(nodesAndTokens)),
+                ListPatternSyntax listPattern => listPattern.WithPatterns(SyntaxFactory.SeparatedList<PatternSyntax>(nodesAndTokens)),
                 _ => throw ExceptionUtilities.Unreachable,
             };
         }

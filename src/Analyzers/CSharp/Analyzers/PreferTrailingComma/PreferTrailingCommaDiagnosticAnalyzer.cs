@@ -31,12 +31,10 @@ namespace Microsoft.CodeAnalysis.CSharp.PreferTrailingComma
 
         protected override void InitializeWorker(AnalysisContext context)
         {
-            // TODO:
-            // list patterns
-            // anonymous object creation
-            // initializer expression
-            // switch expression
-            context.RegisterSyntaxNodeAction(AnalyzeSyntaxNode, SyntaxKind.EnumDeclaration, SyntaxKind.PropertyPatternClause);
+            context.RegisterSyntaxNodeAction(AnalyzeSyntaxNode,
+                SyntaxKind.EnumDeclaration, SyntaxKind.PropertyPatternClause, SyntaxKind.SwitchExpression,
+                SyntaxKind.ObjectInitializerExpression, SyntaxKind.CollectionInitializerExpression, SyntaxKind.WithInitializerExpression,
+                SyntaxKind.ArrayInitializerExpression, SyntaxKind.ComplexElementInitializerExpression, SyntaxKind.AnonymousObjectCreationExpression, SyntaxKind.ListPattern);
         }
 
         private void AnalyzeSyntaxNode(SyntaxNodeAnalysisContext context)
@@ -69,6 +67,12 @@ namespace Microsoft.CodeAnalysis.CSharp.PreferTrailingComma
         {
             var lines = node.SyntaxTree.GetText(cancellationToken).Lines;
             var lastCurrentToken = node.DescendantTokens().Last();
+            var nextToken = lastCurrentToken.GetNextToken();
+            if (nextToken == default)
+            {
+                return true;
+            }
+
             var line1 = lines.GetLineFromPosition(lastCurrentToken.Span.End).LineNumber;
             var line2 = lines.GetLineFromPosition(lastCurrentToken.GetNextToken().SpanStart).LineNumber;
             return line1 != line2;
@@ -80,6 +84,10 @@ namespace Microsoft.CodeAnalysis.CSharp.PreferTrailingComma
             {
                 EnumDeclarationSyntax enumDeclaration => enumDeclaration.Members.GetWithSeparators(),
                 PropertyPatternClauseSyntax propertyPattern => propertyPattern.Subpatterns.GetWithSeparators(),
+                SwitchExpressionSyntax switchExpression => switchExpression.Arms.GetWithSeparators(),
+                InitializerExpressionSyntax initializerExpression => initializerExpression.Expressions.GetWithSeparators(),
+                AnonymousObjectCreationExpressionSyntax anonymousObjectCreation => anonymousObjectCreation.Initializers.GetWithSeparators(),
+                ListPatternSyntax listPattern => listPattern.Patterns.GetWithSeparators(),
                 _ => throw ExceptionUtilities.Unreachable,
             };
         }

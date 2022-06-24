@@ -146,6 +146,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string UseNotPatternDiagnosticId = "IDE0083";
         public const string UseIsNotExpressionDiagnosticId = "IDE0084";
 
+        public const string PreferTrailingCommaDiagnosticId = "IDE0085";
+
         public const string UseImplicitObjectCreationDiagnosticId = "IDE0090";
 
         public const string RemoveRedundantEqualityDiagnosticId = "IDE0100";
@@ -180,8 +182,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string RemoveRedundantNullableDirectiveDiagnosticId = "IDE0240";
         public const string RemoveUnnecessaryNullableDirectiveDiagnosticId = "IDE0241";
-
-        public const string PreferTrailingCommaDiagnosticId = "IDE0250";
 
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";
