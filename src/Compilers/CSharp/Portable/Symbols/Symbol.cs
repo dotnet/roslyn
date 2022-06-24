@@ -1439,10 +1439,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.
                 diagnostics.Add(ErrorCode.ERR_ExplicitRequiredMember, arguments.AttributeSyntaxOpt.Location);
             }
-            else if ((reserved & ReservedAttributes.LifetimeAnnotationAttribute) != 0 &&
-                reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.LifetimeAnnotationAttribute))
-            {
-            }
+            // https://github.com/dotnet/roslyn/issues/62124: Re-enable check for LifetimeAnnotationAttribute.
+            //else if ((reserved & ReservedAttributes.LifetimeAnnotationAttribute) != 0 &&
+            //    reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.LifetimeAnnotationAttribute))
+            //{
+            //}
             else
             {
                 return false;
