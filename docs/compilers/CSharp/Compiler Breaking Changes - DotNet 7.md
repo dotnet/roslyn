@@ -145,15 +145,12 @@ static R CreateDefault()
 A possible workaround, if the `ref` or `in` argument is not captured in the `ref struct` return value, is to declare the parameter as `scoped ref` or `scoped in`.
 
 ```csharp
-class Program
-{
-    static R CannotCaptureArg(scoped ref int i) => new R();
+static R CannotCaptureArg(scoped ref int i) => new R();
 
-    static R Create()
-    {
-        int i = 0;
-        return CannotCaptureArg(ref i); // ok
-    }
+static R Create()
+{
+    int i = 0;
+    return CannotCaptureArg(ref i); // ok
 }
 ```
 
