@@ -21,14 +21,15 @@ namespace Microsoft.CodeAnalysis.CSharp.PreferTrailingComma
             enforceOnBuild: EnforceOnBuildValues.PreferTrailingComma,
             option: CSharpCodeStyleOptions.PreferTrailingComma,
             language: LanguageNames.CSharp,
-            title: new LocalizableResourceString(nameof(CSharpAnalyzersResources.Convert_to_Program_Main_style_program), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
+            title: new LocalizableResourceString(nameof(CSharpAnalyzersResources.Missing_trailing_comma), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
         }
+
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
         {
-            // enum members
+            // TODO:
             // list patterns
             // property pattern
             // anonymous object creation
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PreferTrailingComma
             context.RegisterSyntaxNodeAction(AnalyzeSyntaxNode, SyntaxKind.EnumDeclaration);
         }
 
-        private static void AnalyzeSyntaxNode(SyntaxNodeAnalysisContext context)
+        private void AnalyzeSyntaxNode(SyntaxNodeAnalysisContext context)
         {
             var option = context.GetCSharpAnalyzerOptions().PreferTrailingComma;
             if (!option.Value)
@@ -47,16 +48,31 @@ namespace Microsoft.CodeAnalysis.CSharp.PreferTrailingComma
             switch (node)
             {
                 case EnumDeclarationSyntax enumDeclaration:
-                    AnalyzeEnumDeclaration(enumDeclaration);
+                    AnalyzeEnumDeclaration(context, enumDeclaration, option.Notification.Severity);
                     break;
                 default:
                     throw ExceptionUtilities.Unreachable;
             }
         }
 
-        private static void AnalyzeEnumDeclaration(EnumDeclarationSyntax enumDeclaration)
+        private void AnalyzeEnumDeclaration(SyntaxNodeAnalysisContext context, EnumDeclarationSyntax enumDeclaration, ReportDiagnostic severity)
         {
-            var members = enumDeclaration.Members;
+            var nodesWithSeparators = enumDeclaration.Members.GetWithSeparators();
+            if (nodesWithSeparators.Count < 1)
+            {
+                return;
+            }
+
+            var lastNodeOrSeparator = nodesWithSeparators[^1];
+            if (lastNodeOrSeparator.IsToken)
+            {
+                return;
+            }
+
+            if (lastNodeOrSeparator.IsNode)
+            {
+                context.ReportDiagnostic(DiagnosticHelper.Create(Descriptor, lastNodeOrSeparator.AsNode()!.GetLocation(), severity, additionalLocations: null, properties: null));
+            }
         }
     }
 }

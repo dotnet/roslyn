@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.PreferTrailingComma
 {
-    using VerifyCS = CSharpCodeFixVerifier<PreferTrailingCommaDiagnosticAnalyzer, CodeAnalysis.Testing.EmptyCodeFixProvider>; /* PROTOTYPE: Implement codefix. */
+    using VerifyCS = CSharpCodeFixVerifier<PreferTrailingCommaDiagnosticAnalyzer, PreferTrailingCommaCodeFixProvider>;
 
     public class PreferTrailingCommaTests
     {
@@ -69,6 +69,54 @@ csharp_style_prefer_trailing_comma = true")
 }
 "
             }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestHasTrailingComma()
+        {
+            var code = @"enum A
+{
+    A,
+    B,
+}
+";
+            await VerifyCS.VerifyCodeFixAsync(code, code);
+        }
+
+        [Fact]
+        public async Task TestTriviaOnEnumMember()
+        {
+            var code = @"enum A
+{
+    A,
+    // comment 1
+    [|B|] // comment 2
+}
+";
+            var fixedCode = @"enum A
+{
+    A,
+    // comment 1
+    B, // comment 2
+}
+";
+            await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
+        }
+
+        [Fact]
+        public async Task TestEnumMemberOnSameLine()
+        {
+            var code = @"enum A
+{
+    A, [|B|] // comment
+}
+";
+            var fixedCode = @"enum A
+{
+    A, B, // comment
+}
+";
+            await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
         }
     }
 }

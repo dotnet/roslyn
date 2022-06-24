@@ -77,7 +77,8 @@ internal sealed class CSharpCodeGenerationOptions : CodeGenerationOptions, IEqua
            Hash.Combine(PreferExpressionBodiedLocalFunctions,
            Hash.Combine(PreferExpressionBodiedLambdas,
            Hash.Combine(PreferStaticLocalFunction,
-           Hash.Combine(NamespaceDeclarations, PreferTrailingComma)))))))))));
+           Hash.Combine(NamespaceDeclarations,
+           Hash.Combine(PreferTrailingComma, 0))))))))))));
 
 #if !CODE_STYLE
     public override CodeGenerationContextInfo GetInfo(CodeGenerationContext context, ParseOptions parseOptions)
