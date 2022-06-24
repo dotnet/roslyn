@@ -36,7 +36,7 @@ jobs:
     - task: CacheBeta@1
       displayName: .tools Cache
       inputs:
-        key: 'tools | $(Agent.OS) | $(Build.SourcesDirectory)/global.json'
+        key: '"tools" | "$(Agent.OS)" | $(Build.SourcesDirectory)/global.json'
         path: $(Build.SourcesDirectory)/.tools
       continueOnError: true
 
