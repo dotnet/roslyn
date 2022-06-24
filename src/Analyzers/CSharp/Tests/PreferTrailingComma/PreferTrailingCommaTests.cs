@@ -104,6 +104,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.PreferTrailingComma
         }
 
         [Fact]
+        public async Task TestEmptyEnum()
+        {
+            var code = @"enum A
+{
+}
+";
+            await VerifyCS.VerifyCodeFixAsync(code, code);
+        }
+
+        [Fact]
         public async Task TestNoNextToken()
         {
             var code = @"enum A
