@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis
                                 var currentNode = syntaxInputBuilders[i].node;
                                 try
                                 {
-                                    Stopwatch sw = Stopwatch.StartNew();
+                                    var sw = SharedStopwatch.StartNew();
                                     try
                                     {
                                         _cancellationToken.ThrowIfCancellationRequested();
