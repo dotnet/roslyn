@@ -1352,5 +1352,19 @@ class Derived : Base
             TestNormalizeStatement("using(a)fixed(int* b = null)c;", "using (a)\r\n  fixed (int* b = null)\r\n    c;");
             TestNormalizeStatement("fixed(int* b = null)using(a)c;", "fixed (int* b = null)\r\n  using (a)\r\n    c;");
         }
+
+        [Fact]
+        public void TestNormalizeScopedParameters()
+        {
+            TestNormalizeStatement("static  void  F  (  scoped  R  x  ,  scoped  ref  R  y  ,  ref  scoped  R  z  )  {  }", "static void F(scoped R x, scoped ref R y, ref scoped R z)\r\n{\r\n}");
+        }
+
+        [Fact]
+        public void TestNormalizeScopedLocals()
+        {
+            TestNormalizeStatement("scoped  R  x  ;", "scoped R x;");
+            TestNormalizeStatement("scoped  ref  R  y  ;", "scoped ref R y;");
+            TestNormalizeStatement("ref  scoped  R  z  ;", "ref scoped R z;");
+        }
     }
 }
