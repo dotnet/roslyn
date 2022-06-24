@@ -392,7 +392,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.PostDecodeWellKnownAttributes(boundAttributes, attributesToBind, diagnostics, symbolPart, wellKnownAttributeData);
 
-            removeObsoleteDiagnosticsForForwardeTypes(boundAttributes, attributesToBind, ref diagnostics);
+            removeObsoleteDiagnosticsForForwardedTypes(boundAttributes, attributesToBind, ref diagnostics);
 
             // Store attributes into the bag.
             bool lazyAttributesStoredOnThisThread = false;
@@ -423,7 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.Free();
             return lazyAttributesStoredOnThisThread;
 
-            void removeObsoleteDiagnosticsForForwardeTypes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> attributesToBind, ref BindingDiagnosticBag diagnostics)
+            void removeObsoleteDiagnosticsForForwardedTypes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> attributesToBind, ref BindingDiagnosticBag diagnostics)
             {
                 if (!boundAttributes.IsDefaultOrEmpty &&
                     this is SourceAssemblySymbol &&
@@ -448,6 +448,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var builder = ArrayBuilder<Location>.GetInstance();
                     int totalAttributesCount = attributesToBind.Length;
+
+                    Debug.Assert(totalAttributesCount == boundAttributes.Length);
 
                     //    1. Collect locations of the first argument of each TypeForwardedTo attribute application.  
                     for (int i = 0; i < totalAttributesCount; i++)
