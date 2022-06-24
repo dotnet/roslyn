@@ -36,7 +36,7 @@ jobs:
     - task: CacheBeta@1
       displayName: .dotnet Cache
       inputs:
-        key: 'dotnet |  $(Agent.OS) | ${{ parameters.configuration }} | $(Build.SourcesDirectory)/global.json'
+        key: '"dotnet" |  "$(Agent.OS)" | $(Build.SourcesDirectory)/global.json'
         path: $(Build.SourcesDirectory)/.dotnet
       continueOnError: true
 
