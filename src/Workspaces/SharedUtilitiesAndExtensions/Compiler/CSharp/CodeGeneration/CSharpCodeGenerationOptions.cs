@@ -46,6 +46,7 @@ internal sealed class CSharpCodeGenerationOptions : CodeGenerationOptions, IEqua
     [DataMember] public CodeStyleOption2<ExpressionBodyPreference> PreferExpressionBodiedLambdas { get; init; } = s_whenPossibleWithSilentEnforcement;
     [DataMember] public CodeStyleOption2<bool> PreferStaticLocalFunction { get; init; } = s_trueWithSuggestionEnforcement;
     [DataMember] public CodeStyleOption2<NamespaceDeclarationPreference> NamespaceDeclarations { get; init; } = s_blockedScopedWithSilentEnforcement;
+    [DataMember] public CodeStyleOption2<bool> PreferTrailingComma { get; init; } = s_trueWithSuggestionEnforcement;
 
     public override bool Equals(object? obj)
         => Equals(obj as CSharpCodeGenerationOptions);
@@ -62,7 +63,8 @@ internal sealed class CSharpCodeGenerationOptions : CodeGenerationOptions, IEqua
            PreferExpressionBodiedLocalFunctions.Equals(other.PreferExpressionBodiedLocalFunctions) &&
            PreferExpressionBodiedLambdas.Equals(other.PreferExpressionBodiedLambdas) &&
            PreferStaticLocalFunction.Equals(other.PreferStaticLocalFunction) &&
-           NamespaceDeclarations.Equals(other.NamespaceDeclarations);
+           NamespaceDeclarations.Equals(other.NamespaceDeclarations) &&
+           PreferTrailingComma.Equals(other.PreferTrailingComma);
 
     public override int GetHashCode()
         => Hash.Combine(Common,
