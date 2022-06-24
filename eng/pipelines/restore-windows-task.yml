@@ -25,7 +25,7 @@ steps:
     - task: CacheBeta@1
       displayName: .packages Cache
       inputs:
-        key: '"nuget" | "$(Agent.OS)" | $(Build.SourcesDirectory)/global.json | $(Build.SourcesDirectory)/eng/Versions.props | $(Build.SourcesDirectory)/eng/Version.Details.xml'
+        key: '"nuget" | "$(Agent.OS)" | $(Build.SourcesDirectory)/global.json | $(Build.SourcesDirectory)/NuGet.config | $(Build.SourcesDirectory)/eng/Versions.props | $(Build.SourcesDirectory)/eng/Version.Details.xml'
         path: $(NUGET_PACKAGES)
         cacheHitVar: NUGET_CACHE_RESTORED
       continueOnError: true
