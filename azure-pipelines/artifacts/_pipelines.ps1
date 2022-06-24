@@ -1,6 +1,10 @@
-# This script translates all the artifacts described by _all.ps1
-# into commands that instruct Azure Pipelines to actually collect those artifacts.
+<#
+.SYNOPSIS
+    This script translates all the artifacts described by _all.ps1
+    into commands that instruct Azure Pipelines to actually collect those artifacts.
+#>
 
+[CmdletBinding()]
 param (
     [string]$ArtifactNameSuffix,
     [switch]$StageOnly
