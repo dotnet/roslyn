@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -280,7 +281,7 @@ namespace Microsoft.CodeAnalysis
                     return true;
                 }
 
-                var modified = new TableEntry.Builder();
+                using var modified = new TableEntry.Builder();
                 var sharedCount = Math.Min(previousEntry.Count, outputs.Length);
 
                 // cached or modified items
@@ -305,7 +306,7 @@ namespace Microsoft.CodeAnalysis
                     modified.Add(outputs[i], EntryState.Added);
                 }
 
-                _states.Add(modified.ToImmutableAndFree());
+                _states.Add(modified.CreateEntry());
                 RecordStepInfoForLastEntry(elapsedTime, stepInputs, overallInputState);
                 return true;
             }
@@ -486,37 +487,125 @@ namespace Microsoft.CodeAnalysis
             }
 #endif
 
-            public sealed class Builder
+            private struct PoolingStatistics
             {
-                private readonly ArrayBuilder<T> _items = ArrayBuilder<T>.GetInstance();
+                /// <summary>
+                /// The number of times this item has been added back to the pool.  Once this goes past some threshold
+                /// we will start checking if we're continually returning a large array that is mostly empty.  If so, we
+                /// will try to lower the capacity of the array to prevent wastage.
+                /// </summary>
+                public int NumberOfTimesPooled;
 
-                private ArrayBuilder<EntryState>? _states;
+                /// <summary>
+                /// The number of times we returned a large array to the pool that was barely filled.  If this is a
+                /// significant number of the total times pooled, then we will attempt to lower the capacity of the
+                /// array.
+                /// </summary>
+                public int NumberOfTimesPooledWhenSparse;
+            }
 
-                private EntryState? _currentState;
+            public ref struct Builder
+            {
+                private static readonly ConcurrentQueue<(ArrayBuilder<T> builder, PoolingStatistics statistics)> s_largeItemBuilderPool = new();
+                private static readonly ConcurrentQueue<(ArrayBuilder<EntryState> builder, PoolingStatistics statistics)> s_largeStateBuilderPool = new();
+
+                private static (ArrayBuilder<TValue>, PoolingStatistics) Dequeue<TValue>(ConcurrentQueue<(ArrayBuilder<TValue>, PoolingStatistics)> queue)
+                    => queue.TryDequeue(out var item) ? item : (ArrayBuilder<TValue>.GetInstance(), new PoolingStatistics());
+
+                private readonly (ArrayBuilder<T> items, PoolingStatistics statistics) _itemsAndStatistics = Dequeue(s_largeItemBuilderPool);
+
+                private (ArrayBuilder<EntryState> states, PoolingStatistics)? _statesAndStatistics = null;
+                private EntryState? _currentState = null;
+
+                public Builder()
+                {
+                }
 
                 public void Add(T item, EntryState state)
                 {
-                    _items.Add(item);
+                    _itemsAndStatistics.items.Add(item);
                     if (!_currentState.HasValue)
                     {
                         _currentState = state;
                     }
-                    else if (_states is object)
+                    else if (_statesAndStatistics is { states: var states })
                     {
-                        _states.Add(state);
+                        states.Add(state);
                     }
                     else if (_currentState != state)
                     {
-                        _states = ArrayBuilder<EntryState>.GetInstance(_items.Count - 1, _currentState.Value);
-                        _states.Add(state);
+                        _statesAndStatistics = Dequeue(s_largeStateBuilderPool);
+                        _statesAndStatistics.Value.states.Add(state);
                     }
                 }
 
-                public TableEntry ToImmutableAndFree()
+                public TableEntry CreateEntry()
                 {
                     Debug.Assert(_currentState.HasValue, "Created a builder with no values?");
-                    int numItems = _items.Count;
-                    return new TableEntry(item: default, _items.ToImmutableAndFree(), _states?.ToImmutableAndFree() ?? GetSingleArray(_currentState.Value));
+                    return new TableEntry(item: default, _itemsAndStatistics.items.ToImmutable(), _statesAndStatistics?.states.ToImmutable() ?? GetSingleArray(_currentState.Value));
+                }
+
+                public void Dispose()
+                {
+                    ReturnPooledItem(s_largeItemBuilderPool, _itemsAndStatistics);
+                    if (_statesAndStatistics != null)
+                        ReturnPooledItem(s_largeStateBuilderPool, _statesAndStatistics.Value);
+                }
+
+                private static void ReturnPooledItem<TValue>(
+                    ConcurrentQueue<(ArrayBuilder<TValue> builder, PoolingStatistics statistics)> queue,
+                    (ArrayBuilder<TValue> builder, PoolingStatistics statistics) item)
+                {
+                    // Don't bother shrinking the array for arrays less than this capacity.  They're not going to be a
+                    // huge waste of space so we can just pool them forever.
+                    const int MinCapacityToConsiderThreshold = 1000;
+
+                    // The number of times something is added/removed to the pool before we start considering
+                    // statistics. This is so that we have enough data to reasonably see if something is consistently
+                    // sparse.
+                    const int MinTimesPooledToConsiderStatistics = 100;
+
+                    // The ratio of Count/Capacity to be at to be considered sparse.  under this, there is a lot of
+                    // wasted space and we would prefer to just throw the array away.  Above this and we're reasonably
+                    // filling the array and should keep it around.
+                    const double SparseThresholdRatio = 0.25;
+
+                    // The ratio of times we pooled something sparse.  Once above this, we will jettison the array as
+                    // being not worth keeping.
+                    const double ConsistentlySparseRatio = 0.75;
+
+                    // Note: the values 0.25 and 0.75 were picked as they reflect the common array practicing of growing
+                    // by doubling.  So once we've grown so much that we're consistently under 25% of the array, then we
+                    // want to shrink down.  To prevent shrinking and inflating over and over again, we only shrink when
+                    // we're highly confident we're going to stay small.
+
+                    var (builder, statistics) = item;
+                    statistics.NumberOfTimesPooled++;
+
+                    // See if we're pooling something both large and sparse.
+                    if (builder.Capacity > MinCapacityToConsiderThreshold &&
+                        ((double)builder.Count / builder.Capacity) < SparseThresholdRatio)
+                    {
+                        statistics.NumberOfTimesPooledWhenSparse++;
+                    }
+
+                    builder.Clear();
+
+                    // See if this builder has been consistently sparse. If so then time to lower its capacity.
+                    if (statistics.NumberOfTimesPooled > MinTimesPooledToConsiderStatistics &&
+                        ((double)statistics.NumberOfTimesPooledWhenSparse / statistics.NumberOfTimesPooled) > ConsistentlySparseRatio)
+                    {
+                        builder.Capacity /= 2;
+
+                        // Reset our statistics.  We'll wait another 100 pooling attempts to reassess if we need to
+                        // adjust the capacity here.
+                        statistics = new PoolingStatistics
+                        {
+                            NumberOfTimesPooled = 1,
+                        };
+                    }
+
+                    queue.Enqueue((builder, statistics));
                 }
             }
         }
