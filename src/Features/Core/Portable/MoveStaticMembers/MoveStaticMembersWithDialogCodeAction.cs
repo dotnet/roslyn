@@ -30,12 +30,10 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
         private readonly IMoveStaticMembersOptionsService _service;
         private readonly CleanCodeGenerationOptionsProvider _fallbackOptions;
 
-        public TextSpan Span { get; }
         public override string Title => FeaturesResources.Move_static_members_to_another_type;
 
         public MoveStaticMembersWithDialogCodeAction(
             Document document,
-            TextSpan span,
             IMoveStaticMembersOptionsService service,
             INamedTypeSymbol selectedType,
             CleanCodeGenerationOptionsProvider fallbackOptions,
@@ -46,7 +44,6 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             _selectedType = selectedType;
             _fallbackOptions = fallbackOptions;
             _selectedMember = selectedMember;
-            Span = span;
         }
 
         public override object? GetOptions(CancellationToken cancellationToken)

@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
                 return;
             }
 
-            var action = new MoveStaticMembersWithDialogCodeAction(document, memberDeclaration.Span, service, selectedMember.ContainingType, context.Options, selectedMember: selectedMember);
+            var action = new MoveStaticMembersWithDialogCodeAction(document, service, selectedMember.ContainingType, context.Options, selectedMember: selectedMember);
 
             context.RegisterRefactoring(action, memberDeclaration.Span);
         }
