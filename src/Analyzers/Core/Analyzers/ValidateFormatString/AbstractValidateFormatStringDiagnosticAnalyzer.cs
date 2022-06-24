@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
                         context.Node.SyntaxTree,
                         new Text.TextSpan(
                             formatStringPosition + match.Index,
-                            textInsideBrackets.Length + 2)); // The invalid placeholder text is textInsideBrackets surrounded by '{' and '}', hence the + 2
+                            textInsideBrackets.Length + "{}".Length)); // The invalid placeholder text is textInsideBrackets surrounded by '{' and '}'
                     var diagnostic = Diagnostic.Create(
                         Rule,
                         invalidPlaceholderLocation);
