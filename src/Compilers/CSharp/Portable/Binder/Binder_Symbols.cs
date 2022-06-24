@@ -513,11 +513,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 reportNullableReferenceTypesIfNeeded(nullableSyntax.QuestionToken, typeArgument);
 
-                if (typeArgument.TypeKind == TypeKind.FunctionPointer)
-                {
-                    diagnostics.Add(ErrorCode.ERR_FunctionPointersCannotBeNullable, syntax.GetLocation());
-                }
-
                 if (!ShouldCheckConstraints)
                 {
                     diagnostics.Add(new LazyUseSiteDiagnosticsInfoForNullableType(Compilation.LanguageVersion, constructedType), syntax.GetLocation());
