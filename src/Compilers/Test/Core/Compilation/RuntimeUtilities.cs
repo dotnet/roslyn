@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         internal static bool IsCoreClrRuntime => !IsDesktopRuntime;
 
         internal static bool IsCoreClr6Runtime
-            => IsCoreClrRuntime && RuntimeInformation.FrameworkDescription.StartsWith(".NET 6.");
+            => IsCoreClrRuntime && RuntimeInformation.FrameworkDescription.StartsWith(".NET 6.", StringComparison.Ordinal);
 
         internal static BuildPaths CreateBuildPaths(string workingDirectory, string sdkDirectory = null, string tempDirectory = null)
         {
