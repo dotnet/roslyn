@@ -636,6 +636,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 UseSiteInfo<AssemblySymbol> result = new UseSiteInfo<AssemblySymbol>(primaryDependency);
                 CalculateUseSiteDiagnostic(ref result);
+                if (IsFixedSizeBuffer && RefKind != RefKind.None)
+                {
+                    MergeUseSiteInfo(ref result, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this)));
+                }
                 deriveCompilerFeatureRequiredUseSiteInfo(ref result);
                 _lazyCachedUseSiteInfo.Initialize(primaryDependency, result);
             }

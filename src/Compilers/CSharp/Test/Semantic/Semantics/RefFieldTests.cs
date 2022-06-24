@@ -457,7 +457,38 @@ class Program
     }
 }";
             var comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.UnsafeReleaseExe);
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (7,29): error CS0570: 'S.F' is not supported by the language
+                //         Console.WriteLine(s.F[1]);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "F").WithArguments("S.F").WithLocation(7, 29));
+        }
+
+        [Fact]
+        public void Volatile()
+        {
+            var sourceA =
+@".class public sealed R extends [mscorlib]System.ValueType
+{
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = (01 00 00 00)
+  .field public int32& modreq([mscorlib]System.Runtime.CompilerServices.IsVolatile) F
+}";
+            var refA = CompileIL(sourceA);
+
+            var sourceB =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        var r = new R();
+        Console.WriteLine(r.F);
+    }
+}";
+            var comp = CreateCompilation(sourceB, references: new[] { refA });
+            comp.VerifyEmitDiagnostics(
+                // (7,29): error CS0570: 'R.F' is not supported by the language
+                //         Console.WriteLine(r.F);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "F").WithArguments("R.F").WithLocation(7, 29));
         }
 
         [Fact]
