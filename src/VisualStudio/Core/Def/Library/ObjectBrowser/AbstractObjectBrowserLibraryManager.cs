@@ -42,19 +42,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         private AbstractListItemFactory _listItemFactory;
         private readonly object _classMemberGate = new();
 
-        public readonly IComponentModel ComponentModel;
-
         protected AbstractObjectBrowserLibraryManager(
             string languageName,
             Guid libraryGuid,
             IServiceProvider serviceProvider,
             IComponentModel componentModel,
             VisualStudioWorkspace workspace)
-            : base(libraryGuid, serviceProvider)
+            : base(libraryGuid, componentModel, serviceProvider)
         {
             _languageName = languageName;
 
-            ComponentModel = componentModel;
             Workspace = workspace;
             Workspace.WorkspaceChanged += OnWorkspaceChanged;
 
