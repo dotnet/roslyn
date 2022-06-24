@@ -77,7 +77,7 @@ internal sealed class CSharpCodeGenerationOptions : CodeGenerationOptions, IEqua
            Hash.Combine(PreferExpressionBodiedLocalFunctions,
            Hash.Combine(PreferExpressionBodiedLambdas,
            Hash.Combine(PreferStaticLocalFunction,
-           Hash.Combine(NamespaceDeclarations, 0)))))))))));
+           Hash.Combine(NamespaceDeclarations, PreferTrailingComma)))))))))));
 
 #if !CODE_STYLE
     public override CodeGenerationContextInfo GetInfo(CodeGenerationContext context, ParseOptions parseOptions)
@@ -103,7 +103,8 @@ internal static class CSharpCodeGenerationOptionsProviders
             PreferExpressionBodiedLocalFunctions = options.GetEditorConfigOption(CSharpCodeStyleOptions.PreferExpressionBodiedLocalFunctions, fallbackOptions.PreferExpressionBodiedLocalFunctions),
             PreferExpressionBodiedLambdas = options.GetEditorConfigOption(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, fallbackOptions.PreferExpressionBodiedLambdas),
             PreferStaticLocalFunction = options.GetEditorConfigOption(CSharpCodeStyleOptions.PreferStaticLocalFunction, fallbackOptions.PreferStaticLocalFunction),
-            NamespaceDeclarations = options.GetEditorConfigOption(CSharpCodeStyleOptions.NamespaceDeclarations, fallbackOptions.NamespaceDeclarations)
+            NamespaceDeclarations = options.GetEditorConfigOption(CSharpCodeStyleOptions.NamespaceDeclarations, fallbackOptions.NamespaceDeclarations),
+            PreferTrailingComma = options.GetEditorConfigOption(CSharpCodeStyleOptions.PreferTrailingComma, fallbackOptions.PreferTrailingComma),
         };
     }
 }
