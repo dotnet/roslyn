@@ -22,10 +22,8 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         public ImmutableArray<DocumentSymbolViewModel> Children { get; set; }
 
-        public int StartLine { get; }
-        public int StartChar { get; }
-        public int EndLine { get; }
-        public int EndChar { get; }
+        public Position StartPosition { get; }
+        public Position EndPosition { get; }
 
         public SymbolKind SymbolKind { get; }
         public ImageMoniker ImageMoniker { get; }
@@ -63,10 +61,8 @@ namespace Microsoft.VisualStudio.LanguageServices
             this.ImageMoniker = GetImageMoniker(documentSymbol.Kind);
             this.IsExpanded = true;
             this.IsSelected = false;
-            this.StartLine = documentSymbol.Range.Start.Line;
-            this.StartChar = documentSymbol.Range.Start.Character;
-            this.EndLine = documentSymbol.Range.End.Line;
-            this.EndChar = documentSymbol.Range.End.Character;
+            this.StartPosition = documentSymbol.Range.Start;
+            this.EndPosition = documentSymbol.Range.End;
         }
 
         private void NotifyPropertyChanged([CallerMemberName] string? propertyName = null)

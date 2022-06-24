@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices
 {
@@ -108,8 +109,51 @@ namespace Microsoft.VisualStudio.LanguageServices
             return documentSymbolModels.ToImmutableAndFree();
         }
 
-        internal static ImmutableArray<DocumentSymbolViewModel> Sort(ImmutableArray<DocumentSymbolViewModel> documentSymbolModels, SortOption sortOption)
+        /// <summary>
+        /// Compares the order of two DocumentSymbolViewModels using their positions in the latest editor snapshot.
+        /// </summary>
+        /// <remarks>
+        /// The parameter oldSnapshot refers to the snapshot used when the LSP document symbol request was made
+        /// to obtain the symbol and currentSnapshot refers to the latest snapshot in the editor. These parameters
+        /// are required to obtain the latest DocumentSymbolViewModel range positions in the new snapshot.
+        /// </remarks>
+        internal static int CompareSymbolOrder(DocumentSymbolViewModel x, DocumentSymbolViewModel y, ITextSnapshot oldSnapshot, ITextSnapshot currentSnapshot)
         {
+            var xStartPosition = oldSnapshot.GetLineFromLineNumber(x.StartPosition.Line).Start.Position + x.StartPosition.Character;
+            var yStartPosition = oldSnapshot.GetLineFromLineNumber(y.StartPosition.Line).Start.Position + y.StartPosition.Character;
+
+            var xCurrentStartPosition = new SnapshotPoint(currentSnapshot, xStartPosition).Position;
+            var yCurrentStartPosition = new SnapshotPoint(currentSnapshot, yStartPosition).Position;
+
+            return xCurrentStartPosition - yCurrentStartPosition;
+        }
+
+        /// <summary>
+        /// Compares the type (SymbolKind) of two DocumentSymbolViewModels.
+        /// </summary>
+        internal static int CompareSymbolType(DocumentSymbolViewModel x, DocumentSymbolViewModel y)
+        {
+            if (x.SymbolKind == y.SymbolKind)
+                return x.Name.CompareTo(y.Name);
+
+            return x.SymbolKind - y.SymbolKind;
+        }
+
+        /// <summary>
+        /// Sorts and returns an immutable array of DocumentSymbolViewModels based on a SortOption.
+        /// </summary>
+        /// <remarks>
+        /// The parameter oldSnapshot refers to the snapshot used when the LSP document symbol request was made
+        /// to obtain the symbol and currentSnapshot refers to the latest snapshot in the editor. These parameters
+        /// are required to obtain the latest DocumentSymbolViewModel range positions in the new snapshot.
+        /// </remarks>
+        internal static ImmutableArray<DocumentSymbolViewModel> Sort(
+            ImmutableArray<DocumentSymbolViewModel> documentSymbolModels,
+            SortOption sortOption,
+            ITextSnapshot oldSnapshot,
+            ITextSnapshot currentSnapshot)
+        {
+            // We want to log which sort option is used
             var functionId = sortOption switch
             {
                 SortOption.Name => FunctionId.DocumentOutline_SortByName,
@@ -117,30 +161,21 @@ namespace Microsoft.VisualStudio.LanguageServices
                 SortOption.Type => FunctionId.DocumentOutline_SortByType,
                 _ => throw new NotImplementedException(),
             };
-
             Logger.Log(functionId);
 
+            // Sort the top-level DocumentSymbolViewModels
             var sortedDocumentSymbolModels = sortOption switch
             {
                 SortOption.Name => documentSymbolModels.Sort((x, y) => x.Name.CompareTo(y.Name)),
-                SortOption.Order => documentSymbolModels.Sort((x, y) =>
-                {
-                    if (x.StartLine == y.StartLine)
-                        return x.StartChar - y.StartChar;
-                    return x.StartLine - y.StartLine;
-                }),
-                SortOption.Type => documentSymbolModels.Sort((x, y) =>
-                {
-                    if (x.SymbolKind == y.SymbolKind)
-                        return x.Name.CompareTo(y.Name);
-                    return x.SymbolKind - y.SymbolKind;
-                }),
+                SortOption.Order => documentSymbolModels.Sort((x, y) => CompareSymbolOrder(x, y, oldSnapshot, currentSnapshot)),
+                SortOption.Type => documentSymbolModels.Sort(CompareSymbolType),
                 _ => throw new NotImplementedException()
             };
 
+            // Recursively sort descendant DocumentSymbolViewModels
             foreach (var documentSymbolModel in sortedDocumentSymbolModels)
             {
-                documentSymbolModel.Children = Sort(documentSymbolModel.Children, sortOption);
+                documentSymbolModel.Children = Sort(documentSymbolModel.Children, sortOption, oldSnapshot, currentSnapshot);
             }
 
             return sortedDocumentSymbolModels;
@@ -174,35 +209,58 @@ namespace Microsoft.VisualStudio.LanguageServices
             return false;
         }
 
-        internal static void SelectNode(DocumentSymbolViewModel documentSymbol, int lineNumber, int characterIndex)
+        /// <summary>
+        /// If the caret position is in range of a given DocumentSymbolViewModel or one of its descendants,
+        /// it will set that symbol's IsSelected field to true.
+        /// </summary>
+        /// <remarks>
+        /// The parameter oldSnapshot refers to the snapshot used when the LSP document symbol request was made
+        /// to obtain the symbol and currentSnapshot refers to the latest snapshot in the editor. These parameters
+        /// are required to obtain the latest DocumentSymbolViewModel range positions in the new snapshot.
+        /// </remarks>
+        internal static void SelectNode(DocumentSymbolViewModel symbol, ITextSnapshot currentSnapshot, ITextSnapshot oldSnapshot, int caretPosition)
         {
-            var selectedNodeIndex = -1;
-            foreach (var child in documentSymbol.Children)
+            // If the caret is within the current symbol's range
+            if (IsCaretInSymbolRange(oldSnapshot, currentSnapshot, symbol, caretPosition))
             {
-                if (child.StartLine <= lineNumber && child.EndLine >= lineNumber)
+                // Determine if it is also in the range of one of the symbol's children and store its index
+                var selectedChildSymbolIndex = -1;
+                foreach (var child in symbol.Children)
                 {
-                    if (child.StartLine == child.EndLine)
-                    {
-                        if (child.StartChar <= characterIndex && child.EndChar >= characterIndex)
-                        {
-                            selectedNodeIndex = documentSymbol.Children.IndexOf(child);
-                        }
-                    }
-                    else
-                    {
-                        selectedNodeIndex = documentSymbol.Children.IndexOf(child);
-                    }
+                    if (IsCaretInSymbolRange(oldSnapshot, currentSnapshot, child, caretPosition))
+                        selectedChildSymbolIndex = symbol.Children.IndexOf(child);
+                }
+
+                // If the caret is not in range of any child symbols, select the current symbol
+                if (selectedChildSymbolIndex == -1)
+                {
+                    symbol.IsSelected = true;
+                }
+                // Otherwise, call SelectNode on the child symbol
+                else
+                {
+                    SelectNode(symbol.Children[selectedChildSymbolIndex], currentSnapshot, oldSnapshot, caretPosition);
                 }
             }
+        }
 
-            if (selectedNodeIndex != -1)
-            {
-                SelectNode(documentSymbol.Children[selectedNodeIndex], lineNumber, characterIndex);
-            }
-            else
-            {
-                documentSymbol.IsSelected = documentSymbol.StartLine <= lineNumber && documentSymbol.EndLine >= lineNumber;
-            }
+        /// <summary>
+        /// Returns whether a caret position is located within the range of a DocumentSymbolViewModel.
+        /// </summary>
+        /// <remarks>
+        /// The parameter oldSnapshot refers to the snapshot used when the LSP document symbol request was made
+        /// to obtain the symbol and currentSnapshot refers to the latest snapshot in the editor. These parameters
+        /// are required to obtain the latest DocumentSymbolViewModel range positions in the new snapshot.
+        /// </remarks>
+        internal static bool IsCaretInSymbolRange(ITextSnapshot oldSnapshot, ITextSnapshot currentSnapshot, DocumentSymbolViewModel symbol, int caretPosition)
+        {
+            var oldStartPosition = oldSnapshot.GetLineFromLineNumber(symbol.StartPosition.Line).Start.Position + symbol.StartPosition.Character;
+            var oldEndPosition = oldSnapshot.GetLineFromLineNumber(symbol.EndPosition.Line).Start.Position + symbol.EndPosition.Character;
+
+            var currentStartPosition = new SnapshotPoint(currentSnapshot, oldStartPosition).Position;
+            var currentEndPosition = new SnapshotPoint(currentSnapshot, oldEndPosition).Position;
+
+            return currentStartPosition <= caretPosition && caretPosition <= currentEndPosition;
         }
     }
 }

@@ -35,14 +35,29 @@ namespace Microsoft.VisualStudio.LanguageServices
     /// </summary>
     internal partial class DocumentOutlineControl : UserControl, IOleCommandTarget
     {
+        /// <summary>
+        /// The text view of the editor the user is currently interacting with.
+        /// </summary>
         private IWpfTextView TextView { get; }
+
+        /// <summary>
+        /// The text buffer of the editor the user is currently interacting with.
+        /// </summary>
         private ITextBuffer TextBuffer { get; }
-        private readonly string? _filePath;
+
+        /// <summary>
+        /// The text snapshot from when the document symbol request was made.
+        /// </summary>
+        private ITextSnapshot Snapshot { get; set; }
+
+        private readonly string? _textViewFilePath;
 
         private SortOption SortOption { get; set; }
 
+        private IThreadingContext ThreadingContext { get; }
+
         /// <summary>
-        /// Stores the result of GetModelAsync to be used by UpdateModelAsync.
+        /// Stores the latest document model returned by GetModelAsync to be used by UpdateModelAsync.
         /// </summary>
         private ImmutableArray<DocumentSymbolViewModel> DocumentSymbolViewModels { get; set; }
 
@@ -53,13 +68,13 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         /// <summary>
         /// Queue to batch up work to do to get the current document model. Used so we can batch up a lot of events 
-        /// and only compute the model once for every batch.
+        /// and only fetch the model once for every batch.
         /// </summary>
         private readonly AsyncBatchingWorkQueue _getModelQueue;
 
         /// <summary>
         /// Queue to batch up work to do to update the current document model. Used so we can batch up a lot of 
-        /// events and only compute the model once for every batch. 
+        /// events and update the model and UI once for every batch. 
         /// </summary>
         private readonly AsyncBatchingWorkQueue _updateModelQueue;
 
@@ -72,9 +87,11 @@ namespace Microsoft.VisualStudio.LanguageServices
         {
             InitializeComponent();
 
+            ThreadingContext = threadingContext;
             TextView = textView;
             TextBuffer = textBuffer;
-            _filePath = GetFilePath(textView);
+            Snapshot = textView.TextSnapshot;
+            _textViewFilePath = GetFilePath(textView);
             SortOption = SortOption.Order;
 
             _getModelQueue = new AsyncBatchingWorkQueue(
@@ -89,11 +106,13 @@ namespace Microsoft.VisualStudio.LanguageServices
                     asyncListener,
                     threadingContext.DisposalToken);
 
+            // Fetches and processes the current document model.
+            // Everything should be done on a background thread.
             async ValueTask GetModelAsync(CancellationToken cancellationToken)
             {
-                // Ensure fetching and processing the model is done on a background thread
                 await TaskScheduler.Default;
                 var response = await DocumentSymbolsRequestAsync(textBuffer, languageServiceBroker, cancellationToken).ConfigureAwait(false);
+                Snapshot = textView.TextSnapshot;
                 if (response?.Response is not null)
                 {
                     var responseBody = response.Response.ToObject<DocumentSymbol[]>();
@@ -109,13 +128,15 @@ namespace Microsoft.VisualStudio.LanguageServices
                 }
             }
 
+            // Processes the fetched document model and updates the UI.
             async ValueTask UpdateModelAsync(CancellationToken cancellationToken)
             {
                 var updatedSymbolsTreeItemsSource = DocumentSymbolViewModels;
 
-                // Switch to UI thread to obtain search query
+                // Switch to UI thread to obtain search query and the current text snapshot
                 await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 var searchQuery = searchBox.Text;
+                var currentSnapshot = textBuffer.CurrentSnapshot;
 
                 // Switch to a background thread to filter and sort the model
                 await TaskScheduler.Default;
@@ -123,12 +144,14 @@ namespace Microsoft.VisualStudio.LanguageServices
                 if (!string.IsNullOrWhiteSpace(searchQuery))
                     updatedSymbolsTreeItemsSource = DocumentOutlineHelper.Search(updatedSymbolsTreeItemsSource, searchQuery);
 
-                updatedSymbolsTreeItemsSource = DocumentOutlineHelper.Sort(updatedSymbolsTreeItemsSource, SortOption);
+                updatedSymbolsTreeItemsSource = DocumentOutlineHelper.Sort(updatedSymbolsTreeItemsSource, SortOption, Snapshot, currentSnapshot);
 
                 // Switch back to the UI thread to update the UI with the processed model data
                 await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 symbolTree.ItemsSource = updatedSymbolsTreeItemsSource;
-                HighlightSymbolNode();
+                ThreadingContext.JoinableTaskFactory
+                    .RunAsync(HighlightSymbolNodeAsync)
+                    .FileAndForget("Document Outline: Highlight Symbol Node");
             }
 
             void TextBuffer_Changed(object sender, TextContentChangedEventArgs e)
@@ -158,7 +181,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             {
                 TextDocument = new TextDocumentIdentifier()
                 {
-                    Uri = new Uri(_filePath)
+                    Uri = new Uri(_textViewFilePath)
                 }
             };
 
@@ -230,49 +253,57 @@ namespace Microsoft.VisualStudio.LanguageServices
         // When symbol node clicked, select the corresponding code
         private void JumpToContent(object sender, EventArgs e)
         {
-            var snapshot = TextBuffer.CurrentSnapshot;
-            RoslynDebug.AssertNotNull(snapshot);
+            var currentSnapshot = TextBuffer.CurrentSnapshot;
             if (sender is StackPanel panel && panel.DataContext is DocumentSymbolViewModel symbol)
             {
-                if (symbol.StartLine >= 0 && symbol.StartLine < snapshot.LineCount)
-                {
-                    var position = snapshot.GetLineFromLineNumber(symbol.StartLine).Start.Position;
-                    if (position >= 0 && position <= snapshot.Length)
-                    {
-                        // Avoids highlighting the node after moving the caret ourselves 
-                        // (The node is already highlighted on user click)
-                        TextView.Caret.PositionChanged -= FollowCaret;
-                        var point = new SnapshotPoint(snapshot, position);
-                        var snapshotSpan = new SnapshotSpan(point, point);
-                        TextView.SetSelection(snapshotSpan);
-                        TextView.ViewScroller.EnsureSpanVisible(snapshotSpan);
-                        // We want to continue highlighting nodes when the user moves the caret
-                        TextView.Caret.PositionChanged += FollowCaret;
-                    }
-                }
+                // Avoids highlighting the node after moving the caret ourselves 
+                // (The node is already highlighted on user click)
+                TextView.Caret.PositionChanged -= FollowCaret;
+
+                // Get the position of the start of the line the symbol is on
+                var position = Snapshot.GetLineFromLineNumber(symbol.StartPosition.Line).Start.Position;
+
+                // Gets a point for this position with respect to the updated snapshot
+                var snapshotPoint = new SnapshotPoint(currentSnapshot, position);
+
+                // Sets the selection to this point
+                var snapshotSpan = new SnapshotSpan(snapshotPoint, snapshotPoint);
+                TextView.SetSelection(snapshotSpan);
+                TextView.ViewScroller.EnsureSpanVisible(snapshotSpan);
+
+                // We want to continue highlighting nodes when the user moves the caret
+                TextView.Caret.PositionChanged += FollowCaret;
             }
         }
 
         // On caret position change, highlight the corresponding symbol node
         private void FollowCaret(object sender, EventArgs e)
         {
-            HighlightSymbolNode();
+            ThreadingContext.JoinableTaskFactory
+                .RunAsync(HighlightSymbolNodeAsync)
+                .FileAndForget("Document Outline: Highlight Symbol Node");
         }
 
         /// <summary>
         /// Highlights the symbol node corresponding to the current caret position.
         /// </summary>
-        private void HighlightSymbolNode()
+        private async Task HighlightSymbolNodeAsync()
         {
             if (TextView is not null && DocumentSymbolViewModelsIsInitialized)
             {
+                // Use the UI thread to get the current snapshot, caret point, and document model
+                await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(ThreadingContext.DisposalToken);
+                var currentSnapshot = TextBuffer.CurrentSnapshot;
+                var symbolTreeItemsSource = (IEnumerable<DocumentSymbolViewModel>)symbolTree.ItemsSource;
                 var caretPoint = TextView.GetCaretPoint(TextBuffer);
                 if (caretPoint.HasValue)
                 {
-                    caretPoint.Value.GetLineAndCharacter(out var lineNumber, out var characterIndex);
-                    UnselectAll((IEnumerable<DocumentSymbolViewModel>)symbolTree.ItemsSource);
-                    foreach (DocumentSymbolViewModel documentSymbolModel in symbolTree.ItemsSource)
-                        DocumentOutlineHelper.SelectNode(documentSymbolModel, lineNumber, characterIndex);
+                    var caretPosition = caretPoint.Value.Position;
+                    // Switch to a background thread to update UI selection
+                    await TaskScheduler.Default;
+                    UnselectAll(symbolTreeItemsSource);
+                    foreach (var documentSymbolModel in symbolTreeItemsSource)
+                        DocumentOutlineHelper.SelectNode(documentSymbolModel, currentSnapshot, Snapshot, caretPosition);
                 }
             }
 
