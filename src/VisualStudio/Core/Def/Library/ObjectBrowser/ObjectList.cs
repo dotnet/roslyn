@@ -745,11 +745,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         {
             try
             {
-
-                var asynchronousOperationListener = LibraryManager.ComponentModel.GetService<IAsynchronousOperationListenerProvider>().GetListener(FeatureAttribute.LibraryManager);
                 var operationExecutor = LibraryManager.ComponentModel.GetService<IUIThreadOperationExecutor>();
 
-                using var token = asynchronousOperationListener.BeginAsyncOperation(nameof(GoToSourceAsync));
                 using var context = operationExecutor.BeginExecute(ServicesVSResources.IntelliSense, EditorFeaturesResources.Navigating, allowCancellation: true, showProgress: false);
 
                 var cancellationToken = context.UserCancellationToken;

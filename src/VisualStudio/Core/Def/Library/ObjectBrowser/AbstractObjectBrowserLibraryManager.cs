@@ -492,7 +492,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                                 // also knows something is happening as the window, with the progress-banner will pop up
                                 // immediately.
                                 var streamingPresenter = ComponentModel.GetService<IStreamingFindUsagesPresenter>();
-                                _ = FindReferencesAsync(streamingPresenter, symbolListItem, project);
+                                var asynchronousOperationListener = ComponentModel.GetService<IAsynchronousOperationListenerProvider>().GetListener(FeatureAttribute.LibraryManager);
+
+                                var asyncToken = asynchronousOperationListener.BeginAsyncOperation(nameof(AbstractObjectBrowserLibraryManager) + "." + nameof(TryExec));
+                                FindReferencesAsync(streamingPresenter, symbolListItem, project).CompletesAsyncOperation(asyncToken);
                                 return true;
                             }
                         }
