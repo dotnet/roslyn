@@ -4426,6 +4426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.FieldDeclaration:
                         {
                             var fieldSyntax = (FieldDeclarationSyntax)m;
+                            _ = fieldSyntax.Declaration.Type.SkipRef(out RefKind refKind, allowScoped: false, diagnostics);
 
                             if (IsImplicitClass && reportMisplacedGlobalCode)
                             {
@@ -4433,18 +4434,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     new SourceLocation(fieldSyntax.Declaration.Variables.First().Identifier));
                             }
 
-                            bool isRefField = false;
-                            if (fieldSyntax.Declaration.Type is RefTypeSyntax refTypeSyntax)
-                            {
-                                isRefField = true;
-                                if (refTypeSyntax.ScopedKeyword.Kind() == SyntaxKind.ScopedKeyword)
-                                {
-                                    diagnostics.Add(ErrorCode.ERR_BadMemberFlag, refTypeSyntax.ScopedKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ScopedKeyword));
-                                }
-                            }
-
                             bool modifierErrors;
-                            var modifiers = SourceMemberFieldSymbol.MakeModifiers(this, fieldSyntax.Declaration.Variables[0].Identifier, fieldSyntax.Modifiers, isRefField: isRefField, diagnostics, out modifierErrors);
+                            var modifiers = SourceMemberFieldSymbol.MakeModifiers(this, fieldSyntax.Declaration.Variables[0].Identifier, fieldSyntax.Modifiers, isRefField: refKind != RefKind.None, diagnostics, out modifierErrors);
                             foreach (var variable in fieldSyntax.Declaration.Variables)
                             {
                                 var fieldSymbol = (modifiers & DeclarationModifiers.Fixed) == 0
