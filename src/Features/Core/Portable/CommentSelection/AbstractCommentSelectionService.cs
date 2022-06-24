@@ -28,9 +28,9 @@ namespace Microsoft.CodeAnalysis.CommentSelection
             return Formatter.FormatAsync(document, formattingSpans, formattingOptions, rules: null, cancellationToken);
         }
 
-        public Task<CommentSelectionInfo> GetInfoAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
-            => Task.FromResult(SupportsBlockComment
-                ? new CommentSelectionInfo(true, SupportsBlockComment, SingleLineCommentString, BlockCommentStartString, BlockCommentEndString)
-                : new CommentSelectionInfo(true, SupportsBlockComment, SingleLineCommentString, "", ""));
+        public CommentSelectionInfo GetInfo()
+            => SupportsBlockComment
+                ? new(supportsSingleLineComment: true, SupportsBlockComment, SingleLineCommentString, BlockCommentStartString, BlockCommentEndString)
+                : new(supportsSingleLineComment: true, SupportsBlockComment, SingleLineCommentString, blockCommentStartString: "", blockCommentEndString: "");
     }
 }

@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CommentSelection
         protected abstract string GetMessage(TCommand command);
 
         // Internal as tests currently rely on this method.
-        internal abstract Task<CommentSelectionResult> CollectEditsAsync(
+        internal abstract CommentSelectionResult CollectEdits(
             Document document, ICommentSelectionService service, ITextBuffer textBuffer, NormalizedSnapshotSpanCollection selectedSpans,
             TCommand command, CancellationToken cancellationToken);
 
@@ -111,9 +111,9 @@ namespace Microsoft.CodeAnalysis.CommentSelection
                     return true;
                 }
 
-                var edits = CollectEditsAsync(document, service, subjectBuffer, selectedSpans, command, cancellationToken).WaitAndGetResult(cancellationToken);
-
-                ApplyEdits(document, textView, subjectBuffer, service, title, edits);
+                var edits = CollectEdits(document, service, subjectBuffer, selectedSpans, command, cancellationToken);
+                var workspace = document.Project.Solution.Workspace;
+                ApplyEdits(workspace, document.Id, textView, subjectBuffer, service, title, edits);
             }
 
             return true;
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CommentSelection
         /// Applies the requested edits and sets the selection.
         /// This operation is not cancellable.
         /// </summary>
-        private void ApplyEdits(Document document, ITextView textView, ITextBuffer subjectBuffer,
+        private void ApplyEdits(Workspace workspace, DocumentId documentId, ITextView textView, ITextBuffer subjectBuffer,
             ICommentSelectionService service, string title, CommentSelectionResult edits)
         {
             // Create tracking spans to track the text changes.
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CommentSelection
             // Apply the text changes.
             using (var transaction = new CaretPreservingEditTransaction(title, textView, _undoHistoryRegistry, _editorOperationsFactoryService))
             {
-                document.Project.Solution.Workspace.ApplyTextChanges(document.Id, edits.TextChanges.Distinct(), CancellationToken.None);
+                workspace.ApplyTextChanges(documentId, edits.TextChanges.Distinct(), CancellationToken.None);
                 transaction.Complete();
             }
 

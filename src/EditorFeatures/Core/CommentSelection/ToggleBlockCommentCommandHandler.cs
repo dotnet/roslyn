@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CommentSelection
         /// <summary>
         /// Gets block comments by parsing the text for comment markers.
         /// </summary>
-        protected override Task<ImmutableArray<TextSpan>> GetBlockCommentsInDocumentAsync(Document document, ITextSnapshot snapshot,
+        protected override ImmutableArray<TextSpan> GetBlockCommentsInDocument(Document document, ITextSnapshot snapshot,
             TextSpan linesContainingSelections, CommentSelectionInfo commentInfo, CancellationToken cancellationToken)
         {
             var allText = snapshot.AsText();
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CommentSelection
                 openIdx = closeIdx;
             }
 
-            return Task.FromResult(commentedSpans.ToImmutableAndFree());
+            return commentedSpans.ToImmutableAndFree();
         }
     }
 }
