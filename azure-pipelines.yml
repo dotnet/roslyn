@@ -188,6 +188,10 @@ jobs:
   steps:
     - template: eng/pipelines/checkout-windows-task.yml
 
+    - template: eng/pipelines/restore-windows-task.yml
+      parameters:
+        configuration: Debug
+
     - script: eng/test-determinism.cmd -configuration Debug
       displayName: Build - Validate determinism
 
@@ -203,6 +207,10 @@ jobs:
   timeoutInMinutes: 90
   steps:
     - template: eng/pipelines/checkout-windows-task.yml
+
+    - template: eng/pipelines/restore-windows-task.yml
+      parameters:
+        configuration: Release
 
     - script: eng/test-build-correctness.cmd -configuration Release -enableDumps
       displayName: Build - Validate correctness
@@ -246,11 +254,9 @@ jobs:
   steps:
     - template: eng/pipelines/checkout-windows-task.yml
 
-    - task: PowerShell@2
-      displayName: Restore
-      inputs:
-        filePath: eng/build.ps1
-        arguments: -configuration Debug -prepareMachine -ci -restore -binaryLog
+    - template: eng/pipelines/restore-windows-task.yml
+      parameters:
+        configuration: Debug
 
     - powershell: .\eng\test-rebuild.ps1 -ci -configuration Release
       displayName: Run BuildValidator

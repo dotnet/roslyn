@@ -1,0 +1,29 @@
+# cache nuget packages to enable faster restore on Windows
+parameters:
+  - name: configuration
+    type: string
+    default: 'Debug'
+
+steps:
+    - task: CacheBeta@1
+      displayName: .dotnet Cache
+      inputs:
+        key: '"dotnet" |  "$(Agent.OS)" | $(Build.SourcesDirectory)/global.json'
+        path: $(Build.SourcesDirectory)/.dotnet
+      continueOnError: true
+
+    - task: CacheBeta@1
+      displayName: .packages Cache
+      inputs:
+        key: '"nuget" | "$(Agent.OS)" | $(Build.SourcesDirectory)/global.json | $(Build.SourcesDirectory)/eng/Versions.props | $(Build.SourcesDirectory)/eng/Version.Details.xml'
+        path: $(NUGET_PACKAGES)
+        cacheHitVar: NUGET_CACHE_RESTORED
+      continueOnError: true
+
+    - script: echo "##vso[task.setvariable variable=NUGET_PACKAGES]$(Build.SourcesDirectory)/.packages"
+      displayName: Set NuGet Packages Directory
+
+    - script: ./eng/build.sh --ci --restore --prepareMachine --binaryLog --configuration ${{ parameters.configuration }}
+      displayName: Restore
+      env:
+        NUGET_PACKAGES: $(NUGET_PACKAGES)
