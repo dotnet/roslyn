@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Indentation;
@@ -17,6 +18,29 @@ namespace Microsoft.CodeAnalysis.Options;
 
 internal static class EditorOptionProviders
 {
+    public static DocumentationCommentOptions GetDocumentationCommentOptions(this ITextBuffer textBuffer, IEditorOptionsFactoryService factory, IIndentationManagerService indentationManager, IGlobalOptionService globalOptions, HostLanguageServices languageServices)
+    {
+        var editorOptions = factory.GetOptions(textBuffer);
+        var lineFormattingOptions = GetLineFormattingOptionsImpl(textBuffer, editorOptions, indentationManager, explicitFormat: false);
+        return globalOptions.GetDocumentationCommentOptions(lineFormattingOptions, languageServices.Language);
+    }
+
+    public static LineFormattingOptions GetLineFormattingOptions(this ITextBuffer textBuffer, IEditorOptionsFactoryService factory, IIndentationManagerService indentationManager, bool explicitFormat)
+       => GetLineFormattingOptionsImpl(textBuffer, factory.GetOptions(textBuffer), indentationManager, explicitFormat);
+
+    private static LineFormattingOptions GetLineFormattingOptionsImpl(ITextBuffer textBuffer, IEditorOptions editorOptions, IIndentationManagerService indentationManager, bool explicitFormat)
+    {
+        indentationManager.GetIndentation(textBuffer, explicitFormat, out var convertTabsToSpaces, out var tabSize, out var indentSize);
+
+        return new LineFormattingOptions()
+        {
+            UseTabs = !convertTabsToSpaces,
+            IndentationSize = indentSize,
+            TabSize = tabSize,
+            NewLine = editorOptions.GetNewLineCharacter(),
+        };
+    }
+
     public static SyntaxFormattingOptions GetSyntaxFormattingOptions(this ITextBuffer textBuffer, IEditorOptionsFactoryService factory, IIndentationManagerService indentationManager, IGlobalOptionService globalOptions, HostLanguageServices languageServices, bool explicitFormat)
         => GetSyntaxFormattingOptionsImpl(textBuffer, factory.GetOptions(textBuffer), indentationManager, globalOptions, languageServices, explicitFormat);
 
@@ -25,16 +49,9 @@ internal static class EditorOptionProviders
         var configOptions = new EditorAnalyzerConfigOptions(editorOptions);
         var fallbackOptions = globalOptions.GetSyntaxFormattingOptions(languageServices);
         var options = configOptions.GetSyntaxFormattingOptions(fallbackOptions, languageServices);
+        var lineFormattingOptions = GetLineFormattingOptionsImpl(textBuffer, editorOptions, indentationManager, explicitFormat);
 
-        indentationManager.GetIndentation(textBuffer, explicitFormat, out var convertTabsToSpaces, out var tabSize, out var indentSize);
-
-        return options.With(new LineFormattingOptions()
-        {
-            UseTabs = !convertTabsToSpaces,
-            IndentationSize = indentSize,
-            TabSize = tabSize,
-            NewLine = editorOptions.GetNewLineCharacter(),
-        });
+        return options.With(lineFormattingOptions);
     }
 
     public static IndentationOptions GetIndentationOptions(this ITextBuffer textBuffer, IEditorOptionsFactoryService factory, IIndentationManagerService indentationManager, IGlobalOptionService globalOptions, HostLanguageServices languageServices, bool explicitFormat)
