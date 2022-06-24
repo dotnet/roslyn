@@ -1126,10 +1126,9 @@
         <source>Prefer trailing comma</source>
         <target state="new">Prefer trailing comma</target>
       </trans-unit>
-=======
       <trans-unit id="Prefer_top_level_statements">
+        <source>Prefer top-level statements</source>
         <target state="translated">Üst düzey deyimleri tercih et</target>
->>>>>>> upstream/main
         <note />
       </trans-unit>
       <trans-unit id="Prefer_tuple_swap">
