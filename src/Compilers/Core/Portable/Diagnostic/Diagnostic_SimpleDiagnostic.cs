@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis
                     if (Id != "ID1")
                     {
                         // This happens when the number of _messageArgs is less than the placeholders.
-                        Debug.Fail($"Descriptor '{Id}' is reporting diagnostic with incorrect number of arguments.");
+                        Debug.Fail($"Descriptor '{Id}' is reporting diagnostic with incorrect number of arguments. Arguments Count: '{_messageArgs.Length}'. Message Format: '{localizedMessageFormat}'.");
                     }
                 }
 
