@@ -90,6 +90,34 @@ namespace Microsoft.CodeAnalysis
 
             public override string GetMessage(IFormatProvider? formatProvider = null)
             {
+#if DEBUG
+                try
+                {
+                    _ = string.Format(formatProvider, localizedMessageFormat, _messageArgs);
+                }
+                catch (FormatException)
+                {
+                    // AnalyzerReportingMisformattedDiagnostic used for unit testing.
+                    if (Id != "ID1")
+                    {
+                        // This happens when the number of _messageArgs is less than the placeholders.
+                        Debug.Fail($"Descriptor '{Id}' is reporting diagnostic with incorrect number of arguments.");
+                    }
+                }
+
+                // Used in unit testing.
+                if (Id != "MockAdditionalDiagnostic" && Id != "MockProjectDiagnostic")
+                {
+                    for (int i = 0; i < _messageArgs.Length; i++)
+                    {
+                        if (!localizedMessageFormat.Contains($"{{{i}}}"))
+                        {
+                            // This happens when the number of _messageArgs is larger than the placeholders.
+                            Debug.Fail($"Descriptor '{Id}' is passing an argument with index '{i}', but no corresponding placeholder was found.");
+                        }
+                    }
+                }
+#endif
                 if (_messageArgs.Length == 0)
                 {
                     return _descriptor.MessageFormat.ToString(formatProvider);
@@ -99,32 +127,10 @@ namespace Microsoft.CodeAnalysis
 
                 try
                 {
-#if DEBUG
-                    // Used in unit testing.
-                    if (Id != "MockAdditionalDiagnostic" && Id != "MockProjectDiagnostic")
-                    {
-                        for (int i = 0; i < _messageArgs.Length; i++)
-                        {
-                            if (!localizedMessageFormat.Contains($"{{{i}}}"))
-                            {
-                                // This happens when the number of _messageArgs is larger than the placeholders.
-                                Debug.Fail($"Descriptor '{Id}' is passing an argument with index '{i}', but no corresponding placeholder was found.");
-                            }
-                        }
-                    }
-#endif
                     return string.Format(formatProvider, localizedMessageFormat, _messageArgs);
                 }
                 catch (FormatException)
                 {
-#if DEBUG
-                    // AnalyzerReportingMisformattedDiagnostic used for unit testing.
-                    if (Id != "ID1")
-                    {
-                        // This happens when the number of _messageArgs is less than the placeholders.
-                        Debug.Fail($"Descriptor '{Id}' is reporting diagnostic with incorrect number of arguments.");
-                    }
-#endif
                     // Analyzer reported diagnostic with invalid format arguments, so just return the unformatted message.
                     return localizedMessageFormat;
                 }
