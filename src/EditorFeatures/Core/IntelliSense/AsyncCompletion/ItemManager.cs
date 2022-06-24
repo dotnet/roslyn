@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             // Sort by default comparer of Roslyn CompletionItem
             var sortedItems = data.InitialList.OrderBy(CompletionItemData.GetOrAddDummyRoslynItem).ToImmutableArray();
-            AsyncCompletionLogger.LogItemManagerSortTicksDataPoint(stopwatch.Elapsed);
+            AsyncCompletionLogger.LogItemManagerSortTicksDataPoint((int)stopwatch.Elapsed.TotalMilliseconds);
             return Task.FromResult(sortedItems);
         }
 
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
             finally
             {
-                AsyncCompletionLogger.LogItemManagerUpdateDataPoint(stopwatch.Elapsed, isCanceled: cancellationToken.IsCancellationRequested);
+                AsyncCompletionLogger.LogItemManagerUpdateDataPoint((int)stopwatch.Elapsed.TotalMilliseconds, isCanceled: cancellationToken.IsCancellationRequested);
             }
         }
     }
