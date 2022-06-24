@@ -7,11 +7,8 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal partial class BoundSwitchStatement : IBoundSwitchStatement
+    internal partial class BoundSwitchStatement
     {
-        BoundNode IBoundSwitchStatement.Value => this.Expression;
-        ImmutableArray<BoundStatementList> IBoundSwitchStatement.Cases => StaticCast<BoundStatementList>.From(this.SwitchSections);
-
         public BoundDecisionDag GetDecisionDagForLowering(CSharpCompilation compilation)
         {
             BoundDecisionDag decisionDag = this.ReachabilityDecisionDag;

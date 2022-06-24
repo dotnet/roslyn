@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 Imports Xunit
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editting
+Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editing
     <[UseExportProvider]>
     Public Class SyntaxGeneratorTests
         Private _g As SyntaxGenerator
@@ -2183,6 +2183,18 @@ Namespace n
 End Namespace
 ")
 
+            VerifySyntax(Of CompilationUnitSyntax)(
+                Generator.AddAttributes(
+                    Generator.AddAttributes(
+                        Generator.CompilationUnit(Generator.NamespaceDeclaration("n")),
+                        Generator.Attribute("a")),
+                    Generator.Attribute("b")),
+"<Assembly:a>
+<Assembly:b>
+Namespace n
+End Namespace
+")
+
             VerifySyntax(Of DelegateStatementSyntax)(
                 Generator.AddAttributes(
                     Generator.DelegateDeclaration("d"),
@@ -2689,7 +2701,7 @@ End Function")
 
             Assert.Equal(0, Generator.GetParameters(Generator.AddParameters(Generator.ClassDeclaration("c"), {Generator.ParameterDeclaration("p", Generator.IdentifierName("t"))})).Count)
             Assert.Equal(0, Generator.GetParameters(Generator.AddParameters(Generator.IdentifierName("x"), {Generator.ParameterDeclaration("p", Generator.IdentifierName("t"))})).Count)
-            Assert.Equal(0, Generator.GetParameters(Generator.AddParameters(Generator.PropertyDeclaration("p", Generator.IdentifierName("t")), {Generator.ParameterDeclaration("p", Generator.IdentifierName("t"))})).Count)
+            Assert.Equal(1, Generator.GetParameters(Generator.AddParameters(Generator.PropertyDeclaration("p", Generator.IdentifierName("t")), {Generator.ParameterDeclaration("p", Generator.IdentifierName("t"))})).Count)
         End Sub
 
         <Fact>

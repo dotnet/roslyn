@@ -206,11 +206,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return AdjustSpacesOperationZeroOrOne(_options.Spacing.HasFlag(SpacePlacement.AfterCast));
             }
 
+            // List patterns
             if (currentKind == SyntaxKind.OpenBracketToken && currentToken.Parent.IsKind(SyntaxKind.ListPattern))
             {
-                // is [
-                // and [
-                return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+                // For the space after the middle comma in ([1, 2], [1, 2])
+                if (previousKind == SyntaxKind.CommaToken)
+                {
+                    return AdjustSpacesOperationZeroOrOne(_options.Spacing.HasFlag(SpacePlacement.AfterComma));
+                }
+
+                // For "is [", "and [", but not "(["
+                if (previousKind != SyntaxKind.OpenParenToken)
+                {
+                    return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+                }
             }
 
             // For spacing Before Square Braces
@@ -244,6 +253,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 // [Attribute1]$$[Attribute2]
                 if (currentToken.IsKind(SyntaxKind.OpenBracketToken) &&
                     currentToken.Parent.IsKind(SyntaxKind.AttributeList))
+                {
+                    return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+                }
+
+                // [Attribute1]$${EOF}
+                if (currentToken.IsKind(SyntaxKind.EndOfFileToken))
                 {
                     return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
                 }
@@ -475,10 +490,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces);
             }
 
-            // Preserve space after { or before } in interpolations (i.e. between the braces and the expression)
-            if ((previousKind == SyntaxKind.OpenBraceToken && previousToken.Parent is InterpolationSyntax) ||
-                (currentKind == SyntaxKind.CloseBraceToken && currentToken.Parent is InterpolationSyntax))
+            // No space after { in interpolations (i.e. between the braces and the expression)
+            if (previousKind == SyntaxKind.OpenBraceToken && previousToken.Parent is InterpolationSyntax)
             {
+                return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces);
+            }
+
+            // Handle space before } in interpolations (i.e. between the braces and the expression)
+            if (currentKind == SyntaxKind.CloseBraceToken && currentToken.Parent is InterpolationSyntax interpolation)
+            {
+                // If there is no format specifier (i.e. a colon) remove spaces
+                if (interpolation.FormatClause is null)
+                    return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces);
+
+                // If there is a format specifier then whitespace is significant so preserve it
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.PreserveSpaces);
             }
 

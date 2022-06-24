@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.PdbSourceDocument;
+using Microsoft.CodeAnalysis.Structure;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
 {
@@ -35,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
         {
         }
 
-        public Task<MetadataAsSourceFile?> GetGeneratedFileAsync(Workspace workspace, Project project, ISymbol symbol, bool signaturesOnly, bool allowDecompilation, string tempPath, CancellationToken cancellationToken)
+        public Task<MetadataAsSourceFile?> GetGeneratedFileAsync(Workspace workspace, Project project, ISymbol symbol, bool signaturesOnly, MetadataAsSourceOptions options, string tempPath, CancellationToken cancellationToken)
         {
             return Task.FromResult<MetadataAsSourceFile?>(NullResult);
         }
@@ -51,6 +52,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
         }
 
         public bool TryRemoveDocumentFromWorkspace(Workspace workspace, string filePath)
+        {
+            return true;
+        }
+
+        public bool ShouldCollapseOnOpen(string filePath, BlockStructureOptions options)
         {
             return true;
         }

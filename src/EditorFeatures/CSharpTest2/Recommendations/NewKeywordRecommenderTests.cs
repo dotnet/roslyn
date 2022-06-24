@@ -699,7 +699,7 @@ $$");
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterFileScopedNamespace()
         {
-            await VerifyKeywordAsync(
+            await VerifyAbsenceAsync(
 @"namespace N;
 $$");
         }

@@ -11,30 +11,6 @@ using Microsoft.CodeAnalysis.Editor;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
 {
-    [Obsolete]
-    internal interface IVSTypeScriptInlineRenameReplacementInfo
-    {
-        /// <summary>
-        /// The solution obtained after resolving all conflicts.
-        /// </summary>
-        Solution NewSolution { get; }
-
-        /// <summary>
-        /// Whether or not the replacement text entered by the user is valid.
-        /// </summary>
-        bool ReplacementTextValid { get; }
-
-        /// <summary>
-        /// The documents that need to be updated.
-        /// </summary>
-        IEnumerable<DocumentId> DocumentIds { get; }
-
-        /// <summary>
-        /// Returns all the replacements that need to be performed for the specified document.
-        /// </summary>
-        IEnumerable<VSTypeScriptInlineRenameReplacementWrapper> GetReplacements(DocumentId documentId);
-    }
-
     internal abstract class VSTypeScriptInlineRenameReplacementInfo : IInlineRenameReplacementInfo
     {
         /// <summary>

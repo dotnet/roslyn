@@ -38,6 +38,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxTriviaListExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\TypeBlockSyntaxExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\TypeSyntaxGeneratorVisitor.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Indentation\SpecialFormattingOperation.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Indentation\VisualBasicIndentationService.Indenter.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Indentation\VisualBasicIndentationService.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicBlockFactsService.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicFileBannerFactsService.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicHeaderFactsService.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicMoveDeclarationNearReferenceService.vb" />

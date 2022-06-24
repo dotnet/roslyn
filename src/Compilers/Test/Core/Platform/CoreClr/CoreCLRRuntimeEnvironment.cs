@@ -6,9 +6,9 @@
 
 #if NETCOREAPP
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
@@ -52,12 +52,15 @@ namespace Roslyn.Test.Utilities.CoreClr
             {
                 var mainImage = mainOutput.Value.Assembly;
                 var mainPdb = mainOutput.Value.Pdb;
+                var corLibIdentity = mainCompilation.GetSpecialType(SpecialType.System_Object).ContainingAssembly.Identity;
+                var identity = mainCompilation.Assembly.Identity;
                 _emitData.MainModule = new ModuleData(
-                    mainCompilation.Assembly.Identity,
+                    identity,
                     mainCompilation.Options.OutputKind,
                     mainImage,
                     pdb: usePdbForDebugging ? mainPdb : default(ImmutableArray<byte>),
-                    inMemoryModule: true);
+                    inMemoryModule: true,
+                    isCorLib: corLibIdentity == identity);
                 _emitData.MainModulePdb = mainPdb;
                 _emitData.AllModuleData = dependencies;
 
@@ -107,9 +110,6 @@ namespace Roslyn.Test.Utilities.CoreClr
 
         public void Verify(Verification verification)
         {
-            var emitData = GetEmitData();
-            emitData.RuntimeData.PeverifyRequested = true;
-            // TODO(https://github.com/dotnet/coreclr/issues/295): Implement peverify
         }
 
         public string[] VerifyModules(string[] modulesToVerify)

@@ -2,13 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.InvertLogical;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -18,6 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 {
     public partial class InvertLogicalTests : AbstractCSharpCodeActionTest
     {
+        private static readonly ParseOptions CSharp6 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6);
         private static readonly ParseOptions CSharp8 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8);
         private static readonly ParseOptions CSharp9 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9);
 
@@ -355,7 +353,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 {
     void M(bool x, int a, object b)
     {
-        var c = !(a <= 10 || !(b is not string));
+        var c = !(a <= 10 || b is string);
     }
 }", parseOptions: CSharp8);
         }
@@ -425,6 +423,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 
         [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        public async Task InvertIsNotNullPattern1_CSharp6()
+        {
+            // Result is illegal (uses a constant pattern in c# 6), but the original code was illegal as well.
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = a > 10 [||]&& b is not null;
+    }
+}",
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = !(a <= 10 || b is null);
+    }
+}", parseOptions: CSharp6);
+        }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
         public async Task InvertIsNotNullPattern1_CSharp8()
         {
             await TestInRegularAndScriptAsync(
@@ -439,7 +459,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 {
     void M(bool x, int a, object b)
     {
-        var c = !(a <= 10 || !(b is not null));
+        var c = !(a <= 10 || b is null);
     }
 }", parseOptions: CSharp8);
         }
@@ -670,7 +690,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 {
     void M(bool x, int a, object b)
     {
-        var c = !(a <= 10 || !(b is string s));
+        var c = !(a <= 10 || b is not string s);
     }
 }", parseOptions: CSharp9);
         }

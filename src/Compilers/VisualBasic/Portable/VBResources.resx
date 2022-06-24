@@ -5645,9 +5645,15 @@
     <value>The CallerArgumentExpressionAttribute applied to parameter will have no effect. It is applied with an invalid parameter name.</value>
   </data>
   <data name="ERR_BadAbstractStaticMemberAccess" xml:space="preserve">
-    <value>A shared abstract interface member cannot be accessed.</value>
+    <value>A shared abstract or virtual interface member cannot be accessed.</value>
   </data>
   <data name="ERR_UnimplementedSharedMember" xml:space="preserve">
-    <value>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract '{2}'.</value>
+    <value>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract or virtual '{2}'.</value>
+  </data>
+  <data name="ERR_UnsupportedCompilerFeature" xml:space="preserve">
+    <value>'{0}' requires compiler feature '{1}', which is not supported by this version of the Visual Basic compiler.</value>
+  </data>
+  <data name="ERR_DoNotUseCompilerFeatureRequired" xml:space="preserve">
+    <value>'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute' is reserved for compiler usage only.</value>
   </data>
 </root>

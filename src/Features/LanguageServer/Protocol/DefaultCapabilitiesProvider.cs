@@ -16,14 +16,14 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
-    [Export(typeof(DefaultCapabilitiesProvider)), Shared]
-    internal class DefaultCapabilitiesProvider : ICapabilitiesProvider
+    [Export(typeof(ExperimentalCapabilitiesProvider)), Shared]
+    internal class ExperimentalCapabilitiesProvider : ICapabilitiesProvider
     {
         private readonly ImmutableArray<Lazy<CompletionProvider, CompletionProviderMetadata>> _completionProviders;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DefaultCapabilitiesProvider(
+        public ExperimentalCapabilitiesProvider(
             [ImportMany] IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> completionProviders)
         {
             _completionProviders = completionProviders
@@ -31,13 +31,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 .ToImmutableArray();
         }
 
+        public void Initialize()
+        {
+            // Force completion providers to resolve in initialize, because it means MEF parts will be loaded.
+            // We need to do this before GetCapabilities is called as that is on the UI thread, and loading MEF parts
+            // could cause assembly loads, which we want to do off the UI thread.
+            foreach (var completionProvider in _completionProviders)
+            {
+                _ = completionProvider.Value;
+            }
+        }
+
         public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {
-            var capabilities = new ServerCapabilities();
-            if (clientCapabilities is VSInternalClientCapabilities vsClientCapabilities && vsClientCapabilities.SupportsVisualStudioExtensions)
-            {
-                capabilities = GetVSServerCapabilities();
-            }
+            var capabilities = clientCapabilities is VSInternalClientCapabilities { SupportsVisualStudioExtensions: true }
+                ? GetVSServerCapabilities()
+                : new ServerCapabilities();
 
             var commitCharacters = CompletionRules.Default.DefaultCommitCharacters.Select(c => c.ToString()).ToArray();
             var triggerCharacters = _completionProviders.SelectMany(
@@ -90,15 +99,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         }
 
         private static VSServerCapabilities GetVSServerCapabilities()
-        {
-            var vsServerCapabilities = new VSInternalServerCapabilities();
-            vsServerCapabilities.OnAutoInsertProvider = new VSInternalDocumentOnAutoInsertOptions { TriggerCharacters = new[] { "'", "/", "\n" } };
-            vsServerCapabilities.DocumentHighlightProvider = true;
-            vsServerCapabilities.ProjectContextProvider = true;
+            => new VSInternalServerCapabilities
+            {
+                OnAutoInsertProvider = new VSInternalDocumentOnAutoInsertOptions { TriggerCharacters = new[] { "'", "/", "\n" } },
+                DocumentHighlightProvider = true,
+                ProjectContextProvider = true,
+                BreakableRangeProvider = true,
 
-            // Diagnostic requests are only supported from PullDiagnosticsInProcLanguageClient.
-            vsServerCapabilities.SupportsDiagnosticRequests = false;
-            return vsServerCapabilities;
-        }
+                // Diagnostic requests are only supported from PullDiagnosticsInProcLanguageClient.
+                SupportsDiagnosticRequests = false,
+            };
     }
 }

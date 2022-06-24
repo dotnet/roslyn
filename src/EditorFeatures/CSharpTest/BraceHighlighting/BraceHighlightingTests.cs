@@ -476,6 +476,20 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        public async Task TestJsonBracket_RawStrings()
+        {
+            var input = @"
+class C
+{
+    void Goo()
+    {
+        var r = /*lang=json*/ """"""new Json[|$$(|]1, 2, 3[|)|]"""""";
+    }
+}";
+            await TestBraceHighlightingAsync(input);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
         public async Task TestUnmatchedJsonBracket1()
         {
             var input = @"
@@ -484,6 +498,34 @@ class C
     void Goo()
     {
         var r = /*lang=json*/ @""new Json$$(1, 2, 3"";
+    }
+}";
+            await TestBraceHighlightingAsync(input);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        public async Task TestJsonBracket_NoComment_NotLikelyJson()
+        {
+            var input = @"
+class C
+{
+    void Goo()
+    {
+        var r = @""$$[ 1, 2, 3 ]"";
+    }
+}";
+            await TestBraceHighlightingAsync(input);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        public async Task TestJsonBracket_NoComment_LikelyJson()
+        {
+            var input = @"
+class C
+{
+    void Goo()
+    {
+        var r = @""[ { prop: 0 }, new Json[|$$(|]1, 2, 3[|)|], 3 ]"";
     }
 }";
             await TestBraceHighlightingAsync(input);

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         // The suggestion is e.g. "+". If the user actually types "+" the completion list is closed. Operators therefore do not support partially written items.
         protected override string? ItemPartiallyWritten(string? expectedItemOrNull) => "";
 
-        private static IEnumerable<string[]> BinaryArithmeticAndLogicalOperators()
+        public static IEnumerable<object[]> BinaryArithmeticAndLogicalOperators()
         {
             yield return new[] { "+" };
             yield return new[] { "&" };
@@ -33,11 +33,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             yield return new[] { "%" };
             yield return new[] { "*" };
             yield return new[] { ">>" };
+            yield return new[] { ">>>" };
             yield return new[] { "<<" };
             yield return new[] { "-" };
         }
 
-        private static IEnumerable<string[]> BinaryEqualityAndRelationalOperators()
+        public static IEnumerable<object[]> BinaryEqualityAndRelationalOperators()
         {
             yield return new[] { "==" };
             yield return new[] { ">" };
@@ -47,13 +48,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             yield return new[] { "<=" };
         }
 
-        private static IEnumerable<string[]> PostfixOperators()
+        public static IEnumerable<object[]> PostfixOperators()
         {
             yield return new[] { "++" };
             yield return new[] { "--" };
         }
 
-        private static IEnumerable<string[]> PrefixOperators()
+        public static IEnumerable<object[]> PrefixOperators()
         {
             yield return new[] { "!" };
             yield return new[] { "~" };
@@ -61,10 +62,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             yield return new[] { "+" };
         }
 
-        private static IEnumerable<string[]> BinaryOperators()
+        public static IEnumerable<object[]> BinaryOperators()
             => BinaryArithmeticAndLogicalOperators().Union(BinaryEqualityAndRelationalOperators());
 
-        private static IEnumerable<string[]> UnaryOperators()
+        public static IEnumerable<object[]> UnaryOperators()
             => PostfixOperators().Union(PrefixOperators());
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -214,6 +215,7 @@ public class C
     public static C operator ^(C a, C b) => null;
     public static C operator <<(C a, int b) => null;
     public static C operator >>(C a, int b) => null;
+    public static C operator >>>(C a, int b) => null;
     public static C operator ~(C a) => null;
 }
 
@@ -249,6 +251,7 @@ public class Program
                 i => Assert.Equal("^", i.DisplayText),
                 i => Assert.Equal("<<", i.DisplayText),
                 i => Assert.Equal(">>", i.DisplayText),
+                i => Assert.Equal(">>>", i.DisplayText),
                 i => Assert.Equal("~", i.DisplayText)
             );
         }

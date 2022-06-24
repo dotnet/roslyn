@@ -26,11 +26,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Initialize the ObsoleteAttributeData by fetching attributes and decoding ObsoleteAttributeData. This can be 
         /// done for Metadata symbol easily whereas trying to do this for source symbols could result in cycles.
         /// </summary>
-        internal static void InitializeObsoleteDataFromMetadata(ref ObsoleteAttributeData data, EntityHandle token, PEModuleSymbol containingModule, bool ignoreByRefLikeMarker)
+        internal static void InitializeObsoleteDataFromMetadata(ref ObsoleteAttributeData data, EntityHandle token, PEModuleSymbol containingModule, bool ignoreByRefLikeMarker, bool ignoreRequiredMemberMarker)
         {
             if (ReferenceEquals(data, ObsoleteAttributeData.Uninitialized))
             {
-                ObsoleteAttributeData obsoleteAttributeData = GetObsoleteDataFromMetadata(token, containingModule, ignoreByRefLikeMarker);
+                ObsoleteAttributeData obsoleteAttributeData = GetObsoleteDataFromMetadata(token, containingModule, ignoreByRefLikeMarker, ignoreRequiredMemberMarker);
                 Interlocked.CompareExchange(ref data, obsoleteAttributeData, ObsoleteAttributeData.Uninitialized);
             }
         }
@@ -39,9 +39,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Get the ObsoleteAttributeData by fetching attributes and decoding ObsoleteAttributeData. This can be 
         /// done for Metadata symbol easily whereas trying to do this for source symbols could result in cycles.
         /// </summary>
-        internal static ObsoleteAttributeData GetObsoleteDataFromMetadata(EntityHandle token, PEModuleSymbol containingModule, bool ignoreByRefLikeMarker)
+        internal static ObsoleteAttributeData GetObsoleteDataFromMetadata(EntityHandle token, PEModuleSymbol containingModule, bool ignoreByRefLikeMarker, bool ignoreRequiredMemberMarker)
         {
-            var obsoleteAttributeData = containingModule.Module.TryGetDeprecatedOrExperimentalOrObsoleteAttribute(token, new MetadataDecoder(containingModule), ignoreByRefLikeMarker);
+            var obsoleteAttributeData = containingModule.Module.TryGetDeprecatedOrExperimentalOrObsoleteAttribute(token, new MetadataDecoder(containingModule), ignoreByRefLikeMarker, ignoreRequiredMemberMarker);
             Debug.Assert(obsoleteAttributeData == null || !obsoleteAttributeData.IsUninitialized);
             return obsoleteAttributeData;
         }
@@ -158,6 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Issue a specialized diagnostic for add methods of collection initializers
             var isColInit = location.Includes(BinderFlags.CollectionInitializerAddMethod);
+            Debug.Assert(!isColInit || symbol.Name == WellKnownMemberNames.CollectionInitializerAddMethodName);
             var errorCode = (message: data.Message, isError: data.IsError, isColInit) switch
             {
                 // dev11 had a bug in this area (i.e. always produce a warning when there's no message) and we have to match it.

@@ -3073,7 +3073,7 @@ namespace System.Collections
 }";
 
             var comp = CreateEmptyCompilation(text, new[] { reference1 });
-            CompileAndVerify(comp, verify: Verification.Fails).
+            CompileAndVerify(comp, verify: Verification.FailsPEVerify).
             VerifyIL("C.M", @"
 {
   // Code size       28 (0x1c)
@@ -3183,10 +3183,15 @@ ref struct DisposableEnumerator
     public void Dispose() {  }
 }";
 
-            var boundNode = GetBoundForEachStatement(text, TestOptions.Regular7_3);
+            var boundNode = GetBoundForEachStatement(text, TestOptions.Regular7_3,
+                // (6,27): error CS8370: Feature 'pattern-based disposal' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //         foreach (var x in new Enumerable1())
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "new Enumerable1()").WithArguments("pattern-based disposal", "8.0").WithLocation(6, 27)
+                );
             var enumeratorInfo = boundNode.EnumeratorInfoOpt;
 
-            Assert.Null(enumeratorInfo.PatternDisposeInfo);
+            Assert.Equal("void DisposableEnumerator.Dispose()", enumeratorInfo.PatternDisposeInfo.Method.ToTestDisplayString());
+            Assert.Empty(enumeratorInfo.PatternDisposeInfo.Arguments);
         }
 
         [Fact]

@@ -20,8 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
             var actualTree = TreeToText(tree!).Replace("\"", "\"\"");
             Assert.Equal(expected.Replace("\"", "\"\""), actualTree);
 
-            var actualDiagnostics = DiagnosticsToText(tree.Diagnostics).Replace("\"", "\"\"");
-            Assert.Equal(strictDiagnostics.Replace("\"", "\"\""), actualDiagnostics);
+            ValidateDiagnostics(strictDiagnostics, tree);
 
             CheckInvariants(tree, allChars);
 
@@ -3028,10 +3027,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
   </CompilationUnit>
 </Tree>",
         @"<Diagnostics>
-  <Diagnostic Message=""Only properties allowed in an object"" Start=""11"" Length=""5"" />
+  <Diagnostic Message=""Property name must be followed by a ':'"" Start=""11"" Length=""5"" />
 </Diagnostics>",
         @"<Diagnostics>
-  <Diagnostic Message=""Only properties allowed in an object"" Start=""11"" Length=""5"" />
+  <Diagnostic Message=""Property name must be followed by a ':'"" Start=""11"" Length=""5"" />
 </Diagnostics>");
         }
 
@@ -3188,10 +3187,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
   </CompilationUnit>
 </Tree>",
         @"<Diagnostics>
-  <Diagnostic Message=""Only properties allowed in an object"" Start=""11"" Length=""5"" />
+  <Diagnostic Message=""Property name must be followed by a ':'"" Start=""11"" Length=""5"" />
 </Diagnostics>",
         @"<Diagnostics>
-  <Diagnostic Message=""Only properties allowed in an object"" Start=""11"" Length=""5"" />
+  <Diagnostic Message=""Property name must be followed by a ':'"" Start=""11"" Length=""5"" />
 </Diagnostics>");
         }
 
@@ -3250,10 +3249,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
   </CompilationUnit>
 </Tree>",
         @"<Diagnostics>
-  <Diagnostic Message=""Only properties allowed in an object"" Start=""11"" Length=""5"" />
+  <Diagnostic Message=""Property name must be followed by a ':'"" Start=""11"" Length=""5"" />
 </Diagnostics>",
         @"<Diagnostics>
-  <Diagnostic Message=""Only properties allowed in an object"" Start=""11"" Length=""5"" />
+  <Diagnostic Message=""Property name must be followed by a ':'"" Start=""11"" Length=""5"" />
 </Diagnostics>");
         }
 
@@ -3308,10 +3307,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
   </CompilationUnit>
 </Tree>",
         @"<Diagnostics>
-  <Diagnostic Message=""Only properties allowed in an object"" Start=""11"" Length=""5"" />
+  <Diagnostic Message=""Property name must be followed by a ':'"" Start=""11"" Length=""5"" />
 </Diagnostics>",
         @"<Diagnostics>
-  <Diagnostic Message=""Only properties allowed in an object"" Start=""11"" Length=""5"" />
+  <Diagnostic Message=""Property name must be followed by a ':'"" Start=""11"" Length=""5"" />
 </Diagnostics>");
         }
 
@@ -3762,10 +3761,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
   </CompilationUnit>
 </Tree>",
         @"<Diagnostics>
-  <Diagnostic Message=""Only properties allowed in an object"" Start=""31"" Length=""5"" />
+  <Diagnostic Message=""Property name must be followed by a ':'"" Start=""31"" Length=""5"" />
 </Diagnostics>",
         @"<Diagnostics>
-  <Diagnostic Message=""Only properties allowed in an object"" Start=""31"" Length=""5"" />
+  <Diagnostic Message=""Property name must be followed by a ':'"" Start=""31"" Length=""5"" />
 </Diagnostics>");
         }
 
@@ -5299,10 +5298,10 @@ line""</StringToken>
   </CompilationUnit>
 </Tree>",
         @"<Diagnostics>
-  <Diagnostic Message=""Only properties allowed in an object"" Start=""11"" Length=""3"" />
+  <Diagnostic Message=""Property name must be followed by a ':'"" Start=""11"" Length=""3"" />
 </Diagnostics>",
         @"<Diagnostics>
-  <Diagnostic Message=""Only properties allowed in an object"" Start=""11"" Length=""3"" />
+  <Diagnostic Message=""Property name must be followed by a ':'"" Start=""11"" Length=""3"" />
 </Diagnostics>");
         }
 

@@ -9,6 +9,9 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.StackTraceExplorer
 {
@@ -28,40 +31,91 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
 
         public static Task<StackTraceAnalysisResult> AnalyzeAsync(string callstack, CancellationToken cancellationToken)
         {
-            var parsedFrames = Parse(callstack, cancellationToken);
-            return Task.FromResult(new StackTraceAnalysisResult(parsedFrames.ToImmutableArray()));
+            var result = new StackTraceAnalysisResult(callstack, Parse(callstack, cancellationToken));
+            return Task.FromResult(result);
         }
 
-        private static IEnumerable<ParsedFrame> Parse(string callstack, CancellationToken cancellationToken)
+        private static ImmutableArray<ParsedFrame> Parse(string callstack, CancellationToken cancellationToken)
         {
-            foreach (var line in SplitLines(callstack))
-            {
-                cancellationToken.ThrowIfCancellationRequested();
+            using var _ = ArrayBuilder<ParsedFrame>.GetInstance(out var builder);
 
-                var trimmedLine = line.Trim();
-
-                foreach (var parser in s_parsers)
-                {
-                    if (parser.TryParseLine(trimmedLine, out var parsedFrame))
-                    {
-                        yield return parsedFrame;
-                        break;
-                    }
-                }
-            }
-        }
-
-        private static readonly char[] s_lineSplit = new[] { '\n' };
-
-        private static IEnumerable<string> SplitLines(string callstack)
-        {
             // if the callstack comes from ActivityLog.xml it has been
             // encoding to be passed over HTTP. This should only decode 
             // specific characters like "&gt;" and "&lt;" to their "normal"
             // equivalents ">" and "<" so we can parse correctly
             callstack = WebUtility.HtmlDecode(callstack);
 
-            return callstack.Split(s_lineSplit, StringSplitOptions.RemoveEmptyEntries);
+            var sequence = VirtualCharSequence.Create(0, callstack);
+
+            foreach (var line in SplitLines(sequence))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // For now do the work to removing leading and trailing whitespace. 
+                // This keeps behavior we've had, but may not actually be the desired behavior in the long run.
+                // Specifically if we ever want to add a copy feature to copy back contents from a frame
+                var trimmedLine = Trim(line);
+
+                if (trimmedLine.IsEmpty)
+                {
+                    continue;
+                }
+
+                foreach (var parser in s_parsers)
+                {
+                    if (parser.TryParseLine(trimmedLine, out var parsedFrame))
+                    {
+                        builder.Add(parsedFrame);
+                        break;
+                    }
+                }
+            }
+
+            return builder.ToImmutable();
+        }
+
+        private static IEnumerable<VirtualCharSequence> SplitLines(VirtualCharSequence callstack)
+        {
+            var position = 0;
+
+            for (var i = 0; i < callstack.Length; i++)
+            {
+                if (callstack[i].Value == '\n')
+                {
+                    yield return callstack.GetSubSequence(TextSpan.FromBounds(position, i));
+
+                    // +1 to skip over the \n character
+                    position = i + 1;
+                }
+            }
+
+            if (position < callstack.Length)
+            {
+                yield return callstack.GetSubSequence(TextSpan.FromBounds(position, callstack.Length));
+            }
+        }
+
+        private static VirtualCharSequence Trim(VirtualCharSequence virtualChars)
+        {
+            if (virtualChars.Length == 0)
+            {
+                return virtualChars;
+            }
+
+            var start = 0;
+            var end = virtualChars.Length - 1;
+
+            while (virtualChars[start].IsWhiteSpace && start < end)
+            {
+                start++;
+            }
+
+            while (virtualChars[end].IsWhiteSpace && end > start)
+            {
+                end--;
+            }
+
+            return virtualChars.GetSubSequence(TextSpan.FromBounds(start, end + 1));
         }
     }
 }

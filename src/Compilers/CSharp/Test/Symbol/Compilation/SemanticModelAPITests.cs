@@ -4450,6 +4450,46 @@ public partial class C
             Assert.Equal("DEBUG", model.GetConstantValue(root.DescendantNodes().OfType<InvocationExpressionSyntax>().Single()));
         }
 
+        [Fact]
+        public void EqualsOnAliasSymbolWithNullContainingAssembly_NotEquals()
+        {
+            var text = @"
+[assembly: global::System.Runtime.Versioning.TargetFrameworkAttribute("".NETCoreApp, Version = v6.0"", FrameworkDisplayName = """")]
+";
+            var alias1 = getGlobalAlias(CreateCompilation(text));
+            var alias2 = getGlobalAlias(CreateCompilation(text));
+
+            Assert.Equal("<global namespace>", alias1.ContainingSymbol.ToTestDisplayString());
+            Assert.Null(alias1.ContainingAssembly);
+            Assert.False(alias1.Equals(alias2));
+
+            static IAliasSymbol getGlobalAlias(CSharpCompilation compilation)
+            {
+                var tree = compilation.SyntaxTrees.Single();
+                var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(ident => ident.Identifier.Text == "global").Single();
+                return compilation.GetSemanticModel(tree).GetAliasInfo(node);
+            }
+        }
+
+        [Fact]
+        public void EqualsOnAliasSymbolWithNullContainingAssembly_Equals()
+        {
+            var text = @"
+[assembly: global::System.Runtime.Versioning.TargetFrameworkAttribute("".NETCoreApp, Version = v6.0"", FrameworkDisplayName = """")]
+[assembly: global::System.Runtime.Versioning.TargetFrameworkAttribute("".NETCoreApp, Version = v6.0"", FrameworkDisplayName = """")]
+";
+            var compilation = CreateCompilation(text);
+            var tree = compilation.SyntaxTrees.Single();
+            var nodes = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(ident => ident.Identifier.Text == "global").ToArray();
+            var model = compilation.GetSemanticModel(tree);
+            var alias1 = model.GetAliasInfo(nodes[0]);
+            var alias2 = model.GetAliasInfo(nodes[1]);
+
+            Assert.Equal("<global namespace>", alias1.ContainingSymbol.ToTestDisplayString());
+            Assert.Null(alias1.ContainingAssembly);
+            Assert.True(alias1.Equals(alias2));
+        }
+
         #region "regression helper"
         private void Regression(string text)
         {

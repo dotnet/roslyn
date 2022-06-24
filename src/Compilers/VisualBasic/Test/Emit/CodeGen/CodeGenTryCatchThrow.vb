@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -81,6 +82,7 @@ expectedOutput:="TryCatchDivideByZeroExceptionFinally").
 
         <Fact()>
         Public Sub GotoOutOfCatch()
+            ' ILVerify: Leave into try block. { Offset = 55 }
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -119,6 +121,7 @@ L2:
 End Module
     </file>
 </compilation>,
+verify:=Verification.FailsILVerify,
 expectedOutput:="TryGoToCatchFinally").
             VerifyIL("EmitTest.Main",
             <![CDATA[

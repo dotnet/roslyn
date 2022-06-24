@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 ImmutableArray<ISignatureHelpProvider> providers,
                 SignatureHelpTriggerInfo triggerInfo)
             {
-                AssertIsForeground();
+                this.Computation.ThreadingContext.ThrowIfNotOnUIThread();
 
                 var caretPosition = Controller.TextView.GetCaretPoint(Controller.SubjectBuffer).Value;
                 var disconnectedBufferGraph = new DisconnectedBufferGraph(Controller.SubjectBuffer, Controller.TextView.TextBuffer);
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 {
                     using (Logger.LogBlock(FunctionId.SignatureHelp_ModelComputation_ComputeModelInBackground, cancellationToken))
                     {
-                        AssertIsBackground();
+                        this.Computation.ThreadingContext.ThrowIfNotOnBackgroundThread();
                         cancellationToken.ThrowIfCancellationRequested();
 
                         var document = Controller.DocumentProvider.GetDocument(caretPosition.Snapshot, cancellationToken);

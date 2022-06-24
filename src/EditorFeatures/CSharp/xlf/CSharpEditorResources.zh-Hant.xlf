@@ -37,6 +37,11 @@
         <target state="translated">修正插入的逐字字串</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fixing_string_literal_after_paste">
+        <source>Fixing string literal after paste</source>
+        <target state="new">Fixing string literal after paste</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Found_0_assemblies_for_1">
         <source>Found '{0}' assemblies for '{1}':</source>
         <target state="translated">找到 '{0}' 個 '{1}' 的組件:</target>
@@ -64,7 +69,7 @@
       </trans-unit>
       <trans-unit id="Grow_raw_string">
         <source>Grow raw string</source>
-        <target state="new">Grow raw string</target>
+        <target state="translated">放大原始字串</target>
         <note />
       </trans-unit>
       <trans-unit id="Load_from_0">
@@ -104,7 +109,7 @@
       </trans-unit>
       <trans-unit id="Split_raw_string">
         <source>Split raw string</source>
-        <target state="new">Split raw string</target>
+        <target state="translated">分割原始字串</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_string">

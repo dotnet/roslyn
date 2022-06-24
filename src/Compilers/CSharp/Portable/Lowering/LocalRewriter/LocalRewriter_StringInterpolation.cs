@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(rewrittenOperand.Type is object);
 
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo();
-            Conversion conversion = _compilation.Conversions.ClassifyConversionFromType(rewrittenOperand.Type, rewrittenType, ref useSiteInfo);
+            Conversion conversion = _compilation.Conversions.ClassifyConversionFromType(rewrittenOperand.Type, rewrittenType, isChecked: false, ref useSiteInfo);
             _diagnostics.Add(rewrittenOperand.Syntax, useSiteInfo);
             if (!conversion.IsImplicit)
             {
@@ -216,14 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i <= n; i++)
             {
                 var part = node.Parts[i];
-                var fillin = part as BoundStringInsert;
-                if (fillin == null)
-                {
-                    Debug.Assert(part is BoundLiteral && part.ConstantValue != null);
-                    // this is one of the literal parts
-                    stringBuilder.Append(part.ConstantValue.StringValue);
-                }
-                else
+                if (part is BoundStringInsert fillin)
                 {
                     // this is one of the expression holes
                     stringBuilder.Append('{').Append(nextFormatPosition++);
@@ -246,9 +239,39 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     expressions.Add(value); // NOTE: must still be lowered
                 }
+                else
+                {
+                    Debug.Assert(part is BoundLiteral && part.ConstantValue?.StringValue != null);
+                    // this is one of the literal parts.  If it contains a { or } then we need to escape those so that
+                    // they're treated the same way in string.Format.
+                    stringBuilder.Append(escapeInterpolatedStringLiteral(part.ConstantValue.StringValue));
+                }
             }
 
             format = _factory.StringLiteral(formatString.ToStringAndFree());
+            return;
+
+            static string escapeInterpolatedStringLiteral(string value)
+            {
+                var builder = PooledStringBuilder.GetInstance();
+                var stringBuilder = builder.Builder;
+                foreach (var c in value)
+                {
+                    stringBuilder.Append(c);
+                    if (c is '{' or '}')
+                    {
+                        stringBuilder.Append(c);
+                    }
+                }
+
+                // Avoid unnecessary allocation in the common case of nothing to escape.
+                var result = builder.Length == value.Length
+                    ? value
+                    : builder.Builder.ToString();
+                builder.Free();
+
+                return result;
+            }
         }
 
         public override BoundNode VisitInterpolatedString(BoundInterpolatedString node)
@@ -287,8 +310,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         // this is one of the literal parts
-                        Debug.Assert(part is BoundLiteral && part.ConstantValue is { StringValue: { } });
-                        part = _factory.StringLiteral(ConstantValueUtils.UnescapeInterpolatedStringLiteral(part.ConstantValue.StringValue));
+                        Debug.Assert(part is BoundLiteral && part.ConstantValue?.StringValue is not null);
+                        part = _factory.StringLiteral(part.ConstantValue.StringValue);
                     }
 
                     result = result == null ?
@@ -299,13 +322,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // We need to ensure that the result of the interpolated string is not null. If the single part has a non-null constant value
                 // or is itself an interpolated string (which by proxy cannot be null), then there's nothing else that needs to be done. Otherwise,
                 // we need to test for null and ensure "" if it is.
-                if (length == 1 && result is not ({ Kind: BoundKind.InterpolatedString } or { ConstantValue: { IsString: true } }))
+                if (length == 1 && result is not ({ Kind: BoundKind.InterpolatedString } or { ConstantValue.IsString: true }))
                 {
                     Debug.Assert(result is not null);
                     Debug.Assert(result.Type is not null);
                     Debug.Assert(result.Type.SpecialType == SpecialType.System_String || result.Type.IsErrorType());
                     var placeholder = new BoundValuePlaceholder(result.Syntax, result.Type);
-                    result = new BoundNullCoalescingOperator(result.Syntax, result, _factory.StringLiteral(""), leftPlaceholder: placeholder, leftConversion: placeholder, BoundNullCoalescingOperatorResultKind.LeftType, result.Type) { WasCompilerGenerated = true };
+                    result = new BoundNullCoalescingOperator(result.Syntax, result, _factory.StringLiteral(""), leftPlaceholder: placeholder, leftConversion: placeholder, BoundNullCoalescingOperatorResultKind.LeftType, @checked: false, result.Type) { WasCompilerGenerated = true };
                 }
             }
             else

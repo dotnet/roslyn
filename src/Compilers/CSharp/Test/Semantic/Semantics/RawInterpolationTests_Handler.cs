@@ -2453,9 +2453,10 @@ class C
 
         var comp = CreateCompilation(new[] { source, interpolatedStringBuilder },
             targetFramework: TargetFramework.NetCoreApp);
+        // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 10 }
         var verifier = CompileAndVerify(comp, expectedOutput: @"
 value:S converted
-value:C");
+value:C", verify: Verification.FailsILVerify);
 
         verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
@@ -7940,12 +7941,13 @@ public partial struct CustomHandler
 
         var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
+        // Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 1 }
         var verifier = CompileAndVerify(
             new[] { code, InterpolatedStringHandlerArgumentAttribute, handler },
             expectedOutput: "1literal:literal",
             symbolValidator: validator,
             sourceSymbolValidator: validator,
-            verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped);
+            verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.FailsILVerify : Verification.Skipped);
         verifier.VerifyIL("<top-level-statements-entry-point>", refness == "in" ? @"
 {
   // Code size       46 (0x2e)
@@ -11380,6 +11382,120 @@ literal: }");
   IL_003c:  callvirt   ""string object.ToString()""
   IL_0041:  call       ""void System.Console.WriteLine(string)""
   IL_0046:  ret
+}
+");
+    }
+
+    [Theory, WorkItem(59603, "https://github.com/dotnet/roslyn/issues/59603")]
+    [InlineData(@"$$$""""""{{1 + 2}}""""""")]
+    public void BracesNotEscaped1(string expression)
+    {
+        var code = @"
+int i = 1;
+CustomHandler c = " + expression + @";
+System.Console.WriteLine(c.ToString());";
+
+        var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false) });
+
+        var verifier = CompileAndVerify(comp, expectedOutput: @"
+literal:{{1 + 2}}");
+
+        verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+    // Code size       43 (0x2b)
+    .maxstack  3
+    .locals init (CustomHandler V_0, //c
+                CustomHandler V_1)
+    IL_0000:  ldloca.s   V_1
+    IL_0002:  ldc.i4.s   9
+    IL_0004:  ldc.i4.0
+    IL_0005:  call       ""CustomHandler..ctor(int, int)""
+    IL_000a:  ldloca.s   V_1
+    IL_000c:  ldstr      ""{{1 + 2}}""
+    IL_0011:  call       ""void CustomHandler.AppendLiteral(string)""
+    IL_0016:  ldloc.1
+    IL_0017:  stloc.0
+    IL_0018:  ldloca.s   V_0
+    IL_001a:  constrained. ""CustomHandler""
+    IL_0020:  callvirt   ""string object.ToString()""
+    IL_0025:  call       ""void System.Console.WriteLine(string)""
+    IL_002a:  ret
+}
+");
+    }
+
+    [Theory, WorkItem(59603, "https://github.com/dotnet/roslyn/issues/59603")]
+    [InlineData(@"$$$$""""""{{1 + 2}}""""""")]
+    public void BracesNotEscaped2(string expression)
+    {
+        var code = @"
+int i = 1;
+CustomHandler c = " + expression + @";
+System.Console.WriteLine(c.ToString());";
+
+        var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false) });
+
+        var verifier = CompileAndVerify(comp, expectedOutput: @"
+literal:{{1 + 2}}");
+
+        verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+    // Code size       43 (0x2b)
+    .maxstack  3
+    .locals init (CustomHandler V_0, //c
+                CustomHandler V_1)
+    IL_0000:  ldloca.s   V_1
+    IL_0002:  ldc.i4.s   9
+    IL_0004:  ldc.i4.0
+    IL_0005:  call       ""CustomHandler..ctor(int, int)""
+    IL_000a:  ldloca.s   V_1
+    IL_000c:  ldstr      ""{{1 + 2}}""
+    IL_0011:  call       ""void CustomHandler.AppendLiteral(string)""
+    IL_0016:  ldloc.1
+    IL_0017:  stloc.0
+    IL_0018:  ldloca.s   V_0
+    IL_001a:  constrained. ""CustomHandler""
+    IL_0020:  callvirt   ""string object.ToString()""
+    IL_0025:  call       ""void System.Console.WriteLine(string)""
+    IL_002a:  ret
+}
+");
+    }
+
+    [Theory, WorkItem(59603, "https://github.com/dotnet/roslyn/issues/59603")]
+    [InlineData(@"$$$$""""""{{{1 + 2}}}""""""")]
+    public void BracesNotEscaped3(string expression)
+    {
+        var code = @"
+int i = 1;
+CustomHandler c = " + expression + @";
+System.Console.WriteLine(c.ToString());";
+
+        var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false) });
+
+        var verifier = CompileAndVerify(comp, expectedOutput: @"
+literal:{{{1 + 2}}}");
+
+        verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+    // Code size       43 (0x2b)
+    .maxstack  3
+    .locals init (CustomHandler V_0, //c
+                CustomHandler V_1)
+    IL_0000:  ldloca.s   V_1
+    IL_0002:  ldc.i4.s   11
+    IL_0004:  ldc.i4.0
+    IL_0005:  call       ""CustomHandler..ctor(int, int)""
+    IL_000a:  ldloca.s   V_1
+    IL_000c:  ldstr      ""{{{1 + 2}}}""
+    IL_0011:  call       ""void CustomHandler.AppendLiteral(string)""
+    IL_0016:  ldloc.1
+    IL_0017:  stloc.0
+    IL_0018:  ldloca.s   V_0
+    IL_001a:  constrained. ""CustomHandler""
+    IL_0020:  callvirt   ""string object.ToString()""
+    IL_0025:  call       ""void System.Console.WriteLine(string)""
+    IL_002a:  ret
 }
 ");
     }

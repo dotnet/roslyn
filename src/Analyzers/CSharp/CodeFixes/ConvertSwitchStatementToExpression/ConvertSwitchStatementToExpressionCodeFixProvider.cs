@@ -38,8 +38,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.ConvertSwitchStatementToExpressionDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var switchLocation = context.Diagnostics.First().AdditionalLocations[0];
@@ -50,15 +48,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 return Task.CompletedTask;
             }
 
-            context.RegisterCodeFix(
-                new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics.First(), c)),
-                context.Diagnostics);
+            RegisterCodeFix(context, CSharpAnalyzersResources.Convert_switch_statement_to_expression, nameof(CSharpAnalyzersResources.Convert_switch_statement_to_expression));
             return Task.CompletedTask;
         }
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             using var spansDisposer = ArrayBuilder<TextSpan>.GetInstance(diagnostics.Length, out var spans);
             foreach (var diagnostic in diagnostics)
@@ -113,14 +109,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                     Debug.Assert(nextStatement.IsKind(SyntaxKind.ThrowStatement, SyntaxKind.ReturnStatement));
                     editor.RemoveNode(nextStatement.IsParentKind(SyntaxKind.GlobalStatement) ? nextStatement.GetRequiredParent() : nextStatement);
                 }
-            }
-        }
-
-        private sealed class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Convert_switch_statement_to_expression, createChangedDocument, nameof(CSharpAnalyzersResources.Convert_switch_statement_to_expression))
-            {
             }
         }
     }

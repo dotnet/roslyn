@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [ExportCompletionProvider(nameof(SymbolCompletionProvider), LanguageNames.CSharp)]
     [ExtensionOrder(After = nameof(SpeculativeTCompletionProvider))]
     [Shared]
-    internal partial class SymbolCompletionProvider : AbstractRecommendationServiceBasedCompletionProvider<CSharpSyntaxContext>
+    internal sealed class SymbolCompletionProvider : AbstractRecommendationServiceBasedCompletionProvider<CSharpSyntaxContext>
     {
         private static readonly Dictionary<(bool importDirective, bool preselect, bool tupleLiteral), CompletionItemRules> s_cachedRules = new();
 
@@ -72,6 +72,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         public SymbolCompletionProvider()
         {
         }
+
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharactersWithArgumentList;
 
         internal override string Language => LanguageNames.CSharp;
 
@@ -129,8 +131,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return true;
         }
 
-        public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharactersWithArgumentList;
-
         protected override bool IsTriggerOnDot(SyntaxToken token, int characterPosition)
         {
             if (!CompletionUtilities.TreatAsDot(token, characterPosition))
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override CompletionItemRules GetCompletionItemRules(ImmutableArray<(ISymbol symbol, bool preselect)> symbols, CSharpSyntaxContext context)
         {
-            var preselect = symbols.Any(t => t.preselect);
+            var preselect = symbols.Any(static t => t.preselect);
             s_cachedRules.TryGetValue(ValueTuple.Create(context.IsLeftSideOfImportAliasDirective, preselect, context.IsPossibleTupleContext), out var rule);
 
             return rule ?? CompletionItemRules.Default;
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // e.g. Action c = = Bar;
             if (symbol.IsKind(SymbolKind.Method) && !context.IsNameOfContext)
             {
-                var isInferredTypeDelegateOrFunctionPointer = context.InferredTypes.Any(type => type.IsDelegateType() || type.IsFunctionPointerType());
+                var isInferredTypeDelegateOrFunctionPointer = context.InferredTypes.Any(static type => type.IsDelegateType() || type.IsFunctionPointerType());
                 if (!isInferredTypeDelegateOrFunctionPointer)
                 {
                     item = SymbolCompletionItem.AddShouldProvideParenthesisCompletion(item);

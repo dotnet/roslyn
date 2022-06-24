@@ -8,8 +8,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractStaticMemberAccess">
-        <source>A shared abstract interface member cannot be accessed.</source>
-        <target state="translated">공유 추상 인터페이스 멤버에 액세스할 수 없습니다.</target>
+        <source>A shared abstract or virtual interface member cannot be accessed.</source>
+        <target state="translated">공유 추상 또는 가상 인터페이스 구성원에 액세스할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
@@ -25,6 +25,11 @@
       <trans-unit id="ERR_DefaultInterfaceImplementationInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</source>
         <target state="translated">'{0}' 형식에는 비추상 멤버가 있으므로 해당 형식을 포함할 수 없습니다. 'Interop 형식 포함' 속성을 false로 설정해보세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DoNotUseCompilerFeatureRequired">
+        <source>'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute' is reserved for compiler usage only.</source>
+        <target state="translated">'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute'는 컴파일러 용도로만 예약되어 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
@@ -63,13 +68,18 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnimplementedSharedMember">
-        <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract '{2}'.</source>
-        <target state="translated">{0} '{1}'은(는) 공유 추상 '{2}'이(가) 포함되어 있으므로 '{3}' 인터페이스를 구현할 수 없습니다.</target>
+        <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract or virtual '{2}'.</source>
+        <target state="translated">{0} '{1}'은(는) 공유 추상 또는 가상 '{2}'이(가) 포함되어 있으므로 '{3}' 인터페이스를 구현할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
         <source>'UnmanagedCallersOnly' attribute is not supported.</source>
         <target state="translated">'UnmanagedCallersOnly' 특성은 지원되지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsupportedCompilerFeature">
+        <source>'{0}' requires compiler feature '{1}', which is not supported by this version of the Visual Basic compiler.</source>
+        <target state="translated">'{0}'에는 이 버전의 Visual Basic 컴파일러에서 지원하지 않는 컴파일러 기능 '{1}'이(가) 필요합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CallerArgumentExpression">

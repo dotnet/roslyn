@@ -63,6 +63,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return New VisualBasicParseOptions(languageVersion:=langVersion, preprocessorSymbols:=preprocessorSymbols)
             End Function
 
+            Public Overrides Function OptionsDifferOnlyByPreprocessorDirectives(options1 As ParseOptions, options2 As ParseOptions) As Boolean
+                Dim vbOptions1 = DirectCast(options1, VisualBasicParseOptions)
+                Dim vbOptions2 = DirectCast(options2, VisualBasicParseOptions)
+
+                ' The easy way to figure out if these only differ by a single field is to update one with the preprocessor symbols of the
+                ' other, and then do an equality check from there; this is future proofed if another value is ever added.
+                Return vbOptions1.WithPreprocessorSymbols(vbOptions2.PreprocessorSymbols) = vbOptions2
+            End Function
+
             Public Overloads Overrides Function GetDefaultParseOptionsWithLatestLanguageVersion() As ParseOptions
                 Return _parseOptionsWithLatestLanguageVersion
             End Function

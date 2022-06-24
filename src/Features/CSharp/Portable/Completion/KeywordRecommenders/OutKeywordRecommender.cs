@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             var syntaxTree = context.SyntaxTree;
 
-            // TODO(cyrusn): lambda/anon methods can have out/ref parameters
             return
                 context.TargetToken.IsTypeParameterVarianceContext() ||
                 IsOutParameterModifierContext(position, context) ||

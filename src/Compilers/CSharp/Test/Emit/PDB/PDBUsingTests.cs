@@ -569,7 +569,7 @@ class A { void M() {  } }
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation), Reason = "https://github.com/dotnet/roslyn/issues/60045")]
         public void ExternAliases4()
         {
             var src1 = @"

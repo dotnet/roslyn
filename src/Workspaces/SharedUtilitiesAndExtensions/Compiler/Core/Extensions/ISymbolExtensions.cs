@@ -252,10 +252,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static bool IsDelegateType([NotNullWhen(returnValue: true)] this ISymbol? symbol)
-            => symbol is ITypeSymbol && ((ITypeSymbol)symbol).TypeKind == TypeKind.Delegate;
+            => symbol is ITypeSymbol { TypeKind: TypeKind.Delegate };
 
         public static bool IsAnonymousType([NotNullWhen(returnValue: true)] this ISymbol? symbol)
-            => symbol is INamedTypeSymbol && ((INamedTypeSymbol)symbol).IsAnonymousType;
+            => symbol is INamedTypeSymbol { IsAnonymousType: true };
 
         public static bool IsNormalAnonymousType([NotNullWhen(returnValue: true)] this ISymbol? symbol)
             => symbol.IsAnonymousType() && !symbol.IsDelegateType();
@@ -279,6 +279,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 IPropertySymbol propertySymbol => !propertySymbol.IsReadOnly,
                 _ => false,
             };
+
+        public static bool IsRequired([NotNullWhen(returnValue: true)] this ISymbol? symbol)
+            => symbol is IFieldSymbol { IsRequired: true } or IPropertySymbol { IsRequired: true };
 
         public static ITypeSymbol? GetMemberType(this ISymbol symbol)
             => symbol switch
@@ -342,11 +345,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return symbol?.OriginalDefinition;
         }
 
-        public static bool IsFunctionValue([NotNullWhen(returnValue: true)] this ISymbol? symbol)
-            => symbol is ILocalSymbol && ((ILocalSymbol)symbol).IsFunctionValue;
+        public static bool IsFunctionValue([NotNullWhen(true)] this ISymbol? symbol)
+            => symbol is ILocalSymbol { IsFunctionValue: true };
 
-        public static bool IsThisParameter([NotNullWhen(returnValue: true)] this ISymbol? symbol)
-            => symbol?.Kind == SymbolKind.Parameter && ((IParameterSymbol)symbol).IsThis;
+        public static bool IsThisParameter([NotNullWhen(true)] this ISymbol? symbol)
+            => symbol is IParameterSymbol { IsThis: true };
 
         [return: NotNullIfNotNull(parameterName: "symbol")]
         public static ISymbol? ConvertThisParameterToType(this ISymbol? symbol)
@@ -685,8 +688,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return x is
                 {
                     Name: WellKnownMemberNames.MoveNextMethodName,
-                    ReturnType: { SpecialType: SpecialType.System_Boolean },
-                    Parameters: { Length: 0 },
+                    ReturnType.SpecialType: SpecialType.System_Boolean,
+                    Parameters.Length: 0,
                 };
             }))
             {
@@ -750,7 +753,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// </summary>
         public static bool IsSymbolWithSpecialDiscardName(this ISymbol symbol)
             => symbol.Name.StartsWith("_") &&
-               (symbol.Name.Length == 1 || uint.TryParse(symbol.Name.Substring(1), out _));
+               (symbol.Name.Length == 1 || uint.TryParse(symbol.Name[1..], out _));
 
         /// <summary>
         /// Returns <see langword="true"/>, if the symbol is marked with the <see cref="System.ObsoleteAttribute"/>.
@@ -758,10 +761,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// <param name="symbol"></param>
         /// <returns><see langword="true"/> if the symbol is marked with the <see cref="System.ObsoleteAttribute"/>.</returns>
         public static bool IsObsolete(this ISymbol symbol)
-            => symbol.GetAttributes().Any(x => x.AttributeClass is
+            => symbol.GetAttributes().Any(static x => x.AttributeClass is
             {
                 MetadataName: nameof(ObsoleteAttribute),
-                ContainingNamespace: { Name: nameof(System) },
+                ContainingNamespace.Name: nameof(System),
             });
     }
 }

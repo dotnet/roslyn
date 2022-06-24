@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 throw new ArgumentException(CodeAnalysisResources.PEImageNotAvailable, nameof(module));
             }
 
-            var hasPortablePdb = module.Module.PEReaderOpt.ReadDebugDirectory().Any(entry => entry.IsPortableCodeView);
+            var hasPortablePdb = module.Module.PEReaderOpt.ReadDebugDirectory().Any(static entry => entry.IsPortableCodeView);
 
             var localSigProvider = new Func<MethodDefinitionHandle, StandaloneSignatureHandle>(methodHandle =>
             {

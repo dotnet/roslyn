@@ -5812,7 +5812,7 @@ unsafe class C
     }
 }
 ";
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyIL("C.M", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.FailsPEVerify).VerifyIL("C.M", @"
 {
   // Code size       79 (0x4f)
   .maxstack  1
@@ -5902,7 +5902,7 @@ unsafe class C
     }
 }
 ";
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyIL("C.M", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.FailsPEVerify).VerifyIL("C.M", @"
 {
   // Code size       79 (0x4f)
   .maxstack  1
@@ -6499,7 +6499,7 @@ unsafe class C
     }
 }
 ";
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "1234", verify: Verification.Fails).VerifyIL("C.Main", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "1234", verify: Verification.FailsPEVerify).VerifyIL("C.Main", @"
 {
   // Code size      120 (0x78)
   .maxstack  5
@@ -9784,7 +9784,7 @@ unsafe class C
     }
 }
 ";
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyIL("C.M", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.FailsPEVerify).VerifyIL("C.M", @"
 {
   // Code size       12 (0xc)
   .maxstack  1
@@ -10146,8 +10146,11 @@ No overflow from (S15*)0 + sizeof(S15)
 No overflow from (S15*)0 + sizeof(S16)
 No overflow from (S16*)0 + sizeof(S15)";
             }
-
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails);
+            // PEVerify:
+            // [ : C+<>c__DisplayClass0_0::<Main>b__0][mdToken=0x6000005][offset 0x00000012][found Native Int][expected unmanaged pointer] Unexpected type on the stack.
+            // [ : C+<> c__DisplayClass0_0::< Main > b__1][mdToken= 0x6000006][offset 0x00000012][found Native Int][expected unmanaged pointer] Unexpected type on the stack.
+            // [ : C +<> c__DisplayClass0_0::< Main > b__2][mdToken = 0x6000007][offset 0x00000012][found Native Int][expected unmanaged pointer] Unexpected type on the stack.
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify);
         }
 
         [Fact]
@@ -10328,7 +10331,10 @@ public class Test
     }
 }
 ";
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails).VerifyDiagnostics();
+            // PEVerify:
+            // [ : ChannelServices::.cctor][mdToken=0x6000005][offset 0x0000000C][found unmanaged pointer][expected unmanaged pointer] Unexpected type on the stack.
+            // [ : ChannelServices::GetPrivateContextsPerfCounters][mdToken= 0x6000002][offset 0x00000002][found Native Int][expected unmanaged pointer] Unexpected type on the stack.
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.FailsPEVerify).VerifyDiagnostics();
         }
 
         [WorkItem(545026, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545026")]
@@ -10342,7 +10348,9 @@ class C
     unsafe int* p = (int*)2;
 }
 ";
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyDiagnostics(
+            // PEVerify:
+            // [ : C::.ctor][mdToken=0x6000001][offset 0x0000000A][found Native Int][expected unmanaged pointer] Unexpected type on the stack.
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.FailsPEVerify).VerifyDiagnostics(
                 // (4,9): warning CS0414: The field 'C.x' is assigned but its value is never used
                 //     int x = 1;
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "x").WithArguments("C.x"));
@@ -10359,7 +10367,9 @@ class C
     int x = 1;
 }
 ";
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyDiagnostics(
+            // PEVerify:
+            // [ : C::.ctor][mdToken=0x6000001][offset 0x00000003][found Native Int][expected unmanaged pointer] Unexpected type on the stack.
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.FailsPEVerify).VerifyDiagnostics(
                 // (5,9): warning CS0414: The field 'C.x' is assigned but its value is never used
                 //     int x = 1;
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "x").WithArguments("C.x"));
@@ -10844,7 +10854,7 @@ unsafe struct S1
 
 ";
 
-            var verifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll.WithConcurrentBuild(false), verify: Verification.Fails);
+            var verifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll.WithConcurrentBuild(false), verify: Verification.FailsPEVerify);
         }
 
         [Fact, WorkItem(748530, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/748530")]
@@ -11360,7 +11370,10 @@ public static class Program
        return types.Length;
    }
 }";
-            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, expectedOutput: "0", verify: Verification.Fails);
+            // PEVerify:
+            // [ : Program::Main][mdToken= 0x6000001][offset 0x00000001] Unmanaged pointers are not a verifiable type.
+            // [ : Program::Main][mdToken = 0x6000001][offset 0x00000001] Unable to resolve token.
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, expectedOutput: "0", verify: Verification.FailsPEVerify);
             comp.VerifyIL("Program.Main", @"
 {
   // Code size       17 (0x11)

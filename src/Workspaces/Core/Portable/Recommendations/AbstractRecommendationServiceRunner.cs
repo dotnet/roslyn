@@ -14,12 +14,12 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 
-namespace Microsoft.CodeAnalysis.Recommendations
+namespace Microsoft.CodeAnalysis.Recommendations;
+
+internal abstract partial class AbstractRecommendationService<TSyntaxContext>
 {
-    internal abstract class AbstractRecommendationServiceRunner<TSyntaxContext>
-        where TSyntaxContext : SyntaxContext
+    protected abstract class AbstractRecommendationServiceRunner
     {
         protected readonly TSyntaxContext _context;
         protected readonly bool _filterOutOfScopeLocals;
@@ -44,15 +44,15 @@ namespace Microsoft.CodeAnalysis.Recommendations
         // This code is to help give intellisense in the following case: 
         // query.Include(a => a.SomeProperty).ThenInclude(a => a.
         // where there are more than one overloads of ThenInclude accepting different types of parameters.
-        private ImmutableArray<ISymbol> GetMemberSymbolsForParameter(IParameterSymbol parameter, int position, bool useBaseReferenceAccessibility, bool unwrapNullable)
+        private ImmutableArray<ISymbol> GetMemberSymbolsForParameter(IParameterSymbol parameter, int position, bool useBaseReferenceAccessibility, bool unwrapNullable, bool isForDereference)
         {
-            var symbols = TryGetMemberSymbolsForLambdaParameter(parameter, position);
+            var symbols = TryGetMemberSymbolsForLambdaParameter(parameter, position, isForDereference);
             return symbols.IsDefault
-                ? GetMemberSymbols(parameter.Type, position, excludeInstance: false, useBaseReferenceAccessibility, unwrapNullable)
+                ? GetMemberSymbols(parameter.Type, position, excludeInstance: false, useBaseReferenceAccessibility, unwrapNullable, isForDereference)
                 : symbols;
         }
 
-        private ImmutableArray<ISymbol> TryGetMemberSymbolsForLambdaParameter(IParameterSymbol parameter, int position)
+        private ImmutableArray<ISymbol> TryGetMemberSymbolsForLambdaParameter(IParameterSymbol parameter, int position, bool isForDereference)
         {
             // Use normal lookup path for this/base parameters.
             if (parameter.IsThis)
@@ -110,13 +110,13 @@ namespace Microsoft.CodeAnalysis.Recommendations
             // parameter the compiler inferred as it may have made a completely suitable inference for it.
             return parameterTypeSymbols
                 .Concat(parameter.Type)
-                .SelectMany(parameterTypeSymbol => GetMemberSymbols(parameterTypeSymbol, position, excludeInstance: false, useBaseReferenceAccessibility: false, unwrapNullable: false))
+                .SelectMany(parameterTypeSymbol => GetMemberSymbols(parameterTypeSymbol, position, excludeInstance: false, useBaseReferenceAccessibility: false, unwrapNullable: false, isForDereference))
                 .ToImmutableArray();
         }
 
         private ImmutableArray<ITypeSymbol> SubstituteTypeParameters(ImmutableArray<ITypeSymbol> parameterTypeSymbols, SyntaxNode invocationExpression)
         {
-            if (!parameterTypeSymbols.Any(t => t.IsKind(SymbolKind.TypeParameter)))
+            if (!parameterTypeSymbols.Any(static t => t.IsKind(SymbolKind.TypeParameter)))
             {
                 return parameterTypeSymbols;
             }
@@ -288,8 +288,8 @@ namespace Microsoft.CodeAnalysis.Recommendations
             //
             return recommendationSymbol.IsNamespace() &&
                    recommendationSymbol.Locations.Any(
-                       candidateLocation => !(declarationSyntax.SyntaxTree == candidateLocation.SourceTree &&
-                                              declarationSyntax.Span.IntersectsWith(candidateLocation.SourceSpan)));
+                       static (candidateLocation, declarationSyntax) => !(declarationSyntax.SyntaxTree == candidateLocation.SourceTree &&
+                                              declarationSyntax.Span.IntersectsWith(candidateLocation.SourceSpan)), declarationSyntax);
         }
 
         protected ImmutableArray<ISymbol> GetMemberSymbols(
@@ -297,12 +297,18 @@ namespace Microsoft.CodeAnalysis.Recommendations
             int position,
             bool excludeInstance,
             bool useBaseReferenceAccessibility,
-            bool unwrapNullable)
+            bool unwrapNullable,
+            bool isForDereference)
         {
             // For a normal parameter, we have a specialized codepath we use to ensure we properly get lambda parameter
             // information that the compiler may fail to give.
             if (container is IParameterSymbol parameter)
-                return GetMemberSymbolsForParameter(parameter, position, useBaseReferenceAccessibility, unwrapNullable);
+                return GetMemberSymbolsForParameter(parameter, position, useBaseReferenceAccessibility, unwrapNullable, isForDereference);
+
+            if (isForDereference && container is IPointerTypeSymbol pointerType)
+            {
+                container = pointerType.PointedAtType;
+            }
 
             if (container is not INamespaceOrTypeSymbol namespaceOrType)
                 return ImmutableArray<ISymbol>.Empty;

@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.ExtractMethod;
-using Microsoft.CodeAnalysis.Editor.CSharp.ExtractMethod;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -8823,7 +8822,7 @@ struct Goo
             var code = @"int i; [|i = 2|]; i = 3;";
             var expected = @"int i; i = NewMethod();
 
-int NewMethod()
+static int NewMethod()
 {
     return 2;
 }
@@ -9200,7 +9199,7 @@ public static void GetNonVirtualMethod<TDelegate>( Type type, string name)
     var invoke = GetDelegateType(delegateType).GetMethod(""Invoke"");
 }
 
-Type GetDelegateType(Type delegateType)
+static Type GetDelegateType(Type delegateType)
 {
     return delegateType;
 }";
@@ -9554,7 +9553,7 @@ class Program
 }|]";
             var expected = @"NewMethod();
 
-void NewMethod()
+static void NewMethod()
 {
     if (true)
     {
@@ -10376,7 +10375,7 @@ namespace ClassLibrary9
             var service = new CSharpExtractMethodService();
             Assert.NotNull(await Record.ExceptionAsync(async () =>
             {
-                var tree = await service.ExtractMethodAsync(document: null, textSpan: default, localFunction: false, options: ExtractMethodOptions.Default, CancellationToken.None);
+                var tree = await service.ExtractMethodAsync(document: null, textSpan: default, localFunction: false, options: default, CancellationToken.None);
             }));
         }
 
@@ -10392,7 +10391,7 @@ namespace ClassLibrary9
 
             var service = new CSharpExtractMethodService() as IExtractMethodService;
 
-            await service.ExtractMethodAsync(document, textSpan: default, localFunction: false, ExtractMethodOptions.Default, CancellationToken.None);
+            await service.ExtractMethodAsync(document, textSpan: default, localFunction: false, ExtractMethodGenerationOptions.GetDefault(project.LanguageServices), CancellationToken.None);
         }
 
         [WpfFact]
@@ -11249,7 +11248,7 @@ local = [|true|];
             var expected = @"
 bool local;
 
-bool NewMethod()
+static bool NewMethod()
 {
     return true;
 }
@@ -11272,7 +11271,7 @@ System.Console.WriteLine([|""string""|]);
             var expected = @"
 System.Console.WriteLine((string)NewMethod());
 
-string NewMethod()
+static string NewMethod()
 {
     return ""string"";
 }";

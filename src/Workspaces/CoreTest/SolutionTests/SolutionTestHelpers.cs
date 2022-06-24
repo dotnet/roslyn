@@ -5,9 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests.Persistence;
 using Xunit;
@@ -23,11 +20,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
             => CreateWorkspace(new[]
             {
                 typeof(TestProjectCacheService),
-                typeof(TestTemporaryStorageService)
+                typeof(TestTemporaryStorageServiceFactory)
+            });
+
+        public static Workspace CreateWorkspaceWithRecoverableTextAndSyntaxTreesAndWeakCompilations()
+            => CreateWorkspace(new[]
+            {
+                typeof(TestProjectCacheService),
             });
 
         public static Workspace CreateWorkspaceWithPartialSemanticsAndWeakCompilations()
-            => WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics(new[] { typeof(TestProjectCacheService), typeof(TestTemporaryStorageService) });
+            => WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics(new[] { typeof(TestProjectCacheService), typeof(TestTemporaryStorageServiceFactory) });
 
 #nullable disable
 

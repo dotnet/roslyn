@@ -8,7 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Extensions;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 // Without parenthesis: variable span is of type `byte*` which can only be used in unsafe context.
                 if (nodeParent is EqualsValueClauseSyntax { Parent: VariableDeclaratorSyntax { Parent: VariableDeclarationSyntax varDecl } })
                 {
-                    // we have either `var x = (stackalloc byte[8])` or `Span<byte> x = (stackalloc byte[8])`.  The former
+                    // We have either `var x = (stackalloc byte[8])` or `Span<byte> x = (stackalloc byte[8])`.  The former
                     // is not safe to remove. the latter is.
                     if (semanticModel.GetTypeInfo(varDecl.Type, cancellationToken).Type is
                         {
@@ -84,6 +84,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
 
                 return false;
+            }
+
+            // Don't remove parentheses around `<` and `>` if there's a reasonable chance that it might
+            // pair with the opposite form, causing them to be reinterpreted as generic syntax. See
+            // https://github.com/dotnet/roslyn/issues/43934 for examples.
+            if (expression.IsKind(SyntaxKind.GreaterThanExpression, SyntaxKind.LessThanExpression) &&
+                nodeParent is ArgumentSyntax)
+            {
+                var opposite = expression.IsKind(SyntaxKind.GreaterThanExpression) ? SyntaxKind.LessThanExpression : SyntaxKind.GreaterThanExpression;
+                if (nodeParent.GetRequiredParent().ChildNodes().OfType<ArgumentSyntax>().Any(a => a.Expression.IsKind(opposite)))
+                    return false;
             }
 
             // (throw ...) -> throw ...
@@ -414,12 +425,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     //  3) for logical operators the result will always be the same (there are 
                     //     additional conditions that are checked for non-logical operators).
                     if (IsAssociative(parentBinaryExpression.Kind()) &&
-                        node.Expression.Kind() == parentBinaryExpression.Kind() &&
-                        parentBinaryExpression.Right == node)
+                        parentBinaryExpression.Right == node &&
+                        node.Expression.IsKind(parentBinaryExpression.Kind(), out BinaryExpressionSyntax? nodeBinary))
                     {
-                        return !node.IsSafeToChangeAssociativity(
-                            node.Expression, parentBinaryExpression.Left,
-                            parentBinaryExpression.Right, semanticModel);
+                        return !CSharpSemanticFacts.Instance.IsSafeToChangeAssociativity(
+                            nodeBinary, parentBinaryExpression, semanticModel);
                     }
 
                     // Null-coalescing is right associative; removing parens from the LHS changes the association.

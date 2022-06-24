@@ -4,13 +4,12 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
-Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports Microsoft.CodeAnalysis.CodeCleanup.Providers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Formatting
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CaseCorrecting
     <[UseExportProvider]>
@@ -34,7 +33,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CaseCorrecting
             Dim buffer = hostDocument.GetTextBuffer()
             Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
             Dim span = (Await document.GetSyntaxRootAsync()).FullSpan
-            Dim options = Await SyntaxFormattingOptions.FromDocumentAsync(document, CancellationToken.None)
+
+            Dim options = CodeCleanupOptions.GetDefault(document.Project.LanguageServices)
 
             Dim service = document.GetLanguageService(Of ICodeCleanerService)
             Dim newDocument = Await service.CleanupAsync(
