@@ -48,7 +48,7 @@ jobs:
       continueOnError: true
 
     - powershell: Write-Host "##vso[task.setvariable variable=NUGET_PACKAGES]$(Build.SourcesDirectory)/.packages"
-      displayName: Set Nuet Packages Directory
+      displayName: Set NuGet Packages Directory
 
     - task: CacheBeta@1
       displayName: .packages Cache
