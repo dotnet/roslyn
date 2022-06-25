@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PreferTrailingComma
             context.RegisterSyntaxNodeAction(AnalyzeSyntaxNode,
                 SyntaxKind.EnumDeclaration, SyntaxKind.PropertyPatternClause, SyntaxKind.SwitchExpression,
                 SyntaxKind.ObjectInitializerExpression, SyntaxKind.CollectionInitializerExpression, SyntaxKind.WithInitializerExpression,
-                SyntaxKind.ArrayInitializerExpression, SyntaxKind.ComplexElementInitializerExpression, SyntaxKind.AnonymousObjectCreationExpression, SyntaxKind.ListPattern);
+                SyntaxKind.ArrayInitializerExpression, SyntaxKind.AnonymousObjectCreationExpression, SyntaxKind.ListPattern);
         }
 
         private void AnalyzeSyntaxNode(SyntaxNodeAnalysisContext context)

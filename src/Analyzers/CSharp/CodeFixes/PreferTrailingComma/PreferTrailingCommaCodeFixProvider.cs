@@ -40,20 +40,24 @@ namespace Microsoft.CodeAnalysis.CSharp.PreferTrailingComma
 
         protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
+            // Reverse order so that we fix inner diagnostics first when there are multiple nested diagnostics.
+            //diagnostics = diagnostics.Sort((d1, d2) => d2.Location.SourceSpan.Start - d1.Location.SourceSpan.Start);
+
             foreach (var diagnostic in diagnostics)
             {
                 var node = diagnostic.Location.FindNode(cancellationToken).GetRequiredParent();
-                var nodesAndTokens = PreferTrailingCommaDiagnosticAnalyzer.GetNodesWithSeparators(node);
-                var lastNode = nodesAndTokens[^1];
-                nodesAndTokens = nodesAndTokens.ReplaceRange(lastNode, ImmutableArray.Create(lastNode.WithTrailingTrivia(), SyntaxFactory.Token(leading: default, SyntaxKind.CommaToken, trailing: lastNode.GetTrailingTrivia())));
-                editor.ReplaceNode(node, GetReplacement(node, nodesAndTokens));
+                editor.ReplaceNode(node, (n, g) => GetReplacement(n));
             }
 
             return Task.CompletedTask;
         }
 
-        private static SyntaxNode GetReplacement(SyntaxNode node, SyntaxNodeOrTokenList nodesAndTokens)
+        private static SyntaxNode GetReplacement(SyntaxNode node)
         {
+            var nodesAndTokens = PreferTrailingCommaDiagnosticAnalyzer.GetNodesWithSeparators(node);
+            var lastNode = nodesAndTokens[^1];
+            nodesAndTokens = nodesAndTokens.ReplaceRange(lastNode, ImmutableArray.Create(lastNode.WithTrailingTrivia(), SyntaxFactory.Token(leading: default, SyntaxKind.CommaToken, trailing: lastNode.GetTrailingTrivia())));
+
             return node switch
             {
                 EnumDeclarationSyntax enumDeclaration => enumDeclaration.WithMembers(SyntaxFactory.SeparatedList<EnumMemberDeclarationSyntax>(nodesAndTokens)),

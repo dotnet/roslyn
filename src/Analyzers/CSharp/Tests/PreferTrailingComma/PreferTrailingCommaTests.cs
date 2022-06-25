@@ -488,6 +488,8 @@ record C
         [Fact]
         public async Task TestComplexElementInitializerExpression()
         {
+            // At the time of writing this test, adding a comma after `2` (comment 5) doesn't compile. So ComplexElementInitializerExpression is not supported.
+            // If this changed in the future, the analyzer should support it.
             var code = @"using System.Collections;
 
 class C : IEnumerable
@@ -500,7 +502,7 @@ class C : IEnumerable
             0, // Comment 2
             [|{ // Comment 3
                 1, // Comment 4
-                [|2|] // Comment 5
+                2 // Comment 5
             }|] // Comment 6
             // Comment 7
         };
@@ -523,7 +525,7 @@ class C : IEnumerable
             0, // Comment 2
             { // Comment 3
                 1, // Comment 4
-                2, // Comment 5
+                2 // Comment 5
             }, // Comment 6
             // Comment 7
         };
