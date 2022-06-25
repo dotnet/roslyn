@@ -29,6 +29,8 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         where TAssignmentStatementSyntax : TStatementSyntax
         where TVariableDeclaratorSyntax : SyntaxNode
     {
+        internal const string PreferTrailingCommaKey = nameof(PreferTrailingCommaKey);
+
         protected abstract bool FadeOutOperatorToken { get; }
 
         protected AbstractUseObjectInitializerDiagnosticAnalyzer()
@@ -63,6 +65,8 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
         protected abstract bool IsValidContainingStatement(TStatementSyntax node);
 
+        protected abstract bool PreferTrailingComma(SyntaxNodeAnalysisContext context);
+
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
             var objectCreationExpression = (TObjectCreationExpressionSyntax)context.Node;
@@ -94,12 +98,18 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
             var locations = ImmutableArray.Create(objectCreationExpression.GetLocation());
 
+            var properties = ImmutableDictionary<string, string?>.Empty;
+            if (PreferTrailingComma(context))
+            {
+                properties = properties.Add(nameof(PreferTrailingCommaKey), "");
+            }
+
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 objectCreationExpression.GetFirstToken().GetLocation(),
                 option.Notification.Severity,
                 locations,
-                properties: null));
+                properties: properties));
 
             FadeOutCode(context, matches.Value, locations);
         }

@@ -4,6 +4,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.UseObjectInitializer;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -18,14 +19,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
 
     public partial class UseObjectInitializerTests
     {
-        private static async Task TestInRegularAndScriptAsync(string testCode, string fixedCode, OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary)
+        private static async Task TestInRegularAndScriptAsync(string testCode, string fixedCode, OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary, bool preferTrailingComma = false)
         {
             await new VerifyCS.Test
             {
                 TestCode = testCode,
                 FixedCode = fixedCode,
                 LanguageVersion = LanguageVersion.Preview,
-                TestState = { OutputKind = outputKind }
+                TestState = { OutputKind = outputKind },
+                Options = { { CSharpCodeStyleOptions.PreferTrailingComma, preferTrailingComma} }
             }.RunAsync();
         }
 
@@ -41,6 +43,34 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
                 test.LanguageVersion = languageVersion.Value;
 
             await test.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        public async Task TestOnVariableDeclarator_PreferTrailingComma()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int i;
+
+    void M()
+    {
+        var c = [|new|] C();
+        c.i = 1;
+    }
+}",
+@"class C
+{
+    int i;
+
+    void M()
+    {
+        var c = new C
+        {
+            i = 1,
+        };
+    }
+}", preferTrailingComma: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
