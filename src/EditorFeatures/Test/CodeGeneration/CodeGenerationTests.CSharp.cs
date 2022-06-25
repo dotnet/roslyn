@@ -321,7 +321,7 @@ class C
     public enum E
     {
         F1 = 1,
-        F2 = 2
+        F2 = 2,
     }
 }";
                 await TestAddNamedTypeAsync(input, expected, "E",
