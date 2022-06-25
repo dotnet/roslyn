@@ -88,17 +88,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Nothing
         End Function
 
-        Private Function GetSingletonBoundLambda() As BoundLambda
-
-            Dim result As BoundLambda = _BindingCache.BoundLambdas.Values.FirstOrDefault()
-
-            If _BindingCache.BoundLambdas.Count = 1 Then
-                Return result
-            End If
-
-            Return Nothing
-        End Function
-
         Private Function DoBind(target As TargetSignature) As BoundLambda
             Return _Binder.BindUnboundLambda(Me, target)
         End Function

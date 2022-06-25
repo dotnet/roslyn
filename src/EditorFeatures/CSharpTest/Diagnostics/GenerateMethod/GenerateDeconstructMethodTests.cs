@@ -53,6 +53,33 @@ class Class
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestDeconstructionDeclaration_Simple_Record()
+        {
+            await TestInRegularAndScriptAsync(
+@"record R
+{
+    void Method()
+    {
+        (int x, int y) = [|this|];
+    }
+}",
+@"using System;
+
+record R
+{
+    private void Deconstruct(out int x, out int y)
+    {
+        throw new NotImplementedException();
+    }
+
+    void Method()
+    {
+        (int x, int y) = this;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestDeconstructionDeclaration_TypeParameters()
         {
             await TestInRegularAndScriptAsync(
@@ -135,11 +162,13 @@ class Class
         (var x, var y) = [|this|];
     }
 }",
-@"class Class
+@"using System;
+
+class Class
 {
     private void Deconstruct(out object x, out object y)
     {
-        throw new System.NotImplementedException();
+        throw new NotImplementedException();
     }
 
     void Method()

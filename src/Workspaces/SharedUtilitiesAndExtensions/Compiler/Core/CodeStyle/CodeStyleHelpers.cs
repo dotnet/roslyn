@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// a NotificationOption, so <paramref name="notification"/> will default to <paramref name="defaultNotification"/>.
         /// </summary>
         public static bool TryGetCodeStyleValueAndOptionalNotification(
-            string arg, NotificationOption2 defaultNotification, [NotNullWhen(true)] out string? value, [NotNullWhen(true)] out NotificationOption2? notification)
+            string arg, NotificationOption2 defaultNotification, [NotNullWhen(true)] out string? value, [NotNullWhen(true)] out NotificationOption2 notification)
         {
             var args = arg.Split(':');
             Debug.Assert(args.Length > 0);
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
             // We only support 0 or 1 args.  Anything else can't be parsed properly.
             value = null;
-            notification = null;
+            notification = default;
             return false;
         }
 
@@ -118,7 +118,34 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             string name,
             T defaultValue,
             ImmutableArray<IOption2>.Builder optionsBuilder,
-            params OptionStorageLocation2[] storageLocations)
+            OptionStorageLocation2 storageLocation)
+        {
+            var option = new Option2<T>(feature, group, name, defaultValue, ImmutableArray.Create(storageLocation));
+            optionsBuilder.Add(option);
+            return option;
+        }
+
+        public static Option2<T> CreateOption<T>(
+            OptionGroup group,
+            string feature,
+            string name,
+            T defaultValue,
+            ImmutableArray<IOption2>.Builder optionsBuilder,
+            OptionStorageLocation2 storageLocation1,
+            OptionStorageLocation2 storageLocation2)
+        {
+            var option = new Option2<T>(feature, group, name, defaultValue, ImmutableArray.Create(storageLocation1, storageLocation2));
+            optionsBuilder.Add(option);
+            return option;
+        }
+
+        public static Option2<T> CreateOption<T>(
+            OptionGroup group,
+            string feature,
+            string name,
+            T defaultValue,
+            ImmutableArray<IOption2>.Builder optionsBuilder,
+            ImmutableArray<OptionStorageLocation2> storageLocations)
         {
             var option = new Option2<T>(feature, group, name, defaultValue, storageLocations);
             optionsBuilder.Add(option);
@@ -148,12 +175,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 name,
                 defaultValue,
                 optionsBuilder,
-                storageLocations: new OptionStorageLocation2[]{
-                    new EditorConfigStorageLocation<CodeStyleOption2<UnusedValuePreference>>(
-                        editorConfigName,
-                        s => ParseUnusedExpressionAssignmentPreference(s, defaultValue),
-                        o => GetUnusedExpressionAssignmentPreferenceEditorConfigString(o, defaultValue)),
-                    new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{name}Preference")});
+                new EditorConfigStorageLocation<CodeStyleOption2<UnusedValuePreference>>(
+                    editorConfigName,
+                    s => ParseUnusedExpressionAssignmentPreference(s, defaultValue),
+                    o => GetUnusedExpressionAssignmentPreferenceEditorConfigString(o, defaultValue)),
+                new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{name}Preference"));
 
         private static Optional<CodeStyleOption2<UnusedValuePreference>> ParseUnusedExpressionAssignmentPreference(
             string optionString,

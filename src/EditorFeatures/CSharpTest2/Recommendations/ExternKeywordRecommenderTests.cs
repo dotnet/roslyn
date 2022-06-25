@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -50,6 +48,13 @@ $$");
 @"using Goo = $$");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInGlobalUsingAlias()
+        {
+            await VerifyAbsenceAsync(
+@"global using Goo = $$");
+        }
+
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [CombinatorialData]
         public async Task TestInEmptyStatement(bool topLevelStatement)
@@ -82,7 +87,7 @@ $$");
 @"switch (c)
 {
     case 0:
-         [Foo]
+         [Goo]
          $$
 }", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
@@ -130,17 +135,28 @@ await bar;", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions
         public async Task TestBetweenAttributesAndAssignmentStatement(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"[Foo]
+@"[Goo]
 $$
 y = bar();", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [CombinatorialData]
-        public async Task TestBetweenAttributesAndCallStatement(bool topLevelStatement)
+        public async Task TestBetweenAttributesAndCallStatement1(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"[Foo]
+@"[Goo]
+$$
+bar();", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [CombinatorialData]
+        public async Task TestBetweenAttributesAndCallStatement2(bool topLevelStatement)
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"[Goo1]
+[Goo2]
 $$
 bar();", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
@@ -173,6 +189,14 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterGlobalUsing()
+        {
+            await VerifyKeywordAsync(
+@"global using Goo;
+$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterNamespace()
         {
             await VerifyKeywordAsync(@"namespace N {}
@@ -185,6 +209,13 @@ $$");
             await VerifyKeywordAsync(
 @"namespace N {
     $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInsideFileScopedNamespace()
+        {
+            await VerifyKeywordAsync(
+@"namespace N;$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]

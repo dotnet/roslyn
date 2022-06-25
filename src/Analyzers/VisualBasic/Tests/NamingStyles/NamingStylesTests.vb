@@ -497,5 +497,14 @@ End Class",
                 options:=s_options.TypeParameterNamesStartWithT)
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
+        <WorkItem(51727, "https://github.com/dotnet/roslyn/issues/51727")>
+        Public Async Function TestExternMethod() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Public Class C
+    Declare Sub [|some_p_invoke|] Lib ""some""()
+End Class",
+                New TestParameters(options:=s_options.MethodNamesArePascalCase))
+        End Function
     End Class
 End Namespace

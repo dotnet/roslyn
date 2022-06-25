@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             AnalysisKind kind)
         {
-            Debug.Assert(kind == AnalysisKind.Syntax || kind == AnalysisKind.Semantic);
+            Debug.Assert(kind is AnalysisKind.Syntax or AnalysisKind.Semantic);
             Debug.Assert(!analyzers.IsDefaultOrEmpty);
 
             TextDocument = document;

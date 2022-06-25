@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
         }
 
-        protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+        protected override bool IsValidContextWorker(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             var syntaxTree = context.SyntaxTree;
             return
@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 context.IsFixedVariableDeclarationContext ||
                 context.IsParameterTypeContext ||
                 context.IsPossibleLambdaOrAnonymousMethodParameterTypeContext ||
+                context.IsLocalFunctionDeclarationContext ||
                 context.IsImplicitOrExplicitOperatorTypeContext ||
                 context.IsPrimaryFunctionExpressionContext ||
                 context.IsCrefContext ||

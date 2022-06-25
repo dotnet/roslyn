@@ -74,7 +74,7 @@ End If
             Dim m2 = MakeMethodBody(src2)
 
             Dim knownMatches = {New KeyValuePair(Of SyntaxNode, SyntaxNode)(m1, m2)}
-            Dim match = StatementSyntaxComparer.Default.ComputeMatch(m1, m2, knownMatches)
+            Dim match = SyntaxComparer.Statement.ComputeMatch(m1, m2, knownMatches)
             Dim actual = ToMatchingPairs(match)
 
             Dim expected = New MatchingPairs From
@@ -1334,7 +1334,7 @@ End Try
             Dim knownMatches = {New KeyValuePair(Of SyntaxNode, SyntaxNode)(m1.Statements(1), m2.Statements(0))}
 
             ' pre-matched:
-            Dim match = StatementSyntaxComparer.Default.ComputeMatch(m1, m2, knownMatches)
+            Dim match = SyntaxComparer.Statement.ComputeMatch(m1, m2, knownMatches)
             Dim actual = ToMatchingPairs(match)
 
             Dim expected = New MatchingPairs From
@@ -1348,7 +1348,7 @@ End Try
             expected.AssertEqual(actual)
 
             ' not pre-matched:
-            match = StatementSyntaxComparer.Default.ComputeMatch(m1, m2)
+            match = SyntaxComparer.Statement.ComputeMatch(m1, m2)
             actual = ToMatchingPairs(match)
 
             expected = New MatchingPairs From
@@ -2354,7 +2354,8 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifySemanticDiagnostics()
+            edits.VerifySemanticDiagnostics(
+                capabilities:=EditAndContinueCapabilities.AddMethodToExistingType Or EditAndContinueCapabilities.NewTypeDefinition)
         End Sub
 
         <Fact>
@@ -2386,7 +2387,8 @@ Class C
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifySemanticDiagnostics()
+            edits.VerifySemanticDiagnostics(
+                capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
         End Sub
 
         <Fact>
@@ -2421,7 +2423,7 @@ Class C
 End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            ' TODO allow creating a new leaf closure
+            ' TODO allow creating a new leaf closure: : https://github.com/dotnet/roslyn/issues/54672
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.CapturingVariable, "F", "Me"))
         End Sub
@@ -5960,7 +5962,8 @@ Class C
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifySemanticDiagnostics()
+            edits.VerifySemanticDiagnostics(
+                capabilities:=EditAndContinueCapabilities.AddMethodToExistingType Or EditAndContinueCapabilities.NewTypeDefinition)
         End Sub
 #End Region
 
@@ -6084,7 +6087,8 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             VerifySemanticDiagnostics(
                 editScript:=edits,
-                targetFrameworks:={TargetFramework.Mscorlib40AndSystemCore})
+                targetFrameworks:={TargetFramework.Mscorlib40AndSystemCore},
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
         End Sub
 
 #End Region
@@ -6195,7 +6199,8 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             VerifySemanticDiagnostics(
                 edits,
-                targetFrameworks:={TargetFramework.MinimalAsync})
+                targetFrameworks:={TargetFramework.MinimalAsync},
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
         End Sub
 #End Region
     End Class

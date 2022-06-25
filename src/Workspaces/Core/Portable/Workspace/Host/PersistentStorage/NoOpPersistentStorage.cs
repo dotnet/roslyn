@@ -2,21 +2,27 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.PersistentStorage;
+using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
 {
     internal class NoOpPersistentStorage : IChecksummedPersistentStorage
     {
-        public static readonly IChecksummedPersistentStorage Instance = new NoOpPersistentStorage();
+        private static readonly IChecksummedPersistentStorage Instance = new NoOpPersistentStorage();
 
         private NoOpPersistentStorage()
         {
         }
+
+        public static IChecksummedPersistentStorage GetOrThrow(bool throwOnFailure)
+            => throwOnFailure
+                ? throw new InvalidOperationException("Database was not supported")
+                : Instance;
 
         public void Dispose()
         {
@@ -89,5 +95,10 @@ namespace Microsoft.CodeAnalysis.Host
 
         public Task<bool> WriteStreamAsync(DocumentKey documentKey, string name, Stream stream, Checksum checksum, CancellationToken cancellationToken)
             => SpecializedTasks.False;
+
+        public struct TestAccessor
+        {
+            public static readonly IChecksummedPersistentStorage StorageInstance = Instance;
+        }
     }
 }

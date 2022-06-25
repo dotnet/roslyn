@@ -13,7 +13,7 @@ Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertForEachToFor
-    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicConvertForEachToForCodeRefactoringProvider)), [Shared]>
+    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.ConvertForEachToFor), [Shared]>
     Friend Class VisualBasicConvertForEachToForCodeRefactoringProvider
         Inherits AbstractConvertForEachToForCodeRefactoringProvider(Of StatementSyntax, ForEachBlockSyntax)
 
@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertForEachToFor
                     foreachCollectionExpression.GetTrailingTrivia().Where(Function(t) t.IsWhitespaceOrEndOfLine()))
 
             ' and remove all trailing trivia if it is used for cast
-            If foreachInfo.RequireExplicitCastInterface Then
+            If foreachInfo.ExplicitCastInterface IsNot Nothing Then
                 expression = expression.WithoutTrailingTrivia()
             End If
 

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             SyntaxKind.UnsafeKeyword,
         };
 
-        private static readonly ISet<SyntaxKind> s_validMemberModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
+        private static readonly ISet<SyntaxKind> s_validNonInterfaceMemberModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
         {
             SyntaxKind.AsyncKeyword,
             SyntaxKind.ExternKeyword,
@@ -35,6 +35,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             SyntaxKind.ReadOnlyKeyword,
             SyntaxKind.UnsafeKeyword,
             SyntaxKind.VolatileKeyword,
+        };
+
+        private static readonly ISet<SyntaxKind> s_validInterfaceMemberModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
+        {
+            SyntaxKind.AbstractKeyword,
+            SyntaxKind.AsyncKeyword,
+            SyntaxKind.ExternKeyword,
+            SyntaxKind.InternalKeyword,
+            SyntaxKind.NewKeyword,
+            SyntaxKind.PublicKeyword,
+            SyntaxKind.PrivateKeyword,
+            SyntaxKind.ProtectedKeyword,
+            SyntaxKind.ReadOnlyKeyword,
+            SyntaxKind.SealedKeyword,
+            SyntaxKind.UnsafeKeyword,
+            SyntaxKind.VolatileKeyword,
+            SyntaxKind.VirtualKeyword,
         };
 
         private static readonly ISet<SyntaxKind> s_validGlobalMemberModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
@@ -77,8 +94,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return
                 context.SyntaxTree.IsGlobalMemberDeclarationContext(context.Position, s_validGlobalMemberModifiers, cancellationToken) ||
                 context.IsMemberDeclarationContext(
-                    validModifiers: s_validMemberModifiers,
-                    validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
+                    validModifiers: s_validNonInterfaceMemberModifiers,
+                    validTypeDeclarations: SyntaxKindSet.ClassStructRecordTypeDeclarations,
+                    canBePartial: false,
+                    cancellationToken: cancellationToken) ||
+                context.IsMemberDeclarationContext(
+                    validModifiers: s_validInterfaceMemberModifiers,
+                    validTypeDeclarations: SyntaxKindSet.InterfaceOnlyTypeDeclarations,
                     canBePartial: false,
                     cancellationToken: cancellationToken);
         }

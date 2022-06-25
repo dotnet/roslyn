@@ -2,17 +2,10 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Collections.ObjectModel
 Imports System.Runtime.InteropServices
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.CodeGen
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Binder
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend MustInherit Class SourceParameterSymbol
@@ -249,9 +242,52 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 arguments.GetOrCreateData(Of ParameterEarlyWellKnownAttributeData).HasCallerFilePathAttribute = True
             ElseIf VisualBasicAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.CallerMemberNameAttribute) Then
                 arguments.GetOrCreateData(Of ParameterEarlyWellKnownAttributeData).HasCallerMemberNameAttribute = True
+            ElseIf VisualBasicAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.CallerArgumentExpressionAttribute) Then
+                Dim index = -1
+                Dim attribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, False)
+                If Not attribute.HasErrors Then
+                    Dim parameterName As String = Nothing
+                    If attribute.ConstructorArguments.Single().TryDecodeValue(SpecialType.System_String, parameterName) Then
+                        Dim parameters = containingSymbol.GetParameters()
+                        For i = 0 To parameters.Length - 1
+                            If IdentifierComparison.Equals(parameters(i).Name, parameterName) Then
+                                index = i
+                                Exit For
+                            End If
+                        Next
+                    End If
+                End If
+
+                arguments.GetOrCreateData(Of ParameterEarlyWellKnownAttributeData).CallerArgumentExpressionParameterIndex = index
             End If
 
             Return MyBase.EarlyDecodeWellKnownAttribute(arguments)
+        End Function
+
+        Friend Overrides Iterator Function GetCustomAttributesToEmit(compilationState As ModuleCompilationState) As IEnumerable(Of VisualBasicAttributeData)
+            Dim attributes = MyBase.GetCustomAttributesToEmit(compilationState)
+
+            For Each attribute In attributes
+                If AttributeData.IsTargetEarlyAttribute(attributeType:=attribute.AttributeClass, attributeArgCount:=attribute.CommonConstructorArguments.Length, description:=AttributeDescription.CallerArgumentExpressionAttribute) Then
+                    Dim callerArgumentExpressionParameterIndex = Me.CallerArgumentExpressionParameterIndex
+                    If callerArgumentExpressionParameterIndex <> -1 AndAlso TypeOf attribute Is SourceAttributeData Then
+                        Debug.Assert(callerArgumentExpressionParameterIndex >= 0)
+                        Debug.Assert(attribute.CommonConstructorArguments.Length = 1)
+                        ' We allow CallerArgumentExpression to have case-insensitive parameter name, but we
+                        ' want to emit the parameter name with correct casing, so that it works with C#.
+                        Dim correctedParameterName = ContainingSymbol.GetParameters()(callerArgumentExpressionParameterIndex).Name
+                        Dim oldTypedConstant = attribute.CommonConstructorArguments.Single()
+                        If correctedParameterName.Equals(oldTypedConstant.Value.ToString(), StringComparison.Ordinal) Then
+                            Yield attribute
+                            Continue For
+                        End If
+                        Dim newArgs = ImmutableArray.Create(New TypedConstant(oldTypedConstant.TypeInternal, oldTypedConstant.Kind, correctedParameterName))
+                        Yield New SourceAttributeData(attribute.ApplicationSyntaxReference, attribute.AttributeClass, attribute.AttributeConstructor, newArgs, attribute.CommonNamedArguments, attribute.IsConditionallyOmitted, attribute.HasErrors)
+                        Continue For
+                    End If
+                End If
+                Yield attribute
+            Next
         End Function
 
         ' It is not strictly necessary to decode default value attributes early in VB,
@@ -322,6 +358,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 arguments.GetOrCreateData(Of CommonParameterWellKnownAttributeData)().HasOutAttribute = True
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.MarshalAsAttribute) Then
                 MarshalAsAttributeDecoder(Of CommonParameterWellKnownAttributeData, AttributeSyntax, VisualBasicAttributeData, AttributeLocation).Decode(arguments, AttributeTargets.Parameter, MessageProvider.Instance)
+            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.CallerArgumentExpressionAttribute) Then
+                Dim index = GetEarlyDecodedWellKnownAttributeData()?.CallerArgumentExpressionParameterIndex
+                If index = Ordinal Then
+                    DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.WRN_CallerArgumentExpressionAttributeSelfReferential, arguments.AttributeSyntaxOpt.Location, Me.Name)
+                ElseIf index = -1 Then
+                    DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName, arguments.AttributeSyntaxOpt.Location, Me.Name)
+                End If
             End If
 
             MyBase.DecodeWellKnownAttribute(arguments)

@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports Microsoft.VisualStudio.Text.Editor
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
@@ -22,12 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
             _presentItemsWithValuesCallback = presentItemsWithValuesCallback
         End Sub
 
-        Public Sub RaiseDropDownFocused()
-            RaiseEvent DropDownFocused(Nothing, EventArgs.Empty)
-        End Sub
-
         Public Event CaretMoved As EventHandler(Of CaretPositionChangedEventArgs) Implements INavigationBarPresenter.CaretMoved
-        Public Event DropDownFocused As EventHandler Implements INavigationBarPresenter.DropDownFocused
         Public Event ItemSelected As EventHandler(Of NavigationBarItemSelectedEventArgs) Implements INavigationBarPresenter.ItemSelected
         Public Event ViewFocused As EventHandler(Of EventArgs) Implements INavigationBarPresenter.ViewFocused
 
@@ -35,14 +31,16 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
 
         End Sub
 
-        Public Sub PresentItems(projects As IList(Of NavigationBarProjectItem),
-                         selectedProject As NavigationBarProjectItem,
-                         typesWithMembers As IList(Of NavigationBarItem),
-                         selectedType As NavigationBarItem,
-                         selectedMember As NavigationBarItem) Implements INavigationBarPresenter.PresentItems
+        Public Sub PresentItems(
+                projects As ImmutableArray(Of NavigationBarProjectItem),
+                selectedProject As NavigationBarProjectItem,
+                typesWithMembers As ImmutableArray(Of NavigationBarItem),
+                selectedType As NavigationBarItem,
+                selectedMember As NavigationBarItem) Implements INavigationBarPresenter.PresentItems
             If _presentItemsCallback IsNot Nothing Then
                 _presentItemsCallback()
             End If
+
             If _presentItemsWithValuesCallback IsNot Nothing Then
                 _presentItemsWithValuesCallback(projects, selectedProject, typesWithMembers, selectedType, selectedMember)
             End If

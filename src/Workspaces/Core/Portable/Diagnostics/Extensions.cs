@@ -22,21 +22,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal static partial class Extensions
     {
-        public static readonly CultureInfo USCultureInfo = new("en-US");
-
-        public static string GetBingHelpMessage(this Diagnostic diagnostic, OptionSet options)
-        {
-            // We use the ENU version of the message for bing search.
-            return options.GetOption(InternalDiagnosticsOptions.PutCustomTypeInBingSearch) ?
-                diagnostic.GetMessage(USCultureInfo) : diagnostic.Descriptor.GetBingHelpMessage();
-        }
-
-        public static string GetBingHelpMessage(this DiagnosticDescriptor descriptor)
-        {
-            // We use the ENU version of the message for bing search.
-            return descriptor.MessageFormat.ToString(USCultureInfo);
-        }
-
         public static async Task<ImmutableArray<Diagnostic>> ToDiagnosticsAsync(this IEnumerable<DiagnosticData> diagnostics, Project project, CancellationToken cancellationToken)
         {
             var result = ArrayBuilder<Diagnostic>.GetInstance();
@@ -48,25 +33,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return result.ToImmutableAndFree();
         }
 
-        public static async Task<IList<Location>> ConvertLocationsAsync(
-            this IReadOnlyCollection<DiagnosticDataLocation> locations, Project project, CancellationToken cancellationToken)
-        {
-            if (locations.Count == 0)
-            {
-                return SpecializedCollections.EmptyList<Location>();
-            }
+        public static ValueTask<ImmutableArray<Location>> ConvertLocationsAsync(this IReadOnlyCollection<DiagnosticDataLocation> locations, Project project, CancellationToken cancellationToken)
+            => locations.SelectAsArrayAsync((location, project, cancellationToken) => location.ConvertLocationAsync(project, cancellationToken), project, cancellationToken);
 
-            var result = new List<Location>();
-            foreach (var data in locations)
-            {
-                var location = await data.ConvertLocationAsync(project, cancellationToken).ConfigureAwait(false);
-                result.Add(location);
-            }
-
-            return result;
-        }
-
-        public static async Task<Location> ConvertLocationAsync(
+        public static async ValueTask<Location> ConvertLocationAsync(
             this DiagnosticDataLocation? dataLocation, Project project, CancellationToken cancellationToken)
         {
             if (dataLocation?.DocumentId == null)
@@ -74,7 +44,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return Location.None;
             }
 
-            var textDocument = project.GetTextDocument(dataLocation.DocumentId);
+            var textDocument = project.GetTextDocument(dataLocation.DocumentId)
+                ?? await project.GetSourceGeneratedDocumentAsync(dataLocation.DocumentId, cancellationToken).ConfigureAwait(false);
             if (textDocument == null)
             {
                 return Location.None;
@@ -417,7 +388,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (documentAnalysisScope != null)
             {
-                if (!(documentAnalysisScope.TextDocument is Document document))
+                if (documentAnalysisScope.TextDocument is not Document document)
                 {
                     return ImmutableArray<Diagnostic>.Empty;
                 }
@@ -437,6 +408,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         tasks.Add(AnalyzeDocumentAsync(suppressionAnalyzer, document, span: null, bag.Add));
                     }
 
+                    foreach (var document in await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false))
+                    {
+                        tasks.Add(AnalyzeDocumentAsync(suppressionAnalyzer, document, span: null, bag.Add));
+                    }
+
                     await Task.WhenAll(tasks).ConfigureAwait(false);
                     return bag.ToImmutableArray();
                 }
@@ -444,6 +420,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     using var _ = ArrayBuilder<Diagnostic>.GetInstance(out var diagnosticsBuilder);
                     foreach (var document in project.Documents)
+                    {
+                        await AnalyzeDocumentAsync(suppressionAnalyzer, document, span: null, diagnosticsBuilder.Add).ConfigureAwait(false);
+                    }
+
+                    foreach (var document in await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false))
                     {
                         await AnalyzeDocumentAsync(suppressionAnalyzer, document, span: null, diagnosticsBuilder.Add).ConfigureAwait(false);
                     }

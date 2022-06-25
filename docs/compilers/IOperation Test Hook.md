@@ -24,9 +24,11 @@ before merging to production.
 
 In order to replicate test failures, there are 2 options:
 
-1. Uncomment `src/Compilers/Test/Core/Compilation/Compilation.cs:7`, which defines `ROSLYN_TEST_IOPERATION`, and run your tests. Do _not_ check this in, as it
+1. Uncomment `src/Compilers/Test/Core/Compilation/CompilationExtensions.cs:7`, which defines `ROSLYN_TEST_IOPERATION`, and run your tests. Do _not_ check this in, as it
 will enable the test hook for every test in every project and significantly slow down regular test runs.
 2. Set the `ROSLYN_TEST_IOPERATION` environment variable and restart VS with it set.
+3. Set a breakpoint at the start of `ValidateIOperations`, in `src/Compilers/Test/Core/Compilation/CompilationExtensions.cs`. When it breaks, use VS's jump to location or
+drag the instruction pointer past the early check and return on `EnableVerifyIOperation`, which will run the code for the current test run.
 
 In either case, after this has been done all tests will run the hook as part of running the test, and you can set breakpoints as normal. It is often helpful to
 run until an exception has been hit and then see what nodes were being processed, as most tests have multiple methods and understanding the specific context is

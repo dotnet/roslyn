@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertBetweenRegularAndVerbatimString), Shared]
     [ExtensionOrder(Before = PredefinedCodeRefactoringProviderNames.ConvertToInterpolatedString)]
     internal class ConvertBetweenRegularAndVerbatimStringCodeRefactoringProvider
         : AbstractConvertBetweenRegularAndVerbatimStringCodeRefactoringProvider<LiteralExpressionSyntax>

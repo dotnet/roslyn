@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -49,6 +47,13 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"using Goo = $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInGlobalUsingAlias()
+        {
+            await VerifyAbsenceAsync(
+@"global using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -955,6 +960,51 @@ class C
 class C
 {{
     delegate*<{modifier} $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterNamespace()
+        {
+            await VerifyKeywordAsync(
+@"namespace N { }
+$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterFileScopedNamespace()
+        {
+            await VerifyKeywordAsync(
+@"namespace N;
+$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(58906, "https://github.com/dotnet/roslyn/issues/58906")]
+        public async Task TestInPotentialLambdaParamListParsedAsCastOnDifferentLines()
+        {
+            await VerifyKeywordAsync(
+@"class C
+{
+    static void Main(string[] args)
+    {
+        var f = ($$)
+        Main(null);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(58906, "https://github.com/dotnet/roslyn/issues/58906")]
+        public async Task TestInPotentialLambdaParamListParsedAsCastOnSameLine()
+        {
+            await VerifyKeywordAsync(
+@"class C
+{
+    static void Main(string[] args)
+    {
+        var f = ($$)Main(null);
+    }
+}");
         }
     }
 }

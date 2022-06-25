@@ -67,6 +67,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override IEnumerable<string> MemberNames => Constructors.Select(m => m.Name);
 
+        internal override bool HasDeclaredRequiredMembers => false;
+
         public override Accessibility DeclaredAccessibility => Accessibility.Internal;
 
         public override TypeKind TypeKind => TypeKind.Class;
@@ -98,6 +100,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool MangleName => false;
 
         internal override bool HasCodeAnalysisEmbeddedAttribute => true;
+
+        internal override bool IsInterpolatedStringHandlerType => false;
 
         internal override bool HasSpecialName => false;
 
@@ -179,6 +183,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable;
 
         internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => null;
+
+        internal sealed override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls()
+        {
+            return SpecializedCollections.EmptyEnumerable<(MethodSymbol Body, MethodSymbol Implemented)>();
+        }
     }
 
     /// <summary>
@@ -201,6 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<MethodSymbol> Constructors => _constructors;
 
         internal override bool IsRecord => false;
+        internal override bool IsRecordStruct => false;
         internal override bool HasPossibleWellKnownCloneMethod() => false;
     }
 

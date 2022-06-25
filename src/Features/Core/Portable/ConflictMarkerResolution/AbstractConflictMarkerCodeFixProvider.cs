@@ -36,6 +36,17 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
 
+        /// <summary>
+        /// 'Fix merge conflict markers' gets special privileges.  A core user scenario around them is that a user does
+        /// a source control merge, gets conflicts, and then wants to open and edit them in the IDE very quickly.
+        /// Forcing their fixes to be gated behind the set of normal fixes (which also involves semantic analysis) just
+        /// slows the user down.  As we can compute this syntactically, and the user is almost certainly trying to fix
+        /// them if they bring up the lightbulb on a <c>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</c> line, it should run ahead of
+        /// normal fix providers else so the user can quickly fix the conflict and move onto the next conflict.
+        /// </summary>
+        private protected override CodeActionRequestPriority ComputeRequestPriority()
+            => CodeActionRequestPriority.High;
+
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var cancellationToken = context.CancellationToken;
@@ -201,17 +212,17 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
             var endPos = endLine.Start;
 
             context.RegisterCodeFix(
-                new MyCodeAction(takeTopText,
+                CodeAction.Create(takeTopText,
                     c => TakeTopAsync(document, startPos, equalsPos, endPos, c),
                     TakeTopEquivalenceKey),
                 context.Diagnostics);
             context.RegisterCodeFix(
-                new MyCodeAction(takeBottomText,
+                CodeAction.Create(takeBottomText,
                     c => TakeBottomAsync(document, startPos, equalsPos, endPos, c),
                     TakeBottomEquivalenceKey),
                 context.Diagnostics);
             context.RegisterCodeFix(
-                new MyCodeAction(FeaturesResources.Take_both,
+                CodeAction.Create(FeaturesResources.Take_both,
                     c => TakeBothAsync(document, startPos, equalsPos, endPos, c),
                     TakeBothEquivalenceKey),
                 context.Diagnostics);
@@ -291,9 +302,9 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
             string? equivalenceKey, CancellationToken cancellationToken)
         {
             Debug.Assert(
-                equivalenceKey == TakeTopEquivalenceKey ||
-                equivalenceKey == TakeBottomEquivalenceKey ||
-                equivalenceKey == TakeBothEquivalenceKey);
+                equivalenceKey is TakeTopEquivalenceKey or
+                TakeBottomEquivalenceKey or
+                TakeBothEquivalenceKey);
 
             // Process diagnostics in order so we produce edits in the right order.
             var orderedDiagnostics = diagnostics.OrderBy(
@@ -346,13 +357,5 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
         public override FixAllProvider GetFixAllProvider()
             => FixAllProvider.Create(async (context, document, diagnostics) =>
                 await this.FixAllAsync(document, diagnostics, context.CodeActionEquivalenceKey, context.CancellationToken).ConfigureAwait(false));
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
-                : base(title, createChangedDocument, equivalenceKey)
-            {
-            }
-        }
     }
 }

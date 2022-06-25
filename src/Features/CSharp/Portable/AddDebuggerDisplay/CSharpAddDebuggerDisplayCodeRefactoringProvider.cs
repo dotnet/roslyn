@@ -6,13 +6,14 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.AddDebuggerDisplay;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.AddDebuggerDisplay
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpAddDebuggerDisplayCodeRefactoringProvider)), Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.AddDebuggerDisplay), Shared]
     internal sealed class CSharpAddDebuggerDisplayCodeRefactoringProvider
         : AbstractAddDebuggerDisplayCodeRefactoringProvider<
             TypeDeclarationSyntax,
@@ -27,6 +28,6 @@ namespace Microsoft.CodeAnalysis.CSharp.AddDebuggerDisplay
         protected override bool CanNameofAccessNonPublicMembersFromAttributeArgument => true;
 
         protected override bool SupportsConstantInterpolatedStrings(Document document)
-            => ((CSharpParseOptions)document.Project.ParseOptions!).LanguageVersion.HasConstantInterpolatedStrings();
+            => document.Project.ParseOptions!.LanguageVersion().HasConstantInterpolatedStrings();
     }
 }

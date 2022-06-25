@@ -3,7 +3,7 @@
 
 
 <!-- 
- To re-generate source from this file, run build/scripts/generate-compiler-code.cmd
+ To re-generate source from this file, run eng/generate-compiler-code.cmd
 
  Important things to know about reference types, value types, and nulls.
 
@@ -869,7 +869,6 @@
     -->
     <Node Name="BoundObjectInitializerExpression" Base="BoundObjectInitializerExpressionBase" HasValidate="true">
       <Field Name="CreateTemporaryLocalForInitialization" Type="Boolean" />
-      <Field Name="Binder" Type="Binder" Null="disallow" />
     </Node>
 
     <!-- 
@@ -1037,6 +1036,7 @@
     <Node Name="BoundAsNewLocalDeclarations" Base="BoundLocalDeclarationBase">
         <Field Name="LocalDeclarations" Type="ImmutableArray(Of BoundLocalDeclaration)" />
         <Field Name="Initializer" Type="BoundExpression" />
+        <Field Name="Binder" Type="Binder" Null="disallow" />
     </Node>
 
     <!--
@@ -1065,6 +1065,7 @@
     <Field Name="MemberAccessExpressionOpt" Type="BoundExpression" Null="allow" />
     <!-- The expression representing the initial value -->
     <Field Name="InitialValue" Type="BoundExpression" Null="disallow"/>
+    <Field Name="BinderOpt" Type="Binder" Null="allow" />
   </AbstractNode>
 
   <!-- Bound node that represents a field initialization. --> 

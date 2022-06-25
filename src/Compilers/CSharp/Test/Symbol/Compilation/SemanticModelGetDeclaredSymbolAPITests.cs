@@ -66,17 +66,17 @@ class C
             Assert.Equal(RefKind.RefReadOnly, rxLocal.RefKind);
         }
 
-        [Fact]
-        public void TestGetDeclaredSymbolFromNamespace()
+        [Theory, MemberData(nameof(FileScopedOrBracedNamespace))]
+        public void TestGetDeclaredSymbolFromNamespace(string ob, string cb)
         {
-            var compilation = CreateCompilation(@"
+            var compilation = CreateCompilation($@"
 namespace A.B
-{
-}
+{ob}
+{cb}
 ");
             var tree = compilation.SyntaxTrees[0];
             var root = tree.GetCompilationUnitRoot();
-            var decl = (NamespaceDeclarationSyntax)root.Members[0];
+            var decl = (BaseNamespaceDeclarationSyntax)root.Members[0];
             var model = compilation.GetSemanticModel(tree);
             var symbol = model.GetDeclaredSymbol(decl);
             Assert.NotNull(symbol);
@@ -108,21 +108,21 @@ class
             Assert.Equal("", symbol.Name);
         }
 
-        [Fact]
-        public void TestGetDeclaredSymbolFromNestedNamespace()
+        [Theory, MemberData(nameof(FileScopedOrBracedNamespace))]
+        public void TestGetDeclaredSymbolFromNestedNamespace(string ob, string cb)
         {
-            var compilation = CreateCompilation(@"
+            var compilation = CreateCompilation($@"
 namespace A.B
-{
+{ob}
    namespace C.D
-   {
-   }
-}
+   {ob}
+   {cb}
+{cb}
 ");
             var tree = compilation.SyntaxTrees[0];
             var root = tree.GetCompilationUnitRoot();
-            var abns = (NamespaceDeclarationSyntax)root.Members[0];
-            var cdns = (NamespaceDeclarationSyntax)abns.Members[0];
+            var abns = (BaseNamespaceDeclarationSyntax)root.Members[0];
+            var cdns = (BaseNamespaceDeclarationSyntax)abns.Members[0];
             var model = compilation.GetSemanticModel(tree);
             var symbol = model.GetDeclaredSymbol(cdns);
             Assert.NotNull(symbol);
@@ -195,20 +195,20 @@ enum E { }
             Assert.Equal("E", symbol.ToTestDisplayString());
         }
 
-        [Fact]
-        public void GenericNameInNamespaceName()
+        [Theory, MemberData(nameof(FileScopedOrBracedNamespace))]
+        public void GenericNameInNamespaceName(string ob, string cb)
         {
             var compilation = CreateCompilation(@"
-namespace C<int>.B 
-{ 
+namespace C<int>.B
+" + ob + @"
     class Y { }
-}
+" + cb + @"
 ");
 
             var tree = compilation.SyntaxTrees[0];
             var root = tree.GetCompilationUnitRoot();
             var classY = ((root.
-                Members[0] as NamespaceDeclarationSyntax).
+                Members[0] as BaseNamespaceDeclarationSyntax).
                 Members[0] as TypeDeclarationSyntax);
 
             var model = compilation.GetSemanticModel(tree);
@@ -218,20 +218,20 @@ namespace C<int>.B
             Assert.Equal("C.B.Y", symbol.ToTestDisplayString());
         }
 
-        [Fact]
-        public void AliasedNameInNamespaceName()
+        [Theory, MemberData(nameof(FileScopedOrBracedNamespace))]
+        public void AliasedNameInNamespaceName(string ob, string cb)
         {
             var compilation = CreateCompilation(@"
-namespace alias::C<int>.B 
-{ 
+namespace alias::C<int>.B
+" + ob + @"
     class Y { }
-}
+" + cb + @"
 ");
 
             var tree = compilation.SyntaxTrees[0];
             var root = tree.GetCompilationUnitRoot();
             var classY = ((root.
-                Members[0] as NamespaceDeclarationSyntax).
+                Members[0] as BaseNamespaceDeclarationSyntax).
                 Members[0] as TypeDeclarationSyntax);
 
             var model = compilation.GetSemanticModel(tree);
@@ -1013,18 +1013,19 @@ class C1 { }
         }
 
         [WorkItem(537230, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537230")]
-        [Fact]
-        public void TestLookupUnresolvableNamespaceUsing()
+        [Theory]
+        [MemberData(nameof(FileScopedOrBracedNamespace))]
+        public void TestLookupUnresolvableNamespaceUsing(string ob, string cb)
         {
             var compilation = CreateCompilation(@"
                 namespace A
-                {
+                " + ob + @"
                     using B.C;
 
                     public class B : C
                     {    
                     }
-                }
+                " + cb + @"
             ");
             var tree = compilation.SyntaxTrees.Single();
             var usingDirective = (UsingDirectiveSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.UsingDirective).AsNode();
@@ -1034,21 +1035,22 @@ class C1 { }
             // should validate type here
         }
 
-        [Fact]
-        public void TestLookupSourceSymbolHidesMetadataSymbol()
+        [Theory, MemberData(nameof(FileScopedOrBracedNamespace))]
+        public void TestLookupSourceSymbolHidesMetadataSymbol(string ob, string cb)
         {
             var compilation = CreateCompilation(@"
 namespace System
-{
+" + ob + @"
     public class DateTime
     {
         string TheDateAndTime;
     }
-}");
+" + cb + @"
+");
 
             var tree = compilation.SyntaxTrees.Single();
 
-            var namespaceDecl = (NamespaceDeclarationSyntax)tree.GetCompilationUnitRoot().Members[0];
+            var namespaceDecl = (BaseNamespaceDeclarationSyntax)tree.GetCompilationUnitRoot().Members[0];
             var classDecl = (ClassDeclarationSyntax)namespaceDecl.Members[0];
             var memberDecl = (FieldDeclarationSyntax)classDecl.Members[0];
 
@@ -1200,7 +1202,7 @@ namespace System
                    {
                    }
                 }
-            ", targetFramework: TargetFramework.StandardCompat);
+            ", targetFramework: TargetFramework.NetStandard20);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -1236,7 +1238,7 @@ namespace System
                 {
                    public int Y;
                 }
-            ", targetFramework: TargetFramework.StandardCompat);
+            ", targetFramework: TargetFramework.NetStandard20);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -1270,7 +1272,7 @@ namespace System
                 {
                    void CM();
                 }
-            ", targetFramework: TargetFramework.StandardCompat);
+            ", targetFramework: TargetFramework.NetStandard20);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -1370,7 +1372,7 @@ class D<T>
                    void F();
                    void M<T, U, V>(T t, U u, V v);
                 }
-            ", targetFramework: TargetFramework.StandardCompat);
+            ", targetFramework: TargetFramework.NetStandard20);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -1583,7 +1585,7 @@ interface IB<T3, T4>
                    {
                    }
                 }
-            ", targetFramework: TargetFramework.StandardCompat);
+            ", targetFramework: TargetFramework.NetStandard20);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -2999,14 +3001,15 @@ class CGoo
         }
 
         [WorkItem(537953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537953")]
-        [Fact]
-        public void GetDeclaredSymbolNoTypeSymbolWithErr()
+        [Theory]
+        [MemberData(nameof(FileScopedOrBracedNamespace))]
+        public void GetDeclaredSymbolNoTypeSymbolWithErr(string ob, string cb)
         {
             var compilation = (Compilation)CreateCompilation(@"
 namespace NS
-{
+" + ob + @"
   protected class A { }
-}
+" + cb + @"
 ");
             var tree = compilation.SyntaxTrees.First();
             var root = tree.GetCompilationUnitRoot();
@@ -3016,7 +3019,7 @@ namespace NS
             var ns1 = globalNS.GetMembers("NS").Single() as INamespaceSymbol;
             var srcSym = ns1.GetMembers("A").Single() as INamedTypeSymbol;
 
-            var nsSyntax = (root.Members[0] as NamespaceDeclarationSyntax);
+            var nsSyntax = (root.Members[0] as BaseNamespaceDeclarationSyntax);
             var declSym = model.GetDeclaredSymbol(nsSyntax.Members[0] as TypeDeclarationSyntax);
 
             Assert.Equal(srcSym, declSym);
@@ -3873,7 +3876,7 @@ class C
             var alias2 = model2.GetAliasInfo(node);
 
             Assert.Equal(alias1, alias2);
-            Assert.NotSame(alias1, alias2);
+            Assert.Same(alias1, alias2);
         }
 
         [WorkItem(542475, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542475")]
@@ -3937,7 +3940,7 @@ class C
 
             // This symbol we generate on-demand.
             var alias2b = model.GetDeclaredSymbol(usingDirectives[1]);
-            Assert.NotSame(alias2, alias2b);
+            Assert.Same(alias2, alias2b);
             Assert.Equal(alias2, alias2b);
         }
 
@@ -5223,7 +5226,7 @@ class Program
             var model = comp.GetSemanticModel(tree);
             var decls = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParameterSyntax>().ToArray();
             var symbol1 = VerifyParameter(model, decls[0], 0, "[System.Int32 x = 2]", "System.Int32", 2);
-            var symbol2 = VerifyParameter(model, decls[1], 1, "[?  = null]", "System.Int32", 3);
+            var symbol2 = VerifyParameter(model, decls[1], 1, "[? = null]", "System.Int32", 3);
             Assert.Same(symbol1.ContainingSymbol, symbol2.ContainingSymbol);
         }
 
@@ -5244,7 +5247,7 @@ class Program
             var model = comp.GetSemanticModel(tree);
             var decls = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParameterSyntax>().ToArray();
             var symbol1 = VerifyParameter(model, decls[0], 0, "System.Int32 x", null, null);
-            var symbol2 = VerifyParameter(model, decls[1], 1, "[?  = null]", "System.Int32", 3);
+            var symbol2 = VerifyParameter(model, decls[1], 1, "[? = null]", "System.Int32", 3);
             Assert.Same(symbol1.ContainingSymbol, symbol2.ContainingSymbol);
         }
 
@@ -5265,7 +5268,7 @@ class Program
             var model = comp.GetSemanticModel(tree);
             var decls = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParameterSyntax>().ToArray();
             var symbol1 = VerifyParameter(model, decls[0], 0, "[System.Int32 x = 2]", "System.Int32", 2);
-            var symbol2 = VerifyParameter(model, decls[1], 1, "[?  = null]", "System.Int32", 3);
+            var symbol2 = VerifyParameter(model, decls[1], 1, "[? = null]", "System.Int32", 3);
             Assert.Same(symbol1.ContainingSymbol, symbol2.ContainingSymbol);
         }
 

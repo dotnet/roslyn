@@ -6,15 +6,16 @@
 // Uncomment to enable the IOperation test hook on all test runs. Do not commit this uncommented.
 //#define ROSLYN_TEST_IOPERATION
 
+// Uncomment to enable the Used Assemblies test hook on all test runs. Do not commit this uncommented.
+//#define ROSLYN_TEST_USEDASSEMBLIES
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection.Metadata;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp;
@@ -22,11 +23,9 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using Xunit.Sdk;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
@@ -39,7 +38,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ROSLYN_TEST_IOPERATION"));
 #endif
 
-        internal static bool EnableVerifyUsedAssemblies { get; } = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ROSLYN_TEST_USEDASSEMBLIES"));
+        internal static bool EnableVerifyUsedAssemblies { get; } =
+#if ROSLYN_TEST_USEDASSEMBLIES
+            true;
+#else
+            !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ROSLYN_TEST_USEDASSEMBLIES"));
+#endif
 
         internal static ImmutableArray<byte> EmitToArray(
             this Compilation compilation,
@@ -72,13 +76,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 pdbStream: pdbStream,
                 xmlDocumentationStream: null,
                 win32Resources: null,
-                useRawWin32Resources: false,
                 manifestResources: manifestResources,
                 options: options,
                 debugEntryPoint: debugEntryPoint,
                 sourceLinkStream: sourceLinkStream,
                 embeddedTexts: embeddedTexts,
-                pdbOptionsBlobReader: null,
+                rebuildData: null,
                 testData: testData,
                 cancellationToken: default(CancellationToken));
 
@@ -146,8 +149,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             using var ilStream = new MemoryStream();
             using var pdbStream = new MemoryStream();
 
-            var updatedMethods = new List<MethodDefinitionHandle>();
-
             var result = compilation.EmitDifference(
                 baseline,
                 edits,
@@ -155,7 +156,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 mdStream,
                 ilStream,
                 pdbStream,
-                updatedMethods,
                 testData,
                 CancellationToken.None);
 
@@ -164,8 +164,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 ilStream.ToImmutable(),
                 pdbStream.ToImmutable(),
                 testData,
-                result,
-                updatedMethods.ToImmutableArray());
+                result);
         }
 
         internal static void VerifyAssemblyVersionsAndAliases(this Compilation compilation, params string[] expectedAssembliesAndAliases)

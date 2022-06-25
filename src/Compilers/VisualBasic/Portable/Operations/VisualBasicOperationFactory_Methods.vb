@@ -286,10 +286,6 @@ Namespace Microsoft.CodeAnalysis.Operations
             Return Create(node)
         End Function
 
-        Private Shared Function ParameterIsParamArray(parameter As VisualBasic.Symbols.ParameterSymbol) As Boolean
-            Return If(parameter.IsParamArray AndAlso parameter.Type.Kind = SymbolKind.ArrayType, DirectCast(parameter.Type, VisualBasic.Symbols.ArrayTypeSymbol).IsSZArray, False)
-        End Function
-
         Private Function GetChildOfBadExpression(parent As BoundNode, index As Integer) As IOperation
             Dim child = Create(GetChildOfBadExpressionBoundNode(parent, index))
             If child IsNot Nothing Then
@@ -306,10 +302,6 @@ Namespace Microsoft.CodeAnalysis.Operations
             End If
 
             Return Nothing
-        End Function
-
-        Private Function GetObjectCreationInitializers(expression As BoundObjectCreationExpression) As ImmutableArray(Of IOperation)
-            Return If(expression.InitializerOpt IsNot Nothing, expression.InitializerOpt.Initializers.SelectAsArray(Function(n) Create(n)), ImmutableArray(Of IOperation).Empty)
         End Function
 
         Friend Function GetAnonymousTypeCreationInitializers(expression As BoundAnonymousTypeCreationExpression) As ImmutableArray(Of IOperation)
@@ -394,7 +386,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             '
             ' This is an error scenario, but if we just use the BoundLocalDeclaration.Syntax.Parent directly, without deduplicating,
             ' we'll end up with two IVariableDeclarators that have the same syntax node. So, we group by VariableDeclaratorSyntax
-            ' to put x and y in the same IMutliVariableDeclaration
+            ' to put x and y in the same IMultiVariableDeclaration
             Dim groupedDeclarations = declarations.GroupBy(Function(declaration)
                                                                If declaration.Kind = BoundKind.LocalDeclaration AndAlso
                                                                   declaration.Syntax.IsKind(SyntaxKind.ModifiedIdentifier) Then

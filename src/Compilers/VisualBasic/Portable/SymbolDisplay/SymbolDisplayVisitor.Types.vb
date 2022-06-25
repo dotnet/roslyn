@@ -160,7 +160,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If containingType IsNot Nothing Then
                     visitedParents = True
                     containingType.Accept(Me.NotFirstVisitor())
-                    AddOperator(SyntaxKind.DotToken)
+
+                    If format.CompilerInternalOptions.HasFlag(SymbolDisplayCompilerInternalOptions.UsePlusForNestedTypes) Then
+                        AddOperator(SyntaxKind.PlusToken)
+                    Else
+                        AddOperator(SyntaxKind.DotToken)
+                    End If
                 End If
             End If
 
@@ -205,7 +210,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 AddAnonymousTypeName(symbol)
                 Return
 
-            ElseIf (symbol.IsTupleType) Then
+            ElseIf symbol.IsTupleType Then
                 ' If top level tuple uses non-default names, there is no way to preserve them
                 ' unless we use tuple syntax for the type. So, we give them priority.
                 If HasNonDefaultTupleElements(symbol) OrElse CanUseTupleTypeName(symbol) Then
@@ -355,11 +360,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Shared Function HasNonDefaultTupleElements(tupleSymbol As INamedTypeSymbol) As Boolean
-            Return tupleSymbol.TupleElements.Any(Function(e) Not e.IsDefaultTupleElement)
+            Return tupleSymbol.TupleElements.Any(Function(e) e.IsExplicitlyNamedTupleElement)
         End Function
 
         Private Sub AddTupleTypeName(symbol As INamedTypeSymbol)
             Debug.Assert(symbol.IsTupleType)
+
+            If Me.format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.CollapseTupleTypes) Then
+                builder.Add(CreatePart(SymbolDisplayPartKind.StructName, symbol, "<tuple>", noEscaping:=True))
+                Return
+            End If
 
             Dim elements As ImmutableArray(Of IFieldSymbol) = symbol.TupleElements
 
@@ -373,8 +383,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     AddSpace()
                 End If
 
-                If Not element.IsImplicitlyDeclared Then
-                    builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, symbol, element.Name, noEscaping:=False))
+                If element.IsExplicitlyNamedTupleElement Then
+                    builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, element, element.Name, noEscaping:=False))
                     AddSpace()
                     AddKeyword(SyntaxKind.AsKeyword)
                     AddSpace()

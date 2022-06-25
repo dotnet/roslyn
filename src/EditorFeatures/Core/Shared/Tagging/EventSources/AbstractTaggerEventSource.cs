@@ -3,31 +3,38 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 {
     internal abstract class AbstractTaggerEventSource : ITaggerEventSource
     {
-        private readonly TaggerDelay _delay;
+        private bool _paused;
 
-        protected AbstractTaggerEventSource(TaggerDelay delay)
-            => _delay = delay;
+        protected AbstractTaggerEventSource()
+        {
+        }
 
         public abstract void Connect();
         public abstract void Disconnect();
 
         public event EventHandler<TaggerEventArgs>? Changed;
-        public event EventHandler? UIUpdatesPaused;
-        public event EventHandler? UIUpdatesResumed;
 
-        protected virtual void RaiseChanged()
-            => this.Changed?.Invoke(this, new TaggerEventArgs(_delay));
+        protected void RaiseChanged()
+        {
+            if (!_paused)
+                this.Changed?.Invoke(this, TaggerEventArgs.Empty);
+        }
 
-        protected virtual void RaiseUIUpdatesPaused()
-            => this.UIUpdatesPaused?.Invoke(this, EventArgs.Empty);
+        public void Pause()
+        {
+            _paused = true;
+        }
 
-        protected virtual void RaiseUIUpdatesResumed()
-            => this.UIUpdatesResumed?.Invoke(this, EventArgs.Empty);
+        public void Resume()
+        {
+            _paused = false;
+        }
     }
 }

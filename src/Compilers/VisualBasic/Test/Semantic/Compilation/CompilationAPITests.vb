@@ -806,9 +806,7 @@ End Namespace
             Assert.Equal(Of Boolean)(True, b1)
 
             Dim xt As SyntaxTree = Nothing
-            Assert.Throws(Of ArgumentNullException)(Sub()
-                                                        b1 = comp.ContainsSyntaxTree(xt)
-                                                    End Sub)
+            Assert.Equal(Of Boolean)(False, comp.ContainsSyntaxTree(xt))
 
             comp = comp.RemoveSyntaxTrees({t2})
             Assert.Equal(1, comp.SyntaxTrees.Length)
@@ -905,7 +903,8 @@ End Class
 </compilation>, references:={netModule1.EmitToImageReference(), netModule2.EmitToImageReference()})
             assembly.VerifyDiagnostics()
 
-            CompileAndVerify(assembly)
+            ' ILVerify: Assembly or module not found: missing2
+            CompileAndVerify(assembly, verify:=Verification.FailsILVerify)
         End Sub
 
         <WorkItem(713356, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713356")>

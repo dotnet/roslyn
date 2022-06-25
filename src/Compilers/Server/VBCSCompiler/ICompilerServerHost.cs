@@ -17,6 +17,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     {
         ICompilerServerLogger Logger { get; }
 
-        BuildResponse RunCompilation(RunRequest request, CancellationToken cancellationToken);
+        BuildResponse RunCompilation(in RunRequest request, CancellationToken cancellationToken);
     }
 }

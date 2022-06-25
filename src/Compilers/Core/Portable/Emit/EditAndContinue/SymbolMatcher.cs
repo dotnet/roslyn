@@ -37,26 +37,32 @@ namespace Microsoft.CodeAnalysis.Emit
             var fieldsAdded = MapDefinitions(baseline.FieldsAdded);
             var methodsAdded = MapDefinitions(baseline.MethodsAdded);
             var propertiesAdded = MapDefinitions(baseline.PropertiesAdded);
+            var generationOrdinals = MapDefinitions(baseline.GenerationOrdinals);
 
             return baseline.With(
                 targetCompilation,
                 targetModuleBuilder,
                 baseline.Ordinal,
                 baseline.EncId,
+                generationOrdinals,
                 typesAdded,
                 eventsAdded,
                 fieldsAdded,
                 methodsAdded,
+                firstParamRowMap: baseline.FirstParamRowMap,
                 propertiesAdded,
                 eventMapAdded: baseline.EventMapAdded,
                 propertyMapAdded: baseline.PropertyMapAdded,
                 methodImplsAdded: baseline.MethodImplsAdded,
+                customAttributesAdded: baseline.CustomAttributesAdded,
                 tableEntriesAdded: baseline.TableEntriesAdded,
                 blobStreamLengthAdded: baseline.BlobStreamLengthAdded,
                 stringStreamLengthAdded: baseline.StringStreamLengthAdded,
                 userStringStreamLengthAdded: baseline.UserStringStreamLengthAdded,
                 guidStreamLengthAdded: baseline.GuidStreamLengthAdded,
                 anonymousTypeMap: MapAnonymousTypes(baseline.AnonymousTypeMap),
+                anonymousDelegates: MapAnonymousDelegates(baseline.AnonymousDelegates),
+                anonymousDelegatesWithFixedTypes: MapAnonymousDelegatesWithFixedTypes(baseline.AnonymousDelegatesWithFixedTypes),
                 synthesizedMembers: mappedSynthesizedMembers,
                 addedOrChangedMethods: MapAddedOrChangedMethods(baseline.AddedOrChangedMethods),
                 debugInformationProvider: baseline.DebugInformationProvider,
@@ -99,10 +105,36 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             var result = new Dictionary<AnonymousTypeKey, AnonymousTypeValue>();
 
-            foreach (var pair in anonymousTypeMap)
+            foreach (var (key, value) in anonymousTypeMap)
             {
-                var key = pair.Key;
-                var value = pair.Value;
+                var type = (Cci.ITypeDefinition?)MapDefinition(value.Type);
+                RoslynDebug.Assert(type != null);
+                result.Add(key, new AnonymousTypeValue(value.Name, value.UniqueIndex, type));
+            }
+
+            return result;
+        }
+
+        private IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> MapAnonymousDelegates(IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> anonymousDelegates)
+        {
+            var result = new Dictionary<SynthesizedDelegateKey, SynthesizedDelegateValue>();
+
+            foreach (var (key, value) in anonymousDelegates)
+            {
+                var delegateTypeDef = (Cci.ITypeDefinition?)MapDefinition(value.Delegate);
+                RoslynDebug.Assert(delegateTypeDef != null);
+                result.Add(key, new SynthesizedDelegateValue(delegateTypeDef));
+            }
+
+            return result;
+        }
+
+        private IReadOnlyDictionary<string, AnonymousTypeValue> MapAnonymousDelegatesWithFixedTypes(IReadOnlyDictionary<string, AnonymousTypeValue> anonymousDelegates)
+        {
+            var result = new Dictionary<string, AnonymousTypeValue>();
+
+            foreach (var (key, value) in anonymousDelegates)
+            {
                 var type = (Cci.ITypeDefinition?)MapDefinition(value.Type);
                 RoslynDebug.Assert(type != null);
                 result.Add(key, new AnonymousTypeValue(value.Name, value.UniqueIndex, type));

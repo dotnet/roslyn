@@ -7,6 +7,11 @@
         <target state="translated">Свойство "{0}", доступное только для инициализации, можно назначать только c помощью инициализатора элемента объекта или для "Me", "MyClass" или "MyBase" в конструкторе экземпляра.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadAbstractStaticMemberAccess">
+        <source>A shared abstract or virtual interface member cannot be accessed.</source>
+        <target state="translated">Нет доступа к общему абстрактному или виртуальному элементу интерфейса.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
         <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
         <target state="translated">Ошибка в синтаксисе командной строки: "{0}" не является допустимым значением для параметра "{1}". Значение должно иметь форму "{2}".</target>
@@ -20,6 +25,11 @@
       <trans-unit id="ERR_DefaultInterfaceImplementationInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</source>
         <target state="translated">Не удается внедрить тип "{0}", так как он имеет неабстрактный член. Попробуйте задать для свойства "Внедрить типы взаимодействия" значение false.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DoNotUseCompilerFeatureRequired">
+        <source>'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute' is reserved for compiler usage only.</source>
+        <target state="translated">"System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute" зарезервирован для использования только компилятором.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
@@ -57,9 +67,24 @@
         <target state="translated">События общих переменных WithEvents не могут обрабатывать методы другого типа.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnimplementedSharedMember">
+        <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract or virtual '{2}'.</source>
+        <target state="translated">{0} "{1}" не может реализовать интерфейс "{3}", поскольку он содержит общий абстрактный или виртуальный элемент "{2}".</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
         <source>'UnmanagedCallersOnly' attribute is not supported.</source>
-        <target state="new">'UnmanagedCallersOnly' attribute is not supported.</target>
+        <target state="translated">Атрибут "UnmanagedCallersOnly" не поддерживается.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsupportedCompilerFeature">
+        <source>'{0}' requires compiler feature '{1}', which is not supported by this version of the Visual Basic compiler.</source>
+        <target state="translated">Для "{0}" требуется функция компилятора "{1}", которая не поддерживается в этой версии компилятора Visual Basic.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FEATURE_CallerArgumentExpression">
+        <source>caller argument expression</source>
+        <target state="translated">выражение аргумента вызывающего</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
@@ -501,6 +526,26 @@
       <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
         <source>The loaded assembly references .NET Framework, which is not supported.</source>
         <target state="translated">Загруженная сборка ссылается на платформу .NET Framework, которая не поддерживается.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">
+        <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.</source>
+        <target state="translated">Применение класса CallerArgumentExpressionAttribute к параметру "{0}" не подействует, так как он применяется с недопустимым именем параметра.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName_Title">
+        <source>The CallerArgumentExpressionAttribute applied to parameter will have no effect. It is applied with an invalid parameter name.</source>
+        <target state="translated">Применение класса CallerArgumentExpressionAttribute к параметру не подействует, так как он применяется с недопустимым именем параметра.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeSelfReferential">
+        <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it's self-referential.</source>
+        <target state="translated">Применение класса CallerArgumentExpressionAttribute к параметру "{0}" не подействует, так как он ссылается сам на себя.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeSelfReferential_Title">
+        <source>The CallerArgumentExpressionAttribute applied to parameter will have no effect because it's self-referential.</source>
+        <target state="translated">Применение класса CallerArgumentExpressionAttribute к параметру не подействует, так как он ссылается сам на себя.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">

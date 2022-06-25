@@ -6,7 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
-    internal partial class CodeStyleOption2<T>
+    internal sealed partial class CodeStyleOption2<T>
     {
         [return: NotNullIfNotNull("option")]
         public static explicit operator CodeStyleOption<T>?(CodeStyleOption2<T>? option)
@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 return null;
             }
 
-            return new CodeStyleOption<T>(option.Value, (NotificationOption?)option.Notification);
+            return new CodeStyleOption<T>(option.Value, (NotificationOption)option.Notification);
         }
 
         [return: NotNullIfNotNull("option")]

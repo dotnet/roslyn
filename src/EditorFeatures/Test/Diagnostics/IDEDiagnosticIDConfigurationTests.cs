@@ -27,8 +27,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityL
         private static ImmutableArray<(string diagnosticId, ImmutableHashSet<IOption2> codeStyleOptions)> GetIDEDiagnosticIdsAndOptions(
             string languageName)
         {
-            const string diagnosticIdPrefix = "IDE";
-
             var diagnosticIdAndOptions = new List<(string diagnosticId, ImmutableHashSet<IOption2> options)>();
             var uniqueDiagnosticIds = new HashSet<string>();
             foreach (var assembly in MefHostServices.DefaultAssemblies)
@@ -41,8 +39,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityL
                         var diagnosticId = descriptor.Id;
                         ValidateHelpLinkForDiagnostic(diagnosticId, descriptor.HelpLinkUri);
 
-                        if (!diagnosticId.StartsWith(diagnosticIdPrefix) ||
-                            !int.TryParse(diagnosticId.Substring(startIndex: diagnosticIdPrefix.Length), out _))
+                        if (diagnosticId.StartsWith("ENC") ||
+                            !char.IsDigit(diagnosticId[^1]))
                         {
                             // Ignore non-IDE diagnostic IDs (such as ENCxxxx diagnostics) and
                             // diagnostic IDs for suggestions, fading, etc. (such as IDExxxxWithSuggestion)
@@ -73,8 +71,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityL
         private static void ValidateHelpLinkForDiagnostic(string diagnosticId, string helpLinkUri)
         {
             if (diagnosticId is "IDE0043" // Intentionally undocumented because it's being removed in favor of CA2241
-                or "IDE1007" or "IDE1008" or "RemoveUnnecessaryImportsFixable"
-                or "RE0001") // Tracked by https://github.com/dotnet/roslyn/issues/48530
+                    or "IDE1007"
+                    or "RemoveUnnecessaryImportsFixable"
+                    or "RE0001"
+                    or "JSON001"
+                    or "JSON002") // Tracked by https://github.com/dotnet/roslyn/issues/48530
             {
                 Assert.True(helpLinkUri == string.Empty, $"Expected empty help link for {diagnosticId}");
                 return;
@@ -305,9 +306,6 @@ dotnet_diagnostic.IDE0048.severity = %value%
 # IDE0049
 dotnet_diagnostic.IDE0049.severity = %value%
 
-# IDE0050
-dotnet_diagnostic.IDE0050.severity = %value%
-
 # IDE0051
 dotnet_diagnostic.IDE0051.severity = %value%
 
@@ -398,11 +396,53 @@ dotnet_diagnostic.IDE0083.severity = %value%
 # IDE0090
 dotnet_diagnostic.IDE0090.severity = %value%
 
+# IDE0100
+dotnet_diagnostic.IDE0100.severity = %value%
+
 # IDE0110
 dotnet_diagnostic.IDE0110.severity = %value%
 
-# IDE0100
-dotnet_diagnostic.IDE0100.severity = %value%
+# IDE0120
+dotnet_diagnostic.IDE0120.severity = %value%
+
+# IDE0130
+dotnet_diagnostic.IDE0130.severity = %value%
+
+# IDE0150
+dotnet_diagnostic.IDE0150.severity = %value%
+
+# IDE0160
+dotnet_diagnostic.IDE0160.severity = %value%
+
+# IDE0161
+dotnet_diagnostic.IDE0161.severity = %value%
+
+# IDE0170
+dotnet_diagnostic.IDE0170.severity = %value%
+
+# IDE0180
+dotnet_diagnostic.IDE0180.severity = %value%
+
+# IDE0200
+dotnet_diagnostic.IDE0200.severity = %value%
+
+# IDE0210
+dotnet_diagnostic.IDE0210.severity = %value%
+
+# IDE0211
+dotnet_diagnostic.IDE0211.severity = %value%
+
+# IDE0220
+dotnet_diagnostic.IDE0220.severity = %value%
+
+# IDE0230
+dotnet_diagnostic.IDE0230.severity = %value%
+
+# IDE0240
+dotnet_diagnostic.IDE0240.severity = %value%
+
+# IDE0241
+dotnet_diagnostic.IDE0241.severity = %value%
 
 # IDE1005
 dotnet_diagnostic.IDE1005.severity = %value%
@@ -439,6 +479,15 @@ dotnet_diagnostic.IDE2003.severity = %value%
 
 # IDE2004
 dotnet_diagnostic.IDE2004.severity = %value%
+
+# RE0001
+dotnet_diagnostic.RE0001.severity = %value%
+
+# JSON001
+dotnet_diagnostic.JSON001.severity = %value%
+
+# JSON002
+dotnet_diagnostic.JSON002.severity = %value%
 ";
 
             VerifyConfigureSeverityCore(expected, LanguageNames.CSharp);
@@ -523,9 +572,6 @@ dotnet_diagnostic.IDE0048.severity = %value%
 # IDE0049
 dotnet_diagnostic.IDE0049.severity = %value%
 
-# IDE0050
-dotnet_diagnostic.IDE0050.severity = %value%
-
 # IDE0051
 dotnet_diagnostic.IDE0051.severity = %value%
 
@@ -586,17 +632,26 @@ dotnet_diagnostic.IDE1006.severity = %value%
 # IDE1007
 dotnet_diagnostic.IDE1007.severity = %value%
 
-# IDE1008
-dotnet_diagnostic.IDE1008.severity = %value%
-
 # IDE0120
 dotnet_diagnostic.IDE0120.severity = %value%
+
+# IDE0140
+dotnet_diagnostic.IDE0140.severity = %value%
 
 # IDE2000
 dotnet_diagnostic.IDE2000.severity = %value%
 
 # IDE2003
 dotnet_diagnostic.IDE2003.severity = %value%
+
+# RE0001
+dotnet_diagnostic.RE0001.severity = %value%
+
+# JSON001
+dotnet_diagnostic.JSON001.severity = %value%
+
+# JSON002
+dotnet_diagnostic.JSON002.severity = %value%
 ";
             VerifyConfigureSeverityCore(expected, LanguageNames.VisualBasic);
         }
@@ -821,7 +876,7 @@ csharp_prefer_simple_default_expression = true
 No editorconfig based code style option
 
 # IDE0036, PreferredModifierOrder
-csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async
+csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,required,volatile,async
 
 # IDE0037, PreferInferredTupleNames
 dotnet_style_prefer_inferred_tuple_names = true
@@ -833,7 +888,7 @@ dotnet_style_prefer_inferred_anonymous_type_member_names = true
 csharp_style_pattern_matching_over_is_with_cast_check = true
 
 # IDE0039, PreferLocalOverAnonymousFunction
-csharp_style_pattern_local_over_anonymous_function = true
+csharp_style_prefer_local_over_anonymous_function = true
 
 # IDE0040, RequireAccessibilityModifiers
 dotnet_style_require_accessibility_modifiers = for_non_interface_members
@@ -885,9 +940,6 @@ dotnet_style_predefined_type_for_locals_parameters_members = true
 
 # IDE0049, PreferIntrinsicPredefinedTypeKeywordInMemberAccess
 dotnet_style_predefined_type_for_member_access = true
-
-# IDE0050
-No editorconfig based code style option
 
 # IDE0051
 No editorconfig based code style option
@@ -994,6 +1046,42 @@ dotnet_style_namespace_match_folder = true
 # IDE0131
 No editorconfig based code style option
 
+# IDE0150, PreferNullCheckOverTypeCheck
+csharp_style_prefer_null_check_over_type_check = true
+
+# IDE0160, NamespaceDeclarations
+csharp_style_namespace_declarations = block_scoped
+
+# IDE0161, NamespaceDeclarations
+csharp_style_namespace_declarations = block_scoped
+
+# IDE0170, PreferExtendedPropertyPattern
+csharp_style_prefer_extended_property_pattern = true
+
+# IDE0180, PreferTupleSwap
+csharp_style_prefer_tuple_swap = true
+
+# IDE0200, PreferMethodGroupConversion
+csharp_style_prefer_method_group_conversion = true
+
+# IDE0210, PreferTopLevelStatements
+csharp_style_prefer_top_level_statements = true
+
+# IDE0211, PreferTopLevelStatements
+csharp_style_prefer_top_level_statements = true
+
+# IDE0220, ForEachExplicitCastInSource
+dotnet_style_prefer_foreach_explicit_cast_in_source = when_strongly_typed
+
+# IDE0230, PreferUTF8StringLiterals
+csharp_style_prefer_utf8_string_literals = true
+
+# IDE0240
+No editorconfig based code style option
+
+# IDE0241
+No editorconfig based code style option
+
 # IDE1005, PreferConditionalDelegateCall
 csharp_style_conditional_delegate_call = true
 
@@ -1001,9 +1089,6 @@ csharp_style_conditional_delegate_call = true
 No editorconfig based code style option
 
 # IDE1007
-No editorconfig based code style option
-
-# IDE1008
 No editorconfig based code style option
 
 # IDE2000, AllowMultipleBlankLines
@@ -1020,6 +1105,15 @@ dotnet_style_allow_statement_immediately_after_block_experimental = true
 
 # IDE2004, AllowBlankLineAfterColonInConstructorInitializer
 csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental = true
+
+# RE0001
+No editorconfig based code style option
+
+# JSON001
+No editorconfig based code style option
+
+# JSON002
+No editorconfig based code style option
 ";
 
             VerifyConfigureCodeStyleOptionsCore(expected, LanguageNames.CSharp);
@@ -1146,9 +1240,6 @@ dotnet_style_predefined_type_for_locals_parameters_members = true
 # IDE0049, PreferIntrinsicPredefinedTypeKeywordInMemberAccess
 dotnet_style_predefined_type_for_member_access = true
 
-# IDE0050
-No editorconfig based code style option
-
 # IDE0051
 No editorconfig based code style option
 
@@ -1209,17 +1300,26 @@ No editorconfig based code style option
 # IDE1007
 No editorconfig based code style option
 
-# IDE1008
-No editorconfig based code style option
-
 # IDE0120
 No editorconfig based code style option
+
+# IDE0140, PreferSimplifiedObjectCreation
+visual_basic_style_prefer_simplified_object_creation = true
 
 # IDE2000, AllowMultipleBlankLines
 dotnet_style_allow_multiple_blank_lines_experimental = true
 
 # IDE2003, AllowStatementImmediatelyAfterBlock
 dotnet_style_allow_statement_immediately_after_block_experimental = true
+
+# RE0001
+No editorconfig based code style option
+
+# JSON001
+No editorconfig based code style option
+
+# JSON002
+No editorconfig based code style option
 ";
 
             VerifyConfigureCodeStyleOptionsCore(expected, LanguageNames.VisualBasic);

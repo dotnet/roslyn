@@ -31,8 +31,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 bool containsAwait,
                 bool containsTupleExpressionOrTupleType,
                 bool containsImplicitObjectCreation,
-                bool containsGlobalAttributes,
-                bool containsConversion)
+                bool containsGlobalSuppressMessageAttribute,
+                bool containsConversion,
+                bool containsGlobalKeyword)
                 : this(predefinedTypes, predefinedOperators,
                        ConvertToContainingNodeFlag(
                          containsForEachStatement,
@@ -47,8 +48,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                          containsAwait,
                          containsTupleExpressionOrTupleType,
                          containsImplicitObjectCreation,
-                         containsGlobalAttributes,
-                         containsConversion))
+                         containsGlobalSuppressMessageAttribute,
+                         containsConversion,
+                         containsGlobalKeyword))
             {
             }
 
@@ -72,8 +74,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 bool containsAwait,
                 bool containsTupleExpressionOrTupleType,
                 bool containsImplicitObjectCreation,
-                bool containsGlobalAttributes,
-                bool containsConversion)
+                bool containsGlobalSuppressMessageAttribute,
+                bool containsConversion,
+                bool containsGlobalKeyword)
             {
                 var containingNodes = ContainingNodes.None;
 
@@ -89,8 +92,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 containingNodes |= containsAwait ? ContainingNodes.ContainsAwait : 0;
                 containingNodes |= containsTupleExpressionOrTupleType ? ContainingNodes.ContainsTupleExpressionOrTupleType : 0;
                 containingNodes |= containsImplicitObjectCreation ? ContainingNodes.ContainsImplicitObjectCreation : 0;
-                containingNodes |= containsGlobalAttributes ? ContainingNodes.ContainsGlobalAttributes : 0;
+                containingNodes |= containsGlobalSuppressMessageAttribute ? ContainingNodes.ContainsGlobalSuppressMessageAttribute : 0;
                 containingNodes |= containsConversion ? ContainingNodes.ContainsConversion : 0;
+                containingNodes |= containsGlobalKeyword ? ContainingNodes.ContainsGlobalKeyword : 0;
 
                 return containingNodes;
             }
@@ -137,8 +141,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             public bool ContainsTupleExpressionOrTupleType
                 => (_containingNodes & ContainingNodes.ContainsTupleExpressionOrTupleType) == ContainingNodes.ContainsTupleExpressionOrTupleType;
 
-            public bool ContainsGlobalAttributes
-                => (_containingNodes & ContainingNodes.ContainsGlobalAttributes) == ContainingNodes.ContainsGlobalAttributes;
+            public bool ContainsGlobalKeyword
+                => (_containingNodes & ContainingNodes.ContainsGlobalKeyword) == ContainingNodes.ContainsGlobalKeyword;
+
+            public bool ContainsGlobalSuppressMessageAttribute
+                => (_containingNodes & ContainingNodes.ContainsGlobalSuppressMessageAttribute) == ContainingNodes.ContainsGlobalSuppressMessageAttribute;
 
             public bool ContainsConversion
                 => (_containingNodes & ContainingNodes.ContainsConversion) == ContainingNodes.ContainsConversion;
@@ -183,8 +190,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 ContainsAwait = 1 << 9,
                 ContainsTupleExpressionOrTupleType = 1 << 10,
                 ContainsImplicitObjectCreation = 1 << 11,
-                ContainsGlobalAttributes = 1 << 12,
+                ContainsGlobalSuppressMessageAttribute = 1 << 12,
                 ContainsConversion = 1 << 13,
+                ContainsGlobalKeyword = 1 << 14,
             }
         }
     }

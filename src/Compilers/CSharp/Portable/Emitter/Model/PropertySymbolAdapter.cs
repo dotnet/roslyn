@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             CheckDefinitionInvariantAllowEmbedded();
             return ((PEModuleBuilder)context.Module).Translate(AdaptedPropertySymbol.Type,
-                                                      syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
+                                                      syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
                                                       diagnostics: context.Diagnostics);
         }
 

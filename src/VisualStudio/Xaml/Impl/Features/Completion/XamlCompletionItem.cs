@@ -13,6 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Completion
     internal class XamlCompletionItem
     {
         public string[] CommitCharacters { get; set; }
+        public XamlCommitCharacters? XamlCommitCharacters { get; set; }
         public string DisplayText { get; set; }
         public string InsertText { get; set; }
         public string Detail { get; set; }
@@ -25,5 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Completion
         public ImageElement Icon { get; set; }
         public ISymbol Symbol { get; set; }
         public XamlEventDescription? EventDescription { get; set; }
+        public bool RetriggerCompletion { get; set; }
+        public bool IsSnippet { get; set; }
     }
 }

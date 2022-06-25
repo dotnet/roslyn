@@ -1466,9 +1466,9 @@ class C
 }", parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
         }
 
-        private TestParameters OmitIfDefault_Warning => new TestParameters(options: Option(CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault, NotificationOption2.Warning));
-        private TestParameters Never_Warning => new TestParameters(options: Option(CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Never, NotificationOption2.Warning));
-        private TestParameters Always_Warning => new TestParameters(options: Option(CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Always, NotificationOption2.Warning));
+        private TestParameters OmitIfDefault_Warning => new TestParameters(options: Option(CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.OmitIfDefault, NotificationOption2.Warning));
+        private TestParameters Never_Warning => new TestParameters(options: Option(CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.Never, NotificationOption2.Warning));
+        private TestParameters Always_Warning => new TestParameters(options: Option(CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.Always, NotificationOption2.Warning));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestCreateFieldWithTopLevelNullability()
@@ -1883,6 +1883,34 @@ class C
     public int I { get; }
     public int J { get; }
 }", index: 3);
+        }
+
+        [WorkItem(53467, "https://github.com/dotnet/roslyn/issues/53467")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestMissingWhenTypeNotInCompilation()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"">
+        <Document>
+public class Foo
+{
+    public Foo(int prop1)
+    {
+        Prop1 = prop1;
+    }
+
+    public int Prop1 { get; }
+}
+
+public class Bar : Foo
+{
+    public Bar(int prop1, int [||]prop2) : base(prop1) { }
+}
+        </Document>
+    </Project>
+</Workspace>");
         }
     }
 }

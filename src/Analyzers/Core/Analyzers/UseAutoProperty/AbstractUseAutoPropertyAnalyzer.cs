@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             var semanticModel = context.SemanticModel;
 
             // Don't even bother doing the analysis if the user doesn't even want auto-props.
-            var option = context.GetOption(CodeStyleOptions2.PreferAutoProperties, semanticModel.Language);
+            var option = context.GetAnalyzerOptions().PreferAutoProperties;
             if (!option.Value)
             {
                 return;
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             var cancellationToken = context.CancellationToken;
             var semanticModel = context.SemanticModel;
 
-            if (!(semanticModel.GetDeclaredSymbol(propertyDeclaration, cancellationToken) is IPropertySymbol property))
+            if (semanticModel.GetDeclaredSymbol(propertyDeclaration, cancellationToken) is not IPropertySymbol property)
             {
                 return;
             }
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             }
 
             var fieldReference = getterField.DeclaringSyntaxReferences[0];
-            if (!(fieldReference.GetSyntax(cancellationToken) is TVariableDeclarator variableDeclarator))
+            if (fieldReference.GetSyntax(cancellationToken) is not TVariableDeclarator variableDeclarator)
             {
                 return;
             }
@@ -216,15 +216,20 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 return;
             }
 
-            if (!(variableDeclarator.Parent?.Parent is TFieldDeclaration fieldDeclaration))
+            if (variableDeclarator.Parent?.Parent is not TFieldDeclaration fieldDeclaration)
             {
                 return;
             }
 
             // Can't remove the field if it has attributes on it.
-            if (getterField.GetAttributes().Length > 0)
+            var attributes = getterField.GetAttributes();
+            var suppressMessageAttributeType = semanticModel.Compilation.SuppressMessageAttributeType();
+            foreach (var attribute in attributes)
             {
-                return;
+                if (attribute.AttributeClass != suppressMessageAttributeType)
+                {
+                    return;
+                }
             }
 
             if (!CanConvert(property))
@@ -317,7 +322,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 propertyDeclaration.GetLocation(),
                 variableDeclarator.GetLocation());
 
-            var option = context.GetOption(CodeStyleOptions2.PreferAutoProperties, propertyDeclaration.Language);
+            var option = context.GetAnalyzerOptions().PreferAutoProperties;
             if (option.Notification.Severity == ReportDiagnostic.Suppress)
             {
                 // Avoid reporting diagnostics when the feature is disabled. This primarily avoids reporting the hidden

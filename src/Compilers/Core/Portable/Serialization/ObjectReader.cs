@@ -11,8 +11,10 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
+using System.Runtime.ExceptionServices;
 
 namespace Roslyn.Utilities
 {
@@ -99,10 +101,24 @@ namespace Roslyn.Utilities
                 return null;
             }
 
-            if (stream.ReadByte() != VersionByte1 ||
-                stream.ReadByte() != VersionByte2)
+            try
             {
-                return null;
+                if (stream.ReadByte() != VersionByte1 ||
+                    stream.ReadByte() != VersionByte2)
+                {
+                    return null;
+                }
+            }
+            catch (AggregateException ex) when (ex.InnerException is not null)
+            {
+                // PipeReaderStream wraps any exception it throws in an AggregateException, which is not expected by
+                // callers treating it as a normal stream. Unwrap and rethrow the inner exception for clarity.
+                // https://github.com/dotnet/runtime/issues/70206
+#if NETCOREAPP
+                ExceptionDispatchInfo.Throw(ex.InnerException);
+#else
+                ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+#endif
             }
 
             return new ObjectReader(stream, leaveOpen, cancellationToken);
@@ -186,13 +202,11 @@ namespace Roslyn.Utilities
             object value;
             if (_recursionDepth % ObjectWriter.MaxRecursionDepth == 0)
             {
+                _cancellationToken.ThrowIfCancellationRequested();
+
                 // If we're recursing too deep, move the work to another thread to do so we
                 // don't blow the stack.
-                var task = Task.Factory.StartNew(
-                    () => ReadValueWorker(),
-                    _cancellationToken,
-                    TaskCreationOptions.LongRunning,
-                    TaskScheduler.Default);
+                var task = SerializationThreadPool.RunOnBackgroundThreadAsync(() => ReadValueWorker());
 
                 // We must not proceed until the additional task completes. After returning from a read, the underlying
                 // stream providing access to raw memory will be closed; if this occurs before the separate thread
@@ -312,12 +326,12 @@ namespace Roslyn.Utilities
         private struct ReaderReferenceMap<T> : IDisposable
             where T : class
         {
-            private readonly List<T> _values;
+            private readonly SegmentedList<T> _values;
 
-            private static readonly ObjectPool<List<T>> s_objectListPool
-                = new(() => new List<T>(20));
+            private static readonly ObjectPool<SegmentedList<T>> s_objectListPool
+                = new(() => new SegmentedList<T>(20));
 
-            private ReaderReferenceMap(List<T> values)
+            private ReaderReferenceMap(SegmentedList<T> values)
                 => _values = values;
 
             public static ReaderReferenceMap<T> Create()

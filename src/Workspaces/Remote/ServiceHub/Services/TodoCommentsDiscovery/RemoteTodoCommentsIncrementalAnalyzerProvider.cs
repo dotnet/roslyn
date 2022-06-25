@@ -3,8 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.SolutionCrawler;
-using Microsoft.CodeAnalysis.TodoComments;
-using Microsoft.ServiceHub.Framework;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -15,16 +13,12 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </remarks>
     internal sealed class RemoteTodoCommentsIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider
     {
-        private readonly RemoteCallback<IRemoteTodoCommentsDiscoveryService.ICallback> _callback;
-        private readonly RemoteServiceCallbackId _callbackId;
+        private readonly RemoteTodoCommentsIncrementalAnalyzer _analyzer;
 
-        public RemoteTodoCommentsIncrementalAnalyzerProvider(RemoteCallback<IRemoteTodoCommentsDiscoveryService.ICallback> callback, RemoteServiceCallbackId callbackId)
-        {
-            _callback = callback;
-            _callbackId = callbackId;
-        }
+        public RemoteTodoCommentsIncrementalAnalyzerProvider(RemoteTodoCommentsIncrementalAnalyzer analyzer)
+            => _analyzer = analyzer;
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
-            => new RemoteTodoCommentsIncrementalAnalyzer(_callback, _callbackId);
+            => _analyzer;
     }
 }

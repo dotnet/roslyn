@@ -12,8 +12,7 @@ namespace Microsoft.CodeAnalysis
     /* This is the static API on Workspace that lets you associate text containers with workspace instances */
     public abstract partial class Workspace
     {
-        private static readonly ConditionalWeakTable<SourceTextContainer, WorkspaceRegistration> s_bufferToWorkspaceRegistrationMap =
-            new();
+        private static readonly ConditionalWeakTable<SourceTextContainer, WorkspaceRegistration> s_bufferToWorkspaceRegistrationMap = new();
 
         /// <summary>
         /// Gets the workspace associated with the specific text container.
@@ -43,10 +42,7 @@ namespace Microsoft.CodeAnalysis
 
             var registration = GetWorkspaceRegistration(textContainer);
             registration.SetWorkspace(this);
-            this.ScheduleTask(() =>
-            {
-                registration.RaiseEvents();
-            }, "Workspace.RegisterText");
+            this.ScheduleTask(registration.RaiseEvents, "Workspace.RegisterText");
         }
 
         /// <summary>
@@ -67,22 +63,17 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private static WorkspaceRegistration CreateRegistration(SourceTextContainer container)
-            => new();
-
-        private static readonly ConditionalWeakTable<SourceTextContainer, WorkspaceRegistration>.CreateValueCallback s_createRegistration = CreateRegistration;
-
         /// <summary>
         /// Returns a <see cref="WorkspaceRegistration" /> for a given text container.
         /// </summary>
-        public static WorkspaceRegistration GetWorkspaceRegistration(SourceTextContainer? textContainer)
+        public static WorkspaceRegistration GetWorkspaceRegistration(SourceTextContainer textContainer)
         {
             if (textContainer == null)
             {
                 throw new ArgumentNullException(nameof(textContainer));
             }
 
-            return s_bufferToWorkspaceRegistrationMap.GetValue(textContainer, s_createRegistration);
+            return s_bufferToWorkspaceRegistrationMap.GetValue(textContainer, static _ => new WorkspaceRegistration());
         }
     }
 }

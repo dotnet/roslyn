@@ -9,7 +9,12 @@
     <License>EULA.rtf</License>
   </Metadata>
   <Installation Experimental="true">
-    <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[15.0,]" />
+    <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.0,]">
+      <ProductArchitecture>x86</ProductArchitecture>
+    </InstallationTarget>
+    <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.0,]">
+      <ProductArchitecture>amd64</ProductArchitecture>
+    </InstallationTarget>
   </Installation>
   <Dependencies>
     <Dependency Id="0b5e8ddb-f12d-4131-a71d-77acc26a798f" DisplayName="Roslyn Language Services" d:Source="Project" Version="[|VisualStudioSetup;GetVsixVersion|,]" d:ProjectName="VisualStudioSetup" />
@@ -17,9 +22,8 @@
   <Assets>
     <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%|" />
-    <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="Diagnostics" Path="|Diagnostics|" AssemblyName="|Diagnostics;AssemblyName|" />
   </Assets>
   <Prerequisites>
-    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[15.0,17.0)" DisplayName="Visual Studio Core Editor" />
+    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[17.0,18.0)" DisplayName="Visual Studio Core Editor" />
   </Prerequisites>
 </PackageManifest>

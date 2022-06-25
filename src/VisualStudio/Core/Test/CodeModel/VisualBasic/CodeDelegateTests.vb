@@ -591,7 +591,7 @@ Delegate Sub M()
 
 #End Region
 
-        Private Function GetGenericExtender(codeElement As EnvDTE80.CodeDelegate2) As IVBGenericExtender
+        Private Shared Function GetGenericExtender(codeElement As EnvDTE80.CodeDelegate2) As IVBGenericExtender
             Return CType(codeElement.Extender(ExtenderNames.VBGenericExtender), IVBGenericExtender)
         End Function
 

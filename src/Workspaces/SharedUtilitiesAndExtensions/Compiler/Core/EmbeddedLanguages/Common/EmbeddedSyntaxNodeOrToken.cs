@@ -4,7 +4,7 @@
 
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
 {
@@ -12,25 +12,38 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
         where TSyntaxKind : struct
         where TSyntaxNode : EmbeddedSyntaxNode<TSyntaxKind, TSyntaxNode>
     {
-        public readonly TSyntaxNode? Node;
-        public readonly EmbeddedSyntaxToken<TSyntaxKind> Token;
+        private readonly EmbeddedSyntaxToken<TSyntaxKind> _token;
 
-        private EmbeddedSyntaxNodeOrToken(TSyntaxNode node) : this()
+        public readonly TSyntaxNode? Node;
+
+        private EmbeddedSyntaxNodeOrToken(TSyntaxNode? node) : this()
         {
-            RoslynDebug.AssertNotNull(node);
             Node = node;
         }
 
         private EmbeddedSyntaxNodeOrToken(EmbeddedSyntaxToken<TSyntaxKind> token) : this()
         {
             Debug.Assert((int)(object)token.Kind != 0);
-            Token = token;
+            _token = token;
         }
+
+        public readonly EmbeddedSyntaxToken<TSyntaxKind> Token
+        {
+            get
+            {
+                Debug.Assert(Node == null);
+                return _token;
+            }
+        }
+        public TSyntaxKind Kind => Node?.Kind ?? Token.Kind;
 
         [MemberNotNullWhen(true, nameof(Node))]
         public bool IsNode => Node != null;
 
-        public static implicit operator EmbeddedSyntaxNodeOrToken<TSyntaxKind, TSyntaxNode>(TSyntaxNode node)
+        public TextSpan? GetFullSpan()
+            => IsNode ? Node.GetFullSpan() : _token.GetFullSpan();
+
+        public static implicit operator EmbeddedSyntaxNodeOrToken<TSyntaxKind, TSyntaxNode>(TSyntaxNode? node)
             => new(node);
 
         public static implicit operator EmbeddedSyntaxNodeOrToken<TSyntaxKind, TSyntaxNode>(EmbeddedSyntaxToken<TSyntaxKind> token)

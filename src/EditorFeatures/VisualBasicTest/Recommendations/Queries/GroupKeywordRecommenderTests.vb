@@ -4,6 +4,8 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Queries
     Public Class GroupKeywordRecommenderTests
+        Inherits RecommenderTests
+
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub GroupNotInStatementTest()
             VerifyRecommendationsMissing(<MethodBody>|</MethodBody>, "Group")

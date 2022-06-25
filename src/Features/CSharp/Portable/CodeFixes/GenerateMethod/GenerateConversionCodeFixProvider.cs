@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.GenerateMember;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember;
@@ -46,26 +47,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod
                    node is ExpressionSyntax;
         }
 
-        protected override SyntaxNode GetTargetNode(SyntaxNode node)
+        protected override SyntaxNode? GetTargetNode(SyntaxNode node)
         {
             if (node is InvocationExpressionSyntax invocation)
-            {
                 return invocation.Expression.GetRightmostName();
-            }
 
             if (node is MemberBindingExpressionSyntax memberBindingExpression)
-            {
                 return memberBindingExpression.Name;
-            }
 
             return node;
         }
 
         protected override Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
-            Document document, SyntaxNode node, CancellationToken cancellationToken)
+            Document document, SyntaxNode node, CleanCodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var service = document.GetRequiredLanguageService<IGenerateConversionService>();
-            return service.GenerateConversionAsync(document, node, cancellationToken);
+            return service.GenerateConversionAsync(document, node, fallbackOptions, cancellationToken);
         }
     }
 }

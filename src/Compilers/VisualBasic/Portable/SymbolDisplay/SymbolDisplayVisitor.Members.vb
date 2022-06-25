@@ -160,18 +160,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Private Sub AddAccessor([property] As ISymbol, method As IMethodSymbol, keyword As SyntaxKind)
-            If method IsNot Nothing Then
-                AddSpace()
-                If method.DeclaredAccessibility <> [property].DeclaredAccessibility Then
-                    AddAccessibilityIfRequired(method)
-                End If
-
-                AddKeyword(keyword)
-                AddPunctuation(SyntaxKind.SemicolonToken)
-            End If
-        End Sub
-
         Public Overrides Sub VisitMethod(symbol As IMethodSymbol)
             If IsDeclareMethod(symbol) Then
                 VisitDeclareMethod(symbol)

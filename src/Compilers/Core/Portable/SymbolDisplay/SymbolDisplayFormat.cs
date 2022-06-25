@@ -130,6 +130,11 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Formats the names of all types and namespaces in a fully qualified style (including the global alias).
         /// </summary>
+        /// <remarks>
+        /// The current behavior will not output the fully qualified style as expected for member symbols (such as properties) because memberOptions is not set.
+        /// For example, MyNamespace.MyClass.MyPublicProperty will return as MyPublicProperty.
+        /// The current behavior displayed here will be maintained for backwards compatibility.
+        /// </remarks>
         public static SymbolDisplayFormat FullyQualifiedFormat { get; } =
             new SymbolDisplayFormat(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
@@ -752,6 +757,12 @@ namespace Microsoft.CodeAnalysis
         {
             return this.WithLocalOptions(this.LocalOptions & ~options);
         }
+
+        /// <summary>
+        /// Creates a copy of the SymbolDisplayFormat but with added set of <seealso cref="SymbolDisplayCompilerInternalOptions"/>.
+        /// </summary>
+        internal SymbolDisplayFormat AddCompilerInternalOptions(SymbolDisplayCompilerInternalOptions options)
+            => WithCompilerInternalOptions(this.CompilerInternalOptions | options);
 
         /// <summary>
         /// Creates a copy of the SymbolDisplayFormat but with replaced set of <seealso cref="SymbolDisplayCompilerInternalOptions"/>.

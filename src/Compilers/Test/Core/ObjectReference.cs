@@ -161,9 +161,21 @@ namespace Roslyn.Test.Utilities
         /// caller must not "leak" the object out of the given action for any lifetime assertions to be safe.
         /// </summary>
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public ObjectReference<U> GetObjectReference<U>(Func<T, U> function) where U : class
+        public ObjectReference<TResult> GetObjectReference<TResult>(Func<T, TResult> function) where TResult : class
         {
             var newValue = function(GetReferenceWithChecks());
+            return ObjectReference.Create(newValue);
+        }
+
+        /// <summary>
+        /// Provides the underlying strong reference to the given function, lets a function extract some value, and then returns a new ObjectReference.
+        /// This method is marked not be inlined, to ensure that no temporaries are left on the stack that might still root the strong reference. The
+        /// caller must not "leak" the object out of the given action for any lifetime assertions to be safe.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public ObjectReference<TResult> GetObjectReference<TResult, TArg>(Func<T, TArg, TResult> function, TArg argument) where TResult : class
+        {
+            var newValue = function(GetReferenceWithChecks(), argument);
             return ObjectReference.Create(newValue);
         }
 

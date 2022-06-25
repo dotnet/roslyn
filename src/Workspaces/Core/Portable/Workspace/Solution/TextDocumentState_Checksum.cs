@@ -21,10 +21,13 @@ namespace Microsoft.CodeAnalysis
         public Task<DocumentStateChecksums> GetStateChecksumsAsync(CancellationToken cancellationToken)
             => _lazyChecksums.GetValueAsync(cancellationToken);
 
-        public async Task<Checksum> GetChecksumAsync(CancellationToken cancellationToken)
+        public Task<Checksum> GetChecksumAsync(CancellationToken cancellationToken)
         {
-            var collection = await _lazyChecksums.GetValueAsync(cancellationToken).ConfigureAwait(false);
-            return collection.Checksum;
+            return SpecializedTasks.TransformWithoutIntermediateCancellationExceptionAsync(
+                static (lazyChecksums, cancellationToken) => new ValueTask<DocumentStateChecksums>(lazyChecksums.GetValueAsync(cancellationToken)),
+                static (documentStateChecksums, _) => documentStateChecksums.Checksum,
+                _lazyChecksums,
+                cancellationToken).AsTask();
         }
 
         private async Task<DocumentStateChecksums> ComputeChecksumsAsync(CancellationToken cancellationToken)
@@ -42,7 +45,7 @@ namespace Microsoft.CodeAnalysis
                     return new DocumentStateChecksums(infoChecksum, textChecksum);
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }

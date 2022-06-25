@@ -21,11 +21,15 @@ if ($help) {
 }
 
 # List of binary names that should be skipped because they have a known issue that
-# makes them non-deterministic.  
+# makes them non-deterministic.
 $script:skipList = @(
   # Added to work around https://github.com/dotnet/roslyn/issues/48417
-  "Microsoft.CodeAnalysis.EditorFeatures2.UnitTests.dll"
+  "Microsoft.CodeAnalysis.EditorFeatures2.UnitTests.dll",
+
+  # Work around XLF issues https://github.com/dotnet/roslyn/issues/58840
+  "Roslyn.VisualStudio.DiagnosticsWindow.dll.key"
 )
+
 function Run-Build([string]$rootDir, [string]$logFileName) {
 
   # Clean out the previous run
@@ -67,11 +71,11 @@ function Run-Build([string]$rootDir, [string]$logFileName) {
   Stop-Processes
 }
 
-function Get-ObjDir([string]$rootDir) { 
+function Get-ObjDir([string]$rootDir) {
   return Join-Path $rootDir "artifacts\obj"
 }
 
-function Get-BinDir([string]$rootDir) { 
+function Get-BinDir([string]$rootDir) {
   return Join-Path $rootDir "artifacts\bin"
 }
 
@@ -79,8 +83,8 @@ function Get-BinDir([string]$rootDir) {
 # directory.
 function Get-FilesToProcess([string]$rootDir) {
   $objDir = Get-ObjDir $rootDir
-  foreach ($item in Get-ChildItem -re -in *.dll,*.exe,*.pdb,*.sourcelink.json $objDir) {
-    $filePath = $item.FullName 
+  foreach ($item in Get-ChildItem -re -in *.dll,*.exe,*.pdb,*.sourcelink.json,*.key $objDir) {
+    $filePath = $item.FullName
     $fileName = Split-Path -leaf $filePath
     $relativeDirectory = Split-Path -parent $filePath
     $relativeDirectory = $relativeDirectory.Substring($objDir.Length)
@@ -103,7 +107,7 @@ function Get-FilesToProcess([string]$rootDir) {
 
     $keyFilePath = $filePath + ".key"
     $keyFileName = Split-Path -leaf $keyFilePath
-    if (Test-Path $keyFilePath) { 
+    if (Test-Path $keyFilePath) {
       $data.KeyFileName = $keyFileName
       $data.KeyFilePath = $keyFilePath
       $data.KeyFileContent = [IO.File]::ReadAllBytes($keyFilePath)
@@ -124,7 +128,7 @@ function Record-Binaries([string]$rootDir) {
   Write-Host "Recording file hashes"
 
   $map = @{ }
-  foreach ($fileData in Get-FilesToProcess $rootDir) { 
+  foreach ($fileData in Get-FilesToProcess $rootDir) {
     Write-Host "`t$($fileData.FileId) = $($fileData.Hash)"
     $map[$fileData.FileId] = $fileData
   }
@@ -134,9 +138,9 @@ function Record-Binaries([string]$rootDir) {
 }
 
 # This is a sanity check to ensure that we're actually putting the right entries into
-# the core data map. Essentially to ensure things like if we change our directory layout 
-# that this test fails beacuse we didn't record the binaries we intended to record. 
-function Test-MapContents($dataMap) { 
+# the core data map. Essentially to ensure things like if we change our directory layout
+# that this test fails beacuse we didn't record the binaries we intended to record.
+function Test-MapContents($dataMap) {
 
   # Sanity check to ensure we didn't return a false positive because we failed
   # to examine any binaries.
@@ -151,16 +155,16 @@ function Test-MapContents($dataMap) {
     "Microsoft.CodeAnalysis.Workspaces.dll",
     "Microsoft.VisualStudio.LanguageServices.Implementation.dll")
 
-  foreach ($fileName in $list) { 
+  foreach ($fileName in $list) {
     $found = $false
-    foreach ($value in $dataMap.Values) { 
-      if ($value.FileName -eq $fileName) { 
+    foreach ($value in $dataMap.Values) {
+      if ($value.FileName -eq $fileName) {
         $found = $true
         break;
       }
     }
 
-    if (-not $found) { 
+    if (-not $found) {
       throw "Did not find the expected binary $fileName"
     }
   }
@@ -187,7 +191,7 @@ function Test-Build([string]$rootDir, $dataMap, [string]$logFileName) {
     }
 
     $oldfileData = $datamap[$fileId]
-    if ($fileData.Hash -ne $oldFileData.Hash) { 
+    if ($fileData.Hash -ne $oldFileData.Hash) {
       Write-Host "`tERROR! $relativeDir\$fileName contents don't match"
       $allGood = $false
       $errorList += $fileName
@@ -242,13 +246,13 @@ function Run-Test() {
   # Run a test against the source in the same directory location
   Test-Build -rootDir $RepoRoot -dataMap $dataMap -logFileName "test1"
 
-  # Run another build in a different source location and verify that path mapping 
-  # allows the build to be identical.  To do this we'll copy the entire source 
+  # Run another build in a different source location and verify that path mapping
+  # allows the build to be identical.  To do this we'll copy the entire source
   # tree under the artifacts\q directory and run a build from there.
   Write-Host "Building in a different directory"
   Exec-Command "subst" "$altRootDrive $(Split-Path -parent $RepoRoot)"
   try {
-    $altRootDir = Join-Path "$($altRootDrive)\" (Split-Path -leaf $RepoRoot)
+    $altRootDir = Join-Path (Join-Path "$($altRootDrive)\" (Split-Path -leaf $RepoRoot)) "\"
     Test-Build -rootDir $altRootDir -dataMap $dataMap -logFileName "test2"
   }
   finally {

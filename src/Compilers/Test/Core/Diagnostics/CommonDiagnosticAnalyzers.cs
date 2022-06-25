@@ -785,6 +785,7 @@ namespace Microsoft.CodeAnalysis
         {
             private readonly Location _invalidLocation;
             private readonly ActionKind _actionKind;
+            private readonly bool _testInvalidAdditionalLocation;
 
             public static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
                 "ID",
@@ -805,17 +806,20 @@ namespace Microsoft.CodeAnalysis
                 SyntaxTree
             }
 
-            public AnalyzerWithInvalidDiagnosticLocation(SyntaxTree treeInAnotherCompilation, ActionKind actionKind)
+            public AnalyzerWithInvalidDiagnosticLocation(SyntaxTree treeInAnotherCompilation, ActionKind actionKind, bool testInvalidAdditionalLocation)
             {
                 _invalidLocation = treeInAnotherCompilation.GetRoot().GetLocation();
                 _actionKind = actionKind;
+                _testInvalidAdditionalLocation = testInvalidAdditionalLocation;
             }
 
             private void ReportDiagnostic(Action<Diagnostic> addDiagnostic, ActionKind actionKindBeingRun)
             {
                 if (_actionKind == actionKindBeingRun)
                 {
-                    var diagnostic = Diagnostic.Create(Descriptor, _invalidLocation);
+                    var diagnostic = _testInvalidAdditionalLocation ?
+                        Diagnostic.Create(Descriptor, Location.None, additionalLocations: new[] { _invalidLocation }) :
+                        Diagnostic.Create(Descriptor, _invalidLocation);
                     addDiagnostic(diagnostic);
                 }
             }
@@ -838,56 +842,6 @@ namespace Microsoft.CodeAnalysis
 
                 context.RegisterSyntaxTreeAction(c => ReportDiagnostic(c.ReportDiagnostic, ActionKind.SyntaxTree));
                 context.RegisterCompilationAction(cc => ReportDiagnostic(cc.ReportDiagnostic, ActionKind.Compilation));
-            }
-        }
-
-        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-        public sealed class AnalyzerWithAsyncMethodRegistration : DiagnosticAnalyzer
-        {
-            public static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
-                "ID",
-                "Title1",
-                "Message1",
-                "Category1",
-                defaultSeverity: DiagnosticSeverity.Warning,
-                isEnabledByDefault: true);
-
-            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
-            public override void Initialize(AnalysisContext context)
-            {
-                context.RegisterCompilationAction(AsyncAction);
-            }
-
-#pragma warning disable VSTHRD100 // Avoid async void methods
-            private async void AsyncAction(CompilationAnalysisContext context)
-#pragma warning restore VSTHRD100 // Avoid async void methods
-            {
-                context.ReportDiagnostic(Diagnostic.Create(Descriptor, Location.None));
-                await Task.FromResult(true);
-            }
-        }
-
-        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-        public sealed class AnalyzerWithAsyncLambdaRegistration : DiagnosticAnalyzer
-        {
-            public static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
-                "ID",
-                "Title1",
-                "Message1",
-                "Category1",
-                defaultSeverity: DiagnosticSeverity.Warning,
-                isEnabledByDefault: true);
-
-            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
-            public override void Initialize(AnalysisContext context)
-            {
-#pragma warning disable VSTHRD101 // Avoid unsupported async delegates
-                context.RegisterCompilationAction(async (compilationContext) =>
-#pragma warning restore VSTHRD101 // Avoid unsupported async delegates
-                {
-                    compilationContext.ReportDiagnostic(Diagnostic.Create(Descriptor, Location.None));
-                    await Task.FromResult(true);
-                });
             }
         }
 

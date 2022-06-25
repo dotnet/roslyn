@@ -366,11 +366,6 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 diagnostics.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_InvalidHashAlgorithmName, Location.None, ""));
             }
-
-            if (PdbFilePath != null && !PathUtilities.IsValidFilePath(PdbFilePath))
-            {
-                diagnostics.Add(messageProvider.CreateDiagnostic(messageProvider.FTL_InvalidInputFileName, Location.None, PdbFilePath));
-            }
         }
 
         internal bool EmitTestCoverageData => InstrumentationKinds.Contains(InstrumentationKind.TestCoverage);

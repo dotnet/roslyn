@@ -215,6 +215,114 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
         }
 
         [Fact]
+        public async Task ToStringWithInvariantCultureInsideFormattableStringInvariant()
+        {
+            // Invariance remains explicit, so this is okay.
+
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M(System.DateTime someValue)
+    {
+        _ = System.FormattableString.Invariant($""prefix {someValue[||]{|Unnecessary:.ToString(System.Globalization.CultureInfo.InvariantCulture)|}} suffix"");
+    }
+}",
+@"class C
+{
+    void M(System.DateTime someValue)
+    {
+        _ = System.FormattableString.Invariant($""prefix {someValue} suffix"");
+    }
+}");
+        }
+
+        [Fact]
+        public async Task DateTimeFormatInfoInvariantInfoIsRecognized()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M(System.DateTime someValue)
+    {
+        _ = System.FormattableString.Invariant($""prefix {someValue[||]{|Unnecessary:.ToString(System.Globalization.DateTimeFormatInfo.InvariantInfo)|}} suffix"");
+    }
+}",
+@"class C
+{
+    void M(System.DateTime someValue)
+    {
+        _ = System.FormattableString.Invariant($""prefix {someValue} suffix"");
+    }
+}");
+        }
+
+        [Fact]
+        public async Task NumberFormatInfoInvariantInfoIsRecognized()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M(int someValue)
+    {
+        _ = System.FormattableString.Invariant($""prefix {someValue[||]{|Unnecessary:.ToString(System.Globalization.NumberFormatInfo.InvariantInfo)|}} suffix"");
+    }
+}",
+@"class C
+{
+    void M(int someValue)
+    {
+        _ = System.FormattableString.Invariant($""prefix {someValue} suffix"");
+    }
+}");
+        }
+
+        [Fact]
+        public async Task ToStringWithInvariantCultureOutsideFormattableStringInvariant()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(System.DateTime someValue)
+    {
+        _ = $""prefix {someValue[||].ToString(System.Globalization.CultureInfo.InvariantCulture)} suffix"";
+    }
+}");
+        }
+
+        [Fact]
+        public async Task ToStringWithFormatAndInvariantCultureInsideFormattableStringInvariant()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M(System.DateTime someValue)
+    {
+        _ = System.FormattableString.Invariant($""prefix {someValue[||]{|Unnecessary:.ToString(""|}some format code{|Unnecessary:"", System.Globalization.CultureInfo.InvariantCulture)|}} suffix"");
+    }
+}",
+@"class C
+{
+    void M(System.DateTime someValue)
+    {
+        _ = System.FormattableString.Invariant($""prefix {someValue:some format code} suffix"");
+    }
+}");
+        }
+
+        [Fact]
+        public async Task ToStringWithFormatAndInvariantCultureOutsideFormattableStringInvariant()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(System.DateTime someValue)
+    {
+        _ = $""prefix {someValue[||].ToString(""some format code"", System.Globalization.CultureInfo.InvariantCulture)} suffix"";
+    }
+}");
+        }
+
+        [Fact]
         public async Task PadLeftWithIntegerLiteral()
         {
             await TestInRegularAndScript1Async(

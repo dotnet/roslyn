@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp
@@ -21,14 +22,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 
             public override void Stop()
             {
-                AssertIsForeground();
+                this.Computation.ThreadingContext.ThrowIfNotOnUIThread();
                 this.PresenterSession.ItemSelected -= OnPresenterSessionItemSelected;
                 base.Stop();
             }
 
             private void OnPresenterSessionItemSelected(object sender, SignatureHelpItemEventArgs e)
             {
-                AssertIsForeground();
+                this.Computation.ThreadingContext.ThrowIfNotOnUIThread();
                 Contract.ThrowIfFalse(ReferenceEquals(this.PresenterSession, sender));
 
                 SetModelExplicitlySelectedItem(m => e.SignatureHelpItem);

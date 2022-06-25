@@ -6,4 +6,4 @@ The Roslyn compilers depend on the underlying platform for their Unicode behavio
 For example, the Unicode Katakana Middle Dot "・" (U+30FB) no longer works in identifiers in C# 6.
 Its Unicode class was Pc (Punctuation, Connector) in Unicode 5.1 or older, but it changed to Po (Punctuation, Other) in Unicode 6.0.
 
-See also https://github.com/ufcpp/UfcppSample/blob/main/BreakingChanges/VS2015_CS6/KatakanaMiddleDot.cs
+See also https://github.com/ufcpp/UfcppSample/blob/master/BreakingChanges/VS2015_CS6/KatakanaMiddleDot.cs

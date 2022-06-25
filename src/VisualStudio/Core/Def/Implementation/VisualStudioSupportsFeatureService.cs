@@ -23,6 +23,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SuggestionServi
 {
     internal sealed class VisualStudioSupportsFeatureService
     {
+        private const string ContainedLanguageMarker = nameof(ContainedLanguageMarker);
+
         [ExportWorkspaceService(typeof(ITextBufferSupportsFeatureService), ServiceLayer.Host), Shared]
         private class VisualStudioTextBufferSupportsFeatureService : ITextBufferSupportsFeatureService
         {
@@ -44,6 +46,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SuggestionServi
 
             public bool SupportsRename(ITextBuffer textBuffer)
             {
+                // TS creates generated documents to back script blocks in razor generated files.
+                // These files are opened in the roslyn workspace but are not valid to rename
+                // as they are not proper buffers.  So we exclude any buffer that is marked as a contained language.
+                if (textBuffer.Properties.TryGetProperty<bool>(ContainedLanguageMarker, out var markerValue) && markerValue)
+                {
+                    return false;
+                }
+
                 var sourceTextContainer = textBuffer.AsTextContainer();
                 if (Workspace.TryGetWorkspace(sourceTextContainer, out var workspace))
                 {

@@ -14,11 +14,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Class AnonymousDelegateTemplateSymbol
             Inherits AnonymousTypeOrDelegateTemplateSymbol
 
-            Private Const s_ctorIndex As Integer = 0
-            Private Const s_beginInvokeIndex As Integer = 1
-            Private Const s_endInvokeIndex As Integer = 2
-            Private Const s_invokeIndex As Integer = 3
-
             Protected ReadOnly TypeDescr As AnonymousTypeDescriptor
             Private ReadOnly _members As ImmutableArray(Of SynthesizedDelegateMethodSymbol)
 
@@ -142,7 +137,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Friend Overrides ReadOnly Property GeneratedNamePrefix As String
                 Get
-                    Return GeneratedNames.AnonymousDelegateTemplateNamePrefix
+                    Return GeneratedNameConstants.AnonymousDelegateTemplateNamePrefix
                 End Get
             End Property
 

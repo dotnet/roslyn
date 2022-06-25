@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.Options;
 
@@ -23,10 +22,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private static readonly ConcurrentDictionary<string, ImmutableHashSet<IOption2>> s_diagnosticIdToOptionMap = new();
         private static readonly ConcurrentDictionary<string, ConcurrentDictionary<string, ImmutableHashSet<IOption2>>> s_diagnosticIdToLanguageSpecificOptionsMap = new();
 
-        public static bool TryGetMappedOptions(string diagnosticId, string language, out ImmutableHashSet<IOption2> options)
+        public static bool TryGetMappedOptions(string diagnosticId, string language, [NotNullWhen(true)] out ImmutableHashSet<IOption2>? options)
             => s_diagnosticIdToOptionMap.TryGetValue(diagnosticId, out options) ||
                (s_diagnosticIdToLanguageSpecificOptionsMap.TryGetValue(language, out var map) &&
                 map.TryGetValue(diagnosticId, out options));
+
+        public static bool IsKnownIDEDiagnosticId(string diagnosticId)
+            => s_diagnosticIdToOptionMap.ContainsKey(diagnosticId) ||
+               s_diagnosticIdToLanguageSpecificOptionsMap.Values.Any(map => map.ContainsKey(diagnosticId));
 
         public static void AddOptionMapping(string diagnosticId, ImmutableHashSet<IPerLanguageOption> perLanguageOptions)
         {

@@ -12,8 +12,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
     {
         private class DocumentActiveContextChangedEventSource : AbstractWorkspaceTrackingTaggerEventSource
         {
-            public DocumentActiveContextChangedEventSource(ITextBuffer subjectBuffer, TaggerDelay delay)
-                : base(subjectBuffer, delay)
+            public DocumentActiveContextChangedEventSource(ITextBuffer subjectBuffer)
+                : base(subjectBuffer)
             {
             }
 

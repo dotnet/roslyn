@@ -8,7 +8,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Extensions;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.QuickInfo
@@ -18,25 +20,23 @@ namespace Microsoft.CodeAnalysis.QuickInfo
     /// </summary>
     internal abstract class QuickInfoServiceWithProviders : QuickInfoService
     {
-        private readonly Workspace _workspace;
-        private readonly string _language;
+        private readonly HostLanguageServices _services;
         private ImmutableArray<QuickInfoProvider> _providers;
 
-        protected QuickInfoServiceWithProviders(Workspace workspace, string language)
+        protected QuickInfoServiceWithProviders(HostLanguageServices services)
         {
-            _workspace = workspace;
-            _language = language;
+            _services = services;
         }
 
         private ImmutableArray<QuickInfoProvider> GetProviders()
         {
             if (_providers.IsDefault)
             {
-                var mefExporter = (IMefHostExportProvider)_workspace.Services.HostServices;
+                var mefExporter = (IMefHostExportProvider)_services.WorkspaceServices.HostServices;
 
                 var providers = ExtensionOrderer
                     .Order(mefExporter.GetExports<QuickInfoProvider, QuickInfoProviderMetadata>()
-                        .Where(lz => lz.Metadata.Language == _language))
+                        .Where(lz => lz.Metadata.Language == _services.Language))
                     .Select(lz => lz.Value)
                     .ToImmutableArray();
 
@@ -46,9 +46,9 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             return _providers;
         }
 
-        public override async Task<QuickInfoItem?> GetQuickInfoAsync(Document document, int position, CancellationToken cancellationToken)
+        internal override async Task<QuickInfoItem?> GetQuickInfoAsync(Document document, int position, SymbolDescriptionOptions options, CancellationToken cancellationToken)
         {
-            var extensionManager = _workspace.Services.GetRequiredService<IExtensionManager>();
+            var extensionManager = _services.WorkspaceServices.GetRequiredService<IExtensionManager>();
 
             // returns the first non-empty quick info found (based on provider order)
             foreach (var provider in GetProviders())
@@ -57,7 +57,40 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 {
                     if (!extensionManager.IsDisabled(provider))
                     {
-                        var context = new QuickInfoContext(document, position, cancellationToken);
+                        var context = new QuickInfoContext(document, position, options, cancellationToken);
+
+                        var info = await provider.GetQuickInfoAsync(context).ConfigureAwait(false);
+                        if (info != null)
+                        {
+                            return info;
+                        }
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    throw;
+                }
+                catch (Exception e) when (extensionManager.CanHandleException(provider, e))
+                {
+                    extensionManager.HandleException(provider, e);
+                }
+            }
+
+            return null;
+        }
+
+        internal async Task<QuickInfoItem?> GetQuickInfoAsync(SemanticModel semanticModel, int position, SymbolDescriptionOptions options, CancellationToken cancellationToken)
+        {
+            var extensionManager = _services.WorkspaceServices.GetRequiredService<IExtensionManager>();
+
+            // returns the first non-empty quick info found (based on provider order)
+            foreach (var provider in GetProviders().OfType<CommonQuickInfoProvider>())
+            {
+                try
+                {
+                    if (!extensionManager.IsDisabled(provider))
+                    {
+                        var context = new CommonQuickInfoContext(_services.WorkspaceServices, semanticModel, position, options, cancellationToken);
 
                         var info = await provider.GetQuickInfoAsync(context).ConfigureAwait(false);
                         if (info != null)

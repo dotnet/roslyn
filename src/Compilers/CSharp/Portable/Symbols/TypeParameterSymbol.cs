@@ -290,6 +290,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal ImmutableArray<NamedTypeSymbol> EffectiveInterfacesWithDefinitionUseSiteDiagnostics(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            var result = EffectiveInterfacesNoUseSiteDiagnostics;
+
+            foreach (var iface in result)
+            {
+                iface.OriginalDefinition.AddUseSiteInfo(ref useSiteInfo);
+            }
+
+            return result;
+        }
+
         /// <summary>
         /// The most encompassed type (spec 6.4.2) from the constraints.
         /// </summary>
@@ -692,5 +704,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal override bool IsRecord => false;
+
+        internal override bool IsRecordStruct => false;
+
+        internal sealed override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls()
+        {
+            return SpecializedCollections.EmptyEnumerable<(MethodSymbol Body, MethodSymbol Implemented)>();
+        }
     }
 }

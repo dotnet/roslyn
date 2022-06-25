@@ -51,17 +51,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 Dim containingAssembly As AssemblySymbol = Me.ContainingAssembly
 
-                If containingAssembly.IsMissing Then
+                If containingAssembly?.IsMissing Then
                     Dim arg = If(Me.SpecialType <> SpecialType.None, DirectCast(CustomSymbolDisplayFormatter.DefaultErrorFormat(Me), Object), Me)
                     Return ErrorFactory.ErrorInfo(ERRID.ERR_UnreferencedAssembly3, containingAssembly.Identity, arg)
                 Else
                     Dim containingModule As ModuleSymbol = Me.ContainingModule
 
-                    If containingModule.IsMissing Then
-                        Return ErrorFactory.ErrorInfo(ERRID.ERR_UnreferencedModule3, containingModule.Name, Me)
+                    If containingModule IsNot Nothing Then
+                        If containingModule.IsMissing Then
+                            Return ErrorFactory.ErrorInfo(ERRID.ERR_UnreferencedModule3, containingModule.Name, Me)
+                        End If
+
+                        Return ErrorFactory.ErrorInfo(ERRID.ERR_TypeRefResolutionError3, Me, containingModule.Name)
                     End If
 
-                    Return ErrorFactory.ErrorInfo(ERRID.ERR_TypeRefResolutionError3, Me, containingModule.Name)
+                    Return If(TryCast(ContainingType, ErrorTypeSymbol)?.ErrorInfo,
+                              ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedType1, String.Empty)) ' This is the best we can do at this point
                 End If
             End Get
         End Property
@@ -298,19 +303,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Arity = other.Arity AndAlso
                     _containingType.Equals(other._containingType)
             End Function
-
-            Private Function GetDebuggerDisplay() As String
-                Dim fullName As String
-
-                fullName = _containingType.ToString() & "." & Me.Name
-
-                If _arity > 0 Then
-                    fullName = fullName & "(Of " & New String(","c, _arity - 1) & ")"
-                End If
-
-                Return fullName & "[missing]"
-            End Function
-
         End Class
 
     End Class
