@@ -49,6 +49,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             mockSVsServiceProvider.Setup(Function(s) s.GetService(GetType(SVsTextManager))).Returns(Nothing)
 
             Dim globalOptions = Workspace.GetService(Of IGlobalOptionService)
+            Dim editorOptionsFactory = Workspace.GetService(Of IEditorOptionsFactoryService)()
+            Dim indentationManager = Workspace.GetService(Of IIndentationManagerService)()
 
             SnippetCommandHandler = If(languageName = LanguageNames.CSharp,
                 DirectCast(New CSharp.Snippets.SnippetCommandHandler(
@@ -58,6 +60,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                     Workspace.ExportProvider.GetExportedValue(Of IVsEditorAdaptersFactoryService)(),
                     mockSVsServiceProvider.Object,
                     Workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)(),
+                    editorOptionsFactory,
+                    indentationManager,
                     globalOptions), AbstractSnippetCommandHandler),
                 New VisualBasic.Snippets.SnippetCommandHandler(
                     Workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
@@ -66,6 +70,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                     Workspace.ExportProvider.GetExportedValue(Of IVsEditorAdaptersFactoryService)(),
                     mockSVsServiceProvider.Object,
                     Workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)(),
+                    editorOptionsFactory,
+                    indentationManager,
                     globalOptions))
 
             SnippetExpansionClient = New MockSnippetExpansionClient(
@@ -74,6 +80,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                 If(languageName Is LanguageNames.CSharp, Guids.CSharpLanguageServiceId, Guids.VisualBasicLanguageServiceId),
                 TextView,
                 SubjectBuffer,
+                editorOptionsFactory,
+                indentationManager,
                 globalOptions)
             TextView.Properties.AddProperty(GetType(AbstractSnippetExpansionClient), SnippetExpansionClient)
         End Sub
@@ -152,8 +160,25 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
         Friend Class MockSnippetExpansionClient
             Inherits AbstractSnippetExpansionClient
 
-            Public Sub New(threadingContext As IThreadingContext, startActiveSession As Boolean, languageServiceGuid As Guid, textView As ITextView, subjectBuffer As ITextBuffer, globalOptions As IGlobalOptionService)
-                MyBase.New(threadingContext, languageServiceGuid, textView, subjectBuffer, signatureHelpControllerProvider:=Nothing, editorCommandHandlerServiceFactory:=Nothing, Nothing, ImmutableArray(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)).Empty, globalOptions)
+            Public Sub New(threadingContext As IThreadingContext,
+                           startActiveSession As Boolean,
+                           languageServiceGuid As Guid,
+                           textView As ITextView,
+                           subjectBuffer As ITextBuffer,
+                           editorOptionsFactory As IEditorOptionsFactoryService,
+                           indentationManager As IIndentationManagerService,
+                           GlobalOptions As IGlobalOptionService)
+                MyBase.New(threadingContext,
+                           languageServiceGuid,
+                           textView,
+                           subjectBuffer,
+                           signatureHelpControllerProvider:=Nothing,
+                           editorCommandHandlerServiceFactory:=Nothing,
+                           Nothing,
+                           ImmutableArray(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)).Empty,
+                           editorOptionsFactory,
+                           indentationManager,
+                           GlobalOptions)
 
                 If startActiveSession Then
                     TryHandleTabReturnValue = True

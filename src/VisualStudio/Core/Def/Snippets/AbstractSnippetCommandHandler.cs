@@ -40,6 +40,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         protected readonly SignatureHelpControllerProvider SignatureHelpControllerProvider;
         protected readonly IEditorCommandHandlerServiceFactory EditorCommandHandlerServiceFactory;
         protected readonly IVsEditorAdaptersFactoryService EditorAdaptersFactoryService;
+        protected readonly IEditorOptionsFactoryService EditorOptionsFactory;
+        protected readonly IIndentationManagerService IndentationManager;
         protected readonly SVsServiceProvider ServiceProvider;
         protected readonly IGlobalOptionService GlobalOptions;
 
@@ -50,6 +52,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             SignatureHelpControllerProvider signatureHelpControllerProvider,
             IEditorCommandHandlerServiceFactory editorCommandHandlerServiceFactory,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
+            IEditorOptionsFactoryService editorOptionsFactory,
+            IIndentationManagerService indentationManager,
             IGlobalOptionService globalOptions,
             SVsServiceProvider serviceProvider)
             : base(threadingContext)
@@ -57,6 +61,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             SignatureHelpControllerProvider = signatureHelpControllerProvider;
             EditorCommandHandlerServiceFactory = editorCommandHandlerServiceFactory;
             EditorAdaptersFactoryService = editorAdaptersFactoryService;
+            EditorOptionsFactory = editorOptionsFactory;
+            IndentationManager = indentationManager;
             ServiceProvider = serviceProvider;
             GlobalOptions = globalOptions;
         }

@@ -55,8 +55,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
             SVsServiceProvider serviceProvider,
             [ImportMany] IEnumerable<Lazy<ArgumentProvider, OrderableLanguageMetadata>> argumentProviders,
+            IEditorOptionsFactoryService editorOptionsFactory,
+            IIndentationManagerService indentationManager,
             IGlobalOptionService globalOptions)
-            : base(threadingContext, signatureHelpControllerProvider, editorCommandHandlerServiceFactory, editorAdaptersFactoryService, globalOptions, serviceProvider)
+            : base(threadingContext, signatureHelpControllerProvider, editorCommandHandlerServiceFactory, editorAdaptersFactoryService, editorOptionsFactory, indentationManager, globalOptions, serviceProvider)
         {
             _argumentProviders = argumentProviders.ToImmutableArray();
         }
@@ -131,6 +133,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
                     EditorCommandHandlerServiceFactory,
                     EditorAdaptersFactoryService,
                     _argumentProviders,
+                    EditorOptionsFactory,
+                    IndentationManager,
                     GlobalOptions);
 
                 textView.Properties.AddProperty(typeof(AbstractSnippetExpansionClient), expansionClient);

@@ -45,6 +45,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             IEditorCommandHandlerServiceFactory editorCommandHandlerServiceFactory,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
             ImmutableArray<Lazy<ArgumentProvider, OrderableLanguageMetadata>> argumentProviders,
+            IEditorOptionsFactoryService editorOptionsFactory,
+            IIndentationManagerService indentationManager,
             IGlobalOptionService globalOptions)
             : base(
                 threadingContext,
@@ -55,6 +57,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
                 editorCommandHandlerServiceFactory,
                 editorAdaptersFactoryService,
                 argumentProviders,
+                editorOptionsFactory,
+                indentationManager,
                 globalOptions)
         {
         }

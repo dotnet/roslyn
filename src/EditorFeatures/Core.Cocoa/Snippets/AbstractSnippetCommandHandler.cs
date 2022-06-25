@@ -33,6 +33,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         protected readonly IExpansionServiceProvider ExpansionServiceProvider;
         protected readonly IExpansionManager ExpansionManager;
         protected readonly IGlobalOptionService GlobalOptions;
+        protected readonly IEditorOptionsFactoryService EditorOptionsFactory;
+        protected readonly IIndentationManagerService IndentationManager;
 
         public string DisplayName => FeaturesResources.Snippets;
 
@@ -40,11 +42,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             IThreadingContext threadingContext,
             IExpansionServiceProvider expansionServiceProvider,
             IExpansionManager expansionManager,
+            IEditorOptionsFactoryService editorOptionsFactory,
+            IIndentationManagerService indentationManager,
             IGlobalOptionService globalOptions)
         {
             ThreadingContext = threadingContext;
             ExpansionServiceProvider = expansionServiceProvider;
             ExpansionManager = expansionManager;
+            EditorOptionsFactory = editorOptionsFactory;
+            IndentationManager = indentationManager;
             GlobalOptions = globalOptions;
         }
 

@@ -37,8 +37,20 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
                 editorCommandHandlerServiceFactory As IEditorCommandHandlerServiceFactory,
                 editorAdaptersFactoryService As IVsEditorAdaptersFactoryService,
                 argumentProviders As ImmutableArray(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)),
+                editorOptionsFactory As IEditorOptionsFactoryService,
+                indentationManager As IIndentationManagerService,
                 globalOptions As IGlobalOptionService)
-            MyBase.New(threadingContext, languageServiceId, textView, subjectBuffer, signatureHelpControllerProvider, editorCommandHandlerServiceFactory, editorAdaptersFactoryService, argumentProviders, globalOptions)
+            MyBase.New(threadingContext,
+                       languageServiceId,
+                       textView,
+                       subjectBuffer,
+                       signatureHelpControllerProvider,
+                       editorCommandHandlerServiceFactory,
+                       editorAdaptersFactoryService,
+                       argumentProviders,
+                       editorOptionsFactory,
+                       indentationManager,
+                       globalOptions)
         End Sub
 
         Public Shared Function GetSnippetExpansionClient(
@@ -49,7 +61,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
                 editorCommandHandlerServiceFactory As IEditorCommandHandlerServiceFactory,
                 editorAdaptersFactoryService As IVsEditorAdaptersFactoryService,
                 argumentProviders As ImmutableArray(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)),
-                globalOptions As IGlobalOptionService) As AbstractSnippetExpansionClient
+                editorOptionsFactory As IEditorOptionsFactoryService,
+                indentationManager As IIndentationManagerService,
+                GlobalOptions As IGlobalOptionService) As AbstractSnippetExpansionClient
 
             Dim expansionClient As AbstractSnippetExpansionClient = Nothing
 
@@ -63,7 +77,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
                     editorCommandHandlerServiceFactory,
                     editorAdaptersFactoryService,
                     argumentProviders,
-                    globalOptions)
+                    editorOptionsFactory,
+                    indentationManager,
+                    GlobalOptions)
                 textView.Properties.AddProperty(GetType(AbstractSnippetExpansionClient), expansionClient)
             End If
 

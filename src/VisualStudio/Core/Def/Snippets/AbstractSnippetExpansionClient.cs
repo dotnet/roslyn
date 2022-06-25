@@ -66,6 +66,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         protected readonly ITextView TextView;
         protected readonly ITextBuffer SubjectBuffer;
         internal readonly IGlobalOptionService GlobalOptions;
+        private readonly IEditorOptionsFactoryService _editorOptionsFactory;
+        private readonly IIndentationManagerService _indentationManager;
 
         private readonly ImmutableArray<Lazy<ArgumentProvider, OrderableLanguageMetadata>> _allArgumentProviders;
         private ImmutableArray<ArgumentProvider> _argumentProviders;
@@ -95,6 +97,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             IEditorCommandHandlerServiceFactory editorCommandHandlerServiceFactory,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
             ImmutableArray<Lazy<ArgumentProvider, OrderableLanguageMetadata>> argumentProviders,
+            IEditorOptionsFactoryService editorOptionsFactory,
+            IIndentationManagerService indentationManager,
             IGlobalOptionService globalOptions)
             : base(threadingContext)
         {
@@ -105,6 +109,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             _editorCommandHandlerServiceFactory = editorCommandHandlerServiceFactory;
             EditorAdaptersFactoryService = editorAdaptersFactoryService;
             _allArgumentProviders = argumentProviders;
+            _editorOptionsFactory = editorOptionsFactory;
+            _indentationManager = indentationManager;
             GlobalOptions = globalOptions;
         }
 
@@ -220,7 +226,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
             var formattingSpan = CommonFormattingHelpers.GetFormattingSpan(SubjectBuffer.CurrentSnapshot, snippetTrackingSpan.GetSpan(SubjectBuffer.CurrentSnapshot));
 
-            SubjectBuffer.CurrentSnapshot.FormatAndApplyToBuffer(formattingSpan, GlobalOptions, CancellationToken.None);
+            SubjectBuffer.FormatAndApplyToBuffer(formattingSpan, _editorOptionsFactory, _indentationManager, GlobalOptions, CancellationToken.None);
 
             if (isFullSnippetFormat)
             {

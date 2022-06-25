@@ -49,8 +49,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
             editorAdaptersFactoryService As IVsEditorAdaptersFactoryService,
             serviceProvider As SVsServiceProvider,
             <ImportMany> argumentProviders As IEnumerable(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)),
+            editorOptionsFactory As IEditorOptionsFactoryService,
+            indentationManager As IIndentationManagerService,
             globalOptions As IGlobalOptionService)
-            MyBase.New(threadingContext, signatureHelpControllerProvider, editorCommandHandlerServiceFactory, editorAdaptersFactoryService, globalOptions, serviceProvider)
+            MyBase.New(threadingContext, signatureHelpControllerProvider, editorCommandHandlerServiceFactory, editorAdaptersFactoryService, editorOptionsFactory, indentationManager, globalOptions, serviceProvider)
             _argumentProviders = argumentProviders.ToImmutableArray()
         End Sub
 
@@ -63,7 +65,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
         End Function
 
         Protected Overrides Function GetSnippetExpansionClient(textView As ITextView, subjectBuffer As ITextBuffer) As AbstractSnippetExpansionClient
-            Return SnippetExpansionClient.GetSnippetExpansionClient(ThreadingContext, textView, subjectBuffer, SignatureHelpControllerProvider, EditorCommandHandlerServiceFactory, EditorAdaptersFactoryService, _argumentProviders, GlobalOptions)
+            Return SnippetExpansionClient.GetSnippetExpansionClient(ThreadingContext,
+                                                                    textView,
+                                                                    subjectBuffer,
+                                                                    SignatureHelpControllerProvider,
+                                                                    EditorCommandHandlerServiceFactory,
+                                                                    EditorAdaptersFactoryService,
+                                                                    _argumentProviders,
+                                                                    EditorOptionsFactory,
+                                                                    IndentationManager,
+                                                                    GlobalOptions)
         End Function
 
         Protected Overrides Function TryInvokeInsertionUI(textView As ITextView, subjectBuffer As ITextBuffer, Optional surroundWith As Boolean = False) As Boolean
