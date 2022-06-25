@@ -12,6 +12,9 @@ steps:
         path: $(Build.SourcesDirectory)/.dotnet
       continueOnError: true
 
+    - script: echo "##vso[task.setvariable variable=NUGET_PACKAGES]$(Build.SourcesDirectory)/.packages"
+      displayName: Set NuGet Packages Directory
+
     - task: CacheBeta@1
       displayName: .packages Cache
       inputs:
@@ -19,9 +22,6 @@ steps:
         path: $(NUGET_PACKAGES)
         cacheHitVar: NUGET_CACHE_RESTORED
       continueOnError: true
-
-    - script: echo "##vso[task.setvariable variable=NUGET_PACKAGES]$(Build.SourcesDirectory)/.packages"
-      displayName: Set NuGet Packages Directory
 
     - script: ./eng/build.sh --ci --restore --prepareMachine --binaryLog --configuration ${{ parameters.configuration }}
       displayName: Restore
