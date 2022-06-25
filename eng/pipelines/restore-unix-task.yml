@@ -1,4 +1,4 @@
-# cache nuget packages to enable faster restore on Windows
+# cache nuget packages to enable faster restore on Unix-like environments
 parameters:
   - name: configuration
     type: string
