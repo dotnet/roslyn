@@ -27,5 +27,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             => compilation.LanguageVersion() >= LanguageVersion.CSharp3;
 
         protected override ISyntaxFacts GetSyntaxFacts() => CSharpSyntaxFacts.Instance;
+
+        protected override bool PreferTrailingComma(SyntaxNodeAnalysisContext context)
+        {
+            return context.GetCSharpAnalyzerOptions().PreferTrailingComma.Value;
+        }
     }
 }

@@ -31,7 +31,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
 
         Protected Overrides Function GetNewStatement(
                 statement As StatementSyntax, objectCreation As ObjectCreationExpressionSyntax,
-                matches As ImmutableArray(Of ExpressionStatementSyntax)) As StatementSyntax
+                matches As ImmutableArray(Of ExpressionStatementSyntax),
+                addTrailingComma As Boolean) As StatementSyntax
             Dim newStatement = statement.ReplaceNode(
                 objectCreation,
                 GetNewObjectCreation(objectCreation, matches))

@@ -5,6 +5,7 @@
 using System.Collections;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
 
     public partial class UseCollectionInitializerTests
     {
-        private static async Task TestInRegularAndScriptAsync(string testCode, string fixedCode, OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary)
+        private static async Task TestInRegularAndScriptAsync(string testCode, string fixedCode, OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary, bool preferTrailingComma = false)
         {
             await new VerifyCS.Test
             {
@@ -27,7 +28,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                 TestCode = testCode,
                 FixedCode = fixedCode,
                 LanguageVersion = LanguageVersion.Preview,
-                TestState = { OutputKind = outputKind }
+                TestState = { OutputKind = outputKind },
+                Options = { { CSharpCodeStyleOptions.PreferTrailingComma, preferTrailingComma } },
             }.RunAsync();
         }
 
@@ -43,6 +45,34 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                 test.LanguageVersion = languageVersion.Value;
 
             await test.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        public async Task TestOnVariableDeclarator_PreferTrailingComma()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        var c = [|new|] List<int>();
+        c.Add(1);
+    }
+}",
+@"using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        var c = new List<int>
+        {
+            1,
+        };
+    }
+}", true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
