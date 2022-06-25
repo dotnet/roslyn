@@ -50,13 +50,22 @@ namespace Microsoft.CodeAnalysis.CSharp.ConstantInterpolatedString
 
         private static bool AllOperandsAreStringLiterals(IBinaryOperation? operation)
         {
-            if (operation is null)
+            while (operation is not null)
             {
-                return false;
+                if (operation.LeftOperand.Kind != OperationKind.Literal)
+                {
+                    return false;
+                }
+
+                if (operation.RightOperand.Kind == OperationKind.Literal)
+                {
+                    return true;
+                }
+
+                operation = operation.RightOperand as IBinaryOperation;
             }
 
-            return operation.LeftOperand.Kind == OperationKind.Literal &&
-                (operation.RightOperand.Kind == OperationKind.Literal || AllOperandsAreStringLiterals(operation.RightOperand as IBinaryOperation));
+            return false;
         }
 
         private static bool ShouldAnalyze(IBinaryOperation operation)
