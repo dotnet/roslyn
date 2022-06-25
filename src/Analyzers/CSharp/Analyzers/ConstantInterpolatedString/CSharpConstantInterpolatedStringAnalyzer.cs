@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -13,11 +11,11 @@ using Microsoft.CodeAnalysis.Operations;
 namespace Microsoft.CodeAnalysis.CSharp.ConstantInterpolatedString
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)] // constant interpolated strings is a C#-only feature.
-    internal class CSharpConstantInterpolatedStringAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    internal sealed class CSharpConstantInterpolatedStringAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         public CSharpConstantInterpolatedStringAnalyzer() : base(
             IDEDiagnosticIds.UseConstantInterpolatedStringDiagnosticId,
-            EnforceOnBuildValues.AddAccessibilityModifiers,
+            EnforceOnBuildValues.UseConstantInterpolatedString,
             option: null,
             new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_constant_interpolated_string), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
@@ -37,7 +35,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConstantInterpolatedString
                 context.RegisterOperationAction(context =>
                 {
                     var operation = (IBinaryOperation)context.Operation;
-                    var info = operation.SemanticModel!.GetSymbolInfo(operation.Syntax, context.CancellationToken);
                     if (!ShouldAnalyze(operation))
                     {
                         return;

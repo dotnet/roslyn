@@ -14,30 +14,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.ConstantInterpolated
 
     public sealed class ConstantInterpolatedStringTests
     {
-        // Should be C# 10 after release.
-        private static readonly LanguageVersion s_minimumSupportedVersion = LanguageVersion.Preview;
+        private static async Task VerifyCodeFixAsync(string code, string fixedCode)
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
 
         [Fact]
         public async Task TestSimpleSingleConcatenationAsAttributeArgument_NoNeedForInterpolated()
         {
-            await new VerifyCS.Test
-            {
-                TestCode = @"
+            var code = @"
 using System.Diagnostics;
 
 [DebuggerDisplay(""{"" + ""}"")]
 public class C { }
-",
-                LanguageVersion = s_minimumSupportedVersion,
-            }.RunAsync();
+";
+            await VerifyCodeFixAsync(code, code);
         }
 
         [Fact]
         public async Task TestSimpleSingleConcatenation_NoNeedForInterpolated()
         {
-            await new VerifyCS.Test
-            {
-                TestCode = @"
+            var code = @"
 public class C
 {
     public void M()
@@ -45,17 +47,14 @@ public class C
         const string x = ""a"" + ""b"";
     }
 }
-",
-                LanguageVersion = s_minimumSupportedVersion,
-            }.RunAsync();
+";
+            await VerifyCodeFixAsync(code, code);
         }
 
         [Fact]
         public async Task TestSimpleSingleConcatenationWithNameOf()
         {
-            await new VerifyCS.Test
-            {
-                TestCode = @"
+            var code = @"
 public class C
 {
     public void M()
@@ -63,17 +62,14 @@ public class C
         const string x = [|nameof(x) + ""}""|];
     }
 }
-",
-                LanguageVersion = s_minimumSupportedVersion,
-            }.RunAsync();
+";
+            await VerifyCodeFixAsync(code, code);
         }
 
         [Fact]
         public async Task TestMultipleConcatsWithNameOfAndBraces()
         {
-            await new VerifyCS.Test
-            {
-                TestCode = @"
+            var code = @"
 public class C
 {
     public void M()
@@ -81,24 +77,56 @@ public class C
         const string x = [|""{"" + nameof(x) + ""}""|];
     }
 }
-",
-                LanguageVersion = s_minimumSupportedVersion,
-            }.RunAsync();
+";
+            await VerifyCodeFixAsync(code, code);
         }
 
         [Fact]
         public async Task TestConcatenationAsAttributeArgument()
         {
-            await new VerifyCS.Test
-            {
-                TestCode = @"
+            var code = @"
 using System.Diagnostics;
 
 [DebuggerDisplay([|""{"" + nameof(C) + ""}""|])]
 public class C { }
-",
-                LanguageVersion = s_minimumSupportedVersion,
-            }.RunAsync();
+";
+            await VerifyCodeFixAsync(code, code);
+        }
+
+        [Fact]
+        public async Task TestConcatenationAsAttributeArgument_StringAndCharLiteralsWithNameOf()
+        {
+            var code = @"
+using System.Diagnostics;
+
+[DebuggerDisplay({|CS0182:""First "" + 'S' + ""econd"" + nameof(C)|})] // error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+public class C { }
+";
+            await VerifyCodeFixAsync(code, code);
+        }
+
+        [Fact]
+        public async Task TestConcatenationAsAttributeArgument_StringAndCharLiterals()
+        {
+            var code = @"
+using System.Diagnostics;
+
+[DebuggerDisplay({|CS0182:""First "" + 'S' + ""econd""|})] // error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+public class C { }
+";
+            await VerifyCodeFixAsync(code, code);
+        }
+
+        [Fact]
+        public async Task TestConcatenationAsAttributeArgument_StringAndNumericLiterals()
+        {
+            var code = @"
+using System.Diagnostics;
+
+[DebuggerDisplay({|CS0182:""First "" + 2 + ""nd""|})] // error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+public class C { }
+";
+            await VerifyCodeFixAsync(code, code);
         }
     }
 }
