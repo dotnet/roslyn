@@ -52,17 +52,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ConstantInterpolatedString
         {
             while (operation is not null)
             {
-                if (operation.LeftOperand.Kind != OperationKind.Literal)
+                if (operation.RightOperand.Kind != OperationKind.Literal)
                 {
                     return false;
                 }
 
-                if (operation.RightOperand.Kind == OperationKind.Literal)
+                if (operation.LeftOperand.Kind == OperationKind.Literal)
                 {
                     return true;
                 }
 
-                operation = operation.RightOperand as IBinaryOperation;
+                operation = operation.LeftOperand as IBinaryOperation;
             }
 
             return false;

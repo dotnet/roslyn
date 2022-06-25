@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.CodeFixes.ConstantInterpolatedString;
 using Microsoft.CodeAnalysis.CSharp.ConstantInterpolatedString;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Testing;
@@ -10,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.ConstantInterpolatedString
 {
-    using VerifyCS = CSharpCodeFixVerifier<CSharpConstantInterpolatedStringAnalyzer, EmptyCodeFixProvider>;
+    using VerifyCS = CSharpCodeFixVerifier<CSharpConstantInterpolatedStringAnalyzer, CSharpConstantInterpolatedStringCodeFixProvider>;
 
     public sealed class ConstantInterpolatedStringTests
     {
@@ -63,7 +64,16 @@ public class C
     }
 }
 ";
-            await VerifyCodeFixAsync(code, code);
+            var fixedCode = @"
+public class C
+{
+    public void M()
+    {
+        const string x = $""{nameof(x)}}}"";
+    }
+}
+";
+            await VerifyCodeFixAsync(code, fixedCode);
         }
 
         [Fact]
@@ -78,7 +88,16 @@ public class C
     }
 }
 ";
-            await VerifyCodeFixAsync(code, code);
+            var fixedCode = @"
+public class C
+{
+    public void M()
+    {
+        const string x = $""{{{nameof(x)}}}"";
+    }
+}
+";
+            await VerifyCodeFixAsync(code, fixedCode);
         }
 
         [Fact]
@@ -90,7 +109,13 @@ using System.Diagnostics;
 [DebuggerDisplay([|""{"" + nameof(C) + ""}""|])]
 public class C { }
 ";
-            await VerifyCodeFixAsync(code, code);
+            var fixedCode = @"
+using System.Diagnostics;
+
+[DebuggerDisplay($""{{{nameof(C)}}}"")]
+public class C { }
+";
+            await VerifyCodeFixAsync(code, fixedCode);
         }
 
         [Fact]
@@ -124,6 +149,18 @@ public class C { }
 using System.Diagnostics;
 
 [DebuggerDisplay({|CS0182:""First "" + 2 + ""nd""|})] // error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+public class C { }
+";
+            await VerifyCodeFixAsync(code, code);
+        }
+
+        [Fact]
+        public async Task TestConcatenationAsAttributeArgument_AllAreConstantStringLiterals()
+        {
+            var code = @"
+using System.Diagnostics;
+
+[DebuggerDisplay(""a"" + ""b"" + ""c"")]
 public class C { }
 ";
             await VerifyCodeFixAsync(code, code);
