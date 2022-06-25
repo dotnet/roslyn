@@ -5221,9 +5221,8 @@ static class Test
 
         [WorkItem(536674, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536674")]
         [Fact]
-        public void CS1733ERR_ExpressionExpected()
+        public void TestTrailingCommaInComplexElementInitializerExpression()
         {
-            // diff error msg - CS1525
             var test = @"
 using System.Collections.Generic;
 using System.Collections;
@@ -5236,7 +5235,7 @@ static class Test
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_ExpressionExpected, "}"));
+            ParseAndValidate(test);
         }
 
         [WorkItem(536674, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536674")]
