@@ -408,6 +408,9 @@ dotnet_diagnostic.IDE0120.severity = %value%
 # IDE0130
 dotnet_diagnostic.IDE0130.severity = %value%
 
+# IDE0131
+dotnet_diagnostic.IDE0131.severity = %value%
+
 # IDE0150
 dotnet_diagnostic.IDE0150.severity = %value%
 
@@ -452,18 +455,6 @@ dotnet_diagnostic.IDE1006.severity = %value%
 
 # IDE1007
 dotnet_diagnostic.IDE1007.severity = %value%
-
-# IDE1008
-dotnet_diagnostic.IDE1008.severity = %value%
-
-# IDE0120
-dotnet_diagnostic.IDE0120.severity = %value%
-
-# IDE0130
-dotnet_diagnostic.IDE0130.severity = %value%
-
-# IDE0131
-dotnet_diagnostic.IDE0131.severity = %value%
 
 # IDE2000
 dotnet_diagnostic.IDE2000.severity = %value%
