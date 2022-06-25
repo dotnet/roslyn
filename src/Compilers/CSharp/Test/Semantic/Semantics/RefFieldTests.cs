@@ -7168,6 +7168,7 @@ readonly ref struct R2
 @"ref struct R<T> { }
 static class Extensions
 {
+    static void F0(this R<object> r) { }
     static void F1(this scoped R<object> r) { }
     static void F2<T>(scoped this R<T> r) { }
     static void F3<T>(this scoped ref T t) where T : struct { }
@@ -7176,6 +7177,7 @@ static class Extensions
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
 
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Extensions.F0").Parameters[0], "R<System.Object> r", RefKind.None, DeclarationScope.Unscoped);
             VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Extensions.F1").Parameters[0], "scoped R<System.Object> r", RefKind.None, DeclarationScope.ValueScoped);
             VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Extensions.F2").Parameters[0], "scoped R<T> r", RefKind.None, DeclarationScope.ValueScoped);
             VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Extensions.F3").Parameters[0], "scoped ref T t", RefKind.Ref, DeclarationScope.RefScoped);
