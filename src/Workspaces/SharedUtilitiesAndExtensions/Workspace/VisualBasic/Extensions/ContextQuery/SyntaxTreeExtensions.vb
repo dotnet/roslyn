@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 End If
 
                 ' If this token is to our left, return it
-                If Not token.IsKind(SyntaxKind.EmptyToken) AndAlso token.Span.End < position Then
+                If Not token.IsKind(SyntaxKind.EmptyToken) AndAlso token.Span.End <= position Then
                     Exit Do
                 End If
 
