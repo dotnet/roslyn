@@ -12720,7 +12720,6 @@ tryAgain:
                             list.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
                             if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
                             {
-                                closeBraceError = MakeError(this.CurrentToken, ErrorCode.ERR_ExpressionExpected);
                                 break;
                             }
                             list.Add(this.ParseExpressionCore());
