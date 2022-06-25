@@ -503,6 +503,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (this.BaseTypeNoUseSiteDiagnostics?.IsErrorType() == true)
             {
+                // Avoid cascading diagnostics
                 return;
             }
 
