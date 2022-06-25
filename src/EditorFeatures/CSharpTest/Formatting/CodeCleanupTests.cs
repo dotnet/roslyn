@@ -580,7 +580,7 @@ namespace A
                 language switch
                 {
                     LanguageNames.CSharp => 37,
-                    LanguageNames.VisualBasic => 73CodeGenerationTests.CSharp,
+                    LanguageNames.VisualBasic => 73,
                     _ => throw ExceptionUtilities.UnexpectedValue(language),
                 };
 

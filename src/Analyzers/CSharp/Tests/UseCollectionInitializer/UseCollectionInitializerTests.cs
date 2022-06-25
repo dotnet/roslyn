@@ -72,7 +72,7 @@ class C
             1,
         };
     }
-}", true);
+}", preferTrailingComma: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
