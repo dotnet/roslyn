@@ -155,6 +155,7 @@ public class NamingStyleParserTests
                 Assert.Collection(rule2.ApplicableSymbolInfo.SymbolKinds.Value,
                     symbolKind => Assert.Equal(new SymbolKindOrTypeKind(SymbolKind.Namespace), symbolKind),
                     symbolKind => Assert.Equal(new SymbolKindOrTypeKind(TypeKind.Class), symbolKind),
+                    symbolKind => Assert.Equal(new SymbolKindOrTypeKind(TypeKind.Module), symbolKind),
                     symbolKind => Assert.Equal(new SymbolKindOrTypeKind(TypeKind.Struct), symbolKind),
                     symbolKind => Assert.Equal(new SymbolKindOrTypeKind(TypeKind.Interface), symbolKind),
                     symbolKind => Assert.Equal(new SymbolKindOrTypeKind(TypeKind.Enum), symbolKind),
