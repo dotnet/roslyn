@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.ConstantInterpolatedString;
 using Microsoft.CodeAnalysis.CSharp.ConstantInterpolatedString;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
-using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.ConstantInterpolatedString

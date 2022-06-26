@@ -6,12 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.ConstantInterpolatedString;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -99,8 +97,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ConstantInterpolatedString
         {
             if (constantValue.Length > 0)
             {
-                constantValue = constantValue.Replace("{", "{{").Replace("}", "}}").Replace("\r", "\\r").Replace("\n", "\\n");
-                builder.Add(SyntaxFactory.InterpolatedStringText(SyntaxFactory.Token(leading: default, SyntaxKind.InterpolatedStringTextToken, text: constantValue, valueText: constantValue, trailing: default)));
+                var valueText = constantValue.Replace("{", "{{").Replace("}", "}}");
+                var text = valueText.Replace("\r", "\\r").Replace("\n", "\\n");
+                builder.Add(SyntaxFactory.InterpolatedStringText(SyntaxFactory.Token(leading: default, SyntaxKind.InterpolatedStringTextToken, text: text, valueText: valueText, trailing: default)));
                 constantValue = string.Empty;
             }
         }

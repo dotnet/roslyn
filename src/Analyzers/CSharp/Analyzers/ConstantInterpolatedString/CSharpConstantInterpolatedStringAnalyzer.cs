@@ -5,7 +5,6 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 
@@ -83,9 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConstantInterpolatedString
                 return false;
             }
 
-            // A heuristic for constant-only context.
-            return operation.Syntax.Parent.IsKind(SyntaxKind.AttributeArgument) ||
-                operation.Syntax.FirstAncestorOrSelf<LocalDeclarationStatementSyntax>()?.IsConst == true;
+            return true;
         }
     }
 }
