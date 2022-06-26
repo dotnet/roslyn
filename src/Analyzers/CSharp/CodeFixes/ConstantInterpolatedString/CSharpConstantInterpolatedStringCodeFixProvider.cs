@@ -77,27 +77,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ConstantInterpolatedString
             }
 
             AddInterpolatedStringText(builder, ref constantValue);
-
-            //using var _ = ArrayBuilder<InterpolatedStringContentSyntax>.GetInstance(out var builder);
-            //var constantValue = string.Empty;
-            //while (operation is not null)
-            //{
-            //    AddToBuilder(builder, operation.RightOperand, ref constantValue);
-
-            //    if (operation.LeftOperand is IBinaryOperation leftOperand)
-            //    {
-            //        operation = leftOperand;
-            //    }
-            //    else
-            //    {
-            //        AddToBuilder(builder, operation.LeftOperand, ref constantValue);
-            //        break;
-            //    }
-            //}
-
-            //AddInterpolatedStringText(builder, ref constantValue);
-            //builder.ReverseContents();
-
             return SyntaxFactory.InterpolatedStringExpression(stringStartToken: SyntaxFactory.Token(SyntaxKind.InterpolatedStringStartToken), SyntaxFactory.List(builder));
         }
 
