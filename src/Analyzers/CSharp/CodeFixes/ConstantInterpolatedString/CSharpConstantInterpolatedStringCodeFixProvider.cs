@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ConstantInterpolatedString
         {
             if (constantValue.Length > 0)
             {
-                constantValue = constantValue.Replace("{", "{{").Replace("}", "}}");
+                constantValue = constantValue.Replace("{", "{{").Replace("}", "}}").Replace("\r", "\\r").Replace("\n", "\\n");
                 builder.Add(SyntaxFactory.InterpolatedStringText(SyntaxFactory.Token(leading: default, SyntaxKind.InterpolatedStringTextToken, text: constantValue, valueText: constantValue, trailing: default)));
                 constantValue = string.Empty;
             }

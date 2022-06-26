@@ -77,6 +77,30 @@ public class C
         }
 
         [Fact]
+        public async Task TestMultilineString()
+        {
+            var code = @"
+public class C
+{
+    public void M()
+    {
+        const string x = [|""Hello\n"" + nameof(x)|];
+    }
+}
+";
+            var fixedCode = @"
+public class C
+{
+    public void M()
+    {
+        const string x = $""Hello\n{nameof(x)}"";
+    }
+}
+";
+            await VerifyCodeFixAsync(code, fixedCode);
+        }
+
+        [Fact]
         public async Task TestMultipleConcatsWithNameOfAndBraces()
         {
             var code = @"
