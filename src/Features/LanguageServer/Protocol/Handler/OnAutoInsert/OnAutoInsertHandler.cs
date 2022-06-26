@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // The editor calls this handler for C# and VB comment characters, but we only need to process the one for the language that matches the document
             if (request.Character == "\n" || request.Character == service.DocumentationCommentCharacter)
             {
-                var docCommentOptions = _globalOptions.GetDocumentationCommentOptions(formattingOptions, document.Project.Language);
+                var docCommentOptions = _globalOptions.GetDocumentationCommentOptions(formattingOptions.LineFormatting, document.Project.Language);
 
                 var documentationCommentResponse = await GetDocumentationCommentResponseAsync(
                     request, document, service, docCommentOptions, cancellationToken).ConfigureAwait(false);
