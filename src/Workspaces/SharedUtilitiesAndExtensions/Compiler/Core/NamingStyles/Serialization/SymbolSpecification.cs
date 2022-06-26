@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                     return specificationTypeKind == CodeAnalysis.TypeKind.Class;
                 }
 
-                return specificationTypeKind == symbolTypeKind
+                return specificationTypeKind == symbolTypeKind;
             }
 
             internal XElement CreateXElement()
