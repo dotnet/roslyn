@@ -132,9 +132,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             var symbolSpecification = new SymbolSpecification(
                 Guid.NewGuid(),
                 "Name",
-                ImmutableArray.Create(
-                    new SymbolSpecification.SymbolKindOrTypeKind(TypeKind.Class),
-                    new SymbolSpecification.SymbolKindOrTypeKind(TypeKind.Module)),
+                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(TypeKind.Class)),
                 accessibilityList: default,
                 modifiers: default);
 
