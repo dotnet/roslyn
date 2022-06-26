@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -48,24 +49,26 @@ namespace Microsoft.CodeAnalysis.CSharp.ConstantInterpolatedString
             });
         }
 
-        private static bool AllOperandsAreStringLiterals(IBinaryOperation? operation)
+        private static bool AllOperandsAreStringLiterals(IBinaryOperation operation)
         {
-            while (operation is not null)
+            var stack = new Stack<IOperation>();
+            stack.Push(operation);
+
+            while (stack.Count > 0)
             {
-                if (operation.RightOperand.Kind != OperationKind.Literal)
+                var current = stack.Pop();
+                if (current is IBinaryOperation binaryOperation)
+                {
+                    stack.Push(binaryOperation.RightOperand);
+                    stack.Push(binaryOperation.LeftOperand);
+                }
+                else if (current.Kind != OperationKind.Literal)
                 {
                     return false;
                 }
-
-                if (operation.LeftOperand.Kind == OperationKind.Literal)
-                {
-                    return true;
-                }
-
-                operation = operation.LeftOperand as IBinaryOperation;
             }
 
-            return false;
+            return true;
         }
 
         private static bool ShouldAnalyze(IBinaryOperation operation)

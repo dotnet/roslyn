@@ -101,6 +101,54 @@ public class C
         }
 
         [Fact]
+        public async Task TestMultipleConcatsWithNameOfAndBraces_TwoConsecutiveLiterals()
+        {
+            var code = @"
+public class C
+{
+    public void M()
+    {
+        const string x = [|""{"" + ""A"" + nameof(x) + ""B"" + ""}""|];
+    }
+}
+";
+            var fixedCode = @"
+public class C
+{
+    public void M()
+    {
+        const string x = $""{{A{nameof(x)}B}}"";
+    }
+}
+";
+            await VerifyCodeFixAsync(code, fixedCode);
+        }
+
+        [Fact]
+        public async Task TestMultipleConcatsWithParentheses()
+        {
+            var code = @"
+public class C
+{
+    public void M()
+    {
+        const string x = [|(""{"" + ""A"") + (nameof(x) + ""B"" + ""}"")|];
+    }
+}
+";
+            var fixedCode = @"
+public class C
+{
+    public void M()
+    {
+        const string x = $""{{A{nameof(x)}B}}"";
+    }
+}
+";
+            await VerifyCodeFixAsync(code, fixedCode);
+        }
+
+        [Fact]
         public async Task TestConcatenationAsAttributeArgument()
         {
             var code = @"

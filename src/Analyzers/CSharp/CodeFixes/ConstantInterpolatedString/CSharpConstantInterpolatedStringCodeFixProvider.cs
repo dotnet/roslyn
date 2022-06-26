@@ -58,36 +58,71 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ConstantInterpolatedString
         private static SyntaxNode GetReplacement(IBinaryOperation operation)
         {
             using var _ = ArrayBuilder<InterpolatedStringContentSyntax>.GetInstance(out var builder);
-            while (operation is not null)
-            {
-                AddToBuilder(builder, operation.RightOperand);
+            var constantValue = string.Empty;
+            var stack = new Stack<IOperation>();
+            stack.Push(operation);
 
-                if (operation.LeftOperand is IBinaryOperation leftOperand)
+            while (stack.Count > 0)
+            {
+                var current = stack.Pop();
+                if (current is IBinaryOperation binaryOperation)
                 {
-                    operation = leftOperand;
+                    stack.Push(binaryOperation.RightOperand);
+                    stack.Push(binaryOperation.LeftOperand);
                 }
                 else
                 {
-                    AddToBuilder(builder, operation.LeftOperand);
-                    break;
+                    AddToBuilder(builder, current, ref constantValue);
                 }
             }
 
-            builder.ReverseContents();
+            AddInterpolatedStringText(builder, ref constantValue);
+
+            //using var _ = ArrayBuilder<InterpolatedStringContentSyntax>.GetInstance(out var builder);
+            //var constantValue = string.Empty;
+            //while (operation is not null)
+            //{
+            //    AddToBuilder(builder, operation.RightOperand, ref constantValue);
+
+            //    if (operation.LeftOperand is IBinaryOperation leftOperand)
+            //    {
+            //        operation = leftOperand;
+            //    }
+            //    else
+            //    {
+            //        AddToBuilder(builder, operation.LeftOperand, ref constantValue);
+            //        break;
+            //    }
+            //}
+
+            //AddInterpolatedStringText(builder, ref constantValue);
+            //builder.ReverseContents();
 
             return SyntaxFactory.InterpolatedStringExpression(stringStartToken: SyntaxFactory.Token(SyntaxKind.InterpolatedStringStartToken), SyntaxFactory.List(builder));
         }
 
-        private static void AddToBuilder(ArrayBuilder<InterpolatedStringContentSyntax> builder, IOperation operation)
+        private static void AddToBuilder(ArrayBuilder<InterpolatedStringContentSyntax> builder, IOperation operation, ref string constantValue)
         {
             if (operation.Kind == OperationKind.Literal)
             {
-                var constantValue = ((string)operation.ConstantValue.Value!).Replace("{", "{{").Replace("}", "}}");
-                builder.Add(SyntaxFactory.InterpolatedStringText(SyntaxFactory.Token(leading: default, SyntaxKind.InterpolatedStringTextToken, text: constantValue, valueText: constantValue, trailing: default)));
+                var newConstantValue = (string)operation.ConstantValue.Value!;
+                constantValue += newConstantValue;
             }
             else
             {
+
+                AddInterpolatedStringText(builder, ref constantValue);
                 builder.Add(SyntaxFactory.Interpolation((ExpressionSyntax)operation.Syntax));
+            }
+        }
+
+        private static void AddInterpolatedStringText(ArrayBuilder<InterpolatedStringContentSyntax> builder, ref string constantValue)
+        {
+            if (constantValue.Length > 0)
+            {
+                constantValue = constantValue.Replace("{", "{{").Replace("}", "}}");
+                builder.Add(SyntaxFactory.InterpolatedStringText(SyntaxFactory.Token(leading: default, SyntaxKind.InterpolatedStringTextToken, text: constantValue, valueText: constantValue, trailing: default)));
+                constantValue = string.Empty;
             }
         }
     }
