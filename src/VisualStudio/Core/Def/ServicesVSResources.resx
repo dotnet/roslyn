@@ -1218,7 +1218,7 @@ Additional information: {1}</value>
     <comment>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "type parameter".</comment>
   </data>
   <data name="NamingSpecification_VisualBasic_Class" xml:space="preserve">
-    <value>Class</value>
+    <value>Class/Module</value>
     <comment>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</comment>
   </data>
   <data name="NamingSpecification_VisualBasic_Delegate" xml:space="preserve">
@@ -1248,10 +1248,6 @@ Additional information: {1}</value>
   <data name="NamingSpecification_VisualBasic_Method" xml:space="preserve">
     <value>Method</value>
     <comment>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "method".</comment>
-  </data>
-  <data name="NamingSpecification_VisualBasic_Module" xml:space="preserve">
-    <value>Module</value>
-    <comment>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</comment>
   </data>
   <data name="NamingSpecification_VisualBasic_Namespace" xml:space="preserve">
     <value>Namespace</value>
