@@ -2,16 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Completion.Providers;
-using Microsoft.CodeAnalysis.DocumentHighlighting;
-using Microsoft.CodeAnalysis.EmbeddedLanguages;
 
-namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
+namespace Microsoft.CodeAnalysis.EmbeddedLanguages
 {
     /// <summary>
     /// Services related to a specific embedded language.
     /// </summary>
-    internal interface IEmbeddedLanguageFeatures : IEmbeddedLanguage
+    internal interface IEmbeddedLanguage
     {
         /// <summary>
         /// Completion provider that can provide completion items for this

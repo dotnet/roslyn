@@ -19,19 +19,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public const string ComplexArrayReceiverTypeName = "[]";
         public const string ArrayReceiverTypeNameSuffix = "[]";
 
-        public static async Task<IEnumerable<SyntaxToken>> GetConstructorInitializerTokensAsync(this Document document, SemanticModel model, CancellationToken cancellationToken)
-        {
-            var root = await model.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            if (syntaxFacts == null)
-            {
-                return SpecializedCollections.EmptyEnumerable<SyntaxToken>();
-            }
-
-            return FindReferenceCache.GetConstructorInitializerTokens(syntaxFacts, model, root, cancellationToken);
-        }
-
         internal static bool TextMatch(this ISyntaxFactsService syntaxFacts, string text1, string text2)
             => syntaxFacts.StringComparer.Equals(text1, text2);
     }

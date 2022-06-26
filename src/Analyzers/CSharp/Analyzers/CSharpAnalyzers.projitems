@@ -37,6 +37,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)RemoveRedundantEquality\CSharpRemoveRedundantEqualityDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryDiscardDesignation\CSharpRemoveUnnecessaryDiscardDesignationDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryLambdaExpression\CSharpRemoveUnnecessaryLambdaExpressionDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryNullableDirective\CSharpRemoveRedundantNullableDirectiveDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryNullableDirective\CSharpRemoveUnnecessaryNullableDirectiveDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryNullableDirective\NullableImpactingSpanWalker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessarySuppressions\CSharpRemoveUnnecessaryPragmaSuppressionsDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessarySuppressions\CSharpRemoveUnnecessaryAttributeSuppressionsDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryParentheses\CSharpRemoveUnnecessaryPatternParenthesesDiagnosticAnalyzer.cs" />

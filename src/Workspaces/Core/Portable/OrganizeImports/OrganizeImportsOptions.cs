@@ -15,9 +15,9 @@ namespace Microsoft.CodeAnalysis.OrganizeImports;
 [DataContract]
 internal readonly record struct OrganizeImportsOptions
 {
-    [property: DataMember(Order = 0)] public bool PlaceSystemNamespaceFirst { get; init; } = AddImportPlacementOptions.Default.PlaceSystemNamespaceFirst;
-    [property: DataMember(Order = 1)] public bool SeparateImportDirectiveGroups { get; init; } = SyntaxFormattingOptions.CommonOptions.Default.SeparateImportDirectiveGroups;
-    [property: DataMember(Order = 2)] public string NewLine { get; init; } = LineFormattingOptions.Default.NewLine;
+    [DataMember] public bool PlaceSystemNamespaceFirst { get; init; } = AddImportPlacementOptions.Default.PlaceSystemNamespaceFirst;
+    [DataMember] public bool SeparateImportDirectiveGroups { get; init; } = SyntaxFormattingOptions.CommonOptions.Default.SeparateImportDirectiveGroups;
+    [DataMember] public string NewLine { get; init; } = LineFormattingOptions.Default.NewLine;
 
     public OrganizeImportsOptions()
     {

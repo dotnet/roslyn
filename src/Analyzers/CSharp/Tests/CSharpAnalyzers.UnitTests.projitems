@@ -51,6 +51,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)OrderModifiers\OrderModifiersTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveConfusingSuppression\RemoveConfusingSuppressionTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveRedundantEquality\RemoveRedundantEqualityTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryNullableDirective\CSharpRemoveRedundantNullableDirectiveTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryNullableDirective\CSharpRemoveUnnecessaryNullableDirectiveTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyLinqExpression\CSharpSimplifyLinqExpressionFixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyLinqExpression\CSharpSimplifyLinqExpressionTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UnsealClass\UnsealClassTests.cs" />

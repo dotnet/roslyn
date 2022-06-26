@@ -122,6 +122,11 @@
         <target state="translated">バイナリ演算子のパラメーターの 1 つは、それを含む型であるか、それに制約された型パラメーターである必要があります。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadAbstractEqualityOperatorSignature">
+        <source>One of the parameters of an equality, or inequality operator declared in interface '{0}' must be a type parameter on '{0}' constrained to '{0}'</source>
+        <target state="new">One of the parameters of an equality, or inequality operator declared in interface '{0}' must be a type parameter on '{0}' constrained to '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadAbstractIncDecRetType">
         <source>The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.</source>
         <target state="translated">++ または -- 演算子の戻り値の型は、パラメーター型と一致するか、パラメーター型から派生しているか、またはパラメーター型が異なる型パラメーターでない限りそれに制約された含んでいる型の型パラメーターである必要があります。</target>
@@ -145,6 +150,11 @@
       <trans-unit id="ERR_BadAbstractUnaryOperatorSignature">
         <source>The parameter of a unary operator must be the containing type, or its type parameter constrained to it.</source>
         <target state="translated">単項演算子のパラメーターは、それを含む型であるか、それに制約された型パラメーターである必要があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadBinaryReadOnlySpanConcatenation">
+        <source>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF8 byte representations</source>
+        <target state="new">Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF8 byte representations</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadCallerArgumentExpressionParamWithoutDefaultValue">
@@ -11673,8 +11683,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainConversionOrEqualityOperators">
-        <source>Conversion, equality, or inequality operators declared in interfaces must be abstract</source>
-        <target state="translated">インターフェイスで宣言された変換演算子、等値演算子、または非等値演算子は抽象的である必要があります</target>
+        <source>Conversion, equality, or inequality operators declared in interfaces must be abstract or virtual</source>
+        <target state="needs-review-translation">インターフェイスで宣言された変換演算子、等値演算子、または非等値演算子は抽象的である必要があります</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
