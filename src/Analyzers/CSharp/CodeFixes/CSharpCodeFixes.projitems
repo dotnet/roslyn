@@ -38,6 +38,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)MakeStatementAsynchronous\CSharpMakeStatementAsynchronousCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeTypeAbstract\CSharpMakeTypeAbstractCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Nullable\CSharpDeclareAsNullableCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryNullableDirective\CSharpRemoveUnnecessaryNullableDirectiveCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UnsealClass\CSharpUnsealClassCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseInterpolatedVerbatimString\CSharpUseInterpolatedVerbatimStringCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UsePatternCombinators\CSharpUsePatternCombinatorsCodeFixProvider.cs" />
