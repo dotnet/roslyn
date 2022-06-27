@@ -60,10 +60,10 @@ namespace Microsoft.CodeAnalysis
     /// A data structure that tracks the inputs and output of an execution node
     /// </summary>
     /// <typeparam name="T">The type of the items tracked by this table</typeparam>
-    internal sealed class NodeStateTable<T> : IStateTable
+    internal sealed partial class NodeStateTable<T> : IStateTable
     {
-        private static readonly ConcurrentQueue<(ImmutableArray<TableEntry>.Builder builder, PoolingStatistics statistics)> s_tableEntryPool = new();
-        private static readonly ConcurrentQueue<(ImmutableArray<NodeStateEntry<T>>.Builder builder, PoolingStatistics statistics)> s_nodeStateEntryPool = new();
+        private static readonly ConcurrentQueue<BuilderAndStatistics<TableEntry>> s_tableEntryPool = new();
+        private static readonly ConcurrentQueue<BuilderAndStatistics<NodeStateEntry<T>>> s_nodeStateEntryPool = new();
 
         internal static NodeStateTable<T> Empty { get; } = new NodeStateTable<T>(ImmutableArray<TableEntry>.Empty, ImmutableArray<IncrementalGeneratorRunStep>.Empty, isCompacted: true, hasTrackedSteps: true);
 
@@ -116,12 +116,12 @@ namespace Microsoft.CodeAnalysis
             {
                 if (!entry.IsRemoved)
                 {
-                    compacted.builder.Add(entry.AsCached());
+                    compacted.Add(entry.AsCached());
                 }
             }
             // When we're preparing a table for caching between runs, we drop the step information as we cannot guarantee the graph structure while also updating
             // the input states
-            var result = new NodeStateTable<T>(compacted.builder.ToImmutable(), ImmutableArray<IncrementalGeneratorRunStep>.Empty, isCompacted: true, hasTrackedSteps: false);
+            var result = new NodeStateTable<T>(compacted.ToImmutable(), ImmutableArray<IncrementalGeneratorRunStep>.Empty, isCompacted: true, hasTrackedSteps: false);
             ReturnPooledItem(s_tableEntryPool, compacted);
             return result;
         }
@@ -143,11 +143,11 @@ namespace Microsoft.CodeAnalysis
                 // Otherwise, we can just return non-removed entries to build the next value.
                 if (entry.State != EntryState.Removed || HasTrackedSteps)
                 {
-                    sourceBuilder.builder.Add(entry);
+                    sourceBuilder.Add(entry);
                 }
             }
 
-            var result = sourceBuilder.builder.ToImmutable();
+            var result = sourceBuilder.ToImmutable();
             ReturnPooledItem(s_nodeStateEntryPool, sourceBuilder);
             return result;
         }
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis
 
         public sealed class Builder
         {
-            private readonly (ImmutableArray<TableEntry>.Builder builder, PoolingStatistics statistics) _states = DequeuePooledItem(s_tableEntryPool);
+            private readonly BuilderAndStatistics<TableEntry> _states = DequeuePooledItem(s_tableEntryPool);
             private readonly NodeStateTable<T> _previous;
 
             private readonly string? _name;
@@ -193,15 +193,15 @@ namespace Microsoft.CodeAnalysis
 
             public bool TryRemoveEntries(TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs)
             {
-                if (_previous._states.Length <= _states.builder.Count)
+                if (_previous._states.Length <= _states.Count)
                 {
                     // The previous table had less node executions than this one, so we don't have any entries from a previous corresponding node execution to remove.
                     return false;
                 }
 
                 // Mark the corresponding entries to this node execution in the previous table as removed.
-                var previousEntries = _previous._states[_states.builder.Count].AsRemoved();
-                _states.builder.Add(previousEntries);
+                var previousEntries = _previous._states[_states.Count].AsRemoved();
+                _states.Add(previousEntries);
                 RecordStepInfoForLastEntry(elapsedTime, stepInputs, EntryState.Removed);
                 return true;
             }
@@ -214,22 +214,22 @@ namespace Microsoft.CodeAnalysis
                     return false;
                 }
 
-                entries = _states.builder[^1].ToImmutableArray();
+                entries = _states[^1].ToImmutableArray();
                 return true;
             }
 
             public bool TryUseCachedEntries(TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs)
             {
-                if (_previous._states.Length <= _states.builder.Count)
+                if (_previous._states.Length <= _states.Count)
                 {
                     // The previous table had less node executions than this one, so we don't have any entries from a previous corresponding node execution to copy as cached.
                     return false;
                 }
 
-                var previousEntries = _previous._states[_states.builder.Count];
+                var previousEntries = _previous._states[_states.Count];
                 Debug.Assert(previousEntries.IsCached);
 
-                _states.builder.Add(previousEntries);
+                _states.Add(previousEntries);
                 RecordStepInfoForLastEntry(elapsedTime, stepInputs, EntryState.Cached);
                 return true;
             }
@@ -242,28 +242,28 @@ namespace Microsoft.CodeAnalysis
                     return false;
                 }
 
-                entry = _states.builder[^1];
+                entry = _states[^1];
                 return true;
             }
 
             public bool TryModifyEntry(T value, IEqualityComparer<T> comparer, TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, EntryState overallInputState)
             {
-                if (_previous._states.Length <= _states.builder.Count)
+                if (_previous._states.Length <= _states.Count)
                 {
                     // The previous table had less node executions than this one, so we don't have any entries from a previous corresponding node execution to try to modify.
                     return false;
                 }
 
-                Debug.Assert(_previous._states[_states.builder.Count].Count == 1);
-                var (chosen, state) = GetModifiedItemAndState(_previous._states[_states.builder.Count].GetItem(0), value, comparer);
-                _states.builder.Add(new TableEntry(chosen, state));
+                Debug.Assert(_previous._states[_states.Count].Count == 1);
+                var (chosen, state) = GetModifiedItemAndState(_previous._states[_states.Count].GetItem(0), value, comparer);
+                _states.Add(new TableEntry(chosen, state));
                 RecordStepInfoForLastEntry(elapsedTime, stepInputs, overallInputState);
                 return true;
             }
 
             public bool TryModifyEntries(ImmutableArray<T> outputs, IEqualityComparer<T> comparer, TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, EntryState overallInputState)
             {
-                if (_previous._states.Length <= _states.builder.Count)
+                if (_previous._states.Length <= _states.Count)
                 {
                     return false;
                 }
@@ -275,12 +275,12 @@ namespace Microsoft.CodeAnalysis
                 // - Removed when old item position > outputs.length
                 // - Added when new item position < previousTable.length
 
-                var previousEntry = _previous._states[_states.builder.Count];
+                var previousEntry = _previous._states[_states.Count];
 
                 // when both entries have no items, we can short circuit
                 if (previousEntry.Count == 0 && outputs.Length == 0)
                 {
-                    _states.builder.Add(previousEntry);
+                    _states.Add(previousEntry);
                     if (TrackIncrementalSteps)
                     {
                         RecordStepInfoForLastEntry(elapsedTime, stepInputs, EntryState.Cached);
@@ -313,21 +313,21 @@ namespace Microsoft.CodeAnalysis
                     modified.Add(outputs[i], EntryState.Added);
                 }
 
-                _states.builder.Add(modified.CreateEntry());
+                _states.Add(modified.CreateEntry());
                 RecordStepInfoForLastEntry(elapsedTime, stepInputs, overallInputState);
                 return true;
             }
 
             public void AddEntry(T value, EntryState state, TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, EntryState overallInputState)
             {
-                _states.builder.Add(new TableEntry(value, state));
+                _states.Add(new TableEntry(value, state));
                 RecordStepInfoForLastEntry(elapsedTime, stepInputs, overallInputState);
             }
 
             public TableEntry AddEntries(ImmutableArray<T> values, EntryState state, TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, EntryState overallInputState)
             {
                 var tableEntry = new TableEntry(values, state);
-                _states.builder.Add(tableEntry);
+                _states.Add(tableEntry);
                 RecordStepInfoForLastEntry(elapsedTime, stepInputs, overallInputState);
                 return tableEntry;
             }
@@ -338,9 +338,9 @@ namespace Microsoft.CodeAnalysis
                 if (TrackIncrementalSteps)
                 {
                     // We should have already recorded step information for all steps before the most recently recorded step.
-                    Debug.Assert(_steps.Count + 1 == _states.builder.Count);
+                    Debug.Assert(_steps.Count + 1 == _states.Count);
 
-                    TableEntry outputInfo = _states.builder[^1];
+                    TableEntry outputInfo = _states[^1];
 
                     var stepOutputBuilder = ArrayBuilder<(object, IncrementalStepRunReason)>.GetInstance(outputInfo.Count);
 
@@ -377,18 +377,18 @@ namespace Microsoft.CodeAnalysis
 
             public NodeStateTable<T> ToImmutableAndFree()
             {
-                Debug.Assert(!TrackIncrementalSteps || _states.builder.Count == _steps.Count);
+                Debug.Assert(!TrackIncrementalSteps || _states.Count == _steps.Count);
 
                 try
                 {
-                    if (_states.builder.Count == 0)
+                    if (_states.Count == 0)
                     {
                         return NodeStateTable<T>.Empty;
                     }
 
-                    var hasNonCached = _states.builder.Any(static s => !s.IsCached);
+                    var hasNonCached = _states.Builder.Any(static s => !s.IsCached);
                     return new NodeStateTable<T>(
-                        _states.builder.ToImmutable(),
+                        _states.ToImmutable(),
                         TrackIncrementalSteps ? _steps.ToImmutableAndFree() : default,
                         isCompacted: !hasNonCached,
                         hasTrackedSteps: TrackIncrementalSteps);
@@ -407,91 +407,6 @@ namespace Microsoft.CodeAnalysis
                     ? (previous, EntryState.Cached)
                     : (replacement, EntryState.Modified);
             }
-        }
-
-        private struct PoolingStatistics
-        {
-            /// <summary>
-            /// The number of times this item has been added back to the pool.  Once this goes past some threshold
-            /// we will start checking if we're continually returning a large array that is mostly empty.  If so, we
-            /// will try to lower the capacity of the array to prevent wastage.
-            /// </summary>
-            public int NumberOfTimesPooled;
-
-            /// <summary>
-            /// The number of times we returned a large array to the pool that was barely filled.  If this is a
-            /// significant number of the total times pooled, then we will attempt to lower the capacity of the
-            /// array.
-            /// </summary>
-            public int NumberOfTimesPooledWhenSparse;
-        }
-
-        private readonly record struct BuilderAndStatistics<TValue>
-        {
-            public readonly ImmutableArray<TValue>.Builder Builder;
-            public readonly PoolingStatistics Statistics;
-        }
-
-        private static (ImmutableArray<TValue>.Builder builder, PoolingStatistics statistics) DequeuePooledItem<TValue>(
-            ConcurrentQueue<(ImmutableArray<TValue>.Builder, PoolingStatistics)> queue)
-            => queue.TryDequeue(out var item) ? item : (ImmutableArray.CreateBuilder<TValue>(), new PoolingStatistics());
-
-        private static void ReturnPooledItem<TValue>(
-            ConcurrentQueue<(ImmutableArray<TValue>.Builder builder, PoolingStatistics statistics)> queue,
-            (ImmutableArray<TValue>.Builder builder, PoolingStatistics statistics) item)
-        {
-            // Don't bother shrinking the array for arrays less than this capacity.  They're not going to be a
-            // huge waste of space so we can just pool them forever.
-            const int MinCapacityToConsiderThreshold = 1000;
-
-            // The number of times something is added/removed to the pool before we start considering
-            // statistics. This is so that we have enough data to reasonably see if something is consistently
-            // sparse.
-            const int MinTimesPooledToConsiderStatistics = 100;
-
-            // The ratio of Count/Capacity to be at to be considered sparse.  under this, there is a lot of
-            // wasted space and we would prefer to just throw the array away.  Above this and we're reasonably
-            // filling the array and should keep it around.
-            const double SparseThresholdRatio = 0.25;
-
-            // The ratio of times we pooled something sparse.  Once above this, we will jettison the array as
-            // being not worth keeping.
-            const double ConsistentlySparseRatio = 0.75;
-
-            // Note: the values 0.25 and 0.75 were picked as they reflect the common array practicing of growing
-            // by doubling.  So once we've grown so much that we're consistently under 25% of the array, then we
-            // want to shrink down.  To prevent shrinking and inflating over and over again, we only shrink when
-            // we're highly confident we're going to stay small.
-
-            var (builder, statistics) = item;
-            statistics.NumberOfTimesPooled++;
-
-            // See if we're pooling something both large and sparse.
-            if (builder.Capacity > MinCapacityToConsiderThreshold &&
-                ((double)builder.Count / builder.Capacity) < SparseThresholdRatio)
-            {
-                // Console.WriteLine($"Pooled when sparse: {builder.GetType()} {builder.Count} / {builder.Capacity}");
-                statistics.NumberOfTimesPooledWhenSparse++;
-            }
-
-            builder.Clear();
-
-            // See if this builder has been consistently sparse. If so then time to lower its capacity.
-            if (statistics.NumberOfTimesPooled > MinTimesPooledToConsiderStatistics &&
-                ((double)statistics.NumberOfTimesPooledWhenSparse / statistics.NumberOfTimesPooled) > ConsistentlySparseRatio)
-            {
-                // Console.WriteLine($"Halved capacity: {builder.GetType()} {statistics.NumberOfTimesPooledWhenSparse} / {statistics.NumberOfTimesPooled}");
-                builder.Capacity /= 2;
-
-                // Reset our statistics.  We'll wait another 100 pooling attempts to reassess if we need to
-                // adjust the capacity here.
-                statistics = new PoolingStatistics
-                {
-                    NumberOfTimesPooled = 1,
-                };
-            }
-
-            queue.Enqueue((builder, statistics));
         }
 
         internal readonly struct TableEntry
@@ -612,12 +527,12 @@ namespace Microsoft.CodeAnalysis
 
             public ref struct Builder
             {
-                private static readonly ConcurrentQueue<(ArrayBuilder<T> builder, PoolingStatistics statistics)> s_itemsPool = new();
-                private static readonly ConcurrentQueue<(ArrayBuilder<EntryState> builder, PoolingStatistics statistics)> s_statesPool = new();
+                private static readonly ConcurrentQueue<BuilderAndStatistics<T>> s_itemsPool = new();
+                private static readonly ConcurrentQueue<BuilderAndStatistics<EntryState>> s_statesPool = new();
 
-                private readonly (ArrayBuilder<T> items, PoolingStatistics statistics) _items = DequeuePooledItem(s_itemsPool);
+                private readonly BuilderAndStatistics<T> _items = DequeuePooledItem(s_itemsPool);
 
-                private (ArrayBuilder<EntryState> states, PoolingStatistics)? _states = null;
+                private BuilderAndStatistics<EntryState>? _states = null;
                 private EntryState? _currentState = null;
 
                 public Builder()
@@ -626,36 +541,38 @@ namespace Microsoft.CodeAnalysis
 
                 public void Add(T item, EntryState state)
                 {
-                    _items.items.Add(item);
+                    _items.Add(item);
                     if (!_currentState.HasValue)
                     {
                         _currentState = state;
                         return;
                     }
 
-                    if (_states is { states: var states })
+                    if (_states is { Builder: var builder })
                     {
-                        states.Add(state);
+                        builder.Add(state);
                         return;
                     }
 
                     if (_currentState != state)
                     {
                         _states = DequeuePooledItem(s_statesPool);
-                        states = _states.Value.states;
+                        builder = _states.Value.Builder;
 
-                        states.EnsureCapacity(_items.items.Count);
-                        for (int i = 0, n = _items.items.Count - 1; i < n; i++)
-                            states.Add(_currentState.Value);
+                        if (builder.Capacity < _items.Count)
+                            builder.Capacity *= 2;
 
-                        states.Add(state);
+                        for (int i = 0, n = _items.Count - 1; i < n; i++)
+                            builder.Add(_currentState.Value);
+
+                        builder.Add(state);
                     }
                 }
 
                 public TableEntry CreateEntry()
                 {
                     Debug.Assert(_currentState.HasValue, "Created a builder with no values?");
-                    return new TableEntry(item: default, _items.items.ToImmutable(), _states?.states.ToImmutable() ?? GetSingleArray(_currentState.Value));
+                    return new TableEntry(item: default, _items.ToImmutable(), _states?.ToImmutable() ?? GetSingleArray(_currentState.Value));
                 }
 
                 public void Dispose()
