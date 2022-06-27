@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -48,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         /// <summary>
         /// The text snapshot from when the document symbol request was made.
         /// </summary>
-        private ITextSnapshot Snapshot { get; set; }
+        private ITextSnapshot LspSnapshot { get; set; }
 
         private readonly string? _textViewFilePath;
 
@@ -95,7 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             ThreadingContext = threadingContext;
             TextView = textView;
             TextBuffer = textBuffer;
-            Snapshot = textView.TextSnapshot;
+            LspSnapshot = textView.TextSnapshot;
             _textViewFilePath = GetFilePath(textView);
             SortOption = SortOption.Order;
 
@@ -122,7 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             {
                 await TaskScheduler.Default;
                 var response = await DocumentSymbolsRequestAsync(textBuffer, languageServiceBroker, cancellationToken).ConfigureAwait(false);
-                Snapshot = textView.TextSnapshot;
+                LspSnapshot = textView.TextSnapshot;
                 if (response?.Response is not null)
                 {
                     var responseBody = response.Response.ToObject<DocumentSymbol[]>();
@@ -154,7 +155,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                 if (!string.IsNullOrWhiteSpace(searchQuery))
                     updatedSymbolsTreeItemsSource = DocumentOutlineHelper.Search(updatedSymbolsTreeItemsSource, searchQuery);
 
-                updatedSymbolsTreeItemsSource = DocumentOutlineHelper.Sort(updatedSymbolsTreeItemsSource, SortOption, Snapshot, currentSnapshot);
+                updatedSymbolsTreeItemsSource = DocumentOutlineHelper.Sort(updatedSymbolsTreeItemsSource, SortOption, LspSnapshot, currentSnapshot);
 
                 // Switch back to the UI thread to update the UI with the processed model data
                 await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -169,20 +170,19 @@ namespace Microsoft.VisualStudio.LanguageServices
                 {
                     // Get the current snapshot, caret point, and document model on the UI thread
                     var currentSnapshot = TextBuffer.CurrentSnapshot;
-                    var symbolTreeItemsSource = (IEnumerable<DocumentSymbolViewModel>)symbolTree.ItemsSource;
+                    var documentSymbolModelArray = ((IEnumerable<DocumentSymbolViewModel>)symbolTree.ItemsSource).ToImmutableArray();
                     var caretPoint = TextView.GetCaretPoint(TextBuffer);
                     if (caretPoint.HasValue)
                     {
                         var caretPosition = caretPoint.Value.Position;
                         // Switch to a background thread to update UI selection
                         await TaskScheduler.Default;
-                        UnselectAll(symbolTreeItemsSource);
-                        foreach (var documentSymbolModel in symbolTreeItemsSource)
-                            DocumentOutlineHelper.SelectNode(documentSymbolModel, currentSnapshot, Snapshot, caretPosition);
+                        UnselectAll(documentSymbolModelArray);
+                        DocumentOutlineHelper.SelectDocumentNode(documentSymbolModelArray, currentSnapshot, LspSnapshot, caretPosition);
                     }
                 }
 
-                static void UnselectAll(IEnumerable<DocumentSymbolViewModel> documentSymbolModels)
+                static void UnselectAll(ImmutableArray<DocumentSymbolViewModel> documentSymbolModels)
                 {
                     foreach (var documentSymbolModel in documentSymbolModels)
                     {
@@ -308,7 +308,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                 TextView.Caret.PositionChanged -= FollowCaret;
 
                 // Get the position of the start of the line the symbol is on
-                var position = Snapshot.GetLineFromLineNumber(symbol.StartPosition.Line).Start.Position;
+                var position = LspSnapshot.GetLineFromLineNumber(symbol.StartPosition.Line).Start.Position;
 
                 // Gets a point for this position with respect to the updated snapshot
                 var snapshotPoint = new SnapshotPoint(currentSnapshot, position);

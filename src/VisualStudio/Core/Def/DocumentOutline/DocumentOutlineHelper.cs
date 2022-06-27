@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -14,6 +16,14 @@ namespace Microsoft.VisualStudio.LanguageServices
 {
     internal static class DocumentOutlineHelper
     {
+        [MemberNotNullWhen(true, nameof(LspSnapshot), nameof(CurrentSnapshot))]
+        private static bool IsSnapshotInitialized { get; set; }
+
+        private static ITextSnapshot? LspSnapshot { get; set; }
+        private static ITextSnapshot? CurrentSnapshot { get; set; }
+
+        private static int CaretPosition { get; set; }
+
         /// <summary>
         /// Given an array of all Document Symbols in a document, returns an array containing the 
         /// top-level Document Symbols and their nested children
@@ -213,57 +223,64 @@ namespace Microsoft.VisualStudio.LanguageServices
         }
 
         /// <summary>
-        /// If the caret position is in range of a given DocumentSymbolViewModel or one of its descendants,
-        /// it will set that symbol's IsSelected field to true.
+        /// Selects the Document Symbol node that is currently selected by the caret in the editor.
         /// </summary>
         /// <remarks>
-        /// The parameter oldSnapshot refers to the snapshot used when the LSP document symbol request was made
+        /// The parameter lspSnapshot refers to the snapshot used when the LSP document symbol request was made
         /// to obtain the symbol and currentSnapshot refers to the latest snapshot in the editor. These parameters
         /// are required to obtain the latest DocumentSymbolViewModel range positions in the new snapshot.
         /// </remarks>
-        internal static void SelectNode(DocumentSymbolViewModel symbol, ITextSnapshot currentSnapshot, ITextSnapshot oldSnapshot, int caretPosition)
+        internal static void SelectDocumentNode(
+            ImmutableArray<DocumentSymbolViewModel> symbolTreeItemsSource,
+            ITextSnapshot currentSnapshot,
+            ITextSnapshot lspSnapshot,
+            int caretPosition)
         {
-            // If the caret is within the current symbol's range
-            if (IsCaretInSymbolRange(oldSnapshot, currentSnapshot, symbol, caretPosition))
-            {
-                // Determine if it is also in the range of one of the symbol's children and store its index
-                var selectedChildSymbolIndex = -1;
-                foreach (var child in symbol.Children)
-                {
-                    if (IsCaretInSymbolRange(oldSnapshot, currentSnapshot, child, caretPosition))
-                        selectedChildSymbolIndex = symbol.Children.IndexOf(child);
-                }
+            LspSnapshot = lspSnapshot;
+            CurrentSnapshot = currentSnapshot;
+            CaretPosition = caretPosition;
 
-                // If the caret is not in range of any child symbols, select the current symbol
-                if (selectedChildSymbolIndex == -1)
-                {
-                    symbol.IsSelected = true;
-                }
-                // Otherwise, call SelectNode on the child symbol at selectedChildSymbolIndex
-                else
-                {
-                    SelectNode(symbol.Children[selectedChildSymbolIndex], currentSnapshot, oldSnapshot, caretPosition);
-                }
-            }
+            var selectedNode = GetSelectedNode(symbolTreeItemsSource);
+            if (selectedNode is not null)
+                SelectNode(selectedNode);
         }
 
         /// <summary>
-        /// Returns whether a caret position is located within the range of a DocumentSymbolViewModel.
+        /// Sets the IsSelected field of a DocumentSymbolViewModel or one of its descendants to true.
         /// </summary>
         /// <remarks>
-        /// The parameter oldSnapshot refers to the snapshot used when the LSP document symbol request was made
-        /// to obtain the symbol and currentSnapshot refers to the latest snapshot in the editor. These parameters
-        /// are required to obtain the latest DocumentSymbolViewModel range positions in the new snapshot.
+        /// Assumes the caret position is in range of the given DocumentSymbolViewModel.
         /// </remarks>
-        internal static bool IsCaretInSymbolRange(ITextSnapshot oldSnapshot, ITextSnapshot currentSnapshot, DocumentSymbolViewModel symbol, int caretPosition)
+        internal static void SelectNode(DocumentSymbolViewModel symbol)
         {
-            var oldStartPosition = oldSnapshot.GetLineFromLineNumber(symbol.StartPosition.Line).Start.Position + symbol.StartPosition.Character;
-            var oldEndPosition = oldSnapshot.GetLineFromLineNumber(symbol.EndPosition.Line).Start.Position + symbol.EndPosition.Character;
+            var selectedChildSymbol = GetSelectedNode(symbol.Children);
+            if (selectedChildSymbol is not null)
+                SelectNode(selectedChildSymbol);
+            else
+                symbol.IsSelected = true;
+        }
 
-            var currentStartPosition = new SnapshotPoint(currentSnapshot, oldStartPosition).Position;
-            var currentEndPosition = new SnapshotPoint(currentSnapshot, oldEndPosition).Position;
+        /// <summary>
+        /// Returns a DocumentSymbolViewModel if the current caret position is in its range or null otherwise.
+        /// </summary>
+        internal static DocumentSymbolViewModel? GetSelectedNode(ImmutableArray<DocumentSymbolViewModel> symbolTreeItemsSource)
+        {
+            if (IsSnapshotInitialized)
+            {
+                foreach (var symbol in symbolTreeItemsSource)
+                {
+                    var oldStartPosition = LspSnapshot.GetLineFromLineNumber(symbol.StartPosition.Line).Start.Position + symbol.StartPosition.Character;
+                    var oldEndPosition = LspSnapshot.GetLineFromLineNumber(symbol.EndPosition.Line).Start.Position + symbol.EndPosition.Character;
 
-            return currentStartPosition <= caretPosition && caretPosition <= currentEndPosition;
+                    var currentStartPosition = new SnapshotPoint(CurrentSnapshot, oldStartPosition).Position;
+                    var currentEndPosition = new SnapshotPoint(CurrentSnapshot, oldEndPosition).Position;
+
+                    if (currentStartPosition <= CaretPosition && CaretPosition <= currentEndPosition)
+                        return symbol;
+                }
+            }
+
+            return null;
         }
     }
 }
