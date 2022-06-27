@@ -552,21 +552,21 @@ namespace Microsoft.CodeAnalysis
                         return;
                     }
 
-                    if (_states is { } statesValue)
+                    if (_states != null)
                     {
-                        statesValue.Add(state);
+                        _states.Value.Add(state);
                         return;
                     }
 
                     if (_currentState != state)
                     {
                         _states = DequeuePooledItem(s_statesPool);
-                        statesValue = _states.Value;
+                        var states = _states.Value;
 
                         for (int i = 0, n = _items.Count - 1; i < n; i++)
-                            statesValue.Add(_currentState.Value);
+                            states.Add(_currentState.Value);
 
-                        statesValue.Add(state);
+                        states.Add(state);
                     }
                 }
 
