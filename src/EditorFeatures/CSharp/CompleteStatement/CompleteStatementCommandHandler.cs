@@ -156,9 +156,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 delimiters = startingNode.GetBrackets();
             }
 
-            if (delimiters == default && TryGetParentsWithBraces(startingNode, out var parentsWithBraces))
+            if (delimiters == default)
             {
-                delimiters = parentsWithBraces.GetBraces();
+                delimiters = startingNode.GetBraces();
             }
 
             var (openingDelimiter, closingDelimiter) = delimiters;
@@ -470,21 +470,5 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 currentNode.GetParentheses().closeParen.IsMissing ||
                 currentNode.GetBraces().closeBrace.IsMissing;
         }
-
-        private static bool TryGetParentsWithBraces(SyntaxNode currentNode, [NotNullWhen(true)] out SyntaxNode? parentsWithBraces)
-        {
-            // Switch Expression could be followed by semicolon.
-            if (currentNode.GetAncestorsOrThis(IsSyntaxNodeWithBracesCouldBeFollowedBySemicolon).FirstOrDefault() is { } parent)
-            {
-                parentsWithBraces = parent;
-                return true;
-            }
-
-            parentsWithBraces = null;
-            return false;
-        }
-
-        private static bool IsSyntaxNodeWithBracesCouldBeFollowedBySemicolon(SyntaxNode node)
-            => node is SwitchExpressionSyntax;
     }
 }

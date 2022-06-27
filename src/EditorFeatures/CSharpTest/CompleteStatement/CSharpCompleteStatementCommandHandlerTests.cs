@@ -4257,8 +4257,8 @@ public class Bar
         var a = myString switch
         {
             ""Hello"" => 1,
-           $$ ""World"" => 2,
-            _ => 3
+            ""World"" => 2,
+            _ => 3$$
         }
     }
 }";
