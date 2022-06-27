@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
@@ -44,8 +43,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var syntaxFacts = completionContext.Document.GetRequiredLanguageService<ISyntaxFactsService>();
                 if (TryGetReceiverTypeSymbol(syntaxContext, syntaxFacts, cancellationToken, out var receiverTypeSymbol))
                 {
-                    var totalTime = SharedStopwatch.StartNew();
-
+                    var ticks = Environment.TickCount;
                     var inferredTypes = completionContext.CompletionOptions.TargetTypedCompletionFilter
                         ? syntaxContext.InferredTypes
                         : ImmutableArray<ITypeSymbol>.Empty;
@@ -67,8 +65,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     completionContext.AddItems(result.CompletionItems.Select(i => Convert(i, receiverTypeKey)));
 
                     // report telemetry:
+                    var totalTicks = Environment.TickCount - ticks;
                     CompletionProvidersLogger.LogExtensionMethodCompletionTicksDataPoint(
-                        totalTime.Elapsed, result.GetSymbolsTime, result.CreateItemsTime, result.IsRemote);
+                        totalTicks, result.GetSymbolsTicks, result.CreateItemsTicks, result.IsRemote);
 
                     if (result.IsPartialResult)
                         CompletionProvidersLogger.LogExtensionMethodCompletionPartialResultCount();
@@ -99,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     receiverTypeSymbol = syntaxContext.SemanticModel.GetTypeInfo(expressionNode, cancellationToken).Type;
                     if (receiverTypeSymbol is IErrorTypeSymbol errorTypeSymbol)
                     {
-                        receiverTypeSymbol = errorTypeSymbol.CandidateSymbols.Select(s => GetSymbolType(s)).FirstOrDefault(s => s != null);
+                        receiverTypeSymbol = errorTypeSymbol.CandidateSymbols.Select(GetSymbolType).FirstOrDefault(s => s != null);
                     }
 
                     return receiverTypeSymbol != null;

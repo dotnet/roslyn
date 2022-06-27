@@ -15,8 +15,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void FactoryReuse()
         {
-            var composition1 = FeaturesTestCompositions.Features.AddParts(typeof(TestProjectCacheService), typeof(TestOptionsServiceFactory));
-            var composition2 = FeaturesTestCompositions.Features.AddParts(typeof(TestOptionsServiceFactory), typeof(TestProjectCacheService));
+            var composition1 = FeaturesTestCompositions.Features.AddParts(typeof(TestProjectCacheService), typeof(TestTemporaryStorageServiceFactory));
+            var composition2 = FeaturesTestCompositions.Features.AddParts(typeof(TestTemporaryStorageServiceFactory), typeof(TestProjectCacheService));
             Assert.Same(composition1.ExportProviderFactory, composition2.ExportProviderFactory);
         }
 

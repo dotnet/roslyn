@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// 
         /// Implementations of this method must be thread-safe.
         /// </summary>
-        Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+        ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
             ISymbol symbol, Solution solution, FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
         /// <summary>
@@ -62,8 +62,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// Implementations of this method must be thread-safe.
         /// </summary>
         ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
-            ISymbol symbol, HashSet<string>? globalAliases,
-            Document document, SemanticModel semanticModel,
-            FindReferencesSearchOptions options, CancellationToken cancellationToken);
+            ISymbol symbol,
+            FindReferencesDocumentState state,
+            FindReferencesSearchOptions options,
+            CancellationToken cancellationToken);
     }
 }

@@ -44,21 +44,19 @@ namespace Microsoft.CodeAnalysis.Indentation
             var syntaxFormatting = this.SyntaxFormatting;
 
 #if CODE_STYLE
-            var tree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
-            Contract.ThrowIfNull(tree);
+            var documentSyntax = ParsedDocument.CreateAsync(document, cancellationToken).AsTask().WaitAndGetResult_CanCallOnBackground(cancellationToken);
 #else
-            var tree = document.GetRequiredSyntaxTreeSynchronously(cancellationToken);
+            var documentSyntax = ParsedDocument.CreateSynchronously(document, cancellationToken);
 #endif
 
-            var sourceText = tree.GetText(cancellationToken);
-            var lineToBeIndented = sourceText.Lines[lineNumber];
+            var lineToBeIndented = documentSyntax.Text.Lines[lineNumber];
 
 #if CODE_STYLE
             var baseIndentationRule = NoOpFormattingRule.Instance;
 #else
             var workspace = document.Project.Solution.Workspace;
             var formattingRuleFactory = workspace.Services.GetRequiredService<IHostDependentFormattingRuleFactoryService>();
-            var baseIndentationRule = formattingRuleFactory.CreateRule(document, lineToBeIndented.Start);
+            var baseIndentationRule = formattingRuleFactory.CreateRule(documentSyntax, lineToBeIndented.Start);
 #endif
 
             var formattingRules = ImmutableArray.Create(
@@ -67,8 +65,8 @@ namespace Microsoft.CodeAnalysis.Indentation
                 syntaxFormatting.GetDefaultFormattingRules());
 
             var smartTokenFormatter = CreateSmartTokenFormatter(
-                (TSyntaxRoot)tree.GetRoot(cancellationToken), lineToBeIndented, options, baseIndentationRule);
-            return new Indenter(this, tree, formattingRules, options, lineToBeIndented, smartTokenFormatter, cancellationToken);
+                (TSyntaxRoot)documentSyntax.Root, documentSyntax.Text, lineToBeIndented, options, baseIndentationRule);
+            return new Indenter(this, documentSyntax.SyntaxTree, formattingRules, options, lineToBeIndented, smartTokenFormatter, cancellationToken);
         }
     }
 }

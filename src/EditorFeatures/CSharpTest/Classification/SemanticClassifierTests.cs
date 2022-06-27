@@ -3938,6 +3938,72 @@ Regex.OtherEscape("a"),
 Regex.Comment("(?#comment)"));
         }
 
+        [Theory, CombinatorialData]
+        [WorkItem(61947, "https://github.com/dotnet/roslyn/issues/61947")]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_AttributeField(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+[AttributeUsage(AttributeTargets.Field)]
+class RegexTestAttribute : Attribute
+{
+    public RegexTestAttribute() { }
+
+    [StringSyntax(StringSyntaxAttribute.Regex)]
+    public string value;
+}
+
+class Program
+{
+    [|[RegexTest(value = @""$\a(?#comment)"")]|]
+    private string field;
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Class("RegexTest"),
+Field("value"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem(61947, "https://github.com/dotnet/roslyn/issues/61947")]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_AttributeProperty(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+[AttributeUsage(AttributeTargets.Field)]
+class RegexTestAttribute : Attribute
+{
+    public RegexTestAttribute() { }
+
+    [StringSyntax(StringSyntaxAttribute.Regex)]
+    public string value { get; set; }
+}
+
+class Program
+{
+    [|[RegexTest(value = @""$\a(?#comment)"")]|]
+    private string field;
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Class("RegexTest"),
+Property("value"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
         [Theory]
         [CombinatorialData]
         public async Task TestRegexOnApiWithStringSyntaxAttribute_ParamsAttribute(TestHost testHost)
@@ -4053,6 +4119,48 @@ Namespace("Text"),
 Namespace("RegularExpressions"),
 Keyword("var"),
 Class("Regex"));
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem(61982, "https://github.com/dotnet/roslyn/issues/61982")]
+        public async Task TestRegexAmbiguity1(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        var r = Regex.Match("""", [|@""$\a(?#comment)""|]
+",
+testHost,
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem(61982, "https://github.com/dotnet/roslyn/issues/61982")]
+        public async Task TestRegexAmbiguity2(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        var r = Regex.Match("""", [|@""$\a(?#comment)""|],
+",
+testHost,
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
         }
 
         [Theory]

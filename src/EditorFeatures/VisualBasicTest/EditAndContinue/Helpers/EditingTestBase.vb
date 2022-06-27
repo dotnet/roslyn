@@ -153,8 +153,8 @@ End Namespace
 
         Public Shared Function GetMethodMatches(src1 As String,
                                                 src2 As String,
-                                                Optional stateMachine As MethodKind = MethodKind.Regular) As IEnumerable(Of KeyValuePair(Of SyntaxNode, SyntaxNode))
-            Dim methodMatch = GetMethodMatch(src1, src2, stateMachine)
+                                                Optional kind As MethodKind = MethodKind.Regular) As IEnumerable(Of KeyValuePair(Of SyntaxNode, SyntaxNode))
+            Dim methodMatch = GetMethodMatch(src1, src2, kind)
             Return EditAndContinueTestHelpers.GetMethodMatches(CreateAnalyzer(), methodMatch)
         End Function
 

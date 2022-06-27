@@ -314,6 +314,7 @@ namespace Microsoft.CodeAnalysis
         System_Text_StringBuilder,
 
         System_Runtime_CompilerServices_DefaultInterpolatedStringHandler,
+        System_Runtime_CompilerServices_LifetimeAnnotationAttribute,
 
         System_ArgumentNullException,
 
@@ -632,6 +633,7 @@ namespace Microsoft.CodeAnalysis
 
             "System.Text.StringBuilder",
             "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler",
+            "System.Runtime.CompilerServices.LifetimeAnnotationAttribute",
             "System.ArgumentNullException",
 
             "System.Runtime.CompilerServices.RequiredMemberAttribute",

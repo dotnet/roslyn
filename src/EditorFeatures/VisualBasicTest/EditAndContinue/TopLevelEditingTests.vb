@@ -3994,9 +3994,9 @@ End Class
                 {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
                 {
                     DocumentResults(),
-                    DocumentResults(diagnostics:=
+                    DocumentResults(semanticEdits:=
                     {
-                        Diagnostic(RudeEditKind.Insert, "Yield 2", VBFeaturesResources.Yield_statement)
+                        SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), preserveLocalVariables:=True)
                     })
                 })
         End Sub
@@ -4749,84 +4749,6 @@ Imports System.Runtime.InteropServices
         End Sub
 
         <Fact>
-        Public Sub MethodUpdate_AsyncMethod2()
-            Dim src1 = <text>
-Class C
-    Async Function F(x As Integer) As Task(Of Integer)
-        Await F(2)
-        If Await F(2) Then : End If
-        While Await F(2) : End While
-        Do : Loop Until Await F(2)
-        Do : Loop While Await F(2)
-        Do Until Await F(2) : Loop
-        Do While Await F(2) : Loop
-        For i As Integer = 1 To Await F(2) : Next
-        Using a = Await F(2) : End Using
-        Dim a = Await F(2)
-        Dim b = Await F(2), c = Await F(2)
-        b = Await F(2)
-        Select Case Await F(2) : Case 1 : Return Await F(2) : End Select
-        Return Await F(2)
-    End Function
-End Class
-</text>.Value
-            Dim src2 = <text>
-Class C
-    Async Function F(x As Integer) As Task(Of Integer)
-        Await F(1)
-        If Await F(1) Then : End If
-        While Await F(1) : End While
-        Do : Loop Until Await F(1)
-        Do : Loop While Await F(1)
-        Do Until Await F(1) : Loop
-        Do While Await F(1) : Loop
-        For i As Integer = 1 To Await F(1) : Next
-        Using a = Await F(1) : End Using
-        Dim a = Await F(1)
-        Dim b = Await F(1), c = Await F(1)
-        b = Await F(1)
-        Select Case Await F(1) : Case 1 : Return Await F(1) : End Select
-        Return Await F(1)
-    End Function
-End Class
-</text>.Value
-
-            Dim edits = GetTopEdits(src1, src2)
-            edits.VerifySemanticDiagnostics()
-        End Sub
-
-        <Fact>
-        Public Sub MethodUpdate_AsyncMethod3()
-            Dim src1 = <text>
-Class C
-    Async Function F(x As Integer) As Task(Of Integer)
-        If Await F(Await F(2)) Then : End If
-        For Each i In {Await F(2)} : Next
-        Dim a = 1
-        a += Await F(2)
-    End Function
-End Class
-</text>.Value
-            Dim src2 = <text>
-Class C
-    Async Function F(x As Integer) As Task(Of Integer)
-        If Await F(Await F(1)) Then : End If
-        For Each i In {Await F(1)} : Next
-        Dim a = 1
-        a += Await F(1)
-    End Function
-End Class
-</text>.Value
-
-            ' consider: these edits can be allowed if we get more sophisticated
-            Dim edits = GetTopEdits(src1, src2)
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.AwaitStatementUpdate, "Await F(Await F(1))"),
-                Diagnostic(RudeEditKind.AwaitStatementUpdate, "{Await F(1)}"),
-                Diagnostic(RudeEditKind.AwaitStatementUpdate, "a += Await F(1)"))
-        End Sub
-
-        <Fact>
         Public Sub MethodWithLambda_Update()
             Dim src1 = "
 Class C
@@ -5315,8 +5237,7 @@ End Interface
             Dim src2 = "Class C " & vbLf & "Iterator Function M() As IEnumerable(Of Integer)" & vbLf & "Yield 1 : Yield 2: End Function : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "Yield 2", VBFeaturesResources.Yield_statement))
+            edits.VerifySemantics(semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.M"), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -5325,8 +5246,7 @@ End Interface
             Dim src2 = "Class C " & vbLf & "Iterator Function M() As IEnumerable(Of Integer)" & vbLf & "Yield 1 : End Function : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Iterator Function M()", VBFeaturesResources.Yield_statement))
+            edits.VerifySemantics(semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.M"), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
