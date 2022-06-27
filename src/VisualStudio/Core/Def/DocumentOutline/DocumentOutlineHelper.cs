@@ -74,9 +74,12 @@ namespace Microsoft.VisualStudio.LanguageServices
         }
 
         /// <summary>
-        /// Given an array containing a Document Symbol and its descendants, returns the Document Symbol
+        /// Given a flat array containing a Document Symbol and its descendants, returns the Document Symbol
         /// with its descendants recursively nested
         /// </summary>
+        /// /// <remarks>
+        /// The first Document Symbol in the array is considered the root node.
+        /// </remarks>
         private static DocumentSymbol CreateDocumentSymbolTree(ImmutableArray<DocumentSymbol> documentSymbols)
         {
             var node = documentSymbols.First();
@@ -236,7 +239,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                 {
                     symbol.IsSelected = true;
                 }
-                // Otherwise, call SelectNode on the child symbol
+                // Otherwise, call SelectNode on the child symbol at selectedChildSymbolIndex
                 else
                 {
                     SelectNode(symbol.Children[selectedChildSymbolIndex], currentSnapshot, oldSnapshot, caretPosition);

@@ -78,6 +78,11 @@ namespace Microsoft.VisualStudio.LanguageServices
         /// </summary>
         private readonly AsyncBatchingWorkQueue _updateModelQueue;
 
+        /// <summary>
+        /// _followCursorQueue
+        /// </summary>
+        private readonly AsyncBatchingWorkQueue _highlightNodeQueue;
+
         public DocumentOutlineControl(
             IWpfTextView textView,
             ITextBuffer textBuffer,
@@ -106,8 +111,13 @@ namespace Microsoft.VisualStudio.LanguageServices
                     asyncListener,
                     threadingContext.DisposalToken);
 
-            // Fetches and processes the current document model.
-            // Everything should be done on a background thread.
+            _highlightNodeQueue = new AsyncBatchingWorkQueue(
+                    DelayTimeSpan.NearImmediate,
+                    HightlightNodeAsync,
+                    asyncListener,
+                    threadingContext.DisposalToken);
+
+            // Fetches and processes the current document model. Everything should be done on background threads.
             async ValueTask GetModelAsync(CancellationToken cancellationToken)
             {
                 await TaskScheduler.Default;
@@ -149,9 +159,37 @@ namespace Microsoft.VisualStudio.LanguageServices
                 // Switch back to the UI thread to update the UI with the processed model data
                 await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 symbolTree.ItemsSource = updatedSymbolsTreeItemsSource;
-                ThreadingContext.JoinableTaskFactory
-                    .RunAsync(HighlightSymbolNodeAsync)
-                    .FileAndForget("Document Outline: Highlight Symbol Node");
+                StartHightlightNodeTask();
+            }
+
+            // Highlights the symbol node corresponding to the current caret position in the editor.
+            async ValueTask HightlightNodeAsync(CancellationToken cancellationToken)
+            {
+                if (TextView is not null && DocumentSymbolViewModelsIsInitialized)
+                {
+                    // Get the current snapshot, caret point, and document model on the UI thread
+                    var currentSnapshot = TextBuffer.CurrentSnapshot;
+                    var symbolTreeItemsSource = (IEnumerable<DocumentSymbolViewModel>)symbolTree.ItemsSource;
+                    var caretPoint = TextView.GetCaretPoint(TextBuffer);
+                    if (caretPoint.HasValue)
+                    {
+                        var caretPosition = caretPoint.Value.Position;
+                        // Switch to a background thread to update UI selection
+                        await TaskScheduler.Default;
+                        UnselectAll(symbolTreeItemsSource);
+                        foreach (var documentSymbolModel in symbolTreeItemsSource)
+                            DocumentOutlineHelper.SelectNode(documentSymbolModel, currentSnapshot, Snapshot, caretPosition);
+                    }
+                }
+
+                static void UnselectAll(IEnumerable<DocumentSymbolViewModel> documentSymbolModels)
+                {
+                    foreach (var documentSymbolModel in documentSymbolModels)
+                    {
+                        documentSymbolModel.IsSelected = false;
+                        UnselectAll(documentSymbolModel.Children);
+                    }
+                }
             }
 
             void TextBuffer_Changed(object sender, TextContentChangedEventArgs e)
@@ -170,6 +208,15 @@ namespace Microsoft.VisualStudio.LanguageServices
         {
             if (DocumentSymbolViewModelsIsInitialized)
                 _updateModelQueue.AddWork();
+        }
+
+        /// <summary>
+        /// Starts a new task to highlight the symbol node corresponding to the current caret position in the editor.
+        /// </summary>
+        private void StartHightlightNodeTask()
+        {
+            if (DocumentSymbolViewModelsIsInitialized)
+                _highlightNodeQueue.AddWork();
         }
 
         private async Task<ManualInvocationResponse?> DocumentSymbolsRequestAsync(
@@ -277,44 +324,9 @@ namespace Microsoft.VisualStudio.LanguageServices
         }
 
         // On caret position change, highlight the corresponding symbol node
-        private void FollowCaret(object sender, EventArgs e)
+        private void FollowCaret(object sender, CaretPositionChangedEventArgs e)
         {
-            ThreadingContext.JoinableTaskFactory
-                .RunAsync(HighlightSymbolNodeAsync)
-                .FileAndForget("Document Outline: Highlight Symbol Node");
-        }
-
-        /// <summary>
-        /// Highlights the symbol node corresponding to the current caret position.
-        /// </summary>
-        private async Task HighlightSymbolNodeAsync()
-        {
-            if (TextView is not null && DocumentSymbolViewModelsIsInitialized)
-            {
-                // Use the UI thread to get the current snapshot, caret point, and document model
-                await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(ThreadingContext.DisposalToken);
-                var currentSnapshot = TextBuffer.CurrentSnapshot;
-                var symbolTreeItemsSource = (IEnumerable<DocumentSymbolViewModel>)symbolTree.ItemsSource;
-                var caretPoint = TextView.GetCaretPoint(TextBuffer);
-                if (caretPoint.HasValue)
-                {
-                    var caretPosition = caretPoint.Value.Position;
-                    // Switch to a background thread to update UI selection
-                    await TaskScheduler.Default;
-                    UnselectAll(symbolTreeItemsSource);
-                    foreach (var documentSymbolModel in symbolTreeItemsSource)
-                        DocumentOutlineHelper.SelectNode(documentSymbolModel, currentSnapshot, Snapshot, caretPosition);
-                }
-            }
-
-            static void UnselectAll(IEnumerable<DocumentSymbolViewModel> documentSymbolModels)
-            {
-                foreach (var documentSymbolModel in documentSymbolModels)
-                {
-                    documentSymbolModel.IsSelected = false;
-                    UnselectAll(documentSymbolModel.Children);
-                }
-            }
+            StartHightlightNodeTask();
         }
 
         internal const int OLECMDERR_E_NOTSUPPORTED = unchecked((int)0x80040100);
