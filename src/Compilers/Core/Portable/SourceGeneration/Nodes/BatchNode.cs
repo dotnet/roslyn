@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis
             var sourceValuesBuilder = ArrayBuilder<TInput>.GetInstance();
             var sourceInputsBuilder = newTable.TrackIncrementalSteps ? ArrayBuilder<(IncrementalGeneratorRunStep InputStep, int OutputIndex)>.GetInstance() : null;
 
-            foreach (var entry in sourceTable.Batch())
+            foreach (var entry in sourceTable)
             {
                 if (entry.State != EntryState.Removed)
                     sourceValuesBuilder.Add(entry.Item);
