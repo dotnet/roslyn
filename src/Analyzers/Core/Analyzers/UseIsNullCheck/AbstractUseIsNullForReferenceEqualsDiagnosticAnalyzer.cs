@@ -138,11 +138,11 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
             }
 
             var severity = option.Notification.Severity;
-            context.ReportDiagnostic(
-                DiagnosticHelper.Create(
-                    Descriptor, nameNode.GetLocation(),
-                    severity,
-                    additionalLocations, properties));
+            DiagnosticHelper.CreateAndReportDiagnostic(
+                context.ReportDiagnostic,
+                Descriptor, nameNode.GetLocation(),
+                severity,
+                additionalLocations, properties);
         }
 
         private static ITypeParameterSymbol? GetGenericParameterSymbol(ISyntaxFacts syntaxFacts, SemanticModel semanticModel, SyntaxNode node1, SyntaxNode node2, CancellationToken cancellationToken)

@@ -77,13 +77,14 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
                         {
                             foreach (var diag in tree.Diagnostics)
                             {
-                                context.ReportDiagnostic(DiagnosticHelper.Create(
+                                DiagnosticHelper.CreateAndReportDiagnostic(
+                                    context.ReportDiagnostic,
                                     this.Descriptor,
                                     Location.Create(context.SemanticModel.SyntaxTree, diag.Span),
                                     ReportDiagnostic.Warn,
                                     additionalLocations: null,
                                     properties: null,
-                                    diag.Message));
+                                    diag.Message);
                             }
                         }
                     }

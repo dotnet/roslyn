@@ -61,12 +61,13 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
                         {
                             var properties = ImmutableDictionary<string, string?>.Empty.Add(
                                 nameof(ElementName), namedField.Name);
-                            context.ReportDiagnostic(DiagnosticHelper.Create(
+                            DiagnosticHelper.CreateAndReportDiagnostic(
+                                context.ReportDiagnostic,
                                 Descriptor,
                                 nameNode.GetLocation(),
                                 severity,
                                 additionalLocations: null,
-                                properties));
+                                properties);
                         }
                     }
                 }

@@ -149,9 +149,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     isPublicApiParameter: parameter.ContainingSymbol.HasPublicResultantVisibility(),
                     isLocalFunctionParameter: parameter.ContainingSymbol.IsLocalFunction());
 
-                var diagnostic = DiagnosticHelper.Create(rule, location,
+                DiagnosticHelper.CreateAndReportDiagnostic(reportDiagnostic, rule, location,
                     option.Notification.Severity, additionalLocations: null, properties: null, parameter.Name);
-                reportDiagnostic(diagnostic);
             }
 
             private static DiagnosticDescriptor GetDescriptorForUnusedParameterDiagnostic(

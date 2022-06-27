@@ -63,12 +63,13 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
             var firstUnnecessaryLocation = unnecessaryLocations[0];
             var remainingUnnecessaryLocations = unnecessaryLocations.RemoveAt(0);
 
-            context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+            DiagnosticHelper.CreateWithLocationTagsAndReport(
+                context.ReportDiagnostic,
                 Descriptor,
                 firstUnnecessaryLocation,
                 option.Notification.Severity,
                 additionalLocations: ImmutableArray.Create(interpolation.Syntax.GetLocation()),
-                additionalUnnecessaryLocations: remainingUnnecessaryLocations));
+                additionalUnnecessaryLocations: remainingUnnecessaryLocations);
         }
     }
 }

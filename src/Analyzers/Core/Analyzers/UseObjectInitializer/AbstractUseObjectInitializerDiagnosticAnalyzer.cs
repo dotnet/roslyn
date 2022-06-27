@@ -94,12 +94,13 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
             var locations = ImmutableArray.Create(objectCreationExpression.GetLocation());
 
-            context.ReportDiagnostic(DiagnosticHelper.Create(
+            DiagnosticHelper.CreateAndReportDiagnostic(
+                context.ReportDiagnostic,
                 Descriptor,
                 objectCreationExpression.GetFirstToken().GetLocation(),
                 option.Notification.Severity,
                 locations,
-                properties: null));
+                properties: null);
 
             FadeOutCode(context, matches.Value, locations);
         }
@@ -128,13 +129,14 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
                 if (match.Statement.Span.End > match.Initializer.FullSpan.End)
                 {
-                    context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+                    DiagnosticHelper.CreateWithLocationTagsAndReport(
+                        context.ReportDiagnostic,
                         Descriptor,
                         location1,
                         ReportDiagnostic.Default,
                         additionalLocations: locations,
                         additionalUnnecessaryLocations: ImmutableArray.Create(
-                            syntaxTree.GetLocation(TextSpan.FromBounds(match.Initializer.FullSpan.End, match.Statement.Span.End)))));
+                            syntaxTree.GetLocation(TextSpan.FromBounds(match.Initializer.FullSpan.End, match.Statement.Span.End))));
                 }
                 else
                 {

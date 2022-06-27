@@ -62,17 +62,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
             void SymbolAction(SymbolAnalysisContext symbolContext)
             {
-                var diagnostic = TryGetDiagnostic(
+                TryGetAndReportDiagnostic(
+                    symbolContext.ReportDiagnostic,
                     symbolContext.Compilation,
                     symbolContext.Symbol,
                     symbolContext.Options,
                     idToCachedResult,
                     symbolContext.CancellationToken);
-
-                if (diagnostic != null)
-                {
-                    symbolContext.ReportDiagnostic(diagnostic);
-                }
             }
 
             void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext)
@@ -84,24 +80,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                     return;
                 }
 
-                var diagnostic = TryGetDiagnostic(
+                TryGetAndReportDiagnostic(
+                    syntaxContext.ReportDiagnostic,
                     syntaxContext.Compilation,
                     symbol,
                     syntaxContext.Options,
                     idToCachedResult,
                     syntaxContext.CancellationToken);
-
-                if (diagnostic != null)
-                {
-                    syntaxContext.ReportDiagnostic(diagnostic);
-                }
             }
         }
 
         private static readonly Func<Guid, ConcurrentDictionary<string, string?>> s_createCache =
             _ => new ConcurrentDictionary<string, string?>(concurrencyLevel: 2, capacity: 0);
 
-        private Diagnostic? TryGetDiagnostic(
+        private void TryGetAndReportDiagnostic(
+            Action<Diagnostic> reportDiagnostic,
             Compilation compilation,
             ISymbol symbol,
             AnalyzerOptions options,
@@ -110,28 +103,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         {
             if (string.IsNullOrEmpty(symbol.Name))
             {
-                return null;
+                return;
             }
 
             if (symbol is IMethodSymbol methodSymbol && methodSymbol.IsEntryPoint(compilation.TaskType(), compilation.TaskOfTType()))
             {
-                return null;
+                return;
             }
 
             if (ShouldIgnore(symbol))
             {
-                return null;
+                return;
             }
 
             if (symbol.IsSymbolWithSpecialDiscardName())
             {
-                return null;
+                return;
             }
 
             var sourceTree = symbol.Locations.FirstOrDefault()?.SourceTree;
             if (sourceTree == null)
             {
-                return null;
+                return;
             }
 
             var namingPreferences = options.GetAnalyzerOptions(sourceTree).NamingPreferences;
@@ -140,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             if (!namingStyleRules.TryGetApplicableRule(symbol, out var applicableRule) ||
                 applicableRule.EnforcementLevel == ReportDiagnostic.Suppress)
             {
-                return null;
+                return;
             }
 
             var cache = idToCachedResult.GetOrAdd(applicableRule.NamingStyle.ID, s_createCache);
@@ -157,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
             if (failureReason == null)
             {
-                return null;
+                return;
             }
 
             var builder = ImmutableDictionary.CreateBuilder<string, string?>();
@@ -165,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             builder["OptionName"] = nameof(NamingStyleOptions.NamingPreferences);
             builder["OptionLanguage"] = compilation.Language;
 
-            return DiagnosticHelper.Create(Descriptor, symbol.Locations.First(), applicableRule.EnforcementLevel, additionalLocations: null, builder.ToImmutable(), failureReason);
+            DiagnosticHelper.CreateAndReportDiagnostic(reportDiagnostic, Descriptor, symbol.Locations.First(), applicableRule.EnforcementLevel, additionalLocations: null, builder.ToImmutable(), failureReason);
         }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()

@@ -91,12 +91,13 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
 
                         // Show this as a hidden diagnostic so the user can enable json features explicitly if they
                         // want, but do not spam them with a ... notification if they don't want it.
-                        context.ReportDiagnostic(DiagnosticHelper.Create(
+                        DiagnosticHelper.CreateAndReportDiagnostic(
+                            context.ReportDiagnostic,
                             this.Descriptor,
                             token.GetLocation(),
                             ReportDiagnostic.Hidden,
                             additionalLocations: null,
-                            properties));
+                            properties);
                     }
                 }
             }

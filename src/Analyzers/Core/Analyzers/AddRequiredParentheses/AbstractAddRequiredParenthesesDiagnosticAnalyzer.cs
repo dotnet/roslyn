@@ -129,12 +129,13 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
 
                 var properties = GetProperties(includeInFixAll, equivalenceKey);
 
-                context.ReportDiagnostic(DiagnosticHelper.Create(
+                DiagnosticHelper.CreateAndReportDiagnostic(
+                    context.ReportDiagnostic,
                     Descriptor,
                     operatorToken.GetLocation(),
                     severity,
                     additionalLocations,
-                    properties));
+                    properties);
 
                 // We're adding diagnostics for all subcomponents so that the user can get the
                 // lightbulb on any of the operator tokens.  However, we don't actually want to

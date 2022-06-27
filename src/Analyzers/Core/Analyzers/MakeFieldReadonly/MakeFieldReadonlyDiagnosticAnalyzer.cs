@@ -101,13 +101,13 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                             if (isCandidate && !written)
                             {
                                 var option = GetCodeStyleOption(field, symbolEndContext.Options);
-                                var diagnostic = DiagnosticHelper.Create(
+                                DiagnosticHelper.CreateAndReportDiagnostic(
+                                    symbolEndContext.ReportDiagnostic,
                                     Descriptor,
                                     field.Locations[0],
                                     option.Notification.Severity,
                                     additionalLocations: null,
                                     properties: null);
-                                symbolEndContext.ReportDiagnostic(diagnostic);
                             }
                         }
                     }

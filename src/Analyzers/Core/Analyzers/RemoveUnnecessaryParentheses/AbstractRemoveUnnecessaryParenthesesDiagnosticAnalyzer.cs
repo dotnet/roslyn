@@ -111,12 +111,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
                 parenthesizedExpression.GetFirstToken().GetLocation(),
                 parenthesizedExpression.GetLastToken().GetLocation());
 
-            context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+            DiagnosticHelper.CreateWithLocationTagsAndReport(
+                context.ReportDiagnostic,
                 Descriptor,
                 AbstractRemoveUnnecessaryParenthesesDiagnosticAnalyzer<TLanguageKindEnum, TParenthesizedExpressionSyntax>.GetDiagnosticSquiggleLocation(parenthesizedExpression, cancellationToken),
                 severity,
                 additionalLocations,
-                additionalUnnecessaryLocations));
+                additionalUnnecessaryLocations);
         }
 
         /// <summary>

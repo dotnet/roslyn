@@ -86,13 +86,14 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
                 {
                     foreach (var diag in tree.Diagnostics)
                     {
-                        context.ReportDiagnostic(DiagnosticHelper.Create(
+                        DiagnosticHelper.CreateAndReportDiagnostic(
+                            context.ReportDiagnostic,
                             Descriptor,
                             Location.Create(context.SemanticModel.SyntaxTree, diag.Span),
                             ReportDiagnostic.Warn,
                             additionalLocations: null,
                             properties: null,
-                            diag.Message));
+                            diag.Message);
                     }
                 }
             }

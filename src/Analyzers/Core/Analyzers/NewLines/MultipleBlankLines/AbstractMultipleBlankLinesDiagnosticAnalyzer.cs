@@ -74,12 +74,13 @@ namespace Microsoft.CodeAnalysis.NewLines.MultipleBlankLines
             if (!ContainsMultipleBlankLines(token, out var badTrivia))
                 return;
 
-            context.ReportDiagnostic(DiagnosticHelper.Create(
+            DiagnosticHelper.CreateAndReportDiagnostic(
+                context.ReportDiagnostic,
                 this.Descriptor,
                 Location.Create(badTrivia.SyntaxTree!, new TextSpan(badTrivia.SpanStart, 0)),
                 severity,
                 additionalLocations: ImmutableArray.Create(token.GetLocation()),
-                properties: null));
+                properties: null);
         }
 
         private bool ContainsMultipleBlankLines(SyntaxToken token, out SyntaxTrivia firstBadTrivia)

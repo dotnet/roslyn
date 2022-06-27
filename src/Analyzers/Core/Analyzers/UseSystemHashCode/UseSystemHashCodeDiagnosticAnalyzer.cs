@@ -71,12 +71,13 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             var cancellationToken = context.CancellationToken;
             var operationLocation = operation.Syntax.GetLocation();
             var declarationLocation = context.OwningSymbol.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken).GetLocation();
-            context.ReportDiagnostic(DiagnosticHelper.Create(
+            DiagnosticHelper.CreateAndReportDiagnostic(
+                context.ReportDiagnostic,
                 Descriptor,
                 owningSymbol.Locations[0],
                 option.Notification.Severity,
                 new[] { operationLocation, declarationLocation },
-                ImmutableDictionary<string, string?>.Empty));
+                ImmutableDictionary<string, string?>.Empty);
         }
     }
 }

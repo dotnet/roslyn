@@ -131,8 +131,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                 throwOperation.Exception.Syntax.GetLocation(),
                 assignmentExpression.Value.Syntax.GetLocation());
 
-            context.ReportDiagnostic(
-                DiagnosticHelper.Create(Descriptor, throwStatementSyntax.GetLocation(), option.Notification.Severity, additionalLocations: allLocations, properties: null));
+            DiagnosticHelper.CreateAndReportDiagnostic(context.ReportDiagnostic, Descriptor, throwStatementSyntax.GetLocation(), option.Notification.Severity, additionalLocations: allLocations, properties: null);
         }
 
         private static bool ValueIsAccessed(SemanticModel semanticModel, IConditionalOperation ifOperation, IBlockOperation containingBlock, ISymbol localOrParameter, IExpressionStatementOperation expressionStatement, IAssignmentOperation assignmentExpression)

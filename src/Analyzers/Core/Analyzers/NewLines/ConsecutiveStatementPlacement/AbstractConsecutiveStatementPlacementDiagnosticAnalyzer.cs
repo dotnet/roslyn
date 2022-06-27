@@ -103,12 +103,13 @@ namespace Microsoft.CodeAnalysis.NewLines.ConsecutiveStatementPlacement
                 return;
             }
 
-            context.ReportDiagnostic(DiagnosticHelper.Create(
+            DiagnosticHelper.CreateAndReportDiagnostic(
+                context.ReportDiagnostic,
                 this.Descriptor,
                 GetDiagnosticLocation(block),
                 severity,
                 additionalLocations: ImmutableArray.Create(nextToken.GetLocation()),
-                properties: null));
+                properties: null);
         }
     }
 }

@@ -107,12 +107,13 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
             var locations = ImmutableArray.Create(objectCreationExpression.GetLocation());
 
-            context.ReportDiagnostic(DiagnosticHelper.Create(
+            DiagnosticHelper.CreateAndReportDiagnostic(
+                context.ReportDiagnostic,
                 Descriptor,
                 objectCreationExpression.GetFirstToken().GetLocation(),
                 option.Notification.Severity,
                 additionalLocations: locations,
-                properties: null));
+                properties: null);
 
             FadeOutCode(context, matches.Value, locations);
         }
@@ -145,12 +146,13 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                     // will be offered.
                     var location1 = additionalUnnecessaryLocations[0];
 
-                    context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+                    DiagnosticHelper.CreateWithLocationTagsAndReport(
+                        context.ReportDiagnostic,
                         Descriptor,
                         location1,
                         ReportDiagnostic.Default,
                         additionalLocations: locations,
-                        additionalUnnecessaryLocations: additionalUnnecessaryLocations));
+                        additionalUnnecessaryLocations: additionalUnnecessaryLocations);
                 }
             }
         }

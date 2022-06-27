@@ -178,12 +178,13 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                 properties = properties.Add(UseNullPropagationConstants.WhenPartIsNullable, "");
             }
 
-            context.ReportDiagnostic(DiagnosticHelper.Create(
+            DiagnosticHelper.CreateAndReportDiagnostic(
+                context.ReportDiagnostic,
                 Descriptor,
                 conditionalExpression.GetLocation(),
                 option.Notification.Severity,
                 locations,
-                properties));
+                properties);
         }
 
         private bool TryAnalyzeCondition(

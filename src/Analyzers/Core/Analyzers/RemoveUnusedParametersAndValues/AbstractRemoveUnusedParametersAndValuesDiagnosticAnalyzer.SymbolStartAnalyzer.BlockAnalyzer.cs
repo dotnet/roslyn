@@ -248,12 +248,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     }
 
                     var properties = s_propertiesMap[(_options.UnusedValueExpressionStatementPreference, isUnusedLocalAssignment: false, isRemovableAssignment: false)];
-                    var diagnostic = DiagnosticHelper.Create(s_expressionValueIsUnusedRule,
-                                                             value.Syntax.GetLocation(),
-                                                             _options.UnusedValueExpressionStatementSeverity,
-                                                             additionalLocations: null,
-                                                             properties);
-                    context.ReportDiagnostic(diagnostic);
+                    DiagnosticHelper.CreateAndReportDiagnostic(
+                        context.ReportDiagnostic,
+                        s_expressionValueIsUnusedRule,
+                        value.Syntax.GetLocation(),
+                        _options.UnusedValueExpressionStatementSeverity,
+                        additionalLocations: null,
+                        properties);
                 }
 
                 private void AnalyzeDelegateCreationOrAnonymousFunction(OperationAnalysisContext operationAnalysisContext)
@@ -602,13 +603,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                             if (ShouldReportUnusedValueDiagnostic(symbol, unreadWriteOperation, symbolUsageResult, out var properties))
                             {
-                                var diagnostic = DiagnosticHelper.Create(s_valueAssignedIsUnusedRule,
-                                                                         _symbolStartAnalyzer._compilationAnalyzer.GetDefinitionLocationToFade(unreadWriteOperation),
-                                                                         _options.UnusedValueAssignmentSeverity,
-                                                                         additionalLocations: null,
-                                                                         properties,
-                                                                         symbol.Name);
-                                context.ReportDiagnostic(diagnostic);
+                                DiagnosticHelper.CreateAndReportDiagnostic(
+                                    context.ReportDiagnostic,
+                                    s_valueAssignedIsUnusedRule,
+                                    _symbolStartAnalyzer._compilationAnalyzer.GetDefinitionLocationToFade(unreadWriteOperation),
+                                    _options.UnusedValueAssignmentSeverity,
+                                    additionalLocations: null,
+                                    properties,
+                                    symbol.Name);
                             }
                         }
                     }

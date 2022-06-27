@@ -137,12 +137,13 @@ namespace Microsoft.CodeAnalysis.SimplifyBooleanExpression
             // local functions
 
             void ReportDiagnostic(ImmutableDictionary<string, string?> properties)
-                => context.ReportDiagnostic(DiagnosticHelper.Create(
+                => DiagnosticHelper.CreateAndReportDiagnostic(
+                    context.ReportDiagnostic,
                     Descriptor,
                     conditionalExpression.GetLocation(),
                     styleOption.Notification.Severity,
                     additionalLocations: null,
-                    properties));
+                    properties);
 
             bool IsSimpleBooleanType(TExpressionSyntax node)
             {

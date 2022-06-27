@@ -127,7 +127,8 @@ namespace Microsoft.CodeAnalysis.ForEachCast
                 semanticModel.Compilation.GetBestTypeByMetadataName(typeof(Enumerable).FullName!) != null;
 
             var options = semanticModel.Compilation.Options;
-            context.ReportDiagnostic(DiagnosticHelper.Create(
+            DiagnosticHelper.CreateAndReportDiagnostic(
+                context.ReportDiagnostic,
                 Descriptor,
                 node.GetFirstToken().GetLocation(),
                 option.Notification.Severity,
@@ -135,7 +136,7 @@ namespace Microsoft.CodeAnalysis.ForEachCast
                 properties: isFixable ? s_isFixableProperties : null,
                 node.GetFirstToken().ToString(),
                 collectionElementType.ToDisplayString(),
-                iterationType.ToDisplayString()));
+                iterationType.ToDisplayString());
         }
 
         private static bool IsStronglyTyped(INamedTypeSymbol ienumerableOfTType, ITypeSymbol collectionType, ITypeSymbol collectionElementType)

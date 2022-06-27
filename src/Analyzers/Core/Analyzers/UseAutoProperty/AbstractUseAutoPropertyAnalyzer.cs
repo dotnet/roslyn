@@ -331,7 +331,8 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             }
 
             // Place the appropriate marker on the field depending on the user option.
-            var diagnostic1 = DiagnosticHelper.Create(
+            DiagnosticHelper.CreateAndReportDiagnostic(
+                context.ReportDiagnostic,
                 Descriptor,
                 fieldNode.GetLocation(),
                 option.Notification.Severity,
@@ -344,7 +345,6 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 Descriptor, propertyDeclaration.GetLocation(),
                 additionalLocations: additionalLocations);
 
-            context.ReportDiagnostic(diagnostic1);
             context.ReportDiagnostic(diagnostic2);
         }
 

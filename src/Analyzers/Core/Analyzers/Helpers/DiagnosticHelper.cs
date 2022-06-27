@@ -17,20 +17,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal static class DiagnosticHelper
     {
-        /// <summary>
-        /// See InternalDiagnosticSeverity.Void.
-        /// </summary>
-        private const DiagnosticSeverity VoidSeverity = (DiagnosticSeverity)(-2);
-
-        private static readonly Diagnostic s_suppressedDiagnostic = Diagnostic.Create(
-            id: "SUPPRESSED",
-            category: "",
-            message: "",
-            severity: VoidSeverity,
-            defaultSeverity: VoidSeverity,
-            isEnabledByDefault: false,
-            warningLevel: 1,
-            isSuppressed: true);
+        public static void CreateAndReportDiagnostic(
+            Action<Diagnostic> reportDiagnostic,
+            DiagnosticDescriptor descriptor,
+            Location location,
+            ReportDiagnostic effectiveSeverity,
+            IEnumerable<Location>? additionalLocations,
+            ImmutableDictionary<string, string?>? properties,
+            params object[] messageArgs)
+        {
+            var diagnostic = Create(descriptor, location, effectiveSeverity, additionalLocations, properties, messageArgs);
+            if (diagnostic is not null)
+            {
+                reportDiagnostic(diagnostic);
+            }
+        }
 
         /// <summary>
         /// Creates a <see cref="Diagnostic"/> instance.
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </param>
         /// <param name="messageArgs">Arguments to the message of the diagnostic.</param>
         /// <returns>The <see cref="Diagnostic"/> instance.</returns>
-        public static Diagnostic Create(
+        private static Diagnostic? Create(
             DiagnosticDescriptor descriptor,
             Location location,
             ReportDiagnostic effectiveSeverity,
@@ -65,10 +66,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (effectiveSeverity == ReportDiagnostic.Suppress)
             {
-                return s_suppressedDiagnostic;
+                return null;
             }
 
             return Diagnostic.Create(descriptor, location, effectiveSeverity.ToDiagnosticSeverity() ?? descriptor.DefaultSeverity, additionalLocations, properties, messageArgs);
+        }
+
+        public static void CreateWithLocationTagsAndReport(
+            Action<Diagnostic> reportDiagnostic,
+            DiagnosticDescriptor descriptor,
+            Location location,
+            ReportDiagnostic effectiveSeverity,
+            ImmutableArray<Location> additionalLocations,
+            ImmutableArray<Location> additionalUnnecessaryLocations,
+            params object[] messageArgs)
+        {
+            var diagnostic = CreateWithLocationTags(descriptor, location, effectiveSeverity, additionalLocations, additionalUnnecessaryLocations, messageArgs);
+            if (diagnostic is not null)
+            {
+                reportDiagnostic(diagnostic);
+            }
         }
 
         /// <summary>
@@ -90,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </param>
         /// <param name="messageArgs">Arguments to the message of the diagnostic.</param>
         /// <returns>The <see cref="Diagnostic"/> instance.</returns>
-        public static Diagnostic CreateWithLocationTags(
+        private static Diagnostic? CreateWithLocationTags(
             DiagnosticDescriptor descriptor,
             Location location,
             ReportDiagnostic effectiveSeverity,
@@ -113,6 +130,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 tagIndices,
                 ImmutableDictionary<string, string?>.Empty,
                 messageArgs);
+        }
+
+        public static void CreateWithLocationTagsAndReport(
+            Action<Diagnostic> reportDiagnostic,
+            DiagnosticDescriptor descriptor,
+            Location location,
+            ReportDiagnostic effectiveSeverity,
+            ImmutableArray<Location> additionalLocations,
+            ImmutableArray<Location> additionalUnnecessaryLocations,
+            ImmutableDictionary<string, string?> properties,
+            params object[] messageArgs)
+        {
+            var diagnostic = CreateWithLocationTags(descriptor, location, effectiveSeverity, additionalLocations, additionalUnnecessaryLocations, properties, messageArgs);
+            if (diagnostic is not null)
+            {
+                reportDiagnostic(diagnostic);
+            }
         }
 
         /// <summary>
@@ -138,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </param>
         /// <param name="messageArgs">Arguments to the message of the diagnostic.</param>
         /// <returns>The <see cref="Diagnostic"/> instance.</returns>
-        public static Diagnostic CreateWithLocationTags(
+        private static Diagnostic? CreateWithLocationTags(
             DiagnosticDescriptor descriptor,
             Location location,
             ReportDiagnostic effectiveSeverity,
@@ -184,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </param>
         /// <param name="messageArgs">Arguments to the message of the diagnostic.</param>
         /// <returns>The <see cref="Diagnostic"/> instance.</returns>
-        private static Diagnostic CreateWithLocationTags(
+        private static Diagnostic? CreateWithLocationTags(
             DiagnosticDescriptor descriptor,
             Location location,
             ReportDiagnostic effectiveSeverity,

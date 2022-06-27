@@ -134,12 +134,13 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
 
             if (!IsAlreadyQualifiedMemberAccess(simpleName))
             {
-                context.ReportDiagnostic(DiagnosticHelper.Create(
+                DiagnosticHelper.CreateAndReportDiagnostic(
+                    context.ReportDiagnostic,
                     Descriptor,
                     GetLocation(operation),
                     severity,
                     additionalLocations: null,
-                    properties: null));
+                    properties: null);
             }
         }
 

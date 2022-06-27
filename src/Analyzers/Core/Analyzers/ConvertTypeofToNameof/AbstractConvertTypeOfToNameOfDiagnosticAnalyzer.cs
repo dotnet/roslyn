@@ -50,12 +50,13 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
 
             var location = parent.GetLocation();
             var options = context.Compilation.Options;
-            context.ReportDiagnostic(
-                DiagnosticHelper.Create(Descriptor,
-                                        location,
-                                        Descriptor.GetEffectiveSeverity(options),
-                                        additionalLocations: null,
-                                        properties: null));
+            DiagnosticHelper.CreateAndReportDiagnostic(
+                context.ReportDiagnostic,
+                Descriptor,
+                location,
+                Descriptor.GetEffectiveSeverity(options),
+                additionalLocations: null,
+                properties: null);
 
         }
 

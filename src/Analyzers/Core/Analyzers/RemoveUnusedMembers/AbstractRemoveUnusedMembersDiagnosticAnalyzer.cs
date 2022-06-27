@@ -489,14 +489,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 
                             // Most of the members should have a single location, except for partial methods.
                             // We report the diagnostic on the first location of the member.
-                            var diagnostic = DiagnosticHelper.Create(
+                            DiagnosticHelper.CreateAndReportDiagnostic(
+                                symbolEndContext.ReportDiagnostic,
                                 rule,
                                 member.Locations[0],
                                 rule.GetEffectiveSeverity(symbolEndContext.Compilation.Options),
                                 additionalLocations: null,
                                 properties: null,
                                 $"{member.ContainingType.Name}.{member.Name}");
-                            symbolEndContext.ReportDiagnostic(diagnostic);
                         }
                     }
                 }

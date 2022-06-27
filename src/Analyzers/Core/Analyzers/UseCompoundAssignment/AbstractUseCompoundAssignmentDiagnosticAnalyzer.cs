@@ -144,34 +144,37 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
                 var incrementOrDecrement = TryGetIncrementOrDecrement(binaryKind, constant);
                 if (incrementOrDecrement == 1)
                 {
-                    context.ReportDiagnostic(DiagnosticHelper.Create(
+                    DiagnosticHelper.CreateAndReportDiagnostic(
+                        context.ReportDiagnostic,
                         _incrementDescriptor,
                         assignmentToken.GetLocation(),
                         option.Notification.Severity,
                         additionalLocations: ImmutableArray.Create(assignment.GetLocation()),
                         properties: ImmutableDictionary.Create<string, string?>()
-                            .Add(UseCompoundAssignmentUtilities.Increment, UseCompoundAssignmentUtilities.Increment)));
+                            .Add(UseCompoundAssignmentUtilities.Increment, UseCompoundAssignmentUtilities.Increment));
                     return;
                 }
                 else if (incrementOrDecrement == -1)
                 {
-                    context.ReportDiagnostic(DiagnosticHelper.Create(
+                    DiagnosticHelper.CreateAndReportDiagnostic(
+                        context.ReportDiagnostic,
                         _decrementDescriptor,
                         assignmentToken.GetLocation(),
                         option.Notification.Severity,
                         additionalLocations: ImmutableArray.Create(assignment.GetLocation()),
                         properties: ImmutableDictionary.Create<string, string?>()
-                            .Add(UseCompoundAssignmentUtilities.Decrement, UseCompoundAssignmentUtilities.Decrement)));
+                            .Add(UseCompoundAssignmentUtilities.Decrement, UseCompoundAssignmentUtilities.Decrement));
                     return;
                 }
             }
 
-            context.ReportDiagnostic(DiagnosticHelper.Create(
+            DiagnosticHelper.CreateAndReportDiagnostic(
+                context.ReportDiagnostic,
                 Descriptor,
                 assignmentToken.GetLocation(),
                 option.Notification.Severity,
                 additionalLocations: ImmutableArray.Create(assignment.GetLocation()),
-                properties: null));
+                properties: null);
         }
     }
 }
