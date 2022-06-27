@@ -202,7 +202,7 @@
         <target state="translated">偵測到執行不到的程式碼</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_UTF8_string_literal">
+      <trans-unit id="Use_Utf8_string_literal">
         <source>Use UTF-8 string literal</source>
         <target state="new">Use UTF-8 string literal</target>
         <note />

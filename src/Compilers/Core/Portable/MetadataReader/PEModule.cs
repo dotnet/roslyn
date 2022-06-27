@@ -1952,7 +1952,7 @@ namespace Microsoft.CodeAnalysis
 
                 value = null;
 
-                // Strings are stored as UTF8, but 0xFF means NULL string.
+                // Strings are stored as UTF-8, but 0xFF means NULL string.
                 return sig.RemainingBytes >= 1 && sig.ReadByte() == 0xFF;
             }
             catch (BadImageFormatException)
@@ -3623,7 +3623,7 @@ namespace Microsoft.CodeAnalysis
             return metadataReader.StringComparer.Equals(nameHandle, name);
         }
 
-        // Provides a UTF8 decoder to the MetadataReader that reuses strings from the string table
+        // Provides a UTF-8 decoder to the MetadataReader that reuses strings from the string table
         // rather than allocating on each call to MetadataReader.GetString(handle).
         private sealed class StringTableDecoder : MetadataStringDecoder
         {
@@ -3633,7 +3633,7 @@ namespace Microsoft.CodeAnalysis
 
             public override unsafe string GetString(byte* bytes, int byteCount)
             {
-                return StringTable.AddSharedUTF8(new ReadOnlySpan<byte>(bytes, byteCount));
+                return StringTable.AddSharedUtf8(new ReadOnlySpan<byte>(bytes, byteCount));
             }
         }
 

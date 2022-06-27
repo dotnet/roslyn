@@ -1841,7 +1841,7 @@ class C
         }
 
         [Fact]
-        public void EvaluateUTF8StringLiteral_01()
+        public void EvaluateUtf8StringLiteral_01()
         {
             var source =
 @"class C

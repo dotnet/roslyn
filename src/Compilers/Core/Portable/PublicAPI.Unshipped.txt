@@ -56,6 +56,14 @@ Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.Count.get -> int
 Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.GetEnumerator() -> Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.Enumerator
 Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.ToImmutableArray() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation!>
 Microsoft.CodeAnalysis.IPropertySymbol.IsRequired.get -> bool
+Microsoft.CodeAnalysis.Operations.CommonConversion.ConstrainedToType.get -> Microsoft.CodeAnalysis.ITypeSymbol?
+Microsoft.CodeAnalysis.Operations.IBinaryOperation.ConstrainedToType.get -> Microsoft.CodeAnalysis.ITypeSymbol?
+Microsoft.CodeAnalysis.Operations.ICompoundAssignmentOperation.ConstrainedToType.get -> Microsoft.CodeAnalysis.ITypeSymbol?
+Microsoft.CodeAnalysis.Operations.IConversionOperation.ConstrainedToType.get -> Microsoft.CodeAnalysis.ITypeSymbol?
+Microsoft.CodeAnalysis.Operations.IIncrementOrDecrementOperation.ConstrainedToType.get -> Microsoft.CodeAnalysis.ITypeSymbol?
+Microsoft.CodeAnalysis.Operations.IInvocationOperation.ConstrainedToType.get -> Microsoft.CodeAnalysis.ITypeSymbol?
+Microsoft.CodeAnalysis.Operations.IMemberReferenceOperation.ConstrainedToType.get -> Microsoft.CodeAnalysis.ITypeSymbol?
+Microsoft.CodeAnalysis.Operations.IUnaryOperation.ConstrainedToType.get -> Microsoft.CodeAnalysis.ITypeSymbol?
 Microsoft.CodeAnalysis.SemanticModel.GetImportScopes(int position, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IImportScope!>
 Microsoft.CodeAnalysis.ISymbol.Accept<TArgument, TResult>(Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>! visitor, TArgument argument) -> TResult
 Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>
@@ -74,12 +82,12 @@ const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedDivisionOperatorName = 
 const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedMultiplyOperatorName = "op_CheckedMultiply" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedSubtractionOperatorName = "op_CheckedSubtraction" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedExplicitConversionName = "op_CheckedExplicit" -> string!
-Microsoft.CodeAnalysis.OperationKind.UTF8String = 124 -> Microsoft.CodeAnalysis.OperationKind
-Microsoft.CodeAnalysis.Operations.IUTF8StringOperation
-Microsoft.CodeAnalysis.Operations.IUTF8StringOperation.Value.get -> string!
+Microsoft.CodeAnalysis.OperationKind.Utf8String = 124 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.Operations.IUtf8StringOperation
+Microsoft.CodeAnalysis.Operations.IUtf8StringOperation.Value.get -> string!
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions.Keys.get -> System.Collections.Generic.IEnumerable<string!>!
-virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitUTF8String(Microsoft.CodeAnalysis.Operations.IUTF8StringOperation! operation) -> void
-virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitUTF8String(Microsoft.CodeAnalysis.Operations.IUTF8StringOperation! operation, TArgument argument) -> TResult?
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitUtf8String(Microsoft.CodeAnalysis.Operations.IUtf8StringOperation! operation) -> void
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitUtf8String(Microsoft.CodeAnalysis.Operations.IUtf8StringOperation! operation, TArgument argument) -> TResult?
 virtual Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>.DefaultVisit(Microsoft.CodeAnalysis.ISymbol! symbol, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>.Visit(Microsoft.CodeAnalysis.ISymbol? symbol, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>.VisitAlias(Microsoft.CodeAnalysis.IAliasSymbol! symbol, TArgument argument) -> TResult

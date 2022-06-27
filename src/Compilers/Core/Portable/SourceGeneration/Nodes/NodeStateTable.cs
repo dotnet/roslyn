@@ -234,15 +234,15 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            public bool TryUseCachedEntries(TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, out ImmutableArray<T> entries)
+            internal bool TryUseCachedEntries(TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, out TableEntry entry)
             {
                 if (!TryUseCachedEntries(elapsedTime, stepInputs))
                 {
-                    entries = default;
+                    entry = default;
                     return false;
                 }
 
-                entries = _states.builder[^1].ToImmutableArray();
+                entry = _states.builder[^1];
                 return true;
             }
 
@@ -324,10 +324,12 @@ namespace Microsoft.CodeAnalysis
                 RecordStepInfoForLastEntry(elapsedTime, stepInputs, overallInputState);
             }
 
-            public void AddEntries(ImmutableArray<T> values, EntryState state, TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, EntryState overallInputState)
+            public TableEntry AddEntries(ImmutableArray<T> values, EntryState state, TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, EntryState overallInputState)
             {
-                _states.builder.Add(new TableEntry(values, state));
+                var tableEntry = new TableEntry(values, state);
+                _states.builder.Add(tableEntry);
                 RecordStepInfoForLastEntry(elapsedTime, stepInputs, overallInputState);
+                return tableEntry;
             }
 
             private void RecordStepInfoForLastEntry(TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, EntryState overallInputState)
@@ -485,7 +487,7 @@ namespace Microsoft.CodeAnalysis
             queue.Enqueue((builder, statistics));
         }
 
-        private readonly struct TableEntry
+        internal readonly struct TableEntry
         {
             private static readonly ImmutableArray<EntryState> s_allAddedEntries = ImmutableArray.Create(EntryState.Added);
             private static readonly ImmutableArray<EntryState> s_allCachedEntries = ImmutableArray.Create(EntryState.Cached);
@@ -548,6 +550,29 @@ namespace Microsoft.CodeAnalysis
                 EntryState.Removed => s_allRemovedEntries,
                 _ => throw ExceptionUtilities.Unreachable
             };
+
+            public Enumerator GetEnumerator()
+                => new(this);
+
+            public struct Enumerator
+            {
+                private readonly TableEntry _entry;
+                private int _index = -1;
+
+                public Enumerator(TableEntry tableEntry)
+                {
+                    _entry = tableEntry;
+                }
+
+                public bool MoveNext()
+                {
+                    _index++;
+                    return _index < _entry.Count;
+                }
+
+                public T Current => _entry.GetItem(_index);
+            }
+
 
 #if DEBUG
             public override string ToString()
