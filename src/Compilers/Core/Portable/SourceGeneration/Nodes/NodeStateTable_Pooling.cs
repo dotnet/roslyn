@@ -48,6 +48,9 @@ namespace Microsoft.CodeAnalysis
 
             public TValue this[int index]
                 => Builder[index];
+
+            public bool Any(Func<TValue, bool> predicate)
+                => Builder.Any(predicate);
         }
 
         private static BuilderAndStatistics<TValue> DequeuePooledItem<TValue>(

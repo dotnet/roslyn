@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Diagnostics.Contracts;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -160,14 +159,12 @@ namespace Microsoft.CodeAnalysis
         }
 
         public Builder ToBuilder(string? stepName, bool stepTrackingEnabled)
-        {
-            return new Builder(this, stepName, stepTrackingEnabled);
-        }
+            => new(this, stepName, stepTrackingEnabled);
 
         public NodeStateTable<T> CreateCachedTableWithUpdatedSteps<TInput>(NodeStateTable<TInput> inputTable, string? stepName)
         {
             Debug.Assert(inputTable.HasTrackedSteps && inputTable.IsCached);
-            NodeStateTable<T>.Builder builder = ToBuilder(stepName, stepTrackingEnabled: true);
+            Builder builder = ToBuilder(stepName, stepTrackingEnabled: true);
             foreach (var entry in inputTable)
             {
                 var inputs = ImmutableArray.Create((entry.Step!, entry.OutputIndex));
@@ -393,7 +390,7 @@ namespace Microsoft.CodeAnalysis
                         return NodeStateTable<T>.Empty;
                     }
 
-                    var hasNonCached = _states.Builder.Any(static s => !s.IsCached);
+                    var hasNonCached = _states.Any(static s => !s.IsCached);
                     return new NodeStateTable<T>(
                         _states.ToImmutable(),
                         TrackIncrementalSteps ? _steps.ToImmutableAndFree() : default,
