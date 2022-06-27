@@ -21784,7 +21784,7 @@ class TypeForwarded_2Attribute : System.Attribute
             // {
             // }
 
-        var ilSsource1 = @"
+            var ilSsource1 = @"
 .class public auto ansi beforefieldinit C1
     extends [mscorlib]System.Object
 {
