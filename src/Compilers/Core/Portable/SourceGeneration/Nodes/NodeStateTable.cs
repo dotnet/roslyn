@@ -62,6 +62,13 @@ namespace Microsoft.CodeAnalysis
     /// <typeparam name="T">The type of the items tracked by this table</typeparam>
     internal sealed partial class NodeStateTable<T> : IStateTable
     {
+        // We use dedicated pools here because it's very normal to have large arrays here that would normally be
+        // jettisoned by our standard pools (with their 128 item max).  Incremental generation will common have to
+        // recreate these tables, so being able to reuse these large rows in the table is critical for not causing a
+        // large amount of GC churn as incremental processing is done.  To prevent pathological scenarios though where
+        // an excessively long row is kept around forever, we keep track of sparseness statistics with each row, and we
+        // will eventually toss the row if it is too sparse too much of the time.
+
         private static readonly ConcurrentQueue<BuilderAndStatistics<TableEntry>> s_tableEntryPool = new();
         private static readonly ConcurrentQueue<BuilderAndStatistics<NodeStateEntry<T>>> s_nodeStateEntryPool = new();
 
