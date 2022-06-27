@@ -55,9 +55,12 @@ namespace Microsoft.CodeAnalysis
 
             foreach (var entry in sourceTable)
             {
+                // At this point, we can remove any 'Removed' items and ensure they're not in our list of states.
                 if (entry.State != EntryState.Removed)
                     sourceValuesBuilder.Add(entry.Item);
 
+                // However, regardless of if the entry was removed or not, we still keep track of it's step information
+                // so we can accurately report how long it took and what actually happened (for testing validation).
                 sourceInputsBuilder?.Add((entry.Step!, entry.OutputIndex));
             }
 
