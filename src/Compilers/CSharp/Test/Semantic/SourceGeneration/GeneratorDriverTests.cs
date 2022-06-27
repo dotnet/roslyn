@@ -2191,7 +2191,7 @@ class C { }
                 ctx.RegisterSourceOutput(compilationAndClasses, (context, ct) => validate(ct.Item1, ct.Item2));
             }));
 
-            // run the generator once, and check it was passed the parse options
+            // run the generator once
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(disabledOutputs: IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
             driver = driver.RunGenerators(compilation);
             Assert.True(driver.GetRunResult().Diagnostics.IsEmpty);
