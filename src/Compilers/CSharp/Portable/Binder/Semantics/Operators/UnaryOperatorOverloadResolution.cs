@@ -500,8 +500,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case UnaryOperatorKind.PostfixIncrement:
                     case UnaryOperatorKind.LogicalNegation:
                     case UnaryOperatorKind.BitwiseComplement:
-                        if (operandType.IsValueType && !operandType.IsNullableType() &&
-                            resultType.IsValueType && !resultType.IsNullableType())
+                        if (operandType.IsValidNullableTypeArgument() &&
+                            resultType.IsValidNullableTypeArgument())
                         {
                             operators.Add(new UnaryOperatorSignature(
                                 UnaryOperatorKind.Lifted | UnaryOperatorKind.UserDefined | kind,

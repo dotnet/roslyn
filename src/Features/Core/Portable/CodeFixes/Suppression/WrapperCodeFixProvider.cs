@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             var projectDiagnostics = diagnostics.Where(d => !d.Location.IsInSource).ToImmutableArray();
             if (!projectDiagnostics.IsEmpty)
             {
-                var suppressionFixes = await _suppressionFixProvider.GetFixesAsync(context.Project, projectDiagnostics, context.CancellationToken).ConfigureAwait(false);
+                var suppressionFixes = await _suppressionFixProvider.GetFixesAsync(context.Document.Project, projectDiagnostics, context.CancellationToken).ConfigureAwait(false);
                 RegisterSuppressionFixes(context, suppressionFixes);
             }
         }

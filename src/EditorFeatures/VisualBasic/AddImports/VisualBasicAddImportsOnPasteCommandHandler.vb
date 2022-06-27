@@ -3,8 +3,9 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.ComponentModel.Composition
-Imports Microsoft.CodeAnalysis.Editor.Implementation.AddImports
+Imports Microsoft.CodeAnalysis.AddImport
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Utilities
 
@@ -20,8 +21,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AddImports
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Public Sub New(threadingContext As [Shared].Utilities.IThreadingContext)
-            MyBase.New(threadingContext)
+        Public Sub New(threadingContext As [Shared].Utilities.IThreadingContext,
+                       globalOptions As IGlobalOptionService)
+            MyBase.New(threadingContext, globalOptions)
         End Sub
 
         Public Overrides ReadOnly Property DisplayName As String = VBEditorResources.Add_Missing_Imports_on_Paste

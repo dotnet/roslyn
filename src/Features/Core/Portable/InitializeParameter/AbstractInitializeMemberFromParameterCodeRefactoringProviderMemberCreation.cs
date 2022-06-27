@@ -39,11 +39,12 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         where TStatementSyntax : SyntaxNode
         where TExpressionSyntax : SyntaxNode
     {
-        protected abstract SyntaxNode TryGetLastStatement(IBlockOperation? blockStatementOpt);
-
+        protected abstract SyntaxNode? TryGetLastStatement(IBlockOperation? blockStatementOpt);
         protected abstract Accessibility DetermineDefaultFieldAccessibility(INamedTypeSymbol containingType);
-
         protected abstract Accessibility DetermineDefaultPropertyAccessibility();
+
+        protected override bool SupportsRecords(ParseOptions options)
+            => false;
 
         protected override Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(
             Document document, SyntaxNode functionDeclaration, IMethodSymbol method, IBlockOperation? blockStatementOpt,
@@ -53,8 +54,13 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsForSingleParameterAsync(
-            Document document, IParameterSymbol parameter, SyntaxNode constructorDeclaration, IMethodSymbol method,
-            IBlockOperation? blockStatementOpt, CancellationToken cancellationToken)
+            Document document,
+            TParameterSyntax parameterSyntax,
+            IParameterSymbol parameter,
+            SyntaxNode constructorDeclaration,
+            IMethodSymbol method,
+            IBlockOperation? blockStatementOpt,
+            CancellationToken cancellationToken)
         {
             // Only supported for constructor parameters.
             if (method.MethodKind != MethodKind.Constructor)
@@ -417,11 +423,12 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             ISymbol fieldOrProperty,
             CancellationToken cancellationToken)
         {
-            var workspace = document.Project.Solution.Workspace;
+            var services = document.Project.Solution.Workspace.Services;
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var editor = new SyntaxEditor(root, workspace);
+            var editor = new SyntaxEditor(root, services);
             var generator = editor.Generator;
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var preferences = await CodeGenerationPreferences.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+            var codeGenerator = document.GetRequiredLanguageService<ICodeGenerationService>();
 
             if (fieldOrProperty.ContainingType == null)
             {
@@ -445,15 +452,17 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     {
                         if (fieldOrProperty is IPropertySymbol property)
                         {
-                            return CodeGenerator.AddPropertyDeclaration(
-                                currentTypeDecl, property, workspace,
-                                GetAddOptions<IPropertySymbol>(parameter, blockStatementOpt, typeDeclaration, options, cancellationToken));
+                            return codeGenerator.AddProperty(
+                                currentTypeDecl, property,
+                                preferences.GetOptions(GetAddContext<IPropertySymbol>(parameter, blockStatementOpt, typeDeclaration, cancellationToken)),
+                                cancellationToken);
                         }
                         else if (fieldOrProperty is IFieldSymbol field)
                         {
-                            return CodeGenerator.AddFieldDeclaration(
-                                currentTypeDecl, field, workspace,
-                                GetAddOptions<IFieldSymbol>(parameter, blockStatementOpt, typeDeclaration, options, cancellationToken));
+                            return codeGenerator.AddField(
+                                currentTypeDecl, field,
+                                preferences.GetOptions(GetAddContext<IFieldSymbol>(parameter, blockStatementOpt, typeDeclaration, cancellationToken)),
+                                cancellationToken);
                         }
                         else
                         {
@@ -481,15 +490,15 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return document.WithSyntaxRoot(editor.GetChangedRoot());
         }
 
-        private static CodeGenerationOptions GetAddOptions<TSymbol>(
-            IParameterSymbol parameter, IBlockOperation? blockStatementOpt,
-            SyntaxNode typeDeclaration, OptionSet options, CancellationToken cancellationToken)
+        private static CodeGenerationContext GetAddContext<TSymbol>(
+            IParameterSymbol parameter, IBlockOperation? blockStatement,
+            SyntaxNode typeDeclaration, CancellationToken cancellationToken)
             where TSymbol : ISymbol
         {
             foreach (var (sibling, before) in GetSiblingParameters(parameter))
             {
                 var statement = TryFindFieldOrPropertyAssignmentStatement(
-                    sibling, blockStatementOpt, out var fieldOrProperty);
+                    sibling, blockStatement, out var fieldOrProperty);
 
                 if (statement != null &&
                     fieldOrProperty is TSymbol symbol)
@@ -501,19 +510,19 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                         {
                             // Found an existing field/property that corresponds to a preceding parameter.
                             // Place ourselves directly after it.
-                            return new CodeGenerationOptions(afterThisLocation: symbolSyntax.GetLocation(), options: options);
+                            return new CodeGenerationContext(afterThisLocation: symbolSyntax.GetLocation());
                         }
                         else
                         {
                             // Found an existing field/property that corresponds to a following parameter.
                             // Place ourselves directly before it.
-                            return new CodeGenerationOptions(beforeThisLocation: symbolSyntax.GetLocation(), options: options);
+                            return new CodeGenerationContext(beforeThisLocation: symbolSyntax.GetLocation());
                         }
                     }
                 }
             }
 
-            return new CodeGenerationOptions(options: options);
+            return CodeGenerationContext.Default;
         }
 
         private static ImmutableArray<(IParameterSymbol parameter, bool before)> GetSiblingParameters(IParameterSymbol parameter)

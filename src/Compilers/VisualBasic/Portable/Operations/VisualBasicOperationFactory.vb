@@ -309,10 +309,16 @@ Namespace Microsoft.CodeAnalysis.Operations
                      BoundKind.UnboundLambda,
                      BoundKind.UnstructuredExceptionHandlingStatement
 
-                    Dim constantValue = TryCast(boundNode, BoundExpression)?.ConstantValueOpt
+                    Dim constantValue As ConstantValue = Nothing
+                    Dim type As TypeSymbol = Nothing
+                    Dim expression = TryCast(boundNode, BoundExpression)
+                    If expression IsNot Nothing Then
+                        constantValue = expression.ConstantValueOpt
+                        type = expression.Type
+                    End If
                     Dim isImplicit As Boolean = boundNode.WasCompilerGenerated
                     Dim children As ImmutableArray(Of IOperation) = GetIOperationChildren(boundNode)
-                    Return New NoneOperation(children, _semanticModel, boundNode.Syntax, type:=Nothing, constantValue, isImplicit)
+                    Return New NoneOperation(children, _semanticModel, boundNode.Syntax, type, constantValue, isImplicit)
 
                 Case Else
                     ' If you're hitting this because the IOperation test hook has failed, see

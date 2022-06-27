@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="severity">The diagnostic's effective severity.</param>
         /// <param name="defaultSeverity">The diagnostic's default severity.</param>
         /// <param name="isEnabledByDefault">True if the diagnostic is enabled by default</param>
-        /// <param name="warningLevel">The warning level, between 1 and 4 if severity is <see cref="DiagnosticSeverity.Warning"/>; otherwise 0.</param>
+        /// <param name="warningLevel">The warning level, greater than 0 if severity is <see cref="DiagnosticSeverity.Warning"/>; otherwise 0.</param>
         /// <param name="title">An optional short localizable title describing the diagnostic.</param>
         /// <param name="description">An optional longer localizable description for the diagnostic.</param>
         /// <param name="helpLink">An optional hyperlink that provides more detailed information regarding the diagnostic.</param>
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="severity">The diagnostic's effective severity.</param>
         /// <param name="defaultSeverity">The diagnostic's default severity.</param>
         /// <param name="isEnabledByDefault">True if the diagnostic is enabled by default</param>
-        /// <param name="warningLevel">The warning level, between 1 and 4 if severity is <see cref="DiagnosticSeverity.Warning"/>; otherwise 0.</param>
+        /// <param name="warningLevel">The warning level, greater than 0 if severity is <see cref="DiagnosticSeverity.Warning"/>; otherwise 0.</param>
         /// <param name="isSuppressed">Flag indicating whether the diagnostic is suppressed by a source suppression.</param>
         /// <param name="title">An optional short localizable title describing the diagnostic.</param>
         /// <param name="description">An optional longer localizable description for the diagnostic.</param>
@@ -418,7 +418,8 @@ namespace Microsoft.CodeAnalysis
             return DiagnosticFormatter.Instance.Format(this, CultureInfo.CurrentUICulture);
         }
 
-        public abstract override bool Equals(object? obj);
+        public sealed override bool Equals(object? obj)
+            => obj is Diagnostic diagnostic && Equals(diagnostic);
 
         public abstract override int GetHashCode();
 

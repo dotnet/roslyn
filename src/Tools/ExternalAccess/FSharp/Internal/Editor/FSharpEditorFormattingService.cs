@@ -57,9 +57,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
             return _service.GetFormattingChangesOnReturnAsync(document, position, cancellationToken);
         }
 
-        public bool SupportsFormattingOnTypedCharacter(Document document, char ch)
+        public bool SupportsFormattingOnTypedCharacter(Document document, AutoFormattingOptions options, char ch)
         {
-            return _service.SupportsFormattingOnTypedCharacter(document, ch);
+            return _service is IFSharpEditorFormattingServiceWithOptions serviceWithOptions ?
+                serviceWithOptions.SupportsFormattingOnTypedCharacter(document, new AutoFormattingOptionsWrapper(options), ch) :
+                _service.SupportsFormattingOnTypedCharacter(document, ch);
         }
 
         async Task<ImmutableArray<TextChange>> IFormattingInteractionService.GetFormattingChangesAsync(Document document, TextSpan? textSpan, DocumentOptionSet? documentOptions, CancellationToken cancellationToken)

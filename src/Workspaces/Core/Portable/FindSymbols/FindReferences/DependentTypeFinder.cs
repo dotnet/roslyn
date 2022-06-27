@@ -89,11 +89,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // So we can just limit ourselves to that single project.
 
             // First find all the projects that could potentially reference this type.
-            List<Project> orderedProjectsToExamine;
+            ImmutableArray<Project> orderedProjectsToExamine;
 
             if (projects.Count == 1)
             {
-                orderedProjectsToExamine = projects.ToList();
+                orderedProjectsToExamine = projects.ToImmutableArray();
             }
             else
             {
@@ -136,14 +136,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                Debug.Assert(project.SupportsCompilation);
-                await DescendInheritanceTreeInProjectAsync(
-                    searchInMetadata, result,
-                    currentMetadataTypes, currentSourceAndMetadataTypes,
-                    project,
-                    typeMatches,
-                    shouldContinueSearching,
-                    transitive, cancellationToken).ConfigureAwait(false);
+                if (project.SupportsCompilation)
+                {
+                    await DescendInheritanceTreeInProjectAsync(
+                        searchInMetadata, result,
+                        currentMetadataTypes, currentSourceAndMetadataTypes,
+                        project,
+                        typeMatches,
+                        shouldContinueSearching,
+                        transitive, cancellationToken).ConfigureAwait(false);
+                }
             }
 
             return result.ToImmutableArray();
@@ -294,7 +296,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                                   .Concat(project.Id);
         }
 
-        private static List<Project> GetOrderedProjectsToExamine(
+        private static ImmutableArray<Project> GetOrderedProjectsToExamine(
             Solution solution,
             IImmutableSet<Project> projects,
             IEnumerable<ProjectId> projectsThatCouldReferenceType)
@@ -308,7 +310,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return OrderTopologically(solution, projectsToExamine);
         }
 
-        private static List<Project> OrderTopologically(
+        private static ImmutableArray<Project> OrderTopologically(
             Solution solution, IEnumerable<Project> projectsToExamine)
         {
             var order = new Dictionary<ProjectId, int>(capacity: solution.ProjectIds.Count);
@@ -322,10 +324,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 index++;
             }
 
-            return projectsToExamine.OrderBy((p1, p2) => order[p1.Id] - order[p2.Id]).ToList();
+            return projectsToExamine.OrderBy((p1, p2) => order[p1.Id] - order[p2.Id]).ToImmutableArray();
         }
 
-        private static IEnumerable<Project> GetProjectsToExamineWorker(
+        private static ImmutableArray<Project> GetProjectsToExamineWorker(
             Solution solution,
             IImmutableSet<Project> projects,
             IEnumerable<ProjectId> projectsThatCouldReferenceType)
@@ -358,8 +360,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // that actually supports compilations.
             return projectsThatCouldReferenceType.Intersect(allProjectsThatTheseProjectsDependOn)
                                                  .Select(id => solution.GetRequiredProject(id))
-                                                 .Where(p => p.SupportsCompilation)
-                                                 .ToList();
+                                                 .ToImmutableArray();
         }
 
         private static async Task AddDescendantMetadataTypesInProjectAsync(

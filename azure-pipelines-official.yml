@@ -82,11 +82,11 @@ stages:
     demands: ImageOverride -equals Build.Windows.Amd64.VS2022
 
   jobs:
-  - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev17.1-vs-deps') }}:
+  - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev17.3') }}:
     - template: /eng/common/templates/job/onelocbuild.yml
       parameters:
         MirrorRepo: roslyn
-        MirrorBranch: release/dev17.1-vs-deps
+        MirrorBranch: release/dev17.3
         LclSource: lclFilesfromPackage
         LclPackageId: 'LCL-JUNO-PROD-ROSLYN'
 
@@ -191,6 +191,8 @@ stages:
                    /p:DotnetPublishUsingPipelines=true
                    /p:IgnoreIbcMergeErrors=true
       condition: succeeded()
+      
+    - template: eng\common\templates\steps\generate-sbom.yml
 
     - task: PowerShell@2
       displayName: Publish Assets
@@ -307,7 +309,8 @@ stages:
       dependsOn:
         - OfficialBuild
       pool:
-        vmImage: windows-2019
+        name: NetCore1ESPool-Svc-Internal
+        demands: ImageOverride -equals Build.Server.Amd64.VS2019
 
 - stage: insert
   dependsOn:
@@ -318,7 +321,8 @@ stages:
   - job: insert
     displayName: Insert to VS
     pool:
-      vmImage: windows-2019
+      name: NetCore1ESPool-Svc-Internal
+      demands: ImageOverride -equals Build.Server.Amd64.VS2019
     steps:
     - download: current
       artifact: VSSetup

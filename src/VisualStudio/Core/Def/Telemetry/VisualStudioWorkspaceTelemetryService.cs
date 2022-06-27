@@ -5,6 +5,7 @@
 using System;
 using System.Composition;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -21,24 +22,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
     internal sealed class VisualStudioWorkspaceTelemetryService : AbstractWorkspaceTelemetryService
     {
         private readonly VisualStudioWorkspace _workspace;
-        private readonly IGlobalOptionService _optionsService;
+        private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioWorkspaceTelemetryService(
             VisualStudioWorkspace workspace,
-            IGlobalOptionService optionsService)
+            IGlobalOptionService globalOptions)
         {
             _workspace = workspace;
-            _optionsService = optionsService;
+            _globalOptions = globalOptions;
         }
 
         protected override ILogger CreateLogger(TelemetrySession telemetrySession)
             => AggregateLogger.Create(
                 CodeMarkerLogger.Instance,
-                new EtwLogger(_optionsService),
-                new VSTelemetryLogger(telemetrySession),
-                new FileLogger(_optionsService),
+                new EtwLogger(FunctionIdOptions.CreateFunctionIsEnabledPredicate(_globalOptions)),
+                TelemetryLogger.Create(telemetrySession, _globalOptions),
+                new FileLogger(_globalOptions),
                 Logger.GetLogger());
 
         protected override void TelemetrySessionInitialized()

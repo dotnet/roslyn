@@ -91,20 +91,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.Indices.Length == 1 &&
                 node.Indices[0].Type!.SpecialType == SpecialType.None)
             {
-                Error(ErrorCode.ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer, node);
+                Error(ErrorCode.ERR_ExpressionTreeContainsPatternImplicitIndexer, node);
             }
 
             return base.VisitArrayAccess(node);
         }
 
-        public override BoundNode VisitIndexOrRangePatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node)
+        public override BoundNode VisitImplicitIndexerAccess(BoundImplicitIndexerAccess node)
         {
             if (_inExpressionLambda)
             {
-                Error(ErrorCode.ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer, node);
+                Error(ErrorCode.ERR_ExpressionTreeContainsPatternImplicitIndexer, node);
             }
 
-            return base.VisitIndexOrRangePatternIndexerAccess(node);
+            return base.VisitImplicitIndexerAccess(node);
         }
 
         public override BoundNode VisitFromEndIndexExpression(BoundFromEndIndexExpression node)

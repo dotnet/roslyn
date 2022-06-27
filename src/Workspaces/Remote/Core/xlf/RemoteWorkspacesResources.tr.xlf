@@ -17,6 +17,11 @@
         <target state="translated">CodeLens başvuruları</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_CompilationAvailable">
+        <source>Project semantics availability</source>
+        <target state="translated">Proje semantiği kullanılabilirliği</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_ConvertTupleToStructCodeRefactoring">
         <source>Convert tuple to struct refactoring</source>
         <target state="translated">Demeti yapıya dönüştürme yeniden düzenlemesi</target>
@@ -107,14 +112,14 @@
         <target state="translated">Anlamsal sınıflandırma</target>
         <note />
       </trans-unit>
-      <trans-unit id="FeatureName_SemanticClassificationCache">
-        <source>Semantic classification cache</source>
-        <target state="translated">Anlamsal sınıflandırma önbelleği</target>
-        <note />
-      </trans-unit>
       <trans-unit id="FeatureName_SolutionAssetProvider">
         <source>Asset provider</source>
         <target state="translated">Varlık sağlayıcısı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_StackTraceExplorer">
+        <source>Stack Trace Explorer</source>
+        <target state="translated">Yığın İzlemesi Gezgini</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_SymbolFinder">

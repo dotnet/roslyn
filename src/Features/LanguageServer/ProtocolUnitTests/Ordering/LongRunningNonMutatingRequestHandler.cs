@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,32 +15,25 @@ using Xunit.Sdk;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 {
-    [Shared, ExportRoslynLanguagesLspRequestHandlerProvider, PartNotDiscoverable]
-    [ProvidesMethod(LongRunningNonMutatingRequestHandler.MethodName)]
-    internal class LongRunningNonMutatingRequestHandlerProvider : AbstractRequestHandlerProvider
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public LongRunningNonMutatingRequestHandlerProvider()
-        {
-        }
-
-        public override ImmutableArray<IRequestHandler> CreateRequestHandlers() => ImmutableArray.Create<IRequestHandler>(new LongRunningNonMutatingRequestHandler());
-    }
-
-    internal class LongRunningNonMutatingRequestHandler : IRequestHandler<TestRequest, TestResponse>
+    [Shared, ExportRoslynLanguagesLspRequestHandlerProvider(typeof(LongRunningNonMutatingRequestHandler)), PartNotDiscoverable]
+    [Method(MethodName)]
+    internal class LongRunningNonMutatingRequestHandler : AbstractStatelessRequestHandler<TestRequest, TestResponse>
     {
         public const string MethodName = nameof(LongRunningNonMutatingRequestHandler);
 
-        public string Method => MethodName;
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public LongRunningNonMutatingRequestHandler()
+        {
+        }
 
-        public bool MutatesSolutionState => false;
+        public override bool MutatesSolutionState => false;
 
-        public bool RequiresLSPSolution => true;
+        public override bool RequiresLSPSolution => true;
 
-        public TextDocumentIdentifier GetTextDocumentIdentifier(TestRequest request) => null;
+        public override TextDocumentIdentifier GetTextDocumentIdentifier(TestRequest request) => null;
 
-        public Task<TestResponse> HandleRequestAsync(TestRequest request, RequestContext context, CancellationToken cancellationToken)
+        public override Task<TestResponse> HandleRequestAsync(TestRequest request, RequestContext context, CancellationToken cancellationToken)
         {
             do
             {

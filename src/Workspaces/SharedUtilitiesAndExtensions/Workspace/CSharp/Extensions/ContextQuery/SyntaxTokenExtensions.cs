@@ -222,8 +222,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 if (globalStatement != null && globalStatement.GetLastToken(includeZeroWidth: true) == token)
                     return true;
 
+                // Need this check to check file scoped namespace declarations prior to a catch-all of 
+                // member declarations since otherwise it would return true.
                 if (token.Parent is FileScopedNamespaceDeclarationSyntax namespaceDeclaration && namespaceDeclaration.SemicolonToken == token)
-                    return true;
+                    return false;
 
                 var memberDeclaration = token.GetAncestor<MemberDeclarationSyntax>();
                 if (memberDeclaration != null && memberDeclaration.GetLastToken(includeZeroWidth: true) == token &&

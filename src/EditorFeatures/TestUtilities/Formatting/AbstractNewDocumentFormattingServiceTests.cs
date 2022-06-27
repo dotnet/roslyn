@@ -40,6 +40,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Formatting
                 parseOptions);
         }
 
+        internal Task TestAsync(string testCode, string expected, (OptionKey, object)[]? options = null, ParseOptions? parseOptions = null)
+        {
+            return TestCoreAsync(testCode,
+                expected,
+                options,
+                parseOptions);
+        }
+
         private async Task TestCoreAsync<T>(string testCode, string expected, (OptionKey, T)[]? options, ParseOptions? parseOptions)
         {
             using (var workspace = CreateTestWorkspace(testCode, parseOptions))
@@ -59,9 +67,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Formatting
 
                 var formattingService = document.GetRequiredLanguageService<INewDocumentFormattingService>();
                 var formattedDocument = await formattingService.FormatNewDocumentAsync(document, hintDocument: null, CancellationToken.None);
-
-                // Format to match what AbstractEditorFactory does
-                formattedDocument = await Formatter.FormatAsync(formattedDocument);
 
                 var actual = await formattedDocument.GetTextAsync();
                 AssertEx.EqualOrDiff(expected, actual.ToString());

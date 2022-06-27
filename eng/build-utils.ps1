@@ -340,3 +340,18 @@ function Make-BootstrapBuild([switch]$force32 = $false) {
 
   return $dir
 }
+
+function Subst-TempDir() {
+  if ($ci) {
+    Exec-Command "subst" "T: $TempDir"
+
+    $env:TEMP='T:\'
+    $env:TMP='T:\'
+  }
+}
+
+function Unsubst-TempDir() {
+  if ($ci) {
+    Exec-Command "subst" "T: /d"
+  }
+}

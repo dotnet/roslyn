@@ -2,41 +2,34 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
     internal sealed class RazorDocumentExcerptServiceWrapper : IDocumentExcerptService
     {
-        private readonly IRazorDocumentExcerptService _razorDocumentExcerptService;
+        private readonly IRazorDocumentExcerptServiceImplementation _impl;
 
-        public RazorDocumentExcerptServiceWrapper(IRazorDocumentExcerptService razorDocumentExcerptService)
-        {
-            _razorDocumentExcerptService = razorDocumentExcerptService ?? throw new ArgumentNullException(nameof(razorDocumentExcerptService));
-        }
+        public RazorDocumentExcerptServiceWrapper(IRazorDocumentExcerptServiceImplementation impl)
+            => _impl = impl;
 
-        public async Task<ExcerptResult?> TryExcerptAsync(Document document, TextSpan span, ExcerptMode mode, CancellationToken cancellationToken)
+        public async Task<ExcerptResult?> TryExcerptAsync(Document document, TextSpan span, ExcerptMode mode, ClassificationOptions classificationOptions, CancellationToken cancellationToken)
         {
             var razorMode = mode switch
             {
                 ExcerptMode.SingleLine => RazorExcerptMode.SingleLine,
                 ExcerptMode.Tooltip => RazorExcerptMode.Tooltip,
-                _ => throw new InvalidEnumArgumentException($"Unsupported enum type {mode}."),
+                _ => throw ExceptionUtilities.UnexpectedValue(mode),
             };
-            var nullableRazorExcerpt = await _razorDocumentExcerptService.TryExcerptAsync(document, span, razorMode, cancellationToken).ConfigureAwait(false);
-            if (nullableRazorExcerpt == null)
-            {
-                return null;
-            }
 
-            var razorExcerpt = nullableRazorExcerpt.Value;
-            var roslynExcerpt = new ExcerptResult(razorExcerpt.Content, razorExcerpt.MappedSpan, razorExcerpt.ClassifiedSpans, razorExcerpt.Document, razorExcerpt.Span);
-            return roslynExcerpt;
+            var result = await _impl.TryExcerptAsync(document, span, razorMode, new RazorClassificationOptionsWrapper(classificationOptions), cancellationToken).ConfigureAwait(false);
+            var razorExcerpt = result.Value;
+            return new ExcerptResult(razorExcerpt.Content, razorExcerpt.MappedSpan, razorExcerpt.ClassifiedSpans, razorExcerpt.Document, razorExcerpt.Span);
         }
     }
 }

@@ -315,8 +315,9 @@ namespace Microsoft.CodeAnalysis
 
         System_Runtime_CompilerServices_DefaultInterpolatedStringHandler,
 
-        NextAvailable,
+        System_ArgumentNullException,
 
+        NextAvailable,
         // Remember to update the AllWellKnownTypes tests when making changes here
     }
 
@@ -623,6 +624,7 @@ namespace Microsoft.CodeAnalysis
 
             "System.Text.StringBuilder",
             "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler",
+            "System.ArgumentNullException",
         };
 
         private static readonly Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);
@@ -675,7 +677,7 @@ namespace Microsoft.CodeAnalysis
                     typeIdName = typeIdName.Substring(0, separator);
                 }
 
-                Debug.Assert(name == typeIdName, "Enum name and type name must match");
+                Debug.Assert(name == typeIdName, $"Enum name ({typeIdName}) and type name ({name}) must match at {i}");
             }
 
             Debug.Assert((int)WellKnownType.ExtSentinel == 255);

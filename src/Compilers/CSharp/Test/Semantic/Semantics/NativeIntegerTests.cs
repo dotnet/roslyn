@@ -3460,7 +3460,7 @@ public class B2 : A<nuint> { }
         public void ClassName()
         {
             var source =
-@"class nint
+@"class @nint
 {
 }
 interface I
@@ -3544,7 +3544,7 @@ System.Object");
         public void AliasName_02()
         {
             var source =
-@"using nint = System.Int16;
+@"using @nint = System.Int16;
 class Program
 {
     static @nint F(nint x, nuint y) => x;
@@ -3650,7 +3650,7 @@ class Program
     A2.B F2() => default;
 }";
             var source2 =
-@"class nint { }
+@"class @nint { }
 namespace nuint
 {
     class B { }
@@ -3776,7 +3776,7 @@ class Program
 }";
             var source2 =
 @"using System;
-class nint : Attribute { }
+class @nint : Attribute { }
 class nuintAttribute : Attribute { }";
 
             var comp = CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular8);
@@ -3843,7 +3843,7 @@ class Program
             var source =
 @"namespace N
 {
-    class nint { }
+    class @nint { }
     class Program
     {
         internal static object nuint;

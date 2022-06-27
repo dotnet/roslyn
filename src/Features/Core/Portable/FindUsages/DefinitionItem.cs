@@ -2,13 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.FindSymbols.Finders;
+using Microsoft.CodeAnalysis.MetadataAsSource;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Tags;
 using Roslyn.Utilities;
 
@@ -118,7 +120,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ImmutableArray<TaggedText> nameDisplayParts,
             ImmutableArray<TaggedText> originationParts,
             ImmutableArray<DocumentSpan> sourceSpans,
-            ImmutableDictionary<string, string> properties,
+            ImmutableDictionary<string, string>? properties,
             bool displayIfNoReferences)
             : this(
                 tags,
@@ -138,8 +140,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ImmutableArray<TaggedText> nameDisplayParts,
             ImmutableArray<TaggedText> originationParts,
             ImmutableArray<DocumentSpan> sourceSpans,
-            ImmutableDictionary<string, string> properties,
-            ImmutableDictionary<string, string> displayableProperties,
+            ImmutableDictionary<string, string>? properties,
+            ImmutableDictionary<string, string>? displayableProperties,
             bool displayIfNoReferences)
         {
             Tags = tags;
@@ -158,24 +160,23 @@ namespace Microsoft.CodeAnalysis.FindUsages
             }
         }
 
-        [Obsolete("Override CanNavigateToAsync instead", error: false)]
-        public abstract bool CanNavigateTo(Workspace workspace, CancellationToken cancellationToken);
-        [Obsolete("Override TryNavigateToAsync instead", error: false)]
-        public abstract bool TryNavigateTo(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken);
+#pragma warning disable CS0612 // Type or member is obsolete - TypeScript
+        [Obsolete]
+        public virtual bool CanNavigateTo(Workspace workspace, CancellationToken cancellationToken) => false;
+
+        [Obsolete]
+        public virtual bool TryNavigateTo(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken) => false;
 
         public virtual Task<bool> CanNavigateToAsync(Workspace workspace, CancellationToken cancellationToken)
-        {
-#pragma warning disable CS0618 // Type or member is obsolete
-            return Task.FromResult(CanNavigateTo(workspace, cancellationToken));
-#pragma warning restore CS0618 // Type or member is obsolete
-        }
+            => Task.FromResult(CanNavigateTo(workspace, cancellationToken));
 
+        [Obsolete]
         public virtual Task<bool> TryNavigateToAsync(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
-        {
-#pragma warning disable CS0618 // Type or member is obsolete
-            return Task.FromResult(TryNavigateTo(workspace, showInPreviewTab, activateTab, cancellationToken));
-#pragma warning restore CS0618 // Type or member is obsolete
-        }
+            => Task.FromResult(TryNavigateTo(workspace, showInPreviewTab, activateTab, cancellationToken));
+
+        public virtual Task<bool> TryNavigateToAsync(Workspace workspace, NavigationOptions options, CancellationToken cancellationToken)
+            => TryNavigateToAsync(workspace, options.PreferProvisionalTab, options.ActivateTab, cancellationToken);
+#pragma warning restore
 
         public static DefinitionItem Create(
             ImmutableArray<string> tags,
@@ -207,7 +208,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ImmutableArray<TaggedText> displayParts,
             ImmutableArray<DocumentSpan> sourceSpans,
             ImmutableArray<TaggedText> nameDisplayParts = default,
-            ImmutableDictionary<string, string> properties = null,
+            ImmutableDictionary<string, string>? properties = null,
             bool displayIfNoReferences = true)
         {
             return Create(tags, displayParts, sourceSpans, nameDisplayParts, properties, ImmutableDictionary<string, string>.Empty, displayIfNoReferences);
@@ -218,8 +219,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ImmutableArray<TaggedText> displayParts,
             ImmutableArray<DocumentSpan> sourceSpans,
             ImmutableArray<TaggedText> nameDisplayParts = default,
-            ImmutableDictionary<string, string> properties = null,
-            ImmutableDictionary<string, string> displayableProperties = null,
+            ImmutableDictionary<string, string>? properties = null,
+            ImmutableDictionary<string, string>? displayableProperties = null,
             bool displayIfNoReferences = true)
         {
             if (sourceSpans.Length == 0)
@@ -242,7 +243,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ImmutableArray<TaggedText> nameDisplayParts,
             Solution solution,
             ISymbol symbol,
-            ImmutableDictionary<string, string> properties = null,
+            ImmutableDictionary<string, string>? properties = null,
             bool displayIfNoReferences = true)
         {
             properties ??= ImmutableDictionary<string, string>.Empty;
@@ -254,7 +255,15 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
             properties = properties.Add(MetadataSymbolKey, symbolKey)
                                    .Add(MetadataSymbolOriginatingProjectIdGuid, projectId.Id.ToString())
-                                   .Add(MetadataSymbolOriginatingProjectIdDebugName, projectId.DebugName);
+                                   .Add(MetadataSymbolOriginatingProjectIdDebugName, projectId.DebugName ?? "");
+
+            // Find the highest level containing type to show as the "file name". For metadata locations
+            // that come from embedded source or SourceLink this could be wrong, as there is no reason
+            // to assume a type is defined in a filename that matches, but its _way_ too expensive
+            // to try to find the right answer. For metadata-as-source locations though, it will be the same
+            // as the synthesized filename, so will make sense in the majority of cases.
+            var containingTypeName = MetadataAsSourceHelpers.GetTopLevelContainingNamedType(symbol).Name;
+            properties = properties.Add(AbstractReferenceFinder.ContainingTypeInfoPropertyName, containingTypeName);
 
             var originationParts = GetOriginationParts(symbol);
             return new DefaultDefinitionItem(
@@ -281,7 +290,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts,
             ImmutableArray<TaggedText> originationParts = default,
-            ImmutableDictionary<string, string> properties = null,
+            ImmutableDictionary<string, string>? properties = null,
             bool displayIfNoReferences = true)
         {
             properties ??= ImmutableDictionary<string, string>.Empty;

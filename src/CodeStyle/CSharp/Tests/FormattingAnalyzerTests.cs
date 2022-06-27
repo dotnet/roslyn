@@ -7,14 +7,16 @@
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Testing;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
-    using Verify = CSharpCodeFixVerifier<CSharpFormattingAnalyzer, CSharpFormattingCodeFixProvider, XUnitVerifier>;
+    using Verify = CSharpCodeFixVerifier<CSharpFormattingAnalyzer, CSharpFormattingCodeFixProvider>;
 
     public class FormattingAnalyzerTests
     {
@@ -31,6 +33,25 @@ class MyClass
 ";
 
             await Verify.VerifyAnalyzerAsync(testCode);
+        }
+
+        [Fact]
+        public async Task TestParamNullChecking()
+        {
+            var testCode = @"
+class MyClass
+{
+    void MyMethod(string s!!)
+    {
+    }
+}
+";
+            await new Verify.Test
+            {
+                TestCode = testCode,
+                FixedCode = testCode,
+                LanguageVersion = LanguageVersionExtensions.CSharpNext
+            }.RunAsync();
         }
 
         [Fact]

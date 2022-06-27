@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 type = NullableTypeDecoder.TransformType(type, _handle, moduleSymbol, accessSymbol: this, nullableContext: _containingType);
                 type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, _handle, moduleSymbol);
 
-                _lazyIsVolatile = customModifiersArray.Any(m => !m.IsOptional && m.Modifier.SpecialType == SpecialType.System_Runtime_CompilerServices_IsVolatile);
+                _lazyIsVolatile = customModifiersArray.Any(m => !m.IsOptional && ((CSharpCustomModifier)m).ModifierSymbol.SpecialType == SpecialType.System_Runtime_CompilerServices_IsVolatile);
 
                 TypeSymbol fixedElementType;
                 int fixedSize;

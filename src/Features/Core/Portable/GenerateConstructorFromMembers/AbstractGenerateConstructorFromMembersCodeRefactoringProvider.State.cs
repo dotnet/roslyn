@@ -26,16 +26,19 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             public ImmutableArray<IParameterSymbol> Parameters { get; private set; }
             public bool IsContainedInUnsafeType { get; private set; }
 
+            public Accessibility Accessibility { get; private set; }
+
             public static async Task<State?> TryGenerateAsync(
                 AbstractGenerateConstructorFromMembersCodeRefactoringProvider service,
                 Document document,
                 TextSpan textSpan,
                 INamedTypeSymbol containingType,
+                Accessibility? desiredAccessibility,
                 ImmutableArray<ISymbol> selectedMembers,
                 CancellationToken cancellationToken)
             {
                 var state = new State();
-                if (!await state.TryInitializeAsync(service, document, textSpan, containingType, selectedMembers, cancellationToken).ConfigureAwait(false))
+                if (!await state.TryInitializeAsync(service, document, textSpan, containingType, desiredAccessibility, selectedMembers, cancellationToken).ConfigureAwait(false))
                 {
                     return null;
                 }
@@ -48,6 +51,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 Document document,
                 TextSpan textSpan,
                 INamedTypeSymbol containingType,
+                Accessibility? desiredAccessibility,
                 ImmutableArray<ISymbol> selectedMembers,
                 CancellationToken cancellationToken)
             {
@@ -58,6 +62,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
                 SelectedMembers = selectedMembers;
                 ContainingType = containingType;
+                Accessibility = desiredAccessibility ?? (ContainingType.IsAbstractClass() ? Accessibility.Protected : Accessibility.Public);
                 TextSpan = textSpan;
                 if (ContainingType == null || ContainingType.TypeKind == TypeKind.Interface)
                 {

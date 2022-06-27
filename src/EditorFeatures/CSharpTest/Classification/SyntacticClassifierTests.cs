@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
     public partial class SyntacticClassifierTests : AbstractCSharpClassifierTests
     {
-        protected override async Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions options, TestHost testHost)
+        protected override async Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions? options, TestHost testHost)
         {
             using var workspace = CreateWorkspace(code, options, testHost);
             var document = workspace.CurrentSolution.Projects.First().Documents.First();
@@ -4891,6 +4891,51 @@ int (foo, bar) = (1, 2);",
 
         [Theory]
         [CombinatorialData]
+        public async Task TestListPattern(TestHost testHost)
+        {
+            await TestInMethodAsync(@"
+_ = new int[0] switch
+{
+    case [1, 2]:
+        break;
+    case [1, .. var end]:
+        break;
+}",
+testHost,
+            Identifier("_"),
+            Operators.Equals,
+            Keyword("new"),
+            Keyword("int"),
+            Punctuation.OpenBracket,
+            Number("0"),
+            Punctuation.CloseBracket,
+            ControlKeyword("switch"),
+            Punctuation.OpenCurly,
+            Keyword("case"),
+            Punctuation.OpenBracket,
+            Number("1"),
+            Punctuation.Comma,
+            Number("2"),
+            Punctuation.CloseBracket,
+            Punctuation.Colon,
+            ControlKeyword("break"),
+            Punctuation.Semicolon,
+            Keyword("case"),
+            Punctuation.OpenBracket,
+            Number("1"),
+            Punctuation.Comma,
+            Punctuation.DotDot,
+            Identifier("var"),
+            Identifier("end"),
+            Punctuation.CloseBracket,
+            Punctuation.Colon,
+            ControlKeyword("break"),
+            Punctuation.Semicolon,
+            Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
         public async Task TestTupleTypeSyntax(TestHost testHost)
         {
             await TestInClassAsync(@"
@@ -5658,6 +5703,168 @@ class C
                 Static("Zero"),
                 Operators.Equals,
                 Number("0"),
+                Punctuation.Semicolon,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRawStringLiteral(TestHost testHost)
+        {
+            var code = @"
+class C
+{
+    public static void M(int x)
+    {
+        var s = """"""Hello world"""""";
+    }
+}";
+
+            await TestAsync(code,
+                testHost,
+                Keyword("class"),
+                Class("C"),
+                Punctuation.OpenCurly,
+                Keyword("public"),
+                Keyword("static"),
+                Keyword("void"),
+                Method("M"),
+                Static("M"),
+                Punctuation.OpenParen,
+                Keyword("int"),
+                Parameter("x"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Keyword("var"),
+                Local("s"),
+                Operators.Equals,
+                String("\"\"\"Hello world\"\"\""),
+                Punctuation.Semicolon,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRawStringLiteralInterpolation1(TestHost testHost)
+        {
+            var code = @"
+class C
+{
+    public static void M(int x)
+    {
+        var s = $""""""{x}"""""";
+    }
+}";
+
+            await TestAsync(code,
+                testHost,
+                Keyword("class"),
+                Class("C"),
+                Punctuation.OpenCurly,
+                Keyword("public"),
+                Keyword("static"),
+                Keyword("void"),
+                Method("M"),
+                Static("M"),
+                Punctuation.OpenParen,
+                Keyword("int"),
+                Parameter("x"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Keyword("var"),
+                Local("s"),
+                Operators.Equals,
+                String("$\"\"\""),
+                Punctuation.OpenCurly,
+                Identifier("x"),
+                Punctuation.CloseCurly,
+                String("\"\"\""),
+                Punctuation.Semicolon,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRawStringLiteralInterpolation2(TestHost testHost)
+        {
+            var code = @"
+class C
+{
+    public static void M(int x)
+    {
+        var s = $$""""""{{x}}"""""";
+    }
+}";
+
+            await TestAsync(code,
+                testHost,
+                Keyword("class"),
+                Class("C"),
+                Punctuation.OpenCurly,
+                Keyword("public"),
+                Keyword("static"),
+                Keyword("void"),
+                Method("M"),
+                Static("M"),
+                Punctuation.OpenParen,
+                Keyword("int"),
+                Parameter("x"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Keyword("var"),
+                Local("s"),
+                Operators.Equals,
+                String("$$\"\"\""),
+                PunctuationText("{{"),
+                Identifier("x"),
+                PunctuationText("}}"),
+                String("\"\"\""),
+                Punctuation.Semicolon,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRawStringLiteralInterpolation3(TestHost testHost)
+        {
+            var code = @"
+class C
+{
+    public static void M(int x)
+    {
+        var s = $$""""""{{{x}}}"""""";
+    }
+}";
+
+            await TestAsync(code,
+                testHost,
+                Keyword("class"),
+                Class("C"),
+                Punctuation.OpenCurly,
+                Keyword("public"),
+                Keyword("static"),
+                Keyword("void"),
+                Method("M"),
+                Static("M"),
+                Punctuation.OpenParen,
+                Keyword("int"),
+                Parameter("x"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Keyword("var"),
+                Local("s"),
+                Operators.Equals,
+                String("$$\"\"\""),
+                String("{"),
+                PunctuationText("{{"),
+                Identifier("x"),
+                PunctuationText("}}"),
+                String("}"),
+                String("\"\"\""),
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly);

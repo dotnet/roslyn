@@ -21,8 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
         public readonly bool IsPreProcessorKeywordContext;
 
-        public readonly bool IsGlobalStatementContext;
-
         public readonly bool IsNonAttributeExpressionContext;
         public readonly bool IsConstantExpressionContext;
 
@@ -113,9 +111,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             : base(document, semanticModel, position, leftToken, targetToken,
                    isTypeContext, isNamespaceContext, isNamespaceDeclarationNameContext,
                    isPreProcessorDirectiveContext, isPreProcessorExpressionContext,
-                   isRightOfDotOrArrowOrColonColon, isStatementContext, isAnyExpressionContext,
-                   isAttributeNameContext, isEnumTypeMemberAccessContext, isNameOfContext,
-                   isInQuery, isInImportsDirective, IsWithinAsyncMethod(), isPossibleTupleContext,
+                   isRightOfDotOrArrowOrColonColon, isStatementContext, isGlobalStatementContext,
+                   isAnyExpressionContext, isAttributeNameContext, isEnumTypeMemberAccessContext,
+                   isNameOfContext, isInQuery, isInImportsDirective, IsWithinAsyncMethod(), isPossibleTupleContext,
                    isStartPatternContext, isAfterPatternContext, isRightSideOfNumericType, isInArgumentList,
                    cancellationToken)
         {
@@ -123,7 +121,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             this.ContainingTypeOrEnumDeclaration = containingTypeOrEnumDeclaration;
             this.IsInNonUserCode = isInNonUserCode;
             this.IsPreProcessorKeywordContext = isPreProcessorKeywordContext;
-            this.IsGlobalStatementContext = isGlobalStatementContext;
             this.IsNonAttributeExpressionContext = isNonAttributeExpressionContext;
             this.IsConstantExpressionContext = isConstantExpressionContext;
             this.IsLabelContext = isLabelContext;
@@ -427,6 +424,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
                     if (node.IsKind(SyntaxKind.QueryExpression))
                     {
+                        // There are some cases where "await" is allowed in a query context. See error CS1995 for details:
+                        // error CS1995: The 'await' operator may only be used in a query expression within the first collection expression of the initial 'from' clause or within the collection expression of a 'join' clause
+                        if (TargetToken.IsKind(SyntaxKind.InKeyword))
+                        {
+                            return TargetToken.Parent switch
+                            {
+                                FromClauseSyntax { Parent: QueryExpressionSyntax queryExpression } fromClause => queryExpression.FromClause == fromClause,
+                                JoinClauseSyntax => true,
+                                _ => false,
+                            };
+                        }
+
                         return false;
                     }
 

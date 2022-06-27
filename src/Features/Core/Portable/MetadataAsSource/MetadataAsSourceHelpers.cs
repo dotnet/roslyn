@@ -2,10 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.MetadataAsSource
@@ -63,7 +65,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         public static async Task<Location> GetLocationInGeneratedSourceAsync(SymbolKey symbolId, Document generatedDocument, CancellationToken cancellationToken)
         {
             var resolution = symbolId.Resolve(
-                await generatedDocument.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false),
+                await generatedDocument.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false),
                 ignoreAssemblyKey: true, cancellationToken: cancellationToken);
 
             var location = GetFirstSourceLocation(resolution);
@@ -71,14 +73,14 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 // If we cannot find the location of the  symbol.  Just put the caret at the 
                 // beginning of the file.
-                var tree = await generatedDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var tree = await generatedDocument.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 location = Location.Create(tree, new TextSpan(0, 0));
             }
 
             return location;
         }
 
-        private static Location GetFirstSourceLocation(SymbolKeyResolution resolution)
+        private static Location? GetFirstSourceLocation(SymbolKeyResolution resolution)
         {
             foreach (var symbol in resolution)
             {
@@ -92,6 +94,30 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             }
 
             return null;
+        }
+
+        public static bool TryGetImplementationAssemblyPath(string referenceDllPath, [NotNullWhen(true)] out string? implementationDllPath)
+        {
+            implementationDllPath = null;
+
+            // For some nuget packages if the reference path has a "ref" folder in it, then the implementation assembly
+            // will be in the corresponding "lib" folder.
+            // TODO: Support more cases, like SDK references: https://github.com/dotnet/sdk/issues/12360
+            var start = referenceDllPath.IndexOf(@"\ref\");
+            if (start == -1)
+                return false;
+
+            var pathToTry = referenceDllPath.Substring(0, start) +
+                            @"\lib\" +
+                            referenceDllPath.Substring(start + 5);
+
+            if (IOUtilities.PerformIO(() => File.Exists(pathToTry)))
+            {
+                implementationDllPath = pathToTry;
+                return true;
+            }
+
+            return false;
         }
     }
 }

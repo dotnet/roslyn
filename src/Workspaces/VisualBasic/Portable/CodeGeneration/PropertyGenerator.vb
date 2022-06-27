@@ -82,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 (setMethod IsNot Nothing AndAlso Not setMethod.IsAbstract)
 
             Dim hasNoBody =
-                Not options.GenerateMethodBodies OrElse
+                Not options.Context.GenerateMethodBodies OrElse
                 destination = CodeGenerationDestination.InterfaceType OrElse
                 [property].IsAbstract OrElse
                 Not hasStatements

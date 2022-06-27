@@ -11,6 +11,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -129,6 +130,11 @@ class C
             comp.VerifyEmitDiagnostics(expected);
         }
 
+        // Instrumentation to investigate CI failure: https://github.com/dotnet/roslyn/issues/34207
+        private CSharpCompilation CreateCompilationWithAsyncIterator(string source, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
+            => CreateCompilationWithTasksExtensions(new[] { (CSharpTestSource)CSharpTestBase.Parse(source, filename: "source", parseOptions), CSharpTestBase.Parse(AsyncStreamsTypes, filename: "AsyncStreamsTypes", parseOptions) },
+                options: options, parseOptions: parseOptions);
+
         private CSharpCompilation CreateCompilationWithAsyncIterator(CSharpTestSource source, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
             => CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: options, parseOptions: parseOptions);
 
@@ -170,7 +176,7 @@ public class C
             var v = CompileAndVerify(comp, expectedOutput: "hello world");
             v.VerifyIL("C.<GetSplits>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
-  // Code size      240 (0xf0)
+  // Code size      254 (0xfe)
   .maxstack  3
   .locals init (int V_0,
                 System.Exception V_1)
@@ -187,7 +193,7 @@ public class C
     IL_0010:  ldarg.0
     IL_0011:  ldfld      ""bool C.<GetSplits>d__1.<>w__disposeMode""
     IL_0016:  brfalse.s  IL_001d
-    IL_0018:  leave      IL_00cd
+    IL_0018:  leave      IL_00d4
     IL_001d:  ldarg.0
     IL_001e:  ldc.i4.m1
     IL_001f:  dup
@@ -255,11 +261,11 @@ public class C
     IL_0096:  ldarg.0
     IL_0097:  ldfld      ""bool C.<GetSplits>d__1.<>w__disposeMode""
     IL_009c:  brfalse.s  IL_00a0
-    IL_009e:  leave.s    IL_00cd
+    IL_009e:  leave.s    IL_00d4
     IL_00a0:  ldarg.0
     IL_00a1:  ldc.i4.1
     IL_00a2:  stfld      ""bool C.<GetSplits>d__1.<>w__disposeMode""
-    IL_00a7:  leave.s    IL_00cd
+    IL_00a7:  leave.s    IL_00d4
   }
   catch System.Exception
   {
@@ -268,30 +274,36 @@ public class C
     IL_00ab:  ldc.i4.s   -2
     IL_00ad:  stfld      ""int C.<GetSplits>d__1.<>1__state""
     IL_00b2:  ldarg.0
-    IL_00b3:  ldflda     ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<GetSplits>d__1.<>t__builder""
-    IL_00b8:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()""
-    IL_00bd:  nop
-    IL_00be:  ldarg.0
-    IL_00bf:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<GetSplits>d__1.<>v__promiseOfValueOrEnd""
-    IL_00c4:  ldloc.1
-    IL_00c5:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetException(System.Exception)""
-    IL_00ca:  nop
-    IL_00cb:  leave.s    IL_00ef
+    IL_00b3:  ldnull
+    IL_00b4:  stfld      ""string C.<GetSplits>d__1.<>2__current""
+    IL_00b9:  ldarg.0
+    IL_00ba:  ldflda     ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<GetSplits>d__1.<>t__builder""
+    IL_00bf:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()""
+    IL_00c4:  nop
+    IL_00c5:  ldarg.0
+    IL_00c6:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<GetSplits>d__1.<>v__promiseOfValueOrEnd""
+    IL_00cb:  ldloc.1
+    IL_00cc:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetException(System.Exception)""
+    IL_00d1:  nop
+    IL_00d2:  leave.s    IL_00fd
   }
-  IL_00cd:  ldarg.0
-  IL_00ce:  ldc.i4.s   -2
-  IL_00d0:  stfld      ""int C.<GetSplits>d__1.<>1__state""
-  IL_00d5:  ldarg.0
-  IL_00d6:  ldflda     ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<GetSplits>d__1.<>t__builder""
-  IL_00db:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()""
-  IL_00e0:  nop
-  IL_00e1:  ldarg.0
-  IL_00e2:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<GetSplits>d__1.<>v__promiseOfValueOrEnd""
-  IL_00e7:  ldc.i4.0
-  IL_00e8:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)""
-  IL_00ed:  nop
-  IL_00ee:  ret
-  IL_00ef:  ret
+  IL_00d4:  ldarg.0
+  IL_00d5:  ldc.i4.s   -2
+  IL_00d7:  stfld      ""int C.<GetSplits>d__1.<>1__state""
+  IL_00dc:  ldarg.0
+  IL_00dd:  ldnull
+  IL_00de:  stfld      ""string C.<GetSplits>d__1.<>2__current""
+  IL_00e3:  ldarg.0
+  IL_00e4:  ldflda     ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<GetSplits>d__1.<>t__builder""
+  IL_00e9:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()""
+  IL_00ee:  nop
+  IL_00ef:  ldarg.0
+  IL_00f0:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<GetSplits>d__1.<>v__promiseOfValueOrEnd""
+  IL_00f5:  ldc.i4.0
+  IL_00f6:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)""
+  IL_00fb:  nop
+  IL_00fc:  ret
+  IL_00fd:  ret
 }");
         }
 
@@ -337,7 +349,7 @@ public class C
             var v = CompileAndVerify(comp, expectedOutput: "hello world!");
             v.VerifyIL("C.<GetSplits>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
-  // Code size      181 (0xb5)
+  // Code size      195 (0xc3)
   .maxstack  3
   .locals init (int V_0,
                 System.Exception V_1)
@@ -354,7 +366,7 @@ public class C
     IL_0010:  ldarg.0
     IL_0011:  ldfld      ""bool C.<GetSplits>d__0.<>w__disposeMode""
     IL_0016:  brfalse.s  IL_001a
-    IL_0018:  leave.s    IL_0092
+    IL_0018:  leave.s    IL_0099
     IL_001a:  ldarg.0
     IL_001b:  ldc.i4.m1
     IL_001c:  dup
@@ -403,11 +415,11 @@ public class C
     IL_005b:  ldarg.0
     IL_005c:  ldfld      ""bool C.<GetSplits>d__0.<>w__disposeMode""
     IL_0061:  brfalse.s  IL_0065
-    IL_0063:  leave.s    IL_0092
+    IL_0063:  leave.s    IL_0099
     IL_0065:  ldarg.0
     IL_0066:  ldc.i4.1
     IL_0067:  stfld      ""bool C.<GetSplits>d__0.<>w__disposeMode""
-    IL_006c:  leave.s    IL_0092
+    IL_006c:  leave.s    IL_0099
   }
   catch System.Exception
   {
@@ -416,30 +428,36 @@ public class C
     IL_0070:  ldc.i4.s   -2
     IL_0072:  stfld      ""int C.<GetSplits>d__0.<>1__state""
     IL_0077:  ldarg.0
-    IL_0078:  ldflda     ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<GetSplits>d__0.<>t__builder""
-    IL_007d:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()""
-    IL_0082:  nop
-    IL_0083:  ldarg.0
-    IL_0084:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<GetSplits>d__0.<>v__promiseOfValueOrEnd""
-    IL_0089:  ldloc.1
-    IL_008a:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetException(System.Exception)""
-    IL_008f:  nop
-    IL_0090:  leave.s    IL_00b4
+    IL_0078:  ldnull
+    IL_0079:  stfld      ""string C.<GetSplits>d__0.<>2__current""
+    IL_007e:  ldarg.0
+    IL_007f:  ldflda     ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<GetSplits>d__0.<>t__builder""
+    IL_0084:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()""
+    IL_0089:  nop
+    IL_008a:  ldarg.0
+    IL_008b:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<GetSplits>d__0.<>v__promiseOfValueOrEnd""
+    IL_0090:  ldloc.1
+    IL_0091:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetException(System.Exception)""
+    IL_0096:  nop
+    IL_0097:  leave.s    IL_00c2
   }
-  IL_0092:  ldarg.0
-  IL_0093:  ldc.i4.s   -2
-  IL_0095:  stfld      ""int C.<GetSplits>d__0.<>1__state""
-  IL_009a:  ldarg.0
-  IL_009b:  ldflda     ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<GetSplits>d__0.<>t__builder""
-  IL_00a0:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()""
-  IL_00a5:  nop
-  IL_00a6:  ldarg.0
-  IL_00a7:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<GetSplits>d__0.<>v__promiseOfValueOrEnd""
-  IL_00ac:  ldc.i4.0
-  IL_00ad:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)""
-  IL_00b2:  nop
-  IL_00b3:  ret
-  IL_00b4:  ret
+  IL_0099:  ldarg.0
+  IL_009a:  ldc.i4.s   -2
+  IL_009c:  stfld      ""int C.<GetSplits>d__0.<>1__state""
+  IL_00a1:  ldarg.0
+  IL_00a2:  ldnull
+  IL_00a3:  stfld      ""string C.<GetSplits>d__0.<>2__current""
+  IL_00a8:  ldarg.0
+  IL_00a9:  ldflda     ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<GetSplits>d__0.<>t__builder""
+  IL_00ae:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()""
+  IL_00b3:  nop
+  IL_00b4:  ldarg.0
+  IL_00b5:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<GetSplits>d__0.<>v__promiseOfValueOrEnd""
+  IL_00ba:  ldc.i4.0
+  IL_00bb:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)""
+  IL_00c0:  nop
+  IL_00c1:  ret
+  IL_00c2:  ret
 }");
         }
 
@@ -2563,7 +2581,7 @@ public class C
                 {
                     verifier.VerifyIL("C.<M>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
 @"{
-  // Code size      322 (0x142)
+  // Code size      336 (0x150)
   .maxstack  3
   .locals init (int V_0,
                 System.Runtime.CompilerServices.TaskAwaiter V_1,
@@ -2592,7 +2610,7 @@ public class C
     IL_002f:  ldarg.0
     IL_0030:  ldfld      ""bool C.<M>d__0.<>w__disposeMode""
     IL_0035:  brfalse.s  IL_003c
-    IL_0037:  leave      IL_0112
+    IL_0037:  leave      IL_0119
     IL_003c:  ldarg.0
     IL_003d:  ldc.i4.m1
     IL_003e:  dup
@@ -2629,7 +2647,7 @@ public class C
     IL_007f:  ldloca.s   V_2
     IL_0081:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, C.<M>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter, ref C.<M>d__0)""
     IL_0086:  nop
-    IL_0087:  leave      IL_0141
+    IL_0087:  leave      IL_014f
     // async: resume
     IL_008c:  ldarg.0
     IL_008d:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter C.<M>d__0.<>u__1""
@@ -2658,7 +2676,7 @@ public class C
     IL_00c5:  dup
     IL_00c6:  stloc.0
     IL_00c7:  stfld      ""int C.<M>d__0.<>1__state""
-    IL_00cc:  leave.s    IL_0134
+    IL_00cc:  leave.s    IL_0142
     // sequence point: <hidden>
     IL_00ce:  ldarg.0
     IL_00cf:  ldc.i4.m1
@@ -2668,12 +2686,12 @@ public class C
     IL_00d7:  ldarg.0
     IL_00d8:  ldfld      ""bool C.<M>d__0.<>w__disposeMode""
     IL_00dd:  brfalse.s  IL_00e1
-    IL_00df:  leave.s    IL_0112
+    IL_00df:  leave.s    IL_0119
     // sequence point: Write("" 4 "");
     IL_00e1:  ldstr      "" 4 ""
     IL_00e6:  call       ""void System.Console.Write(string)""
     IL_00eb:  nop
-    IL_00ec:  leave.s    IL_0112
+    IL_00ec:  leave.s    IL_0119
   }
   catch System.Exception
   {
@@ -2683,44 +2701,50 @@ public class C
     IL_00f0:  ldc.i4.s   -2
     IL_00f2:  stfld      ""int C.<M>d__0.<>1__state""
     IL_00f7:  ldarg.0
-    IL_00f8:  ldflda     ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0.<>t__builder""
-    IL_00fd:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()""
-    IL_0102:  nop
-    IL_0103:  ldarg.0
-    IL_0104:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
-    IL_0109:  ldloc.3
-    IL_010a:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetException(System.Exception)""
-    IL_010f:  nop
-    IL_0110:  leave.s    IL_0141
+    IL_00f8:  ldc.i4.0
+    IL_00f9:  stfld      ""int C.<M>d__0.<>2__current""
+    IL_00fe:  ldarg.0
+    IL_00ff:  ldflda     ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0.<>t__builder""
+    IL_0104:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()""
+    IL_0109:  nop
+    IL_010a:  ldarg.0
+    IL_010b:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+    IL_0110:  ldloc.3
+    IL_0111:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetException(System.Exception)""
+    IL_0116:  nop
+    IL_0117:  leave.s    IL_014f
   }
   // sequence point: }
-  IL_0112:  ldarg.0
-  IL_0113:  ldc.i4.s   -2
-  IL_0115:  stfld      ""int C.<M>d__0.<>1__state""
+  IL_0119:  ldarg.0
+  IL_011a:  ldc.i4.s   -2
+  IL_011c:  stfld      ""int C.<M>d__0.<>1__state""
   // sequence point: <hidden>
-  IL_011a:  ldarg.0
-  IL_011b:  ldflda     ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0.<>t__builder""
-  IL_0120:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()""
-  IL_0125:  nop
-  IL_0126:  ldarg.0
-  IL_0127:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
-  IL_012c:  ldc.i4.0
-  IL_012d:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)""
-  IL_0132:  nop
-  IL_0133:  ret
+  IL_0121:  ldarg.0
+  IL_0122:  ldc.i4.0
+  IL_0123:  stfld      ""int C.<M>d__0.<>2__current""
+  IL_0128:  ldarg.0
+  IL_0129:  ldflda     ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0.<>t__builder""
+  IL_012e:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()""
+  IL_0133:  nop
   IL_0134:  ldarg.0
   IL_0135:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
-  IL_013a:  ldc.i4.1
+  IL_013a:  ldc.i4.0
   IL_013b:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)""
   IL_0140:  nop
   IL_0141:  ret
+  IL_0142:  ldarg.0
+  IL_0143:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+  IL_0148:  ldc.i4.1
+  IL_0149:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)""
+  IL_014e:  nop
+  IL_014f:  ret
 }", sequencePoints: "C+<M>d__0.MoveNext", source: source);
                 }
                 else
                 {
                     verifier.VerifyIL("C.<M>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
-  // Code size      300 (0x12c)
+  // Code size      314 (0x13a)
   .maxstack  3
   .locals init (int V_0,
                 System.Runtime.CompilerServices.TaskAwaiter V_1,
@@ -2745,7 +2769,7 @@ public class C
     IL_0024:  ldarg.0
     IL_0025:  ldfld      ""bool C.<M>d__0.<>w__disposeMode""
     IL_002a:  brfalse.s  IL_0031
-    IL_002c:  leave      IL_00ff
+    IL_002c:  leave      IL_0106
     IL_0031:  ldarg.0
     IL_0032:  ldc.i4.m1
     IL_0033:  dup
@@ -2778,7 +2802,7 @@ public class C
     IL_0070:  ldloca.s   V_1
     IL_0072:  ldloca.s   V_2
     IL_0074:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, C.<M>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter, ref C.<M>d__0)""
-    IL_0079:  leave      IL_012b
+    IL_0079:  leave      IL_0139
     // async: resume
     IL_007e:  ldarg.0
     IL_007f:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter C.<M>d__0.<>u__1""
@@ -2805,7 +2829,7 @@ public class C
     IL_00b5:  dup
     IL_00b6:  stloc.0
     IL_00b7:  stfld      ""int C.<M>d__0.<>1__state""
-    IL_00bc:  leave.s    IL_011f
+    IL_00bc:  leave.s    IL_012d
     // sequence point: <hidden>
     IL_00be:  ldarg.0
     IL_00bf:  ldc.i4.m1
@@ -2815,11 +2839,11 @@ public class C
     IL_00c7:  ldarg.0
     IL_00c8:  ldfld      ""bool C.<M>d__0.<>w__disposeMode""
     IL_00cd:  brfalse.s  IL_00d1
-    IL_00cf:  leave.s    IL_00ff
+    IL_00cf:  leave.s    IL_0106
     // sequence point: Write("" 4 "");
     IL_00d1:  ldstr      "" 4 ""
     IL_00d6:  call       ""void System.Console.Write(string)""
-    IL_00db:  leave.s    IL_00ff
+    IL_00db:  leave.s    IL_0106
   }
   catch System.Exception
   {
@@ -2829,32 +2853,38 @@ public class C
     IL_00df:  ldc.i4.s   -2
     IL_00e1:  stfld      ""int C.<M>d__0.<>1__state""
     IL_00e6:  ldarg.0
-    IL_00e7:  ldflda     ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0.<>t__builder""
-    IL_00ec:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()""
-    IL_00f1:  ldarg.0
-    IL_00f2:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
-    IL_00f7:  ldloc.3
-    IL_00f8:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetException(System.Exception)""
-    IL_00fd:  leave.s    IL_012b
+    IL_00e7:  ldc.i4.0
+    IL_00e8:  stfld      ""int C.<M>d__0.<>2__current""
+    IL_00ed:  ldarg.0
+    IL_00ee:  ldflda     ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0.<>t__builder""
+    IL_00f3:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()""
+    IL_00f8:  ldarg.0
+    IL_00f9:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+    IL_00fe:  ldloc.3
+    IL_00ff:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetException(System.Exception)""
+    IL_0104:  leave.s    IL_0139
   }
   // sequence point: }
-  IL_00ff:  ldarg.0
-  IL_0100:  ldc.i4.s   -2
-  IL_0102:  stfld      ""int C.<M>d__0.<>1__state""
+  IL_0106:  ldarg.0
+  IL_0107:  ldc.i4.s   -2
+  IL_0109:  stfld      ""int C.<M>d__0.<>1__state""
   // sequence point: <hidden>
-  IL_0107:  ldarg.0
-  IL_0108:  ldflda     ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0.<>t__builder""
-  IL_010d:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()""
-  IL_0112:  ldarg.0
-  IL_0113:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
-  IL_0118:  ldc.i4.0
-  IL_0119:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)""
-  IL_011e:  ret
-  IL_011f:  ldarg.0
-  IL_0120:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
-  IL_0125:  ldc.i4.1
-  IL_0126:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)""
-  IL_012b:  ret
+  IL_010e:  ldarg.0
+  IL_010f:  ldc.i4.0
+  IL_0110:  stfld      ""int C.<M>d__0.<>2__current""
+  IL_0115:  ldarg.0
+  IL_0116:  ldflda     ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0.<>t__builder""
+  IL_011b:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()""
+  IL_0120:  ldarg.0
+  IL_0121:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+  IL_0126:  ldc.i4.0
+  IL_0127:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)""
+  IL_012c:  ret
+  IL_012d:  ldarg.0
+  IL_012e:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+  IL_0133:  ldc.i4.1
+  IL_0134:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)""
+  IL_0139:  ret
 }", sequencePoints: "C+<M>d__0.MoveNext", source: source);
                 }
             }
@@ -2968,7 +2998,7 @@ class C
             // we generate disposal logic for the combinedTokens field
             verifier.VerifyIL("C.<M>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
-  // Code size      329 (0x149)
+  // Code size      343 (0x157)
   .maxstack  3
   .locals init (int V_0,
                 System.Runtime.CompilerServices.TaskAwaiter V_1,
@@ -2993,7 +3023,7 @@ class C
     IL_0024:  ldarg.0
     IL_0025:  ldfld      ""bool C.<M>d__0.<>w__disposeMode""
     IL_002a:  brfalse.s  IL_0031
-    IL_002c:  leave      IL_0102
+    IL_002c:  leave      IL_0109
     IL_0031:  ldarg.0
     IL_0032:  ldc.i4.m1
     IL_0033:  dup
@@ -3027,7 +3057,7 @@ class C
     IL_006d:  ldloca.s   V_1
     IL_006f:  ldloca.s   V_2
     IL_0071:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, C.<M>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter, ref C.<M>d__0)""
-    IL_0076:  leave      IL_0148
+    IL_0076:  leave      IL_0156
     // async: resume
     IL_007b:  ldarg.0
     IL_007c:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter C.<M>d__0.<>u__1""
@@ -3051,7 +3081,7 @@ class C
     IL_00a8:  dup
     IL_00a9:  stloc.0
     IL_00aa:  stfld      ""int C.<M>d__0.<>1__state""
-    IL_00af:  leave      IL_013c
+    IL_00af:  leave      IL_014a
     // sequence point: <hidden>
     IL_00b4:  ldarg.0
     IL_00b5:  ldc.i4.m1
@@ -3062,7 +3092,7 @@ class C
     IL_00be:  ldfld      ""bool C.<M>d__0.<>w__disposeMode""
     IL_00c3:  pop
     // sequence point: <hidden>
-    IL_00c4:  leave.s    IL_0102
+    IL_00c4:  leave.s    IL_0109
   }
   catch System.Exception
   {
@@ -3081,41 +3111,47 @@ class C
     IL_00e3:  ldnull
     IL_00e4:  stfld      ""System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens""
     IL_00e9:  ldarg.0
-    IL_00ea:  ldflda     ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0.<>t__builder""
-    IL_00ef:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()""
-    IL_00f4:  ldarg.0
-    IL_00f5:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
-    IL_00fa:  ldloc.3
-    IL_00fb:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetException(System.Exception)""
-    IL_0100:  leave.s    IL_0148
+    IL_00ea:  ldc.i4.0
+    IL_00eb:  stfld      ""int C.<M>d__0.<>2__current""
+    IL_00f0:  ldarg.0
+    IL_00f1:  ldflda     ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0.<>t__builder""
+    IL_00f6:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()""
+    IL_00fb:  ldarg.0
+    IL_00fc:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+    IL_0101:  ldloc.3
+    IL_0102:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetException(System.Exception)""
+    IL_0107:  leave.s    IL_0156
   }
   // sequence point: }
-  IL_0102:  ldarg.0
-  IL_0103:  ldc.i4.s   -2
-  IL_0105:  stfld      ""int C.<M>d__0.<>1__state""
+  IL_0109:  ldarg.0
+  IL_010a:  ldc.i4.s   -2
+  IL_010c:  stfld      ""int C.<M>d__0.<>1__state""
   // sequence point: <hidden>
-  IL_010a:  ldarg.0
-  IL_010b:  ldfld      ""System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens""
-  IL_0110:  brfalse.s  IL_0124
-  IL_0112:  ldarg.0
-  IL_0113:  ldfld      ""System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens""
-  IL_0118:  callvirt   ""void System.Threading.CancellationTokenSource.Dispose()""
-  IL_011d:  ldarg.0
-  IL_011e:  ldnull
-  IL_011f:  stfld      ""System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens""
+  IL_0111:  ldarg.0
+  IL_0112:  ldfld      ""System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens""
+  IL_0117:  brfalse.s  IL_012b
+  IL_0119:  ldarg.0
+  IL_011a:  ldfld      ""System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens""
+  IL_011f:  callvirt   ""void System.Threading.CancellationTokenSource.Dispose()""
   IL_0124:  ldarg.0
-  IL_0125:  ldflda     ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0.<>t__builder""
-  IL_012a:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()""
-  IL_012f:  ldarg.0
-  IL_0130:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
-  IL_0135:  ldc.i4.0
-  IL_0136:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)""
-  IL_013b:  ret
-  IL_013c:  ldarg.0
-  IL_013d:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
-  IL_0142:  ldc.i4.1
-  IL_0143:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)""
-  IL_0148:  ret
+  IL_0125:  ldnull
+  IL_0126:  stfld      ""System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens""
+  IL_012b:  ldarg.0
+  IL_012c:  ldc.i4.0
+  IL_012d:  stfld      ""int C.<M>d__0.<>2__current""
+  IL_0132:  ldarg.0
+  IL_0133:  ldflda     ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0.<>t__builder""
+  IL_0138:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()""
+  IL_013d:  ldarg.0
+  IL_013e:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+  IL_0143:  ldc.i4.0
+  IL_0144:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)""
+  IL_0149:  ret
+  IL_014a:  ldarg.0
+  IL_014b:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+  IL_0150:  ldc.i4.1
+  IL_0151:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)""
+  IL_0156:  ret
 }", sequencePoints: "C+<M>d__0.MoveNext", source: source);
         }
 
@@ -3230,7 +3266,7 @@ partial class C
             // we generate disposal logic for the combinedTokens field
             verifier.VerifyIL("C.<M>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
-  // Code size      329 (0x149)
+  // Code size      343 (0x157)
   .maxstack  3
   .locals init (int V_0,
                 System.Runtime.CompilerServices.TaskAwaiter V_1,
@@ -3255,7 +3291,7 @@ partial class C
     IL_0024:  ldarg.0
     IL_0025:  ldfld      ""bool C.<M>d__0.<>w__disposeMode""
     IL_002a:  brfalse.s  IL_0031
-    IL_002c:  leave      IL_0102
+    IL_002c:  leave      IL_0109
     IL_0031:  ldarg.0
     IL_0032:  ldc.i4.m1
     IL_0033:  dup
@@ -3289,7 +3325,7 @@ partial class C
     IL_006d:  ldloca.s   V_1
     IL_006f:  ldloca.s   V_2
     IL_0071:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, C.<M>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter, ref C.<M>d__0)""
-    IL_0076:  leave      IL_0148
+    IL_0076:  leave      IL_0156
     // async: resume
     IL_007b:  ldarg.0
     IL_007c:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter C.<M>d__0.<>u__1""
@@ -3313,7 +3349,7 @@ partial class C
     IL_00a8:  dup
     IL_00a9:  stloc.0
     IL_00aa:  stfld      ""int C.<M>d__0.<>1__state""
-    IL_00af:  leave      IL_013c
+    IL_00af:  leave      IL_014a
     // sequence point: <hidden>
     IL_00b4:  ldarg.0
     IL_00b5:  ldc.i4.m1
@@ -3324,7 +3360,7 @@ partial class C
     IL_00be:  ldfld      ""bool C.<M>d__0.<>w__disposeMode""
     IL_00c3:  pop
     // sequence point: <hidden>
-    IL_00c4:  leave.s    IL_0102
+    IL_00c4:  leave.s    IL_0109
   }
   catch System.Exception
   {
@@ -3343,41 +3379,47 @@ partial class C
     IL_00e3:  ldnull
     IL_00e4:  stfld      ""System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens""
     IL_00e9:  ldarg.0
-    IL_00ea:  ldflda     ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0.<>t__builder""
-    IL_00ef:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()""
-    IL_00f4:  ldarg.0
-    IL_00f5:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
-    IL_00fa:  ldloc.3
-    IL_00fb:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetException(System.Exception)""
-    IL_0100:  leave.s    IL_0148
+    IL_00ea:  ldc.i4.0
+    IL_00eb:  stfld      ""int C.<M>d__0.<>2__current""
+    IL_00f0:  ldarg.0
+    IL_00f1:  ldflda     ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0.<>t__builder""
+    IL_00f6:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()""
+    IL_00fb:  ldarg.0
+    IL_00fc:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+    IL_0101:  ldloc.3
+    IL_0102:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetException(System.Exception)""
+    IL_0107:  leave.s    IL_0156
   }
   // sequence point: }
-  IL_0102:  ldarg.0
-  IL_0103:  ldc.i4.s   -2
-  IL_0105:  stfld      ""int C.<M>d__0.<>1__state""
+  IL_0109:  ldarg.0
+  IL_010a:  ldc.i4.s   -2
+  IL_010c:  stfld      ""int C.<M>d__0.<>1__state""
   // sequence point: <hidden>
-  IL_010a:  ldarg.0
-  IL_010b:  ldfld      ""System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens""
-  IL_0110:  brfalse.s  IL_0124
-  IL_0112:  ldarg.0
-  IL_0113:  ldfld      ""System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens""
-  IL_0118:  callvirt   ""void System.Threading.CancellationTokenSource.Dispose()""
-  IL_011d:  ldarg.0
-  IL_011e:  ldnull
-  IL_011f:  stfld      ""System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens""
+  IL_0111:  ldarg.0
+  IL_0112:  ldfld      ""System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens""
+  IL_0117:  brfalse.s  IL_012b
+  IL_0119:  ldarg.0
+  IL_011a:  ldfld      ""System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens""
+  IL_011f:  callvirt   ""void System.Threading.CancellationTokenSource.Dispose()""
   IL_0124:  ldarg.0
-  IL_0125:  ldflda     ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0.<>t__builder""
-  IL_012a:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()""
-  IL_012f:  ldarg.0
-  IL_0130:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
-  IL_0135:  ldc.i4.0
-  IL_0136:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)""
-  IL_013b:  ret
-  IL_013c:  ldarg.0
-  IL_013d:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
-  IL_0142:  ldc.i4.1
-  IL_0143:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)""
-  IL_0148:  ret
+  IL_0125:  ldnull
+  IL_0126:  stfld      ""System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens""
+  IL_012b:  ldarg.0
+  IL_012c:  ldc.i4.0
+  IL_012d:  stfld      ""int C.<M>d__0.<>2__current""
+  IL_0132:  ldarg.0
+  IL_0133:  ldflda     ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0.<>t__builder""
+  IL_0138:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()""
+  IL_013d:  ldarg.0
+  IL_013e:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+  IL_0143:  ldc.i4.0
+  IL_0144:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)""
+  IL_0149:  ret
+  IL_014a:  ldarg.0
+  IL_014b:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+  IL_0150:  ldc.i4.1
+  IL_0151:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)""
+  IL_0156:  ret
 }", sequencePoints: "C+<M>d__0.MoveNext", source: source);
         }
 
@@ -3493,7 +3535,7 @@ class C
             // we generate disposal logic for the combinedTokens field
             verifier.VerifyIL("C.<<M>g__local|0_0>d.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
-  // Code size      329 (0x149)
+  // Code size      343 (0x157)
   .maxstack  3
   .locals init (int V_0,
                 System.Runtime.CompilerServices.TaskAwaiter V_1,
@@ -3518,7 +3560,7 @@ class C
     IL_0024:  ldarg.0
     IL_0025:  ldfld      ""bool C.<<M>g__local|0_0>d.<>w__disposeMode""
     IL_002a:  brfalse.s  IL_0031
-    IL_002c:  leave      IL_0102
+    IL_002c:  leave      IL_0109
     IL_0031:  ldarg.0
     IL_0032:  ldc.i4.m1
     IL_0033:  dup
@@ -3552,7 +3594,7 @@ class C
     IL_006d:  ldloca.s   V_1
     IL_006f:  ldloca.s   V_2
     IL_0071:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, C.<<M>g__local|0_0>d>(ref System.Runtime.CompilerServices.TaskAwaiter, ref C.<<M>g__local|0_0>d)""
-    IL_0076:  leave      IL_0148
+    IL_0076:  leave      IL_0156
     // async: resume
     IL_007b:  ldarg.0
     IL_007c:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter C.<<M>g__local|0_0>d.<>u__1""
@@ -3576,7 +3618,7 @@ class C
     IL_00a8:  dup
     IL_00a9:  stloc.0
     IL_00aa:  stfld      ""int C.<<M>g__local|0_0>d.<>1__state""
-    IL_00af:  leave      IL_013c
+    IL_00af:  leave      IL_014a
     // sequence point: <hidden>
     IL_00b4:  ldarg.0
     IL_00b5:  ldc.i4.m1
@@ -3587,7 +3629,7 @@ class C
     IL_00be:  ldfld      ""bool C.<<M>g__local|0_0>d.<>w__disposeMode""
     IL_00c3:  pop
     // sequence point: <hidden>
-    IL_00c4:  leave.s    IL_0102
+    IL_00c4:  leave.s    IL_0109
   }
   catch System.Exception
   {
@@ -3606,41 +3648,47 @@ class C
     IL_00e3:  ldnull
     IL_00e4:  stfld      ""System.Threading.CancellationTokenSource C.<<M>g__local|0_0>d.<>x__combinedTokens""
     IL_00e9:  ldarg.0
-    IL_00ea:  ldflda     ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<<M>g__local|0_0>d.<>t__builder""
-    IL_00ef:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()""
-    IL_00f4:  ldarg.0
-    IL_00f5:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<<M>g__local|0_0>d.<>v__promiseOfValueOrEnd""
-    IL_00fa:  ldloc.3
-    IL_00fb:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetException(System.Exception)""
-    IL_0100:  leave.s    IL_0148
+    IL_00ea:  ldc.i4.0
+    IL_00eb:  stfld      ""int C.<<M>g__local|0_0>d.<>2__current""
+    IL_00f0:  ldarg.0
+    IL_00f1:  ldflda     ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<<M>g__local|0_0>d.<>t__builder""
+    IL_00f6:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()""
+    IL_00fb:  ldarg.0
+    IL_00fc:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<<M>g__local|0_0>d.<>v__promiseOfValueOrEnd""
+    IL_0101:  ldloc.3
+    IL_0102:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetException(System.Exception)""
+    IL_0107:  leave.s    IL_0156
   }
   // sequence point: }
-  IL_0102:  ldarg.0
-  IL_0103:  ldc.i4.s   -2
-  IL_0105:  stfld      ""int C.<<M>g__local|0_0>d.<>1__state""
+  IL_0109:  ldarg.0
+  IL_010a:  ldc.i4.s   -2
+  IL_010c:  stfld      ""int C.<<M>g__local|0_0>d.<>1__state""
   // sequence point: <hidden>
-  IL_010a:  ldarg.0
-  IL_010b:  ldfld      ""System.Threading.CancellationTokenSource C.<<M>g__local|0_0>d.<>x__combinedTokens""
-  IL_0110:  brfalse.s  IL_0124
-  IL_0112:  ldarg.0
-  IL_0113:  ldfld      ""System.Threading.CancellationTokenSource C.<<M>g__local|0_0>d.<>x__combinedTokens""
-  IL_0118:  callvirt   ""void System.Threading.CancellationTokenSource.Dispose()""
-  IL_011d:  ldarg.0
-  IL_011e:  ldnull
-  IL_011f:  stfld      ""System.Threading.CancellationTokenSource C.<<M>g__local|0_0>d.<>x__combinedTokens""
+  IL_0111:  ldarg.0
+  IL_0112:  ldfld      ""System.Threading.CancellationTokenSource C.<<M>g__local|0_0>d.<>x__combinedTokens""
+  IL_0117:  brfalse.s  IL_012b
+  IL_0119:  ldarg.0
+  IL_011a:  ldfld      ""System.Threading.CancellationTokenSource C.<<M>g__local|0_0>d.<>x__combinedTokens""
+  IL_011f:  callvirt   ""void System.Threading.CancellationTokenSource.Dispose()""
   IL_0124:  ldarg.0
-  IL_0125:  ldflda     ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<<M>g__local|0_0>d.<>t__builder""
-  IL_012a:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()""
-  IL_012f:  ldarg.0
-  IL_0130:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<<M>g__local|0_0>d.<>v__promiseOfValueOrEnd""
-  IL_0135:  ldc.i4.0
-  IL_0136:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)""
-  IL_013b:  ret
-  IL_013c:  ldarg.0
-  IL_013d:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<<M>g__local|0_0>d.<>v__promiseOfValueOrEnd""
-  IL_0142:  ldc.i4.1
-  IL_0143:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)""
-  IL_0148:  ret
+  IL_0125:  ldnull
+  IL_0126:  stfld      ""System.Threading.CancellationTokenSource C.<<M>g__local|0_0>d.<>x__combinedTokens""
+  IL_012b:  ldarg.0
+  IL_012c:  ldc.i4.0
+  IL_012d:  stfld      ""int C.<<M>g__local|0_0>d.<>2__current""
+  IL_0132:  ldarg.0
+  IL_0133:  ldflda     ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<<M>g__local|0_0>d.<>t__builder""
+  IL_0138:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()""
+  IL_013d:  ldarg.0
+  IL_013e:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<<M>g__local|0_0>d.<>v__promiseOfValueOrEnd""
+  IL_0143:  ldc.i4.0
+  IL_0144:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)""
+  IL_0149:  ret
+  IL_014a:  ldarg.0
+  IL_014b:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<<M>g__local|0_0>d.<>v__promiseOfValueOrEnd""
+  IL_0150:  ldc.i4.1
+  IL_0151:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)""
+  IL_0156:  ret
 }", sequencePoints: "C+<<M>g__local|0_0>d.MoveNext", source: source);
         }
 
@@ -3710,7 +3758,7 @@ class C
             // we generate disposal logic for the combinedTokens field
             verifier.VerifyIL("C.<M>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
-  // Code size      322 (0x142)
+  // Code size      336 (0x150)
   .maxstack  3
   .locals init (int V_0,
                 System.Runtime.CompilerServices.TaskAwaiter V_1,
@@ -3735,7 +3783,7 @@ class C
     IL_0024:  ldarg.0
     IL_0025:  ldfld      ""bool C.<M>d__0.<>w__disposeMode""
     IL_002a:  brfalse.s  IL_0031
-    IL_002c:  leave      IL_00fb
+    IL_002c:  leave      IL_0102
     IL_0031:  ldarg.0
     IL_0032:  ldc.i4.m1
     IL_0033:  dup
@@ -3765,7 +3813,7 @@ class C
     IL_0066:  ldloca.s   V_1
     IL_0068:  ldloca.s   V_2
     IL_006a:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, C.<M>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter, ref C.<M>d__0)""
-    IL_006f:  leave      IL_0141
+    IL_006f:  leave      IL_014f
     // async: resume
     IL_0074:  ldarg.0
     IL_0075:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter C.<M>d__0.<>u__1""
@@ -3789,7 +3837,7 @@ class C
     IL_00a1:  dup
     IL_00a2:  stloc.0
     IL_00a3:  stfld      ""int C.<M>d__0.<>1__state""
-    IL_00a8:  leave      IL_0135
+    IL_00a8:  leave      IL_0143
     // sequence point: <hidden>
     IL_00ad:  ldarg.0
     IL_00ae:  ldc.i4.m1
@@ -3800,7 +3848,7 @@ class C
     IL_00b7:  ldfld      ""bool C.<M>d__0.<>w__disposeMode""
     IL_00bc:  pop
     // sequence point: <hidden>
-    IL_00bd:  leave.s    IL_00fb
+    IL_00bd:  leave.s    IL_0102
   }
   catch System.Exception
   {
@@ -3819,41 +3867,47 @@ class C
     IL_00dc:  ldnull
     IL_00dd:  stfld      ""System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens""
     IL_00e2:  ldarg.0
-    IL_00e3:  ldflda     ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0.<>t__builder""
-    IL_00e8:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()""
-    IL_00ed:  ldarg.0
-    IL_00ee:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
-    IL_00f3:  ldloc.3
-    IL_00f4:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetException(System.Exception)""
-    IL_00f9:  leave.s    IL_0141
+    IL_00e3:  ldc.i4.0
+    IL_00e4:  stfld      ""int C.<M>d__0.<>2__current""
+    IL_00e9:  ldarg.0
+    IL_00ea:  ldflda     ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0.<>t__builder""
+    IL_00ef:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()""
+    IL_00f4:  ldarg.0
+    IL_00f5:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+    IL_00fa:  ldloc.3
+    IL_00fb:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetException(System.Exception)""
+    IL_0100:  leave.s    IL_014f
   }
   // sequence point: }
-  IL_00fb:  ldarg.0
-  IL_00fc:  ldc.i4.s   -2
-  IL_00fe:  stfld      ""int C.<M>d__0.<>1__state""
+  IL_0102:  ldarg.0
+  IL_0103:  ldc.i4.s   -2
+  IL_0105:  stfld      ""int C.<M>d__0.<>1__state""
   // sequence point: <hidden>
-  IL_0103:  ldarg.0
-  IL_0104:  ldfld      ""System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens""
-  IL_0109:  brfalse.s  IL_011d
-  IL_010b:  ldarg.0
-  IL_010c:  ldfld      ""System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens""
-  IL_0111:  callvirt   ""void System.Threading.CancellationTokenSource.Dispose()""
-  IL_0116:  ldarg.0
-  IL_0117:  ldnull
-  IL_0118:  stfld      ""System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens""
+  IL_010a:  ldarg.0
+  IL_010b:  ldfld      ""System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens""
+  IL_0110:  brfalse.s  IL_0124
+  IL_0112:  ldarg.0
+  IL_0113:  ldfld      ""System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens""
+  IL_0118:  callvirt   ""void System.Threading.CancellationTokenSource.Dispose()""
   IL_011d:  ldarg.0
-  IL_011e:  ldflda     ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0.<>t__builder""
-  IL_0123:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()""
-  IL_0128:  ldarg.0
-  IL_0129:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
-  IL_012e:  ldc.i4.0
-  IL_012f:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)""
-  IL_0134:  ret
-  IL_0135:  ldarg.0
-  IL_0136:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
-  IL_013b:  ldc.i4.1
-  IL_013c:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)""
-  IL_0141:  ret
+  IL_011e:  ldnull
+  IL_011f:  stfld      ""System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens""
+  IL_0124:  ldarg.0
+  IL_0125:  ldc.i4.0
+  IL_0126:  stfld      ""int C.<M>d__0.<>2__current""
+  IL_012b:  ldarg.0
+  IL_012c:  ldflda     ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0.<>t__builder""
+  IL_0131:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()""
+  IL_0136:  ldarg.0
+  IL_0137:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+  IL_013c:  ldc.i4.0
+  IL_013d:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)""
+  IL_0142:  ret
+  IL_0143:  ldarg.0
+  IL_0144:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+  IL_0149:  ldc.i4.1
+  IL_014a:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)""
+  IL_014f:  ret
 }", sequencePoints: "C+<M>d__0.MoveNext", source: source);
         }
 
@@ -7980,6 +8034,151 @@ public class C
 
             var v = CompileAndVerify(comp, expectedOutput: "BEFORE INSIDE INSIDE2 AFTER");
             v.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(58444, "https://github.com/dotnet/roslyn/issues/58444")]
+        public void ClearCurrentOnRegularExit()
+        {
+            var source = @"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+
+var r = new AsyncReader();
+var enumerator = r.GetAsyncEnumerator();
+try
+{
+    while (await enumerator.MoveNextAsync())
+    {
+        System.Console.Write(""RAN "");
+    }
+
+    if (enumerator.Current is null)
+    {
+        System.Console.Write(""CLEARED"");
+    }
+}
+finally
+{
+    await enumerator.DisposeAsync();
+}
+
+class AsyncReader : IAsyncEnumerable<object>
+{
+    public async IAsyncEnumerator<object> GetAsyncEnumerator(CancellationToken cancellationToken = default)
+    {
+        await Task.Yield();
+        yield return new object();
+        await Task.Yield();
+        yield return new object();
+        await Task.Yield();
+        yield return new object();
+    }
+}
+";
+            var comp = CreateCompilationWithAsyncIterator(source);
+            CompileAndVerify(comp, expectedOutput: "RAN RAN RAN CLEARED");
+        }
+
+        [Fact, WorkItem(58444, "https://github.com/dotnet/roslyn/issues/58444")]
+        public void ClearCurrentOnException()
+        {
+            var source = @"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+
+var r = new AsyncReader();
+var enumerator = r.GetAsyncEnumerator();
+try
+{
+    try
+    {
+        while (await enumerator.MoveNextAsync())
+        {
+            Console.Write(""RAN "");
+        }
+    }
+    catch (System.Exception e)
+    {
+        Console.Write(e.Message);
+    }
+
+    if (enumerator.Current is null)
+    {
+        Console.Write(""CLEARED"");
+    }
+}
+finally
+{
+    await enumerator.DisposeAsync();
+}
+
+class AsyncReader : IAsyncEnumerable<object>
+{
+    public async IAsyncEnumerator<object> GetAsyncEnumerator(CancellationToken cancellationToken = default)
+    {
+        await Task.Yield();
+        yield return new object();
+        await Task.Yield();
+        yield return new object();
+        await Task.Yield();
+        throw new Exception(""EXCEPTION "");
+    }
+}
+";
+            var comp = CreateCompilationWithAsyncIterator(source);
+            CompileAndVerify(comp, expectedOutput: "RAN RAN EXCEPTION CLEARED");
+        }
+
+        [Fact, WorkItem(58444, "https://github.com/dotnet/roslyn/issues/58444")]
+        public void ClearCurrentOnRegularExit_Generic()
+        {
+            var source = @"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+
+var r = new AsyncReader<int>() { value = 42 };
+var enumerator = r.GetAsyncEnumerator();
+try
+{
+    while (await enumerator.MoveNextAsync())
+    {
+        if (enumerator.Current is 42)
+            System.Console.Write(""RAN "");
+    }
+
+    if (enumerator.Current is 0)
+        System.Console.Write(""CLEARED"");
+}
+finally
+{
+    await enumerator.DisposeAsync();
+}
+
+class AsyncReader<T> : IAsyncEnumerable<T>
+{
+    public T value;
+    public async IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
+    {
+        await Task.Yield();
+        yield return value;
+        await Task.Yield();
+        yield return value;
+        await Task.Yield();
+        yield return value;
+    }
+}
+";
+            var comp = CreateCompilationWithAsyncIterator(source);
+            CompileAndVerify(comp, expectedOutput: "RAN RAN RAN CLEARED");
         }
     }
 }

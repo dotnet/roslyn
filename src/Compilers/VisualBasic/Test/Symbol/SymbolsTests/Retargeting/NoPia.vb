@@ -1633,7 +1633,8 @@ End Class
                 references:={New VisualBasicCompilationReference(multiModule),
                              New VisualBasicCompilationReference(pia1)})
 
-            CompileAndVerify(consumer)
+            ' ILVerify: The method or operation is not implemented.
+            CompileAndVerify(consumer, verify:=Verification.FailsILVerify)
         End Sub
 
         <Fact, WorkItem(528047, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528047")>
