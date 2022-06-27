@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// or <see langword="null"/> if none of the previous versions of the method was a state machine with an increasing state
         /// </summary>
         /// <param name="increasing">True if the state number increases with progress, false if it decreases (e.g. states for iterator try-finally blocks, or iterator states of async iterators).</param>
-        public abstract int? GetFirstUnusedStateMachineState(bool increasing);
+        public abstract StateMachineState? GetFirstUnusedStateMachineState(bool increasing);
 
         /// <summary>
         /// For a given node associated with entering a state of a state machine in the new compilation,
@@ -98,6 +98,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <remarks>
         /// <paramref name="syntax"/> is an await expression, yield return statement, or try block syntax node.
         /// </remarks>
-        public abstract bool TryGetPreviousStateMachineState(SyntaxNode syntax, out int stateOrdinal);
+        public abstract bool TryGetPreviousStateMachineState(SyntaxNode syntax, out StateMachineState state);
     }
 }

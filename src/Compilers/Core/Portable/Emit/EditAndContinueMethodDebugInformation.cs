@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis.Emit
                             int stateNumber = blobReader.ReadCompressedSignedInteger();
                             int syntaxOffset = syntaxOffsetBaseline + blobReader.ReadCompressedInteger();
 
-                            mapBuilder.Add(new StateMachineStateDebugInfo(syntaxOffset, stateNumber));
+                            mapBuilder.Add(new StateMachineStateDebugInfo(syntaxOffset, (StateMachineState)stateNumber));
                             count--;
                         }
                     }
@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
                 foreach (StateMachineStateDebugInfo state in StateMachineStates)
                 {
-                    writer.WriteCompressedSignedInteger(state.StateNumber);
+                    writer.WriteCompressedSignedInteger((int)state.StateNumber);
                     writer.WriteCompressedInteger(state.SyntaxOffset - syntaxOffsetBaseline);
                 }
             }
