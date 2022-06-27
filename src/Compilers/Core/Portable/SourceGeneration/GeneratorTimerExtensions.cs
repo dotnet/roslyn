@@ -42,6 +42,22 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        public static void PooledWhenSparse(this CodeAnalysisEventSource eventSource, Type type, int count, int capacity)
+        {
+            if (eventSource.IsEnabled(EventLevel.Informational, Keywords.Performance))
+            {
+                eventSource.PooledWhenSparseImpl(type, count, capacity, Guid.NewGuid().ToString());
+            }
+        }
+
+        public static void HalvedCapacity(this CodeAnalysisEventSource eventSource, Type type, int numberOfTimesPooledWhenSparse, int numberOfTimesPooled)
+        {
+            if (eventSource.IsEnabled(EventLevel.Informational, Keywords.Performance))
+            {
+                eventSource.HalvedCapacityImpl(type, numberOfTimesPooledWhenSparse, numberOfTimesPooled, Guid.NewGuid().ToString());
+            }
+        }
+
         internal readonly struct RunTimer : IDisposable
         {
             private readonly SharedStopwatch _timer;

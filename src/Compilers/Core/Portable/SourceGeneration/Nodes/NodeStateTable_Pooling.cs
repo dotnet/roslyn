@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis
             if (builder.Capacity > MinCapacityToConsiderThreshold &&
                 ((double)builder.Count / builder.Capacity) < SparseThresholdRatio)
             {
-                // Console.WriteLine($"Pooled when sparse: {builder.GetType()} {builder.Count} / {builder.Capacity}");
+                CodeAnalysisEventSource.Log.PooledWhenSparse(builder.GetType(), builder.Count, builder.Capacity);
                 statistics.NumberOfTimesPooledWhenSparse++;
             }
 
