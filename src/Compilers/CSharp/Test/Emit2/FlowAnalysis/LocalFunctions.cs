@@ -1666,6 +1666,62 @@ public class MyAttribute : System.Attribute
 
         [Fact]
         [WorkItem(60645, "https://github.com/dotnet/roslyn/issues/60645")]
+        public void TestLocalConstantIsUsedInLocalFunctionReturnAttribute()
+        {
+            var compilation = CreateCompilation(@"
+public class C
+{
+    public int P
+    {
+        get
+        {
+            const int X = 5;
+            return local1();
+
+            [return: My(X)]
+            int local1() => 0;
+        }
+    }
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(int i) { }
+}
+");
+            compilation.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(60645, "https://github.com/dotnet/roslyn/issues/60645")]
+        public void TestLocalConstantIsUsedInExternLocalFunctionAttribute()
+        {
+            var compilation = CreateCompilation(@"
+public class C
+{
+    public int P
+    {
+        get
+        {
+            const int X = 5;
+            return local1();
+
+            [My(X)]
+            extern static int local1();
+        }
+    }
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(int i) { }
+}
+");
+            compilation.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(60645, "https://github.com/dotnet/roslyn/issues/60645")]
         public void TestLocalConstantIsUsedInLocalFunctionAttributeInConstantStringInterpolation()
         {
             var compilation = CreateCompilation(@"

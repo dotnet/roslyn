@@ -61,7 +61,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (localFunc.Symbol.IsExtern)
             {
-                // an extern local function is not permitted to have a body and thus shouldn't be flow analyzed
+                VisitAttributes(localFunc.Symbol);
+
+                // an extern local function is not permitted to have a body and thus shouldn't be flow analyzed.
                 return null;
             }
 
@@ -102,17 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 PendingBranches.Add(new PendingBranch(null, this.State, null));
             }
 
-            ImmutableArray<BoundAttribute> boundAttributes = localFuncSymbol.GetBoundAttributes();
-            foreach (var attribute in boundAttributes)
-            {
-                VisitAttribute(attribute);
-            }
-
-            ImmutableArray<BoundAttribute> returnBoundAttributes = localFuncSymbol.GetReturnBoundAttributes();
-            foreach (var attribute in returnBoundAttributes)
-            {
-                VisitAttribute(attribute);
-            }
+            VisitAttributes(localFuncSymbol);
 
             VisitAlways(localFunc.Body);
             RestorePending(oldPending2); // process any forward branches within the lambda body

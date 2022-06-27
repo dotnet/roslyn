@@ -2119,17 +2119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!node.WasCompilerGenerated) EnterParameters(node.Symbol.Parameters);
             var oldPending2 = SavePending();
 
-            ImmutableArray<BoundAttribute> boundAttributes = node.Symbol.GetBoundAttributes();
-            foreach (var attribute in boundAttributes)
-            {
-                VisitAttribute(attribute);
-            }
-
-            ImmutableArray<BoundAttribute> returnBoundAttributes = node.Symbol.GetReturnBoundAttributes();
-            foreach (var attribute in returnBoundAttributes)
-            {
-                VisitAttribute(attribute);
-            }
+            VisitAttributes(node.Symbol);
 
             VisitAlways(node.Body);
             RestorePending(oldPending2); // process any forward branches within the lambda body

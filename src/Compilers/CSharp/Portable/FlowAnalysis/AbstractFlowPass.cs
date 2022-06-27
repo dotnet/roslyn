@@ -3616,6 +3616,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Join(ref this.State, ref afterBlock);
         }
+
+        protected void VisitAttributes(SourceMethodSymbolWithAttributes methodSymbolWithAttributes)
+        {
+            ImmutableArray<BoundAttribute> boundAttributes = methodSymbolWithAttributes.GetBoundAttributes();
+            foreach (var attribute in boundAttributes)
+            {
+                VisitAttribute(attribute);
+            }
+
+            ImmutableArray<BoundAttribute> returnBoundAttributes = methodSymbolWithAttributes.GetReturnBoundAttributes();
+            foreach (var attribute in returnBoundAttributes)
+            {
+                VisitAttribute(attribute);
+            }
+        }
         #endregion visitors
     }
 
