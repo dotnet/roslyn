@@ -18,6 +18,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal static class DiagnosticHelper
     {
         /// <summary>
+        /// See InternalDiagnosticSeverity.Void.
+        /// </summary>
+        private const DiagnosticSeverity VoidSeverity = (DiagnosticSeverity)(-2);
+
+        private static readonly Diagnostic s_suppressedDiagnostic = Diagnostic.Create(
+            id: "SUPPRESSED",
+            category: "",
+            message: "",
+            severity: VoidSeverity,
+            defaultSeverity: VoidSeverity,
+            isEnabledByDefault: false,
+            warningLevel: 1,
+            isSuppressed: true);
+
+        /// <summary>
         /// Creates a <see cref="Diagnostic"/> instance.
         /// </summary>
         /// <param name="descriptor">A <see cref="DiagnosticDescriptor"/> describing the diagnostic.</param>
@@ -46,6 +61,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (descriptor == null)
             {
                 throw new ArgumentNullException(nameof(descriptor));
+            }
+
+            if (effectiveSeverity == ReportDiagnostic.Suppress)
+            {
+                return s_suppressedDiagnostic;
             }
 
             return Diagnostic.Create(descriptor, location, effectiveSeverity.ToDiagnosticSeverity() ?? descriptor.DefaultSeverity, additionalLocations, properties, messageArgs);
