@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!boundAttributes.IsDefaultOrEmpty &&
                     this is SourceAssemblySymbol &&
                     !diagnostics.DiagnosticBag!.IsEmptyWithoutResolution &&
-                    diagnostics.DiagnosticBag.AsEnumerableWithoutResolution().OfType<DiagnosticWithInfo>().Where(isObsoleteDiagnostics).Any())
+                    diagnostics.DiagnosticBag.AsEnumerableWithoutResolution().OfType<DiagnosticWithInfo>().Where(isObsoleteDiagnostic).Any())
                 {
                     // We are binding attributes for an assembly and have an obsolete diagnostic reported,
                     // or we have lazy diagnostic, that might be resolved to an obsolete diagnostic later.
@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         //    2. Collect obsolete diagnostics reported withing the span of those locations.
                         foreach (Diagnostic d in diagnostics.DiagnosticBag.AsEnumerableWithoutResolution())
                         {
-                            if (d is DiagnosticWithInfo withInfo && isObsoleteDiagnostics(withInfo))
+                            if (d is DiagnosticWithInfo withInfo && isObsoleteDiagnostic(withInfo))
                             {
                                 Location location = withInfo.Location;
 
@@ -511,7 +511,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            static bool isObsoleteDiagnostics(DiagnosticWithInfo d)
+            static bool isObsoleteDiagnostic(DiagnosticWithInfo d)
             {
                 return d.HasLazyInfo ? d.LazyInfo is LazyObsoleteDiagnosticInfo : d.Info.IsObsoleteDiagnostic();
             }
