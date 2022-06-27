@@ -34,12 +34,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 
         Private ReadOnly _globalOptions As IGlobalOptionService
         Private ReadOnly _indentationManager As IIndentationManagerService
+        Private ReadOnly _editorOptionsFactory As IEditorOptionsFactoryService
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Public Sub New(globalOptions As IGlobalOptionService, indentationManager As IIndentationManagerService)
-            _globalOptions = globalOptions
+        Public Sub New(indentationManager As IIndentationManagerService, editorOptionsFactory As IEditorOptionsFactoryService, globalOptions As IGlobalOptionService)
             _indentationManager = indentationManager
+            _editorOptionsFactory = editorOptionsFactory
+            _globalOptions = globalOptions
         End Sub
 
         Public Sub CommitRegion(spanToFormat As SnapshotSpan,
@@ -79,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 
                 ' create commit formatting cleanup provider that has line commit specific behavior
                 Dim fallbackOptions = _globalOptions.GetVisualBasicSyntaxFormattingOptions()
-                Dim formattingOptions = _indentationManager.GetInferredFormattingOptionsAsync(document, fallbackOptions, isExplicitFormat, cancellationToken).WaitAndGetResult(cancellationToken)
+                Dim formattingOptions = _indentationManager.GetInferredFormattingOptions(buffer, _editorOptionsFactory, document.Project.LanguageServices, fallbackOptions, isExplicitFormat)
                 Dim commitFormattingCleanup = GetCommitFormattingCleanupProvider(
                     document.Id,
                     document.Project.LanguageServices,

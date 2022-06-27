@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -2781,6 +2782,174 @@ class C
             Assert.Equal(
                 actualIL.Contains($"System.Linq.Expressions.Expression.ConvertChecked(System.Linq.Expressions.Expression, "),
                 expectedMethod == ConvertMethod.ConvertChecked);
+        }
+
+        [Fact, WorkItem(61843, "https://github.com/dotnet/roslyn/issues/61843")]
+        public void SwitchExpressionInCheckedExpression()
+        {
+            var source = """
+using System;
+int x = int.MaxValue;
+int y = int.MaxValue;
+
+try
+{
+    C.AddInSwitchExpression(x, y, true);
+}
+catch (OverflowException)
+{
+    Console.Write("RAN1 ");
+}
+
+try
+{
+    C.AddInSwitchExpression2(x, y, true);
+}
+catch (OverflowException)
+{
+    Console.Write("RAN2 ");
+}
+
+try
+{
+    C.Add(x, y);
+}
+catch (OverflowException)
+{
+    Console.Write("RAN3 ");
+}
+
+public static class C
+{
+    public static int AddInSwitchExpression(int x, int y, bool condition) =>
+        checked (
+            condition switch
+            {
+                true => x + y,
+                _ => throw null
+            }
+        );
+
+    public static int AddInSwitchExpression2(int x, int y, bool condition)
+    {
+        checked
+        {
+            return condition switch
+            {
+                true => x + y,
+                _ => throw null
+            };
+        }
+    }
+
+    public static int Add(int x, int y) => checked(x + y);
+}
+""";
+
+            var comp = CreateCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: "RAN1 RAN2 RAN3");
+
+            verifier.VerifyIL("C.AddInSwitchExpression", @"
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.2
+  IL_0001:  brfalse.s  IL_0009
+  IL_0003:  ldarg.0
+  IL_0004:  ldarg.1
+  IL_0005:  add.ovf
+  IL_0006:  stloc.0
+  IL_0007:  br.s       IL_000b
+  IL_0009:  ldnull
+  IL_000a:  throw
+  IL_000b:  ldloc.0
+  IL_000c:  ret
+}
+");
+
+            verifier.VerifyIL("C.AddInSwitchExpression2", @"
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.2
+  IL_0001:  brfalse.s  IL_0009
+  IL_0003:  ldarg.0
+  IL_0004:  ldarg.1
+  IL_0005:  add.ovf
+  IL_0006:  stloc.0
+  IL_0007:  br.s       IL_000b
+  IL_0009:  ldnull
+  IL_000a:  throw
+  IL_000b:  ldloc.0
+  IL_000c:  ret
+}
+");
+
+            verifier.VerifyIL("C.Add", @"
+{
+  // Code size        4 (0x4)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  add.ovf
+  IL_0003:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(61843, "https://github.com/dotnet/roslyn/issues/61843")]
+        public void SpeculationInCheckedExpression()
+        {
+            var source = """
+class C
+{
+    int M(int x, int y)
+        => checked(x);
+}
+""";
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var xNode = tree.GetRoot().DescendantNodes().OfType<CheckedExpressionSyntax>().Single().Expression;
+            Assert.Equal("x", xNode.ToString());
+
+            var nodeToSpeculate = SyntaxFactory.ParseExpression("x + y");
+            Assert.Equal("System.Int32 System.Int32.op_CheckedAddition(System.Int32 left, System.Int32 right)",
+                model.GetSpeculativeSymbolInfo(xNode.Position, nodeToSpeculate, SpeculativeBindingOption.BindAsExpression).Symbol.ToTestDisplayString());
+
+            var checkedNode = tree.GetRoot().DescendantNodes().OfType<CheckedExpressionSyntax>().Single();
+            Assert.Equal("checked(x)", checkedNode.ToString());
+
+            Assert.Equal("System.Int32 System.Int32.op_Addition(System.Int32 left, System.Int32 right)",
+                model.GetSpeculativeSymbolInfo(checkedNode.Position + 2, nodeToSpeculate, SpeculativeBindingOption.BindAsExpression).Symbol.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem(61843, "https://github.com/dotnet/roslyn/issues/61843")]
+        public void SpeculationInUncheckedExpression()
+        {
+            var source = """
+class C
+{
+    int M(int x, int y)
+    {
+        checked
+        {
+            return unchecked(x);
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var xNode = tree.GetRoot().DescendantNodes().OfType<CheckedExpressionSyntax>().Single().Expression;
+            Assert.Equal("x", xNode.ToString());
+
+            var nodeToSpeculate = SyntaxFactory.ParseExpression("x + y");
+            Assert.Equal("System.Int32 System.Int32.op_Addition(System.Int32 left, System.Int32 right)",
+                model.GetSpeculativeSymbolInfo(xNode.Position, nodeToSpeculate, SpeculativeBindingOption.BindAsExpression).Symbol.ToTestDisplayString());
         }
     }
 }

@@ -79,6 +79,7 @@ namespace Microsoft.CodeAnalysis.Operations
     internal partial class ConversionOperation
     {
         public IMethodSymbol? OperatorMethod => Conversion.MethodSymbol;
+        public ITypeSymbol? ConstrainedToType => Conversion.ConstrainedToType;
     }
 
     internal sealed partial class InvalidOperation : Operation, IInvalidOperation
@@ -202,6 +203,7 @@ namespace Microsoft.CodeAnalysis.Operations
     internal sealed partial class FieldReferenceOperation
     {
         public override ISymbol Member => Field;
+        public override ITypeSymbol? ConstrainedToType => null;
     }
 
     internal sealed partial class RangeCaseClauseOperation

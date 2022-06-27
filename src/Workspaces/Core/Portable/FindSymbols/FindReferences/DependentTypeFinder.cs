@@ -89,27 +89,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // So we can just limit ourselves to that single project.
 
             // First find all the projects that could potentially reference this type.
-            ImmutableArray<Project> orderedProjectsToExamine;
+            var projectsThatCouldReferenceType = await GetProjectsThatCouldReferenceTypeAsync(
+                type, solution, searchInMetadata, cancellationToken).ConfigureAwait(false);
 
-            if (projects.Count == 1)
-            {
-                orderedProjectsToExamine = projects.ToImmutableArray();
-            }
-            else
-            {
-                var projectsThatCouldReferenceType = await GetProjectsThatCouldReferenceTypeAsync(
-                    type, solution, searchInMetadata, cancellationToken).ConfigureAwait(false);
-
-                // Now, based on the list of projects that could actually reference the type,
-                // and the list of projects the caller wants to search, find the actual list of
-                // projects we need to search through.
-                //
-                // This list of projects is properly topologically ordered.  Because of this we
-                // can just process them in order from first to last because we know no project
-                // in this list could affect a prior project.
-                orderedProjectsToExamine = GetOrderedProjectsToExamine(
-                    solution, projects, projectsThatCouldReferenceType);
-            }
+            // Now, based on the list of projects that could actually reference the type,
+            // and the list of projects the caller wants to search, find the actual list of
+            // projects we need to search through.
+            //
+            // This list of projects is properly topologically ordered.  Because of this we
+            // can just process them in order from first to last because we know no project
+            // in this list could affect a prior project.
+            var orderedProjectsToExamine = GetOrderedProjectsToExamine(
+                solution, projects, projectsThatCouldReferenceType);
 
             // The final set of results we'll be returning.
             using var _1 = GetSymbolSet(out var result);

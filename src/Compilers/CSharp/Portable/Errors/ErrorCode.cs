@@ -2069,7 +2069,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ImplicitConversionOperatorCantBeChecked = 9024,
         ERR_CheckedOperatorNeedsMatch = 9025,
 
-        ERR_CannotBeConvertedToUTF8 = 9026,
+        ERR_CannotBeConvertedToUtf8 = 9026,
         ERR_MisplacedUnchecked = 9027,
         ERR_LineSpanDirectiveRequiresSpace = 9028,
 
@@ -2090,6 +2090,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RefReturningPropertiesCannotBeRequired = 9043,
         ERR_ImplicitImplementationOfInaccessibleInterfaceMember = 9044,
         ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers = 9045,
+        ERR_BadAbstractEqualityOperatorSignature = 9046,
+        ERR_BadBinaryReadOnlySpanConcatenation = 9047,
 
         #endregion
 

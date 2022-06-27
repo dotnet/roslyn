@@ -1,3 +1,4 @@
+Microsoft.CodeAnalysis.CSharp.Conversion.ConstrainedToType.get -> Microsoft.CodeAnalysis.ITypeSymbol?
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.InterpolatedMultiLineRawStringStartToken = 9073 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.InterpolatedRawStringEndToken = 9074 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.InterpolatedSingleLineRawStringStartToken = 9072 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
@@ -52,10 +53,10 @@ static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.OperatorMemberCref(Microsoft.
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ConversionOperatorMemberCref(Microsoft.CodeAnalysis.SyntaxToken implicitOrExplicitKeyword, Microsoft.CodeAnalysis.SyntaxToken operatorKeyword, Microsoft.CodeAnalysis.SyntaxToken checkedKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax! type, Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterListSyntax? parameters) -> Microsoft.CodeAnalysis.CSharp.Syntax.ConversionOperatorMemberCrefSyntax!
 static Microsoft.CodeAnalysis.CSharp.SyntaxFacts.IsCheckedOperator(string! operatorMetadataName) -> bool
 *REMOVED*Microsoft.CodeAnalysis.CSharp.SyntaxKind.ExclamationExclamationToken = 8285 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
-Microsoft.CodeAnalysis.CSharp.SyntaxKind.UTF8StringLiteralExpression = 8756 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
-Microsoft.CodeAnalysis.CSharp.SyntaxKind.UTF8StringLiteralToken = 8520 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
-Microsoft.CodeAnalysis.CSharp.SyntaxKind.UTF8SingleLineRawStringLiteralToken = 8521 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
-Microsoft.CodeAnalysis.CSharp.SyntaxKind.UTF8MultiLineRawStringLiteralToken = 8522 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.Utf8StringLiteralExpression = 8756 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.Utf8StringLiteralToken = 8520 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.Utf8SingleLineRawStringLiteralToken = 8521 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.Utf8MultiLineRawStringLiteralToken = 8522 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken = 8287 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.GreaterThanGreaterThanGreaterThanToken = 8286 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind

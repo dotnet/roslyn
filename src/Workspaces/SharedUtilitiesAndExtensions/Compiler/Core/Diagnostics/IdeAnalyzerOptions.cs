@@ -16,7 +16,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 [DataContract]
 internal sealed record class IdeAnalyzerOptions
 {
-    public static readonly CodeStyleOption2<bool> DefaultPreferSystemHashCode = new(value: true, notification: NotificationOption2.Suggestion);
+    private static readonly CodeStyleOption2<bool> s_defaultPreferSystemHashCode =
+        new(value: true, notification: NotificationOption2.Suggestion);
 
     public static readonly IdeAnalyzerOptions CodeStyleDefault = new()
     {
@@ -27,32 +28,36 @@ internal sealed record class IdeAnalyzerOptions
 
     public static readonly IdeAnalyzerOptions CommonDefault = new();
 
-    [DataMember(Order = 0)] public bool CrashOnAnalyzerException { get; init; } = false;
-    [DataMember(Order = 1)] public bool FadeOutUnusedImports { get; init; } = true;
-    [DataMember(Order = 2)] public bool FadeOutUnreachableCode { get; init; } = true;
-    [DataMember(Order = 3)] public bool FadeOutComplexObjectInitialization { get; init; } = false;
-    [DataMember(Order = 4)] public bool FadeOutComplexCollectionInitialization { get; init; } = false;
-    [DataMember(Order = 5)] public bool ReportInvalidPlaceholdersInStringDotFormatCalls { get; init; } = true;
-    [DataMember(Order = 6)] public bool ReportInvalidRegexPatterns { get; init; } = true;
-    [DataMember(Order = 7)] public bool ReportInvalidJsonPatterns { get; init; } = true;
-    [DataMember(Order = 8)] public bool DetectAndOfferEditorFeaturesForProbableJsonStrings { get; init; } = true;
-    [DataMember(Order = 9)] public CodeStyleOption2<bool> PreferSystemHashCode { get; init; } = DefaultPreferSystemHashCode;
+    [DataMember] public bool CrashOnAnalyzerException { get; init; } = false;
+    [DataMember] public bool FadeOutUnusedImports { get; init; } = true;
+    [DataMember] public bool FadeOutUnreachableCode { get; init; } = true;
+    [DataMember] public bool FadeOutComplexObjectInitialization { get; init; } = false;
+    [DataMember] public bool FadeOutComplexCollectionInitialization { get; init; } = false;
+    [DataMember] public bool ReportInvalidPlaceholdersInStringDotFormatCalls { get; init; } = true;
+    [DataMember] public bool ReportInvalidRegexPatterns { get; init; } = true;
+    [DataMember] public bool ReportInvalidJsonPatterns { get; init; } = true;
+    [DataMember] public bool DetectAndOfferEditorFeaturesForProbableJsonStrings { get; init; } = true;
+    [DataMember] public CodeStyleOption2<bool> PreferSystemHashCode { get; init; } = s_defaultPreferSystemHashCode;
 
     /// <summary>
     /// Default values for <see cref="CleanCodeGenerationOptions"/>, or null if not available (the project language does not support these options).
     /// </summary>
-    [DataMember(Order = 10)] public CleanCodeGenerationOptions? CleanCodeGenerationOptions { get; init; } = null;
+    [DataMember] public CleanCodeGenerationOptions? CleanCodeGenerationOptions { get; init; } = null;
 
     /// <summary>
     /// Default values for <see cref="IdeCodeStyleOptions"/>, or null if not available (the project language does not support these options).
     /// </summary>
-    [DataMember(Order = 11)] public IdeCodeStyleOptions? CodeStyleOptions { get; init; } = null;
+    [DataMember] public IdeCodeStyleOptions? CodeStyleOptions { get; init; } = null;
 
     public CodeCleanupOptions? CleanupOptions => CleanCodeGenerationOptions?.CleanupOptions;
     public CodeGenerationOptions? GenerationOptions => CleanCodeGenerationOptions?.GenerationOptions;
 
 #if !CODE_STYLE
     public static IdeAnalyzerOptions GetDefault(HostLanguageServices languageServices)
-        => new() { CleanCodeGenerationOptions = CodeGeneration.CleanCodeGenerationOptions.GetDefault(languageServices) };
+        => new()
+        {
+            CleanCodeGenerationOptions = CodeGeneration.CleanCodeGenerationOptions.GetDefault(languageServices),
+            CodeStyleOptions = IdeCodeStyleOptions.GetDefault(languageServices),
+        };
 #endif
 }
