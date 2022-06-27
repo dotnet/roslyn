@@ -92,12 +92,6 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             return result;
         }
 
-        public int Capacity
-        {
-            get => _builder.Capacity;
-            set => _builder.Capacity = value;
-        }
-
         public int Count
         {
             get
