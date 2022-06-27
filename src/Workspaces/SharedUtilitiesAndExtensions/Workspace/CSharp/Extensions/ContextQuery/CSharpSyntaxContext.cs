@@ -111,6 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             bool isTypeOfExpressionContext,
             bool isWithinAsyncMethod,
             ISet<SyntaxKind> precedingModifiers,
+            SyntaxNode? declarationOfInheritingSymbol,
             CancellationToken cancellationToken)
             : base(
                   document,
@@ -144,6 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                   isTaskLikeTypeContext: isTaskLikeTypeContext,
                   isTypeContext: isTypeContext,
                   isWithinAsyncMethod: isWithinAsyncMethod,
+                  declarationOfInheritingSymbol: declarationOfInheritingSymbol,
                   cancellationToken)
         {
             this.ContainingTypeDeclaration = containingTypeDeclaration;
@@ -303,6 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 isTypeOfExpressionContext: syntaxTree.IsTypeOfExpressionContext(position, leftToken),
                 isWithinAsyncMethod: ComputeIsWithinAsyncMethod(),
                 precedingModifiers: precedingModifiers,
+                declarationOfInheritingSymbol: targetToken.GetAncestor<BaseListSyntax>()?.Parent,
                 cancellationToken: cancellationToken);
         }
 

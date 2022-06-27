@@ -58,6 +58,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 
         public bool IsInheritanceContext => IsBaseClassContext || IsBaseInterfaceContext || IsBaseRecordContext;
 
+        /// <summary>
+        /// When <see cref="IsInheritanceContext"/> is <see langword="true"/> contains syntax node of symbol inheriting from.
+        /// For instance for code snippet <c>class C : $$</c> it will contain ClassDeclarationSyntax for <c>C</c>.
+        /// Otherwise the value of this property is not defined (not guaranteed to be <see langword="null"/>)
+        /// </summary>
+        public SyntaxNode? DeclarationOfInheritingSymbol { get; }
+
         protected SyntaxContext(
             Document document,
             SemanticModel semanticModel,
@@ -90,6 +97,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             bool isTaskLikeTypeContext,
             bool isTypeContext,
             bool isWithinAsyncMethod,
+            SyntaxNode? declarationOfInheritingSymbol,
             CancellationToken cancellationToken)
         {
             this.Document = document;
@@ -127,6 +135,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             this.IsWithinAsyncMethod = isWithinAsyncMethod;
 
             this.InferredTypes = document.GetRequiredLanguageService<ITypeInferenceService>().InferTypes(semanticModel, position, cancellationToken);
+            this.DeclarationOfInheritingSymbol = declarationOfInheritingSymbol;
         }
 
         public TService? GetLanguageService<TService>() where TService : class, ILanguageService

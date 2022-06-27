@@ -3000,12 +3000,62 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         }
 
         public static bool IsBaseClassContext(this SyntaxTree syntaxTree, SyntaxToken targetToken)
-            => targetToken.IsKind(SyntaxKind.ColonToken) && targetToken.Parent is BaseListSyntax { Parent: ClassDeclarationSyntax };
+        {
+            var possibleBaseListSyntax = targetToken.GetAncestor<BaseListSyntax>();
+            var possibleBaseTypeSyntax = targetToken.GetAncestor<BaseTypeSyntax>();
+
+            if (possibleBaseListSyntax is null ||
+                !possibleBaseListSyntax.IsParentKind(SyntaxKind.ClassDeclaration))
+            {
+                return false;
+            }
+
+            // We are in a non-written base type, e.g. "class C : $$"
+            if (possibleBaseTypeSyntax is null)
+            {
+                return targetToken.IsKind(SyntaxKind.ColonToken);
+            }
+
+            // 1. Current base type must be the first in the base list, because class inheritance is valid only at the first position in the base list
+            // 2. The only available child types are qualified names. If there are generic names or whatever else,
+            // then it is not directly inheritance context and our restrictions are not valid there
+            return possibleBaseListSyntax.Types[0].Equals(possibleBaseTypeSyntax) &&
+                   possibleBaseTypeSyntax.Type is QualifiedNameSyntax { Right: IdentifierNameSyntax };
+        }
 
         public static bool IsBaseInterfaceContext(this SyntaxTree syntaxTree, SyntaxToken targetToken)
-            => targetToken.Parent is BaseListSyntax { Parent: ClassDeclarationSyntax or InterfaceDeclarationSyntax or StructDeclarationSyntax or RecordDeclarationSyntax };
+        {
+            var possibleBaseListSyntax = targetToken.GetAncestor<BaseListSyntax>();
+            var possibleBaseTypeSyntax = targetToken.GetAncestor<BaseTypeSyntax>();
+
+            // The only available child types are qualified names. If there are generic names or whatever else,
+            // then it is not directly inheritance context and our restrictions are not valid there
+            return possibleBaseListSyntax is not null &&
+                   (possibleBaseTypeSyntax is null || possibleBaseTypeSyntax.Type is QualifiedNameSyntax { Right: IdentifierNameSyntax });
+        }
 
         public static bool IsBaseRecordContext(this SyntaxTree syntaxTree, SyntaxToken targetToken)
-            => targetToken.IsKind(SyntaxKind.ColonToken) && targetToken.Parent is BaseListSyntax { Parent: RecordDeclarationSyntax };
+        {
+            var possibleBaseListSyntax = targetToken.GetAncestor<BaseListSyntax>();
+            var possibleBaseTypeSyntax = targetToken.GetAncestor<BaseTypeSyntax>();
+
+            if (possibleBaseListSyntax is null ||
+                !possibleBaseListSyntax.IsParentKind(SyntaxKind.RecordDeclaration))
+            {
+                return false;
+            }
+
+            // We are in a non-written base type, e.g. "record R : $$"
+            if (possibleBaseTypeSyntax is null)
+            {
+                return targetToken.IsKind(SyntaxKind.ColonToken);
+            }
+
+            // 1. Current base type must be the first in the base list, because record inheritance is valid only at the first position in the base list
+            // 2. The only available child types are qualified names. If there are generic names or whatever else,
+            // then it is not directly inheritance context and our restrictions are not valid there
+            return possibleBaseListSyntax.Types[0].Equals(possibleBaseTypeSyntax) &&
+                   possibleBaseTypeSyntax.Type is QualifiedNameSyntax { Right: IdentifierNameSyntax };
+        }
     }
 }

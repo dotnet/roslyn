@@ -80,6 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             isTaskLikeTypeContext As Boolean,
             isTypeContext As Boolean,
             isWithinAsyncMethod As Boolean,
+            declarationOfInheritingSymbol As SyntaxNode,
             cancellationToken As CancellationToken
         )
             MyBase.New(
@@ -114,6 +115,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 isTaskLikeTypeContext:=isTaskLikeTypeContext,
                 isTypeContext:=isTypeContext,
                 isWithinAsyncMethod:=isWithinAsyncMethod,
+                declarationOfInheritingSymbol:=declarationOfInheritingSymbol,
                 cancellationToken:=cancellationToken)
 
             Dim syntaxTree = semanticModel.SyntaxTree
@@ -178,6 +180,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                    Not targetToken.HasAncestor(Of InterfaceBlockSyntax)()
         End Function
 
+        Private Shared Function ComputeDeclarationOfInheritingSymbol(targetToken As SyntaxToken) As SyntaxNode
+            Dim inheritsStatementAncestor = targetToken.GetAncestor(Of InheritsStatementSyntax)()
+            Dim implementsStatementAncestor = targetToken.GetAncestor(Of ImplementsStatementSyntax)()
+
+            If inheritsStatementAncestor IsNot Nothing Then
+                Return inheritsStatementAncestor.Parent
+            End If
+
+            If implementsStatementAncestor IsNot Nothing Then
+                Return implementsStatementAncestor.Parent
+            End If
+
+            Return Nothing
+        End Function
+
         Private Shared Shadows Function ComputeIsWithinAsyncMethod(targetToken As SyntaxToken) As Boolean
             Dim enclosingMethod = targetToken.GetAncestor(Of MethodBlockBaseSyntax)()
             Return enclosingMethod IsNot Nothing AndAlso enclosingMethod.BlockStatement.Modifiers.Any(SyntaxKind.AsyncKeyword)
@@ -223,6 +240,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 isTaskLikeTypeContext:=ComputeIsTaskLikeTypeContext(targetToken),
                 isTypeContext:=syntaxTree.IsTypeContext(position, targetToken, cancellationToken, semanticModel),
                 isWithinAsyncMethod:=ComputeIsWithinAsyncMethod(targetToken),
+                declarationOfInheritingSymbol:=ComputeDeclarationOfInheritingSymbol(targetToken),
                 cancellationToken:=cancellationToken)
         End Function
 

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -47,17 +48,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 // Just filter valid symbols. Nothing to preselect
                 return recommendedSymbols.NamedSymbols.SelectAsArray(IsValidForGenericConstraintContext, s => (s, preselect: false));
             }
-            // When inheriting from a class/record in C# both classes/records and interfaces are valid completions,
-            // so we need to check it all in one go
             else if (context.IsInheritanceContext)
             {
-                INamedTypeSymbol? inheritingFrom = null;
+                Debug.Assert(context.DeclarationOfInheritingSymbol is not null, $"{nameof(context.DeclarationOfInheritingSymbol)} must never be null here");
 
-                // We know for sure that in both C# and VB syntax, that represents a type,
-                // is 2 steps up relatively to our current position
-                if (context.TargetToken.Parent?.Parent is not null and var typeSyntax)
-                    inheritingFrom = context.SemanticModel.GetDeclaredSymbol(typeSyntax, cancellationToken) as INamedTypeSymbol;
-
+                var inheritingFrom = context.SemanticModel.GetDeclaredSymbol(context.DeclarationOfInheritingSymbol, cancellationToken) as INamedTypeSymbol;
                 return recommendedSymbols.NamedSymbols.SelectAsArray(s => IsValidForInheritanceContext(s, inheritingFrom, context), s => (s, preselect: false));
             }
             else

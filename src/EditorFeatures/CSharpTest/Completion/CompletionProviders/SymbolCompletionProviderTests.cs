@@ -1501,76 +1501,103 @@ class CL<T> where T : A, $$", @"Test");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"class CL : B, $$"), @"System");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task BaseList_Class_PartiallyWritten()
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("")]
+        [InlineData("MyNameSpace.")]
+        public async Task BaseList_Class_PartiallyWritten(string qualification)
         {
-            await VerifyItemExistsAsync(@"
-class BaseClass {}
+            await VerifyItemExistsAsync($@"
+namespace MyNameSpace;
 
-class C : Base$$
+class BaseClass {{}}
+
+class C : {qualification}Base$$
 ", "BaseClass");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task NotDirectlyBaseList_Class_AsGenericArgument()
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [CombinatorialData]
+        public async Task NotDirectlyBaseList_Class_AsGenericArgument(
+            [CombinatorialValues("", "System.Collections.Generic.")] string qualification1,
+            [CombinatorialValues("", "MyNameSpace.")] string qualification2)
         {
-            await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"
-class C {}
+            await VerifyItemExistsAsync(AddUsingDirectives("using System.Collections.Generic;", $@"
+namespace MyNameSpace;
 
-class B : IEnumerable<$$
+class C {{}}
+
+class B : {qualification1}IEnumerable<{qualification2}$$
 "), "C");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task BaseList_NotStaticClass()
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("")]
+        [InlineData("MyNameSpace.")]
+        public async Task BaseList_NotStaticClass(string qualification)
         {
-            await VerifyItemIsAbsentAsync(@"
-static class C {}
+            await VerifyItemIsAbsentAsync($@"
+namespace MyNameSpace;
 
-class B : $$
+static class C {{}}
+
+class B : {qualification}$$
 ", "C");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task BaseList_NotSealedClass()
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("")]
+        [InlineData("MyNameSpace.")]
+        public async Task BaseList_NotSealedClass(string qualification)
         {
-            await VerifyItemIsAbsentAsync(@"
-sealed class C {}
+            await VerifyItemIsAbsentAsync($@"
+namespace MyNameSpace;
 
-class B : $$
+sealed class C {{}}
+
+class B : {qualification}$$
 ", "C");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task BaseList_StaticClass_ValidNestedTypes()
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("")]
+        [InlineData("MyNameSpace.")]
+        public async Task BaseList_StaticClass_ValidNestedTypes(string qualification)
         {
-            await VerifyItemExistsAsync(@"
+            await VerifyItemExistsAsync($@"
+namespace MyNameSpace;
+
 static class C
-{
-    class N {}
-}
+{{
+    class N {{}}
+}}
 
-class B : $$
+class B : {qualification}$$
 ", "C");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task BaseList_SealedClass_ValidNestedTypes()
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("")]
+        [InlineData("MyNameSpace.")]
+        public async Task BaseList_SealedClass_ValidNestedTypes(string qualification)
         {
-            await VerifyItemExistsAsync(@"
+            await VerifyItemExistsAsync($@"
+namespace MyNameSpace;
+
 sealed class C
-{
-    class N {}
-}
+{{
+    class N {{}}
+}}
 
-class B : $$
+class B : {qualification}$$
 ", "C");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task BaseList_NotSpecialTypes()
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("")]
+        [InlineData("System.")]
+        public async Task BaseList_NotSpecialTypes(string qualification)
         {
-            var markup = AddUsingDirectives("using System;", "class B: $$");
+            var markup = AddUsingDirectives("using System;", $"class B: {qualification}$$");
 
             await VerifyItemIsAbsentAsync(markup, "Enum");
             await VerifyItemIsAbsentAsync(markup, "ValueType");
@@ -1578,267 +1605,391 @@ class B : $$
             await VerifyItemIsAbsentAsync(markup, "Array");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task BaseList_NotClass_AlreadyHaveOne_Class()
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [CombinatorialData]
+        public async Task BaseList_NotClass_AlreadyHaveOne_Class(
+            [CombinatorialValues("", "MyNameSpace.")] string qualification1,
+            [CombinatorialValues("", "MyNameSpace.")] string qualification2)
         {
-            await VerifyItemIsAbsentAsync(@"
-class Base {}
-class C {}
+            await VerifyItemIsAbsentAsync($@"
+namespace MyNameSpace;
 
-class B : Base, $$
+class Base {{}}
+class C {{}}
+
+class B : {qualification1}Base, {qualification2}$$
 ", "C");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task BaseList_NotClass_AlreadyHaveOne_Interface()
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [CombinatorialData]
+        public async Task BaseList_NotClass_AlreadyHaveOne_Interface(
+            [CombinatorialValues("", "MyNameSpace.")] string qualification1,
+            [CombinatorialValues("", "MyNameSpace.")] string qualification2)
         {
-            await VerifyItemIsAbsentAsync(@"
-interface I {}
-class C {}
+            await VerifyItemIsAbsentAsync($@"
+namespace MyNameSpace;
 
-class B : I, $$
+interface I {{}}
+class C {{}}
+
+class B : {qualification1}I, {qualification2}$$
 ", "C");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task BaseList_Class_BeforeOtherItems()
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [CombinatorialData]
+        public async Task BaseList_Class_BeforeOtherItems(
+            [CombinatorialValues("", "MyNameSpace.")] string qualification1,
+            [CombinatorialValues("", "MyNameSpace.")] string qualification2)
         {
-            await VerifyItemExistsAsync(@"
-class Base {}
-interface I {}
+            await VerifyItemExistsAsync($@"
+namespace MyNameSpace;
 
-class B : $$, I
+class Base {{}}
+interface I {{}}
+
+class B : {qualification1}$$, {qualification2}I
 ", "Base");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task BaseList_Class_BeforeOtherItems_PartiallyWritten()
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [CombinatorialData]
+        public async Task BaseList_Class_BeforeOtherItems_PartiallyWritten(
+            [CombinatorialValues("", "MyNameSpace.")] string qualification1,
+            [CombinatorialValues("", "MyNameSpace.")] string qualification2)
         {
-            await VerifyItemExistsAsync(@"
-class BaseClass {}
-interface I {}
+            await VerifyItemExistsAsync($@"
+namespace MyNameSpace;
 
-class B : Base$$, I
+class BaseClass {{}}
+interface I {{}}
+
+class B : {qualification1}Base$$, {qualification2}I
 ", "BaseClass");
         }
 
         [WorkItem(60935, "https://github.com/dotnet/roslyn/issues/60935")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task BaseList_NotSelf()
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("")]
+        [InlineData("MyNameSpace.")]
+        public async Task BaseList_NotSelf(string qualification)
         {
-            await VerifyItemIsAbsentAsync(@"
-class B : $$
+            await VerifyItemIsAbsentAsync($@"
+namespace MyNameSpace;
+
+class B : {qualification}$$
 ", "B");
         }
 
         [WorkItem(60935, "https://github.com/dotnet/roslyn/issues/60935")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task BaseList_NotSelf_NestedClass()
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("")]
+        [InlineData("MyNameSpace.")]
+        public async Task BaseList_NotSelf_NestedClass(string qualification)
         {
-            await VerifyItemIsAbsentAsync(@"
-class B : $$
-{
-    class X {}
-}", "B");
+            await VerifyItemIsAbsentAsync($@"
+namespace MyNameSpace;
+
+class B : {qualification}$$
+{{
+    class X {{}}
+}}", "B");
         }
 
         [WorkItem(60935, "https://github.com/dotnet/roslyn/issues/60935")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task BaseList_Self_NestedInterface()
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("")]
+        [InlineData("MyNameSpace.")]
+        public async Task BaseList_Self_NestedInterface(string qualification)
         {
-            await VerifyItemExistsAsync(@"
-class B : $$
-{
-    interface I {}
-}", "B");
+            await VerifyItemExistsAsync($@"
+namespace MyNameSpace;
+
+class B : {qualification}$$
+{{
+    interface I {{}}
+}}", "B");
         }
 
         [WorkItem(60935, "https://github.com/dotnet/roslyn/issues/60935")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task NotDirectlyBaseList_Self()
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [CombinatorialData]
+        public async Task NotDirectlyBaseList_Self(
+            [CombinatorialValues("", "System.Collections.Generic.")] string qualification1,
+            [CombinatorialValues("", "MyNameSpace.")] string qualification2)
         {
-            await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"
-class B : IEnumerable<$$"), "B");
+            await VerifyItemExistsAsync(AddUsingDirectives("using System.Collections.Generic;", $@"
+namespace MyNameSpace;
+
+class B : {qualification1}IEnumerable<{qualification2}$$"), "B");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task BaseList_NotStruct()
-        {
-            await VerifyItemIsAbsentAsync(@"
-struct C {}
-
-class B : $$
-", "C");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task BaseList_Struct_ValidNestedType()
+        public async Task BaseList_GenericQualificationChain_Class()
         {
             await VerifyItemExistsAsync(@"
-struct C
+namespace MyNameSpace;
+
+class Test<T>
 {
-    class N {}
+    public class X {}
 }
 
-class B : $$
+class B : MyNameSpace.Test<int>.$$", "X");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task BaseList_GenericQualificationChain_Interface()
+        {
+            await VerifyItemExistsAsync(@"
+namespace MyNameSpace;
+
+class Test<T>
+{
+    public interface I {}
+}
+
+class B : MyNameSpace.Test<int>.$$", "I");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("")]
+        [InlineData("MyNameSpace.")]
+        public async Task BaseList_NotStruct(string qualification)
+        {
+            await VerifyItemIsAbsentAsync($@"
+namespace MyNameSpace;
+
+struct C {{}}
+
+class B : {qualification}$$
 ", "C");
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [InlineData("record")]
-        [InlineData("record class")]
-        [InlineData("record struct")]
-        public async Task BaseList_NotRecord(string recordType)
+        [InlineData("")]
+        [InlineData("MyNameSpace.")]
+        public async Task BaseList_Struct_ValidNestedType(string qualification)
+        {
+            await VerifyItemExistsAsync($@"
+namespace MyNameSpace;
+
+struct C
+{{
+    class N {{}}
+}}
+
+class B : {qualification}$$
+", "C");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [CombinatorialData]
+        public async Task BaseList_NotRecord(
+            [CombinatorialValues("record", "record class", "record struct")] string recordType,
+            [CombinatorialValues("", "MyNameSpace.")] string qualification)
         {
             await VerifyItemIsAbsentAsync($@"
+namespace MyNameSpace;
+
 {recordType} R {{}}
 
-class B : $$
+class B : {qualification}$$
 ", "R");
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [InlineData("record")]
-        [InlineData("record class")]
-        [InlineData("record struct")]
-        public async Task BaseList_Record_ValidNestedType(string recordType)
+        [CombinatorialData]
+        public async Task BaseList_Record_ValidNestedType(
+            [CombinatorialValues("record", "record class", "record struct")] string recordType,
+            [CombinatorialValues("", "MyNameSpace.")] string qualification)
         {
             await VerifyItemExistsAsync($@"
+namespace MyNameSpace;
+
 {recordType} R
 {{
     class N {{}}
 }}
 
-class B : $$
+class B : {qualification}$$
 ", "R");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task BaseList_NotEnum()
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("")]
+        [InlineData("MyNameSpace.")]
+        public async Task BaseList_NotEnum(string qualification)
         {
-            await VerifyItemIsAbsentAsync(@"
-enum C {}
+            await VerifyItemIsAbsentAsync($@"
+namespace MyNameSpace;
 
-class B : $$
+enum C {{}}
+
+class B : {qualification}$$
 ", "C");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task BaseList_NotDelegate()
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("")]
+        [InlineData("MyNameSpace.")]
+        public async Task BaseList_NotDelegate(string qualification)
         {
-            await VerifyItemIsAbsentAsync(@"
+            await VerifyItemIsAbsentAsync($@"
+namespace MyNameSpace;
+
 delegate void C();
 
-class B : $$
+class B : {qualification}$$
 ", "C");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task BaseList_Interface()
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("")]
+        [InlineData("MyNameSpace.")]
+        public async Task BaseList_Interface(string qualification)
         {
-            await VerifyItemExistsAsync(@"
-interface I {}
+            await VerifyItemExistsAsync($@"
+namespace MyNameSpace;
 
-class B : $$
+interface I {{}}
+
+class B : {qualification}$$
 ", "I");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task BaseListStruct_NotClass()
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("")]
+        [InlineData("MyNameSpace.")]
+        public async Task BaseListStruct_NotClass(string qualification)
         {
-            await VerifyItemIsAbsentAsync(@"
-class C {}
+            await VerifyItemIsAbsentAsync($@"
+namespace MyNameSpace;
 
-struct B : $$
+class C {{}}
+
+struct B : {qualification}$$
 ", "C");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task BaseListStruct_Class_ValidNestedType()
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("")]
+        [InlineData("MyNameSpace.")]
+        public async Task BaseListStruct_Class_ValidNestedType(string qualification)
         {
-            await VerifyItemExistsAsync(@"
+            await VerifyItemExistsAsync($@"
+namespace MyNameSpace;
+
 class C
-{
-    interface I {}
-}
+{{
+    interface I {{}}
+}}
 
-struct B : $$
+struct B : {qualification}$$
 ", "C");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task BaseListStruct_Interface()
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("")]
+        [InlineData("MyNameSpace.")]
+        public async Task BaseListStruct_Interface(string qualification)
         {
-            await VerifyItemExistsAsync(@"
-interface I {}
+            await VerifyItemExistsAsync($@"
+namespace MyNameSpace;
 
-struct B : $$
+interface I {{}}
+
+struct B : {qualification}$$
 ", "I");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task BaseListInterface_Interface()
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("")]
+        [InlineData("MyNameSpace.")]
+        public async Task BaseListInterface_Interface(string qualification)
         {
-            await VerifyItemExistsAsync(@"
-interface I2 {}
+            await VerifyItemExistsAsync($@"
+namespace MyNameSpace;
 
-interface I1 : $$
+interface I2 {{}}
+
+interface I1 : {qualification}$$
 ", "I2");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task BaseListInterface_NotClass()
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("")]
+        [InlineData("MyNameSpace.")]
+        public async Task BaseListInterface_NotClass(string qualification)
         {
-            await VerifyItemIsAbsentAsync(@"
-class N {}
+            await VerifyItemIsAbsentAsync($@"
+namespace MyNameSpace;
 
-interface I : $$
+class N {{}}
+
+interface I : {qualification}$$
 ", "N");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task BaseListInterface_Class_ValidNestedType()
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("")]
+        [InlineData("MyNameSpace.")]
+        public async Task BaseListInterface_Class_ValidNestedType(string qualification)
         {
-            await VerifyItemExistsAsync(@"
-class N
-{
-    interface I2 {}
-}
+            await VerifyItemExistsAsync($@"
+namespace MyNameSpace;
 
-interface I : $$
+class N
+{{
+    interface I2 {{}}
+}}
+
+interface I : {qualification}$$
 ", "N");
         }
 
         [WorkItem(60935, "https://github.com/dotnet/roslyn/issues/60935")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task BaseListInterface_NotSelf()
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("")]
+        [InlineData("MyNameSpace.")]
+        public async Task BaseListInterface_NotSelf(string qualification)
         {
-            await VerifyItemIsAbsentAsync(@"
-interface I : $$
+            await VerifyItemIsAbsentAsync($@"
+namespace MyNameSpace;
+
+interface I : {qualification}$$
 ", "I");
         }
 
         [WorkItem(60935, "https://github.com/dotnet/roslyn/issues/60935")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task BaseListInterface_NotSelf_NestedInterface()
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("")]
+        [InlineData("MyNameSpace.")]
+        public async Task BaseListInterface_NotSelf_NestedInterface(string qualification)
         {
-            await VerifyItemIsAbsentAsync(@"
-interface I : $$
-{
-    interface I2 {}
-}", "I");
+            await VerifyItemIsAbsentAsync($@"
+namespace MyNameSpace;
+
+interface I : {qualification}$$
+{{
+    interface I2 {{}}
+}}", "I");
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
         [CombinatorialData]
         public async Task BaseListRecord_RecordClass(
             [CombinatorialValues("record", "record class")] string recordType1,
-            [CombinatorialValues("record", "record class")] string recordType2)
+            [CombinatorialValues("record", "record class")] string recordType2,
+            [CombinatorialValues("", "MyNameSpace.")] string qualification)
         {
             await VerifyItemExistsAsync($@"
+namespace MyNameSpace;
+
 {recordType1} R {{}}
 
-{recordType2} B : $$
+{recordType2} B : {qualification}$$
 ", "R");
         }
 
@@ -1846,12 +1997,15 @@ interface I : $$
         [CombinatorialData]
         public async Task BaseListRecord_NotSealedRecordClass(
             [CombinatorialValues("record", "record class")] string recordType1,
-            [CombinatorialValues("record", "record class")] string recordType2)
+            [CombinatorialValues("record", "record class")] string recordType2,
+            [CombinatorialValues("", "MyNameSpace.")] string qualification)
         {
             await VerifyItemIsAbsentAsync($@"
+namespace MyNameSpace;
+
 sealed {recordType1} R {{}}
 
-{recordType2} B : $$
+{recordType2} B : {qualification}$$
 ", "R");
         }
 
@@ -1860,28 +2014,33 @@ sealed {recordType1} R {{}}
         public async Task BaseListRecord_SealedRecordClass_ValidNestedType(
             [CombinatorialValues("record", "record class")] string recordType1,
             [CombinatorialValues("record", "record class")] string recordType2,
-            [CombinatorialValues("record", "record class")] string recordType3)
+            [CombinatorialValues("record", "record class")] string recordType3,
+            [CombinatorialValues("", "MyNameSpace.")] string qualification)
         {
             await VerifyItemExistsAsync($@"
+namespace MyNameSpace;
+
 sealed {recordType1} R
 {{
     {recordType3} R2 {{}}
 }}
 
-{recordType2} B : $$
+{recordType2} B : {qualification}$$
 ", "R");
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [InlineData("record")]
-        [InlineData("record class")]
-        [InlineData("record struct")]
-        public async Task BaseListAnyRecord_NotRecordStruct(string recordType)
+        [CombinatorialData]
+        public async Task BaseListAnyRecord_NotRecordStruct(
+            [CombinatorialValues("record", "record class", "record struct")] string recordType,
+            [CombinatorialValues("", "MyNameSpace.")] string qualification)
         {
             await VerifyItemIsAbsentAsync($@"
+namespace MyNameSpace;
+
 record struct R {{}}
 
-{recordType} B : $$
+{recordType} B : {qualification}$$
 ", "R");
         }
 
@@ -1889,41 +2048,48 @@ record struct R {{}}
         [CombinatorialData]
         public async Task BaseListRecord_RecordStruct_ValidNestedType(
             [CombinatorialValues("record", "record class")] string recordType1,
-            [CombinatorialValues("record", "record class")] string recordType2)
+            [CombinatorialValues("record", "record class")] string recordType2,
+            [CombinatorialValues("", "MyNameSpace.")] string qualification)
         {
             await VerifyItemExistsAsync($@"
+namespace MyNameSpace;
+
 record struct R
 {{
     {recordType2} R2 {{}}
 }}
 
-{recordType1} B : $$
+{recordType1} B : {qualification}$$
 ", "R");
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [InlineData("record")]
-        [InlineData("record class")]
-        [InlineData("record struct")]
-        public async Task BaseListAnyRecord_Interface(string recordType)
+        [CombinatorialData]
+        public async Task BaseListAnyRecord_Interface(
+            [CombinatorialValues("record", "record class", "record struct")] string recordType,
+            [CombinatorialValues("", "MyNameSpace.")] string qualification)
         {
             await VerifyItemExistsAsync($@"
+namespace MyNameSpace;
+
 interface I {{}}
 
-{recordType} B : $$
+{recordType} B : {qualification}$$
 ", "I");
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [InlineData("record")]
-        [InlineData("record class")]
-        [InlineData("record struct")]
-        public async Task BaseListAnyRecord_NotClass(string recordType)
+        [CombinatorialData]
+        public async Task BaseListAnyRecord_NotClass(
+            [CombinatorialValues("record", "record class", "record struct")] string recordType,
+            [CombinatorialValues("", "MyNameSpace.")] string qualification)
         {
             await VerifyItemIsAbsentAsync($@"
+namespace MyNameSpace;
+
 class C {{}}
 
-{recordType} B : $$
+{recordType} B : {qualification}$$
 ", "C");
         }
 
@@ -1931,80 +2097,95 @@ class C {{}}
         [CombinatorialData]
         public async Task BaseListRecordClass_Class_ValidNestedType(
             [CombinatorialValues("record", "record class")] string recordType1,
-            [CombinatorialValues("record", "record class")] string recordType2)
+            [CombinatorialValues("record", "record class")] string recordType2,
+            [CombinatorialValues("", "MyNameSpace.")] string qualification)
         {
             await VerifyItemExistsAsync($@"
+namespace MyNameSpace;
+
 class C
 {{
     {recordType2} R {{}}
 }}
 
-{recordType1} B : $$
+{recordType1} B : {qualification}$$
 ", "C");
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [InlineData("record")]
-        [InlineData("record class")]
-        [InlineData("record struct")]
-        public async Task BaseListAnyRecord_NotEnum(string recordType)
+        [CombinatorialData]
+        public async Task BaseListAnyRecord_NotEnum(
+            [CombinatorialValues("record", "record class", "record struct")] string recordType,
+            [CombinatorialValues("", "MyNameSpace.")] string qualification)
         {
             await VerifyItemIsAbsentAsync($@"
+namespace MyNameSpace;
+
 enum C {{}}
 
-{recordType} B : $$
+{recordType} B : {qualification}$$
 ", "C");
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [InlineData("record")]
-        [InlineData("record class")]
-        [InlineData("record struct")]
-        public async Task BaseListAnyRecord_NotDelegate(string recordType)
+        [CombinatorialData]
+        public async Task BaseListAnyRecord_NotDelegate(
+            [CombinatorialValues("record", "record class", "record struct")] string recordType,
+            [CombinatorialValues("", "MyNameSpace.")] string qualification)
         {
             await VerifyItemIsAbsentAsync($@"
+namespace MyNameSpace;
+
 delegate void C();
 
-{recordType} B : $$
+{recordType} B : {qualification}$$
 ", "C");
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [InlineData("record")]
-        [InlineData("record class")]
-        public async Task BaseListRecordStruct_NotRecord(string recordType)
+        [CombinatorialData]
+        public async Task BaseListRecordStruct_NotRecord(
+            [CombinatorialValues("record", "record class")] string recordType,
+            [CombinatorialValues("", "MyNameSpace.")] string qualification)
         {
             await VerifyItemIsAbsentAsync($@"
+namespace MyNameSpace;
+
 {recordType} R {{}}
 
-record struct B : $$
+record struct B : {qualification}$$
 ", "R");
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [InlineData("record")]
-        [InlineData("record class")]
-        public async Task BaseListRecordStruct_Record_ValidNestedType(string recordType)
+        [CombinatorialData]
+        public async Task BaseListRecordStruct_Record_ValidNestedType(
+            [CombinatorialValues("record", "record class")] string recordType,
+            [CombinatorialValues("", "MyNameSpace.")] string qualification)
         {
             await VerifyItemExistsAsync($@"
+namespace MyNameSpace;
+
 {recordType} R
 {{
     interface I {{}}
 }}
 
-record struct B : $$
+record struct B : {qualification}$$
 ", "R");
         }
 
         [WorkItem(60935, "https://github.com/dotnet/roslyn/issues/60935")]
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [InlineData("record")]
-        [InlineData("record class")]
-        [InlineData("record struct")]
-        public async Task BaseListAnyRecord_NotSelf(string recordType)
+        [CombinatorialData]
+        public async Task BaseListAnyRecord_NotSelf(
+            [CombinatorialValues("record", "record class", "record struct")] string recordType,
+            [CombinatorialValues("", "MyNameSpace.")] string qualification)
         {
             await VerifyItemIsAbsentAsync($@"
-{recordType} B : $$
+namespace MyNameSpace;
+
+{recordType} B : {qualification}$$
 ", "B");
         }
 
@@ -2013,10 +2194,13 @@ record struct B : $$
         [CombinatorialData]
         public async Task BaseListAnyRecord_NotSelf_NestedRecord(
             [CombinatorialValues("record", "record class", "record struct")] string recordType1,
-            [CombinatorialValues("record", "record class", "record struct")] string recordType2)
+            [CombinatorialValues("record", "record class", "record struct")] string recordType2,
+            [CombinatorialValues("", "MyNameSpace.")] string qualification)
         {
             await VerifyItemIsAbsentAsync($@"
-{recordType1} B : $$
+namespace MyNameSpace;
+
+{recordType1} B : {qualification}$$
 {{
     {recordType2} R {{}}
 }}", "B");
@@ -2024,13 +2208,15 @@ record struct B : $$
 
         [WorkItem(60935, "https://github.com/dotnet/roslyn/issues/60935")]
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [InlineData("record")]
-        [InlineData("record class")]
-        [InlineData("record struct")]
-        public async Task BaseListAnyRecord_Self_NestedInterface(string recordType)
+        [CombinatorialData]
+        public async Task BaseListAnyRecord_Self_NestedInterface(
+            [CombinatorialValues("record", "record class", "record struct")] string recordType,
+            [CombinatorialValues("", "MyNameSpace.")] string qualification)
         {
             await VerifyItemExistsAsync($@"
-{recordType} B : $$
+namespace MyNameSpace;
+
+{recordType} B : {qualification}$$
 {{
     interface I {{}}
 }}", "B");
