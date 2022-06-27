@@ -548,24 +548,21 @@ namespace Microsoft.CodeAnalysis
                         return;
                     }
 
-                    if (_states is { Builder: var builder })
+                    if (_states is { } statesValue)
                     {
-                        builder.Add(state);
+                        statesValue.Add(state);
                         return;
                     }
 
                     if (_currentState != state)
                     {
                         _states = DequeuePooledItem(s_statesPool);
-                        builder = _states.Value.Builder;
-
-                        if (builder.Capacity < _items.Count)
-                            builder.Capacity *= 2;
+                        statesValue = _states.Value;
 
                         for (int i = 0, n = _items.Count - 1; i < n; i++)
-                            builder.Add(_currentState.Value);
+                            statesValue.Add(_currentState.Value);
 
-                        builder.Add(state);
+                        statesValue.Add(state);
                     }
                 }
 
