@@ -5558,5 +5558,57 @@ class C
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "obj").WithArguments("obj").WithLocation(28, 17)
                 );
         }
+
+        [Fact]
+        [WorkItem(60645, "https://github.com/dotnet/roslyn/issues/60645")]
+        public void TestLocalConstantIsUsedInLambdaAttribute()
+        {
+            var compilation = CreateCompilation(@"
+public class C
+{
+    public int P
+    {
+        get
+        {
+            const int X = 5;
+            var f = [My(X)] () => 0;
+            return f();
+        }
+    }
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(int i) { }
+}
+");
+            compilation.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(60645, "https://github.com/dotnet/roslyn/issues/60645")]
+        public void TestLocalConstantIsUsedInLambdaAttributeInConstantStringInterpolation()
+        {
+            var compilation = CreateCompilation(@"
+public class C
+{
+    public int P
+    {
+        get
+        {
+            const int X = 5;
+            var f = [My($""{X}, World"")] () => 0;
+            return f();
+        }
+    }
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string s) { }
+}
+");
+            compilation.VerifyDiagnostics();
+        }
     }
 }

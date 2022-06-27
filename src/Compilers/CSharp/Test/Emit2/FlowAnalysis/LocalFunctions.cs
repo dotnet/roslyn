@@ -1659,8 +1659,6 @@ public class C
 public class MyAttribute : System.Attribute
 {
     public MyAttribute(int i) { }
-
-    public MyAttribute(string s) { }
 }
 ");
             compilation.VerifyDiagnostics();
