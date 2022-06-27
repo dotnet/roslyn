@@ -487,7 +487,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return MangleName ? MetadataHelpers.ComposeAritySuffixedMetadataName(Name, Arity, this.AssociatedFileIdentifier()) : Name;
+                var fileIdentifier = this.AssociatedFileIdentifier();
+                return fileIdentifier != null || MangleName
+                    ? MetadataHelpers.ComposeAritySuffixedMetadataName(Name, Arity, fileIdentifier)
+                    : Name;
             }
         }
 
@@ -501,6 +504,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Should the name returned by Name property be mangled with [`arity] suffix in order to get metadata name.
         /// Must return False for a type with Arity == 0.
         /// </summary>
+        /// <remarks>
+        /// Some types with Arity > 0 still have MangleName == false. For example, EENamedTypeSymbol.
+        /// Note that other differences between source names and metadata names exist and are not controlled by this property,
+        /// such as the 'AssociatedFileIdentifier' prefix for file types.
+        /// </remarks>
         internal abstract bool MangleName
         {
             // Intentionally no default implementation to force consideration of appropriate implementation for each new subclass

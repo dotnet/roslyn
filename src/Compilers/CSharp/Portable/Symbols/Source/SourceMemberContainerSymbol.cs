@@ -926,7 +926,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return Arity > 0 || IsFile;
+                return Arity > 0;
             }
         }
 
