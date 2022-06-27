@@ -62,8 +62,8 @@ namespace Microsoft.CodeAnalysis
     /// <typeparam name="T">The type of the items tracked by this table</typeparam>
     internal sealed class NodeStateTable<T> : IStateTable
     {
-        private static readonly ConcurrentQueue<(ArrayBuilder<TableEntry> builder, PoolingStatistics statistics)> s_tableEntryPool = new();
-        private static readonly ConcurrentQueue<(ArrayBuilder<NodeStateEntry<T>> builder, PoolingStatistics statistics)> s_nodeStateEntryPool = new();
+        private static readonly ConcurrentQueue<(ImmutableArray<TableEntry>.Builder builder, PoolingStatistics statistics)> s_tableEntryPool = new();
+        private static readonly ConcurrentQueue<(ImmutableArray<NodeStateEntry<T>>.Builder builder, PoolingStatistics statistics)> s_nodeStateEntryPool = new();
 
         internal static NodeStateTable<T> Empty { get; } = new NodeStateTable<T>(ImmutableArray<TableEntry>.Empty, ImmutableArray<IncrementalGeneratorRunStep>.Empty, isCompacted: true, hasTrackedSteps: true);
 
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis
 
         public sealed class Builder
         {
-            private readonly (ArrayBuilder<TableEntry> builder, PoolingStatistics statistics) _states = DequeuePooledItem(s_tableEntryPool);
+            private readonly (ImmutableArray<TableEntry>.Builder builder, PoolingStatistics statistics) _states = DequeuePooledItem(s_tableEntryPool);
             private readonly NodeStateTable<T> _previous;
 
             private readonly string? _name;
@@ -426,12 +426,19 @@ namespace Microsoft.CodeAnalysis
             public int NumberOfTimesPooledWhenSparse;
         }
 
-        private static (ArrayBuilder<TValue> builder, PoolingStatistics statistics) DequeuePooledItem<TValue>(ConcurrentQueue<(ArrayBuilder<TValue>, PoolingStatistics)> queue)
-            => queue.TryDequeue(out var item) ? item : (ArrayBuilder<TValue>.GetInstance(), new PoolingStatistics());
+        private readonly record struct BuilderAndStatistics<TValue>
+        {
+            public readonly ImmutableArray<TValue>.Builder Builder;
+            public readonly PoolingStatistics Statistics;
+        }
+
+        private static (ImmutableArray<TValue>.Builder builder, PoolingStatistics statistics) DequeuePooledItem<TValue>(
+            ConcurrentQueue<(ImmutableArray<TValue>.Builder, PoolingStatistics)> queue)
+            => queue.TryDequeue(out var item) ? item : (ImmutableArray.CreateBuilder<TValue>(), new PoolingStatistics());
 
         private static void ReturnPooledItem<TValue>(
-            ConcurrentQueue<(ArrayBuilder<TValue> builder, PoolingStatistics statistics)> queue,
-            (ArrayBuilder<TValue> builder, PoolingStatistics statistics) item)
+            ConcurrentQueue<(ImmutableArray<TValue>.Builder builder, PoolingStatistics statistics)> queue,
+            (ImmutableArray<TValue>.Builder builder, PoolingStatistics statistics) item)
         {
             // Don't bother shrinking the array for arrays less than this capacity.  They're not going to be a
             // huge waste of space so we can just pool them forever.
