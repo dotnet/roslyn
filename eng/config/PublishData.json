@@ -97,15 +97,6 @@
       "vsMajorVersion": 17,
       "insertionTitlePrefix": "[d17.0]"
     },
-    "release/dev17.1": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "vsBranch": "rel/d17.1",
-      "vsMajorVersion": 17,
-      "insertionTitlePrefix": "[d17.1]"
-    },
     "release/dev17.2": {
       "nugetKind": [
         "Shipping",

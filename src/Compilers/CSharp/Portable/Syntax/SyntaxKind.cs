@@ -406,9 +406,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         UnmanagedKeyword = 8446,
         /// <summary>Represents <see langword="required"/>.</summary>
         RequiredKeyword = 8447,
+        /// <summary>Represents <see langword="scoped"/>.</summary>
+        ScopedKeyword = 8448,
 
         // when adding a contextual keyword following functions must be adapted:
-        // <see cref="SyntaxFacts.GetContextualKeywordKinds"/>
+        // <see cref="SyntaxFacts.GetContextualKeywordKinds()"/>
         // <see cref="SyntaxFacts.IsContextualKeyword(SyntaxKind)"/>
         // <see cref="SyntaxFacts.GetContextualKeywordKind(string)"/>
         // <see cref="SyntaxFacts.GetText(SyntaxKind)"/>
