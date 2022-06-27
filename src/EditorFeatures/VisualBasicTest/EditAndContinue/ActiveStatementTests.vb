@@ -5030,7 +5030,7 @@ End Class
             Dim active = GetActiveStatements(src1, src2)
 
             edits.VerifySemanticDiagnostics(active,
-                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "Yield 1", VBFeaturesResources.Yield_statement))
+                 Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "Iterator Function F()"))
         End Sub
 
         <Fact>
@@ -5148,7 +5148,7 @@ End Class
             Dim active = GetActiveStatements(src1, src2)
 
             edits.VerifySemanticDiagnostics(active,
-                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "Await", VBFeaturesResources.Await_expression))
+                Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "Async Function F()"))
         End Sub
 
         <Fact>
