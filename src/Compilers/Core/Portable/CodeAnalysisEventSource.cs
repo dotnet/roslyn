@@ -22,6 +22,9 @@ namespace Microsoft.CodeAnalysis
         {
             public const EventTask GeneratorDriverRunTime = (EventTask)1;
             public const EventTask SingleGeneratorRunTime = (EventTask)2;
+
+            public const EventTask PooledWhenSparse = (EventTask)3;
+            public const EventTask HalvedPooledCapacity = (EventTask)4;
         }
 
         private CodeAnalysisEventSource() { }
@@ -37,5 +40,13 @@ namespace Microsoft.CodeAnalysis
 
         [Event(4, Message = "Generator {0} ran for {2} ticks", Keywords = Keywords.Performance, Level = EventLevel.Informational, Opcode = EventOpcode.Stop, Task = Tasks.SingleGeneratorRunTime)]
         internal void StopSingleGeneratorRunTime(string generatorName, string assemblyPath, long elapsedTicks, string id) => WriteEvent(4, generatorName, assemblyPath, elapsedTicks, id);
+
+        [Event(5, Message = "Pooled when sparse: {0} {1}/{2}", Keywords = Keywords.Performance, Level = EventLevel.Informational, Task = Tasks.PooledWhenSparse)]
+        internal void PooledWhenSparseImpl(Type type, int count, int capacity, string id)
+            => WriteEvent(5, type.FullName, count, capacity, id);
+
+        [Event(6, Message = "Halved capacity: {0} {1}/{2}", Keywords = Keywords.Performance, Level = EventLevel.Informational, Task = Tasks.HalvedPooledCapacity)]
+        internal void HalvedCapacityImpl(Type type, int numberOfTimesPooledWhenSparse, int numberOfTimesPooled, string id)
+            => WriteEvent(6, type.FullName, numberOfTimesPooledWhenSparse, numberOfTimesPooled, id);
     }
 }

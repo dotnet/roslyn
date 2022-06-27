@@ -3,10 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -15,6 +16,8 @@ namespace Microsoft.CodeAnalysis
 {
     internal sealed class BatchNode<TInput> : IIncrementalGeneratorNode<ImmutableArray<TInput>>
     {
+        private static readonly ConcurrentQueue<BuilderAndStatistics<TInput>> s_builderPool = new();
+
         private readonly IIncrementalGeneratorNode<TInput> _sourceNode;
         private readonly IEqualityComparer<ImmutableArray<TInput>> _comparer;
         private readonly string? _name;
@@ -50,22 +53,7 @@ namespace Microsoft.CodeAnalysis
 
             var stopwatch = SharedStopwatch.StartNew();
 
-            var sourceValuesBuilder = ArrayBuilder<TInput>.GetInstance();
-            var sourceInputsBuilder = newTable.TrackIncrementalSteps ? ArrayBuilder<(IncrementalGeneratorRunStep InputStep, int OutputIndex)>.GetInstance() : null;
-
-            foreach (var entry in sourceTable)
-            {
-                // At this point, we can remove any 'Removed' items and ensure they're not in our list of states.
-                if (entry.State != EntryState.Removed)
-                    sourceValuesBuilder.Add(entry.Item);
-
-                // However, regardless of if the entry was removed or not, we still keep track of its step information
-                // so we can accurately report how long it took and what actually happened (for testing validation).
-                sourceInputsBuilder?.Add((entry.Step!, entry.OutputIndex));
-            }
-
-            var sourceValues = sourceValuesBuilder.ToImmutableAndFree();
-            var sourceInputs = newTable.TrackIncrementalSteps ? sourceInputsBuilder!.ToImmutableAndFree() : default;
+            var (sourceValues, sourceInputs) = GetValuesAndInputs(sourceTable, previousTable, newTable);
 
             if (previousTable.IsEmpty)
             {
@@ -80,6 +68,45 @@ namespace Microsoft.CodeAnalysis
             }
 
             return newTable.ToImmutableAndFree();
+        }
+
+        private (ImmutableArray<TInput>, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)>) GetValuesAndInputs(
+            NodeStateTable<TInput> sourceTable,
+            NodeStateTable<ImmutableArray<TInput>> previousTable,
+            NodeStateTable<ImmutableArray<TInput>>.Builder newTable)
+        {
+            var sourceValuesBuilder = s_builderPool.DequeuePooledItem();
+            try
+            {
+                var sourceInputsBuilder = newTable.TrackIncrementalSteps ? ArrayBuilder<(IncrementalGeneratorRunStep InputStep, int OutputIndex)>.GetInstance() : null;
+
+                foreach (var entry in sourceTable)
+                {
+                    // At this point, we can remove any 'Removed' items and ensure they're not in our list of states.
+                    if (entry.State != EntryState.Removed)
+                        sourceValuesBuilder.Add(entry.Item);
+
+                    // However, regardless of if the entry was removed or not, we still keep track of its step information
+                    // so we can accurately report how long it took and what actually happened (for testing validation).
+                    sourceInputsBuilder?.Add((entry.Step!, entry.OutputIndex));
+                }
+
+                var sourceInputs = newTable.TrackIncrementalSteps ? sourceInputsBuilder!.ToImmutableAndFree() : default;
+
+                // If we're producing the exact same values as the last time, then just point at the prior array
+                // wholesale to avoid a costly copy.
+                if (previousTable.Count == 1 &&
+                    sourceValuesBuilder.Builder.SequenceEqual(previousTable.Single().item, EqualityComparer<TInput>.Default))
+                {
+                    return (previousTable.Single().item, sourceInputs);
+                }
+
+                return (sourceValuesBuilder.ToImmutable(), sourceInputs);
+            }
+            finally
+            {
+                s_builderPool.ReturnPooledItem(sourceValuesBuilder);
+            }
         }
 
         public void RegisterOutput(IIncrementalGeneratorOutputNode output) => _sourceNode.RegisterOutput(output);
