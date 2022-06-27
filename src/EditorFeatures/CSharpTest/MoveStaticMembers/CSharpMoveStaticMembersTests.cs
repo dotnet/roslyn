@@ -2295,7 +2295,7 @@ namespace TestNs1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
-        public async Task TestSelectInKeyWordOfDeclaration1()
+        public async Task TestSelectInKeywordOfDeclaration1()
         {
             var initialMarkup = @"
 namespace TestNs1
@@ -2326,7 +2326,7 @@ namespace TestNs1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
-        public async Task TestSelectInKeyWordOfMulitFieldDeclaration()
+        public async Task TestSelectInKeywordOfMulitFieldDeclaration()
         {
             var initialMarkup = @"
 namespace TestNs1
@@ -2358,7 +2358,7 @@ namespace TestNs1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
-        public async Task TestSelectInKeyWordOfDeclaration2()
+        public async Task TestSelectInKeywordOfDeclaration2()
         {
             var initialMarkup = @"
 namespace TestNs1
