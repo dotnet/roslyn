@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private readonly ConversionKind _conversionKind;
 
-        internal CommonConversion(bool exists, bool isIdentity, bool isNumeric, bool isReference, bool isImplicit, bool isNullable, IMethodSymbol? methodSymbol)
+        internal CommonConversion(bool exists, bool isIdentity, bool isNumeric, bool isReference, bool isImplicit, bool isNullable, IMethodSymbol? methodSymbol, ITypeSymbol? constrainedToType)
         {
             _conversionKind = (exists ? ConversionKind.Exists : ConversionKind.None) |
                               (isIdentity ? ConversionKind.IsIdentity : ConversionKind.None) |
@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.Operations
                               (isImplicit ? ConversionKind.IsImplicit : ConversionKind.None) |
                               (isNullable ? ConversionKind.IsNullable : ConversionKind.None);
             MethodSymbol = methodSymbol;
+            ConstrainedToType = constrainedToType;
         }
 
         /// <summary>
@@ -78,5 +79,10 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Otherwise, returns null.
         /// </summary>
         public IMethodSymbol? MethodSymbol { get; }
+        /// <summary>
+        /// Type parameter which runtime type will be used to resolve virtual invocation of the <see cref="MethodSymbol" />, if any.
+        /// Null if <see cref="MethodSymbol" /> is resolved statically, or is null.
+        /// </summary>
+        public ITypeSymbol? ConstrainedToType { get; }
     }
 }

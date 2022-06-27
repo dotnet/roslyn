@@ -1908,7 +1908,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void NotUTF8StringLiteral_01()
+        public void NotUtf8StringLiteral_01()
         {
             string source = @"#line 1 ""file.cs""u8";
 
@@ -1930,7 +1930,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void NotUTF8StringLiteral_02()
+        public void NotUtf8StringLiteral_02()
         {
             string source = @"#line 1 @""file.cs""u8";
 
@@ -1951,7 +1951,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void NotUTF8StringLiteral_03()
+        public void NotUtf8StringLiteral_03()
         {
             string source = @"#line 1 ""file.cs""U8";
 
@@ -1973,7 +1973,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void NotUTF8StringLiteral_04()
+        public void NotUtf8StringLiteral_04()
         {
             string source = @"#line 1 @""file.cs""U8";
 
@@ -1994,7 +1994,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void NotUTF8StringLiteral_05()
+        public void NotUtf8StringLiteral_05()
         {
             string source = @"#line 1 """"""file.cs""""""u8";
 
@@ -2019,7 +2019,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void NotUTF8StringLiteral_06()
+        public void NotUtf8StringLiteral_06()
         {
             string source = @"#line 1 @""""""file.cs""""""u8";
 
@@ -2040,7 +2040,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void NotUTF8StringLiteral_07()
+        public void NotUtf8StringLiteral_07()
         {
             string source = @"#line 1 """"""file.cs""""""U8";
 
@@ -2065,7 +2065,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void NotUTF8StringLiteral_08()
+        public void NotUtf8StringLiteral_08()
         {
             string source = @"#line 1 @""""""file.cs""""""U8";
 
@@ -2086,7 +2086,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void NotUTF8StringLiteral_09()
+        public void NotUtf8StringLiteral_09()
         {
             string source = @"#line 1 """"""
 file.cs
@@ -2115,7 +2115,7 @@ file.cs
         }
 
         [Fact]
-        public void NotUTF8StringLiteral_10()
+        public void NotUtf8StringLiteral_10()
         {
             string source = @"#line 1 @""""""
 file.cs
@@ -2138,7 +2138,7 @@ file.cs
         }
 
         [Fact]
-        public void NotUTF8StringLiteral_11()
+        public void NotUtf8StringLiteral_11()
         {
             string source = @"#line 1 """"""
 file.cs
@@ -2167,7 +2167,7 @@ file.cs
         }
 
         [Fact]
-        public void NotUTF8StringLiteral_12()
+        public void NotUtf8StringLiteral_12()
         {
             string source = @"#line 1 @""""""
 file.cs
@@ -2190,7 +2190,7 @@ file.cs
         }
 
         [Fact]
-        public void NotUTF8StringLiteral_13()
+        public void NotUtf8StringLiteral_13()
         {
             string source = @"#line (1, 2)-(3, 4) ""file.cs""u8";
 
@@ -2228,7 +2228,7 @@ file.cs
         }
 
         [Fact]
-        public void NotUTF8StringLiteral_14()
+        public void NotUtf8StringLiteral_14()
         {
             string source = @"#line (1, 2)-(3, 4) @""file.cs""u8";
 
@@ -2266,7 +2266,7 @@ file.cs
         }
 
         [Fact]
-        public void NotUTF8StringLiteral_15()
+        public void NotUtf8StringLiteral_15()
         {
             string source = @"#line (1, 2)-(3, 4) """"""file.cs""""""u8";
 
@@ -2307,7 +2307,7 @@ file.cs
         }
 
         [Fact]
-        public void NotUTF8StringLiteral_16()
+        public void NotUtf8StringLiteral_16()
         {
             string source = @"#line (1, 2)-(3, 4) @""""""file.cs""""""u8";
 

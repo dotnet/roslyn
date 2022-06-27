@@ -2069,7 +2069,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ImplicitConversionOperatorCantBeChecked = 9024,
         ERR_CheckedOperatorNeedsMatch = 9025,
 
-        ERR_CannotBeConvertedToUTF8 = 9026,
+        ERR_CannotBeConvertedToUtf8 = 9026,
         ERR_MisplacedUnchecked = 9027,
         ERR_LineSpanDirectiveRequiresSpace = 9028,
 
