@@ -470,7 +470,8 @@ class Program
 @".class public sealed R extends [mscorlib]System.ValueType
 {
   .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = (01 00 00 00)
-  .field public int32& modreq([mscorlib]System.Runtime.CompilerServices.IsVolatile) F
+  .field public int32& modreq([mscorlib]System.Runtime.CompilerServices.IsVolatile) F1
+  .field public int32 modreq([mscorlib]System.Runtime.CompilerServices.IsVolatile)& F2
 }";
             var refA = CompileIL(sourceA);
 
@@ -481,14 +482,18 @@ class Program
     static void Main()
     {
         var r = new R();
-        Console.WriteLine(r.F);
+        Console.WriteLine(r.F1);
+        Console.WriteLine(r.F2);
     }
 }";
             var comp = CreateCompilation(sourceB, references: new[] { refA });
             comp.VerifyEmitDiagnostics(
-                // (7,29): error CS0570: 'R.F' is not supported by the language
-                //         Console.WriteLine(r.F);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "F").WithArguments("R.F").WithLocation(7, 29));
+                // (7,29): error CS0570: 'R.F1' is not supported by the language
+                //         Console.WriteLine(r.F1);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "F1").WithArguments("R.F1").WithLocation(7, 29),
+                // (8,29): error CS0570: 'R.F2' is not supported by the language
+                //         Console.WriteLine(r.F2);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "F2").WithArguments("R.F2").WithLocation(8, 29));
         }
 
         [Fact]
