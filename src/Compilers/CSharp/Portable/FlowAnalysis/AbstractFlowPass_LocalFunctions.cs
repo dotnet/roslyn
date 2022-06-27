@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -99,6 +100,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (localFuncSymbol.IsIterator)
             {
                 PendingBranches.Add(new PendingBranch(null, this.State, null));
+            }
+
+            ImmutableArray<BoundAttribute> boundAttributes = localFuncSymbol.GetBoundAttributes();
+            foreach (var attribute in boundAttributes)
+            {
+                VisitAttribute(attribute);
+            }
+
+            ImmutableArray<BoundAttribute> returnBoundAttributes = localFuncSymbol.GetReturnBoundAttributes();
+            foreach (var attribute in returnBoundAttributes)
+            {
+                VisitAttribute(attribute);
             }
 
             VisitAlways(localFunc.Body);

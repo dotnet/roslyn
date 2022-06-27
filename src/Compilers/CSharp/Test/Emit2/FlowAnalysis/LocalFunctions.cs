@@ -1635,5 +1635,63 @@ public class C
     }
 }").VerifyDiagnostics();
         }
+
+        [Fact]
+        [WorkItem(60645, "https://github.com/dotnet/roslyn/issues/60645")]
+        public void TestLocalConstantIsUsedInLocalFunctionAttribute()
+        {
+            var compilation = CreateCompilation(@"
+public class C
+{
+    public int P
+    {
+        get
+        {
+            const int X = 5;
+            return local1();
+
+            [My(X)]
+            int local1() => 0;
+        }
+    }
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(int i) { }
+
+    public MyAttribute(string s) { }
+}
+");
+            compilation.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(60645, "https://github.com/dotnet/roslyn/issues/60645")]
+        public void TestLocalConstantIsUsedInLocalFunctionAttributeInConstantStringInterpolation()
+        {
+            var compilation = CreateCompilation(@"
+public class C
+{
+    public int P
+    {
+        get
+        {
+            const string X = ""Hello"";
+            return local1();
+
+            [My($""{X}, World"")]
+            int local1() => 0;
+        }
+    }
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string s) { }
+}
+");
+            compilation.VerifyDiagnostics();
+        }
     }
 }
