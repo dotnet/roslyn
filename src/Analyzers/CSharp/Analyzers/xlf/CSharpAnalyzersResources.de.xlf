@@ -202,9 +202,9 @@
         <target state="translated">Unerreichbarer Code wurde entdeckt.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_UTF8_string_literal">
+      <trans-unit id="Use_Utf8_string_literal">
         <source>Use UTF-8 string literal</source>
-        <target state="translated">Verwenden des UTF-8-Zeichenfolgenliterals</target>
+        <target state="new">Use UTF-8 string literal</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_accessors">
