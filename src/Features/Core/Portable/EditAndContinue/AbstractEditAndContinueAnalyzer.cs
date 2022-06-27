@@ -454,7 +454,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// - a method, an indexer or a type (delegate) if the <paramref name="node"/> is a parameter,
         /// - a method or an type if the <paramref name="node"/> is a type parameter.
         /// </summary>
-        internal abstract bool TryGetAssociatedMemberDeclaration(SyntaxNode node, [NotNullWhen(true)] out SyntaxNode? declaration);
+        internal abstract bool TryGetAssociatedMemberDeclaration(SyntaxNode node, EditKind editKind, [NotNullWhen(true)] out SyntaxNode? declaration);
 
         internal abstract bool HasBackingField(SyntaxNode propertyDeclaration);
 
@@ -2655,7 +2655,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                         // Associated member declarations must be in the same document as the symbol, so we don't need to resolve their symbol.
                                         // In some cases the symbol even can't be resolved unambiguously. Consider e.g. resolving a method with its parameter deleted -
                                         // we wouldn't know which overload to resolve to.
-                                        if (TryGetAssociatedMemberDeclaration(oldDeclaration, out var oldAssociatedMemberDeclaration))
+                                        if (TryGetAssociatedMemberDeclaration(oldDeclaration, EditKind.Delete, out var oldAssociatedMemberDeclaration))
                                         {
                                             if (HasEdit(editMap, oldAssociatedMemberDeclaration, EditKind.Delete))
                                             {
@@ -2673,14 +2673,43 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                                 continue;
                                             }
 
-                                            // Deleting an ordinary method is allowed, and we store the newContainingSymbol in NewSymbol for later use
-                                            // We don't currently allow deleting virtual or abstract methods, because if those are in the middle of
-                                            // an inheritance chain then throwing a missing method exception is not expected
-                                            if (oldSymbol is IMethodSymbol { MethodKind: MethodKind.Ordinary, IsExtern: false, ContainingType.TypeKind: TypeKind.Class or TypeKind.Struct } &&
-                                                oldSymbol.GetSymbolModifiers() is { IsVirtual: false, IsAbstract: false, IsOverride: false })
+                                            if (oldSymbol.GetSymbolModifiers() is { IsVirtual: false, IsAbstract: false, IsOverride: false } &&
+                                                oldSymbol.ContainingType is { TypeKind: TypeKind.Class or TypeKind.Struct } &&
+                                                !oldSymbol.IsExtern)
                                             {
-                                                semanticEdits.Add(new SemanticEditInfo(editKind, symbolKey, syntaxMap, syntaxMapTree: null, partialType: null, deletedSymbolContainer: containingSymbolKey));
-                                                continue;
+                                                // Deleting an ordinary method is allowed, and we store the newContainingSymbol in NewSymbol for later use
+                                                // We don't currently allow deleting virtual or abstract methods, because if those are in the middle of
+                                                // an inheritance chain then throwing a missing method exception is not expected
+                                                if (oldSymbol is IMethodSymbol
+                                                    {
+                                                        MethodKind:
+                                                            MethodKind.Ordinary or
+                                                            MethodKind.Constructor or
+                                                            MethodKind.EventAdd or
+                                                            MethodKind.EventRemove or
+                                                            MethodKind.EventRaise or
+                                                            MethodKind.Conversion or
+                                                            MethodKind.UserDefinedOperator or
+                                                            MethodKind.PropertyGet or
+                                                            MethodKind.PropertySet
+                                                    })
+                                                {
+                                                    AddDeleteSemanticEdit(semanticEdits, oldSymbol, containingSymbolKey, syntaxMap, cancellationToken);
+                                                    continue;
+                                                }
+                                                else if (oldSymbol is IPropertySymbol propertySymbol)
+                                                {
+                                                    AddDeleteSemanticEdit(semanticEdits, propertySymbol.GetMethod, containingSymbolKey, syntaxMap, cancellationToken);
+                                                    AddDeleteSemanticEdit(semanticEdits, propertySymbol.SetMethod, containingSymbolKey, syntaxMap, cancellationToken);
+                                                    continue;
+                                                }
+                                                else if (oldSymbol is IEventSymbol eventSymbol)
+                                                {
+                                                    AddDeleteSemanticEdit(semanticEdits, eventSymbol.AddMethod, containingSymbolKey, syntaxMap, cancellationToken);
+                                                    AddDeleteSemanticEdit(semanticEdits, eventSymbol.RemoveMethod, containingSymbolKey, syntaxMap, cancellationToken);
+                                                    AddDeleteSemanticEdit(semanticEdits, eventSymbol.RaiseMethod, containingSymbolKey, syntaxMap, cancellationToken);
+                                                    continue;
+                                                }
                                             }
                                         }
 
@@ -2828,7 +2857,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                             editKind = SemanticEditKind.Update;
                                         }
                                     }
-                                    else if (TryGetAssociatedMemberDeclaration(newDeclaration, out var newAssociatedMemberDeclaration) &&
+                                    else if (TryGetAssociatedMemberDeclaration(newDeclaration, EditKind.Insert, out var newAssociatedMemberDeclaration) &&
                                              HasEdit(editMap, newAssociatedMemberDeclaration, EditKind.Insert))
                                     {
                                         // If the symbol is an accessor and the containing property/indexer/event declaration has also been inserted skip
@@ -3180,6 +3209,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     (newSymbol != null && newSymbol.DeclaringSyntaxReferences.Length == 1) ?
                         GetSymbolDeclarationSyntax(newSymbol.DeclaringSyntaxReferences.Single(), cancellationToken) : newNode);
             }
+        }
+
+        private static void AddDeleteSemanticEdit(ArrayBuilder<SemanticEditInfo> semanticEdits, ISymbol? symbol, SymbolKey containingSymbolKey, Func<SyntaxNode, SyntaxNode?>? syntaxMap, CancellationToken cancellationToken)
+        {
+            if (symbol is null)
+                return;
+
+            var symbolKey = SymbolKey.Create(symbol, cancellationToken);
+            semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Delete, symbolKey, syntaxMap, syntaxMapTree: null, partialType: null, deletedSymbolContainer: containingSymbolKey));
         }
 
         private ImmutableArray<(ISymbol? oldSymbol, ISymbol? newSymbol, EditKind editKind)> GetNamespaceSymbolEdits(
