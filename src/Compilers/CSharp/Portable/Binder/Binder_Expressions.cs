@@ -2814,7 +2814,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     CheckFeatureAvailability(declarationExpression, MessageID.IDS_FeatureExpressionVariablesInQueriesAndInitializers, diagnostics);
                 }
 
-                // PROTOTYPE: Test with 'out scoped R' and 'out scoped var', with -langversion:10 and -langversion:11.
                 bool isConst = false;
                 AliasSymbol alias;
                 var declType = BindVariableTypeWithAnnotations(declarationExpression, diagnostics, typeSyntax, ref isConst, out isVar, out alias);

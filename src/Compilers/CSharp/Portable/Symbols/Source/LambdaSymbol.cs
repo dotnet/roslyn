@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     type = parameterTypes[p];
                     refKind = parameterRefKinds[p];
-                    scope = DeclarationScope.Unscoped; // PROTOTYPE: DeclarationScope should be taken from delegate signature.
+                    scope = DeclarationScope.Unscoped; // https://github.com/dotnet/roslyn/issues/62080: DeclarationScope should be taken from delegate signature.
                 }
                 else
                 {

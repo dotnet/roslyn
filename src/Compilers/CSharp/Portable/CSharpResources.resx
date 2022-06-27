@@ -5069,7 +5069,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Fields of static readonly field '{0}' cannot be returned by writable reference</value>
   </data>
   <data name="ERR_RefReturnParameter" xml:space="preserve">
-    <value>Cannot return a parameter by reference '{0}' because it is not a ref or out parameter</value>
+    <value>Cannot return a parameter by reference '{0}' because it is not a ref parameter</value>
   </data>
   <data name="ERR_RefReturnParameter2" xml:space="preserve">
     <value>Cannot return by reference a member of parameter '{0}' because it is not a ref or out parameter</value>
@@ -5086,8 +5086,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_EscapeOther" xml:space="preserve">
     <value>Expression cannot be used in this context because it may indirectly expose variables outside of their declaration scope</value>
   </data>
-  <data name="ERR_EscapeLocal" xml:space="preserve">
-    <value>Cannot use local '{0}' in this context because it may expose referenced variables outside of their declaration scope</value>
+  <data name="ERR_EscapeVariable" xml:space="preserve">
+    <value>Cannot use variable '{0}' in this context because it may expose referenced variables outside of their declaration scope</value>
   </data>
   <data name="ERR_EscapeCall" xml:space="preserve">
     <value>Cannot use a result of '{0}' in this context because it may expose variables referenced by parameter '{1}' outside of their declaration scope</value>
@@ -6762,6 +6762,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_ScopedMismatchInParameterOfPartial" xml:space="preserve">
     <value>The 'scoped' modifier of parameter '{0}' doesn't match partial method declaration.</value>
+  </data>
+  <data name="ERR_FixedFieldMustNotBeRef" xml:space="preserve">
+    <value>A fixed field must not be a ref field.</value>
   </data>
 
   <data name="WRN_UseDefViolationPropertySupportedVersion" xml:space="preserve">

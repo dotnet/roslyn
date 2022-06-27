@@ -2309,7 +2309,6 @@ scoped ref struct B { }
             EOF();
         }
 
-        // PROTOTYPE: 'scoped' before type declaration should be an error.
         [Fact]
         public void Type_02()
         {
@@ -2471,7 +2470,6 @@ readonly scoped record struct C();
             EOF();
         }
 
-        // PROTOTYPE: Should `ref scoped` be a parse error in a return value? Or should plain `scoped` be parsed as a modifier as well?
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersionFacts.CSharpNext)]

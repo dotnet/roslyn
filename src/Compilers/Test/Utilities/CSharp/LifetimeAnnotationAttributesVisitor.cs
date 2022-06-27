@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
-    // PROTOTYPE: Share common base class with NativeIntegerAttributesVisitor.
     internal sealed class LifetimeAnnotationAttributesVisitor : CSharpSymbolVisitor
     {
         internal static string GetString(PEModuleSymbol module)

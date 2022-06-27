@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (parameterIndex > lastIndex) break;
 
-                CheckParameterModifiers(parameterSyntax, diagnostics, parsingFunctionPointer);
+                CheckParameterModifiers(parameterSyntax, diagnostics, parsingFunctionPointer, parsingLambdaParams: false);
 
                 var refKind = GetModifiers(parameterSyntax.Modifiers, out SyntaxToken refnessKeyword, out SyntaxToken paramsKeyword, out SyntaxToken thisKeyword, out DeclarationScope scope);
                 if (thisKeyword.Kind() != SyntaxKind.None && !allowThis)
@@ -397,20 +397,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static Location GetParameterLocation(ParameterSymbol parameter) => parameter.GetNonNullSyntaxNode().Location;
 
-        private static void CheckParameterModifiers(BaseParameterSyntax parameter, BindingDiagnosticBag diagnostics, bool parsingFunctionPointerParams)
+        internal static void CheckParameterModifiers(BaseParameterSyntax parameter, BindingDiagnosticBag diagnostics, bool parsingFunctionPointerParams, bool parsingLambdaParams)
         {
             var seenThis = false;
             var seenRef = false;
             var seenOut = false;
             var seenParams = false;
             var seenIn = false;
+            bool scopedBeforeRef = false;
+            bool scopedAfterRef = false;
 
             foreach (var modifier in parameter.Modifiers)
             {
                 switch (modifier.Kind())
                 {
                     case SyntaxKind.ThisKeyword:
-                        if (seenThis)
+                        if (parsingLambdaParams)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_ThisInBadContext, modifier.GetLocation());
+                        }
+                        else if (seenThis)
                         {
                             addERR_DupParamMod(diagnostics, modifier);
                         }
@@ -479,7 +485,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case SyntaxKind.ParamsKeyword when !parsingFunctionPointerParams:
-                        if (seenParams)
+                        if (parsingLambdaParams)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_IllegalParams, modifier.GetLocation());
+                        }
+                        else if (seenParams)
                         {
                             addERR_DupParamMod(diagnostics, modifier);
                         }
@@ -530,7 +540,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     case SyntaxKind.ScopedKeyword when !parsingFunctionPointerParams:
                         ModifierUtils.CheckScopedModifierAvailability(parameter, modifier, diagnostics);
-                        // PROTOTYPE: Check for duplicate modifiers; check ordering.
+                        {
+                            ref bool scopedBeforeOrAfter = ref (seenIn || seenOut || seenRef) ? ref scopedAfterRef : ref scopedBeforeRef;
+                            if (scopedBeforeOrAfter)
+                            {
+                                addERR_DupParamMod(diagnostics, modifier);
+                            }
+                            else
+                            {
+                                scopedBeforeOrAfter = true;
+                            }
+                        }
                         break;
 
                     case SyntaxKind.ParamsKeyword when parsingFunctionPointerParams:
@@ -827,7 +847,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
-        private static RefKind GetModifiers(SyntaxTokenList modifiers, out SyntaxToken refnessKeyword, out SyntaxToken paramsKeyword, out SyntaxToken thisKeyword, out DeclarationScope scope)
+        internal static RefKind GetModifiers(SyntaxTokenList modifiers, out SyntaxToken refnessKeyword, out SyntaxToken paramsKeyword, out SyntaxToken thisKeyword, out DeclarationScope scope)
         {
             var refKind = RefKind.None;
             bool scopedBeforeRef = false;

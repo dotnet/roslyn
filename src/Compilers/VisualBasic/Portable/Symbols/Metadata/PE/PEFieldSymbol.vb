@@ -350,7 +350,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Dim fieldInfo As FieldInfo(Of TypeSymbol) = New MetadataDecoder(moduleSymbol, _containingType).DecodeFieldSignature(_handle)
                 Dim type As TypeSymbol = fieldInfo.Type
 
-                ' PROTOTYPE: Report use-site diagnostic if fieldInfo.IsByRef.
+                ' https://github.com/dotnet/roslyn/issues/62121: Report use-site diagnostic if fieldInfo.IsByRef.
 
                 type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, _handle, moduleSymbol)
 

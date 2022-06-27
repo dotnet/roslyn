@@ -1723,7 +1723,7 @@ public class Test
     // (28,24): error CS8169: Cannot return a member of local 'l' by reference because it is not a ref local
     //             return ref l.x;
     Diagnostic(ErrorCode.ERR_RefReturnLocal2, "l").WithArguments("l").WithLocation(28, 24),
-    // (37,24): error CS8166: Cannot return a parameter by reference 'arg1' because it is not a ref or out parameter
+    // (37,24): error CS8166: Cannot return a parameter by reference 'arg1' because it is not a ref parameter
     //             return ref arg1;
     Diagnostic(ErrorCode.ERR_RefReturnParameter, "arg1").WithArguments("arg1").WithLocation(37, 24),
     // (46,24): error CS8167: Cannot return a member of parameter 'arg2' by reference because it is not a ref or out parameter
@@ -3496,7 +3496,7 @@ class Program
 ";
 
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
-                // (8,26): error CS8166: Cannot return a parameter by reference 'i' because it is not a ref or out parameter
+                // (8,26): error CS8166: Cannot return a parameter by reference 'i' because it is not a ref parameter
                 //         return ref d(ref i, ref j, o);
                 Diagnostic(ErrorCode.ERR_RefReturnParameter, "i").WithArguments("i").WithLocation(8, 26),
                 // (8,20): error CS8347: Cannot use a result of 'D.Invoke(ref int, ref int, object)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope

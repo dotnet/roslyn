@@ -141,57 +141,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        bool scopedBeforeRef = false;
-                        bool scopedAfterRef = false;
                         type = BindType(typeSyntax, diagnostics);
-                        foreach (var modifier in p.Modifiers)
-                        {
-                            switch (modifier.Kind())
-                            {
-                                case SyntaxKind.RefKeyword:
-                                    refKind = RefKind.Ref;
-                                    break;
-
-                                case SyntaxKind.OutKeyword:
-                                    refKind = RefKind.Out;
-                                    break;
-
-                                case SyntaxKind.InKeyword:
-                                    refKind = RefKind.In;
-                                    break;
-
-                                case SyntaxKind.ParamsKeyword:
-                                    // This was a parse error in the native compiler; 
-                                    // it is a semantic analysis error in Roslyn. See comments to
-                                    // changeset 1674 for details.
-                                    Error(diagnostics, ErrorCode.ERR_IllegalParams, p);
-                                    break;
-
-                                case SyntaxKind.ThisKeyword:
-                                    Error(diagnostics, ErrorCode.ERR_ThisInBadContext, modifier);
-                                    break;
-
-                                case SyntaxKind.ScopedKeyword:
-                                    ModifierUtils.CheckScopedModifierAvailability(p, modifier, diagnostics);
-                                    if (refKind == RefKind.None)
-                                    {
-                                        scopedBeforeRef = true;
-                                    }
-                                    else
-                                    {
-                                        scopedAfterRef = true;
-                                    }
-                                    break;
-                            }
-                        }
-                        if (scopedAfterRef)
-                        {
-                            scope = DeclarationScope.ValueScoped;
-                        }
-                        else if (scopedBeforeRef)
-                        {
-                            scope = (refKind == RefKind.None) ? DeclarationScope.ValueScoped : DeclarationScope.RefScoped;
-                        }
+                        ParameterHelpers.CheckParameterModifiers(p, diagnostics, parsingFunctionPointerParams: false, parsingLambdaParams: true);
+                        refKind = ParameterHelpers.GetModifiers(p.Modifiers, out _, out _, out _, out scope);
                     }
 
                     namesBuilder.Add(p.Identifier.ValueText);

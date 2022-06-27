@@ -1538,7 +1538,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_EscapeOther = 8349,
         ERR_CallArgMixing = 8350,
         ERR_MismatchedRefEscapeInTernary = 8351,
-        ERR_EscapeLocal = 8352,
+        ERR_EscapeVariable = 8352,
         ERR_EscapeStackAlloc = 8353,
         ERR_RefReturnThis = 8354,
         ERR_OutAttrOnInParam = 8355,
@@ -2095,6 +2095,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers = 9045,
         ERR_BadAbstractEqualityOperatorSignature = 9046,
         ERR_ScopedRefAndRefStructOnly = 9048,
+        ERR_FixedFieldMustNotBeRef = 9049,
 
         #endregion
 

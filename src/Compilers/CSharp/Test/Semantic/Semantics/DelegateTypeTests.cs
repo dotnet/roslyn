@@ -6463,22 +6463,22 @@ class Program
                 // (10,13): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         F1((ref int (i) => ref i));
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "ref int").WithArguments("lambda return type", "10.0").WithLocation(10, 13),
-                // (10,32): error CS8166: Cannot return a parameter by reference 'i' because it is not a ref or out parameter
+                // (10,32): error CS8166: Cannot return a parameter by reference 'i' because it is not a ref parameter
                 //         F1((ref int (i) => ref i));
                 Diagnostic(ErrorCode.ERR_RefReturnParameter, "i").WithArguments("i").WithLocation(10, 32),
                 // (11,13): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         F2((ref readonly string (s) => ref s));
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "ref readonly string").WithArguments("lambda return type", "10.0").WithLocation(11, 13),
-                // (11,44): error CS8166: Cannot return a parameter by reference 's' because it is not a ref or out parameter
+                // (11,44): error CS8166: Cannot return a parameter by reference 's' because it is not a ref parameter
                 //         F2((ref readonly string (s) => ref s));
                 Diagnostic(ErrorCode.ERR_RefReturnParameter, "s").WithArguments("s").WithLocation(11, 44));
 
             var expectedDiagnostics = new[]
             {
-                // (10,32): error CS8166: Cannot return a parameter by reference 'i' because it is not a ref or out parameter
+                // (10,32): error CS8166: Cannot return a parameter by reference 'i' because it is not a ref parameter
                 //         F1((ref int (i) => ref i));
                 Diagnostic(ErrorCode.ERR_RefReturnParameter, "i").WithArguments("i").WithLocation(10, 32),
-                // (11,44): error CS8166: Cannot return a parameter by reference 's' because it is not a ref or out parameter
+                // (11,44): error CS8166: Cannot return a parameter by reference 's' because it is not a ref parameter
                 //         F2((ref readonly string (s) => ref s));
                 Diagnostic(ErrorCode.ERR_RefReturnParameter, "s").WithArguments("s").WithLocation(11, 44)
             };

@@ -744,7 +744,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            Error(diagnostics, ErrorCode.ERR_EscapeLocal, node, localSymbol);
+            Error(diagnostics, ErrorCode.ERR_EscapeVariable, node, localSymbol);
             return false;
         }
 
@@ -813,8 +813,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var parameterSymbol = parameter.ParameterSymbol;
                 if (GetParameterValEscape(parameterSymbol) > escapeTo)
                 {
-                    // PROTOTYPE: Add specific error.
-                    Error(diagnostics, ErrorCode.ERR_EscapeLocal, node, parameterSymbol);
+                    Error(diagnostics, ErrorCode.ERR_EscapeVariable, node, parameterSymbol);
                     return false;
                 }
                 return true;
@@ -3232,7 +3231,7 @@ moreArguments:
                 case BoundKind.DeconstructValuePlaceholder:
                     if (((BoundDeconstructValuePlaceholder)expr).ValEscape > escapeTo)
                     {
-                        Error(diagnostics, ErrorCode.ERR_EscapeLocal, node, expr.Syntax);
+                        Error(diagnostics, ErrorCode.ERR_EscapeVariable, node, expr.Syntax);
                         return false;
                     }
                     return true;
@@ -3240,7 +3239,7 @@ moreArguments:
                 case BoundKind.AwaitableValuePlaceholder:
                     if (((BoundAwaitableValuePlaceholder)expr).ValEscape > escapeTo)
                     {
-                        Error(diagnostics, ErrorCode.ERR_EscapeLocal, node, expr.Syntax);
+                        Error(diagnostics, ErrorCode.ERR_EscapeVariable, node, expr.Syntax);
                         return false;
                     }
                     return true;
@@ -3248,7 +3247,7 @@ moreArguments:
                 case BoundKind.InterpolatedStringArgumentPlaceholder:
                     if (((BoundInterpolatedStringArgumentPlaceholder)expr).ValSafeToEscape > escapeTo)
                     {
-                        Error(diagnostics, ErrorCode.ERR_EscapeLocal, node, expr.Syntax);
+                        Error(diagnostics, ErrorCode.ERR_EscapeVariable, node, expr.Syntax);
                         return false;
                     }
                     return true;
@@ -3257,7 +3256,7 @@ moreArguments:
                     var localSymbol = ((BoundLocal)expr).LocalSymbol;
                     if (localSymbol.ValEscapeScope > escapeTo)
                     {
-                        Error(diagnostics, ErrorCode.ERR_EscapeLocal, node, localSymbol);
+                        Error(diagnostics, ErrorCode.ERR_EscapeVariable, node, localSymbol);
                         return false;
                     }
                     return true;
@@ -3374,7 +3373,7 @@ moreArguments:
                 case BoundKind.ImplicitIndexerReceiverPlaceholder:
                     if (((BoundImplicitIndexerReceiverPlaceholder)expr).ValEscape > escapeTo)
                     {
-                        Error(diagnostics, ErrorCode.ERR_EscapeLocal, node, expr.Syntax);
+                        Error(diagnostics, ErrorCode.ERR_EscapeVariable, node, expr.Syntax);
                         return false;
                     }
                     return true;
@@ -3382,7 +3381,7 @@ moreArguments:
                 case BoundKind.ListPatternReceiverPlaceholder:
                     if (((BoundListPatternReceiverPlaceholder)expr).ValEscape > escapeTo)
                     {
-                        Error(diagnostics, ErrorCode.ERR_EscapeLocal, node, expr.Syntax);
+                        Error(diagnostics, ErrorCode.ERR_EscapeVariable, node, expr.Syntax);
                         return false;
                     }
                     return true;
@@ -3390,7 +3389,7 @@ moreArguments:
                 case BoundKind.SlicePatternReceiverPlaceholder:
                     if (((BoundSlicePatternReceiverPlaceholder)expr).ValEscape > escapeTo)
                     {
-                        Error(diagnostics, ErrorCode.ERR_EscapeLocal, node, expr.Syntax);
+                        Error(diagnostics, ErrorCode.ERR_EscapeVariable, node, expr.Syntax);
                         return false;
                     }
                     return true;
