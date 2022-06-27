@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -13,9 +12,6 @@ using System.Windows.Controls;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -26,7 +22,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
-using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices
@@ -122,8 +117,10 @@ namespace Microsoft.VisualStudio.LanguageServices
             async ValueTask GetModelAsync(CancellationToken cancellationToken)
             {
                 await TaskScheduler.Default;
-                var response = await DocumentSymbolsRequestAsync(textBuffer, languageServiceBroker, cancellationToken).ConfigureAwait(false);
                 LspSnapshot = textView.TextSnapshot;
+                var response = await DocumentOutlineHelper.DocumentSymbolsRequestAsync(
+                    textBuffer, languageServiceBroker, _textViewFilePath, cancellationToken).ConfigureAwait(false);
+
                 if (response?.Response is not null)
                 {
                     var responseBody = response.Response.ToObject<DocumentSymbol[]>();
@@ -151,7 +148,6 @@ namespace Microsoft.VisualStudio.LanguageServices
 
                 // Switch to a background thread to filter and sort the model
                 await TaskScheduler.Default;
-
                 if (!string.IsNullOrWhiteSpace(searchQuery))
                     updatedSymbolsTreeItemsSource = DocumentOutlineHelper.Search(updatedSymbolsTreeItemsSource, searchQuery);
 
@@ -168,6 +164,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             {
                 if (TextView is not null && DocumentSymbolViewModelsIsInitialized)
                 {
+                    ThreadingContext.ThrowIfNotOnUIThread();
                     // Get the current snapshot, caret point, and document model on the UI thread
                     var currentSnapshot = TextBuffer.CurrentSnapshot;
                     var documentSymbolModelArray = ((IEnumerable<DocumentSymbolViewModel>)symbolTree.ItemsSource).ToImmutableArray();
@@ -177,27 +174,30 @@ namespace Microsoft.VisualStudio.LanguageServices
                         var caretPosition = caretPoint.Value.Position;
                         // Switch to a background thread to update UI selection
                         await TaskScheduler.Default;
-                        UnselectAll(documentSymbolModelArray);
+                        DocumentOutlineHelper.UnselectAll(documentSymbolModelArray);
                         DocumentOutlineHelper.SelectDocumentNode(documentSymbolModelArray, currentSnapshot, LspSnapshot, caretPosition);
-                    }
-                }
-
-                static void UnselectAll(ImmutableArray<DocumentSymbolViewModel> documentSymbolModels)
-                {
-                    foreach (var documentSymbolModel in documentSymbolModels)
-                    {
-                        documentSymbolModel.IsSelected = false;
-                        UnselectAll(documentSymbolModel.Children);
                     }
                 }
             }
 
-            void TextBuffer_Changed(object sender, TextContentChangedEventArgs e)
-                => _getModelQueue.AddWork();
-
-            TextView.Caret.PositionChanged += FollowCaret;
+            TextView.Caret.PositionChanged += Caret_PositionChanged;
             TextView.TextBuffer.Changed += TextBuffer_Changed;
 
+            StartGetModelTask();
+        }
+
+        private void TextBuffer_Changed(object sender, TextContentChangedEventArgs e)
+            => StartGetModelTask();
+
+        // On caret position change, highlight the corresponding symbol node
+        private void Caret_PositionChanged(object sender, CaretPositionChangedEventArgs e)
+            => StartHightlightNodeTask();
+
+        /// <summary>
+        /// Starts a new task to get the current document model.
+        /// </summary>
+        private void StartGetModelTask()
+        {
             _getModelQueue.AddWork();
         }
 
@@ -219,32 +219,9 @@ namespace Microsoft.VisualStudio.LanguageServices
                 _highlightNodeQueue.AddWork();
         }
 
-        private async Task<ManualInvocationResponse?> DocumentSymbolsRequestAsync(
-            ITextBuffer textBuffer,
-            ILanguageServiceBroker2 languageServiceBroker,
-            CancellationToken cancellationToken)
+        private string? GetFilePath(IWpfTextView textView)
         {
-            var parameterFactory = new DocumentSymbolParams()
-            {
-                TextDocument = new TextDocumentIdentifier()
-                {
-                    Uri = new Uri(_textViewFilePath)
-                }
-            };
-
-            // TODO: proper workaround such that context.ClientCapabilities?.TextDocument?.DocumentSymbol?.HierarchicalDocumentSymbolSupport == true
-            return await languageServiceBroker.RequestAsync(
-                textBuffer: textBuffer,
-                method: Methods.TextDocumentDocumentSymbolName,
-                capabilitiesFilter: (JToken x) => true,
-                languageServerName: WellKnownLspServerKinds.AlwaysActiveVSLspServer.ToUserVisibleString(),
-                parameterFactory: _ => JToken.FromObject(parameterFactory),
-                cancellationToken: cancellationToken).ConfigureAwait(false);
-        }
-
-        private static string? GetFilePath(IWpfTextView textView)
-        {
-            ThreadHelper.ThrowIfNotOnUIThread();
+            ThreadingContext.ThrowIfNotOnUIThread();
             if (textView.TextBuffer.Properties.TryGetProperty(typeof(IVsTextBuffer), out IVsTextBuffer bufferAdapter) &&
                 bufferAdapter is IPersistFileFormat persistFileFormat &&
                 ErrorHandler.Succeeded(persistFileFormat.GetCurFile(out var filePath, out _)))
@@ -257,21 +234,12 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         private void ExpandAll(object sender, RoutedEventArgs e)
         {
-            SetIsExpanded((IEnumerable<DocumentSymbolViewModel>)symbolTree.ItemsSource, true);
+            DocumentOutlineHelper.SetIsExpanded((IEnumerable<DocumentSymbolViewModel>)symbolTree.ItemsSource, true);
         }
 
         private void CollapseAll(object sender, RoutedEventArgs e)
         {
-            SetIsExpanded((IEnumerable<DocumentSymbolViewModel>)symbolTree.ItemsSource, false);
-        }
-
-        private void SetIsExpanded(IEnumerable<DocumentSymbolViewModel> documentSymbolModels, bool isExpanded)
-        {
-            foreach (var documentSymbolModel in documentSymbolModels)
-            {
-                documentSymbolModel.IsExpanded = isExpanded;
-                SetIsExpanded(documentSymbolModel.Children, isExpanded);
-            }
+            DocumentOutlineHelper.SetIsExpanded((IEnumerable<DocumentSymbolViewModel>)symbolTree.ItemsSource, false);
         }
 
         private void Search(object sender, EventArgs e)
@@ -305,7 +273,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             {
                 // Avoids highlighting the node after moving the caret ourselves 
                 // (The node is already highlighted on user click)
-                TextView.Caret.PositionChanged -= FollowCaret;
+                TextView.Caret.PositionChanged -= Caret_PositionChanged;
 
                 // Get the position of the start of the line the symbol is on
                 var position = LspSnapshot.GetLineFromLineNumber(symbol.StartPosition.Line).Start.Position;
@@ -319,14 +287,8 @@ namespace Microsoft.VisualStudio.LanguageServices
                 TextView.ViewScroller.EnsureSpanVisible(snapshotSpan);
 
                 // We want to continue highlighting nodes when the user moves the caret
-                TextView.Caret.PositionChanged += FollowCaret;
+                TextView.Caret.PositionChanged += Caret_PositionChanged;
             }
-        }
-
-        // On caret position change, highlight the corresponding symbol node
-        private void FollowCaret(object sender, CaretPositionChangedEventArgs e)
-        {
-            StartHightlightNodeTask();
         }
 
         internal const int OLECMDERR_E_NOTSUPPORTED = unchecked((int)0x80040100);

@@ -7,10 +7,15 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text;
+using Newtonsoft.Json.Linq;
 
 namespace Microsoft.VisualStudio.LanguageServices
 {
@@ -120,6 +125,51 @@ namespace Microsoft.VisualStudio.LanguageServices
             }
 
             return documentSymbolModels.ToImmutableAndFree();
+        }
+
+        internal static async Task<ManualInvocationResponse?> DocumentSymbolsRequestAsync(
+            ITextBuffer textBuffer,
+            ILanguageServiceBroker2 languageServiceBroker,
+            string? textViewFilePath,
+            CancellationToken cancellationToken)
+        {
+            if (textViewFilePath is null)
+                return null;
+
+            var parameterFactory = new DocumentSymbolParams()
+            {
+                TextDocument = new TextDocumentIdentifier()
+                {
+                    Uri = new Uri(textViewFilePath)
+                }
+            };
+
+            // TODO: proper workaround such that context.ClientCapabilities?.TextDocument?.DocumentSymbol?.HierarchicalDocumentSymbolSupport == true
+            return await languageServiceBroker.RequestAsync(
+                textBuffer: textBuffer,
+                method: Methods.TextDocumentDocumentSymbolName,
+                capabilitiesFilter: (JToken x) => true,
+                languageServerName: WellKnownLspServerKinds.AlwaysActiveVSLspServer.ToUserVisibleString(),
+                parameterFactory: _ => JToken.FromObject(parameterFactory),
+                cancellationToken: cancellationToken).ConfigureAwait(false);
+        }
+
+        internal static void SetIsExpanded(IEnumerable<DocumentSymbolViewModel> documentSymbolModels, bool isExpanded)
+        {
+            foreach (var documentSymbolModel in documentSymbolModels)
+            {
+                documentSymbolModel.IsExpanded = isExpanded;
+                SetIsExpanded(documentSymbolModel.Children, isExpanded);
+            }
+        }
+
+        internal static void UnselectAll(ImmutableArray<DocumentSymbolViewModel> documentSymbolModels)
+        {
+            foreach (var documentSymbolModel in documentSymbolModels)
+            {
+                documentSymbolModel.IsSelected = false;
+                UnselectAll(documentSymbolModel.Children);
+            }
         }
 
         /// <summary>
