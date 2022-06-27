@@ -8,6 +8,8 @@ Microsoft.CodeAnalysis.GeneratorAttributeSyntaxContext.SemanticModel.get -> Micr
 Microsoft.CodeAnalysis.GeneratorAttributeSyntaxContext.TargetNode.get -> Microsoft.CodeAnalysis.SyntaxNode!
 Microsoft.CodeAnalysis.GeneratorAttributeSyntaxContext.TargetSymbol.get -> Microsoft.CodeAnalysis.ISymbol!
 Microsoft.CodeAnalysis.IFieldSymbol.IsRequired.get -> bool
+Microsoft.CodeAnalysis.IFieldSymbol.RefCustomModifiers.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CustomModifier!>
+Microsoft.CodeAnalysis.IFieldSymbol.RefKind.get -> Microsoft.CodeAnalysis.RefKind
 Microsoft.CodeAnalysis.IImportScope
 Microsoft.CodeAnalysis.IImportScope.Aliases.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IAliasSymbol!>
 Microsoft.CodeAnalysis.IImportScope.ExternAliases.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IAliasSymbol!>
