@@ -347,12 +347,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Private Sub EnsureSignatureIsLoaded()
             If _lazyType Is Nothing Then
                 Dim moduleSymbol = _containingType.ContainingPEModule
-                Dim customModifiers As ImmutableArray(Of ModifierInfo(Of TypeSymbol)) = Nothing
-                Dim type As TypeSymbol = New MetadataDecoder(moduleSymbol, _containingType).DecodeFieldSignature(_handle, customModifiers)
+                Dim fieldInfo As FieldInfo(Of TypeSymbol) = New MetadataDecoder(moduleSymbol, _containingType).DecodeFieldSignature(_handle)
+                Dim type As TypeSymbol = fieldInfo.Type
+
+                ' https://github.com/dotnet/roslyn/issues/62121: Report use-site diagnostic if fieldInfo.IsByRef.
 
                 type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, _handle, moduleSymbol)
 
-                ImmutableInterlocked.InterlockedCompareExchange(_lazyCustomModifiers, VisualBasicCustomModifier.Convert(customModifiers), Nothing)
+                ImmutableInterlocked.InterlockedCompareExchange(_lazyCustomModifiers, VisualBasicCustomModifier.Convert(fieldInfo.CustomModifiers), Nothing)
                 Interlocked.CompareExchange(_lazyType, type, Nothing)
             End If
         End Sub
