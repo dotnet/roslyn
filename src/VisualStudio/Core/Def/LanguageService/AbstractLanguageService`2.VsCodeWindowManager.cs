@@ -235,33 +235,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             int IVsDocOutlineProvider.GetOutline(out IntPtr phwnd, out IOleCommandTarget? ppCmdTarget)
             {
-                phwnd = default;
-                ppCmdTarget = null;
-
                 var textView = GetActiveTextView();
                 RoslynDebug.AssertNotNull(textView);
-                var textBuffer = textView.TextBuffer;
-                var isCSharpContentType = textBuffer.ContentType.IsOfType(ContentTypeNames.CSharpContentType);
-                var isVisualBasicContentType = textBuffer.ContentType.IsOfType(ContentTypeNames.VisualBasicContentType);
 
-                if (isCSharpContentType || isVisualBasicContentType)
+                var languageServiceBroker = _languageService.Package.ComponentModel.GetService<ILanguageServiceBroker2>();
+                var threadingContext = _languageService.Package.ComponentModel.GetService<IThreadingContext>();
+                var asyncListenerProvider = _languageService.Package.ComponentModel.GetService<IAsynchronousOperationListenerProvider>();
+                var asyncListener = asyncListenerProvider.GetListener(FeatureAttribute.DocumentOutline);
+                _documentOutlineView = new DocumentOutlineControl(textView, languageServiceBroker, threadingContext, asyncListener);
+
+                _documentOutlineViewHost = new ElementHost
                 {
-                    var languageServiceBroker = _languageService.Package.ComponentModel.GetService<ILanguageServiceBroker2>();
-                    var threadingContext = _languageService.Package.ComponentModel.GetService<IThreadingContext>();
-                    var asyncListenerProvider = _languageService.Package.ComponentModel.GetService<IAsynchronousOperationListenerProvider>();
-                    var asyncListener = asyncListenerProvider.GetListener(FeatureAttribute.DocumentOutline);
-                    _documentOutlineView = new DocumentOutlineControl(textView, textBuffer, languageServiceBroker, threadingContext, asyncListener);
+                    Dock = DockStyle.Fill,
+                    Child = _documentOutlineView
+                };
 
-                    _documentOutlineViewHost = new ElementHost
-                    {
-                        Dock = DockStyle.Fill,
-                        Child = _documentOutlineView
-                    };
-
-                    phwnd = _documentOutlineViewHost.Handle;
-                    ppCmdTarget = _documentOutlineView;
-                    Logger.Log(FunctionId.DocumentOutline_WindowOpen);
-                }
+                phwnd = _documentOutlineViewHost.Handle;
+                ppCmdTarget = _documentOutlineView;
+                Logger.Log(FunctionId.DocumentOutline_WindowOpen);
 
                 return VSConstants.S_OK;
 

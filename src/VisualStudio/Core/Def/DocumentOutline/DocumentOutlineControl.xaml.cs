@@ -81,7 +81,6 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         public DocumentOutlineControl(
             IWpfTextView textView,
-            ITextBuffer textBuffer,
             ILanguageServiceBroker2 languageServiceBroker,
             IThreadingContext threadingContext,
             IAsynchronousOperationListener asyncListener)
@@ -90,7 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices
 
             ThreadingContext = threadingContext;
             TextView = textView;
-            TextBuffer = textBuffer;
+            TextBuffer = textView.TextBuffer;
             LspSnapshot = textView.TextSnapshot;
             _textViewFilePath = GetFilePath(textView);
             SortOption = SortOption.Order;
@@ -119,7 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                 await TaskScheduler.Default;
                 LspSnapshot = textView.TextSnapshot;
                 var response = await DocumentOutlineHelper.DocumentSymbolsRequestAsync(
-                    textBuffer, languageServiceBroker, _textViewFilePath, cancellationToken).ConfigureAwait(false);
+                    TextBuffer, languageServiceBroker, _textViewFilePath, cancellationToken).ConfigureAwait(false);
 
                 if (response?.Response is not null)
                 {
@@ -144,7 +143,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                 // Switch to UI thread to obtain search query and the current text snapshot
                 await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 var searchQuery = searchBox.Text;
-                var currentSnapshot = textBuffer.CurrentSnapshot;
+                var currentSnapshot = TextBuffer.CurrentSnapshot;
 
                 // Switch to a background thread to filter and sort the model
                 await TaskScheduler.Default;
@@ -164,8 +163,6 @@ namespace Microsoft.VisualStudio.LanguageServices
             {
                 if (TextView is not null && DocumentSymbolViewModelsIsInitialized)
                 {
-                    ThreadingContext.ThrowIfNotOnUIThread();
-                    // Get the current snapshot, caret point, and document model on the UI thread
                     var currentSnapshot = TextBuffer.CurrentSnapshot;
                     var documentSymbolModelArray = ((IEnumerable<DocumentSymbolViewModel>)symbolTree.ItemsSource).ToImmutableArray();
                     var caretPoint = TextView.GetCaretPoint(TextBuffer);

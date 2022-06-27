@@ -289,6 +289,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             LspSnapshot = lspSnapshot;
             CurrentSnapshot = currentSnapshot;
             CaretPosition = caretPosition;
+            IsSnapshotInitialized = true;
 
             var selectedNode = GetSelectedNode(symbolTreeItemsSource);
             if (selectedNode is not null)
