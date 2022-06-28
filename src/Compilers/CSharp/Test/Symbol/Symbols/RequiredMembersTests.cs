@@ -4691,7 +4691,7 @@ public class Derived : Base
     public void DuplicateRequiredMembers_Fields()
     {
         var comp = CreateCompilationWithRequiredMembers("""
-            class C
+            public class C
             {
                 public required int Test;
                 public required int Test;
@@ -4733,7 +4733,7 @@ public class Derived : Base
     public void DuplicateRequiredMembers_Properties()
     {
         var comp = CreateCompilationWithRequiredMembers("""
-            class C
+            public class C
             {
                 public required int Test { get; set; }
                 public required int Test { get; set; }
