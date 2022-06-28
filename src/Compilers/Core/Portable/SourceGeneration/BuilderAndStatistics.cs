@@ -27,11 +27,6 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
         public readonly ImmutableArray<TValue>.Builder Builder;
 
-        public BuilderAndStatistics()
-        {
-            Builder = ImmutableArray.CreateBuilder<TValue>();
-        }
-
         /// <summary>
         /// The number of times this item has been added back to the pool.  Once this goes past some threshold
         /// we will start checking if we're continually returning a large array that is mostly empty.  If so, we
@@ -45,6 +40,11 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         /// array.
         /// </summary>
         private int _numberOfTimesPooledWhenSparse = 0;
+
+        public BuilderAndStatistics()
+        {
+            Builder = ImmutableArray.CreateBuilder<TValue>();
+        }
 
         public static BuilderAndStatistics<TValue> Allocate()
             => s_pool.TryDequeue(out var item) ? item : new BuilderAndStatistics<TValue>();
