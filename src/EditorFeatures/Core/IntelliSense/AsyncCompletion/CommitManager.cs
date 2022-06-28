@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             var view = session.TextView;
 
-            var provider = GetCompletionProvider(completionService, roslynItem);
+            var provider = completionService.GetProvider(roslynItem);
             if (provider is ICustomCommitCompletionProvider customCommitProvider)
             {
                 customCommitProvider.Commit(roslynItem, view, subjectBuffer, triggerSnapshot, commitCharacter);
@@ -368,16 +368,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
                     return item.GetEntireDisplayText() == textTypedSoFar;
             }
-        }
-
-        private static CompletionProvider? GetCompletionProvider(CompletionService completionService, CompletionItem item)
-        {
-            if (completionService is CompletionServiceWithProviders completionServiceWithProviders)
-            {
-                return completionServiceWithProviders.GetProvider(item);
-            }
-
-            return null;
         }
     }
 }
