@@ -577,7 +577,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private bool TryCalculateRequiredMembers(ref ImmutableSegmentedDictionary<string, Symbol>.Builder? requiredMembersBuilder)
         {
             var lazyRequiredMembers = _lazyRequiredMembers;
-            if (_lazyRequiredMembers == RequiredMembersErrorSentinel)
+            if (lazyRequiredMembers == RequiredMembersErrorSentinel)
             {
                 if (lazyRequiredMembers.IsDefault)
                 {
