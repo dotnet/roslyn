@@ -88,6 +88,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me._nextAwaiterId = If(slotAllocatorOpt IsNot Nothing, slotAllocatorOpt.PreviousAwaiterSlotCount, 0)
             End Sub
 
+            Protected Overrides ReadOnly Property FirstIncreasingResumableState As Integer
+                Get
+                    Return StateMachineStates.FirstResumableAsyncState
+                End Get
+            End Property
+
+            Protected Overrides ReadOnly Property EncMissingStateMessage As String
+                Get
+                    Return CodeAnalysisResources.EncCannotResumeSuspendedAsyncMethod
+                End Get
+            End Property
+
             Private Function GetAwaiterField(awaiterType As TypeSymbol) As FieldSymbol
                 Dim result As FieldSymbol = Nothing
 
@@ -157,7 +169,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Me.F.Block(
                             ImmutableArray(Of LocalSymbol).Empty,
                             SyntheticBoundNodeFactory.HiddenSequencePoint(),
-                            Me.Dispatch(),
+                            Me.Dispatch(isOutermost:=True),
                             rewrittenBody
                         ),
                         Me.F.CatchBlocks(

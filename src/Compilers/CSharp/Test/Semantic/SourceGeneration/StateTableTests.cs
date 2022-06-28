@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
 
             var expected = ImmutableArray.Create((10, EntryState.Added, 0), (11, EntryState.Added, 1), (2, EntryState.Cached, 0), (3, EntryState.Cached, 1), (20, EntryState.Modified, 0), (21, EntryState.Modified, 1), (22, EntryState.Modified, 2), (6, EntryState.Removed, 0));
             AssertTableEntries(newTable, expected);
-            Assert.Equal(new[] { 2, 3 }, cachedEntries);
+            Assert.Equal(new[] { 2, 3 }, cachedEntries.ToImmutableArray());
             Assert.Equal(6, Assert.Single(removedEntries));
             Assert.True(didRemoveEntries);
         }

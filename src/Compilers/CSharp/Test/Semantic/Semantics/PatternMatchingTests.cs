@@ -6730,9 +6730,9 @@ public class C
         throw null;
     }
 }").VerifyDiagnostics(
-                // (10,24): error CS8352: Cannot use local 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                // (10,24): error CS8352: Cannot use variable 'inner' in this context because it may expose referenced variables outside of their declaration scope
                 //             return ref inner[5];
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "inner").WithArguments("inner").WithLocation(10, 24));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "inner").WithArguments("inner").WithLocation(10, 24));
         }
 
         [Fact]
@@ -6758,9 +6758,9 @@ public class C
                 // (8,13): warning CS8794: An expression of type 'Span<int>' always matches the provided pattern.
                 //         if (outer is ({} and var x) and Span<int> inner)
                 Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is ({} and var x) and Span<int> inner").WithArguments("System.Span<int>").WithLocation(8, 13),
-                // (10,24): error CS8352: Cannot use local 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                // (10,24): error CS8352: Cannot use variable 'inner' in this context because it may expose referenced variables outside of their declaration scope
                 //             return ref inner[5];
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "inner").WithArguments("inner").WithLocation(10, 24)
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "inner").WithArguments("inner").WithLocation(10, 24)
                 );
         }
 
@@ -6786,9 +6786,9 @@ public class C
         throw null;
     }
 }").VerifyDiagnostics(
-                // (12,28): error CS8352: Cannot use local 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                // (12,28): error CS8352: Cannot use variable 'inner' in this context because it may expose referenced variables outside of their declaration scope
                 //                 return ref inner[5];
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "inner").WithArguments("inner").WithLocation(12, 28));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "inner").WithArguments("inner").WithLocation(12, 28));
         }
 
         [Fact]
@@ -6813,9 +6813,9 @@ public class C
         throw null;
     }
 }").VerifyDiagnostics(
-                // (12,28): error CS8352: Cannot use local 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                // (12,28): error CS8352: Cannot use variable 'inner' in this context because it may expose referenced variables outside of their declaration scope
                 //                 return ref inner[5];
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "inner").WithArguments("inner").WithLocation(12, 28));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "inner").WithArguments("inner").WithLocation(12, 28));
         }
 
         [Fact]
@@ -6890,27 +6890,27 @@ public class C
     }
 }
 ").VerifyDiagnostics(
-                // (16,42): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                // (16,42): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //             case { Prop: var x }: return x; // error 1
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(16, 42),
-                // (24,40): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(16, 42),
+                // (24,40): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //             case { Prop: R x }: return x; // error 2
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(24, 40),
-                // (32,41): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(24, 40),
+                // (32,41): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //             case (var x, var y): return x; // error 3
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(32, 41),
-                // (40,37): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(32, 41),
+                // (40,37): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //             case (R x, R y): return x; // error 4
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(40, 37),
-                // (48,37): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(40, 37),
+                // (48,37): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //             case var (x, y): return x; // error 5
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(48, 37),
-                // (56,32): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(48, 37),
+                // (56,32): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //             case { } x: return x; // error 6
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(56, 32),
-                // (64,35): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(56, 32),
+                // (64,35): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //             case (_, _) x: return x; // error 7
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(64, 35)
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(64, 35)
                 );
         }
 
@@ -6986,27 +6986,27 @@ public class C
     }
 }
 ").VerifyDiagnostics(
-                // (16,76): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                // (16,76): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //             case var _ and {} and { Prop: var _ and {} and var x }: return x; // error 1
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(16, 76),
-                // (24,74): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(16, 76),
+                // (24,74): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //             case var _ and {} and { Prop: var _ and {} and R x }: return x; // error 2
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(24, 74),
-                // (32,92): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(24, 74),
+                // (32,92): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //             case var _ and {} and (var _ and {} and var x, var _ and {} and var y): return x; // error 3
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(32, 92),
-                // (40,88): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(32, 92),
+                // (40,88): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //             case var _ and {} and (var _ and {} and R x, var _ and {} and R y): return x; // error 4
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(40, 88),
-                // (48,54): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(40, 88),
+                // (48,54): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //             case var _ and {} and var (x, y): return x; // error 5
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(48, 54),
-                // (56,49): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(48, 54),
+                // (56,49): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //             case var _ and {} and { } x: return x; // error 6
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(56, 49),
-                // (64,86): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(56, 49),
+                // (64,86): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //             case var _ and {} and (var _ and {} and _, var _ and {} and _) x: return x; // error 7
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(64, 86)
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(64, 86)
                 );
         }
 
@@ -7068,27 +7068,27 @@ public class C
     }
 }
 ").VerifyDiagnostics(
-                // (14,46): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                // (14,46): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         if (outer is { Prop: var x }) return x; // error 1
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(14, 46),
-                // (20,44): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(14, 46),
+                // (20,44): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         if (outer is { Prop: R x }) return x; // error 2
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(20, 44),
-                // (26,45): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(20, 44),
+                // (26,45): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         if (outer is (var x, var y)) return x; // error 3
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(26, 45),
-                // (32,41): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(26, 45),
+                // (32,41): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         if (outer is (R x, R y)) return x; // error 4
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(32, 41),
-                // (38,41): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(32, 41),
+                // (38,41): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         if (outer is var (x, y)) return x; // error 5
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(38, 41),
-                // (44,36): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(38, 41),
+                // (44,36): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         if (outer is { } x) return x; // error 6
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(44, 36),
-                // (50,39): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(44, 36),
+                // (50,39): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         if (outer is (_, _) x) return x; // error 7
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(50, 39)
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(50, 39)
                 );
         }
 
@@ -7152,45 +7152,45 @@ public class C
 ").VerifyDiagnostics(
                 //         if (outer is var _ and {} and { Prop: var _ and {} and var x }) return x; // error 1
                 Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is var _ and {} and { Prop: var _ and {} and var x }").WithArguments("R").WithLocation(14, 13),
-                // (14,80): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                // (14,80): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         if (outer is var _ and {} and { Prop: var _ and {} and var x }) return x; // error 1
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(14, 80),
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(14, 80),
                 // (20,13): warning CS8794: An expression of type 'R' always matches the provided pattern.
                 //         if (outer is var _ and {} and { Prop: var _ and {} and R x }) return x; // error 2
                 Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is var _ and {} and { Prop: var _ and {} and R x }").WithArguments("R").WithLocation(20, 13),
-                // (20,78): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                // (20,78): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         if (outer is var _ and {} and { Prop: var _ and {} and R x }) return x; // error 2
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(20, 78),
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(20, 78),
                 // (26,13): warning CS8794: An expression of type 'R' always matches the provided pattern.
                 //         if (outer is var _ and {} and (var _ and {} and var x, var _ and {} and var y)) return x; // error 3
                 Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is var _ and {} and (var _ and {} and var x, var _ and {} and var y)").WithArguments("R").WithLocation(26, 13),
-                // (26,96): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                // (26,96): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         if (outer is var _ and {} and (var _ and {} and var x, var _ and {} and var y)) return x; // error 3
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(26, 96),
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(26, 96),
                 // (32,13): warning CS8794: An expression of type 'R' always matches the provided pattern.
                 //         if (outer is var _ and {} and (var _ and {} and R x, var _ and {} and R y)) return x; // error 4
                 Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is var _ and {} and (var _ and {} and R x, var _ and {} and R y)").WithArguments("R").WithLocation(32, 13),
-                // (32,92): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                // (32,92): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         if (outer is var _ and {} and (var _ and {} and R x, var _ and {} and R y)) return x; // error 4
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(32, 92),
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(32, 92),
                 // (38,13): warning CS8794: An expression of type 'R' always matches the provided pattern.
                 //         if (outer is var _ and {} and var (x, y)) return x; // error 5
                 Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is var _ and {} and var (x, y)").WithArguments("R").WithLocation(38, 13),
-                // (38,58): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                // (38,58): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         if (outer is var _ and {} and var (x, y)) return x; // error 5
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(38, 58),
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(38, 58),
                 // (44,13): warning CS8794: An expression of type 'R' always matches the provided pattern.
                 //         if (outer is var _ and {} and { } x) return x; // error 6
                 Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is var _ and {} and { } x").WithArguments("R").WithLocation(44, 13),
-                // (44,53): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                // (44,53): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         if (outer is var _ and {} and { } x) return x; // error 6
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(44, 53),
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(44, 53),
                 // (50,13): warning CS8794: An expression of type 'R' always matches the provided pattern.
                 //         if (outer is var _ and {} and (_, _) x) return x; // error 7
                 Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is var _ and {} and (_, _) x").WithArguments("R").WithLocation(50, 13),
-                // (50,56): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                // (50,56): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         if (outer is var _ and {} and (_, _) x) return x; // error 7
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(50, 56)
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(50, 56)
                 );
         }
 
@@ -7226,12 +7226,12 @@ public class C
         if (outer is { RProp: { SProp: var rs1 }}) s = rs1; // OK
     }
 }").VerifyDiagnostics(
-                // (19,52): error CS8352: Cannot use local 'rr0' in this context because it may expose referenced variables outside of their declaration scope
+                // (19,52): error CS8352: Cannot use variable 'rr0' in this context because it may expose referenced variables outside of their declaration scope
                 //         if (outer is { RProp.RProp: var rr0 }) r = rr0; // error
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "rr0").WithArguments("rr0").WithLocation(19, 52),
-                // (23,56): error CS8352: Cannot use local 'rr1' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "rr0").WithArguments("rr0").WithLocation(19, 52),
+                // (23,56): error CS8352: Cannot use variable 'rr1' in this context because it may expose referenced variables outside of their declaration scope
                 //         if (outer is { RProp: { RProp: var rr1 }}) r = rr1; // error
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "rr1").WithArguments("rr1").WithLocation(23, 56));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "rr1").WithArguments("rr1").WithLocation(23, 56));
         }
 
         [Fact]

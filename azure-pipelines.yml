@@ -186,7 +186,7 @@ jobs:
     demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
   timeoutInMinutes: 90
   steps:
-    - template: eng/pipelines/checkout-windows-task.yml
+    - template: eng/pipelines/checkout-task.yml
 
     - script: eng/test-determinism.cmd -configuration Debug
       displayName: Build - Validate determinism
@@ -202,7 +202,7 @@ jobs:
     demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
   timeoutInMinutes: 90
   steps:
-    - template: eng/pipelines/checkout-windows-task.yml
+    - template: eng/pipelines/checkout-task.yml
 
     - script: eng/test-build-correctness.cmd -configuration Release -enableDumps
       displayName: Build - Validate correctness
@@ -233,7 +233,7 @@ jobs:
     vmImage: ubuntu-20.04
   timeoutInMinutes: 10
   steps:
-    - template: eng/pipelines/checkout-unix-task.yml
+    - template: eng/pipelines/checkout-task.yml
 
     - pwsh: eng/todo-check.ps1
       displayName: Validate TODO/PROTOTYPE comments are not present
@@ -244,7 +244,7 @@ jobs:
     demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
   timeoutInMinutes: 90
   steps:
-    - template: eng/pipelines/checkout-windows-task.yml
+    - template: eng/pipelines/checkout-task.yml
 
     - task: PowerShell@2
       displayName: Restore

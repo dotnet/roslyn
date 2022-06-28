@@ -1067,9 +1067,9 @@
         <target state="translated">'GetHashCode'에서 'System.HashCode' 선호</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefer_UTF8_string_literals">
+      <trans-unit id="Prefer_Utf8_string_literals">
         <source>Prefer UTF-8 string literals</source>
-        <target state="translated">UTF-8 문자열 리터럴 선호</target>
+        <target state="new">Prefer UTF-8 string literals</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_compound_assignments">
@@ -1380,6 +1380,11 @@
       <trans-unit id="Sort_usings">
         <source>Sort usings</source>
         <target state="translated">Using 정렬</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Stack_Trace">
+        <source>Stack Trace</source>
+        <target state="new">Stack Trace</target>
         <note />
       </trans-unit>
       <trans-unit id="Stack_Trace_Explorer">

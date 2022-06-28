@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -12,6 +13,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.StringIndentation;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringIndentation
@@ -655,6 +657,37 @@ goo
              """""";
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.StringIndentation)]
+        [WorkItem(1542623, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1542623")]
+        public async Task TestWithManyConcatenatedStrings()
+        {
+            var input = new StringBuilder(
+                """
+                class C
+                {
+                    void M()
+                    {
+                        _ =
+                """);
+
+            for (var i = 0; i < 2000; i++)
+            {
+                input.AppendLine(
+                    """
+                            @"" + "" + @"" + "" + @"" + "" + @"" + "" + @"" + "" + @"" + "" + @"" +
+                    """);
+            }
+
+            input.AppendLine(
+                """
+                        @"" + "" + @"" + "" + @"" + "" + @"" + "" + @"" + "" + @"" + "" + @"";
+                    }
+                }
+                """);
+
+            await TestAsync(input.ToString());
         }
     }
 }

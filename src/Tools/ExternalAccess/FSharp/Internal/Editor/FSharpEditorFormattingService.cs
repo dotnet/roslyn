@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
 {
@@ -75,19 +76,19 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
             }
         }
 
-        async Task<ImmutableArray<TextChange>> IFormattingInteractionService.GetFormattingChangesAsync(Document document, TextSpan? textSpan, CancellationToken cancellationToken)
+        async Task<ImmutableArray<TextChange>> IFormattingInteractionService.GetFormattingChangesAsync(Document document, ITextBuffer textBuffer, TextSpan? textSpan, CancellationToken cancellationToken)
         {
             var changes = await GetFormattingChangesAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
             return changes?.ToImmutableArray() ?? ImmutableArray<TextChange>.Empty;
         }
 
-        async Task<ImmutableArray<TextChange>> IFormattingInteractionService.GetFormattingChangesAsync(Document document, char typedChar, int position, CancellationToken cancellationToken)
+        async Task<ImmutableArray<TextChange>> IFormattingInteractionService.GetFormattingChangesAsync(Document document, ITextBuffer textBuffer, char typedChar, int position, CancellationToken cancellationToken)
         {
             var changes = await GetFormattingChangesAsync(document, typedChar, position, cancellationToken).ConfigureAwait(false);
             return changes?.ToImmutableArray() ?? ImmutableArray<TextChange>.Empty;
         }
 
-        async Task<ImmutableArray<TextChange>> IFormattingInteractionService.GetFormattingChangesOnPasteAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+        async Task<ImmutableArray<TextChange>> IFormattingInteractionService.GetFormattingChangesOnPasteAsync(Document document, ITextBuffer textBuffer, TextSpan textSpan, CancellationToken cancellationToken)
         {
             var changes = await GetFormattingChangesOnPasteAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
             return changes?.ToImmutableArray() ?? ImmutableArray<TextChange>.Empty;
