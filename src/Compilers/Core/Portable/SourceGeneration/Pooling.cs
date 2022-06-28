@@ -15,7 +15,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal struct PoolingStatistics
+    internal record struct BuilderAndStatistics<TValue>(
+        ImmutableArray<TValue>.Builder Builder)
     {
         /// <summary>
         /// The number of times this item has been added back to the pool.  Once this goes past some threshold
@@ -30,13 +31,9 @@ namespace Microsoft.CodeAnalysis
         /// array.
         /// </summary>
         public int NumberOfTimesPooledWhenSparse;
-    }
 
-    internal readonly record struct BuilderAndStatistics<TValue>(
-        ImmutableArray<TValue>.Builder Builder,
-        PoolingStatistics Statistics)
-    {
-        public int Count => Builder.Count;
+        public int Count
+            => Builder.Count;
 
         public void Add(TValue value)
             => Builder.Add(value);
@@ -83,35 +80,33 @@ namespace Microsoft.CodeAnalysis
             // want to shrink down.  To prevent shrinking and inflating over and over again, we only shrink when
             // we're highly confident we're going to stay small.
 
-            var (builder, statistics) = item;
-            statistics.NumberOfTimesPooled++;
+            var builder = item.Builder;
+            item.NumberOfTimesPooled++;
 
             // See if we're pooling something both large and sparse.
             if (builder.Capacity > MinCapacityToConsiderThreshold &&
                 ((double)builder.Count / builder.Capacity) < SparseThresholdRatio)
             {
                 CodeAnalysisEventSource.Log.PooledWhenSparse(builder.GetType(), builder.Count, builder.Capacity);
-                statistics.NumberOfTimesPooledWhenSparse++;
+                item.NumberOfTimesPooledWhenSparse++;
             }
 
             builder.Clear();
 
             // See if this builder has been consistently sparse. If so then time to lower its capacity.
-            if (statistics.NumberOfTimesPooled > MinTimesPooledToConsiderStatistics &&
-                ((double)statistics.NumberOfTimesPooledWhenSparse / statistics.NumberOfTimesPooled) > ConsistentlySparseRatio)
+            if (item.NumberOfTimesPooled > MinTimesPooledToConsiderStatistics &&
+                ((double)item.NumberOfTimesPooledWhenSparse / item.NumberOfTimesPooled) > ConsistentlySparseRatio)
             {
                 CodeAnalysisEventSource.Log.HalvedCapacity(builder.GetType(), builder.Count, builder.Capacity);
                 builder.Capacity /= 2;
 
                 // Reset our statistics.  We'll wait another 100 pooling attempts to reassess if we need to
                 // adjust the capacity here.
-                statistics = new PoolingStatistics
-                {
-                    NumberOfTimesPooled = 1,
-                };
+                item.NumberOfTimesPooled = 1;
+                item.NumberOfTimesPooledWhenSparse = 0;
             }
 
-            queue.Enqueue(new BuilderAndStatistics<TValue>(builder, statistics));
+            queue.Enqueue(item);
         }
     }
 }
