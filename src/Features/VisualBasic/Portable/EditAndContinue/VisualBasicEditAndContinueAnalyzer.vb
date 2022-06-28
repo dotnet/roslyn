@@ -2634,7 +2634,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         Friend Overrides Sub ReportStateMachineSuspensionPointRudeEdits(diagnostics As ArrayBuilder(Of RudeEditDiagnostic), oldNode As SyntaxNode, newNode As SyntaxNode)
             ' TODO: changes around suspension points (foreach, lock, using, etc.)
 
-            If newNode.IsKind(SyntaxKind.AwaitExpression) Then
+            If newNode.IsKind(SyntaxKind.AwaitExpression) AndAlso oldNode.IsKind(SyntaxKind.AwaitExpression) Then
                 Dim oldContainingStatementPart = FindContainingStatementPart(oldNode)
                 Dim newContainingStatementPart = FindContainingStatementPart(newNode)
 

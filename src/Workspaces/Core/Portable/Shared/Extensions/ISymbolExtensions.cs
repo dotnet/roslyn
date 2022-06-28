@@ -16,6 +16,7 @@ using System.Xml.Linq;
 using System.Xml.XPath;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -33,7 +34,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 isUnsafe: symbol.RequiresUnsafeModifier(),
                 isVirtual: symbol.IsVirtual,
                 isOverride: symbol.IsOverride,
-                isSealed: symbol.IsSealed);
+                isSealed: symbol.IsSealed,
+                isRequired: symbol.IsRequired());
         }
 
         /// <summary>
@@ -678,7 +680,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // check to see if we're referencing a symbol defined in source.
             static bool isSymbolDefinedInSource(Location l) => l.IsInSource;
             return symbols.WhereAsArray((s, arg) =>
-                (s.Locations.Any(isSymbolDefinedInSource) || !s.HasUnsupportedMetadata) &&
+                // Check if symbol is namespace (which is always visible) first to avoid realizing all locations
+                // of each namespace symbol, which might end up allocating in LOH
+                (s.IsNamespace() || s.Locations.Any(isSymbolDefinedInSource) || !s.HasUnsupportedMetadata) &&
                 !s.IsDestructor() &&
                 s.IsEditorBrowsable(
                     arg.hideAdvancedMembers,
@@ -689,7 +693,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         private static ImmutableArray<T> RemoveOverriddenSymbolsWithinSet<T>(this ImmutableArray<T> symbols) where T : ISymbol
         {
-            var overriddenSymbols = new HashSet<ISymbol>();
+            var overriddenSymbols = new MetadataUnifyingSymbolHashSet();
 
             foreach (var symbol in symbols)
             {

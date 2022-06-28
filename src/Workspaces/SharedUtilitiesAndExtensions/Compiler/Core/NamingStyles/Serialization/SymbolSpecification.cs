@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         public bool AppliesTo(SymbolKindOrTypeKind kind, DeclarationModifiers modifiers, Accessibility? accessibility)
         {
-            if (!ApplicableSymbolKindList.Any(k => k.Equals(kind)))
+            if (!ApplicableSymbolKindList.Any(static (k, kind) => k.Equals(kind), kind))
             {
                 return false;
             }
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return false;
             }
 
-            if (accessibility.HasValue && !ApplicableAccessibilityList.Any(k => k == accessibility))
+            if (accessibility.HasValue && !ApplicableAccessibilityList.Any(static (k, accessibility) => k == accessibility, accessibility))
             {
                 return false;
             }
@@ -253,9 +253,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             return new SymbolSpecification(
                 reader.ReadGuid(),
                 reader.ReadString(),
-                reader.ReadArray(r => SymbolKindOrTypeKind.ReadFrom(r)),
+                reader.ReadArray(SymbolKindOrTypeKind.ReadFrom),
                 reader.ReadArray(r => (Accessibility)r.ReadInt32()),
-                reader.ReadArray(r => ModifierKind.ReadFrom(r)));
+                reader.ReadArray(ModifierKind.ReadFrom));
         }
 
         private XElement CreateSymbolKindsXElement()

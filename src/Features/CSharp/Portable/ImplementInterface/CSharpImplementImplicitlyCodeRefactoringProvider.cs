@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             var containingTypeInterfaces = member.ContainingType.AllInterfaces;
             if (containingTypeInterfaces.Length == 0)
                 return false;
-            return memberInterfaceImplementations.Any(impl => containingTypeInterfaces.Contains(impl.ContainingType));
+            return memberInterfaceImplementations.Any(static (impl, containingTypeInterfaces) => containingTypeInterfaces.Contains(impl.ContainingType), containingTypeInterfaces);
         }
 
         // When converting to implicit, we don't need to update any references.

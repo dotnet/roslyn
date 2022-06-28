@@ -3753,6 +3753,34 @@ unsafe class C
             );
         }
 
+        [Fact, WorkItem(59454, "https://github.com/dotnet/roslyn/issues/59454")]
+        public void FunctionPointerInvocationInExpressionTree()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+using System;
+using System.Linq.Expressions;
+namespace test
+{
+    unsafe class Program
+    {
+        static double f() => 0;
+        static delegate*<double> fp() => &f;
+        static void Main()
+        {
+            Expression<Func<double>> h = static () => fp()();
+            Console.WriteLine(h);
+        }
+    }
+}
+");
+
+            comp.VerifyDiagnostics(
+                // (12,55): error CS1944: An expression tree may not contain an unsafe pointer operation
+                //             Expression<Func<double>> h = static () => fp()();
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPointerOp, "fp()()").WithLocation(12, 55)
+            );
+        }
+
         [Fact]
         public void AmbiguousApplicableMethodsAreFilteredForStatic()
         {
@@ -11214,9 +11242,9 @@ unsafe
                 // (10,16): error CS8347: Cannot use a result of 'delegate*<Span<int>, Span<int>>' in this context because it may expose variables referenced by parameter '0' outside of their declaration scope
                 //         return ptr(s);
                 Diagnostic(ErrorCode.ERR_EscapeCall, "ptr(s)").WithArguments("delegate*<System.Span<int>, System.Span<int>>", "0").WithLocation(10, 16),
-                // (10,20): error CS8352: Cannot use local 's' in this context because it may expose referenced variables outside of their declaration scope
+                // (10,20): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
                 //         return ptr(s);
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "s").WithArguments("s").WithLocation(10, 20)
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(10, 20)
             );
         }
 

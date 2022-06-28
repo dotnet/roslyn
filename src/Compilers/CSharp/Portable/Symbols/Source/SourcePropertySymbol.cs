@@ -292,6 +292,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (!isInterface)
                 {
                     allowedModifiers |= DeclarationModifiers.Override;
+
+                    if (!isIndexer)
+                    {
+                        allowedModifiers |= DeclarationModifiers.Required;
+                    }
                 }
                 else
                 {
@@ -350,6 +355,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (isIndexer)
             {
                 mods |= DeclarationModifiers.Indexer;
+            }
+
+            if ((mods & DeclarationModifiers.Static) != 0 && (mods & DeclarationModifiers.Required) != 0)
+            {
+                // The modifier 'required' is not valid for this item
+                diagnostics.Add(ErrorCode.ERR_BadMemberFlag, location, SyntaxFacts.GetText(SyntaxKind.RequiredKeyword));
+                mods &= ~DeclarationModifiers.Required;
             }
 
             return mods;
@@ -428,8 +440,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private TypeWithAnnotations ComputeType(Binder binder, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
         {
-            RefKind refKind;
-            var typeSyntax = GetTypeSyntax(syntax).SkipRef(out refKind);
+            var typeSyntax = GetTypeSyntax(syntax).SkipRef(out _, allowScoped: false, diagnostics);
             var type = binder.BindType(typeSyntax, diagnostics);
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
 

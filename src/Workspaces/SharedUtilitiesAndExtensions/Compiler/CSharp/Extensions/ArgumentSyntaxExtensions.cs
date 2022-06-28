@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -38,6 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static IParameterSymbol? DetermineParameter(
             this ArgumentSyntax argument,
             SemanticModel semanticModel,
+            bool allowUncertainCandidates = false,
             bool allowParams = false,
             CancellationToken cancellationToken = default)
         {
@@ -49,49 +51,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             // Get the symbol as long if it's not null or if there is only one candidate symbol
             var symbolInfo = semanticModel.GetSymbolInfo(argumentList.Parent, cancellationToken);
-            var symbol = symbolInfo.Symbol;
-            if (symbol == null && symbolInfo.CandidateSymbols.Length == 1)
-            {
-                symbol = symbolInfo.CandidateSymbols[0];
-            }
+            var symbols = symbolInfo.GetBestOrAllSymbols();
 
-            if (symbol == null)
-            {
+            if (symbols.Length >= 2 && !allowUncertainCandidates)
                 return null;
-            }
 
-            var parameters = symbol.GetParameters();
-
-            // Handle named argument
-            if (argument.NameColon != null && !argument.NameColon.IsMissing)
+            foreach (var symbol in symbols)
             {
-                var name = argument.NameColon.Name.Identifier.ValueText;
-                return parameters.FirstOrDefault(p => p.Name == name);
-            }
+                var parameters = symbol.GetParameters();
 
-            // Handle positional argument
-            var index = argumentList.Arguments.IndexOf(argument);
-            if (index < 0)
-            {
-                return null;
-            }
-
-            if (index < parameters.Length)
-            {
-                return parameters[index];
-            }
-
-            if (allowParams)
-            {
-                var lastParameter = parameters.LastOrDefault();
-                if (lastParameter == null)
+                // Handle named argument
+                if (argument.NameColon != null && !argument.NameColon.IsMissing)
                 {
-                    return null;
+                    var name = argument.NameColon.Name.Identifier.ValueText;
+                    var parameter = parameters.FirstOrDefault(p => p.Name == name);
+                    if (parameter != null)
+                        return parameter;
+
+                    continue;
                 }
 
-                if (lastParameter.IsParams)
+                // Handle positional argument
+                var index = argumentList.Arguments.IndexOf(argument);
+                if (index < 0)
+                    continue;
+
+                if (index < parameters.Length)
+                    return parameters[index];
+
+                if (allowParams)
                 {
-                    return lastParameter;
+                    var lastParameter = parameters.LastOrDefault();
+                    if (lastParameter == null)
+                        continue;
+
+                    if (lastParameter.IsParams)
+                        return lastParameter;
                 }
             }
 

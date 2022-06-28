@@ -157,18 +157,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return CommitResultUnhandled;
             }
 
-            // Telemetry
-            if (sessionData.TargetTypeFilterExperimentEnabled)
-            {
-                // Capture the % of committed completion items that would have appeared in the "Target type matches" filter
-                // (regardless of whether that filter button was active at the time of commit).
-                AsyncCompletionLogger.LogCommitWithTargetTypeCompletionExperimentEnabled();
-                if (item.Filters.Any(f => f.DisplayText == FeaturesResources.Target_type_matches))
-                {
-                    AsyncCompletionLogger.LogCommitItemWithTargetTypeFilter();
-                }
-            }
-
             // Commit with completion service assumes that null is provided is case of invoke. VS provides '\0' in the case.
             var commitChar = typeChar == '\0' ? null : (char?)typeChar;
             return Commit(
@@ -230,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             var view = session.TextView;
 
-            var provider = GetCompletionProvider(completionService, roslynItem);
+            var provider = completionService.GetProvider(roslynItem);
             if (provider is ICustomCommitCompletionProvider customCommitProvider)
             {
                 customCommitProvider.Commit(roslynItem, view, subjectBuffer, triggerSnapshot, commitCharacter);
@@ -289,7 +277,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     {
                         var spanToFormat = triggerSnapshotSpan.TranslateTo(subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
                         var changes = formattingService.GetFormattingChangesAsync(
-                            currentDocument, spanToFormat.Span.ToTextSpan(), cancellationToken).WaitAndGetResult(cancellationToken);
+                            currentDocument, subjectBuffer, spanToFormat.Span.ToTextSpan(), cancellationToken).WaitAndGetResult(cancellationToken);
                         currentDocument.Project.Solution.Workspace.ApplyTextChanges(currentDocument.Id, changes, cancellationToken);
                     }
                 }
@@ -379,16 +367,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
                     return item.GetEntireDisplayText() == textTypedSoFar;
             }
-        }
-
-        private static CompletionProvider? GetCompletionProvider(CompletionService completionService, CompletionItem item)
-        {
-            if (completionService is CompletionServiceWithProviders completionServiceWithProviders)
-            {
-                return completionServiceWithProviders.GetProvider(item);
-            }
-
-            return null;
         }
     }
 }

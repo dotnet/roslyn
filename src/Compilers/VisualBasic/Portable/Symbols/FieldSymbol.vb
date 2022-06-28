@@ -48,6 +48,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         ''' <summary>
+        ''' Returns the RefKind of the field. 
+        ''' </summary>
+        Public ReadOnly Property RefKind As RefKind Implements IFieldSymbol.RefKind
+            Get
+                Return RefKind.None
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Custom modifiers associated with the ref modifier, or an empty array if there are none.
+        ''' </summary>
+        Public ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier) Implements IFieldSymbol.RefCustomModifiers
+            Get
+                Return ImmutableArray(Of CustomModifier).Empty
+            End Get
+        End Property
+
+        ''' <summary>
         ''' Gets the type of this variable.
         ''' </summary>
         Public MustOverride ReadOnly Property Type As TypeSymbol
@@ -280,20 +298,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(IsDefinition)
 
             ' Check type.
-            Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = MergeUseSiteInfo(New UseSiteInfo(Of AssemblySymbol)(PrimaryDependency), DeriveUseSiteInfoFromType(Me.Type))
+            Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = New UseSiteInfo(Of AssemblySymbol)(PrimaryDependency)
 
-            If useSiteInfo.DiagnosticInfo?.Code = ERRID.ERR_UnsupportedField1 Then
+            If MergeUseSiteInfo(useSiteInfo, DeriveUseSiteInfoFromType(Me.Type)) Then
                 Return useSiteInfo
             End If
 
             ' Check custom modifiers.
             Dim modifiersUseSiteInfo As UseSiteInfo(Of AssemblySymbol) = DeriveUseSiteInfoFromCustomModifiers(Me.CustomModifiers)
 
-            If modifiersUseSiteInfo.DiagnosticInfo?.Code = ERRID.ERR_UnsupportedField1 Then
-                Return modifiersUseSiteInfo
+            If MergeUseSiteInfo(useSiteInfo, modifiersUseSiteInfo) Then
+                Return useSiteInfo
             End If
-
-            useSiteInfo = MergeUseSiteInfo(useSiteInfo, modifiersUseSiteInfo)
 
             ' If the member is in an assembly with unified references, 
             ' we check if its definition depends on a type from a unified reference.
@@ -315,16 +331,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Return error code that has highest priority while calculating use site error for this symbol. 
         ''' </summary>
-        Protected Overrides ReadOnly Property HighestPriorityUseSiteError As Integer
-            Get
-                Return ERRID.ERR_UnsupportedField1
-            End Get
-        End Property
+        Protected Overrides Function IsHighestPriorityUseSiteError(code As Integer) As Boolean
+            Return code = ERRID.ERR_UnsupportedField1 OrElse code = ERRID.ERR_UnsupportedCompilerFeature
+        End Function
 
         Public NotOverridable Overrides ReadOnly Property HasUnsupportedMetadata As Boolean
             Get
                 Dim info As DiagnosticInfo = GetUseSiteInfo().DiagnosticInfo
-                Return info IsNot Nothing AndAlso info.Code = ERRID.ERR_UnsupportedField1
+                Return info IsNot Nothing AndAlso (info.Code = ERRID.ERR_UnsupportedField1 OrElse info.Code = ERRID.ERR_UnsupportedCompilerFeature)
             End Get
         End Property
 
@@ -417,6 +431,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Private ReadOnly Property IFieldSymbol_IsVolatile As Boolean Implements IFieldSymbol.IsVolatile, IFieldSymbolInternal.IsVolatile
+            Get
+                Return False
+            End Get
+        End Property
+
+        Private ReadOnly Property IFieldSymbol_IsRequired As Boolean Implements IFieldSymbol.IsRequired
             Get
                 Return False
             End Get

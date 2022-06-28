@@ -3150,7 +3150,7 @@ class Program
         }
 
         [Fact]
-        private void RefLocalsAreValues()
+        public void RefLocalsAreValues()
         {
             var text = @"
 class Program

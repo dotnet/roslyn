@@ -100,12 +100,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 modifierErrors = true;
             }
 
-            if ((result & DeclarationModifiers.PrivateProtected) != 0)
-            {
-                modifierErrors |= !Binder.CheckFeatureAvailability(errorLocation.SourceTree, MessageID.IDS_FeaturePrivateProtected, diagnostics, errorLocation);
-            }
+            modifierErrors |= checkFeature(DeclarationModifiers.PrivateProtected, MessageID.IDS_FeaturePrivateProtected)
+                              | checkFeature(DeclarationModifiers.Required, MessageID.IDS_FeatureRequiredMembers);
 
             return result;
+
+            bool checkFeature(DeclarationModifiers modifier, MessageID featureID)
+                => ((result & modifier) != 0) && !Binder.CheckFeatureAvailability(errorLocation.SourceTree, featureID, diagnostics, errorLocation);
+        }
+
+        internal static void CheckScopedModifierAvailability(CSharpSyntaxNode syntax, SyntaxToken modifier, BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(modifier.Kind() == SyntaxKind.ScopedKeyword);
+
+            if (MessageID.IDS_FeatureRefFields.GetFeatureAvailabilityDiagnosticInfo((CSharpParseOptions)syntax.SyntaxTree.Options) is { } diagnosticInfo)
+            {
+                diagnostics.Add(diagnosticInfo, modifier.GetLocation());
+            }
         }
 
         private static void ReportPartialError(Location errorLocation, BindingDiagnosticBag diagnostics, SyntaxTokenList? modifierTokens)
@@ -301,6 +312,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return SyntaxFacts.GetText(SyntaxKind.AsyncKeyword);
                 case DeclarationModifiers.Ref:
                     return SyntaxFacts.GetText(SyntaxKind.RefKeyword);
+                case DeclarationModifiers.Required:
+                    return SyntaxFacts.GetText(SyntaxKind.RequiredKeyword);
+                case DeclarationModifiers.Scoped:
+                    return SyntaxFacts.GetText(SyntaxKind.ScopedKeyword);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(modifier);
             }
@@ -348,6 +363,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return DeclarationModifiers.Volatile;
                 case SyntaxKind.RefKeyword:
                     return DeclarationModifiers.Ref;
+                case SyntaxKind.RequiredKeyword:
+                    return DeclarationModifiers.Required;
+                case SyntaxKind.ScopedKeyword:
+                    return DeclarationModifiers.Scoped;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }
@@ -411,12 +430,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static CSDiagnosticInfo CheckAccessibility(DeclarationModifiers modifiers, Symbol symbol, bool isExplicitInterfaceImplementation)
+        internal static bool CheckAccessibility(DeclarationModifiers modifiers, Symbol symbol, bool isExplicitInterfaceImplementation, BindingDiagnosticBag diagnostics, Location errorLocation)
         {
             if (!IsValidAccessibility(modifiers))
             {
                 // error CS0107: More than one protection modifier
-                return new CSDiagnosticInfo(ErrorCode.ERR_BadMemberProtection);
+                diagnostics.Add(ErrorCode.ERR_BadMemberProtection, errorLocation);
+                return true;
             }
 
             if (!isExplicitInterfaceImplementation &&
@@ -431,13 +451,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         if (symbol.ContainingType?.IsInterface == true && !symbol.ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation)
                         {
-                            return new CSDiagnosticInfo(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember);
+                            diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, errorLocation);
+                            return true;
                         }
                         break;
                 }
             }
 
-            return null;
+            if ((modifiers & DeclarationModifiers.Required) != 0)
+            {
+                var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(futureDestination: diagnostics, assemblyBeingBuilt: symbol.ContainingAssembly);
+                bool reportedError = false;
+
+                switch (symbol)
+                {
+                    case FieldSymbol when !symbol.IsAsRestrictive(symbol.ContainingType, ref useSiteInfo):
+                    case PropertySymbol { SetMethod: { } method } when !method.IsAsRestrictive(symbol.ContainingType, ref useSiteInfo):
+                        // Required member '{0}' cannot be less visible or have a setter less visible than the containing type '{1}'.
+                        diagnostics.Add(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, errorLocation, symbol, symbol.ContainingType);
+                        reportedError = true;
+                        break;
+                    case PropertySymbol { SetMethod: null }:
+                    case FieldSymbol when (modifiers & DeclarationModifiers.ReadOnly) != 0:
+                        // Required member '{0}' must be settable.
+                        diagnostics.Add(ErrorCode.ERR_RequiredMemberMustBeSettable, errorLocation, symbol);
+                        reportedError = true;
+                        break;
+                }
+
+                diagnostics.Add(errorLocation, useSiteInfo);
+                return reportedError;
+            }
+
+            return false;
         }
 
         // Returns declared accessibility.

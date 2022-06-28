@@ -94,7 +94,7 @@ Detect and offer editor features for JSON strings;
 Use enhanced colors;
 Editor Color Scheme;
 Inheritance Margin;</source>
-        <target state="needs-review-translation">为重新分配的变量添加下划线；
+        <target state="translated">为重新分配的变量添加下划线；
 显示内联提示；
 显示已关闭文件的诊断；
 对正则表达式着色；
@@ -114,6 +114,9 @@ Using 指令；
 突出显示游标下的相关关键字；
 大纲；
 在文件打开时进入大纲模式；
+文件打开时折叠#regions；
+文件打开时折叠using：
+文件打开时折叠元数据实现；
 显示过程行分隔符；
 显示声明级别构造的大纲；
 显示代码级别构造的大纲；

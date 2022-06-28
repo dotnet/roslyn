@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadAbstractStaticMemberAccess">
         <source>A shared abstract or virtual interface member cannot be accessed.</source>
-        <target state="needs-review-translation">Nie można uzyskać dostępu do współużytkowanego abstrakcyjnego elementu członkowskiego interfejsu.</target>
+        <target state="translated">Nie można uzyskać dostępu do współużytkowanego abstrakcyjnego elementu członkowskiego interfejsu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
@@ -25,6 +25,11 @@
       <trans-unit id="ERR_DefaultInterfaceImplementationInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</source>
         <target state="translated">Nie można osadzić typu „{0}”, ponieważ ma nieabstrakcyjną składową. Rozważ ustawienie wartości false dla właściwości „Osadź typy międzyoperacyjne”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DoNotUseCompilerFeatureRequired">
+        <source>'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute' is reserved for compiler usage only.</source>
+        <target state="translated">Element „System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute” jest zarezerwowany tylko do użycia przez kompilator.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
@@ -64,12 +69,17 @@
       </trans-unit>
       <trans-unit id="ERR_UnimplementedSharedMember">
         <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract or virtual '{2}'.</source>
-        <target state="needs-review-translation">{0}„{1}” nie może zaimplementować interfejsu „{3}”, ponieważ zawiera udostępnioną abstrakcję „{2}”.</target>
+        <target state="translated">{0}„{1}” nie może zaimplementować interfejsu „{3}”, ponieważ zawiera udostępnioną abstrakcyjną lub wirtualną „{2}”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
         <source>'UnmanagedCallersOnly' attribute is not supported.</source>
         <target state="translated">Atrybut „UnmanagedCallersOnly” jest nieobsługiwany.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsupportedCompilerFeature">
+        <source>'{0}' requires compiler feature '{1}', which is not supported by this version of the Visual Basic compiler.</source>
+        <target state="translated">„{0}” wymaga funkcji kompilatora „{1}”, która nie jest obsługiwana przez tę wersję kompilatora języka Visual Basic.</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CallerArgumentExpression">
@@ -249,7 +259,7 @@
                                   (mscorlib.dll).
 -subsystemversion:&lt;version&gt;       Specify subsystem version of the output PE.
                                   version:&lt;number&gt;[.&lt;number&gt;]
--utf8output[+|-]                  Emit compiler output in UTF8 character
+-utf8output[+|-]                  Emit compiler output in UTF-8 character
                                   encoding.
 @&lt;file&gt;                           Insert command-line settings from a text file
 -vbruntime[+|-|*]                 Compile with/without the default Visual Basic
@@ -257,7 +267,7 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="translated">                  Opcje kompilatora Visual Basic
+        <target state="needs-review-translation">                  Opcje kompilatora Visual Basic
 
                                   - PLIK WYJŚCIOWY -
 -out:&lt;plik&gt;                       Określa nazwę pliku wyjściowego.

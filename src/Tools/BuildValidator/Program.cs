@@ -323,14 +323,14 @@ namespace BuildValidator
         {
             using var _ = logger.BeginScope("Source Links");
 
-            var sourceLinkUTF8 = compilationOptionsReader.GetSourceLinkUTF8();
-            if (sourceLinkUTF8 is null)
+            var sourceLinkUtf8 = compilationOptionsReader.GetSourceLinkUtf8();
+            if (sourceLinkUtf8 is null)
             {
                 logger.LogInformation("No source link cdi found in pdb");
                 return ImmutableArray<SourceLinkEntry>.Empty;
             }
 
-            var documents = JsonConvert.DeserializeAnonymousType(Encoding.UTF8.GetString(sourceLinkUTF8), new { documents = (Dictionary<string, string>?)null })?.documents
+            var documents = JsonConvert.DeserializeAnonymousType(Encoding.UTF8.GetString(sourceLinkUtf8), new { documents = (Dictionary<string, string>?)null })?.documents
                 ?? throw new InvalidOperationException("Failed to deserialize source links.");
 
             var sourceLinks = documents.Select(makeSourceLink).ToImmutableArray();

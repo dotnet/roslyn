@@ -105,12 +105,12 @@ namespace Roslyn.Utilities
             public void Unregister()
                 => _handler = null;
 
-            public void Invoke(Action<TEventHandler> invoker)
+            public void Invoke<TArg>(Action<TEventHandler, TArg> invoker, TArg arg)
             {
                 var handler = _handler;
                 if (handler != null)
                 {
-                    invoker(handler);
+                    invoker(handler, arg);
                 }
             }
 
@@ -157,7 +157,7 @@ namespace Roslyn.Utilities
                 get { return _registries != null && _registries.Length > 0; }
             }
 
-            public void RaiseEvent(Action<TEventHandler> invoker)
+            public void RaiseEvent<TArg>(Action<TEventHandler, TArg> invoker, TArg arg)
             {
                 // The try/catch here is to find additional telemetry for https://devdiv.visualstudio.com/DevDiv/_queries/query/71ee8553-7220-4b2a-98cf-20edab701fd1/.
                 // We've realized there's a problem with our eventing, where if an exception is encountered while calling into subscribers to Workspace events,
@@ -171,7 +171,7 @@ namespace Roslyn.Utilities
                     {
                         foreach (var registry in _registries)
                         {
-                            registry.Invoke(invoker);
+                            registry.Invoke(invoker, arg);
                         }
                     }
                 }
