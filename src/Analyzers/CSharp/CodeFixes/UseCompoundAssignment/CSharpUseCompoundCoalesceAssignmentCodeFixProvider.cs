@@ -11,16 +11,17 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.UseCoalesceExpression;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseCompoundCoalesceAssignment), Shared]
-    internal class CSharpUseCompoundCoalesceAssignmentCodeFixProvider
-        : SyntaxEditorBasedCodeFixProvider
+    internal class CSharpUseCompoundCoalesceAssignmentCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -48,33 +49,50 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
 
             foreach (var diagnostic in diagnostics)
             {
-                var coalesce = diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
+                var coalesceOrIfStatement = diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
 
-                // changing from `x ?? (x = y)` to `x ??= y` can change the type.  Specifically,
-                // with nullable value types (`int?`) it could change from `int?` to `int`.
-                //
-                // Add an explicit cast to the original type to ensure semantics are preserved. 
-                // Simplification engine can then remove it if it's not necessary.
-                var type = semanticModel.GetTypeInfo(coalesce, cancellationToken).Type;
+                if (coalesceOrIfStatement is IfStatementSyntax ifStatement)
+                {
+                    Contract.ThrowIfFalse(CSharpUseCompoundCoalesceAssignmentDiagnosticAnalyzer.GetWhenTrueAssignment(
+                        ifStatement, out var whenTrueStatement, out var assignment));
 
-                editor.ReplaceNode(coalesce,
-                    (currentCoalesceNode, generator) =>
-                    {
-                        var currentCoalesce = (BinaryExpressionSyntax)currentCoalesceNode;
-                        var coalesceRight = (ParenthesizedExpressionSyntax)currentCoalesce.Right;
-                        var assignment = (AssignmentExpressionSyntax)coalesceRight.Expression;
+                    // we have `if (x is null) x = y;`.  Update `x = y` to be `x ??= y`, then replace the entire
+                    // if-statement with that assignment statement.
+                    var newAssignment = assignment.WithOperatorToken(
+                        SyntaxFactory.Token(SyntaxKind.QuestionQuestionEqualsToken).WithTriviaFrom(assignment.OperatorToken));
+                    var newWhenTrueStatement = whenTrueStatement.ReplaceNode(assignment, newAssignment).WithTriviaFrom(ifStatement);
 
-                        var compoundOperator = SyntaxFactory.Token(SyntaxKind.QuestionQuestionEqualsToken);
-                        var finalAssignment = SyntaxFactory.AssignmentExpression(
-                            SyntaxKind.CoalesceAssignmentExpression,
-                            assignment.Left,
-                            compoundOperator.WithTriviaFrom(assignment.OperatorToken),
-                            assignment.Right);
+                    editor.ReplaceNode(ifStatement, newWhenTrueStatement);
+                }
+                else
+                {
+                    var coalesce = coalesceOrIfStatement;
+                    // changing from `x ?? (x = y)` to `x ??= y` can change the type.  Specifically,
+                    // with nullable value types (`int?`) it could change from `int?` to `int`.
+                    //
+                    // Add an explicit cast to the original type to ensure semantics are preserved. 
+                    // Simplification engine can then remove it if it's not necessary.
+                    var type = semanticModel.GetTypeInfo(coalesce, cancellationToken).Type;
 
-                        return type == null || type.IsErrorType()
-                            ? finalAssignment
-                            : generator.CastExpression(type, finalAssignment);
-                    });
+                    editor.ReplaceNode(coalesce,
+                        (currentCoalesceNode, generator) =>
+                        {
+                            var currentCoalesce = (BinaryExpressionSyntax)currentCoalesceNode;
+                            var coalesceRight = (ParenthesizedExpressionSyntax)currentCoalesce.Right;
+                            var assignment = (AssignmentExpressionSyntax)coalesceRight.Expression;
+
+                            var compoundOperator = SyntaxFactory.Token(SyntaxKind.QuestionQuestionEqualsToken);
+                            var finalAssignment = SyntaxFactory.AssignmentExpression(
+                                SyntaxKind.CoalesceAssignmentExpression,
+                                assignment.Left,
+                                compoundOperator.WithTriviaFrom(assignment.OperatorToken),
+                                assignment.Right);
+
+                            return type == null || type.IsErrorType()
+                                ? finalAssignment
+                                : generator.CastExpression(type, finalAssignment);
+                        });
+                }
             }
         }
     }
