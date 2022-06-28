@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -244,28 +245,30 @@ namespace Microsoft.VisualStudio.LanguageServices
             return sortedDocumentSymbolModels;
         }
 
-        internal static ImmutableArray<DocumentSymbolViewModel> Search(ImmutableArray<DocumentSymbolViewModel> documentSymbolModels, string query)
+        internal static ImmutableArray<DocumentSymbolViewModel> Search(ImmutableArray<DocumentSymbolViewModel> documentSymbolModels, string pattern)
         {
             var documentSymbols = ArrayBuilder<DocumentSymbolViewModel>.GetInstance();
+            var patternMatcher = PatternMatcher.CreatePatternMatcher(pattern, includeMatchedSpans: false, allowFuzzyMatching: true);
+
             foreach (var documentSymbol in documentSymbolModels)
             {
-                if (SearchNodeTree(documentSymbol, query))
+                if (SearchNodeTree(documentSymbol, patternMatcher))
                     documentSymbols.Add(documentSymbol);
             }
 
             return documentSymbols.ToImmutableAndFree();
         }
 
-        internal static bool SearchNodeTree(DocumentSymbolViewModel tree, string query)
+        internal static bool SearchNodeTree(DocumentSymbolViewModel tree, PatternMatcher patternMatcher)
         {
-            if (tree.Name.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0)
+            if (patternMatcher.GetFirstMatch(tree.Name) is not null)
             {
                 return true;
             }
 
             foreach (var childItem in tree.Children)
             {
-                if (SearchNodeTree(childItem, query))
+                if (SearchNodeTree(childItem, patternMatcher))
                     return true;
             }
 
