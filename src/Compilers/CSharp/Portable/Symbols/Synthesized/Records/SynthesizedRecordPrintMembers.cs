@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Parameters: ImmutableArray.Create<ParameterSymbol>(
                         new SourceSimpleParameterSymbol(owner: this,
                             TypeWithAnnotations.Create(Binder.GetWellKnownType(compilation, WellKnownType.System_Text_StringBuilder, diagnostics, location), annotation),
-                            ordinal: 0, RefKind.None, "builder", Locations)),
+                            ordinal: 0, RefKind.None, DeclarationScope.Unscoped, "builder", Locations)),
                     IsVararg: false,
                     DeclaredConstraintsForOverrideOrImplementation: ImmutableArray<TypeParameterConstraintClause>.Empty);
         }
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ImmutableArray<Symbol> printableMembers = ContainingType.GetMembers().WhereAsArray(m => isPrintable(m));
 
                 if (ReturnType.IsErrorType() ||
-                    printableMembers.Any(m => m.GetTypeOrReturnType().Type.IsErrorType()))
+                    printableMembers.Any(static m => m.GetTypeOrReturnType().Type.IsErrorType()))
                 {
                     F.CloseMethod(F.ThrowNull());
                     return;

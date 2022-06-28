@@ -1960,7 +1960,7 @@ namespace NS1
     }}
 }}";
 
-            TargetTypedCompletionFilterFeatureFlag = true;
+            ShowTargetTypedCompletionFilter = true;
             var markup = CreateMarkupForProjectWithProjectReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp);
 
             string expectedDescription = null;

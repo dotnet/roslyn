@@ -351,7 +351,7 @@ partial interface T3
 
         [Theory]
         [CombinatorialData]
-        public async Task VerbatimStringLiteralsUTF8_01(TestHost testHost)
+        public async Task VerbatimStringLiteralsUtf8_01(TestHost testHost)
         {
             await TestInMethodAsync(@"@""goo""u8",
                 testHost,
@@ -360,7 +360,7 @@ partial interface T3
 
         [Theory]
         [CombinatorialData]
-        public async Task VerbatimStringLiteralsUTF8_02(TestHost testHost)
+        public async Task VerbatimStringLiteralsUtf8_02(TestHost testHost)
         {
             await TestInMethodAsync(@"@""goo""U8",
                 testHost,
@@ -432,7 +432,7 @@ on a new line """),
 
         [Theory]
         [CombinatorialData]
-        public async Task VerbatimStringLiteralsUTF8_03(TestHost testHost)
+        public async Task VerbatimStringLiteralsUtf8_03(TestHost testHost)
         {
             var code = @"
 
@@ -451,7 +451,7 @@ on a new line ""u8"),
 
         [Theory]
         [CombinatorialData]
-        public async Task VerbatimStringLiteralsUTF8_04(TestHost testHost)
+        public async Task VerbatimStringLiteralsUtf8_04(TestHost testHost)
         {
             var code = @"
 
@@ -491,7 +491,7 @@ on a new line ""U8"),
 
         [Theory]
         [CombinatorialData]
-        public async Task VerbatimStringLiteralsUTF8_05(bool script, TestHost testHost)
+        public async Task VerbatimStringLiteralsUtf8_05(bool script, TestHost testHost)
         {
             var code = @"string s = @""""""/*""u8;";
 
@@ -511,7 +511,7 @@ on a new line ""U8"),
 
         [Theory]
         [CombinatorialData]
-        public async Task VerbatimStringLiteralsUTF8_06(bool script, TestHost testHost)
+        public async Task VerbatimStringLiteralsUtf8_06(bool script, TestHost testHost)
         {
             var code = @"string s = @""""""/*""u8;";
 
@@ -540,7 +540,7 @@ on a new line ""U8"),
 
         [Theory]
         [CombinatorialData]
-        public async Task StringLiteralUTF8_01(TestHost testHost)
+        public async Task StringLiteralUtf8_01(TestHost testHost)
         {
             await TestAsync(@"""goo""u8",
                 testHost,
@@ -549,7 +549,7 @@ on a new line ""U8"),
 
         [Theory]
         [CombinatorialData]
-        public async Task StringLiteralUTF8_02(TestHost testHost)
+        public async Task StringLiteralUtf8_02(TestHost testHost)
         {
             await TestAsync(@"""goo""U8",
                 testHost,
@@ -567,7 +567,7 @@ on a new line ""U8"),
 
         [Theory]
         [CombinatorialData]
-        public async Task StringLiteralUTF8_03(TestHost testHost)
+        public async Task StringLiteralUtf8_03(TestHost testHost)
         {
             await TestAsync(@"""""u8",
                 testHost,
@@ -576,7 +576,7 @@ on a new line ""U8"),
 
         [Theory]
         [CombinatorialData]
-        public async Task StringLiteralUTF8_04(TestHost testHost)
+        public async Task StringLiteralUtf8_04(TestHost testHost)
         {
             await TestAsync(@"""""U8",
                 testHost,
@@ -5937,7 +5937,7 @@ class C
 
         [Theory]
         [CombinatorialData]
-        public async Task TestRawStringLiteralUTF8_01(TestHost testHost)
+        public async Task TestRawStringLiteralUtf8_01(TestHost testHost)
         {
             var code = @"
 class C
@@ -5974,7 +5974,7 @@ class C
 
         [Theory]
         [CombinatorialData]
-        public async Task TestRawStringLiteralUTF8_02(TestHost testHost)
+        public async Task TestRawStringLiteralUtf8_02(TestHost testHost)
         {
             var code = @"
 class C
@@ -6052,7 +6052,7 @@ class C
 
         [Theory]
         [CombinatorialData]
-        public async Task TestRawStringLiteralMultilineUTF8_01(TestHost testHost)
+        public async Task TestRawStringLiteralMultilineUtf8_01(TestHost testHost)
         {
             var code = @"
 class C
@@ -6093,7 +6093,7 @@ class C
 
         [Theory]
         [CombinatorialData]
-        public async Task TestRawStringLiteralMultilineUTF8_02(TestHost testHost)
+        public async Task TestRawStringLiteralMultilineUtf8_02(TestHost testHost)
         {
             var code = @"
 class C
@@ -6485,6 +6485,67 @@ static T I1.operator checked >>>(T a, T b)
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        /// <seealso cref="SemanticClassifierTests.LocalFunctionUse"/>
+        /// <seealso cref="TotalClassifierTests.LocalFunctionDeclarationAndUse"/>
+        [Theory]
+        [CombinatorialData]
+        public async Task LocalFunctionDeclaration(TestHost testHost)
+        {
+            await TestAsync(
+                """
+                using System;
+
+                class C
+                {
+                    void M(Action action)
+                    {
+                        [|localFunction();
+                        staticLocalFunction();
+
+                        M(localFunction);
+                        M(staticLocalFunction);
+
+                        void localFunction() { }
+                        static void staticLocalFunction() { }|]
+                    }
+                }
+
+                """,
+                testHost,
+                Identifier("localFunction"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.Semicolon,
+                Identifier("staticLocalFunction"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.Semicolon,
+                Identifier("M"),
+                Punctuation.OpenParen,
+                Identifier("localFunction"),
+                Punctuation.CloseParen,
+                Punctuation.Semicolon,
+                Identifier("M"),
+                Punctuation.OpenParen,
+                Identifier("staticLocalFunction"),
+                Punctuation.CloseParen,
+                Punctuation.Semicolon,
+                Keyword("void"),
+                Method("localFunction"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Keyword("static"),
+                Keyword("void"),
+                Method("staticLocalFunction"),
+                Static("staticLocalFunction"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
                 Punctuation.CloseCurly);
         }
     }

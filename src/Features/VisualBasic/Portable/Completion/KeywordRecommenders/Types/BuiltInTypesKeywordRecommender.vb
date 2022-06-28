@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Type
         Inherits AbstractKeywordRecommender
 
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
-            If context.IsInTaskLikeTypeContext Then
+            If context.IsTaskLikeTypeContext Then
                 Return ImmutableArray(Of RecommendedKeyword).Empty
             End If
 

@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             var selectedMembers = selectedType.GetMembers()
                 .WhereAsArray(m => m.IsStatic &&
                     MemberAndDestinationValidator.IsMemberValid(m) &&
-                    m.DeclaringSyntaxReferences.Any(sr => memberDeclaration.FullSpan.Contains(sr.Span)));
+                    m.DeclaringSyntaxReferences.Any(static (sr, memberDeclaration) => memberDeclaration.FullSpan.Contains(sr.Span), memberDeclaration));
             if (selectedMembers.IsEmpty)
             {
                 return;

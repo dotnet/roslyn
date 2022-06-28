@@ -66,9 +66,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)Rename\Annotations\RenameNodeSimplificationAnnotation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Rename\Annotations\RenameTokenSimplificationAnnotation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\MefHostServicesHelpers.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Simplification\SimplifierOptionsProviders.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AsyncSymbolVisitor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AsyncSymbolVisitor`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\ParsedDocument.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\IProgressTracker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\NoOpProgressTracker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SemanticDocument.cs" />

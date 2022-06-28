@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CommentSelection
         }
 
         private static bool SelectionHasUncommentedLines(ImmutableArray<ITextSnapshotLine> linesInSelection, CommentSelectionInfo commentInfo)
-            => linesInSelection.Any(l => !IsLineCommentedOrEmpty(l, commentInfo));
+            => linesInSelection.Any(static (l, commentInfo) => !IsLineCommentedOrEmpty(l, commentInfo), commentInfo);
 
         private static bool IsLineCommentedOrEmpty(ITextSnapshotLine line, CommentSelectionInfo info)
         {

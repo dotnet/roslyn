@@ -1635,7 +1635,7 @@ next:;
         {
             get
             {
-                return this.declaration.Declarations.Any(d => d.IsSimpleProgram);
+                return this.declaration.Declarations.Any(static d => d.IsSimpleProgram);
             }
         }
 

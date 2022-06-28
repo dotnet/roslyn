@@ -32,11 +32,6 @@
         <target state="translated">轉換成 'Program.Main' 樣式程式</target>
         <note>{Locked="Program.Main"} this is the C# syntax we are going to generate</note>
       </trans-unit>
-      <trans-unit id="Convert_to_UTF8_string_literal">
-        <source>Convert to UTF-8 string literal</source>
-        <target state="translated">轉換成 UTF-8 字串常值</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_to_block_scoped_namespace">
         <source>Convert to block scoped namespace</source>
         <target state="translated">轉換為已設定區塊範圍的 namespace</target>
@@ -122,6 +117,16 @@
         <target state="translated">可以澄清 Null 檢查</target>
         <note />
       </trans-unit>
+      <trans-unit id="Nullable_directive_is_redundant">
+        <source>Nullable directive is redundant</source>
+        <target state="new">Nullable directive is redundant</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Nullable_directive_is_unnecessary">
+        <source>Nullable directive is unnecessary</source>
+        <target state="new">Nullable directive is unnecessary</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_null_check_over_type_check">
         <source>Prefer 'null' check over type check</source>
         <target state="translated">建議使用 'null' 檢查而非鍵入檢查</target>
@@ -137,6 +142,11 @@
         <target state="translated">移除運算子 (保留語義)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_redundant_nullable_directive">
+        <source>Remove redundant nullable directive</source>
+        <target state="new">Remove redundant nullable directive</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_suppression_operators">
         <source>Remove suppression operators</source>
         <target state="translated">移除隱藏的運算子</target>
@@ -145,6 +155,11 @@
       <trans-unit id="Remove_unnecessary_lambda_expression">
         <source>Remove unnecessary lambda expression</source>
         <target state="translated">移除不必要的 Lambda 運算式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_nullable_directive">
+        <source>Remove unnecessary nullable directive</source>
+        <target state="new">Remove unnecessary nullable directive</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_suppression_operator">
@@ -187,7 +202,7 @@
         <target state="translated">偵測到執行不到的程式碼</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_UTF8_string_literal">
+      <trans-unit id="Use_Utf8_string_literal">
         <source>Use UTF-8 string literal</source>
         <target state="translated">使用 UTF-8 字串常值</target>
         <note />

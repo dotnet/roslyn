@@ -14,6 +14,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
@@ -612,6 +613,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         // This is only permitted if the member is an override of a required member from a base type, and is required itself.
                         if (!member.IsRequired()
+                            || member.Kind == SymbolKind.Field
                             || member.GetOverriddenMember() is not { } overriddenMember
                             || !overriddenMember.Equals(requiredMembersBuilder[member.Name], TypeCompareKind.ConsiderEverything))
                         {
@@ -1257,12 +1259,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         // Given C<int>.D<string, double>, yields { int, string, double }
-        internal void GetAllTypeArguments(ArrayBuilder<TypeSymbol> builder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        internal void GetAllTypeArguments(ref TemporaryArray<TypeSymbol> builder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             var outer = ContainingType;
             if (!ReferenceEquals(outer, null))
             {
-                outer.GetAllTypeArguments(builder, ref useSiteInfo);
+                outer.GetAllTypeArguments(ref builder, ref useSiteInfo);
             }
 
             foreach (var argument in TypeArgumentsWithDefinitionUseSiteDiagnostics(ref useSiteInfo))
