@@ -12,10 +12,17 @@ internal sealed partial class NodeStateTable<T>
 {
     public sealed partial class Builder
     {
-        private readonly struct StatesWrapper
+        private struct StatesWrapper
         {
             private readonly Builder _builder;
             private readonly ArrayBuilder<TableEntry> _tableEntries;
+
+            /// <summary>
+            /// Tracks if the new table we're building has all the same entries as the previous table.  If we end up
+            /// with the same set of entries at the end, we can just point our new table at that same array, avoiding a
+            /// costly allocation.
+            /// </summary>
+            public bool UnchangedFromPrevious = true;
 
             public StatesWrapper(Builder builder)
             {
@@ -44,10 +51,10 @@ internal sealed partial class NodeStateTable<T>
                 _tableEntries.Add(entry);
 
                 // Keep checking if we're producing the same entries as in _previous.
-                if (_builder._unchangedFromPrevious && currentindex < _builder._previous._states.Length)
+                if (this.UnchangedFromPrevious && currentindex < _builder._previous._states.Length)
                 {
                     var previousEntry = _builder._previous._states[currentindex];
-                    _builder._unchangedFromPrevious = entry.Matches(previousEntry, _builder._equalityComparer);
+                    this.UnchangedFromPrevious = entry.Matches(previousEntry, _builder._equalityComparer);
                 }
             }
         }

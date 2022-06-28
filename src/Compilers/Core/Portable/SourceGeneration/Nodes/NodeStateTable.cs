@@ -140,15 +140,17 @@ namespace Microsoft.CodeAnalysis
                 bool usedCachedEntry = builder.TryUseCachedEntries(TimeSpan.Zero, inputs);
                 Debug.Assert(usedCachedEntry);
             }
+
             return builder.ToImmutableAndFree();
         }
 
         public sealed partial class Builder
         {
             /// <summary>
-            /// Wrapped ArrayBuilder that ensures that as we update it we keep track if we're producing the exact same results as before.
+            /// Wrapped ArrayBuilder that ensures that as we update it we keep track if we're producing the exact same
+            /// results as before. Do not make this readonly.  It is a mutable struct.
             /// </summary>
-            private readonly StatesWrapper _states;
+            private StatesWrapper _states;
             private readonly NodeStateTable<T> _previous;
 
             private readonly IEqualityComparer<T> _equalityComparer;
@@ -158,13 +160,6 @@ namespace Microsoft.CodeAnalysis
 
             [MemberNotNullWhen(true, nameof(_steps))]
             public bool TrackIncrementalSteps => _steps is not null;
-
-            /// <summary>
-            /// Tracks if the new table we're building has all the same entries as the previous table.  If we end up
-            /// with the same set of entries at the end, we can just point our new table at that same array, avoiding a
-            /// costly allocation.
-            /// </summary>
-            private bool _unchangedFromPrevious = true;
 
             internal Builder(NodeStateTable<T> previous, string? name, bool stepTrackingEnabled, IEqualityComparer<T>? equalityComparer)
             {
@@ -272,6 +267,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         RecordStepInfoForLastEntry(elapsedTime, stepInputs, EntryState.Cached);
                     }
+
                     return true;
                 }
 
@@ -379,7 +375,7 @@ namespace Microsoft.CodeAnalysis
 
                 // if we added the exact same entries as before, then we can directly embed previous' entry array,
                 // avoiding a costly allocation of the same data.
-                if (_unchangedFromPrevious && _states.Count == _previous._states.Length)
+                if (_states.UnchangedFromPrevious && _states.Count == _previous._states.Length)
                 {
                     _states.Free();
                     return new NodeStateTable<T>(
@@ -523,12 +519,14 @@ namespace Microsoft.CodeAnalysis
                         {
                             sb.Builder.Append(',');
                         }
+
                         sb.Builder.Append(" (");
                         sb.Builder.Append(GetItem(i));
                         sb.Builder.Append(':');
                         sb.Builder.Append(GetState(i));
                         sb.Builder.Append(')');
                     }
+
                     sb.Builder.Append(" }");
                     return sb.ToStringAndFree();
                 }
