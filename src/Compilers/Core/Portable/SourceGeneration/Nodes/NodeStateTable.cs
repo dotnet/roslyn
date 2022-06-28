@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis
                 return new NodeStateTable<T>(
                     finalStates,
                     TrackIncrementalSteps ? _steps.ToImmutableAndFree() : default,
-                    !hasNonCached,
+                    isCompacted: !hasNonCached,
                     hasTrackedSteps: TrackIncrementalSteps);
             }
 
