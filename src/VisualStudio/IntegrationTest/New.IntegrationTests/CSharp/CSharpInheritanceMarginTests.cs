@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
+using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
 using WindowsInput.Native;
@@ -160,6 +161,58 @@ class Implementation : IBar
             var document = await TestServices.Editor.GetActiveDocumentAsync(HangMitigatingCancellationToken);
             RoslynDebug.AssertNotNull(document);
             Assert.NotEqual(WorkspaceKind.MetadataAsSource, document.Project.Solution.Workspace.Kind);
+        }
+
+        [IdeFact]
+        public async Task TestNavigateFromMetadataToSource()
+        {
+            var project = ProjectName;
+            await TestServices.InheritanceMargin.DisableOptionsAsync(LanguageName, cancellationToken: HangMitigatingCancellationToken);
+
+            await TestServices.SolutionExplorer.AddFileAsync(project, "Test.cs", cancellationToken: HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.OpenFileAsync(project, "Test.cs", HangMitigatingCancellationToken);
+            await TestServices.Editor.SetTextAsync(@"
+using System.Collections;
+
+class Implementation : IEnumerable
+{
+    public IEnumerator GetEnumerator()
+    {
+        throw new NotImplementedException();
+    }
+}", HangMitigatingCancellationToken);
+
+            await TestServices.Editor.PlaceCaretAsync("IEnumerable", charsOffset: 0, HangMitigatingCancellationToken);
+            await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
+            var metadataDocument = await TestServices.Editor.GetActiveDocumentAsync(HangMitigatingCancellationToken);
+            RoslynDebug.AssertNotNull(metadataDocument);
+            Assert.Equal(WorkspaceKind.MetadataAsSource, metadataDocument.Project.Solution.Workspace.Kind);
+
+            // Now we are in metatdata workspace, navigate back
+            await TestServices.InheritanceMargin.EnableOptionsAndEnsureGlyphsAppearAsync(LanguageName, expectedGlyphsNumberInMargin: 2, HangMitigatingCancellationToken);
+
+            var activeView = await TestServices.Editor.GetActiveTextViewAsync(HangMitigatingCancellationToken);
+            var index = activeView.TextSnapshot.GetText().IndexOf("IEnumerable");
+            var line = activeView.GetTextViewLineContainingBufferPosition(
+                new SnapshotPoint(
+                    activeView.TextBuffer.CurrentSnapshot,
+                    index));
+
+            // Line of TextViewLines are zero-based, but in real editor line number starts from 1.
+            var lineNumber = activeView.TextViewLines.GetIndexOfTextLine(line) + 1;
+
+            await TestServices.InheritanceMargin.ClickTheGlyphOnLine(lineNumber, HangMitigatingCancellationToken);
+            // Move focus to menu item of 'class Implementation'
+            await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.TAB);
+            // Navigate to 'class Implementation'
+            await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.RETURN);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.InheritanceMargin }, HangMitigatingCancellationToken);
+
+            await TestServices.EditorVerifier.TextContainsAsync(@"class Implementation$$", assertCaretPosition: true);
+
+            var document = await TestServices.Editor.GetActiveDocumentAsync(HangMitigatingCancellationToken);
+            RoslynDebug.AssertNotNull(document);
+            Assert.Equal(WorkspaceKind.Host, document.Project.Solution.Workspace.Kind);
         }
     }
 }
