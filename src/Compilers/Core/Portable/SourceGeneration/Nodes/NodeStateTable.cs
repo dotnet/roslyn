@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis
     /// A data structure that tracks the inputs and output of an execution node
     /// </summary>
     /// <typeparam name="T">The type of the items tracked by this table</typeparam>
-    internal sealed partial class NodeStateTable<T> : IStateTable
+    internal sealed class NodeStateTable<T> : IStateTable
     {
         internal static NodeStateTable<T> Empty { get; } = new NodeStateTable<T>(ImmutableArray<TableEntry>.Empty, ImmutableArray<IncrementalGeneratorRunStep>.Empty, isCompacted: true, hasTrackedSteps: true);
 
