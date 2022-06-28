@@ -75,7 +75,7 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
             RudeEditDiagnosticDescription[]? diagnostics = null)
             => new(activeStatements, semanticEdits, lineEdits: null, diagnostics);
 
-        private static string GetDocumentFilePath(int documentIndex)
+        internal static string GetDocumentFilePath(int documentIndex)
             => Path.Combine(TempRoot.Root, documentIndex.ToString() + ".cs");
 
         private static SyntaxTree ParseSource(string markedSource, int documentIndex = 0)
