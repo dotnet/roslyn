@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis
             return builder.ToImmutableAndFree();
         }
 
-        public sealed partial class Builder
+        public sealed class Builder
         {
             private readonly ArrayBuilder<TableEntry> _states;
             private readonly NodeStateTable<T> _previous;
