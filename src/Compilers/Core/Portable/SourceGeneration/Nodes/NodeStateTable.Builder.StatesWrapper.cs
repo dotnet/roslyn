@@ -13,6 +13,10 @@ internal sealed partial class NodeStateTable<T>
 {
     public sealed partial class Builder
     {
+        /// <summary>
+        /// Helper type that keeps track of the TableEntrys that are being added and will reuse the same entries from
+        /// the previous node table if we're producing the exact same ones.
+        /// </summary>
         private struct StatesWrapper
         {
             private readonly NodeStateTable<T> _previous;
