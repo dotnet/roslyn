@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             var (service, context) = serviceAndContext.Value;
-            var postReturnEdit = service.GetTextChangeAfterReturn(context, options, cancellationToken);
+            var postReturnEdit = await service.GetTextChangeAfterReturnAsync(context, options, cancellationToken).ConfigureAwait(false);
             if (postReturnEdit == null)
             {
                 return null;
@@ -235,11 +235,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 _ => throw new ArgumentException($"Language {document.Project.Language} is not recognized for OnAutoInsert")
             };
 
-            var parsedDocument = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-
             foreach (var service in servicesForDocument)
             {
-                var context = service.GetCompletedBraceContext(parsedDocument, caretLocation);
+                var context = await service.GetCompletedBraceContextAsync(document, caretLocation, cancellationToken).ConfigureAwait(false);
                 if (context != null)
                 {
                     return (service, context.Value);

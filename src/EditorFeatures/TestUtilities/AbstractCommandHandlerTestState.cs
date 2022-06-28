@@ -124,8 +124,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 
             this.EditorOperations = GetService<IEditorOperationsFactoryService>().GetEditorOperations(_textView);
             this.UndoHistoryRegistry = GetService<ITextUndoHistoryRegistry>();
-
-            _textView.Options.GlobalOptions.SetOptionValue(DefaultOptions.IndentStyleId, IndentingStyle.Smart);
         }
 
         public void Dispose()
