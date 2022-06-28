@@ -239,6 +239,64 @@ class C
             ResolveAndVerifySymbolList(members1, members2, comp1);
         }
 
+        [Fact]
+        public void FileType1()
+        {
+            var src1 = @"using System;
+
+namespace N1.N2
+{
+    file class C { }
+}
+";
+            var comp1 = CreateCompilation(src1, assemblyName: "Test");
+            var comp2 = CreateCompilation(src1, assemblyName: "Test");
+
+            var c1Symbols = GetSourceSymbols(comp1, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name);
+            var c2Symbols = GetSourceSymbols(comp2, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name);
+
+            ResolveAndVerifySymbolList(newSymbols, originalSymbols, comp1);
+        }
+
+        [Fact]
+        public void FileType2()
+        {
+            var src1 = @"using System;
+
+namespace N1.N2
+{
+    file class C<T> { }
+}
+";
+            var comp1 = CreateCompilation(src1, assemblyName: "Test");
+            var comp2 = CreateCompilation(src1, assemblyName: "Test");
+
+            var c1Symbols = GetSourceSymbols(comp1, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name);
+            var c2Symbols = GetSourceSymbols(comp2, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name);
+
+            ResolveAndVerifySymbolList(newSymbols, originalSymbols, comp1);
+        }
+
+        [Fact]
+        public void FileType3()
+        {
+            var src1 = @"using System;
+
+namespace N1.N2
+{
+    file class C { }
+}
+";
+            // this should result in two entirely separate file symbols.
+            var comp1 = CreateCompilation(new[] { src1, src2 }, assemblyName: "Test");
+            var comp2 = CreateCompilation(new[] { src1, src2 }, assemblyName: "Test");
+
+            var c1Symbols = GetSourceSymbols(comp1, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name);
+            var c2Symbols = GetSourceSymbols(comp2, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name);
+
+            ResolveAndVerifySymbolList(newSymbols, originalSymbols, comp1);
+        }
+
         #endregion
 
         #region "Change to symbol"
