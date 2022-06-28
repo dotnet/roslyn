@@ -2612,16 +2612,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
 #Region "State Machines"
 
-        Protected Overrides ReadOnly Property SupportsStateMachineUpdates As Boolean
-            Get
-                Return False
-            End Get
-        End Property
-
-        Protected Overrides Function IsStateMachineResumableStateSyntax(node As SyntaxNode) As Boolean
-            Return node.IsKind(SyntaxKind.AwaitExpression, SyntaxKind.YieldStatement)
-        End Function
-
         Friend Overrides Function IsStateMachineMethod(declaration As SyntaxNode) As Boolean
             Return SyntaxUtilities.IsAsyncMethodOrLambda(declaration) OrElse
                    SyntaxUtilities.IsIteratorMethodOrLambda(declaration)

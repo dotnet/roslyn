@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -49,9 +50,22 @@ namespace Microsoft.CodeAnalysis
 
             var stopwatch = SharedStopwatch.StartNew();
 
-            var batchedSourceEntries = sourceTable.Batch();
-            var sourceValues = batchedSourceEntries.SelectAsArray(sourceEntry => sourceEntry.State != EntryState.Removed, sourceEntry => sourceEntry.Item);
-            var sourceInputs = newTable.TrackIncrementalSteps ? batchedSourceEntries.SelectAsArray(sourceEntry => (sourceEntry.Step!, sourceEntry.OutputIndex)) : default;
+            var sourceValuesBuilder = ArrayBuilder<TInput>.GetInstance();
+            var sourceInputsBuilder = newTable.TrackIncrementalSteps ? ArrayBuilder<(IncrementalGeneratorRunStep InputStep, int OutputIndex)>.GetInstance() : null;
+
+            foreach (var entry in sourceTable)
+            {
+                // At this point, we can remove any 'Removed' items and ensure they're not in our list of states.
+                if (entry.State != EntryState.Removed)
+                    sourceValuesBuilder.Add(entry.Item);
+
+                // However, regardless of if the entry was removed or not, we still keep track of its step information
+                // so we can accurately report how long it took and what actually happened (for testing validation).
+                sourceInputsBuilder?.Add((entry.Step!, entry.OutputIndex));
+            }
+
+            var sourceValues = sourceValuesBuilder.ToImmutableAndFree();
+            var sourceInputs = newTable.TrackIncrementalSteps ? sourceInputsBuilder!.ToImmutableAndFree() : default;
 
             if (previousTable.IsEmpty)
             {

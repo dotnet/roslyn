@@ -83,15 +83,15 @@ namespace Microsoft.CodeAnalysis
                     Debug.Assert(model is object);
 
                     // get the syntax nodes from cache, or a syntax walk using the filter
-                    if (state != EntryState.Cached || !_filterTable.TryUseCachedEntries(TimeSpan.Zero, noInputStepsStepInfo, out ImmutableArray<SyntaxNode> nodes))
+                    if (state != EntryState.Cached || !_filterTable.TryUseCachedEntries(TimeSpan.Zero, noInputStepsStepInfo, out NodeStateTable<SyntaxNode>.TableEntry entry))
                     {
                         var stopwatch = SharedStopwatch.StartNew();
-                        nodes = getFilteredNodes(root.Value, _owner._filterFunc, cancellationToken);
-                        _filterTable.AddEntries(nodes, state, stopwatch.Elapsed, noInputStepsStepInfo, state);
+                        var nodes = getFilteredNodes(root.Value, _owner._filterFunc, cancellationToken);
+                        entry = _filterTable.AddEntries(nodes, state, stopwatch.Elapsed, noInputStepsStepInfo, state);
                     }
 
                     // now, using the obtained syntax nodes, run the transform
-                    foreach (SyntaxNode node in nodes)
+                    foreach (SyntaxNode node in entry)
                     {
                         var stopwatch = SharedStopwatch.StartNew();
                         var value = new GeneratorSyntaxContext(node, model, _owner._syntaxHelper);

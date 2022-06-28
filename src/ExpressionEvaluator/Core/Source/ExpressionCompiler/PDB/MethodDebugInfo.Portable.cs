@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         }
 
         /// <summary>
-        /// Read UTF8 string with null terminator.
+        /// Read UTF-8 string with null terminator.
         /// </summary>
         private static string ReadUtf8String(ref BlobReader reader)
         {
