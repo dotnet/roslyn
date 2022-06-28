@@ -33,8 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
 
         protected override char ClosingBrace => Bracket.CloseCharacter;
 
-        public override bool AllowOverType(BraceCompletionContext context, CancellationToken cancellationToken)
-            => AllowOverTypeInUserCodeWithValidClosingToken(context, cancellationToken);
+        public override Task<bool> AllowOverTypeAsync(BraceCompletionContext context, CancellationToken cancellationToken)
+            => AllowOverTypeInUserCodeWithValidClosingTokenAsync(context, cancellationToken);
 
         protected override bool IsValidOpeningBraceToken(SyntaxToken token) => token.IsKind(SyntaxKind.OpenBracketToken);
 

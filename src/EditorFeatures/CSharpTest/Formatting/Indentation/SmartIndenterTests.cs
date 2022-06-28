@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -3523,6 +3522,11 @@ namespace NS
             {
                 using var workspace = TestWorkspace.CreateCSharp(markup, parseOptions: option, composition: s_compositionWithTestFormattingRules);
 
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                    .WithChangedOption(UseTabs, LanguageNames.CSharp, useTabs)));
+
+                workspace.GlobalOptions.SetGlobalOption(new OptionKey(IndentationOptionsStorage.SmartIndent, LanguageNames.CSharp), indentStyle);
+
                 var subjectDocument = workspace.Documents.Single();
 
                 var projectedDocument =
@@ -3532,25 +3536,12 @@ namespace NS
                 provider.BaseIndentation = BaseIndentationOfNugget;
                 provider.TextSpan = subjectDocument.SelectedSpans.Single();
 
-                var editorOptionsFactory = workspace.GetService<IEditorOptionsFactoryService>();
-
                 var indentationLine = projectedDocument.GetTextBuffer().CurrentSnapshot.GetLineFromPosition(projectedDocument.CursorPosition.Value);
-                var textView = projectedDocument.GetTextView();
-                var buffer = subjectDocument.GetTextBuffer();
-                var point = textView.BufferGraph.MapDownToBuffer(indentationLine.Start, PointTrackingMode.Negative, buffer, PositionAffinity.Predecessor);
-
-                var editorOptions = editorOptionsFactory.GetOptions(buffer);
-                editorOptions.SetOptionValue(DefaultOptions.IndentStyleId, indentStyle.ToEditorIndentStyle());
-                editorOptions.SetOptionValue(DefaultOptions.ConvertTabsToSpacesOptionId, !useTabs);
+                var point = projectedDocument.GetTextView().BufferGraph.MapDownToBuffer(indentationLine.Start, PointTrackingMode.Negative, subjectDocument.GetTextBuffer(), PositionAffinity.Predecessor);
 
                 TestIndentation(
-                    point.Value,
-                    expectedIndentation,
-                    textView,
-                    subjectDocument,
-                    workspace.GlobalOptions,
-                    editorOptionsFactory,
-                    workspace.GetService<IIndentationManagerService>());
+                    point.Value, expectedIndentation,
+                    projectedDocument.GetTextView(), subjectDocument, workspace.GlobalOptions);
             }
         }
 
