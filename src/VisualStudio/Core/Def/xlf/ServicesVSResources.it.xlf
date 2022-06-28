@@ -803,8 +803,8 @@
         <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "type parameter".</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_VisualBasic_Class">
-        <source>Class/Module</source>
-        <target state="new">Class/Module</target>
+        <source>Class</source>
+        <target state="new">Class</target>
         <note>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_VisualBasic_Delegate">
@@ -841,6 +841,11 @@
         <source>Method</source>
         <target state="translated">metodo</target>
         <note>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "method".</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_Module">
+        <source>Module</source>
+        <target state="new">Module</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_VisualBasic_Namespace">
         <source>Namespace</source>

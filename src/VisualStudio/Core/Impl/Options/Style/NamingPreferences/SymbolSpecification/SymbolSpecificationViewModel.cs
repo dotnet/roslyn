@@ -95,6 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
                     new SymbolKindViewModel(TypeKind.Struct, ServicesVSResources.NamingSpecification_VisualBasic_Structure, specification),
                     new SymbolKindViewModel(TypeKind.Interface, ServicesVSResources.NamingSpecification_VisualBasic_Interface, specification),
                     new SymbolKindViewModel(TypeKind.Enum, ServicesVSResources.NamingSpecification_VisualBasic_Enum, specification),
+                    new SymbolKindViewModel(TypeKind.Module, ServicesVSResources.NamingSpecification_VisualBasic_Module, specification),
                     new SymbolKindViewModel(SymbolKind.Property, ServicesVSResources.NamingSpecification_VisualBasic_Property, specification),
                     new SymbolKindViewModel(SymbolKind.Method, ServicesVSResources.NamingSpecification_VisualBasic_Method, specification),
                     new SymbolKindViewModel(SymbolKind.Field, ServicesVSResources.NamingSpecification_VisualBasic_Field, specification),
