@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.ExtractClass
             _optionsService = service;
         }
 
-        protected abstract Task<SyntaxNode?> GetSelectedNodeAsync(CodeRefactoringContext context);
+        protected abstract Task<ImmutableArray<SyntaxNode>> GetSelectedNodesAsync(CodeRefactoringContext context);
         protected abstract Task<SyntaxNode?> GetSelectedClassDeclarationAsync(CodeRefactoringContext context);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
@@ -55,7 +56,7 @@ namespace Microsoft.CodeAnalysis.ExtractClass
 
         private async Task<ExtractClassWithDialogCodeAction?> TryGetMemberActionAsync(CodeRefactoringContext context, IExtractClassOptionsService optionsService)
         {
-            var selectedMemberNode = await GetSelectedNodeAsync(context).ConfigureAwait(false);
+            var selectedMemberNode = await GetSelectedNodesAsync(context).ConfigureAwait(false);
             if (selectedMemberNode is null)
             {
                 return null;

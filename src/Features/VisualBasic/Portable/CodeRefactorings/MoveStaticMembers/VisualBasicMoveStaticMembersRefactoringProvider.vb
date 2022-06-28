@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.MoveStaticMembers
             MyBase.New()
         End Sub
 
-        Protected Overrides Async Function GetSelectedNodeAsync(context As CodeRefactoringContext) As Task(Of SyntaxNode)
+        Protected Overrides Async Function GetSelectedNodesAsync(context As CodeRefactoringContext) As Task(Of SyntaxNode)
             Return Await GetSelectedMemberDeclarationAsync(context).ConfigureAwait(False)
         End Function
     End Class

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
     {
         private IPullMemberUpOptionsService? _service;
 
-        protected abstract Task<SyntaxNode> GetSelectedNodeAsync(CodeRefactoringContext context);
+        protected abstract Task<ImmutableArray<SyntaxNode>> GetSelectedNodesAsync(CodeRefactoringContext context);
 
         /// <summary>
         /// Test purpose only
@@ -39,26 +39,33 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 return;
             }
 
-            var selectedMemberNode = await GetSelectedNodeAsync(context).ConfigureAwait(false);
-            if (selectedMemberNode == null)
+            var selectedMemberNodes = await GetSelectedNodesAsync(context).ConfigureAwait(false);
+            if (selectedMemberNodes.IsEmpty)
             {
                 return;
             }
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var selectedMember = semanticModel.GetDeclaredSymbol(selectedMemberNode);
-            if (selectedMember == null || selectedMember.ContainingType == null)
+            var selectedMembers = selectedMemberNodes
+                .Select(memberNode => semanticModel.GetDeclaredSymbol(memberNode))
+                .WhereNotNull()
+                .Where(memberNode => MemberAndDestinationValidator.IsMemberValid(memberNode))
+                .AsImmutable();
+
+            if (selectedMembers.IsEmpty)
             {
                 return;
             }
 
-            if (!MemberAndDestinationValidator.IsMemberValid(selectedMember))
+            var containingType = selectedMembers.First().ContainingType;
+            if (containingType == null || selectedMembers.Any(m => m.ContainingType != containingType))
             {
                 return;
             }
 
             var allDestinations = FindAllValidDestinations(
-                selectedMember,
+                selectedMembers,
+                containingType,
                 document.Project.Solution,
                 cancellationToken);
             if (allDestinations.Length == 0)
@@ -66,23 +73,28 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 return;
             }
 
-            var allActions = allDestinations.Select(destination => MembersPuller.TryComputeCodeAction(document, selectedMember, destination, context.Options))
-                .WhereNotNull().Concat(new PullMemberUpWithDialogCodeAction(document, selectedMember, _service, context.Options))
-                .ToImmutableArray();
+            var allActions = allDestinations.Select(destination => MembersPuller.TryComputeCodeAction(document, selectedMembers, destination, context.Options))
+            .WhereNotNull().Concat(new PullMemberUpWithDialogCodeAction(document, selectedMembers, _service, context.Options))
+            .ToImmutableArray();
+
+            var title = selectedMembers.IsSingle() ?
+                string.Format(FeaturesResources.Pull_0_up, selectedMembers.Single().ToNameDisplayString()) :
+                FeaturesResources.Pull_selected_members_up;
 
             var nestedCodeAction = CodeActionWithNestedActions.Create(
-                string.Format(FeaturesResources.Pull_0_up, selectedMember.ToNameDisplayString()),
+                title,
                 allActions, isInlinable: true);
-            context.RegisterRefactoring(nestedCodeAction, selectedMemberNode.Span);
+
+            context.RegisterRefactoring(nestedCodeAction, context.Span);
         }
 
         private static ImmutableArray<INamedTypeSymbol> FindAllValidDestinations(
-            ISymbol selectedMember,
+            ImmutableArray<ISymbol> selectedMembers,
+            INamedTypeSymbol containingType,
             Solution solution,
             CancellationToken cancellationToken)
         {
-            var containingType = selectedMember.ContainingType;
-            var allDestinations = selectedMember.IsKind(SymbolKind.Field)
+            var allDestinations = selectedMembers.All(m => m.IsKind(SymbolKind.Field))
                 ? containingType.GetBaseTypes().ToImmutableArray()
                 : containingType.AllInterfaces.Concat(containingType.GetBaseTypes()).ToImmutableArray();
 

@@ -1315,6 +1315,16 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">기본 형식까지 멤버를 풀...</target>
         <note />
       </trans-unit>
+      <trans-unit id="Pull_selected_members_up">
+        <source>Pull selected members up</source>
+        <target state="new">Pull selected members up</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pull_selected_members_up_to_0">
+        <source>Pull selected members up to {0}</source>
+        <target state="new">Pull selected members up to {0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Quantifier_x_y_following_nothing">
         <source>Quantifier {x,y} following nothing</source>
         <target state="translated">수량자 {x,y} 앞에 아무 것도 없습니다.</target>
