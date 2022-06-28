@@ -53,8 +53,7 @@ namespace Microsoft.CodeAnalysis
 
     internal static class PoolingExtensions
     {
-        public static BuilderAndStatistics<TValue> DequeuePooledItem<TValue>(
-            this ConcurrentQueue<BuilderAndStatistics<TValue>> queue)
+        public static BuilderAndStatistics<TValue> DequeuePooledItem<TValue>(this ConcurrentQueue<BuilderAndStatistics<TValue>> queue)
             => queue.TryDequeue(out var item) ? item : new BuilderAndStatistics<TValue> { Builder = ImmutableArray.CreateBuilder<TValue>() };
 
         public static void ReturnPooledItem<TValue>(
