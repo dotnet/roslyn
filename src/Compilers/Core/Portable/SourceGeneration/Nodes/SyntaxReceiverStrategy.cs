@@ -42,8 +42,7 @@ namespace Microsoft.CodeAnalysis
             {
                 _owner = owner;
                 _key = key;
-                _nodeStateTable = driverStateTable.GetStateTableOrEmpty<ISyntaxContextReceiver?>(_key).ToBuilder(
-                    stepName: null, trackIncrementalSteps, equalityComparer: EqualityComparer<ISyntaxContextReceiver?>.Default);
+                _nodeStateTable = driverStateTable.GetStateTableOrEmpty<ISyntaxContextReceiver?>(_key).ToBuilder(stepName: null, trackIncrementalSteps);
                 try
                 {
                     _receiver = owner._receiverCreator();

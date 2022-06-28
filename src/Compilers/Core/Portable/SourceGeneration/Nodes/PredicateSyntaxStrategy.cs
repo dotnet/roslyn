@@ -48,8 +48,7 @@ namespace Microsoft.CodeAnalysis
                 _name = name;
                 _comparer = comparer;
                 _key = key;
-                _filterTable = table.GetStateTableOrEmpty<SyntaxNode>(_owner._filterKey).ToBuilder(
-                    stepName: null, trackIncrementalSteps, EqualityComparer<SyntaxNode>.Default);
+                _filterTable = table.GetStateTableOrEmpty<SyntaxNode>(_owner._filterKey).ToBuilder(stepName: null, trackIncrementalSteps);
                 _transformTable = table.GetStateTableOrEmpty<T>(_key).ToBuilder(_name, trackIncrementalSteps, _comparer);
             }
 
