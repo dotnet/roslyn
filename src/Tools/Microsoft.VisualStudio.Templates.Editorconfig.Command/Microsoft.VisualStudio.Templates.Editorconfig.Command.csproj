@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
     <IsTestProject>false</IsTestProject>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <!-- VSIX Properties -->
