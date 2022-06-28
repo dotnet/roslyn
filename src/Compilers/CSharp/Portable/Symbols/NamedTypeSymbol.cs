@@ -579,15 +579,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var lazyRequiredMembers = _lazyRequiredMembers;
             if (lazyRequiredMembers == RequiredMembersErrorSentinel)
             {
-                if (lazyRequiredMembers.IsDefault)
-                {
-                    return false;
-                }
-                else
-                {
-                    requiredMembersBuilder = lazyRequiredMembers.ToBuilder();
-                    return true;
-                }
+                return false;
             }
 
             if (BaseTypeNoUseSiteDiagnostics?.TryCalculateRequiredMembers(ref requiredMembersBuilder) == false)
