@@ -23,6 +23,8 @@ namespace Microsoft.CodeAnalysis
     internal record struct BuilderAndStatistics<TValue>(
         ImmutableArray<TValue>.Builder Builder)
     {
+        private static readonly ConcurrentQueue<BuilderAndStatistics<TValue>> s_pool = new();
+
         /// <summary>
         /// The number of times this item has been added back to the pool.  Once this goes past some threshold
         /// we will start checking if we're continually returning a large array that is mostly empty.  If so, we
@@ -36,6 +38,9 @@ namespace Microsoft.CodeAnalysis
         /// array.
         /// </summary>
         public int NumberOfTimesPooledWhenSparse;
+
+        public static BuilderAndStatistics<TValue> Allocate()
+            => s_pool.TryDequeue(out var item) ? item : new BuilderAndStatistics<TValue> { Builder = ImmutableArray.CreateBuilder<TValue>() };
 
         public int Count
             => Builder.Count;
@@ -52,7 +57,7 @@ namespace Microsoft.CodeAnalysis
         public bool Any(Func<TValue, bool> predicate)
             => Builder.Any(predicate);
 
-        public void ClearAndReturnToPool(ConcurrentQueue<BuilderAndStatistics<TValue>> pool)
+        public void ClearAndFree()
         {
             // Don't bother shrinking the array for arrays less than this capacity.  They're not going to be a
             // huge waste of space so we can just pool them forever.
@@ -102,13 +107,7 @@ namespace Microsoft.CodeAnalysis
                 NumberOfTimesPooledWhenSparse = 0;
             }
 
-            pool.Enqueue(this);
+            s_pool.Enqueue(this);
         }
-    }
-
-    internal static class PoolingExtensions
-    {
-        public static BuilderAndStatistics<TValue> DequeuePooledItem<TValue>(this ConcurrentQueue<BuilderAndStatistics<TValue>> queue)
-            => queue.TryDequeue(out var item) ? item : new BuilderAndStatistics<TValue> { Builder = ImmutableArray.CreateBuilder<TValue>() };
     }
 }

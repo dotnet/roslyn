@@ -16,8 +16,6 @@ namespace Microsoft.CodeAnalysis
 {
     internal sealed class BatchNode<TInput> : IIncrementalGeneratorNode<ImmutableArray<TInput>>
     {
-        private static readonly ConcurrentQueue<BuilderAndStatistics<TInput>> s_builderPool = new();
-
         private readonly IIncrementalGeneratorNode<TInput> _sourceNode;
         private readonly IEqualityComparer<ImmutableArray<TInput>> _comparer;
         private readonly string? _name;
@@ -75,7 +73,7 @@ namespace Microsoft.CodeAnalysis
             NodeStateTable<ImmutableArray<TInput>> previousTable,
             NodeStateTable<ImmutableArray<TInput>>.Builder newTable)
         {
-            var sourceValuesBuilder = s_builderPool.DequeuePooledItem();
+            var sourceValuesBuilder = BuilderAndStatistics<TInput>.Allocate();
             try
             {
                 var sourceInputsBuilder = newTable.TrackIncrementalSteps ? ArrayBuilder<(IncrementalGeneratorRunStep InputStep, int OutputIndex)>.GetInstance() : null;
@@ -105,7 +103,7 @@ namespace Microsoft.CodeAnalysis
             }
             finally
             {
-                sourceValuesBuilder.ClearAndReturnToPool(s_builderPool);
+                sourceValuesBuilder.ClearAndFree();
             }
         }
 
