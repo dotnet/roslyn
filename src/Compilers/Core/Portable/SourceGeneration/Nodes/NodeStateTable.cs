@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis
             public TableEntry AddEntries(ImmutableArray<T> values, EntryState state, TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, EntryState overallInputState)
             {
                 var tableEntry = new TableEntry(values, state);
-                _states.Add(new TableEntry(values, state));
+                _states.Add(tableEntry);
                 RecordStepInfoForLastEntry(elapsedTime, stepInputs, overallInputState);
                 return tableEntry;
             }
