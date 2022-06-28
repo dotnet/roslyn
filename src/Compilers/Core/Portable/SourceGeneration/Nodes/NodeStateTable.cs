@@ -369,13 +369,12 @@ namespace Microsoft.CodeAnalysis
                     ? _previous._states
                     : _states.ToImmutable();
 
-                var hasNonCached = _states.Any(static s => !s.IsCached);
                 _states.Free();
 
                 return new NodeStateTable<T>(
                     finalStates,
                     TrackIncrementalSteps ? _steps.ToImmutableAndFree() : default,
-                    isCompacted: !hasNonCached,
+                    isCompacted: finalStates.All(static s => s.IsCached),
                     hasTrackedSteps: TrackIncrementalSteps);
             }
 
