@@ -751,18 +751,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 return;
             }
 
+            var snapshot = subjectBuffer.CurrentSnapshot;
             var document = _workspace.CurrentSolution.GetDocument(this.Id);
             if (!document.SupportsSyntaxTree)
             {
                 return;
             }
 
-            var parsedDocument = ParsedDocument.CreateSynchronously(document, CancellationToken.None);
-            Debug.Assert(ReferenceEquals(parsedDocument.Text, subjectBuffer.CurrentSnapshot.AsText()));
+            var originalText = document.GetTextSynchronously(CancellationToken.None);
+            Debug.Assert(object.ReferenceEquals(originalText, snapshot.AsText()));
+
+            var root = document.GetSyntaxRootSynchronously(CancellationToken.None);
 
             var editorOptionsFactory = _componentModel.GetService<IEditorOptionsFactoryService>();
-            var indentationManager = _componentModel.GetService<IIndentationManagerService>();
-            var formattingOptions = subjectBuffer.GetSyntaxFormattingOptions(editorOptionsFactory, indentationManager, _globalOptions, document.Project.LanguageServices, explicitFormat: false);
+            var editorOptions = editorOptionsFactory.GetOptions(DataBuffer);
+
+            var formattingOptions = _globalOptions.GetSyntaxFormattingOptions(document.Project.LanguageServices).With(new LineFormattingOptions()
+            {
+                UseTabs = !editorOptions.IsConvertTabsToSpacesEnabled(),
+                TabSize = editorOptions.GetTabSize(),
+                IndentationSize = editorOptions.GetIndentSize(),
+                NewLine = editorOptions.GetNewLineCharacter()
+            });
 
             using var pooledObject = SharedPools.Default<List<TextSpan>>().GetPooledObject();
 
@@ -773,7 +783,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             foreach (var spanIndex in visibleSpanIndex)
             {
-                var rule = GetBaseIndentationRule(parsedDocument.Root, parsedDocument.Text, spans, spanIndex);
+                var rule = GetBaseIndentationRule(root, originalText, spans, spanIndex);
 
                 var visibleSpan = spans[spanIndex];
                 AdjustIndentationForSpan(document, edit, visibleSpan, rule, formattingOptions);
