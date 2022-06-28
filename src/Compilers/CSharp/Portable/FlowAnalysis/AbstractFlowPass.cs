@@ -899,6 +899,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitRvalue(argument);
             }
 
+            foreach (var namedArgument in node.NamedArguments)
+            {
+                VisitAssignmentOperator(namedArgument);
+            }
+
             return null;
         }
 

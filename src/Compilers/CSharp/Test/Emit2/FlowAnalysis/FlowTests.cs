@@ -5587,7 +5587,7 @@ public class MyAttribute : System.Attribute
 
         [Fact]
         [WorkItem(60645, "https://github.com/dotnet/roslyn/issues/60645")]
-        public void TestLocalConstantIsUsedInLambdaAttributeInConstantStringInterpolation()
+        public void TestLocalConstantIsUsedInLambdaAttributeInitializer()
         {
             var compilation = CreateCompilation(@"
 public class C
@@ -5597,6 +5597,32 @@ public class C
         get
         {
             const int X = 5;
+            var f = [My(P = X)] () => 0;
+            return f();
+        }
+    }
+}
+
+public class MyAttribute : System.Attribute
+{
+    public int P { get; set; }
+}
+");
+            compilation.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(60645, "https://github.com/dotnet/roslyn/issues/60645")]
+        public void TestLocalConstantIsUsedInLambdaAttributeInConstantStringInterpolation()
+        {
+            var compilation = CreateCompilation(@"
+public class C
+{
+    public int P
+    {
+        get
+        {
+            const string X = ""Hello"";
             var f = [My($""{X}, World"")] () => 0;
             return f();
         }
