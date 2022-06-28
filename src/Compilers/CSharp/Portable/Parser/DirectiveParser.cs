@@ -407,13 +407,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             Debug.Assert(CurrentToken.Kind == SyntaxKind.OpenParenToken);
 
-            if (isActive)
-            {
-                lineKeyword = CheckFeatureAvailability(lineKeyword, MessageID.IDS_FeatureLineSpanDirective);
-            }
-
             bool reportError = isActive;
             var start = ParseLineDirectivePosition(ref reportError, out int startLine, out int startCharacter);
+            if (noTriviaBetween(lineKeyword, start.GetFirstToken()))
+            {
+                start = this.AddError(start, ErrorCode.ERR_LineSpanDirectiveRequiresSpace);
+            }
 
             var minus = EatToken(SyntaxKind.MinusToken, reportError: reportError);
             if (minus.IsMissing) reportError = false;
@@ -429,11 +428,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 ParseLineDirectiveNumericLiteral(ref reportError, minValue: 1, maxValue: MaxCharacterValue, out _) :
                 null;
 
+            if (noTriviaBetween(end.GetLastToken(), characterOffset))
+            {
+                characterOffset = this.AddError(characterOffset, ErrorCode.ERR_LineSpanDirectiveRequiresSpace);
+            }
+
             var file = EatToken(SyntaxKind.StringLiteralToken, ErrorCode.ERR_MissingPPFile, reportError: reportError);
             if (file.IsMissing) reportError = false;
 
+            if (noTriviaBetween(characterOffset ?? end.GetLastToken(), file))
+            {
+                file = this.AddError(file, ErrorCode.ERR_LineSpanDirectiveRequiresSpace);
+            }
+
             var endOfDirective = this.ParseEndOfDirective(ignoreErrors: !reportError);
             return SyntaxFactory.LineSpanDirectiveTrivia(hash, lineKeyword, start, minus, end, characterOffset, file, endOfDirective, isActive);
+
+            static bool noTriviaBetween(SyntaxToken token1, SyntaxToken token2)
+            {
+                return token1 is { IsMissing: false }
+                    && token2 is { IsMissing: false }
+                    && LanguageParser.NoTriviaBetween(token1, token2);
+            }
         }
 
         private LineDirectivePositionSyntax ParseLineDirectivePosition(ref bool reportError, out int line, out int character)

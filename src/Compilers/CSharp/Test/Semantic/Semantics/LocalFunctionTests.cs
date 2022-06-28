@@ -7623,12 +7623,12 @@ public class MyAttribute : System.Attribute
 
             comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics(
-                // (13,20): error CS0119: 'TParameter' is a type parameter, which is not valid in the given context
+                // (13,20): error CS0704: Cannot do non-virtual member lookup in 'TParameter' because it is a type parameter
                 //         [My(nameof(TParameter.Constant))] // 1
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "TParameter").WithArguments("TParameter", "type parameter").WithLocation(13, 20),
-                // (17,16): error CS0119: 'TParameter' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "TParameter").WithArguments("TParameter").WithLocation(13, 20),
+                // (17,16): error CS0704: Cannot do non-virtual member lookup in 'TParameter' because it is a type parameter
                 //     [My(nameof(TParameter.Constant))] // 2
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "TParameter").WithArguments("TParameter", "type parameter").WithLocation(17, 16)
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "TParameter").WithArguments("TParameter").WithLocation(17, 16)
                 );
 
             VerifyTParameter(comp, 0, "void local<TParameter>()");
@@ -8473,9 +8473,9 @@ public class MyAttribute : System.Attribute
 ", targetFramework: TargetFramework.NetCoreApp);
 
             comp.VerifyDiagnostics(
-                // (2,5): error CS0119: 'TParameter' is a type parameter, which is not valid in the given context
+                // (2,5): error CS0704: Cannot do non-virtual member lookup in 'TParameter' because it is a type parameter
                 // [My(TParameter.Constant)]
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "TParameter").WithArguments("TParameter", "type parameter").WithLocation(2, 5)
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "TParameter").WithArguments("TParameter").WithLocation(2, 5)
                 );
 
             VerifyTParameter(comp, 0, "C<TParameter>");
@@ -8563,9 +8563,9 @@ public class MyAttribute : System.Attribute
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (2,12): error CS0119: 'TParameter' is a type parameter, which is not valid in the given context
+                // (2,12): error CS0704: Cannot do non-virtual member lookup in 'TParameter' because it is a type parameter
                 // [My(nameof(TParameter.Constant))]
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "TParameter").WithArguments("TParameter", "type parameter").WithLocation(2, 12)
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "TParameter").WithArguments("TParameter").WithLocation(2, 12)
                 );
             VerifyTParameter(comp, 0, "R<TParameter>");
         }
@@ -8643,9 +8643,9 @@ public interface I
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (2,5): error CS0119: 'TParameter' is a type parameter, which is not valid in the given context
+                // (2,5): error CS0704: Cannot do non-virtual member lookup in 'TParameter' because it is a type parameter
                 // [My(TParameter.Constant)]
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "TParameter").WithArguments("TParameter", "type parameter").WithLocation(2, 5)
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "TParameter").WithArguments("TParameter").WithLocation(2, 5)
                 );
             VerifyTParameter(comp, 0, "R<TParameter>");
         }

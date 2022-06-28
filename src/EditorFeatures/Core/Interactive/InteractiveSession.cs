@@ -27,6 +27,8 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Interactive
 {
     using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
+    using Microsoft.CodeAnalysis.Options;
+    using Microsoft.VisualStudio.Text.Editor;
     using RelativePathResolver = Scripting::Microsoft.CodeAnalysis.RelativePathResolver;
 
     internal sealed class InteractiveSession : IDisposable
@@ -37,6 +39,8 @@ namespace Microsoft.CodeAnalysis.Interactive
         private readonly InteractiveEvaluatorLanguageInfoProvider _languageInfo;
         private readonly InteractiveWorkspace _workspace;
         private readonly ITextDocumentFactoryService _textDocumentFactoryService;
+        private readonly IEditorOptionsFactoryService _editorOptionsFactory;
+        private readonly IGlobalOptionService _globalOptions;
 
         private readonly CancellationTokenSource _shutdownCancellationSource;
 
@@ -77,14 +81,16 @@ namespace Microsoft.CodeAnalysis.Interactive
             InteractiveWorkspace workspace,
             IThreadingContext threadingContext,
             IAsynchronousOperationListener listener,
-            ITextDocumentFactoryService factoryService,
+            ITextDocumentFactoryService documentFactory,
+            IEditorOptionsFactoryService editorOptionsFactory,
+            IGlobalOptionService globalOptions,
             InteractiveEvaluatorLanguageInfoProvider languageInfo,
             string initialWorkingDirectory)
         {
             _workspace = workspace;
             _threadingContext = threadingContext;
             _languageInfo = languageInfo;
-            _textDocumentFactoryService = factoryService;
+            _textDocumentFactoryService = documentFactory;
 
             _taskQueue = new TaskQueue(listener, TaskScheduler.Default);
             _shutdownCancellationSource = new CancellationTokenSource();
@@ -99,6 +105,8 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             Host = new InteractiveHost(languageInfo.ReplServiceProviderType, initialWorkingDirectory);
             Host.ProcessInitialized += ProcessInitialized;
+            _editorOptionsFactory = editorOptionsFactory;
+            _globalOptions = globalOptions;
         }
 
         public void Dispose()
@@ -204,6 +212,9 @@ namespace Microsoft.CodeAnalysis.Interactive
             var newSubmissionText = submissionBuffer.CurrentSnapshot.AsText();
             _currentSubmissionProjectId = ProjectId.CreateNewId(newSubmissionProjectName);
             var newSubmissionDocumentId = DocumentId.CreateNewId(_currentSubmissionProjectId, newSubmissionProjectName);
+
+            // initialize editor options of the submission buffer:
+            _globalOptions.SetEditorOptions(_editorOptionsFactory.GetOptions(submissionBuffer), languageName);
 
             // If the _initializationResult is not null we must also have the host options.
             RoslynDebug.AssertNotNull(_hostOptions);

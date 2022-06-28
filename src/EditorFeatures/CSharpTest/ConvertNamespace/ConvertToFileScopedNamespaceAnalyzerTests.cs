@@ -726,7 +726,7 @@ class C
         }
 
         [Fact]
-        public async Task TestConvertToFileScopedWithUTF8MultiLineRawString()
+        public async Task TestConvertToFileScopedWithUtf8MultiLineRawString()
         {
             await new VerifyCS.Test
             {

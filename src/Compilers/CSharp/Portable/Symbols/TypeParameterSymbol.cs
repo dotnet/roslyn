@@ -290,6 +290,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal ImmutableArray<NamedTypeSymbol> EffectiveInterfacesWithDefinitionUseSiteDiagnostics(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            var result = EffectiveInterfacesNoUseSiteDiagnostics;
+
+            foreach (var iface in result)
+            {
+                iface.OriginalDefinition.AddUseSiteInfo(ref useSiteInfo);
+            }
+
+            return result;
+        }
+
         /// <summary>
         /// The most encompassed type (spec 6.4.2) from the constraints.
         /// </summary>

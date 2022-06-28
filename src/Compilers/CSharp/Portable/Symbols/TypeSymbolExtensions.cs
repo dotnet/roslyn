@@ -476,6 +476,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
+        internal static bool IsErrorTypeOrRefLikeType(this TypeSymbol type)
+        {
+            return type.IsErrorType() || type.IsRefLikeType;
+        }
+
         private static readonly string[] s_expressionsNamespaceName = { "Expressions", "Linq", MetadataHelpers.SystemString, "" };
 
         private static bool IsNamespaceName(Symbol symbol, string[] names)
@@ -904,7 +909,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static bool IsAsRestrictive(NamedTypeSymbol s1, Symbol sym2, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        internal static bool IsAsRestrictive(this Symbol s1, Symbol sym2, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Accessibility acc1 = s1.DeclaredAccessibility;
 

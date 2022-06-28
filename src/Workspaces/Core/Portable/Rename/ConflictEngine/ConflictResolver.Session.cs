@@ -498,7 +498,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 SyntaxNode syntaxRoot)
             {
                 return syntaxRoot.DescendantNodesAndTokens(descendIntoTrivia: true)
-                    .Where(s => _renameAnnotations.HasAnnotations<RenameActionAnnotation>(s))
+                    .Where(_renameAnnotations.HasAnnotations<RenameActionAnnotation>)
                     .Select(s => (s, _renameAnnotations.GetAnnotations<RenameActionAnnotation>(s).Single()));
             }
 

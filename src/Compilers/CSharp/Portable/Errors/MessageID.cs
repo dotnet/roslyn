@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureLambdaReturnType = MessageBase + 12804,
         IDS_AsyncMethodBuilderOverride = MessageBase + 12805,
         IDS_FeatureImplicitImplementationOfNonPublicMembers = MessageBase + 12806,
-        IDS_FeatureLineSpanDirective = MessageBase + 12807,
+        // IDS_FeatureLineSpanDirective = MessageBase + 12807, // feature no longer gated on LangVer
         IDS_FeatureImprovedInterpolatedStrings = MessageBase + 12808,
         IDS_FeatureFileScopedNamespace = MessageBase + 12809,
         IDS_FeatureParameterlessStructConstructors = MessageBase + 12810,
@@ -249,12 +249,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureAutoDefaultStructs = MessageBase + 12820,
 
         IDS_FeatureCheckedUserDefinedOperators = MessageBase + 12821,
-        IDS_FeatureUTF8StringLiterals = MessageBase + 12822,
+        IDS_FeatureUtf8StringLiterals = MessageBase + 12822,
 
         IDS_FeatureUnsignedRightShift = MessageBase + 12823,
         IDS_FeatureExtendedNameofScope = MessageBase + 12824,
         IDS_FeatureRelaxedShiftOperator = MessageBase + 12825,
         IDS_FeatureRequiredMembers = MessageBase + 12826,
+        IDS_FeatureRefFields = MessageBase + 12827,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -374,10 +375,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureSpanCharConstantPattern:
                 case MessageID.IDS_FeatureAutoDefaultStructs: // semantic check
                 case MessageID.IDS_FeatureCheckedUserDefinedOperators: // semantic check for declarations, parsing check for doc comments
-                case MessageID.IDS_FeatureUTF8StringLiterals: // semantic check
+                case MessageID.IDS_FeatureUtf8StringLiterals: // semantic check
                 case MessageID.IDS_FeatureUnsignedRightShift: // semantic check for declarations and consumption, parsing check for doc comments
                 case MessageID.IDS_FeatureExtendedNameofScope: // semantic check
                 case MessageID.IDS_FeatureRelaxedShiftOperator: // semantic check
+                case MessageID.IDS_FeatureRefFields: // semantic check
                     return LanguageVersion.Preview;
 
                 // C# 10.0 features.
@@ -396,7 +398,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_AsyncMethodBuilderOverride: // semantic check
                 case MessageID.IDS_FeatureConstantInterpolatedStrings: // semantic check
                 case MessageID.IDS_FeatureImplicitImplementationOfNonPublicMembers: // semantic check
-                case MessageID.IDS_FeatureLineSpanDirective:
                 case MessageID.IDS_FeatureFileScopedNamespace: // syntax check
                 case MessageID.IDS_FeatureParameterlessStructConstructors: // semantic check
                 case MessageID.IDS_FeatureStructFieldInitializers: // semantic check

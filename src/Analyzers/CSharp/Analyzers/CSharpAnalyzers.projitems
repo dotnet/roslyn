@@ -37,6 +37,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)RemoveRedundantEquality\CSharpRemoveRedundantEqualityDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryDiscardDesignation\CSharpRemoveUnnecessaryDiscardDesignationDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryLambdaExpression\CSharpRemoveUnnecessaryLambdaExpressionDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryNullableDirective\CSharpRemoveRedundantNullableDirectiveDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryNullableDirective\CSharpRemoveUnnecessaryNullableDirectiveDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryNullableDirective\NullableImpactingSpanWalker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessarySuppressions\CSharpRemoveUnnecessaryPragmaSuppressionsDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessarySuppressions\CSharpRemoveUnnecessaryAttributeSuppressionsDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryParentheses\CSharpRemoveUnnecessaryPatternParenthesesDiagnosticAnalyzer.cs" />
@@ -124,7 +127,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpUseNotPatternDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseSimpleUsingStatement\UseSimpleUsingStatementDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseThrowExpression\CSharpUseThrowExpressionDiagnosticAnalyzer.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)UseUTF8StringLiteral\UseUTF8StringLiteralDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseUtf8StringLiteral\UseUtf8StringLiteralDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ValidateFormatString\CSharpValidateFormatStringDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NewLines\EmbeddedStatementPlacement\EmbeddedStatementPlacementDiagnosticAnalyzer.cs" />
   </ItemGroup>

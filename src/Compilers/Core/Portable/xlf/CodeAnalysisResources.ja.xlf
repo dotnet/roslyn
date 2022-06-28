@@ -41,12 +41,12 @@
       </trans-unit>
       <trans-unit id="EncCannotResumeSuspendedAsyncMethod">
         <source>Edit and Continue can't resume suspended asynchronous method since the corresponding await expression has been deleted</source>
-        <target state="new">Edit and Continue can't resume suspended asynchronous method since the corresponding await expression has been deleted</target>
+        <target state="translated">対応する await 式が削除されているため、エディット コンティニュは中断された非同期メソッドを再開できません</target>
         <note />
       </trans-unit>
       <trans-unit id="EncCannotResumeSuspendedIteratorMethod">
         <source>Edit and Continue can't resume suspended iterator since the corresponding yield return statement has been deleted</source>
-        <target state="new">Edit and Continue can't resume suspended iterator since the corresponding yield return statement has been deleted</target>
+        <target state="translated">対応する yield return ステートメントが削除されているため、エディット コンティニュは中断された反復子を再開できません</target>
         <note />
       </trans-unit>
       <trans-unit id="HintNameInvalidChar">

@@ -26178,7 +26178,7 @@ public class C
 
         [Fact]
         [WorkItem(21785, "https://github.com/dotnet/roslyn/issues/21785")]
-        void TypelessTupleInArrayInitializer()
+        public void TypelessTupleInArrayInitializer()
         {
             string source = @"
 class C

@@ -4,18 +4,22 @@
 
 using System;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.SourceGeneration;
 
 namespace Microsoft.CodeAnalysis
 {
     internal sealed class GeneratorSyntaxWalker : SyntaxWalker
     {
         private readonly ISyntaxContextReceiver _syntaxReceiver;
-
+        private readonly ISyntaxHelper _syntaxHelper;
         private Lazy<SemanticModel>? _semanticModel;
 
-        internal GeneratorSyntaxWalker(ISyntaxContextReceiver syntaxReceiver)
+        internal GeneratorSyntaxWalker(
+            ISyntaxContextReceiver syntaxReceiver,
+            ISyntaxHelper syntaxHelper)
         {
             _syntaxReceiver = syntaxReceiver;
+            _syntaxHelper = syntaxHelper;
         }
 
         public void VisitWithModel(Lazy<SemanticModel>? model, SyntaxNode node)
@@ -32,7 +36,7 @@ namespace Microsoft.CodeAnalysis
         public override void Visit(SyntaxNode node)
         {
             Debug.Assert(_semanticModel is object && _semanticModel.Value.SyntaxTree == node.SyntaxTree);
-            _syntaxReceiver.OnVisitSyntaxNode(new GeneratorSyntaxContext(node, _semanticModel));
+            _syntaxReceiver.OnVisitSyntaxNode(new GeneratorSyntaxContext(node, _semanticModel, _syntaxHelper));
             base.Visit(node);
         }
     }

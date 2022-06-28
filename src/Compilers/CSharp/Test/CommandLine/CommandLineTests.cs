@@ -7278,7 +7278,7 @@ public class C
             file.WriteAllBytes(source);
 
             var output = ProcessUtilities.RunAndGetOutput(s_CSharpCompilerExecutable, $"/nologo /t:library \"{file}\"", startFolder: dir.Path);
-            Assert.Equal("", output); // Autodetected UTF8, NO ERROR
+            Assert.Equal("", output); // Autodetected UTF-8, NO ERROR
 
             output = ProcessUtilities.RunAndGetOutput(s_CSharpCompilerExecutable, $"/nologo /preferreduilang:en /t:library /codepage:20127 \"{file}\"", expectedRetCode: 1, startFolder: dir.Path); // 20127: US-ASCII
             // 0xd0, 0x96 ==> ERROR
