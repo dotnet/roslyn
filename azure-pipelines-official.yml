@@ -71,7 +71,7 @@ variables:
   - name: Insertion.TitlePrefix
     value: '[Auto Insertion]'
   - name: Insertion.TitleSuffix
-    value: '[Skip-SymbolCheck]'
+    value: ''
 
 stages:
 - stage: build
