@@ -22,6 +22,10 @@ internal sealed partial class NodeStateTable<T>
             private readonly NodeStateTable<T> _previous;
             private readonly IEqualityComparer<T> _equalityComparer;
 
+            /// <summary>
+            /// Note: we could potentially lazily initialize this the first time we see ourselves deviating from
+            /// _previous.  However, this approach keeps things very simple here.
+            /// </summary>
             private readonly ArrayBuilder<TableEntry> _tableEntries;
 
             /// <summary>
