@@ -51,19 +51,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
                     static documentServiceProvider =>
                     {
                         var impl = documentServiceProvider.GetService<IRazorDocumentExcerptServiceImplementation>();
-                        if (impl != null)
-                        {
-                            return new RazorDocumentExcerptServiceWrapper(impl);
-                        }
-
-#pragma warning disable CS0612, CS0618 // Type or member is obsolete
-                        var legacyImpl = documentServiceProvider.GetService<IRazorDocumentExcerptService>();
-                        if (legacyImpl != null)
-                        {
-                            return new RazorDocumentExcerptServiceWrapper(legacyImpl);
-                        }
-#pragma warning restore
-                        return null;
+                        return (impl != null) ? new RazorDocumentExcerptServiceWrapper(impl) : null;
                     },
                     _innerDocumentServiceProvider);
 

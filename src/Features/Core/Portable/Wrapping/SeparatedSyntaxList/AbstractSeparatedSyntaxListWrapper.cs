@@ -4,31 +4,44 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Indentation;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
 {
-    using Microsoft.CodeAnalysis.Indentation;
-    using Microsoft.CodeAnalysis.Shared.Extensions;
-
     /// <summary>
-    /// Base type for all wrappers that involve wrapping a comma-separated list of arguments or parameters.
+    /// Base type for all wrappers that involve wrapping a comma-separated list of items.
     /// </summary>
     internal abstract partial class AbstractSeparatedSyntaxListWrapper<
         TListSyntax,
         TListItemSyntax>
-        : AbstractSeparatedListWrapper<TListSyntax, TListItemSyntax>
+        : AbstractSyntaxWrapper
         where TListSyntax : SyntaxNode
         where TListItemSyntax : SyntaxNode
     {
-        // These refactor offerings are unique to argument or parameter lists
+        protected abstract string Unwrap_list { get; }
+        protected abstract string Wrap_long_list { get; }
+
         protected abstract string Unwrap_and_indent_all_items { get; }
+        protected abstract string Unwrap_all_items { get; }
+        protected abstract string Indent_all_items { get; }
         protected abstract string Align_wrapped_items { get; }
         protected abstract string Indent_wrapped_items { get; }
+
+        protected abstract string Wrap_every_item { get; }
+
+        public abstract bool Supports_WrapEveryGroup_UnwrapFirst { get; }
+        public abstract bool Supports_UnwrapGroup_WrapFirst_IndentRest { get; }
+        public abstract bool Supports_WrapLongGroup_UnwrapFirst { get; }
 
         protected AbstractSeparatedSyntaxListWrapper(IIndentationService indentationService)
             : base(indentationService)
         {
         }
+
+        protected abstract bool ShouldMoveCloseBraceToNewLine { get; }
+        protected abstract bool ShouldMoveOpenBraceToNewLine(SyntaxWrappingOptions options);
 
         protected abstract TListSyntax? TryGetApplicableList(SyntaxNode node);
         protected abstract SeparatedSyntaxList<TListItemSyntax> GetListItems(TListSyntax listSyntax);
@@ -36,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
             SyntaxNode root, int position, SyntaxNode declaration, bool containsSyntaxError, TListSyntax listSyntax);
 
         public override async Task<ICodeActionComputer?> TryCreateComputerAsync(
-            Document document, int position, SyntaxNode declaration, bool containsSyntaxError, CancellationToken cancellationToken)
+            Document document, int position, SyntaxNode declaration, SyntaxWrappingOptions options, bool containsSyntaxError, CancellationToken cancellationToken)
         {
             var listSyntax = TryGetApplicableList(declaration);
             if (listSyntax == null)
@@ -61,7 +74,6 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
             if (containsUnformattableContent)
                 return null;
 
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             return new SeparatedSyntaxListCodeActionComputer(
                 this, document, sourceText, options, listSyntax, listItems, cancellationToken);

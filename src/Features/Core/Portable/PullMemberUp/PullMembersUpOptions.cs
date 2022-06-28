@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.PullMemberUp
         {
             Destination = destination;
             MemberAnalysisResults = memberAnalysisResults;
-            PullUpOperationNeedsToDoExtraChanges = MemberAnalysisResults.Any(result => result.PullMemberUpNeedsToDoExtraChanges);
+            PullUpOperationNeedsToDoExtraChanges = MemberAnalysisResults.Any(static result => result.PullMemberUpNeedsToDoExtraChanges);
         }
     }
 }

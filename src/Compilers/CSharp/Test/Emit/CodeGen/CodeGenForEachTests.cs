@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -1384,15 +1385,18 @@ ref struct DisposableEnumerator
     public bool MoveNext() { return ++x < 4; }
     public void Dispose() { System.Console.WriteLine(""Done with DisposableEnumerator""); }
 }";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.MakeTypeMissing(SpecialType.System_IDisposable);
+
             // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
-            var compilation = CompileAndVerify(source, verify: Verification.FailsILVerify, expectedOutput: @"
+            var verifier = CompileAndVerify(compilation, verify: Verification.FailsILVerify, expectedOutput: @"
 1
 2
 3
 Done with DisposableEnumerator");
 
             // IL Should not contain any Box/unbox instructions as we're a ref struct 
-            compilation.VerifyIL("C.Main", @"
+            verifier.VerifyIL("C.Main", @"
 {
   // Code size       45 (0x2d)
   .maxstack  1
@@ -1710,7 +1714,7 @@ class DisposableEnumerator
         }
 
         [Fact]
-        public void TestForEachPatternDisposableIgnoredForCSharp7_3()
+        public void TestForEachPatternDisposableReportedForCSharp7_3()
         {
             var source = @"
 class C
@@ -1736,11 +1740,19 @@ ref struct DisposableEnumerator
     public bool MoveNext() { return ++x < 4; }
     public void Dispose() { System.Console.WriteLine(""Done with DisposableEnumerator""); }
 }";
-            // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
-            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular7_3, verify: Verification.FailsILVerify, expectedOutput: @"
-1
-2
-3");
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics(
+                // (6,27): error CS8370: Feature 'pattern-based disposal' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //         foreach (var x in new Enumerable1())
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "new Enumerable1()").WithArguments("pattern-based disposal", "8.0").WithLocation(6, 27)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.Equal("void DisposableEnumerator.Dispose()", info.DisposeMethod.ToTestDisplayString());
         }
 
         [Fact]

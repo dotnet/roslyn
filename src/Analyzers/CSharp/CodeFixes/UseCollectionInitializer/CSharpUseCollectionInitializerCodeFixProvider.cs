@@ -8,6 +8,7 @@ using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.UseObjectInitializer;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -63,10 +64,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             for (var i = 0; i < matches.Length; i++)
             {
                 var expressionStatement = matches[i];
+                var trivia = expressionStatement.GetLeadingTrivia();
+
+                var newTrivia = i == 0 ? trivia.WithoutLeadingBlankLines() : trivia;
 
                 var newExpression = ConvertExpression(expressionStatement.Expression)
                     .WithoutTrivia()
-                    .WithPrependedLeadingTrivia(expressionStatement.GetLeadingTrivia());
+                    .WithPrependedLeadingTrivia(newTrivia);
 
                 if (i < matches.Length - 1)
                 {

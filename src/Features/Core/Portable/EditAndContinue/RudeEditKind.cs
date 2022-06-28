@@ -124,8 +124,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         //DeleteRecordPositionalParameter = 95,
         ExplicitRecordMethodParameterNamesMustMatch = 96,
         NotSupportedByRuntime = 97,
-        MakeMethodAsync = 98,
-        MakeMethodIterator = 99,
+        MakeMethodAsyncNotSupportedByRuntime = 98,
+        MakeMethodIteratorNotSupportedByRuntime = 99,
         InsertNotSupportedByRuntime = 100,
         ChangingAttributesNotSupportedByRuntime = 101,
         ChangeImplicitMainReturnType = 102,
@@ -134,6 +134,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         ChangingConstraints = 105,
         ChangingReloadableTypeNotSupportedByRuntime = 106,
         RenamingNotSupportedByRuntime = 107,
-        ChangingNonCustomAttribute = 108
+        ChangingNonCustomAttribute = 108,
+        ChangingNamespace = 109,
     }
 }

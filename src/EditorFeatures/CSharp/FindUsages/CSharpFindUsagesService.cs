@@ -7,7 +7,7 @@ using System.Composition;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.FindUsages
+namespace Microsoft.CodeAnalysis.CSharp.FindUsages
 {
     [ExportLanguageService(typeof(IFindUsagesService), LanguageNames.CSharp), Shared]
     internal class CSharpFindUsagesService : AbstractFindUsagesService

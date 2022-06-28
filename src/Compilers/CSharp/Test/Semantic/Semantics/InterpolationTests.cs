@@ -4,14 +4,14 @@
 
 #nullable disable
 
+using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
-using System.Collections.Immutable;
-using System.Linq;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
@@ -1132,8 +1132,6 @@ class Program {
 }");
         }
 
-
-
         [WorkItem(57750, "https://github.com/dotnet/roslyn/issues/57750")]
 #if NETCOREAPP
         [InlineData(TargetFramework.Net60)]
@@ -1144,7 +1142,7 @@ class Program {
         [InlineData(TargetFramework.Mscorlib461)]
         [InlineData(TargetFramework.Mscorlib40)]
         [Theory]
-        public void InterpolatedStringWithCurlyBracesFollowerAfterFormatSpecifierTest(TargetFramework framework)
+        public void InterpolatedStringWithCurlyBracesAndFormatSpecifier(TargetFramework framework)
         {
             var text =
 @"using System;
@@ -1240,6 +1238,218 @@ class App{
    IL_0043:  ret
 }");
             }
+        }
+
+        [WorkItem(57750, "https://github.com/dotnet/roslyn/issues/57750")]
+#if NETCOREAPP
+        [InlineData(TargetFramework.Net60)]
+        [InlineData(TargetFramework.Net50)]
+#endif
+        [InlineData(TargetFramework.NetFramework)]
+        [InlineData(TargetFramework.NetStandard20)]
+        [InlineData(TargetFramework.Mscorlib461)]
+        [InlineData(TargetFramework.Mscorlib40)]
+        [Theory]
+        public void RawInterpolatedStringWithCurlyBracesAndFormatSpecifier(TargetFramework framework)
+        {
+            var text =
+@"using System;
+
+class App{
+  public static void Main(){
+    var str = $$""""""Before {{{12:X}}} After"""""";
+    Console.WriteLine(str);
+  }
+}";
+            var parseOptions = TestOptions.RegularNext;
+            var compOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication);
+
+            //string.Format was fixed in dotnet core 3
+            var expectedOutput =
+#if NETCOREAPP3_0_OR_GREATER
+                "Before {C} After"
+#else
+                "Before {X} After"
+#endif
+                ;
+
+
+            var comp = CreateCompilation(text, targetFramework: framework,
+                    parseOptions: parseOptions, options: compOptions);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput);
+
+            switch (framework)
+            {
+                case TargetFramework.Net60:
+                    checkNet60IL(verifier);
+                    break;
+                default:
+                    checkNet50IL(verifier);
+                    break;
+            }
+
+            static void checkNet50IL(CompilationVerifier verifier)
+            {
+                verifier.VerifyIL("App.Main", @"{
+   // Code size       27 (0x1b)
+   .maxstack  2
+   .locals init (string V_0) //str
+   IL_0000:  nop
+   IL_0001:  ldstr      ""Before {{{0:X}}} After""
+   IL_0006:  ldc.i4.s   12
+   IL_0008:  box        ""int""
+   IL_000d:  call       ""string string.Format(string, object)""
+   IL_0012:  stloc.0
+   IL_0013:  ldloc.0
+   IL_0014:  call       ""void System.Console.WriteLine(string)""
+   IL_0019:  nop
+   IL_001a:  ret
+}");
+            }
+
+            static void checkNet60IL(CompilationVerifier verifier)
+            {
+                verifier.VerifyIL("App.Main", @"{
+   // Code size       68 (0x44)
+   .maxstack  3
+   .locals init (string V_0, //str
+                 System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1)
+   IL_0000:  nop
+   IL_0001:  ldloca.s   V_1
+   IL_0003:  ldc.i4.s   15
+   IL_0005:  ldc.i4.1
+   IL_0006:  call       ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)""
+   IL_000b:  ldloca.s   V_1
+   IL_000d:  ldstr      ""Before {""
+   IL_0012:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)""
+   IL_0017:  nop
+   IL_0018:  ldloca.s   V_1
+   IL_001a:  ldc.i4.s   12
+   IL_001c:  ldstr      ""X""
+   IL_0021:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int, string)""
+   IL_0026:  nop
+   IL_0027:  ldloca.s   V_1
+   IL_0029:  ldstr      ""} After""
+   IL_002e:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)""
+   IL_0033:  nop
+   IL_0034:  ldloca.s   V_1
+   IL_0036:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
+   IL_003b:  stloc.0
+   IL_003c:  ldloc.0
+   IL_003d:  call       ""void System.Console.WriteLine(string)""
+   IL_0042:  nop
+   IL_0043:  ret
+}");
+            }
+        }
+
+        [WorkItem(57750, "https://github.com/dotnet/roslyn/issues/57750")]
+#if NETCOREAPP
+        [InlineData(TargetFramework.Net60)]
+        [InlineData(TargetFramework.Net50)]
+#endif
+        [InlineData(TargetFramework.NetFramework)]
+        [InlineData(TargetFramework.NetStandard20)]
+        [InlineData(TargetFramework.Mscorlib461)]
+        [InlineData(TargetFramework.Mscorlib40)]
+        [Theory]
+        public void InterpolatedStringWithCurlyBracesAndAllStringValues(TargetFramework framework)
+        {
+            var text =
+@"using System;
+
+class App{
+  public static void Main(){
+    string a = ""a"";
+    var str = $""Before {{{a}}} After"";
+    Console.WriteLine(str);
+  }
+}";
+            var parseOptions = new CSharpParseOptions(
+                languageVersion: LanguageVersion.CSharp10,
+                documentationMode: DocumentationMode.Parse,
+                kind: SourceCodeKind.Regular
+            );
+            var compOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication);
+
+            var expectedOutput = "Before {a} After";
+
+            var comp = CreateCompilation(text, targetFramework: framework,
+                    parseOptions: parseOptions, options: compOptions);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput);
+
+            verifier.VerifyIL("App.Main", @"{
+    // Code size       32 (0x20)
+    .maxstack  3
+    .locals init (string V_0, //a
+                string V_1) //str
+    IL_0000:  nop
+    IL_0001:  ldstr      ""a""
+    IL_0006:  stloc.0
+    IL_0007:  ldstr      ""Before {""
+    IL_000c:  ldloc.0
+    IL_000d:  ldstr      ""} After""
+    IL_0012:  call       ""string string.Concat(string, string, string)""
+    IL_0017:  stloc.1
+    IL_0018:  ldloc.1
+    IL_0019:  call       ""void System.Console.WriteLine(string)""
+    IL_001e:  nop
+    IL_001f:  ret
+}");
+        }
+
+        [WorkItem(57750, "https://github.com/dotnet/roslyn/issues/57750")]
+#if NETCOREAPP
+        [InlineData(TargetFramework.Net60)]
+        [InlineData(TargetFramework.Net50)]
+#endif
+        [InlineData(TargetFramework.NetFramework)]
+        [InlineData(TargetFramework.NetStandard20)]
+        [InlineData(TargetFramework.Mscorlib461)]
+        [InlineData(TargetFramework.Mscorlib40)]
+        [Theory]
+        public void RawInterpolatedStringWithCurlyBracesAndAllStringValues(TargetFramework framework)
+        {
+            var text =
+@"using System;
+
+class App{
+  public static void Main(){
+    string a = ""a"";
+    var str = $$""""""Before {{{a}}} After"""""";
+    Console.WriteLine(str);
+  }
+}";
+            var parseOptions = TestOptions.RegularNext;
+            var compOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication);
+
+            var expectedOutput = "Before {a} After";
+
+            var comp = CreateCompilation(text, targetFramework: framework,
+                    parseOptions: parseOptions, options: compOptions);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput);
+
+            verifier.VerifyIL("App.Main", @"{
+    // Code size       32 (0x20)
+    .maxstack  3
+    .locals init (string V_0, //a
+                string V_1) //str
+    IL_0000:  nop
+    IL_0001:  ldstr      ""a""
+    IL_0006:  stloc.0
+    IL_0007:  ldstr      ""Before {""
+    IL_000c:  ldloc.0
+    IL_000d:  ldstr      ""} After""
+    IL_0012:  call       ""string string.Concat(string, string, string)""
+    IL_0017:  stloc.1
+    IL_0018:  ldloc.1
+    IL_0019:  call       ""void System.Console.WriteLine(string)""
+    IL_001e:  nop
+    IL_001f:  ret
+}");
         }
 
         [WorkItem(1097386, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097386")]
@@ -13240,9 +13450,9 @@ public ref struct CustomHandler
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (17,19): error CS8352: Cannot use local 's' in this context because it may expose referenced variables outside of their declaration scope
+                // (17,19): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
                 //         return $"{s}";
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "s").WithArguments("s").WithLocation(17, 19)
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(17, 19)
             );
         }
 
@@ -13347,14 +13557,30 @@ public ref struct S1
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, parseOptions: TestOptions.Regular10, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (17,9): error CS8350: This combination of arguments to 'CustomHandler.M2(ref S1, ref CustomHandler)' is disallowed because it may expose variables referenced by parameter 'handler' outside of their declaration scope
                 //         M2(ref s1, $"{s}");
                 Diagnostic(ErrorCode.ERR_CallArgMixing, @"M2(ref s1, " + expression + @")").WithArguments("CustomHandler.M2(ref S1, ref CustomHandler)", "handler").WithLocation(17, 9),
-                // (17,23): error CS8352: Cannot use local 's' in this context because it may expose referenced variables outside of their declaration scope
+                // (17,23): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
                 //         M2(ref s1, $"{s}");
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "s").WithArguments("s").WithLocation(17, 23)
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(17, 23)
+            );
+
+            comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (17,9): error CS8350: This combination of arguments to 'CustomHandler.M2(ref S1, ref CustomHandler)' is disallowed because it may expose variables referenced by parameter 'handler' outside of their declaration scope
+                //         M2(ref s1, $"{s}");
+                Diagnostic(ErrorCode.ERR_CallArgMixing, @"M2(ref s1, " + expression + @")").WithArguments("CustomHandler.M2(ref S1, ref CustomHandler)", "handler").WithLocation(17, 9),
+                // (17,16): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         M2(ref s1, $"{s}");
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "s1").WithLocation(17, 16),
+                // (17,20): error CS8347: Cannot use a result of 'CustomHandler.CustomHandler(int, int, ref S1)' in this context because it may expose variables referenced by parameter 's1' outside of their declaration scope
+                //         M2(ref s1, $"{s}");
+                Diagnostic(ErrorCode.ERR_EscapeCall, expression).WithArguments("CustomHandler.CustomHandler(int, int, ref S1)", "s1").WithLocation(17, 20),
+                // (17,23): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
+                //         M2(ref s1, $"{s}");
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(17, 23)
             );
         }
 
@@ -13487,9 +13713,9 @@ public ref struct CustomHandler
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (16,16): error CS8352: Cannot use local 'c' in this context because it may expose referenced variables outside of their declaration scope
+                // (16,16): error CS8352: Cannot use variable 'c' in this context because it may expose referenced variables outside of their declaration scope
                 //         return c;
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "c").WithArguments("c").WithLocation(16, 16)
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c").WithArguments("c").WithLocation(16, 16)
             );
         }
 
@@ -13524,15 +13750,69 @@ public ref struct S1
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, parseOptions: TestOptions.Regular10, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (15,9): error CS8350: This combination of arguments to 'CustomHandler.M2(ref S1, CustomHandler)' is disallowed because it may expose variables referenced by parameter 'handler' outside of their declaration scope
                 //         M2(ref s1, $"{s2}");
                 Diagnostic(ErrorCode.ERR_CallArgMixing, @"M2(ref s1, $""{s2}"")").WithArguments("CustomHandler.M2(ref S1, CustomHandler)", "handler").WithLocation(15, 9),
-                // (15,23): error CS8352: Cannot use local 's2' in this context because it may expose referenced variables outside of their declaration scope
+                // (15,23): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
                 //         M2(ref s1, $"{s2}");
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "s2").WithArguments("s2").WithLocation(15, 23)
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(15, 23)
             );
+
+            comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (15,9): error CS8350: This combination of arguments to 'CustomHandler.M2(ref S1, CustomHandler)' is disallowed because it may expose variables referenced by parameter 'handler' outside of their declaration scope
+                //         M2(ref s1, $"{s2}");
+                Diagnostic(ErrorCode.ERR_CallArgMixing, @"M2(ref s1, $""{s2}"")").WithArguments("CustomHandler.M2(ref S1, CustomHandler)", "handler").WithLocation(15, 9),
+                // (15,16): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         M2(ref s1, $"{s2}");
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "s1").WithLocation(15, 16),
+                // (15,20): error CS8347: Cannot use a result of 'CustomHandler.CustomHandler(int, int, ref S1)' in this context because it may expose variables referenced by parameter 's1' outside of their declaration scope
+                //         M2(ref s1, $"{s2}");
+                Diagnostic(ErrorCode.ERR_EscapeCall, @"$""{s2}""").WithArguments("CustomHandler.CustomHandler(int, int, ref S1)", "s1").WithLocation(15, 20),
+                // (15,23): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
+                //         M2(ref s1, $"{s2}");
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(15, 23)
+            );
+        }
+
+        [Fact]
+        public void RefEscape_10()
+        {
+            var code =
+@"using System.Runtime.CompilerServices;
+[InterpolatedStringHandler]
+ref struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, ref S s) : this() { s.Handler = this; }
+    public void AppendFormatted(int i) { } 
+}
+ref struct S
+{
+    public CustomHandler Handler;
+}
+class Program
+{
+    static void Main()
+    {
+        S s = default;
+        M(ref s, $""{1}"");
+    }
+    static void M(ref S s, [InterpolatedStringHandlerArgument(""s"")] CustomHandler handler) { }
+}";
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, parseOptions: TestOptions.Regular10, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (17,15): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         M(ref s, $"{1}");
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "s").WithLocation(17, 15),
+                // (17,18): error CS8347: Cannot use a result of 'CustomHandler.CustomHandler(int, int, ref S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //         M(ref s, $"{1}");
+                Diagnostic(ErrorCode.ERR_EscapeCall, @"$""{1}""").WithArguments("CustomHandler.CustomHandler(int, int, ref S)", "s").WithLocation(17, 18));
         }
 
         [Theory, WorkItem(54703, "https://github.com/dotnet/roslyn/issues/54703")]

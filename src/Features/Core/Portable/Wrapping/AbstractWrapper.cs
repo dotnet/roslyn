@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
+using Microsoft.CodeAnalysis.Indentation;
+using Microsoft.CodeAnalysis.Text;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,9 +12,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Wrapping
 {
-    using System.Linq;
-    using Microsoft.CodeAnalysis.Indentation;
-    using Microsoft.CodeAnalysis.Text;
 
     /// <summary>
     /// Common implementation of all <see cref="ISyntaxWrapper"/>.  This type takes care of a lot of common logic for
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
             => IndentationService = indentationService;
 
         public abstract Task<ICodeActionComputer?> TryCreateComputerAsync(
-            Document document, int position, SyntaxNode node, bool containsSyntaxError, CancellationToken cancellationToken);
+            Document document, int position, SyntaxNode node, SyntaxWrappingOptions options, bool containsSyntaxError, CancellationToken cancellationToken);
 
         protected static async Task<bool> ContainsUnformattableContentAsync(
             Document document, IEnumerable<SyntaxNodeOrToken> nodesAndTokens, CancellationToken cancellationToken)

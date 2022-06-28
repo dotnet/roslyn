@@ -1028,10 +1028,10 @@ Module Program
         Dim q As Object
 
         If True Then
-            Dim {|Rename:p|} As Object = Sub()
-                              End Sub
+            Dim {|Rename:value|} As Object = Sub()
+                                  End Sub
 
-            q = p
+            q = value
         End If
     End Sub
 End Module")
@@ -1634,8 +1634,8 @@ End Class")
 End Module",
 "Module Program
     Sub Main()
-        Dim {|Rename:vs|} As Integer() = New Integer() {}
-        Return vs
+        Dim {|Rename:integers|} As Integer() = New Integer() {}
+        Return integers
     End Sub
 End Module")
         End Function
@@ -1953,8 +1953,8 @@ End Class",
 
 Class C
     Shared Sub Main()
-        Dim {|Rename:vs|} As Integer() = New C().Goo()
-        Dim x = vs(0)
+        Dim {|Rename:integers|} As Integer() = New C().Goo()
+        Dim x = integers(0)
     End Sub
     Function Goo() As Integer()
     End Function
@@ -2158,10 +2158,10 @@ End Module
 "
 Module Program
     Sub Main()
-        Dim {|Rename:p|} = Sub()
-                End Sub
+        Dim {|Rename:value|} = Sub()
+                    End Sub
 
-        Dim x = Function() p
+        Dim x = Function() value
     End Sub
 End Module
 "
@@ -2709,8 +2709,8 @@ End Class
 "
 Imports System
 Class C
-    Private Shared ReadOnly {|Rename:p|} As Integer() = {90, 73}
-    Property Grades As Integer() = p
+    Private Shared ReadOnly {|Rename:value|} As Integer() = {90, 73}
+    Property Grades As Integer() = value
 End Class
 "
             Await TestInRegularAndScriptAsync(code, expected)

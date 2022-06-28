@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -402,7 +403,10 @@ namespace Microsoft.CodeAnalysis
 
                 // Fire and forget that the workspace is changing.
                 RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentChanged, oldSolution, newSolution, documentId: documentId);
+
+                // We fire 2 events on source document opened.
                 this.RaiseDocumentOpenedEventAsync(newDoc);
+                this.RaiseTextDocumentOpenedEventAsync(newDoc);
             }
 
             this.RegisterText(textContainer);
@@ -415,32 +419,46 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         // TODO: switch this protected once we have confidence in API shape
         internal void OnSourceGeneratedDocumentOpened(
-            SourceGeneratedDocumentIdentity documentIdentity,
-            SourceTextContainer textContainer)
+            SourceTextContainer textContainer,
+            SourceGeneratedDocument document)
         {
             using (_serializationLock.DisposableWait())
             {
-                var documentId = documentIdentity.DocumentId;
+                var documentId = document.Identity.DocumentId;
                 CheckDocumentIsClosed(documentId);
                 AddToOpenDocumentMap(documentId);
 
                 _documentToAssociatedBufferMap.Add(documentId, textContainer);
-                _openSourceGeneratedDocumentIdentities.Add(documentId, documentIdentity);
+                _openSourceGeneratedDocumentIdentities.Add(documentId, document.Identity);
 
                 UpdateCurrentContextMapping_NoLock(textContainer, documentId, isCurrentContext: true);
+
+                // Fire and forget that the workspace is changing.
+                // We raise 2 events for source document opened.
+                var token = _taskQueue.Listener.BeginAsyncOperation(nameof(OnSourceGeneratedDocumentOpened));
+                _ = RaiseDocumentOpenedEventAsync(document).CompletesAsyncOperation(token);
+                token = _taskQueue.Listener.BeginAsyncOperation(TextDocumentOpenedEventName);
+                _ = RaiseTextDocumentOpenedEventAsync(document).CompletesAsyncOperation(token);
             }
 
             this.RegisterText(textContainer);
         }
 
-        internal void OnSourceGeneratedDocumentClosed(DocumentId documentId)
+        internal void OnSourceGeneratedDocumentClosed(SourceGeneratedDocument document)
         {
             using (_serializationLock.DisposableWait())
             {
-                CheckDocumentIsOpen(documentId);
+                CheckDocumentIsOpen(document.Id);
 
-                Contract.ThrowIfFalse(_openSourceGeneratedDocumentIdentities.Remove(documentId));
-                ClearOpenDocument(documentId);
+                Contract.ThrowIfFalse(_openSourceGeneratedDocumentIdentities.Remove(document.Id));
+                ClearOpenDocument(document.Id);
+
+                // Fire and forget that the workspace is changing.
+                // We raise 2 events for source document closed.
+                var token = _taskQueue.Listener.BeginAsyncOperation(nameof(OnSourceGeneratedDocumentClosed));
+                _ = RaiseDocumentClosedEventAsync(document).CompletesAsyncOperation(token);
+                token = _taskQueue.Listener.BeginAsyncOperation(TextDocumentClosedEventName);
+                _ = RaiseTextDocumentClosedEventAsync(document).CompletesAsyncOperation(token);
             }
         }
 
@@ -574,6 +592,10 @@ namespace Microsoft.CodeAnalysis
 
                 // Fire and forget.
                 this.RaiseWorkspaceChangedEventAsync(workspaceChangeKind, oldSolution, newSolution, documentId: documentId);
+
+                // Fire and forget.
+                var newDoc = newSolution.GetRequiredTextDocument(documentId);
+                this.RaiseTextDocumentOpenedEventAsync(newDoc);
             }
 
             this.RegisterText(textContainer);
@@ -609,7 +631,10 @@ namespace Microsoft.CodeAnalysis
                     this.OnDocumentTextChanged(newDoc);
 
                     this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentChanged, oldSolution, newSolution, documentId: documentId); // don't wait for this
-                    this.RaiseDocumentClosedEventAsync(newDoc); // don't wait for this
+
+                    // We fire and forget 2 events on source document closed.
+                    this.RaiseDocumentClosedEventAsync(newDoc);
+                    this.RaiseTextDocumentClosedEventAsync(newDoc);
                 }
             }
             catch (Exception e) when (FatalError.ReportAndPropagate(e, ErrorSeverity.General))
@@ -664,6 +689,9 @@ namespace Microsoft.CodeAnalysis
                 newSolution = this.SetCurrentSolution(newSolution);
 
                 this.RaiseWorkspaceChangedEventAsync(workspaceChangeKind, oldSolution, newSolution, documentId: documentId); // don't wait for this
+
+                var newDoc = newSolution.GetRequiredTextDocument(documentId);
+                this.RaiseTextDocumentClosedEventAsync(newDoc); // don't wait for this
             }
         }
 
@@ -766,19 +794,6 @@ namespace Microsoft.CodeAnalysis
             }
 
             return newSolution.GetRequiredProject(oldProject.Id);
-        }
-
-        internal void RegisterDocumentOptionProviders(IEnumerable<Lazy<IDocumentOptionsProviderFactory, OrderableMetadata>> documentOptionsProviderFactories)
-        {
-            foreach (var providerFactory in ExtensionOrderer.Order(documentOptionsProviderFactories))
-            {
-                var optionsProvider = providerFactory.Value.TryCreate(this);
-
-                if (optionsProvider != null)
-                {
-                    Services.GetRequiredService<IOptionService>().RegisterDocumentOptionsProvider(optionsProvider);
-                }
-            }
         }
     }
 }

@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -45,10 +44,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             this SyntaxGenerator factory,
             SemanticModel semanticModel,
             string typeName,
-            INamedTypeSymbol containingTypeOpt,
+            INamedTypeSymbol? containingType,
             ImmutableArray<IParameterSymbol> parameters,
-            ImmutableDictionary<string, ISymbol> parameterToExistingMemberMap,
-            ImmutableDictionary<string, string> parameterToNewMemberMap,
+            Accessibility accessibility,
+            ImmutableDictionary<string, ISymbol>? parameterToExistingMemberMap,
+            ImmutableDictionary<string, string>? parameterToNewMemberMap,
             bool addNullChecks,
             bool preferThrowExpression,
             bool generateProperties,
@@ -64,12 +64,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
                 attributes: default,
-                accessibility: containingTypeOpt.IsAbstractClass() ? Accessibility.Protected : Accessibility.Public,
-                modifiers: new DeclarationModifiers(isUnsafe: !isContainedInUnsafeType && parameters.Any(p => p.RequiresUnsafeModifier())),
+                accessibility: accessibility,
+                modifiers: new DeclarationModifiers(isUnsafe: !isContainedInUnsafeType && parameters.Any(static p => p.RequiresUnsafeModifier())),
                 typeName: typeName,
                 parameters: parameters,
                 statements: statements,
-                thisConstructorArguments: ShouldGenerateThisConstructorCall(containingTypeOpt, parameterToExistingMemberMap)
+                thisConstructorArguments: ShouldGenerateThisConstructorCall(containingType, parameterToExistingMemberMap)
                     ? ImmutableArray<SyntaxNode>.Empty
                     : default);
 
@@ -77,21 +77,21 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         private static bool ShouldGenerateThisConstructorCall(
-            INamedTypeSymbol containingTypeOpt,
-            IDictionary<string, ISymbol> parameterToExistingFieldMap)
+            INamedTypeSymbol? containingType,
+            IDictionary<string, ISymbol>? parameterToExistingFieldMap)
         {
-            if (containingTypeOpt != null && containingTypeOpt.TypeKind == TypeKind.Struct)
+            if (containingType?.TypeKind == TypeKind.Struct)
             {
                 // Special case.  If we're generating a struct constructor, then we'll need
                 // to initialize all fields in the struct, not just the ones we're creating.
                 // If there is any field or auto-property not being set by a parameter, we
                 // call the default constructor.
 
-                return containingTypeOpt.GetMembers()
+                return containingType.GetMembers()
                     .OfType<IFieldSymbol>()
                     .Where(field => !field.IsStatic)
                     .Select(field => field.AssociatedSymbol ?? field)
-                    .Except(parameterToExistingFieldMap.Values)
+                    .Except(parameterToExistingFieldMap?.Values ?? SpecializedCollections.EmptyEnumerable<ISymbol>())
                     .Any();
             }
 
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static ImmutableArray<ISymbol> CreateFieldsForParameters(
-            ImmutableArray<IParameterSymbol> parameters, ImmutableDictionary<string, string> parameterToNewFieldMap, bool isContainedInUnsafeType)
+            ImmutableArray<IParameterSymbol> parameters, ImmutableDictionary<string, string>? parameterToNewFieldMap, bool isContainedInUnsafeType)
         {
             using var _ = ArrayBuilder<ISymbol>.GetInstance(out var result);
             foreach (var parameter in parameters)
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static ImmutableArray<ISymbol> CreatePropertiesForParameters(
-            ImmutableArray<IParameterSymbol> parameters, ImmutableDictionary<string, string> parameterToNewPropertyMap, bool isContainedInUnsafeType)
+            ImmutableArray<IParameterSymbol> parameters, ImmutableDictionary<string, string>? parameterToNewPropertyMap, bool isContainedInUnsafeType)
         {
             using var _ = ArrayBuilder<ISymbol>.GetInstance(out var result);
             foreach (var parameter in parameters)
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return result.ToImmutable();
         }
 
-        private static bool TryGetValue(IDictionary<string, string> dictionary, string key, out string value)
+        private static bool TryGetValue(IDictionary<string, string>? dictionary, string key, [NotNullWhen(true)] out string? value)
         {
             value = null;
             return
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 dictionary.TryGetValue(key, out value);
         }
 
-        private static bool TryGetValue(IDictionary<string, ISymbol> dictionary, string key, out string value)
+        private static bool TryGetValue(IDictionary<string, ISymbol>? dictionary, string key, [NotNullWhen(true)] out string? value)
         {
             value = null;
             if (dictionary != null && dictionary.TryGetValue(key, out var symbol))
@@ -174,10 +174,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             => factory.ThrowExpression(CreateNewArgumentNullException(factory, compilation, parameter));
 
         private static SyntaxNode CreateNewArgumentNullException(SyntaxGenerator factory, Compilation compilation, IParameterSymbol parameter)
-            => factory.ObjectCreationExpression(
-                compilation.GetTypeByMetadataName(typeof(ArgumentNullException).FullName),
+        {
+            var type = compilation.GetTypeByMetadataName(typeof(ArgumentNullException).FullName!);
+            Contract.ThrowIfNull(type);
+            return factory.ObjectCreationExpression(type,
                 factory.NameOfExpression(
                     factory.IdentifierName(parameter.Name))).WithAdditionalAnnotations(Simplifier.AddImportsAnnotation);
+        }
 
         public static SyntaxNode CreateNullCheckAndThrowStatement(
             this SyntaxGenerator factory,
@@ -210,8 +213,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             this SyntaxGenerator factory,
             SemanticModel semanticModel,
             ImmutableArray<IParameterSymbol> parameters,
-            IDictionary<string, ISymbol> parameterToExistingFieldMap,
-            IDictionary<string, string> parameterToNewFieldMap,
+            IDictionary<string, ISymbol>? parameterToExistingFieldMap,
+            IDictionary<string, string>? parameterToNewFieldMap,
             bool addNullChecks,
             bool preferThrowExpression)
         {
@@ -315,8 +318,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var getAccessibility = overriddenProperty.GetMethod.ComputeResultantAccessibility(containingType);
             var setAccessibility = overriddenProperty.SetMethod.ComputeResultantAccessibility(containingType);
 
-            SyntaxNode getBody;
-            SyntaxNode setBody;
+            SyntaxNode? getBody;
+            SyntaxNode? setBody;
             // Implement an abstract property by throwing not implemented in accessors.
             if (overriddenProperty.IsAbstract)
             {
@@ -347,8 +350,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 // Call accessors directly if C# overriding VB
                 if (document.Project.Language == LanguageNames.CSharp
-                    && (await SymbolFinder.FindSourceDefinitionAsync(overriddenProperty, document.Project.Solution, cancellationToken).ConfigureAwait(false))
-                        .Language == LanguageNames.VisualBasic)
+                    && await SymbolFinder.FindSourceDefinitionAsync(overriddenProperty, document.Project.Solution, cancellationToken).ConfigureAwait(false) is { Language: LanguageNames.VisualBasic })
                 {
                     var getName = overriddenProperty.GetMethod?.Name;
                     var setName = overriddenProperty.SetMethod?.Name;
@@ -407,19 +409,24 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     codeFactory.IdentifierName("value")));
             }
 
+            // The user can add required if they want, but if the property being overridden is required, this one needs to be as well.
+            modifiers = modifiers.WithIsRequired(overriddenProperty.IsIndexer
+                ? false
+                : (modifiers.IsRequired || overriddenProperty.IsRequired));
+
             // Only generate a getter if the base getter is accessible.
-            IMethodSymbol accessorGet = null;
+            IMethodSymbol? accessorGet = null;
             if (overriddenProperty.GetMethod != null && overriddenProperty.GetMethod.IsAccessibleWithin(containingType))
             {
                 accessorGet = CodeGenerationSymbolFactory.CreateMethodSymbol(
                     overriddenProperty.GetMethod,
                     accessibility: getAccessibility,
-                    statements: ImmutableArray.Create(getBody),
+                    statements: getBody != null ? ImmutableArray.Create(getBody) : ImmutableArray<SyntaxNode>.Empty,
                     modifiers: modifiers);
             }
 
             // Only generate a setter if the base setter is accessible.
-            IMethodSymbol accessorSet = null;
+            IMethodSymbol? accessorSet = null;
             if (overriddenProperty.SetMethod != null &&
                 overriddenProperty.SetMethod.IsAccessibleWithin(containingType) &&
                 overriddenProperty.SetMethod.DeclaredAccessibility != Accessibility.Private)
@@ -427,7 +434,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 accessorSet = CodeGenerationSymbolFactory.CreateMethodSymbol(
                     overriddenProperty.SetMethod,
                     accessibility: setAccessibility,
-                    statements: ImmutableArray.Create(setBody),
+                    statements: setBody != null ? ImmutableArray.Create(setBody) : ImmutableArray<SyntaxNode>.Empty,
                     modifiers: modifiers);
             }
 
@@ -466,10 +473,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             ISymbol symbol,
             INamedTypeSymbol containingType,
             Document document,
-            DeclarationModifiers? modifiersOpt = null,
+            DeclarationModifiers? declarationModifiers = null,
             CancellationToken cancellationToken = default)
         {
-            var modifiers = modifiersOpt ?? GetOverrideModifiers(symbol);
+            var modifiers = declarationModifiers ?? GetOverrideModifiers(symbol);
 
             if (symbol is IMethodSymbol method)
             {
@@ -505,6 +512,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             Document newDocument,
             CancellationToken cancellationToken)
         {
+            // Required is not a valid modifier for methods, so clear it if the user typed it
+            modifiers = modifiers.WithIsRequired(false);
+
             // Abstract: Throw not implemented
             if (overriddenMethod.IsAbstract)
             {
@@ -643,7 +653,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static ImmutableArray<SyntaxNode> GetGetAccessorStatements(
             this SyntaxGenerator generator, Compilation compilation,
-            IPropertySymbol property, ISymbol throughMember, bool preferAutoProperties)
+            IPropertySymbol property, ISymbol? throughMember, bool preferAutoProperties)
         {
             if (throughMember != null)
             {
@@ -667,7 +677,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static ImmutableArray<SyntaxNode> GetSetAccessorStatements(
             this SyntaxGenerator generator, Compilation compilation,
-            IPropertySymbol property, ISymbol throughMember, bool preferAutoProperties)
+            IPropertySymbol property, ISymbol? throughMember, bool preferAutoProperties)
         {
             if (throughMember != null)
             {

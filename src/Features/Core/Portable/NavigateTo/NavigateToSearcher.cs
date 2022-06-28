@@ -32,7 +32,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
     {
         private readonly INavigateToSearcherHost _host;
         private readonly Solution _solution;
-        private readonly IAsynchronousOperationListener _asyncListener;
         private readonly INavigateToSearchCallback _callback;
         private readonly string _searchPattern;
         private readonly IImmutableSet<string> _kinds;
@@ -46,14 +45,12 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         private NavigateToSearcher(
             INavigateToSearcherHost host,
             Solution solution,
-            IAsynchronousOperationListener asyncListener,
             INavigateToSearchCallback callback,
             string searchPattern,
             IImmutableSet<string> kinds)
         {
             _host = host;
             _solution = solution;
-            _asyncListener = asyncListener;
             _callback = callback;
             _searchPattern = searchPattern;
             _kinds = kinds;
@@ -83,7 +80,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             INavigateToSearcherHost? host = null)
         {
             host ??= new DefaultNavigateToSearchHost(solution, asyncListener, disposalToken);
-            return new NavigateToSearcher(host, solution, asyncListener, callback, searchPattern, kinds);
+            return new NavigateToSearcher(host, solution, callback, searchPattern, kinds);
         }
 
         private async Task AddProgressItemsAsync(int count, CancellationToken cancellationToken)
@@ -114,7 +111,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             try
             {
                 using var navigateToSearch = Logger.LogBlock(FunctionId.NavigateTo_Search, KeyValueLogMessage.Create(LogType.UserAction), cancellationToken);
-                using var asyncToken = _asyncListener.BeginAsyncOperation(GetType() + ".Search");
 
                 if (searchCurrentDocument)
                 {

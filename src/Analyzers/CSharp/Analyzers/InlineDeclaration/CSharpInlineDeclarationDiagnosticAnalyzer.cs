@@ -2,18 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
 {
@@ -52,33 +52,30 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             context.RegisterCompilationStartAction(compilationContext =>
             {
                 var compilation = compilationContext.Compilation;
-                var expressionTypeOpt = compilation.GetTypeByMetadataName(typeof(Expression<>).FullName);
+                var expressionType = compilation.GetTypeByMetadataName(typeof(Expression<>).FullName!);
                 compilationContext.RegisterSyntaxNodeAction(
-                    syntaxContext => AnalyzeSyntaxNode(syntaxContext, expressionTypeOpt), SyntaxKind.Argument);
+                    syntaxContext => AnalyzeSyntaxNode(syntaxContext, expressionType), SyntaxKind.Argument);
             });
         }
 
-        private void AnalyzeSyntaxNode(SyntaxNodeAnalysisContext context, INamedTypeSymbol expressionTypeOpt)
+        private void AnalyzeSyntaxNode(SyntaxNodeAnalysisContext context, INamedTypeSymbol? expressionType)
         {
-            var argumentNode = (ArgumentSyntax)context.Node;
-            var csOptions = (CSharpParseOptions)context.Node.SyntaxTree.Options;
+            var syntaxTree = context.Node.SyntaxTree;
+            var csOptions = (CSharpParseOptions)syntaxTree.Options;
             if (csOptions.LanguageVersion < LanguageVersion.CSharp7)
             {
                 // out-vars are not supported prior to C# 7.0.
                 return;
             }
 
-            var options = context.Options;
-            var syntaxTree = context.Node.SyntaxTree;
-            var cancellationToken = context.CancellationToken;
-
-            var option = options.GetOption(CSharpCodeStyleOptions.PreferInlinedVariableDeclaration, syntaxTree, cancellationToken);
+            var option = context.GetCSharpAnalyzerOptions().PreferInlinedVariableDeclaration;
             if (!option.Value)
             {
                 // Don't bother doing any work if the user doesn't even have this preference set.
                 return;
             }
 
+            var argumentNode = (ArgumentSyntax)context.Node;
             if (argumentNode.RefOrOutKeyword.Kind() != SyntaxKind.OutKeyword)
             {
                 // Immediately bail if this is not an out-argument.  If it's not an out-argument
@@ -87,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             }
 
             var argumentExpression = argumentNode.Expression;
-            if (!argumentExpression.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax identifierName))
+            if (!argumentExpression.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax? identifierName))
             {
                 // has to be exactly the form "out i".  i.e. "out this.i" or "out v[i]" are legal
                 // cases for out-arguments, but could not be converted to an out-variable-declaration.
@@ -122,6 +119,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             {
                 return;
             }
+
+            var cancellationToken = context.CancellationToken;
 
             var semanticModel = context.SemanticModel;
             if (semanticModel.GetSymbolInfo(argumentExpression, cancellationToken).Symbol is not ILocalSymbol outLocalSymbol)
@@ -176,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 return;
             }
 
-            if (argumentExpression.IsInExpressionTree(semanticModel, expressionTypeOpt, cancellationToken))
+            if (argumentExpression.IsInExpressionTree(semanticModel, expressionType, cancellationToken))
             {
                 // out-vars are not allowed inside expression-trees.  So don't offer to
                 // fix if we're inside one.
@@ -186,6 +185,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             // Find the scope that the out-declaration variable will live in after we
             // rewrite things.
             var outArgumentScope = GetOutArgumentScope(argumentExpression);
+            if (outArgumentScope == null)
+                return;
 
             if (!outLocalSymbol.CanSafelyMoveLocalToBlock(enclosingBlockOfLocalStatement, outArgumentScope))
             {
@@ -256,14 +257,17 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             //
             // In this case, inlining the 'i' would cause it to longer be definitely
             // assigned in the WriteLine invocation.
+            var nextStatement = localStatement.GetNextStatement();
+            Contract.ThrowIfNull(nextStatement);
 
             var dataFlow = semanticModel.AnalyzeDataFlow(
-                localStatement.GetNextStatement(),
+                nextStatement,
                 enclosingBlock.Statements.Last());
+            Contract.ThrowIfNull(dataFlow);
             return dataFlow.DataFlowsIn.Contains(outLocalSymbol);
         }
 
-        private static SyntaxNode GetOutArgumentScope(SyntaxNode argumentExpression)
+        private static SyntaxNode? GetOutArgumentScope(SyntaxNode argumentExpression)
         {
             for (var current = argumentExpression; current != null; current = current.Parent)
             {
@@ -346,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                     break;
                 }
 
-                if (descendentNode.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax identifierName))
+                if (descendentNode.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax? identifierName))
                 {
                     // See if this looks like an accessor to the local variable syntactically.
                     if (identifierName.Identifier.ValueText == variableName)

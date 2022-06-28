@@ -8621,9 +8621,9 @@ for (Span<int> inner = stackalloc int[10];; inner = outer)
 ", options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
-                // (7,13): error CS8352: Cannot use local 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                // (7,13): error CS8352: Cannot use variable 'inner' in this context because it may expose referenced variables outside of their declaration scope
                 //     outer = inner;
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "inner").WithArguments("inner").WithLocation(7, 13)
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "inner").WithArguments("inner").WithLocation(7, 13)
                 );
         }
 
@@ -9567,6 +9567,39 @@ void F<T>(T t)
 
             model.GetOperation(identifier);
             Assert.Equal(OperationKind.Literal, model.GetOperation(tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().Single()).Kind);
+        }
+
+        [Fact]
+        [WorkItem(60248, "https://github.com/dotnet/roslyn/issues/60248")]
+        public void SpeculativeSemanticModel()
+        {
+            var source = @"
+int x = 1;
+System.Console.WriteLine(0);
+
+public class C
+{
+    public void M()
+    {
+        System.Console.WriteLine(2);
+    }
+}
+";
+            var compilation = CreateCompilation(source);
+            var tree = compilation.SyntaxTrees[0];
+            var root = tree.GetRoot();
+            var model = compilation.GetSemanticModel(tree);
+            var nodeToSpeculate = SyntaxFactory.ParseStatement("int y = x;");
+
+            // Speculate inside a valid top-level position.
+            model.TryGetSpeculativeSemanticModel(root.DescendantNodes().Single(n => n is ExpressionStatementSyntax { Parent: GlobalStatementSyntax }).Span.End, nodeToSpeculate, out var speculativeModelInTopLevel);
+            var conversionInTopLevel = speculativeModelInTopLevel.GetConversion(nodeToSpeculate.DescendantTokens().Single(n => n.ValueText == "x").Parent);
+            Assert.Equal(ConversionKind.Identity, conversionInTopLevel.Kind);
+
+            // Speculate outside a top-level position.
+            model.TryGetSpeculativeSemanticModel(root.DescendantNodes().Single(n => n is ExpressionStatementSyntax { Parent: BlockSyntax }).Span.End, nodeToSpeculate, out var speculativeModelOutsideTopLevel);
+            var conversionOutsideTopLevel = speculativeModelOutsideTopLevel.GetConversion(nodeToSpeculate.DescendantTokens().Single(n => n.ValueText == "x").Parent);
+            Assert.Equal(ConversionKind.NoConversion, conversionOutsideTopLevel.Kind);
         }
     }
 }

@@ -10,11 +10,11 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Implementation.Interactive;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
@@ -23,9 +23,10 @@ using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Interactive
+namespace Microsoft.CodeAnalysis.Interactive
 {
     using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
+    using Microsoft.VisualStudio.Text.Editor;
 
     // TODO: Rename to InteractiveEvaluator https://github.com/dotnet/roslyn/issues/6441
     // The code is not specific to C#, but Interactive Window has hardcoded "CSharpInteractiveEvaluator" name.
@@ -62,6 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             = new InteractiveEvaluatorResetOptions(InteractiveHostPlatform.Desktop64);
 
         internal CSharpInteractiveEvaluator(
+            IGlobalOptionService globalOptions,
             IThreadingContext threadingContext,
             IAsynchronousOperationListener listener,
             IContentType contentType,
@@ -69,6 +71,8 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             IViewClassifierAggregatorService classifierAggregator,
             IInteractiveWindowCommandsFactory commandsFactory,
             ImmutableArray<IInteractiveWindowCommand> commands,
+            ITextDocumentFactoryService textDocumentFactoryService,
+            IEditorOptionsFactoryService editorOptionsFactory,
             InteractiveEvaluatorLanguageInfoProvider languageInfo,
             string initialWorkingDirectory)
         {
@@ -81,9 +85,18 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             _commandsFactory = commandsFactory;
             _commands = commands;
 
-            _workspace = new InteractiveWindowWorkspace(hostServices);
+            _workspace = new InteractiveWindowWorkspace(hostServices, globalOptions);
 
-            _session = new InteractiveSession(_workspace, threadingContext, listener, languageInfo, initialWorkingDirectory);
+            _session = new InteractiveSession(
+                _workspace,
+                threadingContext,
+                listener,
+                textDocumentFactoryService,
+                editorOptionsFactory,
+                globalOptions,
+                languageInfo,
+                initialWorkingDirectory);
+
             _session.Host.ProcessInitialized += ProcessInitialized;
         }
 

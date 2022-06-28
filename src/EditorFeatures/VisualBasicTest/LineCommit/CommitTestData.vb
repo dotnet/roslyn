@@ -38,6 +38,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
         Public Sub New(workspace As TestWorkspace)
             Me.Workspace = workspace
             View = workspace.Documents.Single().GetTextView()
+            View.Options.GlobalOptions.SetOptionValue(DefaultOptions.IndentStyleId, IndentingStyle.Smart)
+
             EditorOperations = workspace.GetService(Of IEditorOperationsFactoryService).GetEditorOperations(View)
 
             Dim position = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
@@ -109,9 +111,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
                     Throw New NotImplementedException()
                 End Sub
 
-                Public Sub Commit(Optional previewChanges As Boolean = False) Implements IInlineRenameSession.Commit
+                Public Function CommitAsync(previewChanges As Boolean, cancellationToken As CancellationToken) As Task Implements IInlineRenameSession.CommitAsync
                     Throw New NotImplementedException()
-                End Sub
+                End Function
             End Class
         End Class
 

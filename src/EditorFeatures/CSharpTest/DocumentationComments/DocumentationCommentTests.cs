@@ -2290,6 +2290,46 @@ class C { }";
             }
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void TypingCharacter_Class_WithComment()
+        {
+            var code =
+@"//$$ This is my class and it does great things.
+class C
+{
+}";
+
+            var expected =
+@"/// <summary>
+/// $$This is my class and it does great things.
+/// </summary>
+class C
+{
+}";
+
+            VerifyTypingCharacter(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void TypingCharacter_Class_WithComment_NoSpace()
+        {
+            var code =
+@"//$$This is my class and it does great things.
+class C
+{
+}";
+
+            var expected =
+@"/// <summary>
+/// $$This is my class and it does great things.
+/// </summary>
+class C
+{
+}";
+
+            VerifyTypingCharacter(code, expected);
+        }
+
         protected override char DocumentationCommentCharacter
         {
             get { return '/'; }

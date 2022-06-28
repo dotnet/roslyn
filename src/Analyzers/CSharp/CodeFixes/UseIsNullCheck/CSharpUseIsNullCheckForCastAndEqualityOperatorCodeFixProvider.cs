@@ -35,8 +35,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseIsNullCheckDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         private static bool IsSupportedDiagnostic(Diagnostic diagnostic)
             => diagnostic.Properties[UseIsNullConstants.Kind] == UseIsNullConstants.CastAndEqualityKey;
 
@@ -49,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
                 var title = GetTitle(negated, diagnostic.Location.SourceTree!.Options);
 
                 context.RegisterCodeFix(
-                    new MyCodeAction(title, c => FixAsync(context.Document, diagnostic, c)),
+                    CodeAction.Create(title, GetDocumentUpdater(context), title),
                     context.Diagnostics);
             }
 
@@ -58,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
 
         protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             foreach (var diagnostic in diagnostics)
             {
@@ -110,14 +108,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
                 castExpr.Expression.WithTriviaFrom(binary.Left),
                 Token(SyntaxKind.IsKeyword).WithTriviaFrom(binary.OperatorToken),
                 ConstantPattern(nullLiteral).WithTriviaFrom(binary.Right));
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, title)
-            {
-            }
         }
     }
 }

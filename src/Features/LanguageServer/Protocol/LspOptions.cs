@@ -11,8 +11,7 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
-    [ExportGlobalOptionProvider, Shared]
-    internal sealed class LspOptions : IOptionProvider
+    internal sealed class LspOptions
     {
         private const string LocalRegistryPath = @"Roslyn\Internal\Lsp\";
         private const string FeatureName = "LspOptions";
@@ -25,26 +24,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(MaxCompletionListSize)));
 
         // Flag is defined in VisualStudio\Core\Def\PackageRegistration.pkgdef.
-        public static readonly Option2<bool> LspCompletionFeatureFlag = new(FeatureName, nameof(LspCompletionFeatureFlag), defaultValue: false,
-            new FeatureFlagStorageLocation("Roslyn.LSP.Completion"));
-
-        // Flag is defined in VisualStudio\Core\Def\PackageRegistration.pkgdef.
         public static readonly Option2<bool> LspEditorFeatureFlag = new(FeatureName, nameof(LspEditorFeatureFlag), defaultValue: false,
             new FeatureFlagStorageLocation("Roslyn.LSP.Editor"));
 
         // Flag is defined in VisualStudio\Core\Def\PackageRegistration.pkgdef.
         public static readonly Option2<bool> LspSemanticTokensFeatureFlag = new(FeatureName, nameof(LspSemanticTokensFeatureFlag), defaultValue: false,
             new FeatureFlagStorageLocation("Roslyn.LSP.SemanticTokens"));
-
-        public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            MaxCompletionListSize,
-            LspCompletionFeatureFlag,
-            LspEditorFeatureFlag);
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public LspOptions()
-        {
-        }
     }
 }

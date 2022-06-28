@@ -604,9 +604,9 @@ Base.get_Property",
                     Signature("Base4`2", "set_Property", ".method public hidebysig specialname virtual instance System.Void set_Property(U value) cil managed")
                 });
         }
-        [Fact]
 
-        private void TestBaseAccessForMembersHiddenInImmediateBaseClass()
+        [Fact]
+        public void TestBaseAccessForMembersHiddenInImmediateBaseClass()
         {
             // Tests: 
             // Invoke base virtual member from within overridden member using base.VirtualMember 
@@ -698,9 +698,9 @@ Base.set_Property()");
   IL_0018:  ret       
 }");
         }
-        [Fact]
 
-        private void TestBaseAccessForMembersMissingInImmediateBaseClass()
+        [Fact]
+        public void TestBaseAccessForMembersMissingInImmediateBaseClass()
         {
             // Tests: 
             // Invoke base virtual member from within overridden member using base.VirtualMember 
@@ -800,9 +800,9 @@ Base.set_Property()");
   IL_001e:  ret       
 }");
         }
-        [Fact]
 
-        private void TestBaseAccessForObjectMembers()
+        [Fact]
+        public void TestBaseAccessForObjectMembers()
         {
             // Tests: 
             // Override virtual methods declared on object (ToString, GetHashCode etc.) 
@@ -858,9 +858,9 @@ abstract class DerivedClass : BaseClass<int, long>
   IL_0007:  ret       
 }");
         }
-        [Fact]
 
-        private void TestOverridingFinalizeImpersonator()
+        [Fact]
+        public void TestOverridingFinalizeImpersonator()
         {
             // Tests:
             // Override overloaded member from base type named Finalize having same / different signature 
@@ -981,9 +981,9 @@ Derived2.Finalize()
   IL_000a:  ret
 }");
         }
-        [Fact]
 
-        private void TestOverrideResolution2()
+        [Fact]
+        public void TestOverrideResolution2()
         {
             // Tests:
             // Override overloaded base virtual / abstract member – overloads differ by generic type parameter count
@@ -1031,9 +1031,9 @@ Derived.Method()
 Derived.Method<>
 Derived.Method<,>)");
         }
-        [Fact]
 
-        private void TestOverrideResolution1()
+        [Fact]
+        public void TestOverrideResolution1()
         {
             // Tests:
             // Override overloaded base virtual / abstract member – overloads differ by parameter types and count
@@ -1268,8 +1268,7 @@ Derived.Method(BASEREF List<int> a)";
 
         [WorkItem(540214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540214")]
         [Fact]
-
-        private void TestEmitSynthesizedSealedSetter()
+        public void TestEmitSynthesizedSealedSetter()
         {
             var source = @"
 class Base
@@ -1324,10 +1323,10 @@ Base.P.Set(2)",
                     Signature("Derived", "set_P", ".method public hidebysig specialname virtual final instance System.Void set_P(System.Int32 value) cil managed")
                 });
         }
+
         [WorkItem(540214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540214")]
         [Fact]
-
-        private void TestEmitSynthesizedSealedGetter()
+        public void TestEmitSynthesizedSealedGetter()
         {
             var source = @"
 class Base
@@ -1381,10 +1380,10 @@ Derived.P.Set(2)",
                     Signature("Derived", "get_P", ".method public hidebysig specialname virtual final instance System.Int32 get_P() cil managed")
                 });
         }
+
         [WorkItem(540327, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540327")]
         [Fact]
-
-        private void TestOverrideWithSealedProperty()
+        public void TestOverrideWithSealedProperty()
         {
             var source = @"using System;
 abstract public class Base
@@ -1430,9 +1429,9 @@ Derived.set_Property3",
                     Signature("Base+Derived", "set_Property3", ".method public hidebysig specialname virtual final instance System.Void set_Property3(System.Single value) cil managed")
                 });
         }
-        [Fact]
 
-        private void TestOverrideWithAbstractProperty()
+        [Fact]
+        public void TestOverrideWithAbstractProperty()
         {
             var source = @"using System;
 public class Base1
@@ -1502,9 +1501,9 @@ Derived.set_Property2",
                     Signature("Derived", "set_Property2", ".method public hidebysig specialname virtual instance System.Void set_Property2(System.Int64 value) cil managed")
                 });
         }
-        [Fact]
 
-        private void TestOverrideWithAbstractProperty2()
+        [Fact]
+        public void TestOverrideWithAbstractProperty2()
         {
             var source = @"using System;
 public class Base1
@@ -1978,10 +1977,10 @@ class Derived2 : Base2
 
             comp.VerifyDiagnostics();
         }
+
         [WorkItem(540341, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540341")]
         [Fact]
-
-        private void TestInternalMethods()
+        public void TestInternalMethods()
         {
             // Tests:
             // internal virtual / abstract methods should be marked with strict modifier
@@ -2015,9 +2014,9 @@ class Derived : Base2<int>
 
             comp.VerifyDiagnostics(); // No errors
         }
-        [Fact]
 
-        private void TestProtectedInternalMethods()
+        [Fact]
+        public void TestProtectedInternalMethods()
         {
             // Tests:
             // protected internal virtual / abstract methods should not be marked with strict modifier
@@ -2051,9 +2050,9 @@ class Derived : Base2<int>
 
             comp.VerifyDiagnostics(); // No errors
         }
-        [Fact]
 
-        private void TestProtectedMethods()
+        [Fact]
+        public void TestProtectedMethods()
         {
             // Tests:
             // protected virtual / abstract methods should not be marked with strict modifier
@@ -2086,9 +2085,9 @@ class Derived : Base2<int>
                 Signature("Derived", "Method2", ".method family hidebysig virtual final instance System.Collections.Generic.List`1[System.Int32] Method2() cil managed")
             });
         }
-        [Fact]
 
-        private void TestPublicMethods()
+        [Fact]
+        public void TestPublicMethods()
         {
             // Tests:
             // public virtual / abstract methods should not be marked with strict modifier
@@ -2122,10 +2121,10 @@ class Derived : Base2<int>
 
             comp.VerifyDiagnostics(); // No errors
         }
+
         [WorkItem(540341, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540341")]
         [Fact]
-
-        private void TestInternalAccessors()
+        public void TestInternalAccessors()
         {
             // Tests:
             // internal virtual / abstract accessors should be marked with strict modifier
@@ -2229,9 +2228,9 @@ class Derived : Base<int>
 
             comp.VerifyDiagnostics(); // No errors
         }
-        [Fact]
 
-        private void TestProtectedInternalAccessorsInDifferentAssembly()
+        [Fact]
+        public void TestProtectedInternalAccessorsInDifferentAssembly()
         {
             var source1 = @"
 using System.Collections.Generic;
@@ -2314,9 +2313,9 @@ class Derived : Base<int>
 
             comp.VerifyDiagnostics(); // No errors
         }
-        [Fact]
 
-        private void TestPublicAccessors()
+        [Fact]
+        public void TestPublicAccessors()
         {
             // Tests:
             // public virtual / abstract accessors should not be marked with strict modifier
@@ -2350,9 +2349,9 @@ class Derived : Base<int>
 
             comp.VerifyDiagnostics(); // No errors
         }
-        [Fact]
 
-        private void TestOverrideOverloadedMethod()
+        [Fact]
+        public void TestOverrideOverloadedMethod()
         {
             var source = @"
 using System.Collections.Generic;
@@ -2386,9 +2385,9 @@ class Derived : Base2<int>
 
             comp.VerifyDiagnostics(); // No errors
         }
-        [Fact]
 
-        private void TestOverrideHidingMember()
+        [Fact]
+        public void TestOverrideHidingMember()
         {
             // Tests:
             // Hide base virtual member with a virtual new / abstract new member 
@@ -3671,9 +3670,9 @@ Derived1.Method`2",
                 // (19,46): warning CS0693: Type parameter 'Y' has the same name as the type parameter from outer type 'Outer<T>.Inner<U>.Derived1<X, Y>'
                 Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, "Y").WithArguments("Y", "Outer<T>.Inner<U>.Derived1<X, Y>"));
         }
-        [Fact]
 
-        private void TestHideMethodWithModreqCustomModifiers()
+        [Fact]
+        public void TestHideMethodWithModreqCustomModifiers()
         {
             var text = @"using System;
 using Metadata;

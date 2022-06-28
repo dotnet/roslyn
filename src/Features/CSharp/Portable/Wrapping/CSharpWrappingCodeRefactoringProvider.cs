@@ -2,16 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Wrapping.BinaryExpression;
 using Microsoft.CodeAnalysis.CSharp.Wrapping.ChainedExpression;
-using Microsoft.CodeAnalysis.CSharp.Wrapping.InitializerExpression;
 using Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Wrapping;
 
 namespace Microsoft.CodeAnalysis.CSharp.Wrapping
@@ -33,5 +32,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping
             : base(s_wrappers)
         {
         }
+
+        protected override SyntaxWrappingOptions GetWrappingOptions(AnalyzerConfigOptions options, CodeActionOptions ideOptions)
+            => options.GetCSharpSyntaxWrappingOptions(ideOptions);
     }
 }

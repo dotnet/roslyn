@@ -4,11 +4,8 @@
 
 Imports System.Composition
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Editing
-Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.OrganizeImports
-Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.OrganizeImports
     <ExportLanguageService(GetType(IOrganizeImportsService), LanguageNames.VisualBasic), [Shared]>
@@ -20,16 +17,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.OrganizeImports
         Public Sub New()
         End Sub
 
-        Public Async Function OrganizeImportsAsync(document As Document,
-                                        cancellationToken As CancellationToken) As Task(Of Document) Implements IOrganizeImportsService.OrganizeImportsAsync
+        Public Async Function OrganizeImportsAsync(document As Document, options As OrganizeImportsOptions, cancellationToken As CancellationToken) As Task(Of Document) Implements IOrganizeImportsService.OrganizeImportsAsync
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-            Dim options = Await document.GetOptionsAsync(cancellationToken).ConfigureAwait(False)
-
-            Dim placeSystemNamespaceFirst = options.GetOption(GenerationOptions.PlaceSystemNamespaceFirst)
-            Dim separateGroups = options.GetOption(GenerationOptions.SeparateImportDirectiveGroups)
-            Dim newLineTrivia = VisualBasicSyntaxGeneratorInternal.Instance.EndOfLine(options.GetOption(FormattingOptions2.NewLine))
-
-            Dim rewriter = New Rewriter(placeSystemNamespaceFirst, separateGroups, newLineTrivia)
+            Dim rewriter = New Rewriter(options)
             Dim newRoot = rewriter.Visit(root)
             Return document.WithSyntaxRoot(newRoot)
         End Function

@@ -563,11 +563,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             SetStackDepth(_evalStack.Count - 1);
         }
 
-        private void ClearEvalStack()
-        {
-            _evalStack.Clear();
-        }
-
         public BoundNode VisitStatement(BoundNode node)
         {
             Debug.Assert(node == null || EvalStackIsEmpty());
@@ -874,6 +869,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         break;
 
                     case ExprContext.Sideeffects:
+                        if (node.LocalSymbol.RefKind != RefKind.None)
+                        {
+                            // Reading from a ref has a side effect since the read
+                            // may result in a NullReferenceException.
+                            RecordVarRead(node.LocalSymbol);
+                        }
                         break;
 
                     case ExprContext.Value:
@@ -1022,8 +1023,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             var lhs = node.Left;
 
             Debug.Assert(!node.IsRef ||
-              (lhs is BoundLocal local && local.LocalSymbol.RefKind != RefKind.None) ||
-              (lhs is BoundParameter param && param.ParameterSymbol.RefKind != RefKind.None),
+                (lhs.Kind is BoundKind.Local or BoundKind.Parameter or BoundKind.FieldAccess && lhs.GetRefKind() != RefKind.None),
                                 "only ref symbols can be a target of a ref assignment");
 
             switch (lhs.Kind)
@@ -1118,7 +1118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 _counter += 1;
 
-                if (method.IsAbstract && receiver is BoundTypeExpression { Type: { TypeKind: TypeKind.TypeParameter } } typeExpression)
+                if ((method.IsAbstract || method.IsVirtual) && receiver is BoundTypeExpression { Type: { TypeKind: TypeKind.TypeParameter } } typeExpression)
                 {
                     receiver = typeExpression.Update(aliasOpt: null, boundContainingTypeOpt: null, boundDimensionsOpt: ImmutableArray<BoundExpression>.Empty,
                         typeWithAnnotations: typeExpression.TypeWithAnnotations, type: this.VisitType(typeExpression.Type));
@@ -1355,7 +1355,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 RecordBranch(label);
             }
 
-            return node.Update(boundExpression, node.Cases, node.DefaultLabel, node.EqualityMethod);
+            return node.Update(boundExpression, node.Cases, node.DefaultLabel);
         }
 
         public override BoundNode VisitConditionalOperator(BoundConditionalOperator node)
@@ -1490,7 +1490,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             EnsureStackState(cookie);   // implicit label here
 
-            return node.Update(left, right, node.LeftPlaceholder, node.LeftConversion, node.OperatorResultKind, node.Type);
+            return node.Update(left, right, node.LeftPlaceholder, node.LeftConversion, node.OperatorResultKind, @checked: node.Checked, node.Type);
         }
 
         public override BoundNode VisitLoweredConditionalAccess(BoundLoweredConditionalAccess node)
@@ -1696,7 +1696,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // must not have locals on stack when returning
             EnsureOnlyEvalStack();
 
-            return node.Update(node.RefKind, expressionOpt);
+            return node.Update(node.RefKind, expressionOpt, @checked: node.Checked);
         }
 
         // Ensures that there are no stack locals.
@@ -2055,7 +2055,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             // indirect local store is not special. (operands still could be rewritten) 
-            // NOTE: if Lhs is a stack local, it will be handled as a read and possibly duped.
+            // NOTE: if lhs is a stack local, it will be handled as a read and possibly duped.
             var isIndirectLocalStore = left.LocalSymbol.RefKind != RefKind.None && !node.IsRef;
             if (isIndirectLocalStore)
             {
@@ -2268,5 +2268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// Checking escape scopes is not valid here.
         /// </summary>
         internal override uint RefEscapeScope => throw ExceptionUtilities.Unreachable;
+
+        internal override DeclarationScope Scope => DeclarationScope.Unscoped;
     }
 }

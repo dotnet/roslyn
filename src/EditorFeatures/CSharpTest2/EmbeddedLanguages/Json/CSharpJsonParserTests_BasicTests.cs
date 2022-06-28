@@ -1168,7 +1168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
   </CompilationUnit>
 </Tree>",
         @"<Diagnostics>
-  <Diagnostic Message=""Only properties allowed in an object"" Start=""20"" Length=""3"" />
+  <Diagnostic Message=""Property name must be followed by a ':'"" Start=""20"" Length=""3"" />
 </Diagnostics>",
         @"<Diagnostics>
   <Diagnostic Message=""Strings must start with &quot; not '"" Start=""12"" Length=""1"" />
@@ -1328,10 +1328,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
   </CompilationUnit>
 </Tree>",
         @"<Diagnostics>
-  <Diagnostic Message=""Only properties allowed in an object"" Start=""102"" Length=""8"" />
+  <Diagnostic Message=""Property name must be followed by a ':'"" Start=""102"" Length=""8"" />
 </Diagnostics>",
         @"<Diagnostics>
-  <Diagnostic Message=""Only properties allowed in an object"" Start=""102"" Length=""8"" />
+  <Diagnostic Message=""Property name must be followed by a ':'"" Start=""102"" Length=""8"" />
 </Diagnostics>");
         }
 
@@ -1367,10 +1367,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
   </CompilationUnit>
 </Tree>",
         @"<Diagnostics>
-  <Diagnostic Message=""Only properties allowed in an object"" Start=""22"" Length=""5"" />
+  <Diagnostic Message=""Property name must be followed by a ':'"" Start=""22"" Length=""5"" />
 </Diagnostics>",
         @"<Diagnostics>
-  <Diagnostic Message=""Only properties allowed in an object"" Start=""22"" Length=""5"" />
+  <Diagnostic Message=""Property name must be followed by a ':'"" Start=""22"" Length=""5"" />
 </Diagnostics>");
         }
 

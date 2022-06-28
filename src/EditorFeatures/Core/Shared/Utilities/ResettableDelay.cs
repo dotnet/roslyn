@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         public static readonly ResettableDelay CompletedDelay = new();
 
         private readonly int _delayInMilliseconds;
-        private readonly TaskCompletionSource<object?> _taskCompletionSource;
+        private readonly TaskCompletionSource<object?> _taskCompletionSource = new();
 
         private int _lastSetTime;
 
@@ -30,7 +30,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             Contract.ThrowIfFalse(delayInMilliseconds >= 50, "Perf, only use delays >= 50ms");
             _delayInMilliseconds = delayInMilliseconds;
 
-            _taskCompletionSource = new TaskCompletionSource<object?>();
             Reset();
 
             _ = StartTimerAsync(expeditableDelaySource, cancellationToken);

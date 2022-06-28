@@ -252,7 +252,7 @@ static class E
     }
 
     [Fact]
-    public void Not_InExpressionLamba0()
+    public void Not_InExpressionLambda0()
     {
         var source = @"
 using System;
@@ -329,7 +329,7 @@ class C
     }
 
     [Fact]
-    public void Not_InExpressionLamba1()
+    public void Not_InExpressionLambda1()
     {
         var source = @"
 using System;

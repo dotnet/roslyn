@@ -167,10 +167,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 SetStackDepth(_evalStack.Count - 1)
             End Sub
 
-            Private Sub ClearEvalStack()
-                _evalStack.Clear()
-            End Sub
-
             Private Function VisitExpression(node As BoundExpression, context As ExprContext) As BoundExpression
                 Dim result As BoundExpression
 
@@ -656,14 +652,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     Case Else
                         Throw ExceptionUtilities.UnexpectedValue(node.Kind)
                 End Select
-            End Function
-
-            Private Shared Function IsVerifierRef(type As TypeSymbol) As Boolean
-                Return Not type.TypeKind = TypeKind.TypeParameter AndAlso type.IsReferenceType
-            End Function
-
-            Private Shared Function IsVerifierVal(type As TypeSymbol) As Boolean
-                Return Not type.TypeKind = TypeKind.TypeParameter AndAlso type.IsValueType
             End Function
 
             Public Overrides Function VisitCall(node As BoundCall) As BoundNode

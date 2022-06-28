@@ -19,8 +19,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         }
 
         protected abstract SpecialType SpecialType { get; }
+        protected abstract bool IsValidContextWorker(int position, CSharpSyntaxContext context, CancellationToken cancellationToken);
 
         protected override bool ShouldPreselect(CSharpSyntaxContext context, CancellationToken cancellationToken)
-            => context.InferredTypes.Any(t => t.SpecialType == SpecialType);
+            => context.InferredTypes.Any(static (t, self) => t.SpecialType == self.SpecialType, this);
+
+        protected sealed override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+        {
+            // Filter out all special-types from locations where we think we only want something task-like.
+            if (context.IsTaskLikeTypeContext)
+                return false;
+
+            return IsValidContextWorker(position, context, cancellationToken);
+        }
     }
 }

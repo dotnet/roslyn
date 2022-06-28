@@ -46,12 +46,12 @@ namespace Microsoft.CodeAnalysis.RuntimeMembers
         /// </summary>
         public readonly short DeclaringTypeId;
 
-        public string? DeclaringTypeMetadataName
+        public string DeclaringTypeMetadataName
         {
             get
             {
                 return DeclaringTypeId <= (int)SpecialType.Count
-                           ? ((SpecialType)DeclaringTypeId).GetMetadataName()
+                           ? ((SpecialType)DeclaringTypeId).GetMetadataName()!
                            : ((WellKnownType)DeclaringTypeId).GetMetadataName();
             }
         }

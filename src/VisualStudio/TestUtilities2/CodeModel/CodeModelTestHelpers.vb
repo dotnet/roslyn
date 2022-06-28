@@ -84,7 +84,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 
                 Dim root = New ComHandle(Of EnvDTE.CodeModel, RootCodeModel)(RootCodeModel.Create(state, Nothing, project.Id))
 
-                result = New CodeModelTestState(workspace, state.Workspace, root, firstFileCodeModel.Value, state.CodeModelService)
+                result = New CodeModelTestState(workspace, state.Workspace, root, firstFileCodeModel, state.CodeModelService)
             Finally
                 If result Is Nothing Then
                     workspace.Dispose()

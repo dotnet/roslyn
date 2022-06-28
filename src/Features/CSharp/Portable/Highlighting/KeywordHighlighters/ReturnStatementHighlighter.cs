@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.KeywordHighlighting.KeywordHighlighters
         {
             var parent = returnStatement
                              .GetAncestorsOrThis<SyntaxNode>()
-                             .FirstOrDefault(n => n.IsReturnableConstruct());
+                             .FirstOrDefault(n => n.IsReturnableConstructOrTopLevelCompilationUnit());
 
             if (parent == null)
             {

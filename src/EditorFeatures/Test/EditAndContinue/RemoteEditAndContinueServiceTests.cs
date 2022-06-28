@@ -80,7 +80,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             var project = solution.Projects.Single();
             var document = project.Documents.Single();
 
-            var mockDiagnosticService = new MockDiagnosticAnalyzerService();
+            var mockDiagnosticService = new MockDiagnosticAnalyzerService(globalOptions);
 
             void VerifyReanalyzeInvocation(ImmutableArray<DocumentId> documentIds)
             {
@@ -177,18 +177,6 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             var availability = await remoteDebuggeeModuleMetadataProvider!.GetAvailabilityAsync(moduleId1, CancellationToken.None).ConfigureAwait(false);
             Assert.Equal(new ManagedHotReloadAvailability(ManagedHotReloadAvailabilityStatus.NotAllowedForModule, "can't do enc"), availability);
 
-            // HasChanges
-
-            mockEncService.HasChangesImpl = (solution, activeStatementSpanProvider, sourceFilePath) =>
-            {
-                Assert.Equal("proj", solution.Projects.Single().Name);
-                Assert.Equal("test.cs", sourceFilePath);
-                AssertEx.Equal(activeSpans1, activeStatementSpanProvider(document1.Id, "test.cs", CancellationToken.None).AsTask().Result);
-                return true;
-            };
-
-            Assert.True(await sessionProxy.HasChangesAsync(localWorkspace.CurrentSolution, activeStatementSpanProvider, "test.cs", CancellationToken.None).ConfigureAwait(false));
-
             // EmitSolutionUpdate
 
             var diagnosticDescriptor1 = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.ErrorReadingFile);
@@ -208,7 +196,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
                     updatedTypes: ImmutableArray.Create(0x02000001),
                     sequencePoints: ImmutableArray.Create(new SequencePointUpdates("file.cs", ImmutableArray.Create(new SourceLineUpdate(1, 2)))),
                     activeStatements: ImmutableArray.Create(new ManagedActiveStatementUpdate(instructionId1.Method.Method, instructionId1.ILOffset, span1.ToSourceSpan())),
-                    exceptionRegions: ImmutableArray.Create(exceptionRegionUpdate1)));
+                    exceptionRegions: ImmutableArray.Create(exceptionRegionUpdate1),
+                    requiredCapabilities: EditAndContinueCapabilities.Baseline));
 
                 var syntaxTree = project.Documents.Single().GetSyntaxTreeSynchronously(CancellationToken.None)!;
 

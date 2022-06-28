@@ -22,10 +22,6 @@
                                AllowsBackgroundLoad="true"/>
     <None Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="RemoteHost\**" />
-    <EmbeddedResource Remove="RemoteHost\**" />
-  </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj">
       <Private>false</Private>

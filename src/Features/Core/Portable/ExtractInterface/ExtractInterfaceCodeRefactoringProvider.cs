@@ -7,6 +7,7 @@
 using System;
 using System.Composition;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
         {
             var (document, textSpan, cancellationToken) = context;
             var service = document.GetLanguageService<AbstractExtractInterfaceService>();
-            var actions = await service.GetExtractInterfaceCodeActionAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+            var actions = await service.GetExtractInterfaceCodeActionAsync(document, textSpan, context.Options, cancellationToken).ConfigureAwait(false);
             context.RegisterRefactorings(actions);
         }
     }

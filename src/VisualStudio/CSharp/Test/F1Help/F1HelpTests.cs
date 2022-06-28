@@ -314,19 +314,170 @@ class Program<T> wh[||]ere T : class
 }", "N.C`1.goo``3");
         }
 
+        [Theory, Trait(Traits.Feature, Traits.Features.F1Help)]
+        [InlineData("+")]
+        [InlineData("-")]
+        [InlineData("&")]
+        [InlineData("|")]
+        [InlineData("/")]
+        [InlineData("^")]
+        [InlineData(">")]
+        [InlineData(">=")]
+        [InlineData("!=")]
+        [InlineData("<")]
+        [InlineData("<=")]
+        [InlineData("<<")]
+        [InlineData(">>")]
+        [InlineData(">>>")]
+        [InlineData("*")]
+        [InlineData("%")]
+        [InlineData("&&")]
+        [InlineData("||")]
+        [InlineData("==")]
+        public async Task TestBinaryOperator(string operatorText)
+        {
+            await TestAsync(
+$@"namespace N
+{{
+    class C
+    {{
+        void goo()
+        {{
+            var two = 1 [|{operatorText}|] 1;
+        }}
+    }}
+}}", $"{operatorText}_CSharpKeyword");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.F1Help)]
+        [InlineData("+=")]
+        [InlineData("-=")]
+        [InlineData("/=")]
+        [InlineData("*=")]
+        [InlineData("%=")]
+        [InlineData("&=")]
+        [InlineData("|=")]
+        [InlineData("^=")]
+        [InlineData("<<=")]
+        [InlineData(">>=")]
+        [InlineData(">>>=")]
+        public async Task TestCompoundOperator(string operatorText)
+        {
+            await TestAsync(
+$@"namespace N
+{{
+    class C
+    {{
+        void goo(int x)
+        {{
+            x [|{operatorText}|] x;
+        }}
+    }}
+}}", $"{operatorText}_CSharpKeyword");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.F1Help)]
+        [InlineData("++")]
+        [InlineData("--")]
+        [InlineData("!")]
+        [InlineData("~")]
+        public async Task TestPrefixOperator(string operatorText)
+        {
+            await TestAsync(
+$@"namespace N
+{{
+    class C
+    {{
+        void goo(int x)
+        {{
+            x = [|{operatorText}|]x;
+        }}
+    }}
+}}", $"{operatorText}_CSharpKeyword");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.F1Help)]
+        [InlineData("++")]
+        [InlineData("--")]
+        public async Task TestPostfixOperator(string operatorText)
+        {
+            await TestAsync(
+$@"namespace N
+{{
+    class C
+    {{
+        void goo(int x)
+        {{
+            x = x[|{operatorText}|];
+        }}
+    }}
+}}", $"{operatorText}_CSharpKeyword");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public async Task TestOperator()
+        public async Task TestRelationalPattern()
         {
             await TestAsync(
 @"namespace N
 {
     class C
     {
-        void goo()
+        void goo(string x)
         {
-            var two = 1 [|+|] 1;
+            if (x is { Length: [||]> 5 }) { }
         }
-    }", "+_CSharpKeyword");
+    }
+}", ">_CSharpKeyword");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestGreaterThanInFunctionPointer()
+        {
+            await TestAsync(@"
+unsafe class C
+{
+    delegate*[||]<int> f;
+}
+", "functionPointer_CSharpKeyword");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestLessThanInFunctionPointer()
+        {
+            await TestAsync(@"
+unsafe class C
+{
+    delegate*[||]<int> f;
+}
+", "functionPointer_CSharpKeyword");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestEqualsOperatorInParameter()
+        {
+            await TestAsync(
+@"namespace N
+{
+    class C
+    {
+        void goo(int x [|=|] 0)
+        {
+        }
+    }
+}", "optionalParameter_CSharpKeyword");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestEqualsOperatorInPropertyInitializer()
+        {
+            await TestAsync(
+@"namespace N
+{
+    class C
+    {
+        int P { get; } [|=|] 5;
+    }
+}", "propertyInitializer_CSharpKeyword");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
@@ -363,6 +514,111 @@ class Program
         var x =[||] 3;
     }
 }", "=_CSharpKeyword");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestEqualsInEnum()
+        {
+            await TestAsync(
+@"
+enum E
+{
+    A [||]= 1
+}", "enum_CSharpKeyword");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestEqualsInAttribute()
+        {
+            await TestAsync(
+@"
+using System;
+
+[AttributeUsage(AttributeTargets.Class, Inherited [|=|] true)]
+class MyAttribute : Attribute
+{
+}
+", "attributeNamedArgument_CSharpKeyword");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestEqualsInUsingAlias()
+        {
+            await TestAsync(
+@"
+using SC [||]= System.Console;
+", "using_CSharpKeyword");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestEqualsInAnonymousObjectMemberDeclarator()
+        {
+            await TestAsync(
+@"
+class C
+{
+    void M()
+    {
+        var x = new { X [||]= 0 };
+    }
+}
+", "anonymousObject_CSharpKeyword");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestEqualsInDocumentationComment()
+        {
+            await TestAsync(
+@"
+class C
+{
+    /// <summary>
+    /// <a b[||]=""c"" />
+    /// </summary>
+    void M()
+    {
+        var x = new { X [||]= 0 };
+    }
+}
+", "see");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestEqualsInLet()
+        {
+            await TestAsync(
+@"
+class C
+{
+    void M()
+    {
+        var y =
+            from x1 in x2
+            let x3 [||]= x4
+            select x5;
+    }
+}
+
+", "let_CSharpKeyword");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestLetKeyword()
+        {
+            await TestAsync(
+@"
+class C
+{
+    void M()
+    {
+        var y =
+            from x1 in x2
+            [||]let x3 = x4
+            select x5;
+    }
+}
+
+", "let_CSharpKeyword");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
@@ -440,7 +696,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public async Task TestGenericAngle()
+        public async Task TestGenericAngle_LessThanToken_TypeArgument()
         {
             await TestAsync(
 @"class Program
@@ -449,7 +705,46 @@ class Program
     {
         generic[||]<int>(0);
     }
-}", "Program.generic``1");
+}", "generics_CSharpKeyword");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestGenericAngle_GreaterThanToken_TypeArgument()
+        {
+            await TestAsync(
+@"class Program
+{
+    static void generic<T>(T t)
+    {
+        generic<int[|>|](0);
+    }
+}", "generics_CSharpKeyword");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestGenericAngle_LessThanToken_TypeParameter()
+        {
+            await TestAsync(
+@"class Program
+{
+    static void generic[|<|]T>(T t)
+    {
+        generic<int>(0);
+    }
+}", "generics_CSharpKeyword");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestGenericAngle_GreaterThanToken_TypeParameter()
+        {
+            await TestAsync(
+@"class Program
+{
+    static void generic<T[|>|](T t)
+    {
+        generic<int>(0);
+    }
+}", "generics_CSharpKeyword");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
@@ -523,6 +818,70 @@ class Program
 }", "System.Int32");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestYieldReturn_OnYield()
+        {
+            await TestAsync(@"
+using System.Collections.Generic;
+
+public class C
+{
+    public IEnumerable<int> M()
+    {
+        [|yield|] return 0;
+    }
+}
+", "yield_CSharpKeyword");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestYieldReturn_OnReturn()
+        {
+            await TestAsync(@"
+using System.Collections.Generic;
+
+public class C
+{
+    public IEnumerable<int> M()
+    {
+        yield [|return|] 0;
+    }
+}
+", "yield_CSharpKeyword");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestYieldBreak_OnYield()
+        {
+            await TestAsync(@"
+using System.Collections.Generic;
+
+public class C
+{
+    public IEnumerable<int> M()
+    {
+        [|yield|] break;
+    }
+}
+", "yield_CSharpKeyword");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestYieldBreak_OnBreak()
+        {
+            await TestAsync(@"
+using System.Collections.Generic;
+
+public class C
+{
+    public IEnumerable<int> M()
+    {
+        yield [|break|] 0;
+    }
+}
+", "yield_CSharpKeyword");
+        }
+
         [WorkItem(862396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/862396")]
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestNoToken()
@@ -533,7 +892,7 @@ class Program
     static void Main(string[] args)
     {
     }
-}[||]", "");
+}[||]", "vs.texteditor");
         }
 
         [WorkItem(862328, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/862328")]
@@ -583,6 +942,51 @@ class Program
         Console.WriteLine($[||]""Hello, {args[0]}"");
     }
 }", "$_CSharpKeyword");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestUtf8String()
+        {
+            await TestAsync(
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var x = ""Hel[||]lo""u8;
+    }
+}", "Utf8StringLiteral_CSharpKeyword");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestRawString()
+        {
+            await TestAsync(
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var x = """"""Hel[||]lo"""""";
+    }
+}", "RawStringLiteral_CSharpKeyword");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestUtf8RawString()
+        {
+            await TestAsync(
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var x = """"""Hel[||]lo""""""u8;
+    }
+}", "Utf8StringLiteral_CSharpKeyword");
         }
 
         [WorkItem(46986, "https://github.com/dotnet/roslyn/issues/46986")]
@@ -671,7 +1075,7 @@ class Program
         {
         }
     }
-}", "");
+}", "vs.texteditor");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
@@ -1211,6 +1615,176 @@ public static class Program
         var p2 = p1 w[||]ith { X = 5 };
     }
 }", "with");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestDiscard()
+        {
+            await Test_KeywordAsync(
+@"
+class C
+{
+    void M()
+    {
+        [||]_ = Goo();
+    }
+
+    object Goo() => null;
+}", "discard");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestNotFound()
+        {
+            await TestAsync(
+@"
+#if ANY[||]THING
+#endif
+", "vs.texteditor");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestChecked_01()
+        {
+            await Test_KeywordAsync(
+@"public class C
+{
+    void goo()
+    {
+        chec[||]ked
+        {
+        }
+    }
+}", "checked");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestChecked_02()
+        {
+            await Test_KeywordAsync(
+@"public class C
+{
+    int goo()
+    {
+        return chec[||]ked(0);
+    }
+}", "checked");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestChecked_03()
+        {
+            await Test_KeywordAsync(
+@"public class C
+{
+    C operator chec[||]ked -(C x) {}
+}", "checked");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestChecked_04()
+        {
+            await Test_KeywordAsync(
+@"public class C
+{
+    C operator chec[||]ked +(C x, C y) {}
+}", "checked");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestChecked_05()
+        {
+            await Test_KeywordAsync(
+@"public class C
+{
+    explicit operator chec[||]ked string(C x) {}
+}", "checked");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestChecked_06()
+        {
+            await Test_KeywordAsync(
+@"public class C
+{
+    C I1.operator chec[||]ked -(C x) {}
+}", "checked");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestChecked_07()
+        {
+            await Test_KeywordAsync(
+@"public class C
+{
+    C I1.operator chec[||]ked +(C x, C y) {}
+}", "checked");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestChecked_08()
+        {
+            await Test_KeywordAsync(
+@"public class C
+{
+    explicit I1.operator chec[||]ked string(C x) {}
+}", "checked");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestChecked_09()
+        {
+            await Test_KeywordAsync(
+@"public class C
+{
+    /// <summary>
+    /// <see cref=""operator chec[||]ked +(C, C)""/>
+    /// </summary>
+    void goo()
+    {
+    }
+}", "checked");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestChecked_10()
+        {
+            await Test_KeywordAsync(
+@"public class C
+{
+    /// <summary>
+    /// <see cref=""operator chec[||]ked -(C)""/>
+    /// </summary>
+    void goo()
+    {
+    }
+}", "checked");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestChecked_11()
+        {
+            await Test_KeywordAsync(
+@"public class C
+{
+    /// <summary>
+    /// <see cref=""explicit operator chec[||]ked string(C)""/>
+    /// </summary>
+    void goo()
+    {
+    }
+}", "checked");
+        }
+
+        [Fact]
+        public async Task TestRequired()
+        {
+            await Test_KeywordAsync("""
+                public class C
+                {
+                    re[||]quired int Field;
+                }
+                """, "required");
         }
     }
 }

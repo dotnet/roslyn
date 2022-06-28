@@ -4,6 +4,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing;
@@ -1850,12 +1851,84 @@ int M(out int val)
                     Diagnostic(ErrorCode.ERR_LineContainsDifferentWhitespace, " 	").WithArguments(@"\t", @"\u0020").WithLocation(4, 1));
     }
 
-    [Fact]
+    [Fact, WorkItem(59603, "https://github.com/dotnet/roslyn/issues/59603")]
     public void TestWhitespaceMismatch5()
     {
         RenderAndVerify(
 "class C\r\n{\r\nconst string s = $\"\"\"\r\n\f\r\n\v\"\"\";\r\n}",
                     // (4,1): error CS9003: Line contains different whitespace than the closing line of the raw string literal: '\f' versus '\v'
                     Diagnostic(ErrorCode.ERR_LineContainsDifferentWhitespace, "").WithArguments(@"\f", @"\v").WithLocation(4, 1));
+    }
+
+    [Fact, WorkItem(59603, "https://github.com/dotnet/roslyn/issues/59603")]
+    public void TestThreeDollarTwoCurly_SingleLine()
+    {
+        RenderAndVerify(@"
+System.Console.Write(
+    $$$""""""{{1 + 2}}"""""");", expectedOutput: "{{1 + 2}}");
+    }
+
+    [Fact]
+    public void TestThreeDollarTwoCurly_MultiLine()
+    {
+        RenderAndVerify(@"
+System.Console.Write(
+    $$$""""""
+    {{1 + 2}}
+    """""");", expectedOutput: "{{1 + 2}}");
+    }
+
+    [Fact, WorkItem(59603, "https://github.com/dotnet/roslyn/issues/59603")]
+    public void TestFourDollarTwoCurly_SingleLine()
+    {
+        RenderAndVerify(@"
+System.Console.Write(
+    $$$$""""""{{1 + 2}}"""""");", expectedOutput: "{{1 + 2}}");
+    }
+
+    [Fact]
+    public void TestFourDollarTwoCurly_MultiLine()
+    {
+        RenderAndVerify(@"
+System.Console.Write(
+    $$$""""""
+    {{1 + 2}}
+    """""");", expectedOutput: "{{1 + 2}}");
+    }
+
+    [Fact, WorkItem(59603, "https://github.com/dotnet/roslyn/issues/59603")]
+    public void TestThreeDollarThreeCurly_SingleLine()
+    {
+        RenderAndVerify(@"
+System.Console.Write(
+    $$$""""""{{{1 + 2}}}"""""");", expectedOutput: "3");
+    }
+
+    [Fact]
+    public void TestThreeDollarThreeCurly_MultiLine()
+    {
+        RenderAndVerify(@"
+System.Console.Write(
+    $$$""""""
+    {{{1 + 2}}}
+    """""");", expectedOutput: "3");
+    }
+
+    [Fact, WorkItem(59603, "https://github.com/dotnet/roslyn/issues/59603")]
+    public void TestFourDollarThreeCurly_SingleLine()
+    {
+        RenderAndVerify(@"
+System.Console.Write(
+    $$$$""""""{{{1 + 2}}}"""""");", expectedOutput: "{{{1 + 2}}}");
+    }
+
+    [Fact]
+    public void TestFourDollarThreeCurly_MultiLine()
+    {
+        RenderAndVerify(@"
+System.Console.Write(
+    $$$$""""""
+    {{{1 + 2}}}
+    """""");", expectedOutput: "{{{1 + 2}}}");
     }
 }

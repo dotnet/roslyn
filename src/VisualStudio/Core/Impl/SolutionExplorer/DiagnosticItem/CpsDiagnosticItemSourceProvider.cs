@@ -131,7 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             var itemId = item.HierarchyIdentity.NestedItemID;
 
             var projectTreeCapabilities = GetProjectTreeCapabilities(hierarchy, itemId);
-            return projectTreeCapabilities.Any(c => c.Equals(capability));
+            return projectTreeCapabilities.Any(static (c, capability) => c.Equals(capability), capability);
         }
 
         private static ImmutableArray<string> GetProjectTreeCapabilities(IVsHierarchy hierarchy, uint itemId)

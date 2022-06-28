@@ -7,6 +7,16 @@
         <target state="translated">MSB3883: 예기치 않은 예외: </target>
         <note>{StrBegin="MSB3883: "}</note>
       </trans-unit>
+      <trans-unit id="CopyRefAssembly_Changed">
+        <source>Source reference assembly "{0}" (timestamp "{1}", MVID "{2}") differs from destination "{3}" (timestamp "{4}", MVID "{5}").</source>
+        <target state="translated">원본 참조 어셈블리 "{0}"(타임스탬프 "{1}", MVID "{2}")이(가) 대상 "{3}"(타임스탬프 "{4}", MVID "{5}")과(와) 다릅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CopyRefAssembly_Copying">
+        <source>Copying reference assembly from "{0}" to "{1}".</source>
+        <target state="translated">"{0}"에서 "{1}"(으)로 참조 어셈블리를 복사하는 중입니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Csc_AssemblyAliasContainsIllegalCharacters">
         <source>MSB3053: The assembly alias "{1}" on reference "{0}" contains illegal characters.</source>
         <target state="translated">MSB3053: "{0}" 참조의 어셈블리 별칭 "{1}"에 잘못된 문자가 포함되어 있습니다.</target>
