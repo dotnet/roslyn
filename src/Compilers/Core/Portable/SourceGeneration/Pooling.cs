@@ -15,6 +15,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
+    /// <summary>
+    /// Wrapper around an <see cref="ImmutableArray{T}.Builder"/> that also tracks statistics about the builder when it
+    /// is pooled.  Used to ensure that we don't keep around builders for too long that are both enormous but also
+    /// barely used in practice.
+    /// </summary>
     internal record struct BuilderAndStatistics<TValue>(
         ImmutableArray<TValue>.Builder Builder)
     {
