@@ -7,19 +7,17 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
-    public abstract partial class CompletionServiceWithProviders
+    public abstract partial class CompletionService
     {
         private sealed class ProviderManager : IEqualityComparer<ImmutableHashSet<string>>
         {
@@ -31,9 +29,9 @@ namespace Microsoft.CodeAnalysis.Completion
             private readonly Func<string, CompletionProvider?> _getProviderByName;
 
             private IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>>? _lazyImportedProviders;
-            private readonly CompletionServiceWithProviders _service;
+            private readonly CompletionService _service;
 
-            public ProviderManager(CompletionServiceWithProviders service)
+            public ProviderManager(CompletionService service)
             {
                 _service = service;
                 _rolesToProviders = new Dictionary<ImmutableHashSet<string>, ImmutableArray<CompletionProvider>>(this);
@@ -102,8 +100,7 @@ namespace Microsoft.CodeAnalysis.Completion
             public ConcatImmutableArray<CompletionProvider> GetFilteredProviders(
                 Project? project, ImmutableHashSet<string>? roles, CompletionTrigger trigger, in CompletionOptions options)
             {
-                // We need to call `GetProviders` from the service since it could be overridden by its subclasses.
-                var allCompletionProviders = FilterProviders(_service.GetProviders(roles, trigger), trigger, options);
+                var allCompletionProviders = FilterProviders(GetProviders(roles), trigger, options);
                 var projectCompletionProviders = FilterProviders(GetProjectCompletionProviders(project), trigger, options);
                 return allCompletionProviders.ConcatFast(projectCompletionProviders);
             }

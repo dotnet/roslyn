@@ -530,6 +530,8 @@ namespace Microsoft.CodeAnalysis
 
         System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor,
 
+        System_MissingMethodException__ctor,
+
         Count
 
         // Remember to update the AllWellKnownTypeMembers tests when making changes here

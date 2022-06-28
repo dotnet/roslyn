@@ -52,9 +52,8 @@ class C
                 new[] { edits },
                 new[]
                 {
-                    DocumentResults(
-                        active,
-                        diagnostics: new[] { Diagnostic(RudeEditKind.Delete, "class C", DeletedSymbolDisplay(FeaturesResources.method, "Goo(int a)")) })
+                    DocumentResults(active,
+                    new[] { SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.Goo"), deletedSymbolContainerProvider: c => c.GetMember("C")) })
                 });
         }
 
