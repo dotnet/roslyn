@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -14,7 +15,9 @@ internal sealed partial class NodeStateTable<T>
     {
         private struct StatesWrapper
         {
-            private readonly Builder _builder;
+            private readonly NodeStateTable<T> _previous;
+            private readonly IEqualityComparer<T> _equalityComparer;
+
             private readonly ArrayBuilder<TableEntry> _tableEntries;
 
             /// <summary>
@@ -22,12 +25,13 @@ internal sealed partial class NodeStateTable<T>
             /// with the same set of entries at the end, we can just point our new table at that same array, avoiding a
             /// costly allocation.
             /// </summary>
-            public bool UnchangedFromPrevious = true;
+            private bool _unchangedFromPrevious = true;
 
-            public StatesWrapper(Builder builder)
+            public StatesWrapper(NodeStateTable<T> previous, IEqualityComparer<T> equalityComparer)
             {
-                _builder = builder;
-                _tableEntries = ArrayBuilder<TableEntry>.GetInstance(builder._previous.Count);
+                _previous = previous;
+                _equalityComparer = equalityComparer;
+                _tableEntries = ArrayBuilder<TableEntry>.GetInstance(previous.Count);
             }
 
             public int Count
@@ -43,7 +47,17 @@ internal sealed partial class NodeStateTable<T>
                 => _tableEntries.Free();
 
             public ImmutableArray<TableEntry> ToImmutableAndFree()
-                => _tableEntries.ToImmutableAndFree();
+            {
+                // if we added the exact same entries as before, then we can directly embed previous' entry array,
+                // avoiding a costly allocation of the same data.
+                if (_unchangedFromPrevious && _tableEntries.Count == _previous._states.Length)
+                {
+                    _tableEntries.Free();
+                    return _previous._states;
+                }
+
+                return _tableEntries.ToImmutableAndFree();
+            }
 
             public void Add(TableEntry entry)
             {
@@ -51,10 +65,10 @@ internal sealed partial class NodeStateTable<T>
                 _tableEntries.Add(entry);
 
                 // Keep checking if we're producing the same entries as in _previous.
-                if (this.UnchangedFromPrevious && currentindex < _builder._previous._states.Length)
+                if (_unchangedFromPrevious && currentindex < _previous._states.Length)
                 {
-                    var previousEntry = _builder._previous._states[currentindex];
-                    this.UnchangedFromPrevious = entry.Matches(previousEntry, _builder._equalityComparer);
+                    var previousEntry = _previous._states[currentindex];
+                    _unchangedFromPrevious = entry.Matches(previousEntry, _equalityComparer);
                 }
             }
         }

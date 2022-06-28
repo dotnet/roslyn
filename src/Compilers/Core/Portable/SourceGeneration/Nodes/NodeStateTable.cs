@@ -153,8 +153,6 @@ namespace Microsoft.CodeAnalysis
             private StatesWrapper _states;
             private readonly NodeStateTable<T> _previous;
 
-            private readonly IEqualityComparer<T> _equalityComparer;
-
             private readonly string? _name;
             private readonly ArrayBuilder<IncrementalGeneratorRunStep>? _steps;
 
@@ -163,10 +161,9 @@ namespace Microsoft.CodeAnalysis
 
             internal Builder(NodeStateTable<T> previous, string? name, bool stepTrackingEnabled, IEqualityComparer<T>? equalityComparer)
             {
+                _states = new StatesWrapper(previous, equalityComparer ?? EqualityComparer<T>.Default);
                 _previous = previous;
-                _states = new StatesWrapper(this);
                 _name = name;
-                _equalityComparer = equalityComparer ?? EqualityComparer<T>.Default;
                 if (stepTrackingEnabled)
                 {
                     _steps = ArrayBuilder<IncrementalGeneratorRunStep>.GetInstance();
@@ -372,16 +369,6 @@ namespace Microsoft.CodeAnalysis
 
                 var hasNonCached = _states.Any(static s => !s.IsCached);
                 var isCompacted = !hasNonCached;
-
-                // if we added the exact same entries as before, then we can directly embed previous' entry array,
-                // avoiding a costly allocation of the same data.
-                if (_states.UnchangedFromPrevious && _states.Count == _previous._states.Length)
-                {
-                    _states.Free();
-                    return new NodeStateTable<T>(
-                        _previous._states,
-                        steps, isCompacted, hasTrackedSteps: TrackIncrementalSteps);
-                }
 
                 return new NodeStateTable<T>(
                     _states.ToImmutableAndFree(),
