@@ -18,6 +18,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedDictionary`2+KeyCollection+Enumerator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedDictionary`2+KeyCollection.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedDictionary`2+PrivateInterlocked.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedDictionary`2+ValueBuilder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedDictionary`2+ValueCollection+Enumerator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedDictionary`2+ValueCollection.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedDictionary`2.cs" />
@@ -40,6 +41,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Internal\ICollectionCalls.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Internal\ICollectionCalls`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Internal\ICollectionDebugView`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Internal\IDictionaryCalls.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Internal\IDictionaryDebugView`2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Internal\IEnumerableCalls.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Internal\IEnumerableCalls`1.cs" />
