@@ -74,6 +74,28 @@ namespace Microsoft.CodeAnalysis
             return FromState(newState);
         }
 
+        public GeneratorDriver ReplaceGenerators(ImmutableArray<ISourceGenerator> generators)
+        {
+            var incrementalGenerators = GetIncrementalGenerators(generators, SourceExtension);
+            var states = ArrayBuilder<GeneratorState>.GetInstance(generators.Length);
+
+            foreach (var generator in generators)
+            {
+                var existingIndex = _state.Generators.IndexOf(generator);
+
+                if (existingIndex >= 0)
+                {
+                    states.Add(_state.GeneratorStates[existingIndex]);
+                }
+                else
+                {
+                    states.Add(GeneratorState.Empty);
+                }
+            }
+
+            return FromState(_state.With(generators, incrementalGenerators, states.ToImmutableAndFree()));
+        }
+
         public GeneratorDriver RemoveGenerators(ImmutableArray<ISourceGenerator> generators)
         {
             var newGenerators = _state.Generators;
