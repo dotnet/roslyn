@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Telemetry;
 using Microsoft.VisualStudio.Templates.Editorconfig.Wizard.Utilities;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 
 namespace Microsoft.VisualStudio.Templates.Editorconfig.Wizard.Logging;
@@ -119,7 +120,7 @@ public class TelemetrySessionAggregator
         }
     }
 
-    private static IVsOutputWindowPane _outputWindowPane;
+    private static IVsOutputWindowPane? _outputWindowPane;
 
     private static async Task EnsurePaneAsync()
     {

@@ -37,10 +37,10 @@ public partial class EditorconfigTemplateWizard : IWizard
             }
 
             bool isDotnet = StringComparer.OrdinalIgnoreCase.Compare(result, "dotnet") == 0;
-            (bool success, string fileName) = EditorConfigFileGenerator.TryAddFileToSolution(isDotnet);
+            (bool success, string? fileName) = EditorConfigFileGenerator.TryAddFileToSolution(isDotnet);
             Assert(success, "Unable to add the editorconfig file to the solution");
 
-            if (success)
+            if (success && fileName is not null)
             {
                 VSHelpers.OpenFile(fileName);
             }

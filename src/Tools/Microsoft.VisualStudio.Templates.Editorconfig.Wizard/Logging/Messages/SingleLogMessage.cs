@@ -15,6 +15,6 @@ internal class SingleLogMessage<T> : ILogMessage<MessageData>
 
     public ImmutableArray<MessageData> GetMessageData()
     {
-        return ImmutableArray.Create(new MessageData("value", () => _value.ToString()));
+        return ImmutableArray.Create(new MessageData("value", () => _value?.ToString()));
     }
 }

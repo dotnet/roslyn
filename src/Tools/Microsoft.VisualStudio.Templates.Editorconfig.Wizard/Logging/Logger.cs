@@ -70,7 +70,7 @@ public partial class Logger
         GetLogger().LogEventImpl(eventId, message);
     }
 
-    public static void LogException(Exception ex, string description = null)
+    public static void LogException(Exception ex, string? description = null)
     {
         GetLogger().LogExceptionImpl(ex, description);
     }
@@ -125,7 +125,7 @@ public partial class Logger
         }
     }
 
-    private void LogExceptionImpl(Exception ex, string description = null)
+    private void LogExceptionImpl(Exception ex, string? description = null)
     {
         description ??= ex.Message;
         _session.PostFault(ExceptionName, description, FaultSeverity.General, ex);

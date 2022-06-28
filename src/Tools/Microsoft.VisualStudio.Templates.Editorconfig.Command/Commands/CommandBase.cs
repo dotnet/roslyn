@@ -14,7 +14,7 @@ internal abstract class CommandBase
     public static async Task<T> InitializeAsync<T>(AsyncPackage package)
         where T : CommandBase, new()
     {
-        var command = new T();
+        T command = new();
 
         command.Command = new OleMenuCommand(command.Execute, command.Id);
         command.Package = package;
@@ -22,19 +22,22 @@ internal abstract class CommandBase
         IMenuCommandService obj = (IMenuCommandService)await package.GetServiceAsync(typeof(IMenuCommandService));
         Assumes.Present(obj);
         Assert(obj is not null, "unable to get the menu command service");
-        obj.AddCommand(command.Command);
-        LogEvent(EventId.CommandRegistered);
+        if (obj is not null)
+        {
+            obj.AddCommand(command.Command);
+            LogEvent(EventId.CommandRegistered);
+        }
         return command;
     }
 
-    public OleMenuCommand Command { get; protected set; }
+    public OleMenuCommand? Command { get; protected set; }
 
-    public AsyncPackage Package { get; protected set; }
+    public AsyncPackage? Package { get; protected set; }
 
-    private void Execute(object sender, EventArgs e)
+    private void Execute(object? sender, EventArgs e)
     {
         EventArgs e2 = e;
-        Package.JoinableTaskFactory.RunAsync(async delegate
+        Package?.JoinableTaskFactory.RunAsync(async delegate
         {
             try
             {

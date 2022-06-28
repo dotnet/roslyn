@@ -10,9 +10,9 @@ internal class AddEditorConfigFileCommandProvider : INodeExtender
 {
     private IWorkspaceCommandHandler _handler = new AddEditorConfigFileCommandHandler();
 
-    public IChildrenSource ProvideChildren(WorkspaceVisualNodeBase parentNode) => null;
+    public IChildrenSource? ProvideChildren(WorkspaceVisualNodeBase parentNode) => null;
 
-    public IWorkspaceCommandHandler ProvideCommandHandler(WorkspaceVisualNodeBase parentNode)
+    public IWorkspaceCommandHandler? ProvideCommandHandler(WorkspaceVisualNodeBase parentNode)
         => parentNode is IFolderNode ? _handler : null;
 }
 
