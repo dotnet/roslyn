@@ -20,24 +20,21 @@ namespace Microsoft.CodeAnalysis
     /// is pooled.  Used to ensure that we don't keep around builders for too long that are both enormous but also
     /// barely used in practice.
     /// </summary>
+    /// <param name="NumberOfTimesPooled">
+    /// The number of times this item has been added back to the pool.  Once this goes past some threshold we will start
+    /// checking if we're continually returning a large array that is mostly empty.  If so, we will try to lower the
+    /// capacity of the array to prevent wastage.
+    /// </param>
+    /// <param name="NumberOfTimesPooledWhenSparse">
+    /// The number of times we returned a large array to the pool that was barely filled.  If this is a significant
+    /// number of the total times pooled, then we will attempt to lower the capacity of the array.
+    /// </param>
     internal record struct BuilderAndStatistics<TValue>(
-        ImmutableArray<TValue>.Builder Builder)
+        ImmutableArray<TValue>.Builder Builder,
+        int NumberOfTimesPooled,
+        int NumberOfTimesPooledWhenSparse)
     {
         private static readonly ConcurrentQueue<BuilderAndStatistics<TValue>> s_pool = new();
-
-        /// <summary>
-        /// The number of times this item has been added back to the pool.  Once this goes past some threshold
-        /// we will start checking if we're continually returning a large array that is mostly empty.  If so, we
-        /// will try to lower the capacity of the array to prevent wastage.
-        /// </summary>
-        public int NumberOfTimesPooled;
-
-        /// <summary>
-        /// The number of times we returned a large array to the pool that was barely filled.  If this is a
-        /// significant number of the total times pooled, then we will attempt to lower the capacity of the
-        /// array.
-        /// </summary>
-        public int NumberOfTimesPooledWhenSparse;
 
         public static BuilderAndStatistics<TValue> Allocate()
             => s_pool.TryDequeue(out var item) ? item : new BuilderAndStatistics<TValue> { Builder = ImmutableArray.CreateBuilder<TValue>() };
