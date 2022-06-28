@@ -171,9 +171,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
             testedExpression = null;
             if (condition is BinaryExpressionSyntax(SyntaxKind.EqualsExpression) { Right: LiteralExpressionSyntax(SyntaxKind.NullLiteralExpression) } binaryExpression)
             {
-                // Ensure that if we are using `==` that it's not an overloaded operator
+                // Ensure that if we are using `==` that it's not an overloaded operator.  One known exception is
+                // System.String.  Even though `==` is overloaded, it has the same semantics as ReferenceEquals(null) so
+                // it's safe to convert.
                 var symbol = semanticModel.GetSymbolInfo(binaryExpression, cancellationToken).Symbol;
-                if (symbol is null || !symbol.IsUserDefinedOperator())
+                if (symbol is null || !symbol.IsUserDefinedOperator() || symbol.ContainingType.SpecialType == SpecialType.System_String)
                     testedExpression = binaryExpression.Left;
             }
             else if (condition is IsPatternExpressionSyntax { Pattern: ConstantPatternSyntax { Expression: LiteralExpressionSyntax(SyntaxKind.NullLiteralExpression) } } isPattern)
@@ -181,25 +183,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
                 // x is null.  always a valid null check.
                 testedExpression = isPattern.Expression;
             }
-            else
+            else if (condition is InvocationExpressionSyntax { ArgumentList.Arguments.Count: 2 } invocation)
             {
-                if (condition is PrefixUnaryExpressionSyntax(SyntaxKind.LogicalNotExpression)
-                    {
-                        Operand: InvocationExpressionSyntax { ArgumentList.Arguments.Count: 2 } invocation
-                    })
-                {
-                    var arg0 = invocation.ArgumentList.Arguments[0].Expression;
-                    var arg1 = invocation.ArgumentList.Arguments[1].Expression;
+                var arg0 = invocation.ArgumentList.Arguments[0].Expression;
+                var arg1 = invocation.ArgumentList.Arguments[1].Expression;
 
-                    if (arg0.Kind() == SyntaxKind.NullLiteralExpression ||
-                        arg1.Kind() == SyntaxKind.NullLiteralExpression)
+                if (arg0.Kind() == SyntaxKind.NullLiteralExpression ||
+                    arg1.Kind() == SyntaxKind.NullLiteralExpression)
+                {
+                    var symbol = semanticModel.GetSymbolInfo(invocation, cancellationToken).Symbol;
+                    if (symbol?.Name == nameof(ReferenceEquals) &&
+                        symbol.ContainingType?.SpecialType == SpecialType.System_Object)
                     {
-                        var symbol = semanticModel.GetSymbolInfo(invocation, cancellationToken).Symbol;
-                        if (symbol?.Name == nameof(ReferenceEquals) &&
-                            symbol.ContainingType?.SpecialType == SpecialType.System_Object)
-                        {
-                            testedExpression = arg0.Kind() == SyntaxKind.NullLiteralExpression ? arg1 : arg0;
-                        }
+                        testedExpression = arg0.Kind() == SyntaxKind.NullLiteralExpression ? arg1 : arg0;
                     }
                 }
             }
