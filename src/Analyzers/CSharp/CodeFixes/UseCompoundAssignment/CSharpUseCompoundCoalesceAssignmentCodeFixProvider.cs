@@ -58,8 +58,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
 
                     // we have `if (x is null) x = y;`.  Update `x = y` to be `x ??= y`, then replace the entire
                     // if-statement with that assignment statement.
-                    var newAssignment = assignment.WithOperatorToken(
-                        SyntaxFactory.Token(SyntaxKind.QuestionQuestionEqualsToken).WithTriviaFrom(assignment.OperatorToken));
+                    var newAssignment = SyntaxFactory.AssignmentExpression(
+                        SyntaxKind.CoalesceAssignmentExpression,
+                        assignment.Left,
+                        SyntaxFactory.Token(SyntaxKind.QuestionQuestionEqualsToken).WithTriviaFrom(assignment.OperatorToken),
+                        assignment.Right).WithTriviaFrom(assignment);
                     var newWhenTrueStatement = whenTrueStatement.ReplaceNode(assignment, newAssignment).WithTriviaFrom(ifStatement);
 
                     editor.ReplaceNode(ifStatement, newWhenTrueStatement);

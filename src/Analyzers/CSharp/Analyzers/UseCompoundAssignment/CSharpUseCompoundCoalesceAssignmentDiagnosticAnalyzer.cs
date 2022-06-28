@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
             if (ifStatement.Else != null)
                 return;
 
-            if (GetWhenTrueAssignment(ifStatement, out _, out var assignment))
+            if (!GetWhenTrueAssignment(ifStatement, out _, out var assignment))
                 return;
 
             if (!IsReferenceEqualsNullCheck(semanticModel, ifStatement.Condition, cancellationToken, out var testedExpression))
@@ -169,23 +169,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
             [NotNullWhen(true)] out ExpressionSyntax? testedExpression)
         {
             testedExpression = null;
-            if (condition is BinaryExpressionSyntax binaryExpression)
+            if (condition is BinaryExpressionSyntax(SyntaxKind.EqualsExpression) { Right: LiteralExpressionSyntax(SyntaxKind.NullLiteralExpression) } binaryExpression)
             {
-                if (binaryExpression.Right.Kind() == SyntaxKind.NullLiteralExpression)
-                {
-                    if (binaryExpression.Kind() == SyntaxKind.IsExpression)
-                    {
-                        // x is null.  always a valid null check.
-                        testedExpression = binaryExpression.Left;
-                    }
-                    else if (binaryExpression.Kind() == SyntaxKind.EqualsExpression)
-                    {
-                        // Ensure that if we are using `==` that it's not an overloaded operator
-                        var symbol = semanticModel.GetSymbolInfo(binaryExpression, cancellationToken).Symbol;
-                        if (symbol is null || !symbol.IsUserDefinedOperator())
-                            testedExpression = binaryExpression.Left;
-                    }
-                }
+                // Ensure that if we are using `==` that it's not an overloaded operator
+                var symbol = semanticModel.GetSymbolInfo(binaryExpression, cancellationToken).Symbol;
+                if (symbol is null || !symbol.IsUserDefinedOperator())
+                    testedExpression = binaryExpression.Left;
+            }
+            else if (condition is IsPatternExpressionSyntax { Pattern: ConstantPatternSyntax { Expression: LiteralExpressionSyntax(SyntaxKind.NullLiteralExpression) } } isPattern)
+            {
+                // x is null.  always a valid null check.
+                testedExpression = isPattern.Expression;
             }
             else
             {

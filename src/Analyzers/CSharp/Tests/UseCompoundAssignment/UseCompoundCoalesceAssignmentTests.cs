@@ -225,5 +225,31 @@ class C
     }
 }");
         }
+
+        [WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestIfStatement1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    static void Main(object o)
+    {
+        [|if|] (o is null)
+        {
+            o = """";
+        }
+    }
+}",
+@"using System;
+class C
+{
+    static void Main(object o)
+    {
+        o ??= """";
+    }
+}");
+        }
     }
 }
