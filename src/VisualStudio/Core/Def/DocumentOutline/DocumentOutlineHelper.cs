@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         /// Given an array of all Document Symbols in a document, returns an array containing the 
         /// top-level Document Symbols and their nested children
         /// </summary>
-        internal static DocumentSymbol[] GetNestedDocumentSymbols(DocumentSymbol[]? documentSymbols)
+        public static DocumentSymbol[] GetNestedDocumentSymbols(DocumentSymbol[]? documentSymbols)
         {
             if (documentSymbols is null || documentSymbols.Length == 0)
                 return Array.Empty<DocumentSymbol>();
@@ -109,7 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         /// <summary>
         /// Converts an array of type DocumentSymbol to an array of type DocumentSymbolViewModel
         /// </summary>
-        internal static ImmutableArray<DocumentSymbolViewModel> GetDocumentSymbolModels(DocumentSymbol[] documentSymbols)
+        public static ImmutableArray<DocumentSymbolViewModel> GetDocumentSymbolModels(DocumentSymbol[] documentSymbols)
         {
             var documentSymbolModels = ArrayBuilder<DocumentSymbolViewModel>.GetInstance();
             if (documentSymbols.Length == 0)
@@ -128,7 +128,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             return documentSymbolModels.ToImmutableAndFree();
         }
 
-        internal static async Task<ManualInvocationResponse?> DocumentSymbolsRequestAsync(
+        public static async Task<ManualInvocationResponse?> DocumentSymbolsRequestAsync(
             ITextBuffer textBuffer,
             ILanguageServiceBroker2 languageServiceBroker,
             string? textViewFilePath,
@@ -155,7 +155,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                 cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
-        internal static void SetIsExpanded(IEnumerable<DocumentSymbolViewModel> documentSymbolModels, bool isExpanded)
+        public static void SetIsExpanded(IEnumerable<DocumentSymbolViewModel> documentSymbolModels, bool isExpanded)
         {
             foreach (var documentSymbolModel in documentSymbolModels)
             {
@@ -164,7 +164,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             }
         }
 
-        internal static void UnselectAll(ImmutableArray<DocumentSymbolViewModel> documentSymbolModels)
+        public static void UnselectAll(ImmutableArray<DocumentSymbolViewModel> documentSymbolModels)
         {
             foreach (var documentSymbolModel in documentSymbolModels)
             {
@@ -181,7 +181,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         /// to obtain the symbol and currentSnapshot refers to the latest snapshot in the editor. These parameters
         /// are required to obtain the latest DocumentSymbolViewModel range positions in the new snapshot.
         /// </remarks>
-        internal static int CompareSymbolOrder(DocumentSymbolViewModel x, DocumentSymbolViewModel y, ITextSnapshot oldSnapshot, ITextSnapshot currentSnapshot)
+        public static int CompareSymbolOrder(DocumentSymbolViewModel x, DocumentSymbolViewModel y, ITextSnapshot oldSnapshot, ITextSnapshot currentSnapshot)
         {
             var xStartPosition = oldSnapshot.GetLineFromLineNumber(x.StartPosition.Line).Start.Position + x.StartPosition.Character;
             var yStartPosition = oldSnapshot.GetLineFromLineNumber(y.StartPosition.Line).Start.Position + y.StartPosition.Character;
@@ -195,7 +195,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         /// <summary>
         /// Compares the type (SymbolKind) of two DocumentSymbolViewModels.
         /// </summary>
-        internal static int CompareSymbolType(DocumentSymbolViewModel x, DocumentSymbolViewModel y)
+        public static int CompareSymbolType(DocumentSymbolViewModel x, DocumentSymbolViewModel y)
         {
             if (x.SymbolKind == y.SymbolKind)
                 return x.Name.CompareTo(y.Name);
@@ -211,7 +211,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         /// to obtain the symbol and currentSnapshot refers to the latest snapshot in the editor. These parameters
         /// are required to obtain the latest DocumentSymbolViewModel range positions in the new snapshot.
         /// </remarks>
-        internal static ImmutableArray<DocumentSymbolViewModel> Sort(
+        public static ImmutableArray<DocumentSymbolViewModel> Sort(
             ImmutableArray<DocumentSymbolViewModel> documentSymbolModels,
             SortOption sortOption,
             ITextSnapshot oldSnapshot,
@@ -245,7 +245,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             return sortedDocumentSymbolModels;
         }
 
-        internal static ImmutableArray<DocumentSymbolViewModel> Search(ImmutableArray<DocumentSymbolViewModel> documentSymbolModels, string pattern)
+        public static ImmutableArray<DocumentSymbolViewModel> Search(ImmutableArray<DocumentSymbolViewModel> documentSymbolModels, string pattern)
         {
             var documentSymbols = ArrayBuilder<DocumentSymbolViewModel>.GetInstance();
             var patternMatcher = PatternMatcher.CreatePatternMatcher(pattern, includeMatchedSpans: false, allowFuzzyMatching: true);
@@ -259,7 +259,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             return documentSymbols.ToImmutableAndFree();
         }
 
-        internal static bool SearchNodeTree(DocumentSymbolViewModel tree, PatternMatcher patternMatcher)
+        public static bool SearchNodeTree(DocumentSymbolViewModel tree, PatternMatcher patternMatcher)
         {
             if (patternMatcher.GetFirstMatch(tree.Name) is not null)
             {
@@ -283,7 +283,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         /// to obtain the symbol and currentSnapshot refers to the latest snapshot in the editor. These parameters
         /// are required to obtain the latest DocumentSymbolViewModel range positions in the new snapshot.
         /// </remarks>
-        internal static void SelectDocumentNode(
+        public static void SelectDocumentNode(
             ImmutableArray<DocumentSymbolViewModel> symbolTreeItemsSource,
             ITextSnapshot currentSnapshot,
             ITextSnapshot lspSnapshot,
@@ -305,7 +305,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         /// <remarks>
         /// Assumes the caret position is in range of the given DocumentSymbolViewModel.
         /// </remarks>
-        internal static void SelectNode(DocumentSymbolViewModel symbol)
+        public static void SelectNode(DocumentSymbolViewModel symbol)
         {
             var selectedChildSymbol = GetSelectedNode(symbol.Children);
             if (selectedChildSymbol is not null)
@@ -317,7 +317,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         /// <summary>
         /// Returns a DocumentSymbolViewModel if the current caret position is in its range or null otherwise.
         /// </summary>
-        internal static DocumentSymbolViewModel? GetSelectedNode(ImmutableArray<DocumentSymbolViewModel> symbolTreeItemsSource)
+        public static DocumentSymbolViewModel? GetSelectedNode(ImmutableArray<DocumentSymbolViewModel> symbolTreeItemsSource)
         {
             if (IsSnapshotInitialized)
             {
