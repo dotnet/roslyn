@@ -1130,12 +1130,9 @@ class C {
         {
             UsingDeclaration("Func<int> func1 = (!!) => 42;", options: TestOptions.RegularPreview, expectedErrors: new DiagnosticDescription[]
             {
-                    // (1,22): error CS1525: Invalid expression term ')'
-                    // Func<int> func1 = (!!) => 42;
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 22),
-                    // (1,24): error CS1003: Syntax error, ',' expected
-                    // Func<int> func1 = (!!) => 42;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(1, 24)
+                // (1,20): error CS1001: Identifier expected
+                // Func<int> func1 = (!!) => 42;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "!").WithLocation(1, 20)
             });
             N(SyntaxKind.FieldDeclaration);
             {
@@ -1160,22 +1157,18 @@ class C {
                         N(SyntaxKind.EqualsValueClause);
                         {
                             N(SyntaxKind.EqualsToken);
-                            N(SyntaxKind.ParenthesizedExpression);
+                            N(SyntaxKind.ParenthesizedLambdaExpression);
                             {
-                                N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.LogicalNotExpression);
+                                N(SyntaxKind.ParameterList);
                                 {
-                                    N(SyntaxKind.ExclamationToken);
-                                    N(SyntaxKind.LogicalNotExpression);
-                                    {
-                                        N(SyntaxKind.ExclamationToken);
-                                        M(SyntaxKind.IdentifierName);
-                                        {
-                                            M(SyntaxKind.IdentifierToken);
-                                        }
-                                    }
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.CloseParenToken);
                                 }
-                                N(SyntaxKind.CloseParenToken);
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "42");
+                                }
                             }
                         }
                     }
