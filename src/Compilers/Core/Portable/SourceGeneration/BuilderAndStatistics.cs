@@ -20,10 +20,16 @@ namespace Microsoft.CodeAnalysis
     /// is pooled.  Used to ensure that we don't keep around builders for too long that are both enormous but also
     /// barely used in practice.
     /// </summary>
-    internal record struct BuilderAndStatistics<TValue>(
-        ImmutableArray<TValue>.Builder Builder)
+    internal struct BuilderAndStatistics<TValue>
     {
         private static readonly ConcurrentQueue<BuilderAndStatistics<TValue>> s_pool = new();
+
+        public readonly ImmutableArray<TValue>.Builder Builder;
+
+        public BuilderAndStatistics()
+        {
+            Builder = ImmutableArray.CreateBuilder<TValue>();
+        }
 
         /// <summary>
         /// The number of times this item has been added back to the pool.  Once this goes past some threshold
@@ -40,7 +46,7 @@ namespace Microsoft.CodeAnalysis
         private int _numberOfTimesPooledWhenSparse = 0;
 
         public static BuilderAndStatistics<TValue> Allocate()
-            => s_pool.TryDequeue(out var item) ? item : new BuilderAndStatistics<TValue> { Builder = ImmutableArray.CreateBuilder<TValue>() };
+            => s_pool.TryDequeue(out var item) ? item : new BuilderAndStatistics<TValue>();
 
         public int Count
             => Builder.Count;
