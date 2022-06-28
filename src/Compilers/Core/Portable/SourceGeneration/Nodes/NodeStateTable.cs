@@ -64,7 +64,6 @@ namespace Microsoft.CodeAnalysis
 
         private readonly ImmutableArray<TableEntry> _states;
 
-
         private NodeStateTable(ImmutableArray<TableEntry> states, ImmutableArray<IncrementalGeneratorRunStep> steps, bool isCompacted, bool hasTrackedSteps)
         {
             Debug.Assert(!isCompacted || states.All(s => s.IsCached));
@@ -128,25 +127,8 @@ namespace Microsoft.CodeAnalysis
             return (_states[^1].GetItem(0), HasTrackedSteps ? Steps[^1] : null);
         }
 
-        public ImmutableArray<NodeStateEntry<T>> Batch()
-        {
-            var sourceBuilder = ArrayBuilder<NodeStateEntry<T>>.GetInstance();
-            foreach (var entry in this)
-            {
-                // If we have tracked steps, then we need to report removed entries to ensure all steps are in the graph.
-                // Otherwise, we can just return non-removed entries to build the next value.
-                if (entry.State != EntryState.Removed || HasTrackedSteps)
-                {
-                    sourceBuilder.Add(entry);
-                }
-            }
-            return sourceBuilder.ToImmutableAndFree();
-        }
-
         public Builder ToBuilder(string? stepName, bool stepTrackingEnabled)
-        {
-            return new Builder(this, stepName, stepTrackingEnabled);
-        }
+            => new Builder(this, stepName, stepTrackingEnabled);
 
         public NodeStateTable<T> CreateCachedTableWithUpdatedSteps<TInput>(NodeStateTable<TInput> inputTable, string? stepName)
         {
@@ -447,7 +429,7 @@ namespace Microsoft.CodeAnalysis
 
             public TableEntry AsRemoved() => new(_item, _items, s_allRemovedEntries);
 
-            [MemberNotNullWhen(true, new[] { nameof(_item) })]
+            [MemberNotNullWhen(true, nameof(_item))]
             private bool IsSingle => this._items.IsDefault;
 
             private static ImmutableArray<EntryState> GetSingleArray(EntryState state) => state switch
