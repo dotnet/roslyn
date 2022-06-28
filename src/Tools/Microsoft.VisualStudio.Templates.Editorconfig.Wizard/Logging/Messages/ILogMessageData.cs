@@ -6,6 +6,6 @@ public interface ILogMessageData
 {
     string Name { get; }
 
-    string GetMessage();
+    string? GetMessage();
 }
 

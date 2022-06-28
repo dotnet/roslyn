@@ -12,14 +12,17 @@ namespace Microsoft.VisualStudio.Templates.Editorconfig.Wizard.Generator;
 
 public static class EditorConfigFileGenerator
 {
-    public static (bool success, string fileName) TryAddFileToSolution(bool? isDotnet = null)
+    public static (bool success, string? fileName) TryAddFileToSolution(bool? isDotnet = null)
     {
         bool hasDotNetProjects = isDotnet ?? VSHelpers.IsDotnet();
         LogEvent(EventId.FoundDotnetProjects, hasDotNetProjects);
         var (isAtSolutionLevel, path, language, selectedItem) = VSHelpers.TryGetSelectedItemLanguageAndPath();
-        LogEvent(EventId.FoundDotnetLanguage, language);
+        if (language is not null)
+        {
+            LogEvent(EventId.FoundDotnetLanguage, language);
+        }
         Assert(path is not null && selectedItem is not null, "Unable to get the selected item");
-        if (path is null || selectedItem is null)
+        if (path is null || selectedItem is null || language is null)
         {
             return (false, null);
         }
@@ -27,7 +30,7 @@ public static class EditorConfigFileGenerator
         using var _ = LogCreateOperation(hasDotNetProjects, isAtSolutionLevel, language);
 
         var (success1, fileName) = TryCreateFile(path, hasDotNetProjects, isAtSolutionLevel, language);
-        if (!success1)
+        if (!success1 || fileName is null)
         {
             Assert(success1, "Unable to create editorconfig file");
             return (false, null);
@@ -62,12 +65,19 @@ public static class EditorConfigFileGenerator
         }
     }
 
-    public static (bool success, string fileName) TryAddFileToFolder(string directory)
+    public static (bool success, string? fileName) TryAddFileToFolder(string directory)
     {
         bool isDotnet = VSHelpers.IsDotnet(directory);
         LogEvent(EventId.FoundDotnetProjects, isDotnet);
         var language = VSHelpers.GetLanguageFromDirectory(directory);
-        LogEvent(EventId.FoundDotnetLanguage, language);
+        if (language is not null)
+        {
+            LogEvent(EventId.FoundDotnetLanguage, language);
+        }
+        else
+        {
+            return (false, null);
+        }
 
         using var _ = LogCreateOperation(isDotnet, true, language);
         var (success, fileName) = TryCreateFile(directory, isDotnet, true, language);
@@ -80,7 +90,7 @@ public static class EditorConfigFileGenerator
         return (true, fileName);
     }
 
-    private static (bool success, string fileName) TryCreateFile(string projectPath, bool isDotnet, bool isAtSolutionLevel, string language)
+    private static (bool success, string? fileName) TryCreateFile(string projectPath, bool isDotnet, bool isAtSolutionLevel, string language)
     {
         string fileName = Path.Combine(projectPath, TemplateConstants.FileName);
         if (File.Exists(fileName))
@@ -98,11 +108,11 @@ public static class EditorConfigFileGenerator
 
     private static void WriteFile(string fileName, bool isDotnet, bool isAtSolutionLevel, string language)
     {
-        string editorconfigFileContents = GetEditorconfigFileContents(isDotnet, isAtSolutionLevel, language);
+        string? editorconfigFileContents = GetEditorconfigFileContents(isDotnet, isAtSolutionLevel, language);
         File.WriteAllText(fileName, editorconfigFileContents);
         LogEvent(EventId.FileCreatedSuccessfully);
 
-        static string GetEditorconfigFileContents(bool isDotnet, bool isAtSolutionLevel, string language)
+        static string? GetEditorconfigFileContents(bool isDotnet, bool isAtSolutionLevel, string language)
         {
             if (!isDotnet)
             {

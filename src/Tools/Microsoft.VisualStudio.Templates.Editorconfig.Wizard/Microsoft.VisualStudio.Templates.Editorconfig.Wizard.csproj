@@ -4,6 +4,7 @@
     <TargetFramework>net472</TargetFramework>
     <AssemblyName>Templates.Editorconfig.Wizard</AssemblyName>
     <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <!-- Package References -->

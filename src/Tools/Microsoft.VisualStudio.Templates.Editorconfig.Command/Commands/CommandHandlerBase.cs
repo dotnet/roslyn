@@ -31,7 +31,7 @@ internal abstract class CommandHandlerBase : IWorkspaceCommandHandler
         return (int)Constants.OLECMDERR_E_NOTSUPPORTED;
     }
 
-    public bool QueryStatus(List<WorkspaceVisualNodeBase> selection, Guid cmdGroup, uint cmdId, ref uint cmdf, ref string customTitle)
+    public bool QueryStatus(List<WorkspaceVisualNodeBase> selection, Guid cmdGroup, uint cmdId, ref uint cmdf, ref string? customTitle)
     {
         if (IsSupportedCommand(cmdGroup, cmdId))
         {

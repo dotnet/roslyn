@@ -35,7 +35,7 @@ public static class VSHelpers
         return HasCSharpFiles(directory) || HasVisualBasicFiles(directory);
     }
 
-    public static string GetLanguageFromDirectory(string directory)
+    public static string? GetLanguageFromDirectory(string directory)
     {
         if (HasCSharpFiles(directory))
         {
@@ -70,15 +70,19 @@ public static class VSHelpers
         return DTE.Solution.Projects.OfType<Project>().Any(p => p.IsKind(PrjKind.prjKindVBProject));
     }
 
-    public static (bool isSolutionLevel, string path, string language, object selectedItem) TryGetSelectedItemLanguageAndPath()
+    public static (bool isSolutionLevel, string? path, string? language, object? selectedItem) TryGetSelectedItemLanguageAndPath()
     {
         var items = (Array)DTE.ToolWindows.SolutionExplorer.SelectedItems;
-        object selectedItem = null;
+        object? selectedItem = null;
 
         foreach (UIHierarchyItem selItem in items)
         {
             selectedItem = selItem.Object;
             var containingProject = GetVSProject(selectedItem);
+            if (containingProject is null)
+            {
+                return (false, null, null, selectedItem);
+            }
             var language = containingProject.GetProjectLanguageName();
 
             if (selItem.Object is ProjectItem item && item.Properties != null)
@@ -107,7 +111,7 @@ public static class VSHelpers
         return (true, Path.GetDirectoryName(DTE.Solution.FullName), HasVisualBasicProjects() ? LanguageNames.VisualBasic : LanguageNames.CSharp, selectedItem);
     }
 
-    public static ProjectItem TryAddFileToHierarchy(this object item, string fileName)
+    public static ProjectItem? TryAddFileToHierarchy(this object item, string fileName)
     {
         if (item is Project proj)
         {
@@ -128,7 +132,7 @@ public static class VSHelpers
         return null;
     }
 
-    public static ProjectItem TryAddFileToProject(this Project project, string file, string itemType = null)
+    public static ProjectItem? TryAddFileToProject(this Project project, string file, string? itemType = null)
     {
         if (project.IsKind(ProjectTypes.ASPNET_5, ProjectTypes.SSDT))
         {
@@ -147,13 +151,16 @@ public static class VSHelpers
         }
 
         ProjectItem item = project.ProjectItems.AddFromFile(file);
-        item.SetItemType(itemType);
+        if (itemType is not null)
+        {
+            item.SetItemType(itemType);
+        }
         return item;
     }
 
-    public static ProjectItem TryAddFileToSolution(this Solution2 solution, string fileName)
+    public static ProjectItem? TryAddFileToSolution(this Solution2 solution, string fileName)
     {
-        Project currentProject = null;
+        Project? currentProject = null;
         foreach (Project project in solution.Projects)
         {
             if (project.Kind == Constants.vsProjectKindSolutionItems && project.Name == "Solution Items")
@@ -182,7 +189,7 @@ public static class VSHelpers
         DTE.ActiveDocument.Activate();
     }
 
-    public static string GetProjectLanguageName(this Project project)
+    public static string? GetProjectLanguageName(this Project project)
     {
         return project?.Kind switch
         {
@@ -192,7 +199,7 @@ public static class VSHelpers
         };
     }
 
-    public static Project GetVSProject(object item)
+    public static Project? GetVSProject(object item)
     {
         if (item is ProjectItem projectItem)
         {
@@ -206,7 +213,7 @@ public static class VSHelpers
         return null;
     }
 
-    public static string GetRootFolder(this Project project)
+    public static string? GetRootFolder(this Project project)
     {
         if (project == null)
         {
@@ -223,7 +230,7 @@ public static class VSHelpers
             return null;
         }
 
-        string fullPath;
+        string? fullPath;
 
         try
         {

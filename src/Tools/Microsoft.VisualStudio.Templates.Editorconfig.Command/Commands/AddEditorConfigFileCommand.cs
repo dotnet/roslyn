@@ -17,13 +17,16 @@ internal class AddEditorConfigFileCommand : CommandBase
     protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
     {
         using var _ = LogUserAction(UserTask.CreateFromRightClickMenu);
-        await Package.JoinableTaskFactory.SwitchToMainThreadAsync(Package.DisposalToken);
-        var (success, fileName) = EditorConfigFileGenerator.TryAddFileToSolution();
-        Assert(success, "Unable to add the editorconfig file to the solution");
-
-        if (success)
+        if (Package is not null)
         {
-            VSHelpers.OpenFile(fileName);
+            await Package.JoinableTaskFactory.SwitchToMainThreadAsync(Package.DisposalToken);
+            var (success, fileName) = EditorConfigFileGenerator.TryAddFileToSolution();
+            Assert(success, "Unable to add the editorconfig file to the solution");
+
+            if (success && fileName is not null)
+            {
+                VSHelpers.OpenFile(fileName);
+            }
         }
     }
 }

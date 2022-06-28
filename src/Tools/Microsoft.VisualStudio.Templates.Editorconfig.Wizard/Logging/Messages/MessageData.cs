@@ -6,9 +6,9 @@ namespace Microsoft.VisualStudio.Templates.Editorconfig.Wizard.Logging.Messages;
 
 internal class MessageData : ILogMessageData
 {
-    private readonly Func<string> _getMessage;
+    private readonly Func<string?> _getMessage;
 
-    public MessageData(string name, Func<string> getMessage)
+    public MessageData(string name, Func<string?> getMessage)
     {
         Name = name;
         _getMessage = getMessage;
@@ -16,5 +16,5 @@ internal class MessageData : ILogMessageData
 
     public string Name { get; }
 
-    public string GetMessage() => _getMessage();
+    public string? GetMessage() => _getMessage();
 }

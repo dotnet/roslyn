@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices;
+using Microsoft.VisualStudio.RpcContracts.FileSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Templates.Editorconfig.Wizard.Logging.Kinds;
 using Microsoft.VisualStudio.Templates.Editorconfig.Wizard.Logging.Messages;
@@ -26,9 +27,9 @@ public class RoslynEditorConfigFileGenerator
     {
         try
         {
-            string basePath = Path.GetDirectoryName(dte.FullName);
+            string? basePath = Path.GetDirectoryName(dte.FullName);
             string languageServiceSubPath = @"CommonExtensions\Microsoft\VBCSharp\LanguageServices";
-            var baseDirectory = Path.Combine(basePath, languageServiceSubPath);
+            var baseDirectory = Path.Combine(basePath!, languageServiceSubPath);
 
             _microsoftVisualStudioLanguageServicesVisualBasicAssembly =
                 new Lazy<Assembly>(() => Assembly.LoadFrom(Path.Combine(baseDirectory, "Microsoft.VisualStudio.LanguageServices.VisualBasic.dll")));
@@ -38,7 +39,7 @@ public class RoslynEditorConfigFileGenerator
 
             _serviceProvider = new ServiceProvider(dte as OLE.Interop.IServiceProvider);
 
-            _generatorMethod = new Lazy<MethodInfo>(() =>
+            _generatorMethod = new Lazy<MethodInfo?>(() =>
             {
                 var editorConfigFileGeneratorType = typeof(OptionSet).Assembly.GetType("Microsoft.CodeAnalysis.Options.EditorConfigFileGenerator");
                 Type[] targetParams = new Type[]
@@ -48,7 +49,7 @@ public class RoslynEditorConfigFileGenerator
                 typeof(string)
                 };
 
-                return editorConfigFileGeneratorType.GetMethod("Generate", PublicBindingFlags, binder: null, types: targetParams, modifiers: null);
+                return editorConfigFileGeneratorType?.GetMethod("Generate", PublicBindingFlags, binder: null, types: targetParams, modifiers: null);
             });
         }
         catch (Exception ex)
@@ -62,32 +63,51 @@ public class RoslynEditorConfigFileGenerator
     private readonly ServiceProvider _serviceProvider;
     private readonly Lazy<Assembly> _microsoftVisualStudioLanguageServicesVisualBasicAssembly;
     private readonly Lazy<Assembly> _microsoftVisualStudioLanguageServicesCSharpAssembly;
-    private readonly Lazy<MethodInfo> _generatorMethod;
-    private static readonly Lazy<Type> _ieditorConfigStorageLocation2Type =
+    private readonly Lazy<MethodInfo?> _generatorMethod;
+    private static readonly Lazy<Type?> _ieditorConfigStorageLocation2Type =
         new(() => typeof(OptionSet).Assembly.GetType("Microsoft.CodeAnalysis.Options.IEditorConfigStorageLocation2"));
 
-    private static readonly Lazy<MethodInfo> _getEditorConfigStringMethod =
-        new Lazy<MethodInfo>(() => typeof(OptionSet).Assembly.GetType("Microsoft.CodeAnalysis.Options.IEditorConfigStorageLocation2").GetMethod("GetEditorConfigString"));
+    private static readonly Lazy<MethodInfo?> _getEditorConfigStringMethod =
+        new(() => typeof(OptionSet).Assembly.GetType("Microsoft.CodeAnalysis.Options.IEditorConfigStorageLocation2")?.GetMethod("GetEditorConfigString"));
 
     private Assembly VisualBasicLanguageServiceAssembly => _microsoftVisualStudioLanguageServicesVisualBasicAssembly.Value;
     private Assembly CSharpLanguageServiceAssembly => _microsoftVisualStudioLanguageServicesCSharpAssembly.Value;
-    private static Type IEditorConfigStorageLocation2Type => _ieditorConfigStorageLocation2Type.Value;
+    private static Type? IEditorConfigStorageLocation2Type => _ieditorConfigStorageLocation2Type.Value;
 
-    private OptionSet GetEditorConfigOptionSet()
+    private OptionSet? GetEditorConfigOptionSet()
     {
         try
         {
             // get IOptionService
             var componentModel = _serviceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
             var workspace = componentModel?.GetService<VisualStudioWorkspace>();
+            if (workspace is null)
+            {
+                return null;
+            }
 
             var ioptionServiceType = typeof(OptionSet).Assembly.GetType("Microsoft.CodeAnalysis.Options.IOptionService");
+            if (ioptionServiceType is null)
+            {
+                return null;
+            }
+
             var getServiceGenericMethod = workspace.Services.GetType().GetMethod(nameof(HostWorkspaceServices.GetService));
+            if (getServiceGenericMethod is null)
+            {
+                return null;
+            }
+
             var getServiceMethod = getServiceGenericMethod.MakeGenericMethod(ioptionServiceType);
             var optionService = getServiceMethod.Invoke(workspace.Services, null);
 
             var getOptionsMethod = ioptionServiceType.GetMethod("GetOptions");
-            return (OptionSet)getOptionsMethod.Invoke(optionService, null);
+            if (getOptionsMethod is null)
+            {
+                return null;
+            }
+
+            return (OptionSet?)getOptionsMethod.Invoke(optionService, null);
         }
         catch (Exception ex)
         {
@@ -103,8 +123,13 @@ public class RoslynEditorConfigFileGenerator
         {
             var codeStylePageType = GetCodePage(language);
             Type[] targetParams = new Type[] { };
-            var getEditorConfigOptionsMethod = codeStylePageType.GetMethod("GetEditorConfigOptions", NonPublicBindingFlags, binder: null, types: targetParams, modifiers: null);
-            return (true, (ImmutableArray<(string feature, ImmutableArray<IOption> options)>)getEditorConfigOptionsMethod.Invoke(null, null));
+            var getEditorConfigOptionsMethod = codeStylePageType?.GetMethod("GetEditorConfigOptions", NonPublicBindingFlags, binder: null, types: targetParams, modifiers: null);
+            if (getEditorConfigOptionsMethod is null)
+            {
+                return (false, default);
+            }
+
+            return (true, (ImmutableArray<(string feature, ImmutableArray<IOption> options)>)getEditorConfigOptionsMethod.Invoke(null, null)!);
         }
         catch (Exception ex)
         {
@@ -112,7 +137,7 @@ public class RoslynEditorConfigFileGenerator
             return (false, default(ImmutableArray<(string feature, ImmutableArray<IOption> options)>));
         }
 
-        Type GetCodePage(string language)
+        Type? GetCodePage(string language)
         {
             var languageName = language == LanguageNames.CSharp ? "CSharp" : "VisualBasic";
             var codePageTypeName = $"Microsoft.VisualStudio.LanguageServices.{languageName}.Options.Formatting.CodeStylePage";
@@ -131,12 +156,12 @@ public class RoslynEditorConfigFileGenerator
         }
     }
 
-    private string Generate(ImmutableArray<(string feature, ImmutableArray<IOption> options)> groupedOptions, OptionSet optionSet, string language)
+    private string? Generate(ImmutableArray<(string feature, ImmutableArray<IOption> options)> groupedOptions, OptionSet optionSet, string language)
     {
         try
         {
             LogEvents(EventId.Options, new OptionsInfo(groupedOptions, optionSet));
-            return (string)_generatorMethod.Value.Invoke(null, new object[] { groupedOptions, optionSet, language });
+            return (string?)_generatorMethod.Value?.Invoke(null, new object[] { groupedOptions, optionSet, language });
         }
         catch (Exception ex)
         {
@@ -145,7 +170,7 @@ public class RoslynEditorConfigFileGenerator
         }
     }
 
-    public string Generate(string language)
+    public string? Generate(string language)
     {
         var (success, options) = GetEditorConfigOptions(language);
         if (!success)
@@ -166,7 +191,7 @@ public class RoslynEditorConfigFileGenerator
     {
         foreach (var storageLocation in option.StorageLocations)
         {
-            if (IEditorConfigStorageLocation2Type.IsAssignableFrom(storageLocation.GetType()))
+            if (IEditorConfigStorageLocation2Type?.IsAssignableFrom(storageLocation.GetType()) == true)
             {
                 return true;
             }
@@ -175,18 +200,23 @@ public class RoslynEditorConfigFileGenerator
         return false;
     }
 
-    public static string GetEditorConfigOptionString(IOption option, OptionSet optionSet)
+    public static string? GetEditorConfigOptionString(IOption option, OptionSet optionSet)
     {
-        string editorconfigOptionString = null;
+        string? editorconfigOptionString = null;
         foreach (var storageLocation in option.StorageLocations)
         {
             var storageType = storageLocation.GetType();
-            if (IEditorConfigStorageLocation2Type.IsAssignableFrom(storageType))
+            if (IEditorConfigStorageLocation2Type?.IsAssignableFrom(storageType) == true)
             {
                 var genericEditorConfigStorageLocationType = typeof(OptionSet).Assembly.GetType("Microsoft.CodeAnalysis.Options.EditorConfigStorageLocation`1");
                 var genericArguments = storageType.GenericTypeArguments;
+                if (genericEditorConfigStorageLocationType is null)
+                {
+                    continue;
+                }
+
                 var editorConfigStorageLocationType = genericEditorConfigStorageLocationType.MakeGenericType(genericArguments);
-                editorconfigOptionString = (string)editorConfigStorageLocationType.GetProperty("KeyName").GetValue(storageLocation, null);
+                editorconfigOptionString = (string?)editorConfigStorageLocationType.GetProperty("KeyName")?.GetValue(storageLocation, null);
                 break;
             }
         }
@@ -195,16 +225,16 @@ public class RoslynEditorConfigFileGenerator
         return editorconfigOptionString;
     }
 
-    public static string GetEditorConfigValueString(IOption option, OptionSet optionSet)
+    public static string? GetEditorConfigValueString(IOption option, OptionSet optionSet)
     {
-        string editorconfigOptionString = null;
+        string? editorconfigOptionString = null;
         foreach (var storageLocation in option.StorageLocations)
         {
             var storageType = storageLocation.GetType();
-            if (IEditorConfigStorageLocation2Type.IsAssignableFrom(storageType))
+            if (IEditorConfigStorageLocation2Type?.IsAssignableFrom(storageType) == true)
             {
                 var methodInfo = IEditorConfigStorageLocation2Type.GetMethod("GetEditorConfigStringValue");
-                editorconfigOptionString = (string) methodInfo.Invoke(storageLocation, new[] { option.DefaultValue, optionSet } );
+                editorconfigOptionString = (string?) methodInfo?.Invoke(storageLocation, new[] { option.DefaultValue, optionSet } );
                 break;
             }
         }
