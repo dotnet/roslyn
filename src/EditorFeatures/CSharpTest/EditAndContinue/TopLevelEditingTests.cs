@@ -5060,14 +5060,11 @@ class C
                 "Delete [()]@32");
 
             edits.VerifySemantics(
-               new[] {
-                   SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.D")),
-                   SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.goo"), deletedSymbolContainerProvider: c => c.GetMember("C"))
-               },
-               capabilities: EditAndContinueCapabilities.Baseline);
-
-            //edits.VerifySemanticDiagnostics(
-            //    Diagnostic(RudeEditKind.Delete, "public class C", DeletedSymbolDisplay(FeaturesResources.method, "goo()")));
+                new[] {
+                    SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.D")),
+                    SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.goo"), deletedSymbolContainerProvider: c => c.GetMember("C"))
+                },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
@@ -7197,8 +7194,8 @@ class C
                 "Delete [()]@25");
 
             edits.VerifySemantics(
-               new[] { SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.goo"), deletedSymbolContainerProvider: c => c.GetMember("C")) },
-               capabilities: EditAndContinueCapabilities.Baseline);
+                new[] { SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.goo"), deletedSymbolContainerProvider: c => c.GetMember("C")) },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [WorkItem(754853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754853")]
@@ -7225,8 +7222,8 @@ class C
                 "Delete [int a]@43");
 
             edits.VerifySemantics(
-               new[] { SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.goo"), deletedSymbolContainerProvider: c => c.GetMember("C")) },
-               capabilities: EditAndContinueCapabilities.Baseline);
+                new[] { SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.goo"), deletedSymbolContainerProvider: c => c.GetMember("C")) },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [WorkItem(754853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754853")]
