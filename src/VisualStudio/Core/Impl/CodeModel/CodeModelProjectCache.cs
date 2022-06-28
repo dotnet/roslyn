@@ -148,10 +148,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 throw Exceptions.ThrowEUnexpected();
             }
 
-            if (_rootCodeModel == null)
-            {
-                _rootCodeModel = RootCodeModel.Create(State, parent, _projectId);
-            }
+            _rootCodeModel ??= RootCodeModel.Create(State, parent, _projectId);
 
             return _rootCodeModel;
         }
