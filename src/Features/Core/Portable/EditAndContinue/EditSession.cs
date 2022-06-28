@@ -679,6 +679,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     newResolution = edit.Symbol.Resolve(newCompilation, ignoreAssemblyKey: true, cancellationToken);
                     Contract.ThrowIfNull(newResolution.Symbol);
                 }
+                else if (edit.Kind == SemanticEditKind.Delete && edit.DeletedSymbolContainer is not null)
+                {
+                    // For deletes, we use NewSymbol to reference the containing type of the deleted member
+                    newResolution = edit.DeletedSymbolContainer.Value.Resolve(newCompilation, ignoreAssemblyKey: true, cancellationToken);
+                    Contract.ThrowIfNull(newResolution.Symbol);
+                }
                 else
                 {
                     newResolution = default;

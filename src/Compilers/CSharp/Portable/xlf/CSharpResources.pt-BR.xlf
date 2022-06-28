@@ -447,6 +447,11 @@
         <target state="translated">A propriedade de contrato de igualdade do registro '{0}' precisa ter um acessador get.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_EscapeVariable">
+        <source>Cannot use variable '{0}' in this context because it may expose referenced variables outside of their declaration scope</source>
+        <target state="new">Cannot use variable '{0}' in this context because it may expose referenced variables outside of their declaration scope</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExplicitImplementationOfOperatorsMustBeStatic">
         <source>Explicit implementation of a user-defined operator '{0}' must be declared static</source>
         <target state="translated">A implementação explícita de um operador definido pelo usuário '{0}' deve ser declarada estática</target>
@@ -575,6 +580,11 @@
       <trans-unit id="ERR_FileScopedNamespaceNotBeforeAllMembers">
         <source>File-scoped namespace must precede all other members in a file.</source>
         <target state="translated">O namespace de escopo de arquivo deve preceder todos os outros membros em um arquivo.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FixedFieldMustNotBeRef">
+        <source>A fixed field must not be a ref field.</source>
+        <target state="new">A fixed field must not be a ref field.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ForEachMissingMemberWrongAsync">
@@ -1213,8 +1223,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefLocalOrParamExpected">
-        <source>The left-hand side of a ref assignment must be a ref local or parameter.</source>
-        <target state="translated">O lado esquerdo da atribuição ref precisa ser um parâmetro ou local ref.</target>
+        <source>The left-hand side of a ref assignment must be a ref variable.</source>
+        <target state="needs-review-translation">O lado esquerdo da atribuição ref precisa ser um parâmetro ou local ref.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningPropertiesCannotBeRequired">
@@ -1295,6 +1305,26 @@
       <trans-unit id="ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv">
         <source>The target runtime doesn't support extensible or runtime-environment default calling conventions.</source>
         <target state="translated">O runtime de destino não dá suporte a convenções de chamada padrão extensíveis ou de ambiente de runtime.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ScopedMismatchInParameterOfOverrideOrImplementation">
+        <source>The 'scoped' modifier of parameter '{0}' doesn't match overridden or implemented member.</source>
+        <target state="new">The 'scoped' modifier of parameter '{0}' doesn't match overridden or implemented member.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ScopedMismatchInParameterOfPartial">
+        <source>The 'scoped' modifier of parameter '{0}' doesn't match partial method declaration.</source>
+        <target state="new">The 'scoped' modifier of parameter '{0}' doesn't match partial method declaration.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ScopedMismatchInParameterOfTarget">
+        <source>The 'scoped' modifier of parameter '{0}' doesn't match target '{1}'.</source>
+        <target state="new">The 'scoped' modifier of parameter '{0}' doesn't match target '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ScopedRefAndRefStructOnly">
+        <source>The 'scoped' modifier can be used for refs and ref struct values only.</source>
+        <target state="new">The 'scoped' modifier can be used for refs and ref struct values only.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers">
@@ -1631,6 +1661,11 @@
         <source>record structs</source>
         <target state="translated">registrar structs</target>
         <note>'record structs' is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRefFields">
+        <source>ref fields</source>
+        <target state="new">ref fields</target>
+        <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRelaxedShiftOperator">
         <source>relaxed shift operator</source>
@@ -11058,8 +11093,8 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnParameter">
-        <source>Cannot return a parameter by reference '{0}' because it is not a ref or out parameter</source>
-        <target state="translated">Não é possível retornar um parâmetro por referência '{0}', pois ele não é um parâmetro ref ou out</target>
+        <source>Cannot return a parameter by reference '{0}' because it is not a ref parameter</source>
+        <target state="needs-review-translation">Não é possível retornar um parâmetro por referência '{0}', pois ele não é um parâmetro ref ou out</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnParameter2">
@@ -11085,11 +11120,6 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
       <trans-unit id="ERR_EscapeOther">
         <source>Expression cannot be used in this context because it may indirectly expose variables outside of their declaration scope</source>
         <target state="translated">A expressão não pode ser usada neste contexto porque ela pode expor indiretamente variáveis fora do seu escopo de declaração</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_EscapeLocal">
-        <source>Cannot use local '{0}' in this context because it may expose referenced variables outside of their declaration scope</source>
-        <target state="translated">Não é possível usar o local '{0}' nesse contexto porque ele pode expor variáveis referenciadas fora do seu escopo de declaração</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EscapeCall">

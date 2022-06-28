@@ -278,6 +278,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 Nothing,
                 toCompilation.SourceAssembly,
                 Nothing,
+                Nothing,
                 Nothing)
         End Function
     End Class
