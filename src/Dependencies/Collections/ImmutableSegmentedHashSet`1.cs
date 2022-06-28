@@ -67,9 +67,8 @@ namespace Microsoft.CodeAnalysis.Collections
             }
             else
             {
-                // TODO: Avoid the builder allocation
                 // TODO: Reuse all pages with no changes
-                var builder = self.ToBuilder();
+                var builder = self.ToValueBuilder();
                 builder.Add(value);
                 return builder.ToImmutable();
             }
@@ -113,9 +112,8 @@ namespace Microsoft.CodeAnalysis.Collections
             }
             else
             {
-                // TODO: Avoid the builder allocation
                 // TODO: Reuse all pages with no changes
-                var builder = self.ToBuilder();
+                var builder = self.ToValueBuilder();
                 builder.ExceptWith(other);
                 return builder.ToImmutable();
             }
@@ -136,9 +134,8 @@ namespace Microsoft.CodeAnalysis.Collections
             }
             else
             {
-                // TODO: Avoid the builder allocation
                 // TODO: Reuse all pages with no changes
-                var builder = self.ToBuilder();
+                var builder = self.ToValueBuilder();
                 builder.IntersectWith(other);
                 return builder.ToImmutable();
             }
@@ -175,9 +172,8 @@ namespace Microsoft.CodeAnalysis.Collections
             }
             else
             {
-                // TODO: Avoid the builder allocation
                 // TODO: Reuse all pages with no changes
-                var builder = self.ToBuilder();
+                var builder = self.ToValueBuilder();
                 builder.Remove(value);
                 return builder.ToImmutable();
             }
@@ -206,9 +202,8 @@ namespace Microsoft.CodeAnalysis.Collections
             }
             else
             {
-                // TODO: Avoid the builder allocation
                 // TODO: Reuse all pages with no changes
-                var builder = self.ToBuilder();
+                var builder = self.ToValueBuilder();
                 builder.SymmetricExceptWith(other);
                 return builder.ToImmutable();
             }
@@ -240,9 +235,8 @@ namespace Microsoft.CodeAnalysis.Collections
                     return otherSet.WithComparer(self.KeyComparer);
             }
 
-            // TODO: Avoid the builder allocation
             // TODO: Reuse all pages with no changes
-            var builder = self.ToBuilder();
+            var builder = self.ToValueBuilder();
             builder.UnionWith(other);
             return builder.ToImmutable();
         }
@@ -250,6 +244,9 @@ namespace Microsoft.CodeAnalysis.Collections
         /// <inheritdoc cref="ImmutableHashSet{T}.ToBuilder()"/>
         public Builder ToBuilder()
             => new(this);
+
+        private ValueBuilder ToValueBuilder()
+            => new ValueBuilder(this);
 
         /// <inheritdoc cref="ImmutableHashSet{T}.WithComparer(IEqualityComparer{T}?)"/>
         public ImmutableSegmentedHashSet<T> WithComparer(IEqualityComparer<T>? equalityComparer)
