@@ -488,6 +488,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 var fileIdentifier = this.AssociatedFileIdentifier();
+                // If we have a fileIdentifier, the type will definitely use CLS arity encoding for nonzero arity.
+                Debug.Assert(!(fileIdentifier != null && !MangleName && Arity > 0));
                 return fileIdentifier != null || MangleName
                     ? MetadataHelpers.ComposeAritySuffixedMetadataName(Name, Arity, fileIdentifier)
                     : Name;

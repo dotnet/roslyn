@@ -332,6 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 Done:
             if (isTopLevel
                 && scope is not PENamespaceSymbol
+                && (emittedTypeName.ForcedArity == -1 || emittedTypeName.ForcedArity == emittedTypeName.InferredArity)
                 && GeneratedNameParser.TryParseFileTypeName(
                     emittedTypeName.UnmangledTypeName,
                     out string? displayFileName,

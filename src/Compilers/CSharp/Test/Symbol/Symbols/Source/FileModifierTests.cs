@@ -180,7 +180,7 @@ public class FileModifierTests : CSharpTestBase
     }
 
     [Fact]
-    public void SameFileUse()
+    public void SameFileUse_01()
     {
         var source = """
             using System;
@@ -225,6 +225,56 @@ public class FileModifierTests : CSharpTestBase
         {
             Assert.Equal(new[] { "<Module>", "<>F0__C", "Program" }, symbol.GlobalNamespace.GetMembers().Select(m => m.Name));
             var classC = symbol.GlobalNamespace.GetMember<NamedTypeSymbol>("<>F0__C");
+            Assert.Equal(new[] { "M", ".ctor" }, classC.MemberNames);
+        }
+    }
+
+    [Fact]
+    public void SameFileUse_02()
+    {
+        var source = """
+            using System;
+
+            file class C
+            {
+                public static void M()
+                {
+                    Console.Write(1);
+                }
+            }
+
+            class Program
+            {
+                static void Main()
+                {
+                    C.M();
+                }
+            }
+            """;
+
+        var verifier = CompileAndVerify(new[] { "", source }, expectedOutput: "1", symbolValidator: symbolValidator);
+        verifier.VerifyDiagnostics();
+
+        var comp = (CSharpCompilation)verifier.Compilation;
+        var symbol = comp.GetMember<NamedTypeSymbol>("C");
+        Assert.Equal("<>F1__C", symbol.MetadataName);
+
+        // The qualified name here is based on `SymbolDisplayCompilerInternalOptions.IncludeContainingFileForFileTypes`.
+        // We don't actually look up based on the file-encoded name of the type.
+        // This is similar to how generic types work (lookup based on 'C<T>' instead of 'C`1').
+        verifier.VerifyIL("C@<tree 1>.M", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldc.i4.1
+  IL_0001:  call       ""void System.Console.Write(int)""
+  IL_0006:  ret
+}");
+
+        void symbolValidator(ModuleSymbol symbol)
+        {
+            Assert.Equal(new[] { "<Module>", "<>F1__C", "Program" }, symbol.GlobalNamespace.GetMembers().Select(m => m.Name));
+            var classC = symbol.GlobalNamespace.GetMember<NamedTypeSymbol>("<>F1__C");
             Assert.Equal(new[] { "M", ".ctor" }, classC.MemberNames);
         }
     }
@@ -3060,6 +3110,81 @@ public class FileModifierTests : CSharpTestBase
 
         var metadataType = comp2.GetTypeByMetadataName("<>F0__C");
         Assert.Equal(metadataMember, metadataType);
+    }
+
+    [CombinatorialData]
+    [Theory]
+    public void GetTypeByMetadataName_05(bool firstIsMetadataReference, bool secondIsMetadataReference)
+    {
+        var source1 = """
+            file class C { }
+            """;
+
+        // Create two references containing identically-named file types
+        var ref1 = CreateCompilation(source1, assemblyName: "ref1");
+        var ref2 = CreateCompilation(source1, assemblyName: "ref2");
+
+        var comp = CreateCompilation("", references: new[]
+        {
+            firstIsMetadataReference ? ref1.ToMetadataReference() : ref1.EmitToImageReference(),
+            secondIsMetadataReference ? ref2.ToMetadataReference() : ref2.EmitToImageReference()
+        });
+        comp.VerifyDiagnostics();
+
+        var sourceType = comp.GetTypeByMetadataName("<>F0__C");
+        Assert.Null(sourceType);
+
+        var types = comp.GetTypesByMetadataName("<>F0__C");
+        Assert.Equal(2, types.Length);
+        Assert.Equal(firstIsMetadataReference ? "C@<tree 0>" : "<>F0__C", types[0].ToTestDisplayString());
+        Assert.Equal(secondIsMetadataReference ? "C@<tree 0>" : "<>F0__C", types[1].ToTestDisplayString());
+        Assert.NotEqual(types[0], types[1]);
+    }
+
+    [Fact]
+    public void GetTypeByMetadataName_06()
+    {
+        var source1 = """
+            file class C { }
+            file class C { }
+            """;
+
+        var comp = CreateCompilation(source1);
+        comp.VerifyDiagnostics(
+            // (2,12): error CS0101: The namespace '<global namespace>' already contains a definition for 'C'
+            // file class C { }
+            Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "C").WithArguments("C", "<global namespace>").WithLocation(2, 12));
+
+        var sourceType = ((Compilation)comp).GetTypeByMetadataName("<>F0__C");
+        Assert.Equal("C@<tree 0>", sourceType.ToTestDisplayString());
+
+        var types = comp.GetTypesByMetadataName("<>F0__C");
+        Assert.Equal(1, types.Length);
+        Assert.Same(sourceType, types[0]);
+    }
+
+    [Fact]
+    public void GetTypeByMetadataName_07()
+    {
+        var source1 = """
+            file class C { }
+            """;
+
+        var comp = CreateCompilation(SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularPreview, path: "path/to/SomeFile.cs"));
+        comp.VerifyDiagnostics();
+
+        Assert.Null(comp.GetTypeByMetadataName("<>F0__C"));
+        Assert.Empty(comp.GetTypesByMetadataName("<>F0__C"));
+
+        Assert.Null(comp.GetTypeByMetadataName("<WrongName>F0__C"));
+        Assert.Empty(comp.GetTypesByMetadataName("<WrongName>F0__C"));
+
+        var sourceType = ((Compilation)comp).GetTypeByMetadataName("<SomeFile>F0__C");
+        Assert.Equal("C@SomeFile", sourceType.ToTestDisplayString());
+
+        var types = comp.GetTypesByMetadataName("<SomeFile>F0__C");
+        Assert.Equal(1, types.Length);
+        Assert.Same(sourceType, types[0]);
     }
 
     [Fact]
