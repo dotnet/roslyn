@@ -276,9 +276,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     if (currentDocument != null && formattingService != null)
                     {
                         var spanToFormat = triggerSnapshotSpan.TranslateTo(subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
-
-                        // Note: C# always completes synchronously, TypeScript is async
-                        var changes = formattingService.GetFormattingChangesAsync(currentDocument, subjectBuffer, spanToFormat.Span.ToTextSpan(), cancellationToken).WaitAndGetResult(cancellationToken);
+                        var changes = formattingService.GetFormattingChangesAsync(
+                            currentDocument, subjectBuffer, spanToFormat.Span.ToTextSpan(), cancellationToken).WaitAndGetResult(cancellationToken);
                         currentDocument.Project.Solution.Workspace.ApplyTextChanges(currentDocument.Id, changes, cancellationToken);
                     }
                 }
