@@ -31,15 +31,15 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
         protected override char OpeningBrace => DoubleQuote.OpenCharacter;
         protected override char ClosingBrace => DoubleQuote.CloseCharacter;
 
-        public override bool AllowOverType(BraceCompletionContext context, CancellationToken cancellationToken)
-            => AllowOverTypeWithValidClosingToken(context);
+        public override Task<bool> AllowOverTypeAsync(BraceCompletionContext context, CancellationToken cancellationToken)
+            => AllowOverTypeWithValidClosingTokenAsync(context, cancellationToken);
 
         /// <summary>
         /// Only return this service as valid when we're starting an interpolated string.
         /// Otherwise double quotes should be completed using the <see cref="StringLiteralBraceCompletionService"/>
         /// </summary>
-        public override bool CanProvideBraceCompletion(char brace, int openingPosition, ParsedDocument document, CancellationToken cancellationToken)
-            => OpeningBrace == brace && IsPositionInInterpolatedStringContext(document, openingPosition, cancellationToken);
+        public override async Task<bool> CanProvideBraceCompletionAsync(char brace, int openingPosition, Document document, CancellationToken cancellationToken)
+            => OpeningBrace == brace && await IsPositionInInterpolatedStringContextAsync(document, openingPosition, cancellationToken).ConfigureAwait(false);
 
         protected override bool IsValidOpeningBraceToken(SyntaxToken leftToken)
             => leftToken.IsKind(SyntaxKind.InterpolatedStringStartToken) || leftToken.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken);
@@ -53,9 +53,9 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
         /// <summary>
         /// Returns true when the input position could be starting an interpolated string if opening quotes were typed.
         /// </summary>
-        public static bool IsPositionInInterpolatedStringContext(ParsedDocument document, int position, CancellationToken cancellationToken)
+        public static async Task<bool> IsPositionInInterpolatedStringContextAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            var text = document.Text;
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             var start = position - 1;
             if (start < 0)
@@ -73,7 +73,9 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 return false;
 
             // Verify that we are actually in an location allowed for an interpolated string.
-            var token = document.Root.FindToken(start);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            var token = root.FindToken(start);
             if (token.Kind() is not SyntaxKind.InterpolatedStringStartToken and
                                 not SyntaxKind.InterpolatedVerbatimStringStartToken and
                                 not SyntaxKind.StringLiteralToken and
@@ -84,8 +86,8 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
 
             var previousToken = token.GetPreviousToken();
 
-            return document.SyntaxTree.IsExpressionContext(token.SpanStart, previousToken, attributes: true, cancellationToken)
-                || document.SyntaxTree.IsStatementContext(token.SpanStart, previousToken, cancellationToken);
+            return root.SyntaxTree.IsExpressionContext(token.SpanStart, previousToken, attributes: true, cancellationToken)
+                || root.SyntaxTree.IsStatementContext(token.SpanStart, previousToken, cancellationToken);
         }
     }
 }

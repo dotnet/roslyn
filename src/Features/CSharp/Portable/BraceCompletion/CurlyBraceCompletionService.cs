@@ -38,18 +38,18 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
 
         protected override char ClosingBrace => CurlyBrace.CloseCharacter;
 
-        public override bool AllowOverType(BraceCompletionContext context, CancellationToken cancellationToken)
-            => AllowOverTypeInUserCodeWithValidClosingToken(context, cancellationToken);
+        public override Task<bool> AllowOverTypeAsync(BraceCompletionContext context, CancellationToken cancellationToken)
+            => AllowOverTypeInUserCodeWithValidClosingTokenAsync(context, cancellationToken);
 
-        public override bool CanProvideBraceCompletion(char brace, int openingPosition, ParsedDocument document, CancellationToken cancellationToken)
+        public override async Task<bool> CanProvideBraceCompletionAsync(char brace, int openingPosition, Document document, CancellationToken cancellationToken)
         {
             // Only potentially valid for curly brace completion if not in an interpolation brace completion context.
-            if (OpeningBrace == brace && InterpolationBraceCompletionService.IsPositionInInterpolationContext(document, openingPosition))
+            if (OpeningBrace == brace && await InterpolationBraceCompletionService.IsPositionInInterpolationContextAsync(document, openingPosition, cancellationToken).ConfigureAwait(false))
             {
                 return false;
             }
 
-            return base.CanProvideBraceCompletion(brace, openingPosition, document, cancellationToken);
+            return await base.CanProvideBraceCompletionAsync(brace, openingPosition, document, cancellationToken).ConfigureAwait(false);
         }
 
         protected override bool IsValidOpeningBraceToken(SyntaxToken token)

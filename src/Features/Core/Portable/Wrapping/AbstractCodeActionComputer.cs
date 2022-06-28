@@ -93,7 +93,6 @@ namespace Microsoft.CodeAnalysis.Wrapping
                 var newSourceText = OriginalSourceText.WithChanges(new TextChange(new TextSpan(nodeOrToken.Span.End, 0), newLine));
                 newSourceText = newSourceText.WithChanges(
                     new TextChange(TextSpan.FromBounds(nodeOrToken.Span.End + newLine.Length, newSourceText.Length), ""));
-
                 var newDocument = OriginalDocument.WithText(newSourceText);
 
                 // The only auto-formatting option that's relevant is indent style. Others only control behavior on typing.
@@ -101,12 +100,8 @@ namespace Microsoft.CodeAnalysis.Wrapping
 
                 var indentationService = Wrapper.IndentationService;
                 var originalLineNumber = newSourceText.Lines.GetLineFromPosition(nodeOrToken.Span.End).LineNumber;
-
-                // TODO: should be async https://github.com/dotnet/roslyn/issues/61998
-                var newParsedDocument = ParsedDocument.CreateSynchronously(newDocument, CancellationToken);
-
                 var desiredIndentation = indentationService.GetIndentation(
-                    newParsedDocument, originalLineNumber + 1,
+                    newDocument, originalLineNumber + 1,
                     indentationOptions,
                     CancellationToken);
 
