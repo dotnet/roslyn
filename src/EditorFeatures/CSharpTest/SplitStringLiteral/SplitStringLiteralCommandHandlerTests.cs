@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
-        public void TestMissingBeforeUTF8String()
+        public void TestMissingBeforeUtf8String()
         {
             TestNotHandled(
 @"class C
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
-        public void TestMissingAfterUTF8String_1()
+        public void TestMissingAfterUtf8String_1()
         {
             TestNotHandled(
 @"class C
@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
-        public void TestMissingAfterUTF8String_2()
+        public void TestMissingAfterUtf8String_2()
         {
             TestNotHandled(
 @"class C
@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
-        public void TestMissingAfterUTF8String_3()
+        public void TestMissingAfterUtf8String_3()
         {
             TestNotHandled(
 @"class C
@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
-        public void TestMissingAfterUTF8String_4()
+        public void TestMissingAfterUtf8String_4()
         {
             TestNotHandled(
 @"class C
@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
-        public void TestMissingAfterUTF8String_5()
+        public void TestMissingAfterUtf8String_5()
         {
             TestNotHandled(
 @"class C
@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
-        public void TestMissingInUTF8VerbatimString()
+        public void TestMissingInUtf8VerbatimString()
         {
             TestNotHandled(
 @"class C
@@ -542,7 +542,7 @@ $""[||]"";
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
-        public void TestUTF8String_1()
+        public void TestUtf8String_1()
         {
             TestHandled(
 @"class C
@@ -563,7 +563,7 @@ $""[||]"";
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
-        public void TestUTF8String_2()
+        public void TestUtf8String_2()
         {
             TestHandled(
 @"class C
@@ -1081,7 +1081,7 @@ world
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
-        public void TestMissingInRawUTF8StringLiteral()
+        public void TestMissingInRawUtf8StringLiteral()
         {
             TestNotHandled(
 @"class C

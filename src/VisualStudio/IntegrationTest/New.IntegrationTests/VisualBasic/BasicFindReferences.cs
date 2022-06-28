@@ -6,10 +6,10 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.IntegrationTests.InProcess;
+using WindowsInput.Native;
 using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic
@@ -35,7 +35,7 @@ Class Program
 End Class
 ", HangMitigatingCancellationToken);
 
-            await TestServices.Input.SendAsync(new KeyPress(VirtualKey.F12, ShiftState.Shift));
+            await TestServices.Input.SendAsync((VirtualKeyCode.F12, VirtualKeyCode.SHIFT));
 
             var results = await TestServices.FindReferencesWindow.GetContentsAsync(HangMitigatingCancellationToken);
 
@@ -78,7 +78,7 @@ Class SomeOtherClass
 End Class
 ", HangMitigatingCancellationToken);
 
-            await TestServices.Input.SendAsync(new KeyPress(VirtualKey.F12, ShiftState.Shift));
+            await TestServices.Input.SendAsync((VirtualKeyCode.F12, VirtualKeyCode.SHIFT));
 
             var results = await TestServices.FindReferencesWindow.GetContentsAsync(HangMitigatingCancellationToken);
 

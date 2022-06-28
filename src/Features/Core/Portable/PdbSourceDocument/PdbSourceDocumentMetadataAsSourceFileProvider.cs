@@ -117,6 +117,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
                     var tmpCompilation = compilationFactory
                         .CreateCompilation("tmp", compilationFactory.GetDefaultCompilationOptions())
+                        .AddReferences(project.MetadataReferences)
                         .AddReferences(dllReference);
 
                     var key = SymbolKey.Create(symbolToFind, cancellationToken);

@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestNormalizeSwitchExpressionRawStringsUTF8_01()
+        public void TestNormalizeSwitchExpressionRawStringsUtf8_01()
         {
             TestNormalizeStatement(
                 @"var x = (int)1 switch { 1 => """"""one""""""u8, 2 => """"""two""""""U8, 3 => """"""three""""""u8, {} => """""">= 4""""""U8 };",
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [ConditionalFact(typeof(WindowsOnly))]
-        public void TestNormalizeSwitchExpressionRawStringsMultilineUTF8_01()
+        public void TestNormalizeSwitchExpressionRawStringsMultilineUtf8_01()
         {
             TestNormalizeStatement(
                 @"var x = (int)1 switch { 1 => """"""
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestNormalizeSwitchExpressionStringsUTF8()
+        public void TestNormalizeSwitchExpressionStringsUtf8()
         {
             TestNormalizeStatement(
                 @"var x = (int)1 switch { 1 =>

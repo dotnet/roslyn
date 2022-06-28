@@ -383,8 +383,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return Label.ForEachStatement;
 
                 case SyntaxKind.UsingStatement:
-                    // We need to distinguish using statements with no or single variable declaration from one with multiple variable declarations. 
-                    // The former generates a single try-finally block, the latter one for each variable. The finally blocks need to match since they
+                    // We need to distinguish using statements with expression or single variable declaration from ones with multiple variable declarations. 
+                    // The former generate a single try-finally block, the latter one for each variable. The finally blocks need to match since they
                     // affect state machine state matching. For simplicity we do not match single-declaration to expression, we just treat usings
                     // with declarations entirely separately from usings with expressions.
                     //

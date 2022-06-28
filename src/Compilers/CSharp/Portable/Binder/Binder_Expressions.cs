@@ -675,8 +675,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.NullLiteralExpression:
                     return BindLiteralConstant((LiteralExpressionSyntax)node, diagnostics);
 
-                case SyntaxKind.UTF8StringLiteralExpression:
-                    return BindUTF8StringLiteral((LiteralExpressionSyntax)node, diagnostics);
+                case SyntaxKind.Utf8StringLiteralExpression:
+                    return BindUtf8StringLiteral((LiteralExpressionSyntax)node, diagnostics);
 
                 case SyntaxKind.DefaultLiteralExpression:
                     return new BoundDefaultLiteral(node);
@@ -6045,29 +6045,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundLiteral(node, cv, type);
         }
 
-        private BoundUTF8String BindUTF8StringLiteral(LiteralExpressionSyntax node, BindingDiagnosticBag diagnostics)
+        private BoundUtf8String BindUtf8StringLiteral(LiteralExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
-            Debug.Assert(node.Kind() == SyntaxKind.UTF8StringLiteralExpression);
-            Debug.Assert(node.Token.Kind() is SyntaxKind.UTF8StringLiteralToken or SyntaxKind.UTF8SingleLineRawStringLiteralToken or SyntaxKind.UTF8MultiLineRawStringLiteralToken);
+            Debug.Assert(node.Kind() == SyntaxKind.Utf8StringLiteralExpression);
+            Debug.Assert(node.Token.Kind() is SyntaxKind.Utf8StringLiteralToken or SyntaxKind.Utf8SingleLineRawStringLiteralToken or SyntaxKind.Utf8MultiLineRawStringLiteralToken);
 
-            if (node.Token.Kind() is SyntaxKind.UTF8SingleLineRawStringLiteralToken or SyntaxKind.UTF8MultiLineRawStringLiteralToken)
+            if (node.Token.Kind() is SyntaxKind.Utf8SingleLineRawStringLiteralToken or SyntaxKind.Utf8MultiLineRawStringLiteralToken)
             {
                 CheckFeatureAvailability(node, MessageID.IDS_FeatureRawStringLiterals, diagnostics);
             }
 
-            CheckFeatureAvailability(node, MessageID.IDS_FeatureUTF8StringLiterals, diagnostics);
+            CheckFeatureAvailability(node, MessageID.IDS_FeatureUtf8StringLiterals, diagnostics);
 
             var value = (string)node.Token.Value;
             var type = GetWellKnownType(WellKnownType.System_ReadOnlySpan_T, diagnostics, node).Construct(GetSpecialType(SpecialType.System_Byte, diagnostics, node));
 
-            return new BoundUTF8String(node, value, type);
+            return new BoundUtf8String(node, value, type);
         }
 
         private BoundExpression BindCheckedExpression(CheckedExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
-            // the binder is not cached since we only cache statement level binders
-            return this.WithCheckedOrUncheckedRegion(node.Kind() == SyntaxKind.CheckedExpression).
-                BindParenthesizedExpression(node.Expression, diagnostics);
+            var binder = this.GetBinder(node);
+            return binder.BindParenthesizedExpression(node.Expression, diagnostics);
         }
 
         /// <summary>
@@ -6525,7 +6524,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else if (lookupResult.IsClear)
                     {
-                        Error(diagnostics, ErrorCode.ERR_BadSKunknown, boundLeft.Syntax, leftType, MessageID.IDS_SK_TYVAR.Localize());
+                        Error(diagnostics, ErrorCode.ERR_LookupInTypeVariable, boundLeft.Syntax, leftType);
                         return BadExpression(node, LookupResultKind.NotAValue, boundLeft);
                     }
                 }

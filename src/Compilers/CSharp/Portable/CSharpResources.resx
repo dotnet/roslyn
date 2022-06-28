@@ -1704,7 +1704,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>The first operand of an overloaded shift operator must have the same type as the containing type</value>
   </data>
   <data name="ERR_InterfacesCantContainConversionOrEqualityOperators" xml:space="preserve">
-    <value>Conversion, equality, or inequality operators declared in interfaces must be abstract</value>
+    <value>Conversion, equality, or inequality operators declared in interfaces must be abstract or virtual</value>
   </data>
   <data name="ERR_EnumsCantContainDefaultConstructor" xml:space="preserve">
     <value>Enums cannot contain explicit parameterless constructors</value>
@@ -2058,7 +2058,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Inconsistent accessibility: constraint type '{1}' is less accessible than '{0}'</value>
   </data>
   <data name="ERR_LookupInTypeVariable" xml:space="preserve">
-    <value>Cannot do member lookup in '{0}' because it is a type parameter</value>
+    <value>Cannot do non-virtual member lookup in '{0}' because it is a type parameter</value>
   </data>
   <data name="ERR_BadConstraintType" xml:space="preserve">
     <value>Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.</value>
@@ -7088,13 +7088,13 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_CheckedOperatorNeedsMatch" xml:space="preserve">
     <value>The operator '{0}' requires a matching non-checked version of the operator to also be defined</value>
   </data>
-  <data name="ERR_CannotBeConvertedToUTF8" xml:space="preserve">
+  <data name="ERR_CannotBeConvertedToUtf8" xml:space="preserve">
     <value>The input string cannot be converted into the equivalent UTF-8 byte representation. {0}</value>
   </data>
-  <data name="IDS_FeatureUTF8StringLiterals" xml:space="preserve">
+  <data name="IDS_FeatureUtf8StringLiterals" xml:space="preserve">
     <value>UTF-8 string literals</value>
   </data>
-  <data name="ERR_ExpressionTreeContainsUTF8StringLiterals" xml:space="preserve">
+  <data name="ERR_ExpressionTreeContainsUtf8StringLiterals" xml:space="preserve">
     <value>An expression tree may not contain UTF-8 string conversion or literal.</value>
   </data>
   <data name="ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers" xml:space="preserve">
@@ -7129,5 +7129,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers" xml:space="preserve">
     <value>Required members are not allowed on the top level of a script or submission.</value>
+  </data>
+  <data name="ERR_BadAbstractEqualityOperatorSignature" xml:space="preserve">
+    <value>One of the parameters of an equality, or inequality operator declared in interface '{0}' must be a type parameter on '{0}' constrained to '{0}'</value>
+  </data>
+  <data name="ERR_BadBinaryReadOnlySpanConcatenation" xml:space="preserve">
+    <value>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF-8 byte representations</value>
   </data>
 </root>
