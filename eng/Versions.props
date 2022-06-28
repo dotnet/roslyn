@@ -262,9 +262,9 @@
     <XunitCombinatorialVersion>1.3.2</XunitCombinatorialVersion>
     <XUnitXmlTestLoggerVersion>2.1.26</XUnitXmlTestLoggerVersion>
     <xunitextensibilitycoreVersion>$(xunitVersion)</xunitextensibilitycoreVersion>
-    <xunitrunnerconsoleVersion>2.4.1</xunitrunnerconsoleVersion>
+    <xunitrunnerconsoleVersion>2.4.5</xunitrunnerconsoleVersion>
     <xunitrunnerwpfVersion>1.0.51</xunitrunnerwpfVersion>
-    <xunitrunnervisualstudioVersion>$(xunitVersion)</xunitrunnervisualstudioVersion>
+    <xunitrunnervisualstudioVersion>2.4.5</xunitrunnervisualstudioVersion>
     <xunitextensibilityexecutionVersion>$(xunitVersion)</xunitextensibilityexecutionVersion>
     <runtimeWinX64MicrosoftNETCoreILAsmPackageVersion>$(ILAsmPackageVersion)</runtimeWinX64MicrosoftNETCoreILAsmPackageVersion>
     <runtimeLinuxX64MicrosoftNETCoreILAsmPackageVersion>$(ILAsmPackageVersion)</runtimeLinuxX64MicrosoftNETCoreILAsmPackageVersion>
