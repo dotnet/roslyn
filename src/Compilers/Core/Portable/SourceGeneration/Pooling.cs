@@ -46,16 +46,8 @@ namespace Microsoft.CodeAnalysis
 
         public bool Any(Func<TValue, bool> predicate)
             => Builder.Any(predicate);
-    }
 
-    internal static class PoolingExtensions
-    {
-        public static BuilderAndStatistics<TValue> DequeuePooledItem<TValue>(this ConcurrentQueue<BuilderAndStatistics<TValue>> queue)
-            => queue.TryDequeue(out var item) ? item : new BuilderAndStatistics<TValue> { Builder = ImmutableArray.CreateBuilder<TValue>() };
-
-        public static void ReturnPooledItem<TValue>(
-            this ConcurrentQueue<BuilderAndStatistics<TValue>> queue,
-            BuilderAndStatistics<TValue> item)
+        public void ClearAndReturnToPool(ConcurrentQueue<BuilderAndStatistics<TValue>> pool)
         {
             // Don't bother shrinking the array for arrays less than this capacity.  They're not going to be a
             // huge waste of space so we can just pool them forever.
@@ -80,33 +72,38 @@ namespace Microsoft.CodeAnalysis
             // want to shrink down.  To prevent shrinking and inflating over and over again, we only shrink when
             // we're highly confident we're going to stay small.
 
-            var builder = item.Builder;
-            item.NumberOfTimesPooled++;
+            NumberOfTimesPooled++;
 
             // See if we're pooling something both large and sparse.
-            if (builder.Capacity > MinCapacityToConsiderThreshold &&
-                ((double)builder.Count / builder.Capacity) < SparseThresholdRatio)
+            if (Builder.Capacity > MinCapacityToConsiderThreshold &&
+                ((double)Builder.Count / Builder.Capacity) < SparseThresholdRatio)
             {
-                CodeAnalysisEventSource.Log.PooledWhenSparse(builder.GetType(), builder.Count, builder.Capacity);
-                item.NumberOfTimesPooledWhenSparse++;
+                CodeAnalysisEventSource.Log.PooledWhenSparse(Builder.GetType(), Builder.Count, Builder.Capacity);
+                NumberOfTimesPooledWhenSparse++;
             }
 
-            builder.Clear();
+            Builder.Clear();
 
             // See if this builder has been consistently sparse. If so then time to lower its capacity.
-            if (item.NumberOfTimesPooled > MinTimesPooledToConsiderStatistics &&
-                ((double)item.NumberOfTimesPooledWhenSparse / item.NumberOfTimesPooled) > ConsistentlySparseRatio)
+            if (NumberOfTimesPooled > MinTimesPooledToConsiderStatistics &&
+                ((double)NumberOfTimesPooledWhenSparse / NumberOfTimesPooled) > ConsistentlySparseRatio)
             {
-                CodeAnalysisEventSource.Log.HalvedCapacity(builder.GetType(), builder.Count, builder.Capacity);
-                builder.Capacity /= 2;
+                CodeAnalysisEventSource.Log.HalvedCapacity(Builder.GetType(), Builder.Count, Builder.Capacity);
+                Builder.Capacity /= 2;
 
                 // Reset our statistics.  We'll wait another 100 pooling attempts to reassess if we need to
                 // adjust the capacity here.
-                item.NumberOfTimesPooled = 1;
-                item.NumberOfTimesPooledWhenSparse = 0;
+                NumberOfTimesPooled = 1;
+                NumberOfTimesPooledWhenSparse = 0;
             }
 
-            queue.Enqueue(item);
+            pool.Enqueue(this);
         }
+    }
+
+    internal static class PoolingExtensions
+    {
+        public static BuilderAndStatistics<TValue> DequeuePooledItem<TValue>(this ConcurrentQueue<BuilderAndStatistics<TValue>> queue)
+            => queue.TryDequeue(out var item) ? item : new BuilderAndStatistics<TValue> { Builder = ImmutableArray.CreateBuilder<TValue>() };
     }
 }

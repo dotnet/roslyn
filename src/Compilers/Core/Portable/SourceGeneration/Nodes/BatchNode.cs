@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis
             }
             finally
             {
-                s_builderPool.ReturnPooledItem(sourceValuesBuilder);
+                sourceValuesBuilder.ClearAndReturnToPool(s_builderPool);
             }
         }
 
