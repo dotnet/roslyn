@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 boundAttributes = attributeDataArray.AsImmutableOrNull();
 
                 // All attributes must be bound by now.
-                Debug.Assert(!boundAttributes.Any((attr) => attr == null));
+                Debug.Assert(!boundAttributes.Any(static (attr) => attr == null));
 
                 // Validate attribute usage and Decode remaining well-known attributes.
                 wellKnownAttributeData = this.ValidateAttributeUsageAndDecodeWellKnownAttributes(binders, attributesToBind, boundAttributes, diagnostics, symbolPart);

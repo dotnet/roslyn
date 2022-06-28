@@ -971,5 +971,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return base.VisitWithExpression(node);
         }
+
+        public override BoundNode VisitFunctionPointerInvocation(BoundFunctionPointerInvocation node)
+        {
+            if (_inExpressionLambda)
+            {
+                Error(ErrorCode.ERR_ExpressionTreeContainsPointerOp, node);
+            }
+
+            return base.VisitFunctionPointerInvocation(node);
+        }
     }
 }

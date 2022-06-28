@@ -32,11 +32,6 @@
         <target state="translated">'Program.Main' スタイル プログラムに変換</target>
         <note>{Locked="Program.Main"} this is the C# syntax we are going to generate</note>
       </trans-unit>
-      <trans-unit id="Convert_to_UTF8_string_literal">
-        <source>Convert to UTF-8 string literal</source>
-        <target state="translated">UTF-8 文字列リテラルに変換する</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_to_block_scoped_namespace">
         <source>Convert to block scoped namespace</source>
         <target state="translated">範囲指定されたブロックが設定された namespace に変換</target>

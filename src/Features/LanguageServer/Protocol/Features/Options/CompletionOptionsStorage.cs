@@ -22,7 +22,6 @@ internal static class CompletionOptionsStorage
             ShowNameSuggestions = options.GetOption(ShowNameSuggestions, language),
             ShowItemsFromUnimportedNamespaces = options.GetOption(ShowItemsFromUnimportedNamespaces, language),
             UnnamedSymbolCompletionDisabled = options.GetOption(UnnamedSymbolCompletionDisabledFeatureFlag),
-            TargetTypedCompletionFilter = options.GetOption(TargetTypedCompletionFilterFeatureFlag),
             TypeImportCompletion = options.GetOption(TypeImportCompletionFeatureFlag),
             ProvideDateAndTimeCompletions = options.GetOption(ProvideDateAndTimeCompletions, language),
             ProvideRegexCompletions = options.GetOption(ProvideRegexCompletions, language),
@@ -36,10 +35,6 @@ internal static class CompletionOptionsStorage
     public static readonly Option2<bool> TypeImportCompletionFeatureFlag = new(nameof(CompletionOptions), nameof(TypeImportCompletionFeatureFlag),
         CompletionOptions.Default.TypeImportCompletion,
         new FeatureFlagStorageLocation("Roslyn.TypeImportCompletion"));
-
-    public static readonly Option2<bool> TargetTypedCompletionFilterFeatureFlag = new(nameof(CompletionOptions), nameof(TargetTypedCompletionFilterFeatureFlag),
-        CompletionOptions.Default.TargetTypedCompletionFilter,
-        new FeatureFlagStorageLocation("Roslyn.TargetTypedCompletionFilter"));
 
     public static readonly Option2<bool> UnnamedSymbolCompletionDisabledFeatureFlag = new(nameof(CompletionOptions), nameof(UnnamedSymbolCompletionDisabledFeatureFlag),
         CompletionOptions.Default.UnnamedSymbolCompletionDisabled,

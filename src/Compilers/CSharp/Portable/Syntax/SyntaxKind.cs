@@ -407,6 +407,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Represents <see langword="required"/>.</summary>
         RequiredKeyword = 8447,
 
+        /// <summary>Represents <see langword="file"/>.</summary>
+        FileKeyword = 8448,
+
         // when adding a contextual keyword following functions must be adapted:
         // <see cref="SyntaxFacts.GetContextualKeywordKinds"/>
         // <see cref="SyntaxFacts.IsContextualKeyword(SyntaxKind)"/>

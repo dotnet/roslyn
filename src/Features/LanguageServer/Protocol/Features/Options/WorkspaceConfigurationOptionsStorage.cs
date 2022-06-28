@@ -15,7 +15,8 @@ internal static class WorkspaceConfigurationOptionsStorage
             DisableProjectCacheService: globalOptions.GetOption(DisableProjectCacheService),
             DisableRecoverableTrees: globalOptions.GetOption(DisableRecoverableTrees),
             EnableOpeningSourceGeneratedFiles: globalOptions.GetOption(EnableOpeningSourceGeneratedFilesInWorkspace) ??
-                                               globalOptions.GetOption(EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag));
+                                               globalOptions.GetOption(EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag),
+            DisableCloneWhenProducingSkeletonReferences: globalOptions.GetOption(DisableCloneWhenProducingSkeletonReferences));
 
     public static readonly Option2<StorageDatabase> Database = new(
         "FeatureManager/Storage", nameof(Database), WorkspaceConfigurationOptions.Default.CacheStorage,
@@ -35,6 +36,10 @@ internal static class WorkspaceConfigurationOptionsStorage
     public static readonly Option2<bool> DisableProjectCacheService = new(
         "WorkspaceConfigurationOptions", nameof(DisableProjectCacheService), WorkspaceConfigurationOptions.Default.DisableProjectCacheService,
         new FeatureFlagStorageLocation("Roslyn.DisableProjectCacheService"));
+
+    public static readonly Option2<bool> DisableCloneWhenProducingSkeletonReferences = new(
+        "WorkspaceConfigurationOptions", "DisableCloneWhenProducingSkeletonReferences", WorkspaceConfigurationOptions.Default.DisableCloneWhenProducingSkeletonReferences,
+        new FeatureFlagStorageLocation("Roslyn.DisableCloneWhenProducingSkeletonReferences"));
 
     /// <summary>
     /// This option allows the user to enable this. We are putting this behind a feature flag for now since we could have extensions

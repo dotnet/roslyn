@@ -281,24 +281,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return [mod].SequenceEqual(otherMod)
         End Function
 
-        Private Function HasSameTupleNames(t1 As TypeSymbol, t2 As TypeSymbol) As Boolean
-            Debug.Assert(t1.IsTupleType And t2.IsTupleType)
-
-            Dim t1Names = t1.TupleElementNames
-            Dim t2Names = t2.TupleElementNames
-
-            If t1Names.IsDefault AndAlso t2Names.IsDefault Then
-                Return True
-            End If
-
-            If t1Names.IsDefault OrElse t2Names.IsDefault Then
-                Return False
-            End If
-            Debug.Assert(t1Names.Length = t2Names.Length)
-
-            Return t1Names.SequenceEqual(t2Names, AddressOf IdentifierComparison.Equals)
-        End Function
-
         <Extension()>
         Public Function GetSpecialTypeSafe(this As TypeSymbol) As SpecialType
             Return If(this IsNot Nothing, this.SpecialType, SpecialType.None)

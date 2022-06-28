@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,7 +19,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public const string ComplexArrayReceiverTypeName = "[]";
         public const string ArrayReceiverTypeNameSuffix = "[]";
 
-        public static async Task<IEnumerable<SyntaxToken>> GetConstructorInitializerTokensAsync(this Document document, SemanticModel model, CancellationToken cancellationToken)
+        public static async Task<IEnumerable<SyntaxToken>> GetConstructorInitializerTokensAsync(
+            this Document document, SemanticModel model, CancellationToken cancellationToken)
         {
             var root = await model.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
@@ -31,7 +30,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return SpecializedCollections.EmptyEnumerable<SyntaxToken>();
             }
 
-            return FindReferenceCache.GetConstructorInitializerTokens(syntaxFacts, model, root, cancellationToken);
+            return FindReferenceCache.GetCache(model).GetConstructorInitializerTokens(syntaxFacts, root, cancellationToken);
         }
 
         internal static bool TextMatch(this ISyntaxFactsService syntaxFacts, string text1, string text2)

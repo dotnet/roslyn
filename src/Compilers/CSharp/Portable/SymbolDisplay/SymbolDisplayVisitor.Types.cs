@@ -6,6 +6,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -179,6 +180,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             VisitNamedTypeWithoutNullability(symbol);
             AddNullableAnnotations(symbol);
+
+            if ((format.CompilerInternalOptions & SymbolDisplayCompilerInternalOptions.IncludeContainingFileForFileTypes) != 0
+                // PROTOTYPE(ft): public API?
+                && symbol.GetSymbol() is SourceMemberContainerTypeSymbol { IsFile: true } fileType)
+            {
+                var tree = symbol.DeclaringSyntaxReferences[0].SyntaxTree;
+                var fileDescription = tree.FilePath is { Length: not 0 } path
+                    ? Path.GetFileNameWithoutExtension(path)
+                    : $"<tree {fileType.DeclaringCompilation.SyntaxTrees.IndexOf(tree)}>";
+
+                builder.Add(CreatePart(SymbolDisplayPartKind.Punctuation, symbol, "@"));
+                builder.Add(CreatePart(SymbolDisplayPartKind.ModuleName, symbol, fileDescription));
+            }
         }
 
         private void VisitNamedTypeWithoutNullability(INamedTypeSymbol symbol)
@@ -274,7 +288,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (IncludeNamedType(symbol.ContainingType))
                 {
                     symbol.ContainingType.Accept(this.NotFirstVisitor);
-                    AddPunctuation(SyntaxKind.DotToken);
+
+                    if (format.CompilerInternalOptions.HasFlag(SymbolDisplayCompilerInternalOptions.UsePlusForNestedTypes))
+                    {
+                        AddPunctuation(SyntaxKind.PlusToken);
+                    }
+                    else
+                    {
+                        AddPunctuation(SyntaxKind.DotToken);
+                    }
                 }
             }
 
@@ -493,7 +515,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                return modifiers.Any(m => !m.IsEmpty);
+                return modifiers.Any(static m => !m.IsEmpty);
             }
         }
 
@@ -504,7 +526,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool HasNonDefaultTupleElements(INamedTypeSymbol tupleSymbol)
         {
-            return tupleSymbol.TupleElements.Any(e => !e.IsDefaultTupleElement());
+            return tupleSymbol.TupleElements.Any(static e => !e.IsDefaultTupleElement());
         }
 
         private void AddTupleTypeName(INamedTypeSymbol symbol)

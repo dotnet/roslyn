@@ -904,7 +904,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static bool IsAsRestrictive(NamedTypeSymbol s1, Symbol sym2, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        internal static bool IsAsRestrictive(this Symbol s1, Symbol sym2, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Accessibility acc1 = s1.DeclaredAccessibility;
 
@@ -1353,6 +1353,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static bool IsPartial(this TypeSymbol type)
         {
             return type is SourceNamedTypeSymbol { IsPartial: true };
+        }
+
+        public static bool IsFileTypeOrUsesFileTypes(this TypeSymbol type)
+        {
+            var foundType = type.VisitType(predicate: (type, _, _) => type is SourceMemberContainerTypeSymbol { IsFile: true }, arg: (object?)null);
+            return foundType is not null;
         }
 
         public static bool IsPointerType(this TypeSymbol type)

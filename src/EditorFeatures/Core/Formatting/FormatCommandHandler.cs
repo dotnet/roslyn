@@ -60,14 +60,14 @@ namespace Microsoft.CodeAnalysis.Formatting
             _globalOptions = globalOptions;
         }
 
-        private void Format(ITextView textView, Document document, TextSpan? selectionOpt, CancellationToken cancellationToken)
+        private void Format(ITextView textView, ITextBuffer textBuffer, Document document, TextSpan? selectionOpt, CancellationToken cancellationToken)
         {
             var formattingService = document.GetRequiredLanguageService<IFormattingInteractionService>();
 
             using (Logger.LogBlock(FunctionId.CommandHandler_FormatCommand, KeyValueLogMessage.Create(LogType.UserAction, m => m["Span"] = selectionOpt?.Length ?? -1), cancellationToken))
             using (var transaction = CreateEditTransaction(textView, EditorFeaturesResources.Formatting))
             {
-                var changes = formattingService.GetFormattingChangesAsync(document, selectionOpt, cancellationToken).WaitAndGetResult(cancellationToken);
+                var changes = formattingService.GetFormattingChangesAsync(document, textBuffer, selectionOpt, cancellationToken).WaitAndGetResult(cancellationToken);
                 if (changes.IsEmpty)
                 {
                     return;
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 var ruleFactory = document.Project.Solution.Workspace.Services.GetRequiredService<IHostDependentFormattingRuleFactoryService>();
 
-                changes = ruleFactory.FilterFormattedChanges(document, selectionOpt.Value, changes).ToList();
+                changes = ruleFactory.FilterFormattedChanges(document.Id, selectionOpt.Value, changes).ToList();
                 if (changes.Count == 0)
                 {
                     return;
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 }
 
                 textChanges = service.GetFormattingChangesAsync(
-                    document, typeCharArgs.TypedChar, caretPosition.Value, cancellationToken).WaitAndGetResult(cancellationToken);
+                    document, typeCharArgs.SubjectBuffer, typeCharArgs.TypedChar, caretPosition.Value, cancellationToken).WaitAndGetResult(cancellationToken);
             }
             else
             {

@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
                 {
                     var typeParameter = GetUniqueTypeParameter(
                         genericName.TypeArgumentList.Arguments.First(),
-                        s => !State.TypeToGenerateIn.GetAllTypeParameters().Any(t => t.Name == s),
+                        s => !State.TypeToGenerateIn.GetAllTypeParameters().Any(static (t, s) => t.Name == s, s),
                         cancellationToken);
 
                     return ImmutableArray.Create(typeParameter);
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
                     {
                         var typeParameter = GetUniqueTypeParameter(
                             type,
-                            s => !usedIdentifiers.Contains(s) && !State.TypeToGenerateIn.GetAllTypeParameters().Any(t => t.Name == s),
+                            s => !usedIdentifiers.Contains(s) && !State.TypeToGenerateIn.GetAllTypeParameters().Any(static (t, s) => t.Name == s, s),
                             cancellationToken);
 
                         usedIdentifiers.Add(typeParameter.Name);

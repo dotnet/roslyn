@@ -473,16 +473,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Next
         End Function
 
-        Private Overloads Function GetReferencedAssemblySymbol(assemblyRef As AssemblyReferenceHandle) As AssemblySymbol
-            Dim referencedAssemblyIndex As Integer
-            Try
-                referencedAssemblyIndex = Me.Module.GetAssemblyReferenceIndexOrThrow(assemblyRef)
-            Catch ex As BadImageFormatException
-                Return Nothing
-            End Try
-            Return GetReferencedAssemblySymbol(referencedAssemblyIndex)
-        End Function
-
         Public Overrides Function GetMetadata() As ModuleMetadata
             Return _module.GetNonDisposableMetadata()
         End Function

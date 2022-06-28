@@ -5,13 +5,17 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
+using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -22,7 +26,12 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentHighlighting
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpDocumentHighlightsService()
+        public CSharpDocumentHighlightsService(
+            [ImportMany] IEnumerable<Lazy<IEmbeddedLanguageDocumentHighlighter, EmbeddedLanguageMetadata>> services)
+            : base(LanguageNames.CSharp,
+                  CSharpEmbeddedLanguagesProvider.Info,
+                  CSharpSyntaxKinds.Instance,
+                  services)
         {
         }
 

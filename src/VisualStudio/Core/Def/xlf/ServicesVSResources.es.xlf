@@ -467,6 +467,21 @@
         <target state="translated">Corregir texto pegado en literales de cadena (experimental)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fix_analyzer_warnings_and_errors">
+        <source>Fix analyzer warnings and errors</source>
+        <target state="new">Fix analyzer warnings and errors</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_all_warnings_and_errors_set_in_EditorConfig">
+        <source>Fix all warnings and errors set in EditorConfig</source>
+        <target state="new">Fix all warnings and errors set in EditorConfig</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_analyzer_warnings_and_errors_set_in_EditorConfig">
+        <source>Fix analyzer warnings and errors set in EditorConfig</source>
+        <target state="new">Fix analyzer warnings and errors set in EditorConfig</target>
+        <note />
+      </trans-unit>
       <trans-unit id="For_non_interface_members">
         <source>For non interface members</source>
         <target state="translated">Para miembros que no son de interfaz</target>
@@ -1162,9 +1177,19 @@
         <target state="translated">Eliminar instrucciones Using innecesarias</target>
         <note />
       </trans-unit>
+      <trans-unit id="Rename">
+        <source>Rename</source>
+        <target state="new">Rename</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Rename_0_to_1">
         <source>Rename {0} to {1}</source>
         <target state="translated">Cambiar nombre de {0} a {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_asynchronously_experimental">
+        <source>Rename asynchronously experimental</source>
+        <target state="new">Rename asynchronously experimental</target>
         <note />
       </trans-unit>
       <trans-unit id="Report_invalid_JSON_strings">
@@ -1355,6 +1380,11 @@
       <trans-unit id="Sort_usings">
         <source>Sort usings</source>
         <target state="translated">Ordenar instrucciones Using</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Stack_Trace">
+        <source>Stack Trace</source>
+        <target state="new">Stack Trace</target>
         <note />
       </trans-unit>
       <trans-unit id="Stack_Trace_Explorer">

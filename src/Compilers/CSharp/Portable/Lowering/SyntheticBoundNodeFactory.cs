@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private sealed class SyntheticBinderImpl : BuckStopsHereBinder
         {
             private readonly SyntheticBoundNodeFactory _factory;
-            internal SyntheticBinderImpl(SyntheticBoundNodeFactory factory) : base(factory.Compilation)
+            internal SyntheticBinderImpl(SyntheticBoundNodeFactory factory) : base(factory.Compilation, associatedSyntaxTree: null)
             {
                 _factory = factory;
             }
@@ -641,6 +641,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundBinaryOperator IntSubtract(BoundExpression left, BoundExpression right)
         {
             return Binary(BinaryOperatorKind.IntSubtraction, SpecialType(CodeAnalysis.SpecialType.System_Int32), left, right);
+        }
+
+        public BoundBinaryOperator IntMultiply(BoundExpression left, BoundExpression right)
+        {
+            return Binary(BinaryOperatorKind.IntMultiplication, SpecialType(CodeAnalysis.SpecialType.System_Int32), left, right);
         }
 
         public BoundLiteral Literal(byte value)
@@ -1539,7 +1544,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal ImmutableArray<BoundExpression> MakeTempsForDiscardArguments(ImmutableArray<BoundExpression> arguments, ArrayBuilder<LocalSymbol> builder)
         {
-            var discardsPresent = arguments.Any(a => a.Kind == BoundKind.DiscardExpression);
+            var discardsPresent = arguments.Any(static a => a.Kind == BoundKind.DiscardExpression);
 
             if (discardsPresent)
             {

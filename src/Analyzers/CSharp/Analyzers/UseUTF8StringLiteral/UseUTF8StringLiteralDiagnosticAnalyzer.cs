@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -35,7 +36,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
                 EnforceOnBuildValues.UseUTF8StringLiteral,
                 CSharpCodeStyleOptions.PreferUtf8StringLiterals,
                 LanguageNames.CSharp,
-                new LocalizableResourceString(nameof(CSharpAnalyzersResources.Convert_to_UTF8_string_literal), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                 new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_UTF8_string_literal), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
         }
@@ -49,10 +49,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
                 if (!context.Compilation.LanguageVersion().IsCSharp11OrAbove())
                     return;
 
+                if (context.Compilation.GetBestTypeByMetadataName(typeof(ReadOnlySpan<>).FullName!) is null)
+                    return;
+
                 var expressionType = context.Compilation.GetTypeByMetadataName(typeof(System.Linq.Expressions.Expression<>).FullName!);
 
-                // Temporarily disabling, https://github.com/dotnet/roslyn/issues/61517 tracks the follow up work  
-                // context.RegisterOperationAction(c => AnalyzeOperation(c, expressionType), OperationKind.ArrayCreation);
+                context.RegisterOperationAction(c => AnalyzeOperation(c, expressionType), OperationKind.ArrayCreation);
             });
 
         private void AnalyzeOperation(OperationAnalysisContext context, INamedTypeSymbol? expressionType)

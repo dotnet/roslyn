@@ -87,9 +87,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' An array of members in declaration order.
         Private _lazyMembersFlattened As ImmutableArray(Of Symbol)
 
-        ' Type parameters (Nothing if not created yet)
-        Private _lazyTypeParameters As ImmutableArray(Of TypeParameterSymbol)
-
         Private _lazyEmitExtensionAttribute As ThreeState = ThreeState.Unknown
         Private _lazyContainsExtensionMethods As ThreeState = ThreeState.Unknown
         Private _lazyAnyMemberHasAttributes As ThreeState = ThreeState.Unknown

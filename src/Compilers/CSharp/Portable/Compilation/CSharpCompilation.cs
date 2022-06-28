@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_conversions == null)
                 {
-                    Interlocked.CompareExchange(ref _conversions, new BuckStopsHereBinder(this).Conversions, null);
+                    Interlocked.CompareExchange(ref _conversions, new BuckStopsHereBinder(this, associatedSyntaxTree: null).Conversions, null);
                 }
 
                 return _conversions;
@@ -3800,7 +3800,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 memberTypes[i].EnsureCSharpSymbolOrNull($"{nameof(memberTypes)}[{i}]");
             }
 
-            if (!memberIsReadOnly.IsDefault && memberIsReadOnly.Any(v => !v))
+            if (!memberIsReadOnly.IsDefault && memberIsReadOnly.Any(static v => !v))
             {
                 throw new ArgumentException($"Non-ReadOnly members are not supported in C# anonymous types.");
             }

@@ -98,6 +98,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_BadVisDelegateReturn, delegateType.Locations[0], delegateType, invoke.ReturnType);
             }
 
+            var delegateTypeIsFile = delegateType.IsFileTypeOrUsesFileTypes();
+            if (!delegateTypeIsFile && invoke.ReturnType.IsFileTypeOrUsesFileTypes())
+            {
+                diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, delegateType.Locations[0], invoke.ReturnType, delegateType);
+            }
+
             for (int i = 0; i < invoke.Parameters.Length; i++)
             {
                 var parameterSymbol = invoke.Parameters[i];
@@ -105,6 +111,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     // Inconsistent accessibility: parameter type '{1}' is less accessible than delegate '{0}'
                     diagnostics.Add(ErrorCode.ERR_BadVisDelegateParam, delegateType.Locations[0], delegateType, parameterSymbol.Type);
+                }
+                else if (!delegateTypeIsFile && parameterSymbol.Type.IsFileTypeOrUsesFileTypes())
+                {
+                    diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, delegateType.Locations[0], parameterSymbol.Type, delegateType);
                 }
             }
 

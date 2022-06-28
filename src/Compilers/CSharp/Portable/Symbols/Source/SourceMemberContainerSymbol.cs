@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private const int NullableContextSize = 3;
 
             private const int HasDeclaredRequiredMembersOffset = NullableContextOffset + NullableContextSize;
-            private const int HasDeclaredRequiredMembersSize = 2;
+            //private const int HasDeclaredRequiredMembersSize = 2;
 
             private const int SpecialTypeMask = (1 << SpecialTypeSize) - 1;
             private const int ManagedKindMask = (1 << ManagedKindSize) - 1;
@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             : base(tupleData)
         {
             // If we're dealing with a simple program, then we must be in the global namespace
-            Debug.Assert(containingSymbol is NamespaceSymbol { IsGlobalNamespace: true } || !declaration.Declarations.Any(d => d.IsSimpleProgram));
+            Debug.Assert(containingSymbol is NamespaceSymbol { IsGlobalNamespace: true } || !declaration.Declarations.Any(static d => d.IsSimpleProgram));
 
             _containingSymbol = containingSymbol;
             this.declaration = declaration;
@@ -274,7 +274,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Symbol containingSymbol = this.ContainingSymbol;
             DeclarationModifiers defaultAccess;
-            var allowedModifiers = DeclarationModifiers.AccessibilityMask;
+            // PROTOTYPE(ft): confirm whether 'file' types can be nested
+            var allowedModifiers = DeclarationModifiers.AccessibilityMask | DeclarationModifiers.File;
 
             if (containingSymbol.Kind == SymbolKind.Namespace)
             {
@@ -395,12 +396,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // It is an error for the same modifier to appear multiple times.
                     if (!modifierErrors)
                     {
-                        var info = ModifierUtils.CheckAccessibility(mods, this, isExplicitInterfaceImplementation: false);
-                        if (info != null)
-                        {
-                            diagnostics.Add(info, this.Locations[0]);
-                            modifierErrors = true;
-                        }
+                        modifierErrors = ModifierUtils.CheckAccessibility(mods, this, isExplicitInterfaceImplementation: false, diagnostics, Locations[0]);
                     }
                 }
 
@@ -418,6 +414,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((result & DeclarationModifiers.AccessibilityMask) == 0)
             {
                 result |= defaultAccess;
+            }
+            else if ((result & DeclarationModifiers.File) != 0)
+            {
+                diagnostics.Add(ErrorCode.ERR_FileTypeNoExplicitAccessibility, Locations[0], this);
             }
 
             if (missingPartial)
@@ -824,6 +824,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal bool IsNew => HasFlag(DeclarationModifiers.New);
 
+        internal bool IsFile => HasFlag(DeclarationModifiers.File);
+
+        /// <summary>If this symbol is only available within a single syntax tree, returns that syntax tree. Otherwise, returns null.</summary>
+        internal SyntaxTree? AssociatedSyntaxTree => IsFile ? declaration.Declarations[0].Location.SourceTree : null;
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool HasFlag(DeclarationModifiers flag) => (_declModifiers & flag) != 0;
 
@@ -1017,8 +1022,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(!instanceInitializers.IsDefault);
                 Debug.Assert(instanceInitializers.All(g => !g.IsDefault));
 
-                Debug.Assert(!nonTypeMembers.Any(s => s is TypeSymbol));
-                Debug.Assert(haveIndexers == nonTypeMembers.Any(s => s.IsIndexer()));
+                Debug.Assert(!nonTypeMembers.Any(static s => s is TypeSymbol));
+                Debug.Assert(haveIndexers == nonTypeMembers.Any(static s => s.IsIndexer()));
 
                 this.NonTypeMembers = nonTypeMembers;
                 this.StaticInitializers = staticInitializers;
@@ -1267,7 +1272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private Dictionary<string, ImmutableArray<NamedTypeSymbol>> MakeTypeMembers(BindingDiagnosticBag diagnostics)
         {
             var symbols = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-            var conflictDict = new Dictionary<(string, int), SourceNamedTypeSymbol>();
+            var conflictDict = new Dictionary<(string name, int arity, SyntaxTree? syntaxTree), SourceNamedTypeSymbol>();
             try
             {
                 foreach (var childDeclaration in declaration.Children)
@@ -1275,7 +1280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var t = new SourceNamedTypeSymbol(this, childDeclaration, diagnostics);
                     this.CheckMemberNameDistinctFromType(t, diagnostics);
 
-                    var key = (t.Name, t.Arity);
+                    var key = (t.Name, t.Arity, t.AssociatedSyntaxTree);
                     SourceNamedTypeSymbol? other;
                     if (conflictDict.TryGetValue(key, out other))
                     {
@@ -1673,6 +1678,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckForUnmatchedOperators(diagnostics);
             CheckForRequiredMemberAttribute(diagnostics);
 
+            if (IsScriptClass || IsSubmissionClass)
+            {
+                ReportRequiredMembers(diagnostics);
+            }
+
             var location = Locations[0];
             var compilation = DeclaringCompilation;
 
@@ -1692,7 +1702,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (compilation.ShouldEmitNativeIntegerAttributes())
             {
                 // https://github.com/dotnet/roslyn/issues/30080: Report diagnostics for base type and interfaces at more specific locations.
-                if (hasBaseTypeOrInterface(t => t.ContainsNativeIntegerWrapperType()))
+                if (hasBaseTypeOrInterface(static t => t.ContainsNativeIntegerWrapperType()))
                 {
                     compilation.EnsureNativeIntegerAttributeExists(diagnostics, location, modifyCompilation: true);
                 }
@@ -1705,13 +1715,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     compilation.EnsureNullableContextAttributeExists(diagnostics, location, modifyCompilation: true);
                 }
 
-                if (hasBaseTypeOrInterface(t => t.NeedsNullableAttribute()))
+                if (hasBaseTypeOrInterface(static t => t.NeedsNullableAttribute()))
                 {
                     compilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
                 }
             }
 
-            if (interfaces.Any(t => needsTupleElementNamesAttribute(t)))
+            if (interfaces.Any(needsTupleElementNamesAttribute))
             {
                 // Note: we don't need to check base type or directly implemented interfaces (which will be reported during binding)
                 // so the checking of all interfaces here involves some redundancy.
@@ -2475,6 +2485,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        private void ReportRequiredMembers(BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(IsSubmissionClass || IsScriptClass);
+
+            foreach (var member in GetMembersUnordered())
+            {
+                if (member.IsRequired())
+                {
+                    // Required members are not allowed on the top level of a script or submission.
+                    diagnostics.Add(ErrorCode.ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers, member.Locations[0]);
+                }
+            }
+        }
+
         private bool TypeOverridesObjectMethod(string name)
         {
             foreach (var method in this.GetMembers(name).OfType<MethodSymbol>())
@@ -2755,7 +2779,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AssertInitializers(staticInitializers, compilation);
                 AssertInitializers(instanceInitializers, compilation);
 
-                Debug.Assert(!nonTypeMembers.Any(s => s is TypeSymbol));
+                Debug.Assert(!nonTypeMembers.Any(static s => s is TypeSymbol));
                 Debug.Assert(recordDeclarationWithParameters is object == recordPrimaryConstructor is object);
 
                 this.NonTypeMembers = nonTypeMembers;
@@ -4355,7 +4379,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             static bool hasNonConstantInitializer(ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> initializers)
             {
-                return initializers.Any(siblings => siblings.Any(initializer => !initializer.FieldOpt.IsConst));
+                return initializers.Any(static siblings => siblings.Any(static initializer => !initializer.FieldOpt.IsConst));
             }
         }
 

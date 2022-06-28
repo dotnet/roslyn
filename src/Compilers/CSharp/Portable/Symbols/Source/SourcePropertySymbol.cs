@@ -452,6 +452,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add((this.IsIndexer ? ErrorCode.ERR_BadVisIndexerReturn : ErrorCode.ERR_BadVisPropertyType), Location, this, type.Type);
             }
 
+            if (type.Type.IsFileTypeOrUsesFileTypes() && !ContainingType.IsFileTypeOrUsesFileTypes())
+            {
+                // PROTOTYPE(ft): should explicit interface implementations be allowed to use file types in signatures?
+                diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, Location, type.Type, ContainingType);
+            }
+
             diagnostics.Add(Location, useSiteInfo);
 
             if (type.IsVoidType())
@@ -528,6 +534,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (!IsExplicitInterfaceImplementation && !this.IsNoMoreVisibleThan(param.Type, ref useSiteInfo))
                 {
                     diagnostics.Add(ErrorCode.ERR_BadVisIndexerParam, Location, this, param.Type);
+                }
+                else if (param.Type.IsFileTypeOrUsesFileTypes() && !this.ContainingType.IsFileTypeOrUsesFileTypes())
+                {
+                    diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, Location, param.Type, this.ContainingType);
                 }
                 else if (SetMethod is object && param.Name == ParameterSymbol.ValueParameterName)
                 {

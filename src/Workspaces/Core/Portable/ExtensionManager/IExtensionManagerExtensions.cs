@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Extensions
             {
                 var query = from e in extensions
                             let types = extensionManager.PerformFunction(e, () => nodeTypeGetter(e), ImmutableArray<Type>.Empty)
-                            where !types.Any() || types.Any(t2 => t1 == t2 || t1.GetTypeInfo().IsSubclassOf(t2))
+                            where !types.Any() || types.Any(static (t2, t1) => t1 == t2 || t1.GetTypeInfo().IsSubclassOf(t2), t1)
                             select e;
 
                 return query.ToImmutableArray();

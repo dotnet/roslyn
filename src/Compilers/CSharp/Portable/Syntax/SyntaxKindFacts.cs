@@ -1138,7 +1138,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static IEnumerable<SyntaxKind> GetContextualKeywordKinds()
         {
-            for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.RequiredKeyword; i++)
+            for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.FileKeyword; i++)
             {
                 yield return (SyntaxKind)i;
             }
@@ -1192,6 +1192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ManagedKeyword:
                 case SyntaxKind.UnmanagedKeyword:
                 case SyntaxKind.RequiredKeyword:
+                case SyntaxKind.FileKeyword:
                     return true;
                 default:
                     return false;
@@ -1313,6 +1314,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.UnmanagedKeyword;
                 case "required":
                     return SyntaxKind.RequiredKeyword;
+                case "file":
+                    return SyntaxKind.FileKeyword;
                 default:
                     return SyntaxKind.None;
             }
@@ -1754,6 +1757,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "unmanaged";
                 case SyntaxKind.RequiredKeyword:
                     return "required";
+                case SyntaxKind.FileKeyword:
+                    return "file";
                 default:
                     return string.Empty;
             }
