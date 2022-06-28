@@ -94,10 +94,11 @@ namespace Microsoft.CodeAnalysis
 
                 // If we're producing the exact same values as the last time, then just point at the prior array
                 // wholesale to avoid a costly copy.
-                if (previousTable.Count == 1 &&
-                    sourceValuesBuilder.Builder.SequenceEqual(previousTable.Single().item, EqualityComparer<TInput>.Default))
+                if (previousTable.Count == 1)
                 {
-                    return (previousTable.Single().item, sourceInputs);
+                    var previousItems = previousTable.Single().item;
+                    if (sourceValuesBuilder.Builder.SequenceEqual(previousItems, EqualityComparer<TInput>.Default))
+                        return (previousItems, sourceInputs);
                 }
 
                 return (sourceValuesBuilder.ToImmutable(), sourceInputs);
