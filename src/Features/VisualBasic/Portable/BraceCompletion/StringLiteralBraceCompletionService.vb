@@ -23,16 +23,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.BraceCompletion
         Protected Overrides ReadOnly Property OpeningBrace As Char = DoubleQuote.OpenCharacter
         Protected Overrides ReadOnly Property ClosingBrace As Char = DoubleQuote.CloseCharacter
 
-        Public Overrides Function AllowOverType(context As BraceCompletionContext, cancellationToken As CancellationToken) As Boolean
-            Return AllowOverTypeWithValidClosingToken(context)
+        Public Overrides Function AllowOverTypeAsync(context As BraceCompletionContext, cancellationToken As CancellationToken) As Task(Of Boolean)
+            Return AllowOverTypeWithValidClosingTokenAsync(context, cancellationToken)
         End Function
 
-        Public Overrides Function CanProvideBraceCompletion(brace As Char, openingPosition As Integer, document As ParsedDocument, cancellationToken As CancellationToken) As Boolean
-            If OpeningBrace = brace And InterpolatedStringBraceCompletionService.IsPositionInInterpolatedStringContext(document, openingPosition) Then
+        Public Overrides Async Function CanProvideBraceCompletionAsync(brace As Char, openingPosition As Integer, document As Document, cancellationToken As CancellationToken) As Task(Of Boolean)
+            If (OpeningBrace = brace And Await InterpolatedStringBraceCompletionService.IsPositionInInterpolatedStringContextAsync(document, openingPosition, cancellationToken).ConfigureAwait(False)) Then
                 Return False
             End If
 
-            Return MyBase.CanProvideBraceCompletion(brace, openingPosition, document, cancellationToken)
+            Return Await MyBase.CanProvideBraceCompletionAsync(brace, openingPosition, document, cancellationToken).ConfigureAwait(False)
         End Function
 
         Protected Overrides Function IsValidOpeningBraceToken(token As SyntaxToken) As Boolean

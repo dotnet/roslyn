@@ -80,7 +80,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 End If
 
                 ' create commit formatting cleanup provider that has line commit specific behavior
-                Dim formattingOptions = buffer.GetSyntaxFormattingOptions(_editorOptionsFactory, _indentationManager, _globalOptions, document.Project.LanguageServices, isExplicitFormat)
+                Dim fallbackOptions = _globalOptions.GetVisualBasicSyntaxFormattingOptions()
+                Dim formattingOptions = _indentationManager.GetInferredFormattingOptions(buffer, _editorOptionsFactory, document.Project.LanguageServices, fallbackOptions, isExplicitFormat)
                 Dim commitFormattingCleanup = GetCommitFormattingCleanupProvider(
                     document.Id,
                     document.Project.LanguageServices,
