@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis
             if (statistics.NumberOfTimesPooled > MinTimesPooledToConsiderStatistics &&
                 ((double)statistics.NumberOfTimesPooledWhenSparse / statistics.NumberOfTimesPooled) > ConsistentlySparseRatio)
             {
-                // Console.WriteLine($"Halved capacity: {builder.GetType()} {statistics.NumberOfTimesPooledWhenSparse} / {statistics.NumberOfTimesPooled}");
+                CodeAnalysisEventSource.Log.HalvedCapacity(builder.GetType(), statistics.NumberOfTimesPooledWhenSparse, statistics.NumberOfTimesPooled);
                 builder.Capacity /= 2;
 
                 // Reset our statistics.  We'll wait another 100 pooling attempts to reassess if we need to
