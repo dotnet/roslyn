@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices
     /// <summary>
     /// Interaction logic for DocumentOutlineControl.xaml
     /// </summary>
-    internal partial class DocumentOutlineControl : UserControl, IOleCommandTarget, IVsCodeWindowEvents
+    internal partial class DocumentOutlineControl : UserControl, IVsCodeWindowEvents
     {
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
         public IVsCodeWindow CodeWindow { get; }
@@ -365,19 +365,6 @@ namespace Microsoft.VisualStudio.LanguageServices
                     activeTextView.Caret.PositionChanged += Caret_PositionChanged;
                 }
             }
-        }
-
-        internal const int OLECMDERR_E_NOTSUPPORTED = unchecked((int)0x80040100);
-
-        public int QueryStatus(ref Guid pguidCmdGroup, uint cCmds, OLECMD[] prgCmds, IntPtr pCmdText)
-        {
-            // we don't support any commands like rename/undo in this view yet
-            return OLECMDERR_E_NOTSUPPORTED;
-        }
-
-        public int Exec(ref Guid pguidCmdGroup, uint nCmdID, uint nCmdexecopt, IntPtr pvaIn, IntPtr pvaOut)
-        {
-            return VSConstants.S_OK;
         }
     }
 }

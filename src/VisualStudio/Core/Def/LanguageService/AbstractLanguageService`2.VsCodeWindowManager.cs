@@ -251,7 +251,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 };
 
                 phwnd = _documentOutlineViewHost.Handle;
-                ppCmdTarget = _documentOutlineView;
+                ppCmdTarget = null;
+
                 Logger.Log(FunctionId.DocumentOutline_WindowOpen);
 
                 return VSConstants.S_OK;
