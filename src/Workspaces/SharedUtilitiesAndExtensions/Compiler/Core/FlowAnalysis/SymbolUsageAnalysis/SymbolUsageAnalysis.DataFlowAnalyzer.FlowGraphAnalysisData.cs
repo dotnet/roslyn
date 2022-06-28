@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 {
@@ -71,6 +72,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     ControlFlowGraph controlFlowGraph,
                     ISymbol owningSymbol,
                     ImmutableArray<IParameterSymbol> parameters,
+                    ImmutableHashSet<ILocalSymbol> capturedLocals,
                     PooledDictionary<BasicBlock, BasicBlockAnalysisData> analysisDataByBasicBlockMap,
                     PooledDictionary<(ISymbol symbol, IOperation operation), bool> symbolsWriteMap,
                     PooledHashSet<ISymbol> symbolsRead,
@@ -83,6 +85,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     ControlFlowGraph = controlFlowGraph;
                     OwningSymbol = owningSymbol;
                     _parameters = parameters;
+                    CapturedLocals = capturedLocals;
                     _analysisDataByBasicBlockMap = analysisDataByBasicBlockMap;
                     _analyzeLocalFunctionOrLambdaInvocation = analyzeLocalFunctionOrLambdaInvocation;
                     _reachingDelegateCreationTargets = reachingDelegateCreationTargets;
@@ -108,6 +111,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 
                 protected override PooledHashSet<IMethodSymbol> LambdaOrLocalFunctionsBeingAnalyzed { get; }
 
+                public ImmutableHashSet<ILocalSymbol> CapturedLocals { get; }
+
                 public static FlowGraphAnalysisData Create(
                     ControlFlowGraph cfg,
                     ISymbol owningSymbol,
@@ -120,6 +125,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                         cfg,
                         owningSymbol,
                         parameters,
+                        capturedLocals: GetCapturedLocals(cfg),
                         analysisDataByBasicBlockMap: CreateAnalysisDataByBasicBlockMap(cfg),
                         symbolsWriteMap: CreateSymbolsWriteMap(parameters),
                         symbolsRead: PooledHashSet<ISymbol>.GetInstance(),
@@ -144,6 +150,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                         cfg,
                         lambdaOrLocalFunction,
                         parameters,
+                        capturedLocals: parentAnalysisData.CapturedLocals,
                         analysisDataByBasicBlockMap: CreateAnalysisDataByBasicBlockMap(cfg),
                         symbolsWriteMap: UpdateSymbolsWriteMap(parentAnalysisData.SymbolsWriteBuilder, parameters),
                         symbolsRead: parentAnalysisData.SymbolsReadBuilder,
@@ -172,6 +179,25 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 /// Flow captures for l-value or address captures.
                 /// </summary>
                 public ImmutableDictionary<CaptureId, FlowCaptureKind> LValueFlowCapturesInGraph { get; }
+
+                /// <summary>
+                /// 
+                /// </summary>
+                /// <returns></returns>
+                private static ImmutableHashSet<ILocalSymbol> GetCapturedLocals(ControlFlowGraph cfg)
+                {
+                    using var _ = PooledHashSet<ILocalSymbol>.GetInstance(out var builder);
+                    foreach (var operation in cfg.OriginalOperation.Descendants())
+                    {
+                        if (operation.Kind is OperationKind.LocalFunction or OperationKind.AnonymousFunction)
+                        {
+                            var dataFlow = operation.SemanticModel.AnalyzeDataFlow(operation.Syntax);
+                            builder.AddRange(dataFlow.Captured.OfType<ILocalSymbol>());
+                        }
+                    }
+
+                    return builder.ToImmutableHashSet();
+                }
 
                 public BasicBlockAnalysisData GetBlockAnalysisData(BasicBlock basicBlock)
                     => _analysisDataByBasicBlockMap[basicBlock];

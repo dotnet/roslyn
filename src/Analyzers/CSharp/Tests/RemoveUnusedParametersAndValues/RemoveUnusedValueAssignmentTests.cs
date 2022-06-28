@@ -8908,8 +8908,10 @@ namespace ConsoleApp
         }
 
         [WorkItem(57650, "https://github.com/dotnet/roslyn/issues/57650")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
-        public async Task NotUnusedVarInParenthesizedLambdaTest()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task UseInLambda_WithInvocationOutsideLocalScope(string optionName)
         {
             await TestMissingInRegularAndScriptAsync(
 @"using System;
@@ -8925,7 +8927,7 @@ class C
         }
         act();
     }
-}");
+}", optionName);
         }
     }
 }
