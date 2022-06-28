@@ -365,14 +365,12 @@ namespace Microsoft.CodeAnalysis
                     return NodeStateTable<T>.Empty;
                 }
 
-                var steps = TrackIncrementalSteps ? _steps.ToImmutableAndFree() : default;
-
                 var hasNonCached = _states.Any(static s => !s.IsCached);
-                var isCompacted = !hasNonCached;
-
                 return new NodeStateTable<T>(
                     _states.ToImmutableAndFree(),
-                    steps, isCompacted, hasTrackedSteps: TrackIncrementalSteps);
+                    TrackIncrementalSteps ? _steps.ToImmutableAndFree() : default,
+                    !hasNonCached,
+                    hasTrackedSteps: TrackIncrementalSteps);
             }
 
             private static (T chosen, EntryState state) GetModifiedItemAndState(T previous, T replacement, IEqualityComparer<T> comparer)
