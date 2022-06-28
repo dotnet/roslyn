@@ -297,7 +297,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Action<AttributeSyntax>? afterAttributePartBound = null)
         {
             var diagnostics = BindingDiagnosticBag.GetInstance();
-            Debug.Assert(diagnostics.DiagnosticBag is not null);
             var compilation = this.DeclaringCompilation;
 
             ImmutableArray<Binder> binders;
@@ -393,6 +392,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.PostDecodeWellKnownAttributes(boundAttributes, attributesToBind, diagnostics, symbolPart, wellKnownAttributeData);
 
             removeObsoleteDiagnosticsForForwardedTypes(boundAttributes, attributesToBind, ref diagnostics);
+            Debug.Assert(diagnostics.DiagnosticBag is not null);
 
             // Store attributes into the bag.
             bool lazyAttributesStoredOnThisThread = false;
@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             var boundAttribute = boundAttributeArray[i];
                             Debug.Assert(boundAttribute is not null);
-                            NullableWalker.AnalyzeIfNeeded(binders[i], boundAttribute, boundAttribute.Syntax, diagnostics.DiagnosticBag!);
+                            NullableWalker.AnalyzeIfNeeded(binders[i], boundAttribute, boundAttribute.Syntax, diagnostics.DiagnosticBag);
                         }
                     }
 
@@ -425,9 +425,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             void removeObsoleteDiagnosticsForForwardedTypes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> attributesToBind, ref BindingDiagnosticBag diagnostics)
             {
+                Debug.Assert(diagnostics.DiagnosticBag is not null);
+
                 if (!boundAttributes.IsDefaultOrEmpty &&
                     this is SourceAssemblySymbol &&
-                    !diagnostics.DiagnosticBag!.IsEmptyWithoutResolution &&
+                    !diagnostics.DiagnosticBag.IsEmptyWithoutResolution &&
                     diagnostics.DiagnosticBag.AsEnumerableWithoutResolution().OfType<DiagnosticWithInfo>().Where(isObsoleteDiagnostic).Any())
                 {
                     // We are binding attributes for an assembly and have an obsolete diagnostic reported,
@@ -442,9 +444,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // The general strategy:
                     //    1. Collect locations of the first argument of each TypeForwardedTo attribute application.  
-                    //    2. Collect obsolete diagnostics reported withing the span of those locations.
+                    //    2. Collect obsolete diagnostics reported within the span of those locations.
                     //    3. Remove the collected diagnostics, if any.
-
 
                     var builder = ArrayBuilder<Location>.GetInstance();
                     int totalAttributesCount = attributesToBind.Length;
@@ -468,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var toRemove = new HashSet<Diagnostic>(ReferenceEqualityComparer.Instance);
 
-                        //    2. Collect obsolete diagnostics reported withing the span of those locations.
+                        //    2. Collect obsolete diagnostics reported within the span of those locations.
                         foreach (Diagnostic d in diagnostics.DiagnosticBag.AsEnumerableWithoutResolution())
                         {
                             if (d is DiagnosticWithInfo withInfo && isObsoleteDiagnostic(withInfo))
