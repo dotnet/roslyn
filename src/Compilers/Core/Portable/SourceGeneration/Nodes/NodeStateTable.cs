@@ -146,14 +146,11 @@ namespace Microsoft.CodeAnalysis
 
         public sealed partial class Builder
         {
-            /// <summary>
-            /// Wrapped ArrayBuilder that ensures that as we update it we keep track if we're producing the exact same
-            /// results as before. Do not make this readonly.  It is a mutable struct.
-            /// </summary>
-            private StatesWrapper _states;
+            private readonly ArrayBuilder<TableEntry> _states;
             private readonly NodeStateTable<T> _previous;
 
             private readonly string? _name;
+            private readonly IEqualityComparer<T> _equalityComparer;
             private readonly ArrayBuilder<IncrementalGeneratorRunStep>? _steps;
 
             [MemberNotNullWhen(true, nameof(_steps))]
@@ -161,9 +158,10 @@ namespace Microsoft.CodeAnalysis
 
             internal Builder(NodeStateTable<T> previous, string? name, bool stepTrackingEnabled, IEqualityComparer<T>? equalityComparer)
             {
-                _states = new StatesWrapper(previous, equalityComparer ?? EqualityComparer<T>.Default);
+                _states = ArrayBuilder<TableEntry>.GetInstance(previous.Count);
                 _previous = previous;
                 _name = name;
+                _equalityComparer = equalityComparer ?? EqualityComparer<T>.Default;
                 if (stepTrackingEnabled)
                 {
                     _steps = ArrayBuilder<IncrementalGeneratorRunStep>.GetInstance();
@@ -365,9 +363,17 @@ namespace Microsoft.CodeAnalysis
                     return NodeStateTable<T>.Empty;
                 }
 
+                // if we added the exact same entries as before, then we can directly embed previous' entry array,
+                // avoiding a costly allocation of the same data.
+                var finalStates = _states.Count == _previous.Count && _states.SequenceEqual(_previous._states, (e1, e2) => e1.Matches(e2, _equalityComparer))
+                    ? _previous._states
+                    : _states.ToImmutable();
+
                 var hasNonCached = _states.Any(static s => !s.IsCached);
+                _states.Free();
+
                 return new NodeStateTable<T>(
-                    _states.ToImmutableAndFree(),
+                    finalStates,
                     TrackIncrementalSteps ? _steps.ToImmutableAndFree() : default,
                     !hasNonCached,
                     hasTrackedSteps: TrackIncrementalSteps);
