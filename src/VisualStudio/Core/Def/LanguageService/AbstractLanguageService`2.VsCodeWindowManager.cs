@@ -235,14 +235,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             int IVsDocOutlineProvider.GetOutline(out IntPtr phwnd, out IOleCommandTarget? ppCmdTarget)
             {
-                var textView = GetActiveTextView();
-                RoslynDebug.AssertNotNull(textView);
-
                 var languageServiceBroker = _languageService.Package.ComponentModel.GetService<ILanguageServiceBroker2>();
                 var threadingContext = _languageService.Package.ComponentModel.GetService<IThreadingContext>();
                 var asyncListenerProvider = _languageService.Package.ComponentModel.GetService<IAsynchronousOperationListenerProvider>();
                 var asyncListener = asyncListenerProvider.GetListener(FeatureAttribute.DocumentOutline);
-                _documentOutlineView = new DocumentOutlineControl(textView, languageServiceBroker, threadingContext, asyncListener);
+                var editorAdaptersFactoryService = _languageService.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
+                _documentOutlineView = new DocumentOutlineControl(languageServiceBroker, threadingContext, asyncListener, editorAdaptersFactoryService, _codeWindow);
 
                 _documentOutlineViewHost = new ElementHost
                 {
@@ -255,35 +253,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 Logger.Log(FunctionId.DocumentOutline_WindowOpen);
 
                 return VSConstants.S_OK;
-
-                static IWpfTextView? GetActiveTextView()
-                {
-                    var monitorSelection = (IVsMonitorSelection)Shell.Package.GetGlobalService(typeof(SVsShellMonitorSelection));
-                    if (monitorSelection == null)
-                        return null;
-
-                    if (ErrorHandler.Failed(monitorSelection.GetCurrentElementValue((uint)VSConstants.VSSELELEMID.SEID_DocumentFrame, out var curDocument)))
-                        return null;
-
-                    if (curDocument is not IVsWindowFrame frame)
-                        return null;
-
-                    if (ErrorHandler.Failed(frame.GetProperty((int)__VSFPROPID.VSFPROPID_DocView, out var docView)))
-                        return null;
-
-                    if (docView is IVsCodeWindow)
-                    {
-                        if (ErrorHandler.Failed(((IVsCodeWindow)docView).GetPrimaryView(out var textView)))
-                            return null;
-
-                        var model = (IComponentModel)Shell.Package.GetGlobalService(typeof(SComponentModel));
-                        var adapterFactory = model.GetService<IVsEditorAdaptersFactoryService>();
-                        var wpfTextView = adapterFactory.GetWpfTextView(textView);
-                        return wpfTextView;
-                    }
-
-                    return null;
-                }
             }
 
             int IVsDocOutlineProvider.ReleaseOutline(IntPtr hwnd, IOleCommandTarget pCmdTarget)

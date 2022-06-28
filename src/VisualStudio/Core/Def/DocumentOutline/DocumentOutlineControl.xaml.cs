@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -13,8 +14,10 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -29,28 +32,41 @@ namespace Microsoft.VisualStudio.LanguageServices
     /// <summary>
     /// Interaction logic for DocumentOutlineControl.xaml
     /// </summary>
-    internal partial class DocumentOutlineControl : UserControl, IOleCommandTarget
+    internal partial class DocumentOutlineControl : UserControl, IOleCommandTarget, IVsCodeWindowEvents
     {
-        /// <summary>
-        /// The text view of the editor the user is currently interacting with.
-        /// </summary>
-        private IWpfTextView TextView { get; }
+        private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
+        public IVsCodeWindow CodeWindow { get; }
+
+        private IThreadingContext ThreadingContext { get; }
+        private ILanguageServiceBroker2 LanguageServiceBroker { get; }
+
+        private SortOption SortOption { get; set; }
 
         /// <summary>
-        /// The text buffer of the editor the user is currently interacting with.
+        /// Queue to batch up work to do to get the current document model. Used so we can batch up a lot of events 
+        /// and only fetch the model once for every batch.
         /// </summary>
-        private ITextBuffer TextBuffer { get; }
+        private readonly AsyncBatchingWorkQueue _getModelQueue;
+
+        /// <summary>
+        /// Queue to batch up work to do to update the current document model and UI.
+        /// </summary>
+        private readonly AsyncBatchingWorkQueue _updateModelQueue;
+
+        /// <summary>
+        /// Queue to batch up work to do to highlight the currently selected symbol node.
+        /// </summary>
+        private readonly AsyncBatchingWorkQueue _highlightNodeQueue;
 
         /// <summary>
         /// The text snapshot from when the document symbol request was made.
         /// </summary>
-        private ITextSnapshot LspSnapshot { get; set; }
+        private ITextSnapshot? LspSnapshot { get; set; }
 
-        private readonly string? _textViewFilePath;
-
-        private SortOption SortOption { get; set; }
-
-        private IThreadingContext ThreadingContext { get; }
+        /// <summary>
+        /// Keeps track of the current primary and secondary text views.
+        /// </summary>
+        private readonly Dictionary<IVsTextView, ITextView> _trackedTextViews = new();
 
         /// <summary>
         /// Stores the latest document model returned by GetModelAsync to be used by UpdateModelAsync.
@@ -60,38 +76,23 @@ namespace Microsoft.VisualStudio.LanguageServices
         /// <summary>
         /// Is true when DocumentSymbolViewModels is not empty.
         /// </summary>
+        [MemberNotNullWhen(true, nameof(LspSnapshot))]
         private bool DocumentSymbolViewModelsIsInitialized { get; set; }
 
-        /// <summary>
-        /// Queue to batch up work to do to get the current document model. Used so we can batch up a lot of events 
-        /// and only fetch the model once for every batch.
-        /// </summary>
-        private readonly AsyncBatchingWorkQueue _getModelQueue;
-
-        /// <summary>
-        /// Queue to batch up work to do to update the current document model. Used so we can batch up a lot of 
-        /// events and update the model and UI once for every batch. 
-        /// </summary>
-        private readonly AsyncBatchingWorkQueue _updateModelQueue;
-
-        /// <summary>
-        /// _followCursorQueue
-        /// </summary>
-        private readonly AsyncBatchingWorkQueue _highlightNodeQueue;
-
         public DocumentOutlineControl(
-            IWpfTextView textView,
             ILanguageServiceBroker2 languageServiceBroker,
             IThreadingContext threadingContext,
-            IAsynchronousOperationListener asyncListener)
+            IAsynchronousOperationListener asyncListener,
+            IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
+            IVsCodeWindow codeWindow)
         {
             InitializeComponent();
 
             ThreadingContext = threadingContext;
-            TextView = textView;
-            TextBuffer = textView.TextBuffer;
-            LspSnapshot = textView.TextSnapshot;
-            _textViewFilePath = GetFilePath(textView);
+            LanguageServiceBroker = languageServiceBroker;
+            _editorAdaptersFactoryService = editorAdaptersFactoryService;
+            CodeWindow = codeWindow;
+            ComEventSink.Advise<IVsCodeWindowEvents>(codeWindow, this);
             SortOption = SortOption.Order;
 
             _getModelQueue = new AsyncBatchingWorkQueue(
@@ -112,20 +113,87 @@ namespace Microsoft.VisualStudio.LanguageServices
                     asyncListener,
                     threadingContext.DisposalToken);
 
-            // Fetches and processes the current document model. Everything should be done on background threads.
-            async ValueTask GetModelAsync(CancellationToken cancellationToken)
+            codeWindow.GetPrimaryView(out var pTextViewPrimary);
+            StartTrackingView(pTextViewPrimary, out var textViewPrimary);
+
+            if (textViewPrimary is null)
+                return;
+
+            codeWindow.GetSecondaryView(out var pTextViewSecondary);
+            if (pTextViewSecondary is not null)
+                StartTrackingView(pTextViewSecondary, out var _);
+
+            StartGetModelTask();
+        }
+
+        int IVsCodeWindowEvents.OnNewView(IVsTextView pView)
+        {
+            StartTrackingView(pView, out var _);
+            return VSConstants.S_OK;
+        }
+
+        private void StartTrackingView(IVsTextView pTextView, out IWpfTextView? wpfTextView)
+        {
+            wpfTextView = null;
+            if (pTextView != null)
             {
+                wpfTextView = _editorAdaptersFactoryService.GetWpfTextView(pTextView);
+
+                if (wpfTextView != null)
+                {
+                    _trackedTextViews.Add(pTextView, wpfTextView);
+                    wpfTextView.Caret.PositionChanged += Caret_PositionChanged;
+                    wpfTextView.TextBuffer.Changed += TextBuffer_Changed;
+                }
+            }
+        }
+
+        int IVsCodeWindowEvents.OnCloseView(IVsTextView pView)
+        {
+            if (_trackedTextViews.TryGetValue(pView, out var view))
+            {
+                view.Caret.PositionChanged -= Caret_PositionChanged;
+                view.TextBuffer.Changed -= TextBuffer_Changed;
+
+                _trackedTextViews.Remove(pView);
+            }
+
+            return VSConstants.S_OK;
+        }
+
+        private void TextBuffer_Changed(object sender, TextContentChangedEventArgs e)
+            => StartGetModelTask();
+
+        // On caret position change, highlight the corresponding symbol node
+        private void Caret_PositionChanged(object sender, CaretPositionChangedEventArgs e)
+        {
+            if (!e.NewPosition.Equals(e.OldPosition))
+                StartHightlightNodeTask();
+        }
+
+        // Fetches and processes the current document model. Everything should be done on background threads.
+        private async ValueTask GetModelAsync(CancellationToken cancellationToken)
+        {
+            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            CodeWindow.GetLastActiveView(out var textView);
+            var activeTextView = _editorAdaptersFactoryService.GetWpfTextView(textView);
+            if (activeTextView is not null)
+            {
+                var textBuffer = activeTextView.TextBuffer;
+                var filePath = GetFilePath(activeTextView);
                 await TaskScheduler.Default;
-                LspSnapshot = textView.TextSnapshot;
                 var response = await DocumentOutlineHelper.DocumentSymbolsRequestAsync(
-                    TextBuffer, languageServiceBroker, _textViewFilePath, cancellationToken).ConfigureAwait(false);
+                    textBuffer, LanguageServiceBroker, filePath, cancellationToken).ConfigureAwait(false);
 
                 if (response?.Response is not null)
                 {
                     var responseBody = response.Response.ToObject<DocumentSymbol[]>();
                     var documentSymbols = DocumentOutlineHelper.GetNestedDocumentSymbols(responseBody);
                     DocumentSymbolViewModels = DocumentOutlineHelper.GetDocumentSymbolModels(documentSymbols);
+
+                    LspSnapshot = activeTextView.TextSnapshot;
                     DocumentSymbolViewModelsIsInitialized = DocumentSymbolViewModels.Length > 0;
+
                     StartModelUpdateTask();
                 }
                 else
@@ -134,38 +202,69 @@ namespace Microsoft.VisualStudio.LanguageServices
                     DocumentSymbolViewModels = ImmutableArray<DocumentSymbolViewModel>.Empty;
                 }
             }
+            else
+            {
+                DocumentSymbolViewModelsIsInitialized = false;
+                DocumentSymbolViewModels = ImmutableArray<DocumentSymbolViewModel>.Empty;
+            }
 
-            // Processes the fetched document model and updates the UI.
-            async ValueTask UpdateModelAsync(CancellationToken cancellationToken)
+            string? GetFilePath(IWpfTextView textView)
+            {
+                ThreadingContext.ThrowIfNotOnUIThread();
+                if (textView.TextBuffer.Properties.TryGetProperty(typeof(IVsTextBuffer), out IVsTextBuffer bufferAdapter) &&
+                    bufferAdapter is IPersistFileFormat persistFileFormat &&
+                    ErrorHandler.Succeeded(persistFileFormat.GetCurFile(out var filePath, out _)))
+                {
+                    return filePath;
+                }
+
+                return null;
+            }
+        }
+
+        // Processes the fetched document model and updates the UI.
+        private async ValueTask UpdateModelAsync(CancellationToken cancellationToken)
+        {
+            if (DocumentSymbolViewModelsIsInitialized)
             {
                 var updatedSymbolsTreeItemsSource = DocumentSymbolViewModels;
 
-                // Switch to UI thread to obtain search query and the current text snapshot
-                await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                // Switch to UI thread to obtain search query and the currently active view
+                await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 var searchQuery = searchBox.Text;
-                var currentSnapshot = TextBuffer.CurrentSnapshot;
-
-                // Switch to a background thread to filter and sort the model
-                await TaskScheduler.Default;
-                if (!string.IsNullOrWhiteSpace(searchQuery))
-                    updatedSymbolsTreeItemsSource = DocumentOutlineHelper.Search(updatedSymbolsTreeItemsSource, searchQuery);
-
-                updatedSymbolsTreeItemsSource = DocumentOutlineHelper.Sort(updatedSymbolsTreeItemsSource, SortOption, LspSnapshot, currentSnapshot);
-
-                // Switch back to the UI thread to update the UI with the processed model data
-                await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                symbolTree.ItemsSource = updatedSymbolsTreeItemsSource;
-                StartHightlightNodeTask();
-            }
-
-            // Highlights the symbol node corresponding to the current caret position in the editor.
-            async ValueTask HightlightNodeAsync(CancellationToken cancellationToken)
-            {
-                if (TextView is not null && DocumentSymbolViewModelsIsInitialized)
+                CodeWindow.GetLastActiveView(out var textView);
+                var activeTextView = _editorAdaptersFactoryService.GetWpfTextView(textView);
+                if (activeTextView is not null)
                 {
-                    var currentSnapshot = TextBuffer.CurrentSnapshot;
+                    var currentSnapshot = activeTextView.TextSnapshot;
+
+                    // Switch to a background thread to filter and sort the model
+                    await TaskScheduler.Default;
+                    if (!string.IsNullOrWhiteSpace(searchQuery))
+                        updatedSymbolsTreeItemsSource = DocumentOutlineHelper.Search(updatedSymbolsTreeItemsSource, searchQuery);
+
+                    updatedSymbolsTreeItemsSource = DocumentOutlineHelper.Sort(updatedSymbolsTreeItemsSource, SortOption, LspSnapshot, currentSnapshot);
+
+                    // Switch back to the UI thread to update the UI with the processed model data
+                    await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                    symbolTree.ItemsSource = updatedSymbolsTreeItemsSource;
+                    StartHightlightNodeTask();
+                }
+            }
+        }
+
+        // Highlights the symbol node corresponding to the current caret position in the editor.
+        private async ValueTask HightlightNodeAsync(CancellationToken cancellationToken)
+        {
+            if (DocumentSymbolViewModelsIsInitialized)
+            {
+                CodeWindow.GetLastActiveView(out var textView);
+                var activeTextView = _editorAdaptersFactoryService.GetWpfTextView(textView);
+                if (activeTextView is not null)
+                {
+                    var currentSnapshot = activeTextView.TextSnapshot;
                     var documentSymbolModelArray = ((IEnumerable<DocumentSymbolViewModel>)symbolTree.ItemsSource).ToImmutableArray();
-                    var caretPoint = TextView.GetCaretPoint(TextBuffer);
+                    var caretPoint = activeTextView.GetCaretPoint(activeTextView.TextBuffer);
                     if (caretPoint.HasValue)
                     {
                         var caretPosition = caretPoint.Value.Position;
@@ -176,19 +275,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                     }
                 }
             }
-
-            TextView.Caret.PositionChanged += Caret_PositionChanged;
-            TextView.TextBuffer.Changed += TextBuffer_Changed;
-
-            StartGetModelTask();
         }
-
-        private void TextBuffer_Changed(object sender, TextContentChangedEventArgs e)
-            => StartGetModelTask();
-
-        // On caret position change, highlight the corresponding symbol node
-        private void Caret_PositionChanged(object sender, CaretPositionChangedEventArgs e)
-            => StartHightlightNodeTask();
 
         /// <summary>
         /// Starts a new task to get the current document model.
@@ -214,19 +301,6 @@ namespace Microsoft.VisualStudio.LanguageServices
         {
             if (DocumentSymbolViewModelsIsInitialized)
                 _highlightNodeQueue.AddWork();
-        }
-
-        private string? GetFilePath(IWpfTextView textView)
-        {
-            ThreadingContext.ThrowIfNotOnUIThread();
-            if (textView.TextBuffer.Properties.TryGetProperty(typeof(IVsTextBuffer), out IVsTextBuffer bufferAdapter) &&
-                bufferAdapter is IPersistFileFormat persistFileFormat &&
-                ErrorHandler.Succeeded(persistFileFormat.GetCurFile(out var filePath, out _)))
-            {
-                return filePath;
-            }
-
-            return null;
         }
 
         private void ExpandAll(object sender, RoutedEventArgs e)
@@ -265,26 +339,31 @@ namespace Microsoft.VisualStudio.LanguageServices
         // When symbol node clicked, select the corresponding code
         private void JumpToContent(object sender, EventArgs e)
         {
-            var currentSnapshot = TextBuffer.CurrentSnapshot;
-            if (sender is StackPanel panel && panel.DataContext is DocumentSymbolViewModel symbol)
+            if (DocumentSymbolViewModelsIsInitialized)
             {
-                // Avoids highlighting the node after moving the caret ourselves 
-                // (The node is already highlighted on user click)
-                TextView.Caret.PositionChanged -= Caret_PositionChanged;
+                CodeWindow.GetLastActiveView(out var textView);
+                var activeTextView = _editorAdaptersFactoryService.GetWpfTextView(textView);
+                if (activeTextView is not null && sender is StackPanel panel && panel.DataContext is DocumentSymbolViewModel symbol)
+                {
+                    // Avoids highlighting the node after moving the caret ourselves 
+                    // (The node is already highlighted on user click)
+                    activeTextView.Caret.PositionChanged -= Caret_PositionChanged;
 
-                // Get the position of the start of the line the symbol is on
-                var position = LspSnapshot.GetLineFromLineNumber(symbol.StartPosition.Line).Start.Position;
+                    // Get the position of the start of the line the symbol is on
+                    var position = LspSnapshot.GetLineFromLineNumber(symbol.StartPosition.Line).Start.Position;
 
-                // Gets a point for this position with respect to the updated snapshot
-                var snapshotPoint = new SnapshotPoint(currentSnapshot, position);
+                    // Gets a point for this position with respect to the updated snapshot
+                    var currentSnapshot = activeTextView.TextSnapshot;
+                    var snapshotPoint = new SnapshotPoint(currentSnapshot, position);
 
-                // Sets the selection to this point
-                var snapshotSpan = new SnapshotSpan(snapshotPoint, snapshotPoint);
-                TextView.SetSelection(snapshotSpan);
-                TextView.ViewScroller.EnsureSpanVisible(snapshotSpan);
+                    // Sets the selection to this point
+                    var snapshotSpan = new SnapshotSpan(snapshotPoint, snapshotPoint);
+                    activeTextView.SetSelection(snapshotSpan);
+                    activeTextView.ViewScroller.EnsureSpanVisible(snapshotSpan);
 
-                // We want to continue highlighting nodes when the user moves the caret
-                TextView.Caret.PositionChanged += Caret_PositionChanged;
+                    // We want to continue highlighting nodes when the user moves the caret
+                    activeTextView.Caret.PositionChanged += Caret_PositionChanged;
+                }
             }
         }
 
