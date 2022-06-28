@@ -4,7 +4,6 @@
 
 extern alias InteractiveHost;
 extern alias Scripting;
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -17,18 +16,18 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Interactive
 {
     using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
-    using Microsoft.CodeAnalysis.Options;
-    using Microsoft.VisualStudio.Text.Editor;
     using RelativePathResolver = Scripting::Microsoft.CodeAnalysis.RelativePathResolver;
 
     internal sealed class InteractiveSession : IDisposable
@@ -212,9 +211,6 @@ namespace Microsoft.CodeAnalysis.Interactive
             var newSubmissionText = submissionBuffer.CurrentSnapshot.AsText();
             _currentSubmissionProjectId = ProjectId.CreateNewId(newSubmissionProjectName);
             var newSubmissionDocumentId = DocumentId.CreateNewId(_currentSubmissionProjectId, newSubmissionProjectName);
-
-            // initialize editor options of the submission buffer:
-            _globalOptions.SetEditorOptions(_editorOptionsFactory.GetOptions(submissionBuffer), languageName);
 
             // If the _initializationResult is not null we must also have the host options.
             RoslynDebug.AssertNotNull(_hostOptions);
