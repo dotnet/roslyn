@@ -636,5 +636,63 @@ class C
     }
 }");
         }
+
+        [WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestIfStatement_Trivia2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    static void Main(object o)
+    {
+        [|if|] (o is null)
+        {
+            // Before
+            o = new C(); // After
+        }
+    }
+}",
+@"using System;
+class C
+{
+    static void Main(object o)
+    {
+        // Before
+        o ??= new C(); // After
+    }
+}");
+        }
+
+        [WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestIfStatement_Trivia3()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    static void Main(object o)
+    {
+        // Before1
+        [|if|] (o is null)
+        {
+            // Before2
+            o = new C(); // After
+        }
+    }
+}",
+@"using System;
+class C
+{
+    static void Main(object o)
+    {
+        // Before1
+        // Before2
+        o ??= new C(); // After
+    }
+}");
+        }
     }
 }
