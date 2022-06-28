@@ -51,8 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
         protected abstract SyntaxNode ParseCompilationUnit(string expected);
 
         internal static void TestIndentation(
-            int point, int? expectedIndentation, ITextView textView, TestHostDocument subjectDocument, IGlobalOptionService globalOptions,
-            IEditorOptionsFactoryService editorOptionsFactory, IIndentationManagerService indentationManager)
+            int point, int? expectedIndentation, ITextView textView, TestHostDocument subjectDocument, IGlobalOptionService globalOptions)
         {
             var textUndoHistory = new Mock<ITextUndoHistoryRegistry>();
             var editorOperationsFactory = new Mock<IEditorOperationsFactoryService>();
@@ -62,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
             var snapshot = subjectDocument.GetTextBuffer().CurrentSnapshot;
             var indentationLineFromBuffer = snapshot.GetLineFromPosition(point);
 
-            var provider = new SmartIndent(textView, globalOptions, editorOptionsFactory, indentationManager);
+            var provider = new SmartIndent(textView, globalOptions);
             var actualIndentation = provider.GetDesiredIndentation(indentationLineFromBuffer);
 
             Assert.Equal(expectedIndentation, actualIndentation.Value);
@@ -76,15 +75,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
             bool useTabs)
         {
             var language = GetLanguageName();
+            workspace.GlobalOptions.SetGlobalOption(new OptionKey(IndentationOptionsStorage.SmartIndent, language), indentStyle);
 
-            var editorOptionsFactory = workspace.GetService<IEditorOptionsFactoryService>();
-            var textBuffer = workspace.Documents.First().GetTextBuffer();
-            var editorOptions = editorOptionsFactory.GetOptions(textBuffer);
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                .WithChangedOption(FormattingOptions2.UseTabs, language, useTabs)));
 
-            editorOptions.SetOptionValue(DefaultOptions.IndentStyleId, indentStyle.ToEditorIndentStyle());
-            editorOptions.SetOptionValue(DefaultOptions.ConvertTabsToSpacesOptionId, !useTabs);
-
-            var snapshot = textBuffer.CurrentSnapshot;
+            var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
             var bufferGraph = new Mock<IBufferGraph>(MockBehavior.Strict);
             bufferGraph.Setup(x => x.MapUpToSnapshot(It.IsAny<SnapshotPoint>(),
                                                      It.IsAny<PointTrackingMode>(),
@@ -110,11 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
             textView.Setup(x => x.BufferGraph).Returns(bufferGraph.Object);
             textView.SetupGet(x => x.TextSnapshot.TextBuffer).Returns(projectionBuffer.Object);
 
-            var provider = new SmartIndent(
-                textView.Object,
-                workspace.GlobalOptions,
-                editorOptionsFactory,
-                workspace.GetService<IIndentationManagerService>());
+            var provider = new SmartIndent(textView.Object, workspace.GlobalOptions);
 
             var indentationLineFromBuffer = snapshot.GetLineFromLineNumber(indentationLine);
             var actualIndentation = provider.GetDesiredIndentation(indentationLineFromBuffer);

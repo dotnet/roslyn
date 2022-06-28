@@ -30,15 +30,15 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
         protected override char OpeningBrace => CurlyBrace.OpenCharacter;
         protected override char ClosingBrace => CurlyBrace.CloseCharacter;
 
-        public override bool AllowOverType(BraceCompletionContext context, CancellationToken cancellationToken)
-            => AllowOverTypeWithValidClosingToken(context);
+        public override Task<bool> AllowOverTypeAsync(BraceCompletionContext context, CancellationToken cancellationToken)
+            => AllowOverTypeWithValidClosingTokenAsync(context, cancellationToken);
 
         /// <summary>
         /// Only return this service as valid when we're typing curly braces inside an interpolated string.
         /// Otherwise curly braces should be completed using the <see cref="CurlyBraceCompletionService"/>
         /// </summary>
-        public override bool CanProvideBraceCompletion(char brace, int openingPosition, ParsedDocument document, CancellationToken cancellationToken)
-            => OpeningBrace == brace && IsPositionInInterpolationContext(document, openingPosition);
+        public override async Task<bool> CanProvideBraceCompletionAsync(char brace, int openingPosition, Document document, CancellationToken cancellationToken)
+            => OpeningBrace == brace && await IsPositionInInterpolationContextAsync(document, openingPosition, cancellationToken).ConfigureAwait(false);
 
         protected override bool IsValidOpenBraceTokenAtPosition(SourceText text, SyntaxToken token, int position)
             => IsValidOpeningBraceToken(token) && token.SpanStart == position;
@@ -52,17 +52,19 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
         /// <summary>
         /// Returns true when the input position could be starting an interpolation expression if a curly brace was typed.
         /// </summary>
-        public static bool IsPositionInInterpolationContext(ParsedDocument document, int position)
+        public static async Task<bool> IsPositionInInterpolationContextAsync(Document document, int position, CancellationToken cancellationToken)
         {
             // First, check to see if the character to the left of the position is an open curly.
             // If it is, we shouldn't complete because the user may be trying to escape a curly.
             // E.g. they are trying to type $"{{"
-            if (CouldEscapePreviousOpenBrace('{', position, document.Text))
+            if (await CouldEscapePreviousOpenBraceAsync('{', position, document, cancellationToken).ConfigureAwait(false))
             {
                 return false;
             }
 
-            var token = document.Root.FindTokenOnLeftOfPosition(position);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var token = root.FindTokenOnLeftOfPosition(position);
+
             if (!token.Span.IntersectsWith(position))
             {
                 return false;
