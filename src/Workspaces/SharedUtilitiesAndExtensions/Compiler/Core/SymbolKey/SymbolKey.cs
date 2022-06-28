@@ -256,14 +256,6 @@ namespace Microsoft.CodeAnalysis
         private static bool Equals(bool isCaseSensitive, string? name1, string? name2)
             => string.Equals(name1, name2, isCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase);
 
-        private static string GetName(string metadataName)
-        {
-            var index = metadataName.IndexOf('`');
-            return index > 0
-                ? metadataName.Substring(0, index)
-                : metadataName;
-        }
-
         private static bool ParameterRefKindsMatch(
             ImmutableArray<IParameterSymbol> parameters,
             PooledArrayBuilder<RefKind> refKinds)
