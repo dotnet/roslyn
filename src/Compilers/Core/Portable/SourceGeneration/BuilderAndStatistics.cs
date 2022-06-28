@@ -13,12 +13,13 @@ using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis.SourceGeneration
 {
     /// <summary>
     /// Wrapper around an <see cref="ImmutableArray{T}.Builder"/> that also tracks statistics about the builder when it
     /// is pooled.  Used to ensure that we don't keep around builders for too long that are both enormous but also
-    /// barely used in practice.
+    /// barely used in practice.  This is used in the incremental generator infrastructure as it commonly uses builders
+    /// that are larger than the 128 element cap that prevents standard ArrayBuilders from being pooled.
     /// </summary>
     internal struct BuilderAndStatistics<TValue>
     {
