@@ -1457,82 +1457,40 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void NullableReturnTypeOrConditional_19()
         {
             string source = "delegate*<void>? () => x";
-            UsingExpression(source,
-                // (1,9): error CS1514: { expected
-                // delegate*<void>? () => x
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "*").WithLocation(1, 9),
-                // (1,9): warning CS8848: Operator '*' cannot be used here due to precedence. Use parentheses to disambiguate.
-                // delegate*<void>? () => x
-                Diagnostic(ErrorCode.WRN_PrecedenceInversion, "*").WithArguments("*").WithLocation(1, 9),
-                // (1,10): error CS1525: Invalid expression term '<'
-                // delegate*<void>? () => x
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "<").WithArguments("<").WithLocation(1, 10),
-                // (1,11): error CS1525: Invalid expression term 'void'
-                // delegate*<void>? () => x
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "void").WithArguments("void").WithLocation(1, 11),
-                // (1,16): error CS1525: Invalid expression term '?'
-                // delegate*<void>? () => x
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "?").WithArguments("?").WithLocation(1, 16),
-                // (1,25): error CS1003: Syntax error, ':' expected
-                // delegate*<void>? () => x
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":").WithLocation(1, 25),
-                // (1,25): error CS1733: Expected expression
-                // delegate*<void>? () => x
-                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 25));
+            UsingExpression(source);
 
-            N(SyntaxKind.ConditionalExpression);
+            N(SyntaxKind.ParenthesizedLambdaExpression);
             {
-                N(SyntaxKind.GreaterThanExpression);
+                N(SyntaxKind.NullableType);
                 {
-                    N(SyntaxKind.LessThanExpression);
+                    N(SyntaxKind.FunctionPointerType);
                     {
-                        N(SyntaxKind.MultiplyExpression);
+                        N(SyntaxKind.DelegateKeyword);
+                        N(SyntaxKind.AsteriskToken);
+                        N(SyntaxKind.FunctionPointerParameterList);
                         {
-                            N(SyntaxKind.AnonymousMethodExpression);
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.FunctionPointerParameter);
                             {
-                                N(SyntaxKind.DelegateKeyword);
-                                M(SyntaxKind.Block);
+                                N(SyntaxKind.PredefinedType);
                                 {
-                                    M(SyntaxKind.OpenBraceToken);
-                                    M(SyntaxKind.CloseBraceToken);
+                                    N(SyntaxKind.VoidKeyword);
                                 }
                             }
-                            N(SyntaxKind.AsteriskToken);
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
-                        N(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.PredefinedType);
-                        {
-                            N(SyntaxKind.VoidKeyword);
+                            N(SyntaxKind.GreaterThanToken);
                         }
                     }
-                    N(SyntaxKind.GreaterThanToken);
-                    M(SyntaxKind.IdentifierName);
-                    {
-                        M(SyntaxKind.IdentifierToken);
-                    }
+                    N(SyntaxKind.QuestionToken);
                 }
-                N(SyntaxKind.QuestionToken);
-                N(SyntaxKind.ParenthesizedLambdaExpression);
+                N(SyntaxKind.ParameterList);
                 {
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.EqualsGreaterThanToken);
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "x");
-                    }
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
                 }
-                M(SyntaxKind.ColonToken);
-                M(SyntaxKind.IdentifierName);
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.IdentifierName);
                 {
-                    M(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "x");
                 }
             }
             EOF();
@@ -1542,76 +1500,44 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void NullableReturnTypeOrConditional_20()
         {
             string source = "delegate*<void>? () => x : y";
-            UsingExpression(source,
-                // (1,9): error CS1514: { expected
-                // delegate*<void>? () => x : y
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "*").WithLocation(1, 9),
-                // (1,9): warning CS8848: Operator '*' cannot be used here due to precedence. Use parentheses to disambiguate.
-                // delegate*<void>? () => x : y
-                Diagnostic(ErrorCode.WRN_PrecedenceInversion, "*").WithArguments("*").WithLocation(1, 9),
-                // (1,10): error CS1525: Invalid expression term '<'
-                // delegate*<void>? () => x : y
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "<").WithArguments("<").WithLocation(1, 10),
-                // (1,11): error CS1525: Invalid expression term 'void'
-                // delegate*<void>? () => x : y
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "void").WithArguments("void").WithLocation(1, 11),
-                // (1,16): error CS1525: Invalid expression term '?'
-                // delegate*<void>? () => x : y
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "?").WithArguments("?").WithLocation(1, 16));
 
-            N(SyntaxKind.ConditionalExpression);
+            UsingExpression(source,
+                // (1,1): error CS1073: Unexpected token ':'
+                // delegate*<void>? () => x : y
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "delegate*<void>? () => x").WithArguments(":").WithLocation(1, 1));
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
             {
-                N(SyntaxKind.GreaterThanExpression);
+                N(SyntaxKind.NullableType);
                 {
-                    N(SyntaxKind.LessThanExpression);
+                    N(SyntaxKind.FunctionPointerType);
                     {
-                        N(SyntaxKind.MultiplyExpression);
+                        N(SyntaxKind.DelegateKeyword);
+                        N(SyntaxKind.AsteriskToken);
+                        N(SyntaxKind.FunctionPointerParameterList);
                         {
-                            N(SyntaxKind.AnonymousMethodExpression);
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.FunctionPointerParameter);
                             {
-                                N(SyntaxKind.DelegateKeyword);
-                                M(SyntaxKind.Block);
+                                N(SyntaxKind.PredefinedType);
                                 {
-                                    M(SyntaxKind.OpenBraceToken);
-                                    M(SyntaxKind.CloseBraceToken);
+                                    N(SyntaxKind.VoidKeyword);
                                 }
                             }
-                            N(SyntaxKind.AsteriskToken);
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
-                        N(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.PredefinedType);
-                        {
-                            N(SyntaxKind.VoidKeyword);
+                            N(SyntaxKind.GreaterThanToken);
                         }
                     }
-                    N(SyntaxKind.GreaterThanToken);
-                    M(SyntaxKind.IdentifierName);
-                    {
-                        M(SyntaxKind.IdentifierToken);
-                    }
+                    N(SyntaxKind.QuestionToken);
                 }
-                N(SyntaxKind.QuestionToken);
-                N(SyntaxKind.ParenthesizedLambdaExpression);
+                N(SyntaxKind.ParameterList);
                 {
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.EqualsGreaterThanToken);
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "x");
-                    }
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
                 }
-                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.EqualsGreaterThanToken);
                 N(SyntaxKind.IdentifierName);
                 {
-                    N(SyntaxKind.IdentifierToken, "y");
+                    N(SyntaxKind.IdentifierToken, "x");
                 }
             }
             EOF();
