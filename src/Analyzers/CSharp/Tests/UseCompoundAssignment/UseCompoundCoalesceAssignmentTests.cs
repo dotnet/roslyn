@@ -3,17 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers;
 using Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
 {
@@ -23,9 +18,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
 
     public class UseCompoundCoalesceAssignmentTests
     {
-
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new CSharpUseCompoundCoalesceAssignmentDiagnosticAnalyzer(), new CSharpUseCompoundCoalesceAssignmentCodeFixProvider());
+        private static async Task TestInRegularAndScriptAsync(string testCode, string fixedCode)
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = testCode,
+                FixedCode = fixedCode,
+            }.RunAsync();
+        }
+        private static async Task TestMissingAsync(string testCode, LanguageVersion languageVersion = LanguageVersion.CSharp8)
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = testCode,
+                FixedCode = testCode,
+                LanguageVersion = languageVersion,
+            }.RunAsync();
+        }
 
         [WorkItem(38059, "https://github.com/dotnet/roslyn/issues/38059")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
@@ -35,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
 @"class Program
 {
     private static string s_goo;
-    private static string Goo => s_goo [||]?? (s_goo = new string('c', 42));
+    private static string Goo => s_goo [|??|] (s_goo = new string('c', 42));
 }",
 @"class Program
 {
@@ -52,8 +61,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
 @"class Program
 {
     private static string s_goo;
-    private static string Goo => s_goo [||]?? (s_goo = new string('c', 42));
-}", new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_3)));
+    private static string Goo => s_goo ?? (s_goo = new string('c', 42));
+}", LanguageVersion.CSharp7_3);
         }
 
         [WorkItem(38059, "https://github.com/dotnet/roslyn/issues/38059")]
@@ -64,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
 @"class Program
 {
     private static string s_goo;
-    private static string Goo => s_goo [||]?? s_goo = new string('c', 42);
+    private static string Goo => {|CS0131:s_goo ?? s_goo|} = new string('c', 42);
 }");
         }
 
@@ -76,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
 @"class Program
 {
     private static string s_goo;
-    private static string Goo => s_goo [||]?? (s_goo == new string('c', 42));
+    private static string Goo => {|CS0019:s_goo ?? (s_goo == new string('c', 42))|};
 }");
         }
 
@@ -88,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
 @"class Program
 {
     private static string s_goo;
-    private static string Goo => s_goo [||]?? (s_goo ??= new string('c', 42));
+    private static string Goo => s_goo ?? (s_goo ??= new string('c', 42));
 }");
         }
 
@@ -101,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
 {
     private static string s_goo;
     private static string s_goo2;
-    private static string Goo => s_goo [||]?? (s_goo2 = new string('c', 42));
+    private static string Goo => s_goo ?? (s_goo2 = new string('c', 42));
 }");
         }
 
@@ -113,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
 @"class Program
 {
     private static string s_goo;
-    private static string Goo => s_goo.GetType() [||]?? (s_goo.GetType() = new string('c', 42));
+    private static string Goo => s_goo.GetType() ?? ({|CS0131:s_goo.GetType()|} = new string('c', 42));
 }");
         }
 
@@ -125,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
 @"class Program
 {
     private string goo;
-    private string Goo => this.goo [||]?? (this.goo = new string('c', 42));
+    private string Goo => this.goo [|??|] (this.goo = new string('c', 42));
 }",
 @"class Program
 {
@@ -144,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
     void Goo()
     {
         int? a = null;
-        var x = a [||]?? (a = 1);
+        var x = a [|??|] (a = 1);
     }
 }",
 @"class Program
@@ -171,7 +180,7 @@ class C
     static void Main()
     {
         int? a = null;
-        M(a [||]?? (a = 1));
+        M(a [|??|] (a = 1));
     }
 }",
 @"using System;
@@ -201,7 +210,7 @@ class C
     static void Main()
     {
         int? a = null;
-        M(a [||]?? (a = 1));
+        M(a [|??|] (a = 1));
     }
 }",
 @"using System;
