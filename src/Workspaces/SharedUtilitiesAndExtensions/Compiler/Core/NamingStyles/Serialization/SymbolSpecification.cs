@@ -73,6 +73,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 symbolKindList: ImmutableArray.Create(
                     new SymbolKindOrTypeKind(SymbolKind.Namespace),
                     new SymbolKindOrTypeKind(TypeKind.Class),
+                    new SymbolKindOrTypeKind(TypeKind.Module),
                     new SymbolKindOrTypeKind(TypeKind.Struct),
                     new SymbolKindOrTypeKind(TypeKind.Interface),
                     new SymbolKindOrTypeKind(TypeKind.Delegate),
@@ -405,7 +406,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             {
                 if (symbolTypeKind == CodeAnalysis.TypeKind.Module)
                 {
-                    return specificationTypeKind == CodeAnalysis.TypeKind.Class;
+                    // Both class and module specifications apply to module symbols.
+                    return specificationTypeKind is CodeAnalysis.TypeKind.Class or CodeAnalysis.TypeKind.Module;
                 }
 
                 return specificationTypeKind == symbolTypeKind;

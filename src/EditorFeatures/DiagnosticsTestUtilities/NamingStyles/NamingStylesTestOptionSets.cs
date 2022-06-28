@@ -43,6 +43,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
         internal OptionsCollection ClassNamesArePascalCase =>
             new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, ClassNamesArePascalCaseOption() } };
 
+        internal OptionsCollection ModuleNamesArePascalCase =>
+            new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, ModuleNamesArePascalCaseOption() } };
+
         internal OptionsCollection FieldNamesAreCamelCase =>
             new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, FieldNamesAreCamelCaseOption() } };
 
@@ -133,6 +136,36 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
                 Guid.NewGuid(),
                 "Name",
                 ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(TypeKind.Class)),
+                accessibilityList: default,
+                modifiers: default);
+
+            var namingStyle = new NamingStyle(
+                Guid.NewGuid(),
+                capitalizationScheme: Capitalization.PascalCase,
+                name: "Name",
+                prefix: "",
+                suffix: "",
+                wordSeparator: "");
+            var namingRule = new SerializableNamingRule()
+            {
+                SymbolSpecificationID = symbolSpecification.ID,
+                NamingStyleID = namingStyle.ID,
+                EnforcementLevel = ReportDiagnostic.Error
+            };
+            var info = new NamingStylePreferences(
+                ImmutableArray.Create(symbolSpecification),
+                ImmutableArray.Create(namingStyle),
+                ImmutableArray.Create(namingRule));
+
+            return info;
+        }
+
+        private static NamingStylePreferences ModuleNamesArePascalCaseOption()
+        {
+            var symbolSpecification = new SymbolSpecification(
+                Guid.NewGuid(),
+                "Name",
+                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(TypeKind.Module)),
                 accessibilityList: default,
                 modifiers: default);
 
