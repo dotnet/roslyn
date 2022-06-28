@@ -240,6 +240,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 var asyncListenerProvider = _languageService.Package.ComponentModel.GetService<IAsynchronousOperationListenerProvider>();
                 var asyncListener = asyncListenerProvider.GetListener(FeatureAttribute.DocumentOutline);
                 var editorAdaptersFactoryService = _languageService.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
+
+                threadingContext.ThrowIfNotOnUIThread();
                 _documentOutlineView = new DocumentOutlineControl(languageServiceBroker, threadingContext, asyncListener, editorAdaptersFactoryService, _codeWindow);
 
                 _documentOutlineViewHost = new ElementHost
