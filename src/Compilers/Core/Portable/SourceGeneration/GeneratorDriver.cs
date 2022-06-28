@@ -36,8 +36,8 @@ namespace Microsoft.CodeAnalysis
 
         internal GeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts, GeneratorDriverOptions driverOptions)
         {
-            (var filteredGenerators, var incrementalGenerators) = GetIncrementalGenerators(generators, SourceExtension);
-            _state = new GeneratorDriverState(parseOptions, optionsProvider, filteredGenerators, incrementalGenerators, additionalTexts, ImmutableArray.Create(new GeneratorState[filteredGenerators.Length]), DriverStateTable.Empty, SyntaxStore.Empty, driverOptions.DisabledOutputs, runtime: TimeSpan.Zero, driverOptions.TrackIncrementalGeneratorSteps);
+            var incrementalGenerators = GetIncrementalGenerators(generators, SourceExtension);
+            _state = new GeneratorDriverState(parseOptions, optionsProvider, generators, incrementalGenerators, additionalTexts, ImmutableArray.Create(new GeneratorState[generators.Length]), DriverStateTable.Empty, SyntaxStore.Empty, driverOptions.DisabledOutputs, runtime: TimeSpan.Zero, driverOptions.TrackIncrementalGeneratorSteps);
         }
 
         public GeneratorDriver RunGenerators(Compilation compilation, CancellationToken cancellationToken = default)
@@ -67,10 +67,10 @@ namespace Microsoft.CodeAnalysis
 
         public GeneratorDriver AddGenerators(ImmutableArray<ISourceGenerator> generators)
         {
-            (var filteredGenerators, var incrementalGenerators) = GetIncrementalGenerators(generators, SourceExtension);
-            var newState = _state.With(sourceGenerators: _state.Generators.AddRange(filteredGenerators),
+            var incrementalGenerators = GetIncrementalGenerators(generators, SourceExtension);
+            var newState = _state.With(sourceGenerators: _state.Generators.AddRange(generators),
                                        incrementalGenerators: _state.IncrementalGenerators.AddRange(incrementalGenerators),
-                                       generatorStates: _state.GeneratorStates.AddRange(new GeneratorState[filteredGenerators.Length]));
+                                       generatorStates: _state.GeneratorStates.AddRange(new GeneratorState[generators.Length]));
             return FromState(newState);
         }
 
@@ -355,14 +355,14 @@ namespace Microsoft.CodeAnalysis
             return Path.Combine(type.Assembly.GetName().Name ?? string.Empty, type.FullName!);
         }
 
-        private static (ImmutableArray<ISourceGenerator>, ImmutableArray<IIncrementalGenerator>) GetIncrementalGenerators(ImmutableArray<ISourceGenerator> generators, string sourceExtension)
+        private static ImmutableArray<IIncrementalGenerator> GetIncrementalGenerators(ImmutableArray<ISourceGenerator> generators, string sourceExtension)
         {
-            return (generators, generators.SelectAsArray(g => g switch
+            return generators.SelectAsArray(g => g switch
             {
                 IncrementalGeneratorWrapper igw => igw.Generator,
                 IIncrementalGenerator ig => ig,
                 _ => new SourceGeneratorAdaptor(g, sourceExtension)
-            }));
+            });
 
         }
 
