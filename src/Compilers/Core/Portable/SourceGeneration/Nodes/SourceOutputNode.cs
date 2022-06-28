@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis
                 return previousTable;
             }
 
-            var nodeTable = graphState.CreateTableBuilder(previousTable, stepName, equalityComparer: EqualityComparer<TOutput>.Default);
+            var nodeTable = graphState.CreateTableBuilder(previousTable, stepName, EqualityComparer<TOutput>.Default);
             foreach (var entry in sourceTable)
             {
                 var inputs = nodeTable.TrackIncrementalSteps ? ImmutableArray.Create((entry.Step!, entry.OutputIndex)) : default;
