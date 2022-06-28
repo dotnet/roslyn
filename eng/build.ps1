@@ -573,6 +573,9 @@ function Deploy-VsixViaTool() {
   # Disable background download UI to avoid toasts
   &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Setup\BackgroundDownload" Value dword 0
 
+  # Disable async save
+  &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\VS\RDT\AsyncSave" Value dword 0
+
   # Configure LSP
   $lspRegistryValue = [int]$lspEditor.ToBool()
   &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Roslyn\LSP\Editor" Value dword $lspRegistryValue
