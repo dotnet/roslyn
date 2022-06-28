@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -33,6 +34,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
         Protected Overrides Function GetVariableIdentifier(declarator As ModifiedIdentifierSyntax) As SyntaxToken
             Return declarator.Identifier
+        End Function
+
+        Protected Overrides Function GetMemberIdentifiers(member As StatementSyntax) As IEnumerable(Of SyntaxToken)
+            If TypeOf member Is FieldDeclarationSyntax Then
+                Return DirectCast(member, FieldDeclarationSyntax).Declarators.
+                    SelectMany(Function(decl) decl.Names.
+                        Select(Function(name) name.Identifier))
+            Else
+                Return ImmutableArray.Create(member.GetNameToken())
+            End If
         End Function
     End Class
 End Namespace

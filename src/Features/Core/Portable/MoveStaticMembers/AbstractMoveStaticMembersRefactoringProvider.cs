@@ -3,12 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PullMemberUp;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.MoveStaticMembers
 {
@@ -26,8 +28,8 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
                 return;
             }
 
-            var memberDeclaration = await GetSelectedNodesAsync(context).ConfigureAwait(false);
-            if (memberDeclaration == null)
+            var selectedMemberNodes = await GetSelectedNodesAsync(context).ConfigureAwait(false);
+            if (selectedMemberNodes == null)
             {
                 return;
             }
@@ -38,26 +40,37 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
                 return;
             }
 
-            var selectedType = semanticModel.GetEnclosingNamedType(span.Start, cancellationToken);
-            if (selectedType == null)
-            {
-                return;
-            }
 
-            var selectedMembers = selectedType.GetMembers()
-                .WhereAsArray(m => m.IsStatic &&
-                    MemberAndDestinationValidator.IsMemberValid(m) &&
-                    m.DeclaringSyntaxReferences.Any(static (sr, memberDeclaration) => memberDeclaration.FullSpan.Contains(sr.Span), memberDeclaration));
+            var memberNodeSymbolPairs = selectedMemberNodes
+                .Select(m => (node: m, symbol: semanticModel.GetDeclaredSymbol(m, cancellationToken)))
+                // Use same logic as pull members up for determining if a selected member
+                // is valid to be moved into a base
+                .Where(pair => pair.symbol != null && MemberAndDestinationValidator.IsMemberValid(pair.symbol) && pair.symbol.IsStatic)
+                .AsImmutable();
+
+            var selectedMembers = memberNodeSymbolPairs.SelectAsArray(pair => pair.symbol!);
+
             if (selectedMembers.IsEmpty)
             {
                 return;
             }
 
+            var containingType = selectedMembers.First().ContainingType;
+            if (containingType == null || selectedMembers.Any(static (m, containingType) => m.ContainingType != containingType, containingType))
+            {
+                return;
+            }
+
+            // we want to use a span which covers all the selected viable member nodes, so that more specific nodes have priority
+            var start = memberNodeSymbolPairs.Min(pair => pair.node.SpanStart);
+            var end = memberNodeSymbolPairs.Max(pair => pair.node.Span.End);
+            var memberSpan = new TextSpan(start, end - start);
+
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-            var action = new MoveStaticMembersWithDialogCodeAction(document, span, service, selectedType, context.Options, selectedMember: selectedMembers[0]);
+            var action = new MoveStaticMembersWithDialogCodeAction(document, service, containingType, context.Options, selectedMembers);
 
-            context.RegisterRefactoring(action, selectedMembers[0].DeclaringSyntaxReferences[0].Span);
+            context.RegisterRefactoring(action, memberSpan);
         }
     }
 }

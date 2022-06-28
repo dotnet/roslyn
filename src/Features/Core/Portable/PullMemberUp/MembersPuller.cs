@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 
             if (result.PullUpOperationNeedsToDoExtraChanges ||
                 selectedMembers.Any(
-                    m => IsSelectedMemberDeclarationAlreadyInDestination(m, destination)))
+                    static (m, destination) => IsSelectedMemberDeclarationAlreadyInDestination(m, destination), destination))
             {
                 return null;
             }

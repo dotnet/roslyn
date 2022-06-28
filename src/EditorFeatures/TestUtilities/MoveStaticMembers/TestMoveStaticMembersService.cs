@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveStaticMembers
 
         public string? Filename { get; set; }
 
-        public MoveStaticMembersOptions GetMoveMembersToTypeOptions(Document document, INamedTypeSymbol selectedType, ISymbol? selectedNodeSymbol)
+        public MoveStaticMembersOptions GetMoveMembersToTypeOptions(Document document, INamedTypeSymbol selectedType, ImmutableArray<ISymbol> selectedNodeSymbols)
         {
             var selectedMembers = selectedType.GetMembers().WhereAsArray(symbol => SelectedMembers.Contains(symbol.Name));
             var namespaceDisplay = selectedType.ContainingNamespace.IsGlobalNamespace

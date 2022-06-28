@@ -4,12 +4,14 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PullMemberUp;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractClass
@@ -56,28 +58,40 @@ namespace Microsoft.CodeAnalysis.ExtractClass
 
         private async Task<ExtractClassWithDialogCodeAction?> TryGetMemberActionAsync(CodeRefactoringContext context, IExtractClassOptionsService optionsService)
         {
-            var selectedMemberNode = await GetSelectedNodesAsync(context).ConfigureAwait(false);
-            if (selectedMemberNode is null)
+            var selectedMemberNodes = await GetSelectedNodesAsync(context).ConfigureAwait(false);
+            if (selectedMemberNodes.IsEmpty)
             {
                 return null;
             }
 
             var (document, span, cancellationToken) = context;
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var selectedMember = semanticModel.GetDeclaredSymbol(selectedMemberNode, cancellationToken);
-            if (selectedMember is null || selectedMember.ContainingType is null)
+            var memberNodeSymbolPairs = selectedMemberNodes
+                .Select(m => (node: m, symbol: semanticModel.GetDeclaredSymbol(m, cancellationToken)))
+                // Use same logic as pull members up for determining if a selected member
+                // is valid to be moved into a base
+                .Where(pair => pair.symbol != null && MemberAndDestinationValidator.IsMemberValid(pair.symbol))
+                .AsImmutable();
+
+            var selectedMembers = memberNodeSymbolPairs.SelectAsArray(pair => pair.symbol!);
+
+            if (selectedMembers.IsEmpty)
             {
                 return null;
             }
 
-            // Use same logic as pull members up for determining if a selected member
-            // is valid to be moved into a base
-            if (!MemberAndDestinationValidator.IsMemberValid(selectedMember))
+            var containingType = selectedMembers.First().ContainingType;
+            if (containingType == null || selectedMembers.Any(m => m.ContainingType != containingType))
             {
                 return null;
             }
 
-            var containingType = selectedMember.ContainingType;
+            // Treat the entire nodes' span as the span of interest here.  That way if the user's location is closer to
+            // a refactoring with a narrower span (for example, a span just on the name/parameters of a member, then it
+            // will take precedence over us).
+            var start = memberNodeSymbolPairs.Min(pair => pair.node.SpanStart);
+            var end = memberNodeSymbolPairs.Max(pair => pair.node.Span.End);
+            var memberSpan = new TextSpan(start, end - start);
 
             // Can't extract to a new type if there's already a base. Maybe
             // in the future we could inject a new type inbetween base and
@@ -88,14 +102,15 @@ namespace Microsoft.CodeAnalysis.ExtractClass
             }
 
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var containingTypeDeclarationNode = selectedMemberNode.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsTypeDeclaration);
+            var containingTypeDeclarationNode = selectedMemberNodes.First().FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsTypeDeclaration);
             Contract.ThrowIfNull(containingTypeDeclarationNode);
+            if (selectedMemberNodes.Any(m => m.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsTypeDeclaration) != containingTypeDeclarationNode))
+            {
+                return null;
+            }
 
-            // Treat the entire node's span as the span of interest here.  That way if the user's location is closer to
-            // a refactoring with a narrower span (for example, a span just on the name/parameters of a member, then it
-            // will take precedence over us).
             return new ExtractClassWithDialogCodeAction(
-                document, selectedMemberNode.Span, optionsService, containingType, containingTypeDeclarationNode, context.Options, selectedMember);
+                document, memberSpan, optionsService, containingType, containingTypeDeclarationNode, context.Options, selectedMembers);
         }
 
         private async Task<ExtractClassWithDialogCodeAction?> TryGetClassActionAsync(CodeRefactoringContext context, IExtractClassOptionsService optionsService)
@@ -111,7 +126,7 @@ namespace Microsoft.CodeAnalysis.ExtractClass
                 return null;
 
             return new ExtractClassWithDialogCodeAction(
-                document, span, optionsService, originalType, selectedClassNode, context.Options, selectedMember: null);
+                document, span, optionsService, originalType, selectedClassNode, context.Options, selectedMembers: ImmutableArray<ISymbol>.Empty);
         }
     }
 }

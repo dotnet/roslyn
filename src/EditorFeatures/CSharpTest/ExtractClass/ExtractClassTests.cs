@@ -2186,7 +2186,7 @@ internal class MyBase<T1, T3>
             public string FileName { get; set; } = "MyBase.cs";
             public string BaseName { get; set; } = "MyBase";
 
-            public Task<ExtractClassOptions?> GetExtractClassOptionsAsync(Document document, INamedTypeSymbol originalSymbol, ISymbol? selectedMember, CancellationToken cancellationToken)
+            public Task<ExtractClassOptions?> GetExtractClassOptionsAsync(Document document, INamedTypeSymbol originalSymbol, ImmutableArray<ISymbol> selectedMembers, CancellationToken cancellationToken)
             {
                 var availableMembers = originalSymbol.GetMembers().Where(member => MemberAndDestinationValidator.IsMemberValid(member));
 
@@ -2194,7 +2194,7 @@ internal class MyBase<T1, T3>
 
                 if (_dialogSelection == null)
                 {
-                    if (selectedMember is null)
+                    if (selectedMembers.IsEmpty)
                     {
                         Assert.True(isClassDeclarationSelection);
                         selections = availableMembers.Select(member => (member, makeAbstract: false));
@@ -2202,7 +2202,7 @@ internal class MyBase<T1, T3>
                     else
                     {
                         Assert.False(isClassDeclarationSelection);
-                        selections = new[] { (selectedMember, false) };
+                        selections = selectedMembers.Select(m => (m, makeAbstract: false));
                     }
                 }
                 else

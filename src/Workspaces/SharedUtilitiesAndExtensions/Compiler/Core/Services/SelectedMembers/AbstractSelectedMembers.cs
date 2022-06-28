@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -32,6 +33,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         protected abstract SyntaxToken GetVariableIdentifier(TVariableSyntax declarator);
         protected abstract SyntaxToken GetPropertyIdentifier(TPropertyDeclarationSyntax declarator);
+        protected abstract IEnumerable<SyntaxToken> GetMemberIdentifiers(TMemberDeclarationSyntax member);
 
         public async Task<ImmutableArray<SyntaxNode>> GetSelectedFieldsAndPropertiesAsync(
             SyntaxTree tree, TextSpan textSpan, bool allowPartialSelection, CancellationToken cancellationToken)
@@ -65,6 +67,150 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 return ImmutableArray<SyntaxNode>.Empty;
 
             return GetFieldsAndPropertiesInSpan(root, text, textSpan, firstMember, allowPartialSelection);
+        }
+
+        public async Task<ImmutableArray<SyntaxNode>> GetSelectedMembersAsync(
+            SyntaxTree tree, TextSpan textSpan, bool allowPartialSelection,
+            Func<TMemberDeclarationSyntax, bool> membersToKeep, CancellationToken cancellationToken)
+        {
+            var text = await tree.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+
+            // If there is a selection, look for the token to the right of the selection That helps
+            // the user select like so:
+            //
+            //          int i;[|
+            //          int j;|]
+            //
+            // In this case (which is common with a mouse), we want to consider 'j' selected, and
+            // 'i' not involved in all.
+            //
+            // However, if there is no selection and the user has:
+            //
+            //          int i;$$
+            //          int j;
+            //
+            // Then we want to consider 'i' selected instead.  So we do a normal FindToken.
+
+            var token = textSpan.IsEmpty
+                ? root.FindToken(textSpan.Start)
+                : root.FindTokenOnRightOfPosition(textSpan.Start);
+            var firstMember = token.GetAncestors<TMemberDeclarationSyntax>()
+                                   .Where(m => m.Parent is TTypeDeclarationSyntax)
+                                   .FirstOrDefault();
+            if (firstMember == null)
+                return ImmutableArray<SyntaxNode>.Empty;
+
+            return GetMembersInSpan(root, text, textSpan, firstMember, allowPartialSelection, membersToKeep);
+        }
+
+        private ImmutableArray<SyntaxNode> GetMembersInSpan(
+            SyntaxNode root, SourceText text, TextSpan textSpan,
+            TMemberDeclarationSyntax firstMember, bool allowPartialSelection,
+            Func<TMemberDeclarationSyntax, bool> membersToKeep)
+        {
+            var containingType = (TTypeDeclarationSyntax)firstMember.Parent;
+            var members = GetMembers(containingType);
+            var fieldIndex = members.IndexOf(firstMember);
+            if (fieldIndex < 0)
+                return ImmutableArray<SyntaxNode>.Empty;
+
+            var selectedMembers = ArrayBuilder<SyntaxNode>.GetInstance();
+            for (var i = fieldIndex; i < members.Count; i++)
+            {
+                var member = members[i];
+                AddSelectedMemberDeclarations(member, membersToKeep);
+            }
+
+            return selectedMembers.ToImmutableAndFree();
+
+            void AddAllMembers(TMemberDeclarationSyntax member)
+            {
+                switch (member)
+                {
+                    case TFieldDeclarationSyntax field:
+                        selectedMembers.AddRange(GetAllDeclarators(field));
+                        return;
+                    default:
+                        selectedMembers.Add(member);
+                        return;
+                }
+            }
+
+            // local functions
+            void AddSelectedMemberDeclarations(TMemberDeclarationSyntax member, Func<TMemberDeclarationSyntax, bool> membersToKeep)
+            {
+                if (!membersToKeep(member))
+                {
+                    return;
+                }
+
+                // first, check if entire member is selected.  If so, we definitely include this member.
+                if (textSpan.Contains(member.Span))
+                {
+                    AddAllMembers(member);
+                    return;
+                }
+
+                if (textSpan.IsEmpty)
+                {
+                    // No selection.  We consider this member selected if a few cases are true:
+                    //
+                    //  1. Position precedes the first token of the member (on the same line).
+                    //  2. Position touches the name of the member.
+                    //  3. Position is after the last token of the member (on the same line).
+
+                    var position = textSpan.Start;
+                    if (IsBeforeOrAfterNodeOnSameLine(text, root, member, position))
+                    {
+                        AddAllMembers(member);
+                        return;
+                    }
+                    else
+                    {
+                        switch (member)
+                        {
+                            case TFieldDeclarationSyntax field:
+                                foreach (var varDecl in GetAllDeclarators(field))
+                                {
+                                    if (GetVariableIdentifier(varDecl).FullSpan.IntersectsWith(position))
+                                        selectedMembers.Add(varDecl);
+                                }
+
+                                return;
+                            default:
+                                // technically this doesnt work for C# "EventFieldDeclarationNode" as that also can have multiple names
+                                if (GetNonFieldMemberIdentifier(member).FullSpan.IntersectsWith(position))
+                                    selectedMembers.Add(member);
+                                return;
+                        }
+                    }
+                }
+                else
+                {
+                    // if the user has an actual selection, get the fields/props if the selection
+                    // surrounds the names of in the case of allowPartialSelection.
+
+                    if (!allowPartialSelection)
+                        return;
+
+                    switch (member)
+                    {
+                        case TFieldDeclarationSyntax field:
+                            foreach (var variable in GetAllDeclarators(field))
+                            {
+                                if (textSpan.OverlapsWith(GetVariableIdentifier(variable).Span))
+                                    selectedMembers.Add(variable);
+                            }
+
+                            return;
+                        case TPropertyDeclarationSyntax property:
+                            if (textSpan.OverlapsWith(GetPropertyIdentifier(property).Span))
+                                selectedMembers.Add(property);
+                            return;
+                    }
+                }
+            }
         }
 
         private ImmutableArray<SyntaxNode> GetFieldsAndPropertiesInSpan(

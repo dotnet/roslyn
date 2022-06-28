@@ -25,9 +25,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings
             var memberDeclarations = await context.GetRelevantNodesAsync<MemberDeclarationSyntax>().ConfigureAwait(false);
             var varDeclarators = await context.GetRelevantNodesAsync<VariableDeclaratorSyntax>().ConfigureAwait(false);
             return memberDeclarations
-                .SelectAsArray<MemberDeclarationSyntax, SyntaxNode>(
-                    memberDeclaration => memberDeclaration is FieldDeclarationSyntax fieldDeclaration ? fieldDeclaration.Declaration : memberDeclaration)
+                .SelectMany<MemberDeclarationSyntax, SyntaxNode>(
+                    memberDeclaration => memberDeclaration is FieldDeclarationSyntax fieldDeclaration ? fieldDeclaration.Declaration.Variables : ImmutableArray.Create(memberDeclaration))
                 .Concat(varDeclarators.Cast<SyntaxNode>())
+                // GetRelevantNodesAsync can produce duplicates, so we make sure we only have unique ones
+                .Distinct()
                 .AsImmutable();
         }
     }

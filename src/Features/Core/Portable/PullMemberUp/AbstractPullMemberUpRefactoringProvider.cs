@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog;
 using Microsoft.CodeAnalysis.PullMemberUp;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
@@ -46,11 +47,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             }
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var selectedMembers = selectedMemberNodes
-                .Select(memberNode => semanticModel.GetDeclaredSymbol(memberNode))
-                .WhereNotNull()
-                .Where(memberNode => MemberAndDestinationValidator.IsMemberValid(memberNode))
+            var memberNodeSymbolPairs = selectedMemberNodes
+                .Select(m => (node: m, symbol: semanticModel.GetDeclaredSymbol(m, cancellationToken)))
+                .Where(pair => pair.symbol != null && MemberAndDestinationValidator.IsMemberValid(pair.symbol))
                 .AsImmutable();
+
+            var selectedMembers = memberNodeSymbolPairs.SelectAsArray(pair => pair.symbol!);
 
             if (selectedMembers.IsEmpty)
             {
@@ -58,10 +60,15 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             }
 
             var containingType = selectedMembers.First().ContainingType;
-            if (containingType == null || selectedMembers.Any(m => m.ContainingType != containingType))
+            if (containingType == null || selectedMembers.Any(static (m, containingType) => m.ContainingType != containingType, containingType))
             {
                 return;
             }
+
+            // we want to use a span which covers all the selected viable member nodes, so that more specific nodes have priority
+            var start = memberNodeSymbolPairs.Min(pair => pair.node.SpanStart);
+            var end = memberNodeSymbolPairs.Max(pair => pair.node.Span.End);
+            var memberSpan = new TextSpan(start, end - start);
 
             var allDestinations = FindAllValidDestinations(
                 selectedMembers,
@@ -74,8 +81,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             }
 
             var allActions = allDestinations.Select(destination => MembersPuller.TryComputeCodeAction(document, selectedMembers, destination, context.Options))
-            .WhereNotNull().Concat(new PullMemberUpWithDialogCodeAction(document, selectedMembers, _service, context.Options))
-            .ToImmutableArray();
+                .WhereNotNull().Concat(new PullMemberUpWithDialogCodeAction(document, selectedMembers, _service, context.Options))
+                .ToImmutableArray();
 
             var title = selectedMembers.IsSingle() ?
                 string.Format(FeaturesResources.Pull_0_up, selectedMembers.Single().ToNameDisplayString()) :
@@ -85,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 title,
                 allActions, isInlinable: true);
 
-            context.RegisterRefactoring(nestedCodeAction, context.Span);
+            context.RegisterRefactoring(nestedCodeAction, memberSpan);
         }
 
         private static ImmutableArray<INamedTypeSymbol> FindAllValidDestinations(
