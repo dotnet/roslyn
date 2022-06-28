@@ -75,11 +75,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
             // WPF is required for some reason: https://github.com/dotnet/roslyn/issues/46286
             using var workspace = TestWorkspace.Create(Language, compilationOptions: null, parseOptions: null, new[] { markupCode }, composition: EditorTestCompositions.EditorFeaturesWpf);
 
-            workspace.GlobalOptions.SetGlobalOption(new OptionKey(FormattingOptions2.UseTabs, Language), useTabs);
-
             var view = workspace.Documents.Single().GetTextView();
             var buffer = workspace.Documents.Single().GetTextBuffer();
             var nextHandlerInvoked = false;
+
+            view.Options.GlobalOptions.SetOptionValue(DefaultOptions.ConvertTabsToSpacesOptionId, !useTabs);
+            view.Options.GlobalOptions.SetOptionValue(DefaultOptions.IndentStyleId, IndentingStyle.Smart);
 
             view.Caret.MoveTo(new SnapshotPoint(buffer.CurrentSnapshot, workspace.Documents.Single(d => d.CursorPosition.HasValue).CursorPosition.Value));
 

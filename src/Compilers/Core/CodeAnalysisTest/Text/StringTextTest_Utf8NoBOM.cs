@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    public class StringTextTest_UTF8NoBOM : StringTextTest_Default
+    public class StringTextTest_Utf8NoBOM : StringTextTest_Default
     {
         protected override SourceText Create(string source)
         {

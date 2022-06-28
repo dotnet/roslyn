@@ -10,12 +10,12 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class IOperationTests_IUTF8StringOperation : SemanticModelTestBase
+    public class IOperationTests_IUtf8StringOperation : SemanticModelTestBase
     {
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        public void UTF8String_01()
+        public void Utf8String_01()
         {
             string source = @"
 class Program
@@ -29,7 +29,7 @@ class Program
             string expectedOperationTree = @"
 IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return ""Abc""u8;')
   ReturnedValue:
-    IUTF8StringOperation (Abc) (OperationKind.UTF8String, Type: System.ReadOnlySpan<System.Byte>) (Syntax: '""Abc""u8')
+    IUtf8StringOperation (Abc) (OperationKind.Utf8String, Type: System.ReadOnlySpan<System.Byte>) (Syntax: '""Abc""u8')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -38,7 +38,7 @@ IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return ""Abc""u8;'
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
-        public void UTF8StringFlow_01()
+        public void Utf8StringFlow_01()
         {
             string source = @"
 class C
@@ -64,7 +64,7 @@ Block[B1] - Block
               Left: 
                 IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.ReadOnlySpan<System.Byte>) (Syntax: 'b')
               Right: 
-                IUTF8StringOperation (ABC) (OperationKind.UTF8String, Type: System.ReadOnlySpan<System.Byte>) (Syntax: '""ABC""u8')
+                IUtf8StringOperation (ABC) (OperationKind.Utf8String, Type: System.ReadOnlySpan<System.Byte>) (Syntax: '""ABC""u8')
 
     Next (Regular) Block[B2]
 Block[B2] - Exit
@@ -76,7 +76,7 @@ Block[B2] - Exit
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        public void UTF8String_02()
+        public void Utf8String_02()
         {
             string source = @"
 class Program
@@ -92,9 +92,9 @@ IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return ""Ab""u8 + 
   ReturnedValue:
     IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.ReadOnlySpan<System.Byte>) (Syntax: '""Ab""u8 + ""c""u8')
       Left:
-        IUTF8StringOperation (Ab) (OperationKind.UTF8String, Type: System.ReadOnlySpan<System.Byte>) (Syntax: '""Ab""u8')
+        IUtf8StringOperation (Ab) (OperationKind.Utf8String, Type: System.ReadOnlySpan<System.Byte>) (Syntax: '""Ab""u8')
       Right:
-        IUTF8StringOperation (c) (OperationKind.UTF8String, Type: System.ReadOnlySpan<System.Byte>) (Syntax: '""c""u8')
+        IUtf8StringOperation (c) (OperationKind.Utf8String, Type: System.ReadOnlySpan<System.Byte>) (Syntax: '""c""u8')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -103,7 +103,7 @@ IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return ""Ab""u8 + 
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
-        public void UTF8StringFlow_02()
+        public void Utf8StringFlow_02()
         {
             string source = @"
 class C
@@ -131,9 +131,9 @@ Block[B1] - Block
               Right:
                 IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.ReadOnlySpan<System.Byte>) (Syntax: '""AB""u8 + ""C""u8')
                   Left:
-                    IUTF8StringOperation (AB) (OperationKind.UTF8String, Type: System.ReadOnlySpan<System.Byte>) (Syntax: '""AB""u8')
+                    IUtf8StringOperation (AB) (OperationKind.Utf8String, Type: System.ReadOnlySpan<System.Byte>) (Syntax: '""AB""u8')
                   Right:
-                    IUTF8StringOperation (C) (OperationKind.UTF8String, Type: System.ReadOnlySpan<System.Byte>) (Syntax: '""C""u8')
+                    IUtf8StringOperation (C) (OperationKind.Utf8String, Type: System.ReadOnlySpan<System.Byte>) (Syntax: '""C""u8')
     Next (Regular) Block[B2]
 Block[B2] - Exit
     Predecessors: [B1]

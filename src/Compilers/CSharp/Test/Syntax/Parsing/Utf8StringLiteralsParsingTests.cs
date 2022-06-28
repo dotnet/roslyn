@@ -13,9 +13,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class UTF8StringLiteralsParsingTests : ParsingTests
+    public class Utf8StringLiteralsParsingTests : ParsingTests
     {
-        public UTF8StringLiteralsParsingTests(ITestOutputHelper output) : base(output) { }
+        public Utf8StringLiteralsParsingTests(ITestOutputHelper output) : base(output) { }
 
         [Fact]
         public void RegularStringLiteral_01()
@@ -98,145 +98,145 @@ hello
         }
 
         [Fact]
-        public void UTF8StringLiteral_01()
+        public void Utf8StringLiteral_01()
         {
             UsingExpression(@"""hello""u8");
 
-            N(SyntaxKind.UTF8StringLiteralExpression);
+            N(SyntaxKind.Utf8StringLiteralExpression);
             {
-                N(SyntaxKind.UTF8StringLiteralToken, "\"hello\"u8");
+                N(SyntaxKind.Utf8StringLiteralToken, "\"hello\"u8");
             }
             EOF();
         }
 
         [Fact]
-        public void UTF8StringLiteral_02()
+        public void Utf8StringLiteral_02()
         {
             UsingExpression(@"""hello""u8", options: TestOptions.RegularNext);
 
-            N(SyntaxKind.UTF8StringLiteralExpression);
+            N(SyntaxKind.Utf8StringLiteralExpression);
             {
-                N(SyntaxKind.UTF8StringLiteralToken, "\"hello\"u8");
+                N(SyntaxKind.Utf8StringLiteralToken, "\"hello\"u8");
             }
             EOF();
         }
 
         [Fact]
-        public void UTF8StringLiteral_03()
+        public void Utf8StringLiteral_03()
         {
             UsingExpression(@"""hello""u8", options: TestOptions.Regular10);
 
-            N(SyntaxKind.UTF8StringLiteralExpression);
+            N(SyntaxKind.Utf8StringLiteralExpression);
             {
-                N(SyntaxKind.UTF8StringLiteralToken, "\"hello\"u8");
+                N(SyntaxKind.Utf8StringLiteralToken, "\"hello\"u8");
             }
             EOF();
         }
 
         [Fact]
-        public void UTF8StringLiteral_04()
+        public void Utf8StringLiteral_04()
         {
             UsingExpression(@"@""hello""u8");
 
-            N(SyntaxKind.UTF8StringLiteralExpression);
+            N(SyntaxKind.Utf8StringLiteralExpression);
             {
-                N(SyntaxKind.UTF8StringLiteralToken, "@\"hello\"u8");
+                N(SyntaxKind.Utf8StringLiteralToken, "@\"hello\"u8");
             }
             EOF();
         }
 
         [Fact]
-        public void UTF8StringLiteral_05()
+        public void Utf8StringLiteral_05()
         {
             UsingExpression(@"@""hello""u8", options: TestOptions.RegularNext);
 
-            N(SyntaxKind.UTF8StringLiteralExpression);
+            N(SyntaxKind.Utf8StringLiteralExpression);
             {
-                N(SyntaxKind.UTF8StringLiteralToken, "@\"hello\"u8");
+                N(SyntaxKind.Utf8StringLiteralToken, "@\"hello\"u8");
             }
             EOF();
         }
 
         [Fact]
-        public void UTF8StringLiteral_06()
+        public void Utf8StringLiteral_06()
         {
             UsingExpression(@"@""hello""u8", options: TestOptions.Regular10);
 
-            N(SyntaxKind.UTF8StringLiteralExpression);
+            N(SyntaxKind.Utf8StringLiteralExpression);
             {
-                N(SyntaxKind.UTF8StringLiteralToken, "@\"hello\"u8");
+                N(SyntaxKind.Utf8StringLiteralToken, "@\"hello\"u8");
             }
             EOF();
         }
 
         [Fact]
-        public void UTF8StringLiteral_07()
+        public void Utf8StringLiteral_07()
         {
             UsingExpression(@"""hello""U8");
 
-            N(SyntaxKind.UTF8StringLiteralExpression);
+            N(SyntaxKind.Utf8StringLiteralExpression);
             {
-                N(SyntaxKind.UTF8StringLiteralToken, "\"hello\"U8");
+                N(SyntaxKind.Utf8StringLiteralToken, "\"hello\"U8");
             }
             EOF();
         }
 
         [Fact]
-        public void UTF8StringLiteral_08()
+        public void Utf8StringLiteral_08()
         {
             UsingExpression(@"""hello""U8", options: TestOptions.RegularNext);
 
-            N(SyntaxKind.UTF8StringLiteralExpression);
+            N(SyntaxKind.Utf8StringLiteralExpression);
             {
-                N(SyntaxKind.UTF8StringLiteralToken, "\"hello\"U8");
+                N(SyntaxKind.Utf8StringLiteralToken, "\"hello\"U8");
             }
             EOF();
         }
 
         [Fact]
-        public void UTF8StringLiteral_09()
+        public void Utf8StringLiteral_09()
         {
             UsingExpression(@"""hello""U8", options: TestOptions.Regular10);
 
-            N(SyntaxKind.UTF8StringLiteralExpression);
+            N(SyntaxKind.Utf8StringLiteralExpression);
             {
-                N(SyntaxKind.UTF8StringLiteralToken, "\"hello\"U8");
+                N(SyntaxKind.Utf8StringLiteralToken, "\"hello\"U8");
             }
             EOF();
         }
 
         [Fact]
-        public void UTF8StringLiteral_10()
+        public void Utf8StringLiteral_10()
         {
             UsingExpression(@"@""hello""U8");
 
-            N(SyntaxKind.UTF8StringLiteralExpression);
+            N(SyntaxKind.Utf8StringLiteralExpression);
             {
-                N(SyntaxKind.UTF8StringLiteralToken, "@\"hello\"U8");
+                N(SyntaxKind.Utf8StringLiteralToken, "@\"hello\"U8");
             }
             EOF();
         }
 
         [Fact]
-        public void UTF8StringLiteral_11()
+        public void Utf8StringLiteral_11()
         {
             UsingExpression(@"@""hello""U8", options: TestOptions.RegularNext);
 
-            N(SyntaxKind.UTF8StringLiteralExpression);
+            N(SyntaxKind.Utf8StringLiteralExpression);
             {
-                N(SyntaxKind.UTF8StringLiteralToken, "@\"hello\"U8");
+                N(SyntaxKind.Utf8StringLiteralToken, "@\"hello\"U8");
             }
             EOF();
         }
 
         [Fact]
-        public void UTF8StringLiteral_12()
+        public void Utf8StringLiteral_12()
         {
             UsingExpression(@"@""hello""U8", options: TestOptions.Regular10);
 
-            N(SyntaxKind.UTF8StringLiteralExpression);
+            N(SyntaxKind.Utf8StringLiteralExpression);
             {
-                N(SyntaxKind.UTF8StringLiteralToken, "@\"hello\"U8");
+                N(SyntaxKind.Utf8StringLiteralToken, "@\"hello\"U8");
             }
             EOF();
         }
@@ -300,9 +300,9 @@ hello
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, @"@""hello""u8").WithArguments("0").WithLocation(1, 1)
                 );
 
-            N(SyntaxKind.UTF8StringLiteralExpression);
+            N(SyntaxKind.Utf8StringLiteralExpression);
             {
-                N(SyntaxKind.UTF8StringLiteralToken, "@\"hello\"u8");
+                N(SyntaxKind.Utf8StringLiteralToken, "@\"hello\"u8");
             }
             EOF();
         }
@@ -398,9 +398,9 @@ hello
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, @"""hello""u8").WithArguments("0").WithLocation(1, 1)
                 );
 
-            N(SyntaxKind.UTF8StringLiteralExpression);
+            N(SyntaxKind.Utf8StringLiteralExpression);
             {
-                N(SyntaxKind.UTF8StringLiteralToken, "\"hello\"u8");
+                N(SyntaxKind.Utf8StringLiteralToken, "\"hello\"u8");
             }
             EOF();
         }
@@ -448,9 +448,9 @@ hello
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, @"@""hello""U8").WithArguments("0").WithLocation(1, 1)
                 );
 
-            N(SyntaxKind.UTF8StringLiteralExpression);
+            N(SyntaxKind.Utf8StringLiteralExpression);
             {
-                N(SyntaxKind.UTF8StringLiteralToken, "@\"hello\"U8");
+                N(SyntaxKind.Utf8StringLiteralToken, "@\"hello\"U8");
             }
             EOF();
         }
@@ -498,9 +498,9 @@ hello
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, @"""hello""U8").WithArguments("0").WithLocation(1, 1)
                 );
 
-            N(SyntaxKind.UTF8StringLiteralExpression);
+            N(SyntaxKind.Utf8StringLiteralExpression);
             {
-                N(SyntaxKind.UTF8StringLiteralToken, "\"hello\"U8");
+                N(SyntaxKind.Utf8StringLiteralToken, "\"hello\"U8");
             }
             EOF();
         }
@@ -590,7 +590,7 @@ hello
         }
 
         [Fact]
-        public void UTF8StringLiteral_13()
+        public void Utf8StringLiteral_13()
         {
             foreach (var options in new[] { TestOptions.RegularDefault, TestOptions.RegularNext, TestOptions.Regular10 })
             {
@@ -598,9 +598,9 @@ hello
                 {
                     UsingExpression(@"""""""hello""""""" + suffix, options: options);
 
-                    N(SyntaxKind.UTF8StringLiteralExpression);
+                    N(SyntaxKind.Utf8StringLiteralExpression);
                     {
-                        N(SyntaxKind.UTF8SingleLineRawStringLiteralToken, "\"\"\"hello\"\"\"" + suffix);
+                        N(SyntaxKind.Utf8SingleLineRawStringLiteralToken, "\"\"\"hello\"\"\"" + suffix);
                     }
                     EOF();
                 }
@@ -608,7 +608,7 @@ hello
         }
 
         [Fact]
-        public void UTF8StringLiteral_14()
+        public void Utf8StringLiteral_14()
         {
             foreach (var options in new[] { TestOptions.RegularDefault, TestOptions.RegularNext, TestOptions.Regular10 })
             {
@@ -616,9 +616,9 @@ hello
                 {
                     UsingExpression(@"@""""""hello""""""" + suffix, options: options);
 
-                    N(SyntaxKind.UTF8StringLiteralExpression);
+                    N(SyntaxKind.Utf8StringLiteralExpression);
                     {
-                        N(SyntaxKind.UTF8StringLiteralToken, "@\"\"\"hello\"\"\"" + suffix);
+                        N(SyntaxKind.Utf8StringLiteralToken, "@\"\"\"hello\"\"\"" + suffix);
                     }
                     EOF();
                 }
@@ -690,9 +690,9 @@ hello
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, @"""""""hello""""""" + suffix.Substring(0, 2)).WithArguments("0").WithLocation(1, 1)
                 );
 
-            N(SyntaxKind.UTF8StringLiteralExpression);
+            N(SyntaxKind.Utf8StringLiteralExpression);
             {
-                N(SyntaxKind.UTF8SingleLineRawStringLiteralToken, "\"\"\"hello\"\"\"" + suffix.Substring(0, 2));
+                N(SyntaxKind.Utf8SingleLineRawStringLiteralToken, "\"\"\"hello\"\"\"" + suffix.Substring(0, 2));
             }
             EOF();
         }
@@ -744,7 +744,7 @@ hello
         }
 
         [Fact]
-        public void UTF8StringLiteral_15()
+        public void Utf8StringLiteral_15()
         {
             foreach (var options in new[] { TestOptions.RegularDefault, TestOptions.RegularNext, TestOptions.Regular10 })
             {
@@ -754,9 +754,9 @@ hello
 hello
 """"""" + suffix, options: options);
 
-                    N(SyntaxKind.UTF8StringLiteralExpression);
+                    N(SyntaxKind.Utf8StringLiteralExpression);
                     {
-                        N(SyntaxKind.UTF8MultiLineRawStringLiteralToken, "\"\"\"" + @"
+                        N(SyntaxKind.Utf8MultiLineRawStringLiteralToken, "\"\"\"" + @"
 hello
 " + "\"\"\"" + suffix);
                     }
@@ -766,7 +766,7 @@ hello
         }
 
         [Fact]
-        public void UTF8StringLiteral_16()
+        public void Utf8StringLiteral_16()
         {
             foreach (var options in new[] { TestOptions.RegularDefault, TestOptions.RegularNext, TestOptions.Regular10 })
             {
@@ -776,9 +776,9 @@ hello
 hello
 """"""" + suffix, options: options);
 
-                    N(SyntaxKind.UTF8StringLiteralExpression);
+                    N(SyntaxKind.Utf8StringLiteralExpression);
                     {
-                        N(SyntaxKind.UTF8StringLiteralToken, "@\"\"\"" + @"
+                        N(SyntaxKind.Utf8StringLiteralToken, "@\"\"\"" + @"
 hello
 " + "\"\"\"" + suffix);
                     }
@@ -874,9 +874,9 @@ hello
 """"""" + suffix.Substring(0, 2)).WithArguments("0").WithLocation(1, 1)
                 );
 
-            N(SyntaxKind.UTF8StringLiteralExpression);
+            N(SyntaxKind.Utf8StringLiteralExpression);
             {
-                N(SyntaxKind.UTF8MultiLineRawStringLiteralToken, "\"\"\"" + @"
+                N(SyntaxKind.Utf8MultiLineRawStringLiteralToken, "\"\"\"" + @"
 hello
 " + "\"\"\"" + suffix.Substring(0, 2));
             }
@@ -938,55 +938,55 @@ hello
         }
 
         [Fact]
-        public void UTF8StringLiteral_Await_01()
+        public void Utf8StringLiteral_Await_01()
         {
             UsingExpression(@"await ""hello""u8");
 
             N(SyntaxKind.AwaitExpression);
             {
                 N(SyntaxKind.AwaitKeyword);
-                N(SyntaxKind.UTF8StringLiteralExpression);
+                N(SyntaxKind.Utf8StringLiteralExpression);
                 {
-                    N(SyntaxKind.UTF8StringLiteralToken, "\"hello\"u8");
+                    N(SyntaxKind.Utf8StringLiteralToken, "\"hello\"u8");
                 }
             }
             EOF();
         }
 
         [Fact]
-        public void UTF8StringLiteral_Await_02()
+        public void Utf8StringLiteral_Await_02()
         {
             UsingExpression(@"await @""hello""u8");
 
             N(SyntaxKind.AwaitExpression);
             {
                 N(SyntaxKind.AwaitKeyword);
-                N(SyntaxKind.UTF8StringLiteralExpression);
+                N(SyntaxKind.Utf8StringLiteralExpression);
                 {
-                    N(SyntaxKind.UTF8StringLiteralToken, "@\"hello\"u8");
+                    N(SyntaxKind.Utf8StringLiteralToken, "@\"hello\"u8");
                 }
             }
             EOF();
         }
 
         [Fact]
-        public void UTF8StringLiteral_Await_03()
+        public void Utf8StringLiteral_Await_03()
         {
             UsingExpression(@"await """"""hello""""""u8");
 
             N(SyntaxKind.AwaitExpression);
             {
                 N(SyntaxKind.AwaitKeyword);
-                N(SyntaxKind.UTF8StringLiteralExpression);
+                N(SyntaxKind.Utf8StringLiteralExpression);
                 {
-                    N(SyntaxKind.UTF8SingleLineRawStringLiteralToken, "\"\"\"hello\"\"\"u8");
+                    N(SyntaxKind.Utf8SingleLineRawStringLiteralToken, "\"\"\"hello\"\"\"u8");
                 }
             }
             EOF();
         }
 
         [Fact]
-        public void UTF8StringLiteral_Await_04()
+        public void Utf8StringLiteral_Await_04()
         {
             UsingExpression(@"await """"""
 hello
@@ -995,9 +995,9 @@ hello
             N(SyntaxKind.AwaitExpression);
             {
                 N(SyntaxKind.AwaitKeyword);
-                N(SyntaxKind.UTF8StringLiteralExpression);
+                N(SyntaxKind.Utf8StringLiteralExpression);
                 {
-                    N(SyntaxKind.UTF8MultiLineRawStringLiteralToken, "\"\"\"" + @"
+                    N(SyntaxKind.Utf8MultiLineRawStringLiteralToken, "\"\"\"" + @"
 hello
 " + "\"\"\"u8");
                 }

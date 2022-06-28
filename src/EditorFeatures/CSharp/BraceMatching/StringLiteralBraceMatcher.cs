@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BraceMatching
                 {
                     return GetSimpleStringBraceMatchingResult(token, endTokenLength: 1);
                 }
-                else if (token.IsKind(SyntaxKind.UTF8StringLiteralToken))
+                else if (token.IsKind(SyntaxKind.Utf8StringLiteralToken))
                 {
                     return GetSimpleStringBraceMatchingResult(token, endTokenLength: 3);
                 }
