@@ -73,11 +73,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 symbolKindList: ImmutableArray.Create(
                     new SymbolKindOrTypeKind(SymbolKind.Namespace),
                     new SymbolKindOrTypeKind(TypeKind.Class),
-                    new SymbolKindOrTypeKind(TypeKind.Module),
                     new SymbolKindOrTypeKind(TypeKind.Struct),
                     new SymbolKindOrTypeKind(TypeKind.Interface),
                     new SymbolKindOrTypeKind(TypeKind.Delegate),
                     new SymbolKindOrTypeKind(TypeKind.Enum),
+                    new SymbolKindOrTypeKind(TypeKind.Module),
                     new SymbolKindOrTypeKind(TypeKind.Pointer),
                     new SymbolKindOrTypeKind(SymbolKind.Property),
                     new SymbolKindOrTypeKind(MethodKind.Ordinary),
