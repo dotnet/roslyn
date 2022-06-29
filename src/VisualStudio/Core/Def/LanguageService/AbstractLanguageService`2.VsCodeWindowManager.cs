@@ -263,8 +263,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             int IVsDocOutlineProvider.GetOutlineCaption(VSOUTLINECAPTION nCaptionType, out string pbstrCaption)
             {
-                // TODO, ask the control for the text of the currently selected item
-                pbstrCaption = "Document Outline";
+                pbstrCaption = ServicesVSResources.Document_Outline;
                 return VSConstants.S_OK;
             }
 

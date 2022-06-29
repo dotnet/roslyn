@@ -357,6 +357,11 @@
         <target state="translated">Exibir as dicas embutidas de tipo</target>
         <note />
       </trans-unit>
+      <trans-unit id="Document_Outline">
+        <source>Document Outline</source>
+        <target state="new">Document Outline</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Document_Outline_Collapse_All">
         <source>Collapse All</source>
         <target state="new">Collapse All</target>
