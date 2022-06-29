@@ -1457,5 +1457,71 @@ public class C
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        public async Task TestTargettingReadOnlySpan1()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"
+using System;
+
+public class C
+{
+    public void M()
+    {
+        ReadOnlySpan<byte> x = [|new|] byte[] { 65, 66, 67 };
+    }
+}",
+                FixedCode =
+@"
+using System;
+
+public class C
+{
+    public void M()
+    {
+        ReadOnlySpan<byte> x = ""ABC""u8;
+    }
+}",
+                CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
+                LanguageVersion = LanguageVersion.Preview
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        public async Task TestTargettingReadOnlySpan2()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"
+using System;
+
+public class C
+{
+    public void M(ReadOnlySpan<byte> x)
+    {
+        M(/* 1 */[|new|] byte[] { 65, 66, 67 }/* 2 */);
+    }
+}",
+                FixedCode =
+@"
+using System;
+
+public class C
+{
+    public void M(ReadOnlySpan<byte> x)
+    {
+        M(/* 1 */""ABC""u8/* 2 */);
+    }
+}",
+                CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
+                LanguageVersion = LanguageVersion.Preview
+            }.RunAsync();
+        }
     }
 }
