@@ -28,43 +28,6 @@ namespace Microsoft.CodeAnalysis
 
         public IIncrementalGeneratorNode<ImmutableArray<TInput>> WithTrackingName(string name) => new BatchNode<TInput>(_sourceNode, _comparer, name);
 
-        public NodeStateTable<ImmutableArray<TInput>> UpdateStateTable(DriverStateTable.Builder builder, NodeStateTable<ImmutableArray<TInput>> previousTable, CancellationToken cancellationToken)
-        {
-            // grab the source inputs
-            var sourceTable = builder.GetLatestStateTableForNode(_sourceNode);
-
-            // Semantics of a batch transform:
-            // Batches will always exist (a batch of the empty table is still [])
-            // There is only ever one input, the batch of the upstream table
-            // - Output is cached when upstream is all cached
-            // - Added when the previous table was empty
-            // - Modified otherwise
-
-            // update the table
-            var newTable = builder.CreateTableBuilder(previousTable, _name);
-
-            // If this execution is tracking steps, then the source table should have also tracked steps or be the empty table.
-            Debug.Assert(!newTable.TrackIncrementalSteps || (sourceTable.HasTrackedSteps || sourceTable.IsEmpty));
-
-            var stopwatch = SharedStopwatch.StartNew();
-
-            var (sourceValues, sourceInputs) = GetValuesAndInputs(sourceTable, previousTable, newTable);
-
-            if (previousTable.IsEmpty)
-            {
-                newTable.AddEntry(sourceValues, EntryState.Added, stopwatch.Elapsed, sourceInputs, EntryState.Added);
-            }
-            else if (!sourceTable.IsCached || !newTable.TryUseCachedEntries(stopwatch.Elapsed, sourceInputs))
-            {
-                if (!newTable.TryModifyEntry(sourceValues, _comparer, stopwatch.Elapsed, sourceInputs, EntryState.Modified))
-                {
-                    newTable.AddEntry(sourceValues, EntryState.Added, stopwatch.Elapsed, sourceInputs, EntryState.Added);
-                }
-            }
-
-            return newTable.ToImmutableAndFree();
-        }
-
         private (ImmutableArray<TInput>, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)>) GetValuesAndInputs(
             NodeStateTable<TInput> sourceTable,
             NodeStateTable<ImmutableArray<TInput>> previousTable,
@@ -143,6 +106,43 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(builder.Count == entryCount);
                 return builder.ToImmutableAndFree();
             }
+        }
+
+        public NodeStateTable<ImmutableArray<TInput>> UpdateStateTable(DriverStateTable.Builder builder, NodeStateTable<ImmutableArray<TInput>> previousTable, CancellationToken cancellationToken)
+        {
+            // grab the source inputs
+            var sourceTable = builder.GetLatestStateTableForNode(_sourceNode);
+
+            // Semantics of a batch transform:
+            // Batches will always exist (a batch of the empty table is still [])
+            // There is only ever one input, the batch of the upstream table
+            // - Output is cached when upstream is all cached
+            // - Added when the previous table was empty
+            // - Modified otherwise
+
+            // update the table
+            var newTable = builder.CreateTableBuilder(previousTable, _name);
+
+            // If this execution is tracking steps, then the source table should have also tracked steps or be the empty table.
+            Debug.Assert(!newTable.TrackIncrementalSteps || (sourceTable.HasTrackedSteps || sourceTable.IsEmpty));
+
+            var stopwatch = SharedStopwatch.StartNew();
+
+            var (sourceValues, sourceInputs) = GetValuesAndInputs(sourceTable, previousTable, newTable);
+
+            if (previousTable.IsEmpty)
+            {
+                newTable.AddEntry(sourceValues, EntryState.Added, stopwatch.Elapsed, sourceInputs, EntryState.Added);
+            }
+            else if (!sourceTable.IsCached || !newTable.TryUseCachedEntries(stopwatch.Elapsed, sourceInputs))
+            {
+                if (!newTable.TryModifyEntry(sourceValues, _comparer, stopwatch.Elapsed, sourceInputs, EntryState.Modified))
+                {
+                    newTable.AddEntry(sourceValues, EntryState.Added, stopwatch.Elapsed, sourceInputs, EntryState.Added);
+                }
+            }
+
+            return newTable.ToImmutableAndFree();
         }
 
         public void RegisterOutput(IIncrementalGeneratorOutputNode output) => _sourceNode.RegisterOutput(output);
