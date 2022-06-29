@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             _current = current;
 
-            _nextFinalizeState = (StateMachineState?)slotAllocatorOpt?.GetFirstUnusedStateMachineState(increasing: false) ?? StateMachineState.FirstIteratorFinalizeState;
+            _nextFinalizeState = slotAllocatorOpt?.GetFirstUnusedStateMachineState(increasing: false) ?? StateMachineState.FirstIteratorFinalizeState;
         }
 
         protected override string EncMissingStateMessage
@@ -460,14 +460,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var syntax = statement.Syntax;
 
-            StateMachineState finalizeState;
-            if (slotAllocatorOpt?.TryGetPreviousStateMachineState(syntax, out var finalizeStateOrdinal) != true)
+            if (slotAllocatorOpt?.TryGetPreviousStateMachineState(syntax, out var finalizeState) != true)
             {
                 finalizeState = _nextFinalizeState--;
-            }
-            else
-            {
-                finalizeState = (StateMachineState)finalizeStateOrdinal;
             }
 
             AddStateDebugInfo(syntax, finalizeState);

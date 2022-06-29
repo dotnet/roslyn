@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _slotAllocator = slotAllocator;
             _matchedStateCount = 0;
             _firstState = firstState;
-            _nextState = (StateMachineState?)slotAllocator?.GetFirstUnusedStateMachineState(increasing) ?? firstState;
+            _nextState = slotAllocator?.GetFirstUnusedStateMachineState(increasing) ?? firstState;
         }
 
         public StateMachineState AllocateState(SyntaxNode awaitOrYieldReturnSyntax)

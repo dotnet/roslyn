@@ -19,7 +19,7 @@ internal enum StateMachineState
     InitialAsyncIteratorState = -3,
 
     /// <summary>
-    /// First state of an iterator state machine. State numbers decrease for subsequent finallize states.
+    /// First state of an iterator state machine. State numbers decrease for subsequent finalize states.
     /// </summary>
     FirstIteratorFinalizeState = -3,
 

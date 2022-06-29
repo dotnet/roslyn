@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             // Negative syntax offsets are rare - only when the syntax node is in an initializer of a field or property.
             // To optimize for size calculate the base offset and adds it to all syntax offsets. In common cases (no negative offsets)
-            // this base offset is gonna be 0. Otherwise it's gonna be the lowest negative offset.
+            // this base offset will be 0. Otherwise it will be the lowest negative offset.
             int syntaxOffsetBaseline = -1;
             foreach (ClosureDebugInfo info in Closures)
             {
@@ -352,7 +352,7 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 // Negative syntax offsets are rare - only when the syntax node is in an initializer of a field or property.
                 // To optimize for size calculate the base offset and adds it to all syntax offsets. In common cases (no negative offsets)
-                // this base offset is gonna be 0. Otherwise it's gonna be the lowest negative offset.
+                // this base offset will be 0. Otherwise it will be the lowest negative offset.
                 int syntaxOffsetBaseline = Math.Min(StateMachineStates.Min(state => state.SyntaxOffset), 0);
                 writer.WriteCompressedInteger(-syntaxOffsetBaseline);
 
