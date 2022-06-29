@@ -1814,5 +1814,154 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestIfStatement_Trivia1()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void M(object o)
+    {
+        // Before
+        [|if|] (o != null)
+            o.ToString();
+    }
+}",
+@"using System;
+
+class C
+{
+    void M(object o)
+    {
+        // Before
+        o?.ToString();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestIfStatement_Trivia2()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void M(object o)
+    {
+        // Before1
+        [|if|] (o != null)
+            // Before2
+            o.ToString();
+    }
+}",
+@"using System;
+
+class C
+{
+    void M(object o)
+    {
+        // Before1
+        // Before2
+        o?.ToString();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestIfStatement_Trivia3()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void M(object o)
+    {
+        // Before1
+        [|if|] (o != null)
+        {
+            // Before2
+            o.ToString();
+        }
+    }
+}",
+@"using System;
+
+class C
+{
+    void M(object o)
+    {
+        // Before1
+        // Before2
+        o?.ToString();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestIfStatement_Trivia4()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void M(object o)
+    {
+        // Before1
+        [|if|] (o != null)
+        {
+            // Before2
+            o.ToString(); // After
+        }
+    }
+}",
+@"using System;
+
+class C
+{
+    void M(object o)
+    {
+        // Before1
+        // Before2
+        o?.ToString(); // After
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestIfStatement_Trivia5()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void M(object o)
+    {
+        // Before1
+        [|if|] (o != null)
+        {
+            // Before2
+            o.ToString();
+        }  // After
+    }
+}",
+@"using System;
+
+class C
+{
+    void M(object o)
+    {
+        // Before1
+        // Before2
+        o?.ToString(); // After
+    }
+}");
+        }
     }
 }
