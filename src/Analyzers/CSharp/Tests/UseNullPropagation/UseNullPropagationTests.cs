@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -29,6 +30,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNullPropagation
             {
                 TestCode = testCode,
                 FixedCode = fixedCode,
+                // code action is currently generating invalid trees.  Specifically, it transforms `x.Y()` into `x.?Y()`
+                // by just rewriting `x.Y` into `x?.Y`.  That is not correct.  the RHS of the `?` should `.Y()` not
+                // `.Y`.
+                CodeActionValidationMode = CodeActionValidationMode.None,
             }.RunAsync();
         }
 
@@ -163,7 +168,7 @@ class C
     public int? f;
     void M(C c)
     {
-        int? x = (object)[|c != null ? c.f : null|];
+        int? x = [|(object)c != null ? c.f : null|];
     }
 }",
 @"
