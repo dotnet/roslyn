@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -152,8 +153,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUtf8StringLiteral
             for (var i = 0; i < arrayCreationElements.Length;)
             {
                 // Need to call a method to do the actual rune decoding as it uses stackalloc, and stackalloc
-                // in a loop is a bad idea
-                if (!TryGetNextRune(arrayCreationElements, i, out var rune, out var bytesConsumed))
+                // in a loop is a bad idea. We also exclude any characters that are control or format chars
+                if (!TryGetNextRune(arrayCreationElements, i, out var rune, out var bytesConsumed) ||
+                    Rune.GetUnicodeCategory(rune) is UnicodeCategory.Control or UnicodeCategory.Format)
                     return false;
 
                 i += bytesConsumed;
