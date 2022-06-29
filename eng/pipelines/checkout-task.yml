@@ -3,8 +3,6 @@ steps:
   - checkout: none
   - script: |
       git init
-      git config --local core.compression 0
-      git config --local core.looseCompression 0
       git config --local checkout.workers 0
       git config --local fetch.parallel 0
       git config --local index.threads 0
