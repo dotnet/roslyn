@@ -1064,7 +1064,7 @@ csharp_style_prefer_top_level_statements = true
 # IDE0220, ForEachExplicitCastInSource
 dotnet_style_prefer_foreach_explicit_cast_in_source = when_strongly_typed
 
-# IDE0230, PreferUTF8StringLiterals
+# IDE0230, PreferUtf8StringLiterals
 csharp_style_prefer_utf8_string_literals = true
 
 # IDE0240

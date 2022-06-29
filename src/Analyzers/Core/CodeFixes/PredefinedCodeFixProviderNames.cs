@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string UseSystemHashCode = nameof(UseSystemHashCode);
         public const string UseThrowExpression = nameof(UseThrowExpression);
         public const string UseTupleSwap = nameof(UseTupleSwap);
-        public const string UseUTF8StringLiteral = nameof(UseUTF8StringLiteral);
+        public const string UseUtf8StringLiteral = nameof(UseUtf8StringLiteral);
         public const string UseConstantInterpolatedString = nameof(UseConstantInterpolatedString);
     }
 }

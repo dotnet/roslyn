@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
             {
-                var name = reader.ReadString()!;
+                var name = reader.ReadRequiredString();
                 var containingSymbolResolution = ResolveContainer(reader, out var containingSymbolFailureReason);
                 var arity = reader.ReadInteger();
                 var isConstructed = reader.ReadBoolean();

@@ -202,9 +202,9 @@
         <target state="translated">检测到无法访问的代码</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_UTF8_string_literal">
+      <trans-unit id="Use_Utf8_string_literal">
         <source>Use UTF-8 string literal</source>
-        <target state="translated">使用 UTF-8 字符串文本</target>
+        <target state="new">Use UTF-8 string literal</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_accessors">

@@ -241,17 +241,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         protected abstract bool StatementLabelEquals(SyntaxNode node1, SyntaxNode node2);
 
-        protected abstract bool SupportsStateMachineUpdates { get; }
-
-        protected abstract bool IsStateMachineResumableStateSyntax(SyntaxNode node);
-
-        /// <summary>
-        /// True if both nodes represent the same kind of suspension point 
-        /// (await expression, await foreach statement, await using statement, await using local variable declarator, yield return).
-        /// </summary>
-        protected virtual bool StateMachineSuspensionPointKindEquals(SyntaxNode suspensionPoint1, SyntaxNode suspensionPoint2)
-            => suspensionPoint1.RawKind == suspensionPoint2.RawKind;
-
         /// <summary>
         /// Determines if two syntax nodes are the same, disregarding trivia differences.
         /// </summary>
@@ -506,11 +495,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             AsyncLazy<EditAndContinueCapabilities> lazyCapabilities,
             CancellationToken cancellationToken)
         {
-            DocumentAnalysisResults.Log.Write("Analyzing document {0}", newDocument.Name);
+            var filePath = newDocument.FilePath;
 
+            Debug.Assert(newDocument.State.SupportsEditAndContinue());
             Debug.Assert(!newActiveStatementSpans.IsDefault);
             Debug.Assert(newDocument.SupportsSyntaxTree);
             Debug.Assert(newDocument.SupportsSemanticModel);
+            Debug.Assert(filePath != null);
+
+            DocumentAnalysisResults.Log.Write("Analyzing document '{0}'", filePath);
 
             // assume changes until we determine there are none so that EnC is blocked on unexpected exception:
             var hasChanges = true;
@@ -526,9 +519,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var oldDocument = await oldProject.GetDocumentAsync(newDocument.Id, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
                 if (oldDocument != null)
                 {
-                    oldTree = await oldDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                    Contract.ThrowIfNull(oldTree);
-
+                    oldTree = await oldDocument.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                     oldRoot = await oldTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
                     oldText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 }
@@ -560,8 +551,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     // Bail, since we can't do syntax diffing on broken trees (it would not produce useful results anyways).
                     // If we needed to do so for some reason, we'd need to harden the syntax tree comparers.
-                    DocumentAnalysisResults.Log.Write("{0}: syntax errors", newDocument.Name);
-                    return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, ImmutableArray<RudeEditDiagnostic>.Empty, syntaxError, hasChanges);
+                    DocumentAnalysisResults.Log.Write("{0}: syntax errors", filePath);
+                    return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, filePath, ImmutableArray<RudeEditDiagnostic>.Empty, syntaxError, hasChanges);
                 }
 
                 if (!hasChanges)
@@ -571,17 +562,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // a) comparing texts is cheaper than diffing trees
                     // b) we need to ignore errors in unchanged documents
 
-                    DocumentAnalysisResults.Log.Write("{0}: unchanged", newDocument.Name);
-                    return DocumentAnalysisResults.Unchanged(newDocument.Id);
+                    DocumentAnalysisResults.Log.Write("{0}: unchanged", filePath);
+                    return DocumentAnalysisResults.Unchanged(newDocument.Id, filePath);
                 }
 
                 // Disallow modification of a file with experimental features enabled.
                 // These features may not be handled well by the analysis below.
                 if (ExperimentalFeaturesEnabled(newTree))
                 {
-                    DocumentAnalysisResults.Log.Write("{0}: experimental features enabled", newDocument.Name);
+                    DocumentAnalysisResults.Log.Write("{0}: experimental features enabled", filePath);
 
-                    return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, ImmutableArray.Create(
+                    return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, filePath, ImmutableArray.Create(
                         new RudeEditDiagnostic(RudeEditKind.ExperimentalFeaturesEnabled, default)), syntaxError: null, hasChanges);
                 }
 
@@ -591,7 +582,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // If the document has changed at all, lets make sure Edit and Continue is supported
                 if (!capabilities.Grant(EditAndContinueCapabilities.Baseline))
                 {
-                    return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, ImmutableArray.Create(
+                    return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, filePath, ImmutableArray.Create(
                        new RudeEditDiagnostic(RudeEditKind.NotSupportedByRuntime, default)), syntaxError: null, hasChanges);
                 }
 
@@ -617,7 +608,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 if (diagnostics.Count > 0 && !hasRudeEdits)
                 {
-                    DocumentAnalysisResults.Log.Write("{0} syntactic rude edits, first: '{1}'", diagnostics.Count, newDocument.FilePath);
+                    DocumentAnalysisResults.Log.Write("{0} syntactic rude edits, first: '{1}'", diagnostics.Count, filePath);
                     hasRudeEdits = true;
                 }
 
@@ -668,12 +659,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 if (diagnostics.Count > 0 && !hasRudeEdits)
                 {
-                    DocumentAnalysisResults.Log.Write("{0}@{1}: rude edit ({2} total)", newDocument.FilePath, diagnostics.First().Span.Start, diagnostics.Count);
+                    DocumentAnalysisResults.Log.Write("{0}@{1}: rude edit ({2} total)", filePath, diagnostics.First().Span.Start, diagnostics.Count);
                     hasRudeEdits = true;
                 }
 
                 return new DocumentAnalysisResults(
                     newDocument.Id,
+                    filePath,
                     newActiveStatements.MoveToImmutable(),
                     diagnostics.ToImmutable(),
                     syntaxError: null,
@@ -695,7 +687,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     new RudeEditDiagnostic(RudeEditKind.InternalError, span: default, arguments: new[] { newDocument.FilePath, e.ToString() });
 
                 // Report as "syntax error" - we can't analyze the document
-                return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, ImmutableArray.Create(diagnostic), syntaxError: null, hasChanges);
+                return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, filePath, ImmutableArray.Create(diagnostic), syntaxError: null, hasChanges);
             }
         }
 
@@ -1379,12 +1371,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             foreach (var lambdaBodyMatch in lambdaBodyMatches)
             {
-                foreach (var pair in lambdaBodyMatch.Matches)
+                foreach (var (oldNode, newNode) in lambdaBodyMatch.Matches)
                 {
-                    if (!map.ContainsKey(pair.Key))
+                    if (!map.ContainsKey(oldNode))
                     {
-                        map[pair.Key] = pair.Value;
-                        reverseMap[pair.Value] = pair.Key;
+                        map[oldNode] = newNode;
+                        reverseMap[newNode] = oldNode;
                     }
                 }
             }
@@ -1432,32 +1424,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             out bool newHasStateMachineSuspensionPoint)
         {
             List<KeyValuePair<SyntaxNode, SyntaxNode>>? lazyKnownMatches = null;
-            List<SequenceEdit>? lazyRudeEdits = null;
             GetStateMachineInfo(oldBody, out var oldStateMachineSuspensionPoints, out var oldStateMachineKinds);
             GetStateMachineInfo(newBody, out var newStateMachineSuspensionPoints, out var newStateMachineKinds);
 
             AddMatchingActiveNodes(ref lazyKnownMatches, activeNodes);
 
             // Consider following cases:
-            // 1) Both old and new methods contain yields/awaits.
-            //    Map the old suspension points to new ones, report errors for added/deleted suspension points.
-            // 2) The old method contains yields/awaits but the new doesn't.
-            //    Report rude edits for each deleted yield/await.
-            // 3) The new method contains yields/awaits but the old doesn't.
-            //    a) If the method has active statements report rude edits for each inserted yield/await (insert "around" an active statement).
-            //    b) If the method has no active statements then the edit is valid, we don't need to calculate map.
-            // 4) The old method is async/iterator, the new method is not and it contains an active statement.
+            // 1) The new method contains yields/awaits but the old doesn't.
+            //    If the method has active statements report rude edits for each inserted yield/await (insert "around" an active statement).
+            // 2) The old method is async/iterator, the new method is not and it contains an active statement.
             //    Report rude edit since we can't remap IP from MoveNext to the kickoff method.
             //    Note that iterators in VB don't need to contain yield, so this case is not covered by change in number of yields.
 
-            var creatingStateMachineAroundActiveStatement = oldStateMachineSuspensionPoints.Length == 0 && newStateMachineSuspensionPoints.Length > 0 && activeNodes.Length > 0;
             oldHasStateMachineSuspensionPoint = oldStateMachineSuspensionPoints.Length > 0;
             newHasStateMachineSuspensionPoint = newStateMachineSuspensionPoints.Length > 0;
-
-            if (oldStateMachineSuspensionPoints.Length > 0 || creatingStateMachineAroundActiveStatement)
-            {
-                AddMatchingStateMachineSuspensionPoints(ref lazyKnownMatches, ref lazyRudeEdits, oldStateMachineSuspensionPoints, newStateMachineSuspensionPoints);
-            }
 
             var match = ComputeBodyMatch(oldBody, newBody, lazyKnownMatches);
 
@@ -1466,58 +1446,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 ReportMemberBodyUpdateRudeEdits(diagnostics, match.NewRoot, match.NewRoot.Span);
             }
 
-            if (lazyRudeEdits != null)
+            if (oldStateMachineSuspensionPoints.Length > 0)
             {
-                foreach (var rudeEdit in lazyRudeEdits)
+                foreach (var (oldNode, newNode) in match.Matches)
                 {
-                    if (rudeEdit.Kind == EditKind.Delete)
-                    {
-                        var deletedNode = oldStateMachineSuspensionPoints[rudeEdit.OldIndex];
-                        ReportStateMachineSuspensionPointDeletedRudeEdit(diagnostics, match, deletedNode);
-                    }
-                    else
-                    {
-                        Debug.Assert(rudeEdit.Kind == EditKind.Insert);
-
-                        var insertedNode = newStateMachineSuspensionPoints[rudeEdit.NewIndex];
-                        ReportStateMachineSuspensionPointInsertedRudeEdit(diagnostics, match, insertedNode, creatingStateMachineAroundActiveStatement);
-                    }
-                }
-            }
-            else if (oldStateMachineSuspensionPoints.Length > 0)
-            {
-                if (SupportsStateMachineUpdates)
-                {
-                    foreach (var (oldNode, newNode) in match.Matches)
-                    {
-                        ReportStateMachineSuspensionPointRudeEdits(diagnostics, oldNode, newNode);
-                    }
-                }
-                else
-                {
-                    Debug.Assert(oldStateMachineSuspensionPoints.Length == newStateMachineSuspensionPoints.Length);
-
-                    for (var i = 0; i < oldStateMachineSuspensionPoints.Length; i++)
-                    {
-                        var oldNode = oldStateMachineSuspensionPoints[i];
-                        var newNode = newStateMachineSuspensionPoints[i];
-
-                        // changing yield return to yield break, await to await foreach, yield to await, etc.
-                        if (StateMachineSuspensionPointKindEquals(oldNode, newNode))
-                        {
-                            Debug.Assert(StatementLabelEquals(oldNode, newNode));
-                        }
-                        else
-                        {
-                            diagnostics.Add(new RudeEditDiagnostic(
-                                RudeEditKind.ChangingStateMachineShape,
-                                newNode.Span,
-                                newNode,
-                                new[] { GetSuspensionPointDisplayName(oldNode, EditKind.Update), GetSuspensionPointDisplayName(newNode, EditKind.Update) }));
-                        }
-
-                        ReportStateMachineSuspensionPointRudeEdits(diagnostics, oldNode, newNode);
-                    }
+                    ReportStateMachineSuspensionPointRudeEdits(diagnostics, oldNode, newNode);
                 }
             }
             else if (activeNodes.Length > 0)
@@ -1534,26 +1467,23 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             // report removing async as rude:
-            if (lazyRudeEdits == null)
+            if ((oldStateMachineKinds & StateMachineKinds.Async) != 0 && (newStateMachineKinds & StateMachineKinds.Async) == 0)
             {
-                if ((oldStateMachineKinds & StateMachineKinds.Async) != 0 && (newStateMachineKinds & StateMachineKinds.Async) == 0)
-                {
-                    diagnostics.Add(new RudeEditDiagnostic(
-                        RudeEditKind.ChangingFromAsynchronousToSynchronous,
-                        GetBodyDiagnosticSpan(newBody, EditKind.Update),
-                        newBody,
-                        new[] { GetBodyDisplayName(newBody) }));
-                }
+                diagnostics.Add(new RudeEditDiagnostic(
+                    RudeEditKind.ChangingFromAsynchronousToSynchronous,
+                    GetBodyDiagnosticSpan(newBody, EditKind.Update),
+                    newBody,
+                    new[] { GetBodyDisplayName(newBody) }));
+            }
 
-                // VB supports iterator lambdas/methods without yields
-                if ((oldStateMachineKinds & StateMachineKinds.Iterator) != 0 && (newStateMachineKinds & StateMachineKinds.Iterator) == 0)
-                {
-                    diagnostics.Add(new RudeEditDiagnostic(
-                        RudeEditKind.ModifiersUpdate,
-                        GetBodyDiagnosticSpan(newBody, EditKind.Update),
-                        newBody,
-                        new[] { GetBodyDisplayName(newBody) }));
-                }
+            // VB supports iterator lambdas/methods without yields
+            if ((oldStateMachineKinds & StateMachineKinds.Iterator) != 0 && (newStateMachineKinds & StateMachineKinds.Iterator) == 0)
+            {
+                diagnostics.Add(new RudeEditDiagnostic(
+                    RudeEditKind.ModifiersUpdate,
+                    GetBodyDiagnosticSpan(newBody, EditKind.Update),
+                    newBody,
+                    new[] { GetBodyDisplayName(newBody) }));
             }
 
             return match;
@@ -1587,66 +1517,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     lazyKnownMatches ??= new List<KeyValuePair<SyntaxNode, SyntaxNode>>();
                     lazyKnownMatches.Add(KeyValuePairUtil.Create(activeNode.OldNode, activeNode.NewTrackedNode));
                 }
-            }
-        }
-
-        private void AddMatchingStateMachineSuspensionPoints(
-            ref List<KeyValuePair<SyntaxNode, SyntaxNode>>? lazyKnownMatches,
-            ref List<SequenceEdit>? lazyRudeEdits,
-            ImmutableArray<SyntaxNode> oldStateMachineSuspensionPoints,
-            ImmutableArray<SyntaxNode> newStateMachineSuspensionPoints)
-        {
-            if (SupportsStateMachineUpdates)
-            {
-                return;
-            }
-
-            // State machine suspension points (yield statements, await expressions, await foreach loops, await using declarations) 
-            // determine the structure of the generated state machine.
-            // Change of the SM structure is far more significant then changes of the value (arguments) of these nodes.
-            // Hence we build the match such that these nodes are fixed.
-
-            lazyKnownMatches ??= new List<KeyValuePair<SyntaxNode, SyntaxNode>>();
-
-            void AddMatch(ref List<KeyValuePair<SyntaxNode, SyntaxNode>> lazyKnownMatches, int oldIndex, int newIndex)
-            {
-                var oldNode = oldStateMachineSuspensionPoints[oldIndex];
-                var newNode = newStateMachineSuspensionPoints[newIndex];
-
-                if (StatementLabelEquals(oldNode, newNode))
-                {
-                    lazyKnownMatches.Add(KeyValuePairUtil.Create(oldNode, newNode));
-                }
-            }
-
-            if (oldStateMachineSuspensionPoints.Length == newStateMachineSuspensionPoints.Length)
-            {
-                for (var i = 0; i < oldStateMachineSuspensionPoints.Length; i++)
-                {
-                    AddMatch(ref lazyKnownMatches, i, i);
-                }
-            }
-            else
-            {
-                // use LCS to provide better errors (deletes, inserts and updates)
-                var edits = GetSyntaxSequenceEdits(oldStateMachineSuspensionPoints, newStateMachineSuspensionPoints);
-
-                foreach (var edit in edits)
-                {
-                    var editKind = edit.Kind;
-
-                    if (editKind == EditKind.Update)
-                    {
-                        AddMatch(ref lazyKnownMatches, edit.OldIndex, edit.NewIndex);
-                    }
-                    else
-                    {
-                        lazyRudeEdits ??= new List<SequenceEdit>();
-                        lazyRudeEdits.Add(edit);
-                    }
-                }
-
-                Debug.Assert(lazyRudeEdits != null);
             }
         }
 
@@ -2803,6 +2673,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                             var newContainingSymbol = containingSymbolKey.Resolve(newCompilation, ignoreAssemblyKey: true, cancellationToken).Symbol;
                                             if (newContainingSymbol == null)
                                             {
+                                                continue;
+                                            }
+
+                                            // Deleting an ordinary method is allowed, and we store the newContainingSymbol in NewSymbol for later use
+                                            // We don't currently allow deleting virtual or abstract methods, because if those are in the middle of
+                                            // an inheritance chain then throwing a missing method exception is not expected
+                                            if (oldSymbol is IMethodSymbol { MethodKind: MethodKind.Ordinary, IsExtern: false, ContainingType.TypeKind: TypeKind.Class or TypeKind.Struct } &&
+                                                oldSymbol.GetSymbolModifiers() is { IsVirtual: false, IsAbstract: false, IsOverride: false })
+                                            {
+                                                semanticEdits.Add(new SemanticEditInfo(editKind, symbolKey, syntaxMap, syntaxMapTree: null, partialType: null, deletedSymbolContainer: containingSymbolKey));
                                                 continue;
                                             }
                                         }
