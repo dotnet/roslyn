@@ -216,7 +216,7 @@ class C
 {
     void M(object o)
     {
-        var v = [|o == null ? null : o{|CS0021:[0]|}|];
+        var v = [|o == null ? null : {|CS0021:o[0]|}|];
     }
 }",
 @"using System;
@@ -225,7 +225,7 @@ class C
 {
     void M(object o)
     {
-        var v = o?[0];
+        var v = o?{|CS0021:[0]|};
     }
 }");
         }
@@ -249,7 +249,7 @@ class C
 {
     void M(object o)
     {
-        var v = o?.B?.C;
+        var v = o?{|CS1061:.B|}?.C;
     }
 }");
         }
@@ -264,7 +264,7 @@ class C
 {
     void M(object o)
     {
-        var v = [|o == null ? null : o.B|];
+        var v = [|o == null ? null : o.{|CS1061:B|}|];
     }
 }",
 @"using System;
@@ -273,7 +273,7 @@ class C
 {
     void M(object o)
     {
-        var v = o?.B;
+        var v = o?{|CS1061:.B|};
     }
 }");
         }
@@ -327,8 +327,8 @@ class C
 {
     void M(object o)
     {
-        var v1 = {|FixAllInDocument:o|} == null ? null : o.ToString();
-        var v2 = o != null ? o.ToString() : null;
+        var v1 = [|o == null ? null : o.ToString()|];
+        var v2 = [|o != null ? o.ToString() : null|];
     }
 }",
 @"using System;
@@ -353,7 +353,7 @@ class C
 {
     void M(object o1, object o2)
     {
-        var v1 = {|FixAllInDocument:o1|} == null ? null : o1.ToString(o2 == null ? null : o2.ToString());
+        var v1 = [|o1 == null ? null : o1.{|CS1501:ToString|}([|o2 == null ? null : o2.ToString()|])|];
     }
 }",
 @"using System;
@@ -362,7 +362,7 @@ class C
 {
     void M(object o1, object o2)
     {
-        var v1 = o1?.ToString(o2?.ToString());
+        var v1 = o1?{|CS1501:.ToString|}(o2?.ToString());
     }
 }");
         }
@@ -394,7 +394,7 @@ class C
 {
     void M(object o)
     {
-        var v = o != null ? o.ToString() : 0;
+        var v = {|CS0173:o != null ? o.ToString() : 0|};
     }
 }");
         }
