@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         /// <summary>
         /// Given an array of all Document Symbols in a document, returns an array containing the 
-        /// top-level Document Symbols and their nested children
+        /// top-level Document Symbols and their nested children.
         /// </summary>
         public static DocumentSymbol[] GetNestedDocumentSymbols(DocumentSymbol[]? documentSymbols)
         {
@@ -52,10 +52,10 @@ namespace Microsoft.VisualStudio.LanguageServices
         }
 
         /// <summary>
-        /// Groups a flat array of Document Symbols into arrays containing the symbols of each tree
+        /// Groups a flat array of Document Symbols into arrays containing the symbols of each tree.
         /// </summary>
         /// <remarks>
-        /// The first symbol in an array is always the parent (determines the group's position range)
+        /// The first symbol in an array is always the parent (determines the group's position range).
         /// </remarks>
         private static ImmutableArray<ImmutableArray<DocumentSymbol>> GroupDocumentSymbolTrees(ImmutableArray<DocumentSymbol> allSymbols)
         {
@@ -91,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         /// <summary>
         /// Given a flat array containing a Document Symbol and its descendants, returns the Document Symbol
-        /// with its descendants recursively nested
+        /// with its descendants recursively nested.
         /// </summary>
         /// /// <remarks>
         /// The first Document Symbol in the array is considered the root node.
@@ -107,7 +107,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         }
 
         /// <summary>
-        /// Converts an array of type DocumentSymbol to an array of type DocumentSymbolViewModel
+        /// Converts an array of type DocumentSymbol to an array of type DocumentSymbolViewModel.
         /// </summary>
         public static ImmutableArray<DocumentSymbolViewModel> GetDocumentSymbolModels(DocumentSymbol[] documentSymbols)
         {
@@ -209,14 +209,13 @@ namespace Microsoft.VisualStudio.LanguageServices
             ITextSnapshot currentSnapshot)
         {
             // We want to log which sort option is used
-            var functionId = sortOption switch
+            Logger.Log(sortOption switch
             {
                 SortOption.Name => FunctionId.DocumentOutline_SortByName,
                 SortOption.Order => FunctionId.DocumentOutline_SortByOrder,
                 SortOption.Type => FunctionId.DocumentOutline_SortByType,
                 _ => throw new NotImplementedException(),
-            };
-            Logger.Log(functionId);
+            });
 
             // Sort the top-level DocumentSymbolViewModels
             var sortedDocumentSymbolModels = sortOption switch
@@ -253,12 +252,13 @@ namespace Microsoft.VisualStudio.LanguageServices
             return documentSymbols.ToImmutableAndFree();
         }
 
+        /// <summary>
+        /// Returns true if the name of one of the tree nodes results in a pattern match.
+        /// </summary>
         public static bool SearchNodeTree(DocumentSymbolViewModel tree, PatternMatcher patternMatcher)
         {
             if (patternMatcher.GetFirstMatch(tree.Name) is not null)
-            {
                 return true;
-            }
 
             foreach (var childItem in tree.Children)
             {
@@ -289,7 +289,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             IsSnapshotInitialized = true;
 
             UnselectAll(symbolTreeItemsSource);
-            var selectedNode = GetSelectedNode(symbolTreeItemsSource);
+            var selectedNode = GetNodeSelectedByCaret(symbolTreeItemsSource);
             if (selectedNode is not null)
                 SelectNode(selectedNode);
 
@@ -311,7 +311,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         /// </remarks>
         public static void SelectNode(DocumentSymbolViewModel symbol)
         {
-            var selectedChildSymbol = GetSelectedNode(symbol.Children);
+            var selectedChildSymbol = GetNodeSelectedByCaret(symbol.Children);
             if (selectedChildSymbol is not null)
                 SelectNode(selectedChildSymbol);
             else
@@ -319,9 +319,9 @@ namespace Microsoft.VisualStudio.LanguageServices
         }
 
         /// <summary>
-        /// Returns a DocumentSymbolViewModel if the current caret position is in its range or null otherwise.
+        /// Returns a DocumentSymbolViewModel if the current caret position is in its range and null otherwise.
         /// </summary>
-        public static DocumentSymbolViewModel? GetSelectedNode(ImmutableArray<DocumentSymbolViewModel> symbolTreeItemsSource)
+        public static DocumentSymbolViewModel? GetNodeSelectedByCaret(ImmutableArray<DocumentSymbolViewModel> symbolTreeItemsSource)
         {
             if (IsSnapshotInitialized)
             {
