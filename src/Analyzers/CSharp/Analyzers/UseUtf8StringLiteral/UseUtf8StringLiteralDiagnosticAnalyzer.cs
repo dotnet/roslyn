@@ -155,8 +155,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUtf8StringLiteral
                 // Need to call a method to do the actual rune decoding as it uses stackalloc, and stackalloc
                 // in a loop is a bad idea. We also exclude any characters that are control or format chars
                 if (!TryGetNextRune(arrayCreationElements, i, out var rune, out var bytesConsumed) ||
-                    Rune.GetUnicodeCategory(rune) is UnicodeCategory.Control or UnicodeCategory.Format)
+                    IsControlOrFormatRune(rune))
+                {
                     return false;
+                }
 
                 i += bytesConsumed;
 
@@ -175,6 +177,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUtf8StringLiteral
             }
 
             return true;
+
+            // We allow the three control characters that users are familiar with and wouldn't be surprised to
+            // see in a string literal
+            static bool IsControlOrFormatRune(Rune rune)
+                => Rune.GetUnicodeCategory(rune) is UnicodeCategory.Control or UnicodeCategory.Format
+                    && rune.Value switch
+                    {
+                        '\r' => false,
+                        '\n' => false,
+                        '\t' => false,
+                        _ => true
+                    };
         }
 
         private static bool TryGetNextRune(ImmutableArray<IOperation> arrayCreationElements, int startIndex, out Rune rune, out int bytesConsumed)

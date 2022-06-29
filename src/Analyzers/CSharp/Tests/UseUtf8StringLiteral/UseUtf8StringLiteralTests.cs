@@ -505,6 +505,35 @@ public class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        public async Task TestEscapeChars()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"
+public class C
+{
+    public void M()
+    {
+        var x = [|new|] byte[] { 34, 92, 10, 13, 9 };
+    }
+}",
+                FixedCode =
+@"
+public class C
+{
+    public void M()
+    {
+        var x = ""\""\\\n\r\t""u8.ToArray();
+    }
+}",
+                CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
+                LanguageVersion = LanguageVersion.Preview
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
         public async Task TestEmoji()
         {
             await new VerifyCS.Test
@@ -733,7 +762,7 @@ ref struct S
 
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
         // Standard C# escape characters
-        [InlineData(new byte[] { 34, 92, 0, 7, 8, 12, 10, 13, 9, 11 })]
+        [InlineData(new byte[] { 0, 7, 8, 12, 11 })]
         // Various cases copied from https://github.com/dotnet/runtime/blob/main/src/libraries/Common/tests/Tests/System/Net/aspnetcore/Http2/HuffmanDecodingTests.cs
         [InlineData(new byte[] { 0xff, 0xcf })]
         [InlineData(new byte[] { 0b100111_00, 0b101_10100, 0b0_101000_0, 0b0111_1111 })]

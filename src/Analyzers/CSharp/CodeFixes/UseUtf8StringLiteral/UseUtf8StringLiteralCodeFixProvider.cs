@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUtf8StringLiteral
                 // ToArray after the string literal, or we'll be regressing perf.
                 var isConvertedToReadOnlySpan = arrayOp.Parent is IConversionOperation conversion &&
                     conversion.Type is INamedTypeSymbol { IsGenericType: true } namedType &&
-                    namedType.ConstructedFrom == readOnlySpanType &&
+                    namedType.ConstructedFrom.Equals(readOnlySpanType) &&
                     namedType.TypeArguments[0].SpecialType == SpecialType.System_Byte;
 
                 // If we're replacing a byte array that is passed to a parameter array, not and an explicit array creation
@@ -145,12 +145,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUtf8StringLiteral
             // Get our list of bytes from the array elements
             using var _ = PooledStringBuilder.GetInstance(out var builder);
             builder.Capacity = initializer.ElementValues.Length;
-            if (!UseUtf8StringLiteralDiagnosticAnalyzer.TryConvertToUtf8String(builder, initializer.ElementValues))
-            {
-                // We shouldn't get here, because the code fix shouldn't ask for a string value
-                // if the analyzer couldn't convert it
-                throw ExceptionUtilities.Unreachable;
-            }
+
+            // Can never fail as the analyzer already validated this would work.
+            Contract.ThrowIfFalse(UseUtf8StringLiteralDiagnosticAnalyzer.TryConvertToUtf8String(builder, initializer.ElementValues));
 
             return builder.ToString();
         }
@@ -206,6 +203,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUtf8StringLiteral
                 return stringLiteral.WithTrailingTrivia(trailingTrivia);
             }
 
+            // We're replacing a byte array with a ReadOnlySpan<byte>, so if that byte array wasn't originally being
+            // converted to the same, then we need to call .ToArray() to get things back to a byte array.
             return SyntaxFactory.InvocationExpression(
                      SyntaxFactory.MemberAccessExpression(
                          SyntaxKind.SimpleMemberAccessExpression,
