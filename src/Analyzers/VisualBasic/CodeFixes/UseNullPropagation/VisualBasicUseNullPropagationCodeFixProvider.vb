@@ -14,6 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation
         Inherits AbstractUseNullPropagationCodeFixProvider(Of
             SyntaxKind,
             ExpressionSyntax,
+            ExecutableStatementSyntax,
             TernaryConditionalExpressionSyntax,
             BinaryExpressionSyntax,
             InvocationExpressionSyntax,
@@ -21,6 +22,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation
             ConditionalAccessExpressionSyntax,
             InvocationExpressionSyntax,
             InvocationExpressionSyntax,
+            MultiLineIfBlockSyntax,
+            ExpressionStatementSyntax,
             ArgumentListSyntax)
 
         <ImportingConstructor>

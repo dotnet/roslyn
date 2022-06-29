@@ -26,7 +26,7 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
     TIfStatementSyntax,
     TExpressionStatementSyntax>
 {
-    protected abstract bool TryGetSingleTrueStatementOfIfStatement(TIfStatementSyntax ifStatement, [NotNullWhen(true)] out TStatementSyntax trueStatement);
+    protected abstract bool TryGetSingleTrueStatementOfIfStatement(TIfStatementSyntax ifStatement, [NotNullWhen(true)] out TStatementSyntax? trueStatement);
 
     private void AnalyzeIfStatement(
         SyntaxNodeAnalysisContext context,

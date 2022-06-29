@@ -89,9 +89,11 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                         var currentWhenPartToCheck = whenPart == whenTrue ? currentWhenTrue : currentWhenFalse;
 
                         var match = AbstractUseNullPropagationDiagnosticAnalyzer<
-                            TSyntaxKind, TExpressionSyntax, TConditionalExpressionSyntax,
-                            TBinaryExpressionSyntax, TInvocationExpression, TMemberAccessExpression,
-                            TConditionalAccessExpression, TElementAccessExpression>.GetWhenPartMatch(syntaxFacts, semanticModel!, conditionalPart, currentWhenPartToCheck);
+                            TSyntaxKind, TExpressionSyntax, TStatementSyntax,
+                            TConditionalExpressionSyntax, TBinaryExpressionSyntax,
+                            TInvocationExpressionSyntax, TMemberAccessExpressionSyntax,
+                            TConditionalAccessExpressionSyntax, TElementAccessExpressionSyntax,
+                            TIfStatementSyntax, TExpressionStatementSyntax>.GetWhenPartMatch(syntaxFacts, semanticModel!, conditionalPart, currentWhenPartToCheck);
                         if (match == null)
                         {
                             return c;

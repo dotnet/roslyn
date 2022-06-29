@@ -19,12 +19,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNullPropagation
         AbstractUseNullPropagationDiagnosticAnalyzer<
             SyntaxKind,
             ExpressionSyntax,
+            StatementSyntax,
             ConditionalExpressionSyntax,
             BinaryExpressionSyntax,
             InvocationExpressionSyntax,
             MemberAccessExpressionSyntax,
             ConditionalAccessExpressionSyntax,
-            ElementAccessExpressionSyntax>
+            ElementAccessExpressionSyntax,
+            IfStatementSyntax,
+            ExpressionStatementSyntax>
     {
         protected override bool ShouldAnalyze(Compilation compilation)
             => compilation.LanguageVersion() >= LanguageVersion.CSharp6;
@@ -43,22 +46,47 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNullPropagation
             isEquals = true;
 
             if (conditionNode is not IsPatternExpressionSyntax patternExpression)
-            {
                 return false;
-            }
 
             if (patternExpression.Pattern is not ConstantPatternSyntax constantPattern)
-            {
                 return false;
-            }
 
             if (!syntaxFacts.IsNullLiteralExpression(constantPattern.Expression))
-            {
                 return false;
-            }
 
             conditionPartToCheck = patternExpression.Expression;
             return true;
+        }
+
+        protected override bool TryGetSingleTrueStatementOfIfStatement(IfStatementSyntax ifStatement, [NotNullWhen(true)] out StatementSyntax? trueStatement)
+        {
+            // has to be of the form:
+            //
+            //   if (...)
+            //      statement
+            //
+            // or
+            //
+            //   if (...)
+            //   {
+            //       statement
+            //   }
+
+            trueStatement = null;
+            if (ifStatement.Else == null)
+            {
+                if (ifStatement.Statement is BlockSyntax block)
+                {
+                    if (block.Statements.Count == 1)
+                        trueStatement = block.Statements[0];
+                }
+                else
+                {
+                    trueStatement = ifStatement.Statement;
+                }
+            }
+
+            return trueStatement != null;
         }
     }
 }
