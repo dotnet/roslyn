@@ -32,7 +32,6 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         TConditionalExpressionSyntax,
         TBinaryExpressionSyntax,
         TInvocationExpressionSyntax,
-        TMemberAccessExpressionSyntax,
         TConditionalAccessExpressionSyntax,
         TElementAccessExpressionSyntax,
         TIfStatementSyntax,
@@ -43,7 +42,6 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         where TConditionalExpressionSyntax : TExpressionSyntax
         where TBinaryExpressionSyntax : TExpressionSyntax
         where TInvocationExpressionSyntax : TExpressionSyntax
-        where TMemberAccessExpressionSyntax : TExpressionSyntax
         where TConditionalAccessExpressionSyntax : TExpressionSyntax
         where TElementAccessExpressionSyntax : TExpressionSyntax
         where TIfStatementSyntax : TStatementSyntax
@@ -104,6 +102,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             INamedTypeSymbol? expressionType,
             IMethodSymbol? referenceEqualsMethod)
         {
+            var cancellationToken = context.CancellationToken;
             var conditionalExpression = (TConditionalExpressionSyntax)context.Node;
 
             var option = context.GetAnalyzerOptions().PreferNullPropagation;
@@ -138,15 +137,17 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             var whenPartToCheck = isEquals ? whenFalseNode : whenTrueNode;
 
             var semanticModel = context.SemanticModel;
-            var whenPartMatch = GetWhenPartMatch(syntaxFacts, semanticModel, conditionPartToCheck, whenPartToCheck);
+            var whenPartMatch = GetWhenPartMatch(syntaxFacts, semanticModel, conditionPartToCheck, whenPartToCheck, cancellationToken);
             if (whenPartMatch == null)
-            {
                 return;
-            }
+
+            // can't use ?. on a pointer
+            var whenPartType = semanticModel.GetTypeInfo(whenPartMatch, cancellationToken).Type;
+            if (whenPartType is IPointerTypeSymbol)
+                return;
 
             // ?. is not available in expression-trees.  Disallow the fix in that case.
-
-            var type = semanticModel.GetTypeInfo(conditionalExpression).Type;
+            var type = semanticModel.GetTypeInfo(conditionalExpression, cancellationToken).Type;
             if (type?.IsValueType == true)
             {
                 if (type is not INamedTypeSymbol namedType || namedType.ConstructedFrom.SpecialType != SpecialType.System_Nullable_T)
@@ -160,7 +161,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                 // converting to c?.nullable doesn't affect the type
             }
 
-            if (IsInExpressionTree(semanticModel, conditionNode, expressionType, context.CancellationToken))
+            if (IsInExpressionTree(semanticModel, conditionNode, expressionType, cancellationToken))
                 return;
 
             var locations = ImmutableArray.Create(
@@ -168,7 +169,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                 conditionPartToCheck.GetLocation(),
                 whenPartToCheck.GetLocation());
 
-            var whenPartIsNullable = semanticModel.GetTypeInfo(whenPartMatch).Type?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
+            var whenPartIsNullable = whenPartType?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
             var properties = whenPartIsNullable
                 ? s_whenPartIsNullableProperties
                 : ImmutableDictionary<string, string?>.Empty;
@@ -314,9 +315,13 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         }
 
         internal static TExpressionSyntax? GetWhenPartMatch(
-            ISyntaxFacts syntaxFacts, SemanticModel semanticModel, TExpressionSyntax expressionToMatch, TExpressionSyntax whenPart)
+            ISyntaxFacts syntaxFacts,
+            SemanticModel semanticModel,
+            TExpressionSyntax expressionToMatch,
+            TExpressionSyntax whenPart,
+            CancellationToken cancellationToken)
         {
-            expressionToMatch = RemoveObjectCastIfAny(syntaxFacts, semanticModel, expressionToMatch);
+            expressionToMatch = RemoveObjectCastIfAny(syntaxFacts, semanticModel, expressionToMatch, cancellationToken);
             var current = whenPart;
             while (true)
             {
@@ -324,22 +329,23 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                 if (unwrapped == null)
                     return null;
 
-                if (current is TMemberAccessExpressionSyntax or TElementAccessExpressionSyntax &&
-                    syntaxFacts.AreEquivalent(unwrapped, expressionToMatch))
+                if (syntaxFacts.IsSimpleMemberAccessExpression(current) || current is TElementAccessExpressionSyntax)
                 {
-                    return unwrapped;
+                    if (syntaxFacts.AreEquivalent(unwrapped, expressionToMatch))
+                        return unwrapped;
                 }
 
                 current = unwrapped;
             }
         }
 
-        private static TExpressionSyntax RemoveObjectCastIfAny(ISyntaxFacts syntaxFacts, SemanticModel semanticModel, TExpressionSyntax node)
+        private static TExpressionSyntax RemoveObjectCastIfAny(
+            ISyntaxFacts syntaxFacts, SemanticModel semanticModel, TExpressionSyntax node, CancellationToken cancellationToken)
         {
             if (syntaxFacts.IsCastExpression(node))
             {
                 syntaxFacts.GetPartsOfCastExpression(node, out var type, out var expression);
-                var typeSymbol = semanticModel.GetTypeInfo(type).Type;
+                var typeSymbol = semanticModel.GetTypeInfo(type, cancellationToken).Type;
 
                 if (typeSymbol?.SpecialType == SpecialType.System_Object)
                     return (TExpressionSyntax)expression;
@@ -355,8 +361,8 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             if (node is TInvocationExpressionSyntax invocation)
                 return (TExpressionSyntax)syntaxFacts.GetExpressionOfInvocationExpression(invocation);
 
-            if (node is TMemberAccessExpressionSyntax memberAccess)
-                return (TExpressionSyntax?)syntaxFacts.GetExpressionOfMemberAccessExpression(memberAccess);
+            if (syntaxFacts.IsSimpleMemberAccessExpression(node))
+                return (TExpressionSyntax?)syntaxFacts.GetExpressionOfMemberAccessExpression(node);
 
             if (node is TConditionalAccessExpressionSyntax conditionalAccess)
                 return (TExpressionSyntax)syntaxFacts.GetExpressionOfConditionalAccessExpression(conditionalAccess);

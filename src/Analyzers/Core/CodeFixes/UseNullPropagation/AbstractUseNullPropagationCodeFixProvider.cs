@@ -26,7 +26,6 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         TConditionalExpressionSyntax,
         TBinaryExpressionSyntax,
         TInvocationExpressionSyntax,
-        TMemberAccessExpressionSyntax,
         TConditionalAccessExpressionSyntax,
         TElementAccessExpressionSyntax,
         TElementBindingExpressionSyntax,
@@ -39,7 +38,6 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         where TConditionalExpressionSyntax : TExpressionSyntax
         where TBinaryExpressionSyntax : TExpressionSyntax
         where TInvocationExpressionSyntax : TExpressionSyntax
-        where TMemberAccessExpressionSyntax : TExpressionSyntax
         where TConditionalAccessExpressionSyntax : TExpressionSyntax
         where TElementAccessExpressionSyntax : TExpressionSyntax
         where TElementBindingExpressionSyntax : TExpressionSyntax
@@ -77,7 +75,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                 }
                 else
                 {
-                    FixConditionalExpression(document, editor, semanticModel, diagnostic, conditionalExpressionOrIfStatement);
+                    FixConditionalExpression(document, editor, semanticModel, diagnostic, conditionalExpressionOrIfStatement, cancellationToken);
                 }
             }
         }
@@ -87,7 +85,8 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             SyntaxEditor editor,
             SemanticModel semanticModel,
             Diagnostic diagnostic,
-            SyntaxNode conditionalExpression)
+            SyntaxNode conditionalExpression,
+            CancellationToken cancellationToken)
         {
             var root = editor.OriginalRoot;
 
@@ -113,11 +112,10 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
 
                     var match = AbstractUseNullPropagationDiagnosticAnalyzer<
                         TSyntaxKind, TExpressionSyntax, TStatementSyntax,
-                        TConditionalExpressionSyntax, TBinaryExpressionSyntax,
-                        TInvocationExpressionSyntax, TMemberAccessExpressionSyntax,
+                        TConditionalExpressionSyntax, TBinaryExpressionSyntax, TInvocationExpressionSyntax,
                         TConditionalAccessExpressionSyntax, TElementAccessExpressionSyntax,
                         TIfStatementSyntax, TExpressionStatementSyntax>.GetWhenPartMatch(
-                            syntaxFacts, semanticModel, (TExpressionSyntax)conditionalPart, (TExpressionSyntax)currentWhenPartToCheck);
+                            syntaxFacts, semanticModel, (TExpressionSyntax)conditionalPart, (TExpressionSyntax)currentWhenPartToCheck, cancellationToken);
                     if (match == null)
                     {
                         return conditionalExpression;
@@ -181,8 +179,9 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         {
             if (whenPartIsNullable)
             {
-                if (match.Parent is TMemberAccessExpressionSyntax memberAccess)
+                if (syntaxFacts.IsSimpleMemberAccessExpression(match.Parent))
                 {
+                    var memberAccess = match.Parent;
                     var nameNode = syntaxFacts.GetNameOfMemberAccessExpression(memberAccess);
                     syntaxFacts.GetNameAndArityOfSimpleName(nameNode, out var name, out var arity);
                     var comparer = syntaxFacts.StringComparer;
@@ -207,8 +206,9 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             ISyntaxFactsService syntaxFacts, SyntaxGeneratorInternal generator,
             TContainer whenPart, SyntaxNode match, SyntaxNode matchParent) where TContainer : SyntaxNode
         {
-            if (matchParent is TMemberAccessExpressionSyntax memberAccess)
+            if (syntaxFacts.IsSimpleMemberAccessExpression(matchParent))
             {
+                var memberAccess = matchParent;
                 return whenPart.ReplaceNode(memberAccess,
                     generator.ConditionalAccessExpression(
                         match,

@@ -2028,5 +2028,21 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestNotOnPointer_IfStatement()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    unsafe void M(int* i)
+    {
+        if (i != null)
+            i->ToString();
+    }
+}");
+        }
     }
 }

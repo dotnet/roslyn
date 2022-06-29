@@ -15,7 +15,6 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
     TConditionalExpressionSyntax,
     TBinaryExpressionSyntax,
     TInvocationExpressionSyntax,
-    TMemberAccessExpressionSyntax,
     TConditionalAccessExpressionSyntax,
     TElementAccessExpressionSyntax,
     TIfStatementSyntax,
@@ -28,6 +27,7 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
         SyntaxNodeAnalysisContext context,
         IMethodSymbol? referenceEqualsMethod)
     {
+        var cancellationToken = context.CancellationToken;
         var option = context.GetAnalyzerOptions().PreferNullPropagation;
         if (!option.Value)
             return;
@@ -54,8 +54,14 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
         var semanticModel = context.SemanticModel;
         var whenPartMatch = GetWhenPartMatch(
             syntaxFacts, semanticModel, conditionPartToCheck,
-            (TExpressionSyntax)syntaxFacts.GetExpressionOfExpressionStatement(expressionStatement));
+            (TExpressionSyntax)syntaxFacts.GetExpressionOfExpressionStatement(expressionStatement),
+            cancellationToken);
         if (whenPartMatch == null)
+            return;
+
+        // can't use ?. on a pointer
+        var whenPartType = semanticModel.GetTypeInfo(whenPartMatch, cancellationToken).Type;
+        if (whenPartType is IPointerTypeSymbol)
             return;
 
         var whenPartIsNullable = semanticModel.GetTypeInfo(whenPartMatch).Type?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
