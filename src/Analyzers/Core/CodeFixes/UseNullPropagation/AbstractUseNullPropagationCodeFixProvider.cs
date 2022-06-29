@@ -142,9 +142,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var generator = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
 
-            var whenTrueStatement =
-                root.FindNode(diagnostic.AdditionalLocations[1].SourceSpan, getInnermostNodeForTie: true) as TExpressionStatementSyntax ??
-                (TExpressionStatementSyntax)root.FindNode(diagnostic.AdditionalLocations[1].SourceSpan, getInnermostNodeForTie: false);
+            var whenTrueStatement = (TExpressionStatementSyntax)root.FindNode(diagnostic.AdditionalLocations[1].SourceSpan);
             var match = (TExpressionSyntax)root.FindNode(diagnostic.AdditionalLocations[2].SourceSpan, getInnermostNodeForTie: true);
 
             var whenPartIsNullable = diagnostic.Properties.ContainsKey(UseNullPropagationConstants.WhenPartIsNullable);

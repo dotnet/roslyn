@@ -4,12 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Threading;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.UseNullPropagation;
 
@@ -39,6 +34,7 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
 
         var syntaxFacts = GetSyntaxFacts();
         var ifStatement = (TIfStatementSyntax)context.Node;
+        var root = ifStatement.SyntaxTree.GetRoot(context.CancellationToken);
 
         // The true-statement if the if-statement has to be a statement of the form `<expr1>.Name(...)`;
         if (!TryGetPartsOfIfStatement(ifStatement, out var condition, out var trueStatement))
