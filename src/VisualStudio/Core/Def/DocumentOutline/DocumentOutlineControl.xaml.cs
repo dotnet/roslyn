@@ -18,7 +18,6 @@ using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageServiceBrokerShim;
-using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -40,6 +39,10 @@ namespace Microsoft.VisualStudio.LanguageServices
         private IThreadingContext ThreadingContext { get; }
         private ILanguageServiceBrokerShim LanguageServiceBroker { get; }
 
+        /// <summary>
+        /// The type of sorting applied to the document model.
+        /// </summary>
+        /// <remarks> Can be set from any thread. </remarks>
         private SortOption SortOption { get; set; }
 
         /// <summary>
@@ -61,21 +64,25 @@ namespace Microsoft.VisualStudio.LanguageServices
         /// <summary>
         /// The text snapshot from when the document symbol request was made.
         /// </summary>
+        /// <remarks> Can be set from any thread. </remarks>
         private ITextSnapshot? LspSnapshot { get; set; }
 
         /// <summary>
         /// Keeps track of the current primary and secondary text views.
         /// </summary>
+        /// <remarks> Can be set from any thread. </remarks>
         private readonly Dictionary<IVsTextView, ITextView> _trackedTextViews = new();
 
         /// <summary>
         /// Stores the latest document model returned by GetModelAsync to be used by UpdateModelAsync.
         /// </summary>
+        /// <remarks> Can be set from any thread. </remarks>
         private ImmutableArray<DocumentSymbolViewModel> DocumentSymbolViewModels { get; set; }
 
         /// <summary>
         /// Is true when DocumentSymbolViewModels is not empty.
         /// </summary>
+        /// <remarks> Can be set from any thread. </remarks>
         [MemberNotNullWhen(true, nameof(LspSnapshot))]
         private bool DocumentSymbolViewModelsIsInitialized { get; set; }
 
@@ -140,7 +147,6 @@ namespace Microsoft.VisualStudio.LanguageServices
             if (pTextView != null)
             {
                 wpfTextView = EditorAdaptersFactoryService.GetWpfTextView(pTextView);
-
                 if (wpfTextView != null)
                 {
                     _trackedTextViews.Add(pTextView, wpfTextView);
@@ -173,19 +179,25 @@ namespace Microsoft.VisualStudio.LanguageServices
                 StartHightlightNodeTask();
         }
 
-        // Fetches and processes the current document model. Everything should be done on background threads.
+        /// <summary>
+        /// Fetches and processes the current document model.
+        /// </summary>
         private async ValueTask GetModelAsync(CancellationToken cancellationToken)
         {
-            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            await TaskScheduler.Default;
             CodeWindow.GetLastActiveView(out var textView);
             var activeTextView = EditorAdaptersFactoryService.GetWpfTextView(textView);
             if (activeTextView is not null)
             {
-                var textBuffer = activeTextView.TextBuffer;
+                // Need to be on UI thread to get the file path.
+                await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 var filePath = GetFilePath(activeTextView);
+
+                // Ensure we switch to the threadpool before calling DocumentSymbolsRequestAsync.  It ensures
+                // that fetching and processing the document model is not done on the UI thread.
                 await TaskScheduler.Default;
                 var response = await DocumentOutlineHelper.DocumentSymbolsRequestAsync(
-                    textBuffer, LanguageServiceBroker, filePath, cancellationToken).ConfigureAwait(false);
+                    activeTextView.TextBuffer, LanguageServiceBroker, filePath, cancellationToken).ConfigureAwait(false);
 
                 if (response is not null)
                 {
@@ -224,28 +236,29 @@ namespace Microsoft.VisualStudio.LanguageServices
             }
         }
 
-        // Processes the fetched document model and updates the UI.
+        /// <summary>
+        /// Processes the fetched document model and updates the UI.
+        /// </summary>
         private async ValueTask UpdateModelAsync(CancellationToken cancellationToken)
         {
             if (DocumentSymbolViewModelsIsInitialized)
             {
                 var updatedSymbolsTreeItemsSource = DocumentSymbolViewModels;
 
-                // Switch to UI thread to obtain search query and the currently active view
+                // Switch to UI thread to obtain the search query.
                 await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 var searchQuery = searchBox.Text;
+
+                // Switch to the threadpool to get the lastest text view and filter and sort the model.
+                await TaskScheduler.Default;
                 CodeWindow.GetLastActiveView(out var textView);
                 var activeTextView = EditorAdaptersFactoryService.GetWpfTextView(textView);
                 if (activeTextView is not null)
                 {
-                    var currentSnapshot = activeTextView.TextSnapshot;
-
-                    // Switch to a background thread to filter and sort the model
-                    await TaskScheduler.Default;
                     if (!string.IsNullOrWhiteSpace(searchQuery))
                         updatedSymbolsTreeItemsSource = DocumentOutlineHelper.Search(updatedSymbolsTreeItemsSource, searchQuery);
 
-                    updatedSymbolsTreeItemsSource = DocumentOutlineHelper.Sort(updatedSymbolsTreeItemsSource, SortOption, LspSnapshot, currentSnapshot);
+                    updatedSymbolsTreeItemsSource = DocumentOutlineHelper.Sort(updatedSymbolsTreeItemsSource, SortOption, LspSnapshot, activeTextView.TextSnapshot);
 
                     // Switch back to the UI thread to update the UI with the processed model data
                     await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -255,25 +268,24 @@ namespace Microsoft.VisualStudio.LanguageServices
             }
         }
 
-        // Highlights the symbol node corresponding to the current caret position in the editor.
+        /// <summary>
+        /// Highlights the symbol node corresponding to the current caret position in the editor.
+        /// </summary>
         private async ValueTask HightlightNodeAsync(CancellationToken cancellationToken)
         {
+            await TaskScheduler.Default;
             if (DocumentSymbolViewModelsIsInitialized)
             {
                 CodeWindow.GetLastActiveView(out var textView);
                 var activeTextView = EditorAdaptersFactoryService.GetWpfTextView(textView);
                 if (activeTextView is not null)
                 {
-                    var currentSnapshot = activeTextView.TextSnapshot;
                     var documentSymbolModelArray = ((IEnumerable<DocumentSymbolViewModel>)symbolTree.ItemsSource).ToImmutableArray();
                     var caretPoint = activeTextView.GetCaretPoint(activeTextView.TextBuffer);
                     if (caretPoint.HasValue)
                     {
                         var caretPosition = caretPoint.Value.Position;
-                        // Switch to a background thread to update UI selection
-                        await TaskScheduler.Default;
-                        DocumentOutlineHelper.UnselectAll(documentSymbolModelArray);
-                        DocumentOutlineHelper.SelectDocumentNode(documentSymbolModelArray, currentSnapshot, LspSnapshot, caretPosition);
+                        DocumentOutlineHelper.SelectDocumentNode(documentSymbolModelArray, activeTextView.TextSnapshot, LspSnapshot, caretPosition);
                     }
                 }
             }

@@ -164,15 +164,6 @@ namespace Microsoft.VisualStudio.LanguageServices
             }
         }
 
-        public static void UnselectAll(ImmutableArray<DocumentSymbolViewModel> documentSymbolModels)
-        {
-            foreach (var documentSymbolModel in documentSymbolModels)
-            {
-                documentSymbolModel.IsSelected = false;
-                UnselectAll(documentSymbolModel.Children);
-            }
-        }
-
         /// <summary>
         /// Compares the order of two DocumentSymbolViewModels using their positions in the latest editor snapshot.
         /// </summary>
@@ -245,6 +236,9 @@ namespace Microsoft.VisualStudio.LanguageServices
             return sortedDocumentSymbolModels;
         }
 
+        /// <summary>
+        /// Returns an immutable array of DocumentSymbolViewModels such that each node or one of its descendants matches the given pattern.
+        /// </summary>
         public static ImmutableArray<DocumentSymbolViewModel> Search(ImmutableArray<DocumentSymbolViewModel> documentSymbolModels, string pattern)
         {
             var documentSymbols = ArrayBuilder<DocumentSymbolViewModel>.GetInstance();
@@ -294,9 +288,19 @@ namespace Microsoft.VisualStudio.LanguageServices
             CaretPosition = caretPosition;
             IsSnapshotInitialized = true;
 
+            UnselectAll(symbolTreeItemsSource);
             var selectedNode = GetSelectedNode(symbolTreeItemsSource);
             if (selectedNode is not null)
                 SelectNode(selectedNode);
+
+            static void UnselectAll(ImmutableArray<DocumentSymbolViewModel> documentSymbolModels)
+            {
+                foreach (var documentSymbolModel in documentSymbolModels)
+                {
+                    documentSymbolModel.IsSelected = false;
+                    UnselectAll(documentSymbolModel.Children);
+                }
+            }
         }
 
         /// <summary>
