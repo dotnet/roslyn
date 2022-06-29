@@ -46720,10 +46720,10 @@ class Test2 : I1
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetCoreApp,
                                                  parseOptions: TestOptions.Regular9);
             compilation1.VerifyDiagnostics(
-                // (4,31): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
+                // (4,31): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract or virtual
                 //     public static I1 operator ==(I1 x, I1 y)
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "==").WithLocation(4, 31),
-                // (10,31): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
+                // (10,31): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract or virtual
                 //     public static I1 operator !=(I1 x, I1 y)
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "!=").WithLocation(10, 31),
                 // (24,13): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
@@ -46736,10 +46736,10 @@ class Test2 : I1
 
             CreateCompilation(source1 + source2, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetCoreApp,
                               parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
-                // (4,31): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
+                // (4,31): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract or virtual
                 //     public static I1 operator ==(I1 x, I1 y)
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "==").WithLocation(4, 31),
-                // (10,31): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
+                // (10,31): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract or virtual
                 //     public static I1 operator !=(I1 x, I1 y)
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "!=").WithLocation(10, 31)
                 );
@@ -46884,13 +46884,13 @@ public interface I1
                 // (4,37): error CS0552: 'I1.implicit operator int(I1)': user-defined conversions to or from an interface are not allowed
                 //     public static implicit operator int(I1 x)
                 Diagnostic(ErrorCode.ERR_ConversionWithInterface, "int").WithArguments("I1.implicit operator int(I1)").WithLocation(4, 37),
-                // (4,37): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
+                // (4,37): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract or virtual
                 //     public static implicit operator int(I1 x)
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "int").WithLocation(4, 37),
                 // (8,37): error CS0552: 'I1.explicit operator byte(I1)': user-defined conversions to or from an interface are not allowed
                 //     public static explicit operator byte(I1 x)
                 Diagnostic(ErrorCode.ERR_ConversionWithInterface, "byte").WithArguments("I1.explicit operator byte(I1)").WithLocation(8, 37),
-                // (8,37): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
+                // (8,37): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract or virtual
                 //     public static explicit operator byte(I1 x)
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "byte").WithLocation(8, 37),
                 // (15,17): error CS0029: Cannot implicitly convert type 'I1' to 'int'
@@ -49313,13 +49313,13 @@ public interface I1
                 // (4,30): error CS0552: 'I1.implicit operator int(I1)': user-defined conversions to or from an interface are not allowed
                 //     static implicit operator int(I1 x)
                 Diagnostic(ErrorCode.ERR_ConversionWithInterface, "int").WithArguments("I1.implicit operator int(I1)").WithLocation(4, 30),
-                // (4,30): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
+                // (4,30): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract or virtual
                 //     static implicit operator int(I1 x)
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "int").WithLocation(4, 30),
                 // (9,30): error CS0552: 'I1.explicit operator byte(I1)': user-defined conversions to or from an interface are not allowed
                 //     static explicit operator byte(I1 x)
                 Diagnostic(ErrorCode.ERR_ConversionWithInterface, "byte").WithArguments("I1.explicit operator byte(I1)").WithLocation(9, 30),
-                // (9,30): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
+                // (9,30): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract or virtual
                 //     static explicit operator byte(I1 x)
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "byte").WithLocation(9, 30)
                 );
@@ -67883,9 +67883,14 @@ C1.get_P2
             return StaticAbstractMembersInInterfacesTests.GetUnaryOperatorName(op, isChecked, out checkedKeyword);
         }
 
+        private static string GetConversionOperatorName(string op, bool isChecked, out string checkedKeyword)
+        {
+            return StaticAbstractMembersInInterfacesTests.GetConversionOperatorName(op, isChecked, out checkedKeyword);
+        }
+
         [Theory]
         [CombinatorialData]
-        public void OperatorImplementation_Binary_011([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=")] string op, bool isChecked)
+        public void OperatorImplementation_Binary_011([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked)
         {
             string opName = GetBinaryOperatorName(op, isChecked, out string checkedKeyword);
 
@@ -67898,7 +67903,7 @@ C1.get_P2
 @"
 public partial interface I1<T> where T : I1<T>
 {
-    virtual static I1<T> operator " + checkedKeyword + op + @"(I1<T> x, int y)
+    virtual static I1<T> operator " + checkedKeyword + op + @"(T x, int y)
     {
         System.Console.WriteLine(""operator"");
         return x;
@@ -67913,12 +67918,12 @@ public partial interface I1<T> where T : I1<T>
 @"
 public partial interface I1<T>
 {
-    static I1<T> operator" + matchingOp + @"(I1<T> x, int y) => x;
+    virtual static I1<T> operator" + matchingOp + @"(T x, int y) => x;
 }
 ";
             }
 
-            ValidateOperatorImplementation_011(source1, "_ = checked(x " + op + " 1);", opName, "{0} {0}." + opName + "({0} x, System.Int32 y)");
+            ValidateOperatorImplementation_011(source1, "_ = checked(x " + op + " 1);", opName, "{0} {0}." + opName + "({1} x, System.Int32 y)");
         }
 
         private void ValidateOperatorImplementation_011(string source, string access, string opName, string expectedImplementationDisplayFormat)
@@ -68056,7 +68061,43 @@ public partial interface I1<T> where T : I1<T>
 
         [Theory]
         [CombinatorialData]
-        public void OperatorImplementationInDerived_Binary([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=")] string op, bool isChecked)
+        public void OperatorImplementation_Conversion_011([CombinatorialValues("implicit", "explicit")] string op, bool isChecked)
+        {
+            string opName = GetConversionOperatorName(op, isChecked, out string checkedKeyword);
+
+            if (opName is null)
+            {
+                return;
+            }
+
+            var source1 =
+@"
+public partial interface I1<T> where T : I1<T>
+{
+    virtual static " + op + @" operator " + checkedKeyword + @"int(T x)
+    {
+        System.Console.WriteLine(""operator"");
+        return 0;
+    }
+}
+";
+            if (isChecked)
+            {
+                source1 +=
+@"
+public partial interface I1<T>
+{
+    virtual static " + op + @" operator int(T x) => 1;
+}
+";
+            }
+
+            ValidateOperatorImplementation_011(source1, "_ = checked((int)x);", opName, "System.Int32 {0}." + opName + "({1} x)");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void OperatorImplementationInDerived_Binary([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked)
         {
             string opName = GetBinaryOperatorName(op, isChecked, out string checkedKeyword);
 
@@ -68067,7 +68108,7 @@ public partial interface I1<T> where T : I1<T>
 
             string matchingOp = isChecked ? op : MatchingBinaryOperator(op);
 
-            const string signatureTemplate = "{0} {1}operator {2}({0} x, int y)";
+            const string signatureTemplate = "{0} {1}operator {2}{3}({0} x, int y)";
 
             OperatorImplementationInDerived_01(op, opName, checkedKeyword, matchingOp,
                 signatureTemplate: signatureTemplate,
@@ -68125,12 +68166,12 @@ public partial interface I1<T> where T : I1<T>
 @"
 public partial interface I2<T2> where T2 : I2<T2>
 {
-    static abstract " + string.Format(signatureTemplate, "T2", "", checkedKeyword + op) + @";
+    static abstract " + string.Format(signatureTemplate, "T2", "", checkedKeyword, op) + @";
 }
 
 public partial interface I4<T4> where T4 : I4<T4>
 {
-    static abstract " + string.Format(signatureTemplate, "T4", "", checkedKeyword + op) + @";
+    static abstract " + string.Format(signatureTemplate, "T4", "", checkedKeyword, op) + @";
 }
 
 public interface I5<T5> : I4<T5> where T5 : I5<T5>
@@ -68139,12 +68180,12 @@ public interface I5<T5> : I4<T5> where T5 : I5<T5>
 
 public interface I1<T1> : I2<T1>, I5<T1> where T1 : I1<T1>
 {
-    static " + string.Format(signatureTemplate, "T1", "I2<T1>.", checkedKeyword + op) + @"
+    static " + string.Format(signatureTemplate, "T1", "I2<T1>.", checkedKeyword, op) + @"
     {
         System.Console.WriteLine(""I2.M1"");
         return " + string.Format(returnTemplate, "x") + @";
     }
-    static " + string.Format(signatureTemplate, "T1", "I4<T1>.", checkedKeyword + op) + @"
+    static " + string.Format(signatureTemplate, "T1", "I4<T1>.", checkedKeyword, op) + @"
     {
         System.Console.WriteLine(""I4.M1"");
         return " + string.Format(returnTemplate, "x") + @";
@@ -68161,12 +68202,12 @@ public interface I3<T3> : I1<T3> where T3 : I1<T3>
 @"
 public partial interface I2<T2>
 {
-    static virtual " + string.Format(signatureTemplate, "T2", "", matchingOp) + @" => throw null;
+    static virtual " + string.Format(signatureTemplate, "T2", "", "", matchingOp) + @" => throw null;
 }
 
 public partial interface I4<T4>
 {
-    static virtual " + string.Format(signatureTemplate, "T4", "", matchingOp) + @" => throw null;
+    static virtual " + string.Format(signatureTemplate, "T4", "", "", matchingOp) + @" => throw null;
 }
 ";
             }
@@ -68235,20 +68276,40 @@ class Test1 : I1<Test1>
                                                      parseOptions: TestOptions.Regular10,
                                                      targetFramework: TargetFramework.Net60);
 
-                compilation1.VerifyDiagnostics(
-                    // (4,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                    //     static abstract T2 operator +(T2 x, int y);
-                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "10.0", "preview").WithLocation(4, 33),
-                    // (9,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                    //     static abstract T4 operator +(T4 x, int y);
-                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "10.0", "preview").WithLocation(9, 33),
-                    // (18,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //     static T1 I2<T1>.operator +(T1 x, int y)
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "I2<T1>.").WithArguments("static abstract members in interfaces").WithLocation(18, 15),
-                    // (23,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //     static T1 I4<T1>.operator +(T1 x, int y)
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "I4<T1>.").WithArguments("static abstract members in interfaces").WithLocation(23, 15)
-                    );
+                if (op is not ("implicit" or "explicit"))
+                {
+                    compilation1.VerifyDiagnostics(
+                        // (4,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                        //     static abstract T2 operator +(T2 x, int y);
+                        Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "10.0", "preview").WithLocation(4, 33),
+                        // (9,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                        //     static abstract T4 operator +(T4 x, int y);
+                        Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "10.0", "preview").WithLocation(9, 33),
+                        // (18,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        //     static T1 I2<T1>.operator +(T1 x, int y)
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "I2<T1>.").WithArguments("static abstract members in interfaces").WithLocation(18, 15),
+                        // (23,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        //     static T1 I4<T1>.operator +(T1 x, int y)
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "I4<T1>.").WithArguments("static abstract members in interfaces").WithLocation(23, 15)
+                        );
+                }
+                else
+                {
+                    compilation1.VerifyDiagnostics(
+                        // (4,39): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                        //     static abstract implicit operator int(T2 x);
+                        Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "int").WithArguments("abstract", "10.0", "preview").WithLocation(4, 39),
+                        // (9,39): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                        //     static abstract implicit operator int(T4 x);
+                        Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "int").WithArguments("abstract", "10.0", "preview").WithLocation(9, 39),
+                        // (18,21): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        //     static implicit I2<T1>.operator int(T1 x)
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "I2<T1>.").WithArguments("static abstract members in interfaces").WithLocation(18, 21),
+                        // (23,21): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        //     static implicit I4<T1>.operator int(T1 x)
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "I4<T1>.").WithArguments("static abstract members in interfaces").WithLocation(23, 21)
+                        );
+                }
 
                 var source3 = @"
 class Test1 : I1<Test1>
@@ -68284,20 +68345,40 @@ public interface I3<T3> : I1<T3> where T3 : I1<T3>
                 compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.Net50,
                                                  parseOptions: TestOptions.RegularPreview, skipUsesIsNullable: true);
 
-                compilation1.VerifyDiagnostics(
-                    // (4,33): error CS8919: Target runtime doesn't support static abstract members in interfaces.
-                    //     static abstract T2 operator +(T2 x, int y);
-                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(4, 33),
-                    // (9,33): error CS8919: Target runtime doesn't support static abstract members in interfaces.
-                    //     static abstract T4 operator +(T4 x, int y);
-                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(9, 33),
-                    // (18,31): error CS8919: Target runtime doesn't support static abstract members in interfaces.
-                    //     static T1 I2<T1>.operator +(T1 x, int y)
-                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(18, 31),
-                    // (23,31): error CS8919: Target runtime doesn't support static abstract members in interfaces.
-                    //     static T1 I4<T1>.operator +(T1 x, int y)
-                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(23, 31)
-                    );
+                if (op is not ("implicit" or "explicit"))
+                {
+                    compilation1.VerifyDiagnostics(
+                        // (4,33): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                        //     static abstract T2 operator +(T2 x, int y);
+                        Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(4, 33),
+                        // (9,33): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                        //     static abstract T4 operator +(T4 x, int y);
+                        Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(9, 33),
+                        // (18,31): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                        //     static T1 I2<T1>.operator +(T1 x, int y)
+                        Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(18, 31),
+                        // (23,31): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                        //     static T1 I4<T1>.operator +(T1 x, int y)
+                        Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(23, 31)
+                        );
+                }
+                else
+                {
+                    compilation1.VerifyDiagnostics(
+                        // (4,39): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                        //     static abstract explicit operator int(T2 x);
+                        Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "int").WithLocation(4, 39),
+                        // (9,39): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                        //     static abstract explicit operator int(T4 x);
+                        Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "int").WithLocation(9, 39),
+                        // (18,37): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                        //     static explicit I2<T1>.operator int(T1 x)
+                        Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "int").WithLocation(18, 37),
+                        // (23,37): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                        //     static explicit I4<T1>.operator int(T1 x)
+                        Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "int").WithLocation(23, 37)
+                        );
+                }
 
                 compilation3 = CreateCompilation(source3, new[] { compilation1.ToMetadataReference() },
                                                  options: TestOptions.DebugDll, targetFramework: TargetFramework.Net50,
@@ -68352,12 +68433,12 @@ public interface I3<T3> : I1<T3> where T3 : I1<T3>
 @"
 public partial interface I1<T1> where T1 : I1<T1>
 {
-    static abstract " + string.Format(signatureTemplate, "T1", "", checkedKeyword + op) + @";
+    static abstract " + string.Format(signatureTemplate, "T1", "", checkedKeyword, op) + @";
 }
 
 public partial interface I2<T2> : I1<T2> where T2 : I2<T2>
 {
-    static " + string.Format(signatureTemplate, "T2", "I1<T2>.", checkedKeyword + op) + @"
+    static " + string.Format(signatureTemplate, "T2", "I1<T2>.", checkedKeyword, op) + @"
     {
         throw null;
     }
@@ -68365,7 +68446,7 @@ public partial interface I2<T2> : I1<T2> where T2 : I2<T2>
 
 public partial interface I3<T3> : I1<T3> where T3 : I3<T3>
 {
-    static " + string.Format(signatureTemplate, "T3", "I1<T3>.", checkedKeyword + op) + @"
+    static " + string.Format(signatureTemplate, "T3", "I1<T3>.", checkedKeyword, op) + @"
     {
         throw null;
     }
@@ -68377,7 +68458,7 @@ public partial interface I3<T3> : I1<T3> where T3 : I3<T3>
 @"
 public partial interface I1<T1>
 {
-    static virtual " + string.Format(signatureTemplate, "T1", "", matchingOp) + @" => throw null;
+    static virtual " + string.Format(signatureTemplate, "T1", "", "", matchingOp) + @" => throw null;
 }
 ";
             }
@@ -68442,12 +68523,12 @@ class Test1 : I2<Test1>, I3<Test1>
 @"
 public partial interface I1<T1> where T1 : I1<T1>
 {
-    static virtual " + string.Format(signatureTemplate, "T1", "", checkedKeyword + op) + @" => throw null;
+    static virtual " + string.Format(signatureTemplate, "T1", "", checkedKeyword, op) + @" => throw null;
 }
 
 public partial interface I2<T2> : I1<T2> where T2 : I2<T2>
 {
-    static abstract " + string.Format(signatureTemplate, "T2", "I1<T2>.", checkedKeyword + op) + @";
+    static abstract " + string.Format(signatureTemplate, "T2", "I1<T2>.", checkedKeyword, op) + @";
 }
 ";
             if (matchingOp is object)
@@ -68456,7 +68537,7 @@ public partial interface I2<T2> : I1<T2> where T2 : I2<T2>
 @"
 public partial interface I1<T1>
 {
-    static virtual " + string.Format(signatureTemplate, "T1", "", matchingOp) + @" => throw null;
+    static virtual " + string.Format(signatureTemplate, "T1", "", "", matchingOp) + @" => throw null;
 }
 ";
             }
@@ -68484,7 +68565,7 @@ class Test1 : I2<Test1>
 
             string matchingOp = isChecked ? op : null;
 
-            const string signatureTemplate = "{0} {1}operator {2}({0} x)";
+            const string signatureTemplate = "{0} {1}operator {2}{3}({0} x)";
 
             OperatorImplementationInDerived_01(op, opName, checkedKeyword, matchingOp,
                 signatureTemplate: signatureTemplate,
@@ -68506,7 +68587,7 @@ class Test1 : I2<Test1>
             string opName = GetUnaryOperatorName(op, isChecked: false, out _);
             string matchingOp = op switch { "true" => "false", "false" => "true", _ => null };
 
-            const string signatureTemplate = "bool {1}operator {2}({0} x)";
+            const string signatureTemplate = "bool {1}operator {2}{3}({0} x)";
 
             OperatorImplementationInDerived_01(op, opName, checkedKeyword: "", matchingOp,
                 signatureTemplate: signatureTemplate,
@@ -68687,6 +68768,34 @@ class Test1 : I2<Test1>
 
                 Assert.Equal(3, count);
             }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void OperatorImplementationInDerived_Conversion([CombinatorialValues("implicit", "explicit")] string op, bool isChecked)
+        {
+            string opName = GetConversionOperatorName(op, isChecked, out string checkedKeyword);
+
+            if (opName is null)
+            {
+                return;
+            }
+
+            string matchingOp = isChecked ? op : null;
+
+            const string signatureTemplate = "{3} {1}operator {2}int({0} x)";
+
+            OperatorImplementationInDerived_01(op, opName, checkedKeyword, matchingOp,
+                signatureTemplate: signatureTemplate,
+                accessTemplate: "(int){0}",
+                extraOpTemplate: null,
+                returnTemplate: "0");
+
+            OperatorImplementationInDerived_13(op, checkedKeyword, matchingOp,
+                signatureTemplate: signatureTemplate);
+
+            OperatorReAbstraction_02(op, opName, checkedKeyword, matchingOp,
+                signatureTemplate: signatureTemplate);
         }
     }
 }
