@@ -66,26 +66,26 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                     return;
                 }
 
-                var expressionTypeOpt = startContext.Compilation.ExpressionOfTType();
+                var expressionType = startContext.Compilation.ExpressionOfTType();
 
                 var objectType = startContext.Compilation.GetSpecialType(SpecialType.System_Object);
-                var referenceEqualsMethodOpt = objectType?.GetMembers(nameof(ReferenceEquals))
+                var referenceEqualsMethod = objectType?.GetMembers(nameof(ReferenceEquals))
                                                           .OfType<IMethodSymbol>()
                                                           .FirstOrDefault(m => m.DeclaredAccessibility == Accessibility.Public &&
                                                                                m.Parameters.Length == 2);
 
                 var syntaxKinds = GetSyntaxFacts().SyntaxKinds;
                 startContext.RegisterSyntaxNodeAction(
-                    c => AnalyzeSyntax(c, expressionTypeOpt, referenceEqualsMethodOpt),
+                    c => AnalyzeTernaryConditionalExpression(c, expressionType, referenceEqualsMethod),
                     syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.TernaryConditionalExpression));
             });
 
         }
 
-        private void AnalyzeSyntax(
+        private void AnalyzeTernaryConditionalExpression(
             SyntaxNodeAnalysisContext context,
-            INamedTypeSymbol? expressionTypeOpt,
-            IMethodSymbol? referenceEqualsMethodOpt)
+            INamedTypeSymbol? expressionType,
+            IMethodSymbol? referenceEqualsMethod)
         {
             var conditionalExpression = (TConditionalExpressionSyntax)context.Node;
 
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             }
 
             if (!TryAnalyzeCondition(
-                    context, syntaxFacts, referenceEqualsMethodOpt, conditionNode,
+                    context, syntaxFacts, referenceEqualsMethod, conditionNode,
                     out var conditionPartToCheck, out var isEquals))
             {
                 return;
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                 // converting to c?.nullable doesn't affect the type
             }
 
-            if (IsInExpressionTree(semanticModel, conditionNode, expressionTypeOpt, context.CancellationToken))
+            if (IsInExpressionTree(semanticModel, conditionNode, expressionType, context.CancellationToken))
             {
                 return;
             }
