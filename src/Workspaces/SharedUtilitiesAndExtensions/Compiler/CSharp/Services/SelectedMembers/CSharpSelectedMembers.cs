@@ -26,26 +26,19 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         {
         }
 
-        protected override IEnumerable<VariableDeclaratorSyntax> GetAllDeclarators(FieldDeclarationSyntax field)
-            => field.Declaration.Variables;
-
-        protected override IEnumerable<SyntaxToken> GetMemberIdentifiers(MemberDeclarationSyntax member)
+        protected override IEnumerable<(SyntaxToken identifier, SyntaxNode declaration)> GetDeclarationsAndIdentifiers(MemberDeclarationSyntax member)
         {
             return member switch
             {
-                FieldDeclarationSyntax fieldDeclaration => fieldDeclaration.Declaration.Variables.Select(GetVariableIdentifier),
-                EventFieldDeclarationSyntax eventFieldDeclaration => eventFieldDeclaration.Declaration.Variables.Select(GetVariableIdentifier),
-                _ => ImmutableArray.Create(member.GetNameToken()),
+                FieldDeclarationSyntax fieldDeclaration => fieldDeclaration.Declaration.Variables.Select(
+                    v => (identifier: v.Identifier, declaration: v as SyntaxNode)),
+                EventFieldDeclarationSyntax eventFieldDeclaration => eventFieldDeclaration.Declaration.Variables.Select(
+                    v => (identifier: v.Identifier, declaration: v as SyntaxNode)),
+                _ => ImmutableArray.Create((identifier: member.GetNameToken(), declaration: member as SyntaxNode)),
             };
         }
 
         protected override SyntaxList<MemberDeclarationSyntax> GetMembers(TypeDeclarationSyntax containingType)
             => containingType.Members;
-
-        protected override SyntaxToken GetPropertyIdentifier(PropertyDeclarationSyntax declarator)
-            => declarator.Identifier;
-
-        protected override SyntaxToken GetVariableIdentifier(VariableDeclaratorSyntax declarator)
-            => declarator.Identifier;
     }
 }

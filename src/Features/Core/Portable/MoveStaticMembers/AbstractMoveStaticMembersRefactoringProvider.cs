@@ -40,7 +40,6 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
                 return;
             }
 
-
             var memberNodeSymbolPairs = selectedMemberNodes
                 .Select(m => (node: m, symbol: semanticModel.GetDeclaredSymbol(m, cancellationToken)))
                 // Use same logic as pull members up for determining if a selected member

@@ -20,29 +20,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Private Sub New()
         End Sub
 
-        Protected Overrides Function GetAllDeclarators(field As FieldDeclarationSyntax) As IEnumerable(Of ModifiedIdentifierSyntax)
-            Return field.Declarators.SelectMany(Function(d) d.Names)
-        End Function
-
         Protected Overrides Function GetMembers(containingType As TypeBlockSyntax) As SyntaxList(Of StatementSyntax)
             Return containingType.Members
         End Function
 
-        Protected Overrides Function GetPropertyIdentifier(declarator As PropertyStatementSyntax) As SyntaxToken
-            Return declarator.Identifier
-        End Function
-
-        Protected Overrides Function GetVariableIdentifier(declarator As ModifiedIdentifierSyntax) As SyntaxToken
-            Return declarator.Identifier
-        End Function
-
-        Protected Overrides Function GetMemberIdentifiers(member As StatementSyntax) As IEnumerable(Of SyntaxToken)
+        Protected Overrides Function GetDeclarationsAndIdentifiers(member As StatementSyntax) As IEnumerable(Of (identifier As SyntaxToken, declaration As SyntaxNode))
             If TypeOf member Is FieldDeclarationSyntax Then
                 Return DirectCast(member, FieldDeclarationSyntax).Declarators.
                     SelectMany(Function(decl) decl.Names.
-                        Select(Function(name) name.Identifier))
+                        Select(Function(name) (identifier:=name.Identifier, declaration:=DirectCast(name, SyntaxNode))))
             Else
-                Return ImmutableArray.Create(member.GetNameToken())
+                Return ImmutableArray.Create((identifier:=member.GetNameToken(), declaration:=DirectCast(member, SyntaxNode)))
             End If
         End Function
     End Class

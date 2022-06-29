@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
@@ -18,19 +19,48 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings
     {
         internal static async Task<ImmutableArray<SyntaxNode>> GetSelectedDeclarationsOrVariablesAsync(CodeRefactoringContext context)
         {
-            // Consider:
-            // MemberDeclaration: member that can be declared in type (those are the ones we can pull up) 
-            // VariableDeclaratorSyntax: for fields the MemberDeclaration can actually represent multiple declarations, e.g. `int a = 0, b = 1;`.
-            // ..Since the user might want to select & pull up only one of them (e.g. `int a = 0, [|b = 1|];` we also look for closest VariableDeclaratorSyntax.
-            var memberDeclarations = await context.GetRelevantNodesAsync<MemberDeclarationSyntax>().ConfigureAwait(false);
-            var varDeclarators = await context.GetRelevantNodesAsync<VariableDeclaratorSyntax>().ConfigureAwait(false);
-            return memberDeclarations
-                .SelectMany<MemberDeclarationSyntax, SyntaxNode>(
-                    memberDeclaration => memberDeclaration is FieldDeclarationSyntax fieldDeclaration ? fieldDeclaration.Declaration.Variables : ImmutableArray.Create(memberDeclaration))
-                .Concat(varDeclarators.Cast<SyntaxNode>())
-                // GetRelevantNodesAsync can produce duplicates, so we make sure we only have unique ones
-                .Distinct()
-                .AsImmutable();
+            var (doc, span, cancellationToken) = context;
+            if (span.IsEmpty)
+            {
+                // if the span is empty then we are only selecting one "member" (which could include a field which declared multiple actual members)
+                // Consider:
+                // MemberDeclaration: member that can be declared in type (those are the ones we can pull up) 
+                // VariableDeclaratorSyntax: for fields the MemberDeclaration can actually represent multiple declarations, e.g. `int a = 0, b = 1;`.
+                // ..Since the user might want to select & pull up only one of them (e.g. `int a = 0, [|b = 1|];` we also look for closest VariableDeclaratorSyntax.
+                var memberDeclaration = await context.TryGetRelevantNodeAsync<MemberDeclarationSyntax>().ConfigureAwait(false);
+                if (memberDeclaration == null)
+                {
+                    // could not find a member, we may be directly on a variable declaration
+                    var varDeclarator = await context.TryGetRelevantNodeAsync<VariableDeclaratorSyntax>().ConfigureAwait(false);
+                    if (varDeclarator == null)
+                    {
+                        return ImmutableArray<SyntaxNode>.Empty;
+                    }
+                    else
+                    {
+
+                        return ImmutableArray.Create(varDeclarator as SyntaxNode);
+                    }
+                }
+                else
+                {
+                    return memberDeclaration switch
+                    {
+                        FieldDeclarationSyntax fieldDeclaration => fieldDeclaration.Declaration.Variables.Cast<SyntaxNode>().AsImmutable(),
+                        EventFieldDeclarationSyntax eventFieldDeclaration => eventFieldDeclaration.Declaration.Variables.Cast<SyntaxNode>().AsImmutable(),
+                        _ => ImmutableArray.Create(memberDeclaration as SyntaxNode),
+                    };
+                }
+            }
+            else
+            {
+                // if the span is non-empty, then we get potentially multiple members
+                // Note: even though this method handles the empty span case, we don't use it because it doesn't correctly
+                // pick up on keywords before the declaration, such as "public static int".
+                // We could potentially use it for every case if that behavior changes
+                var tree = await doc.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                return await CSharpSelectedMembers.Instance.GetSelectedMembersAsync(tree, span, true, cancellationToken).ConfigureAwait(false);
+            }
         }
     }
 }
