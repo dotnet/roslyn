@@ -1222,6 +1222,11 @@
         <target state="translated">Nie można przypisać odwołania elementu „{1}” do elementu „{0}”, ponieważ element „{1}” ma węższy zakres wyjścia niż element „{0}”.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RefFieldCannotReferToRefStruct">
+        <source>A ref field cannot refer to a ref struct.</source>
+        <target state="new">A ref field cannot refer to a ref struct.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefLocalOrParamExpected">
         <source>The left-hand side of a ref assignment must be a ref variable.</source>
         <target state="needs-review-translation">Lewa strona przypisania odwołania musi być odwołaniem lokalnym lub parametrem.</target>

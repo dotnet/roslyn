@@ -1222,6 +1222,11 @@
         <target state="translated">'{1}' を '{0}' に ref 割り当てすることはできません。'{1}' のエスケープ スコープが '{0}' より狭いためです。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RefFieldCannotReferToRefStruct">
+        <source>A ref field cannot refer to a ref struct.</source>
+        <target state="new">A ref field cannot refer to a ref struct.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefLocalOrParamExpected">
         <source>The left-hand side of a ref assignment must be a ref variable.</source>
         <target state="needs-review-translation">ref 代入の左辺は、ref ローカルまたはパラメーターにする必要があります。</target>

@@ -1222,6 +1222,11 @@
         <target state="translated">Přiřazení odkazu {1} k {0} nelze provést, protože {1} má užší řídicí obor než {0}.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RefFieldCannotReferToRefStruct">
+        <source>A ref field cannot refer to a ref struct.</source>
+        <target state="new">A ref field cannot refer to a ref struct.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefLocalOrParamExpected">
         <source>The left-hand side of a ref assignment must be a ref variable.</source>
         <target state="needs-review-translation">Levá strana přiřazení odkazu musí být lokální proměnná nebo parametr odkazu.</target>
