@@ -34,10 +34,7 @@ namespace Roslyn.Utilities
                     break;
                 }
 
-                if (builder == null)
-                {
-                    builder = new StringBuilder();
-                }
+                builder ??= new StringBuilder();
 
                 if (index > startIndex)
                 {
@@ -83,10 +80,7 @@ namespace Roslyn.Utilities
                     break;
                 }
 
-                if (builder == null)
-                {
-                    builder = new StringBuilder();
-                }
+                builder ??= new StringBuilder();
 
                 // add everything up to the escape prefix
                 builder.Append(text, startIndex, index - startIndex);

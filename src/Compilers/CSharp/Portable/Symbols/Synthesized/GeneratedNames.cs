@@ -26,14 +26,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<" + propertyName + ">k__BackingField";
         }
 
-        internal static string MakeIteratorFinallyMethodName(int finalizeState)
+        internal static string MakeIteratorFinallyMethodName(StateMachineState finalizeState)
         {
-            Debug.Assert(finalizeState < -2);
+            Debug.Assert((int)finalizeState < -2);
 
             // It is important that the name is only derived from the finalizeState, so that when 
             // editing method during EnC the Finally methods corresponding to matching states have matching names.
             Debug.Assert((char)GeneratedNameKind.IteratorFinallyMethod == 'm');
-            return "<>m__Finally" + StringExtensions.GetNumeral(-(finalizeState + 2));
+            return "<>m__Finally" + StringExtensions.GetNumeral(-((int)finalizeState + 2));
         }
 
         internal static string MakeStaticLambdaDisplayClassName(int methodOrdinal, int generation)

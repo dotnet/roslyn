@@ -35,13 +35,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 s_optionStore = new OptionStore(new SolutionOptionSet(s_optionService), Enumerable.Empty<IOption>());
             }
 
-            if (pageControl == null)
-            {
-                // Use a single option store for all option pages so that changes are accumulated
-                // together and, in the case of the same option appearing on two pages, the changes
-                // are kept in sync.
-                pageControl = CreateOptionPage(this.Site, s_optionStore);
-            }
+            // Use a single option store for all option pages so that changes are accumulated
+            // together and, in the case of the same option appearing on two pages, the changes
+            // are kept in sync.
+            pageControl ??= CreateOptionPage(this.Site, s_optionStore);
         }
 
         protected override System.Windows.UIElement Child

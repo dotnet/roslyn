@@ -229,10 +229,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         // However, once they've called it once, it's always the same TextView.
         public void SetTextView(object textView)
         {
-            if (_updater == null)
-            {
-                _updater = new PreviewUpdater(ThreadingContext, EnsureTextViewIsInitialized(textView));
-            }
+            _updater ??= new PreviewUpdater(ThreadingContext, EnsureTextViewIsInitialized(textView));
         }
 
         private ITextView EnsureTextViewIsInitialized(object previewTextView)

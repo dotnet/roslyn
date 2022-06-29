@@ -60,22 +60,22 @@ namespace Microsoft.CodeAnalysis
     /// <typeparam name="T">The type of the items tracked by this table</typeparam>
     internal sealed class NodeStateTable<T> : IStateTable
     {
-        internal static NodeStateTable<T> Empty { get; } = new NodeStateTable<T>(ImmutableArray<TableEntry>.Empty, ImmutableArray<IncrementalGeneratorRunStep>.Empty, isCompacted: true, hasTrackedSteps: true);
+        internal static NodeStateTable<T> Empty { get; } = new NodeStateTable<T>(ImmutableArray<TableEntry>.Empty, ImmutableArray<IncrementalGeneratorRunStep>.Empty, hasTrackedSteps: true);
 
         private readonly ImmutableArray<TableEntry> _states;
 
-        private NodeStateTable(ImmutableArray<TableEntry> states, ImmutableArray<IncrementalGeneratorRunStep> steps, bool isCompacted, bool hasTrackedSteps)
+
+        private NodeStateTable(ImmutableArray<TableEntry> states, ImmutableArray<IncrementalGeneratorRunStep> steps, bool hasTrackedSteps)
         {
-            Debug.Assert(!isCompacted || states.All(s => s.IsCached));
             Debug.Assert(!hasTrackedSteps || steps.Length == states.Length);
 
             _states = states;
             Steps = steps;
-            IsCached = isCompacted;
+            IsCached = !states.IsEmpty && states.All(s => s.IsCached);
             HasTrackedSteps = hasTrackedSteps;
         }
 
-        public int Count { get => _states.Length; }
+        public int Count => _states.Length;
 
         /// <summary>
         /// Indicates if every entry in this table has a state of <see cref="EntryState.Cached"/>
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis
             }
             // When we're preparing a table for caching between runs, we drop the step information as we cannot guarantee the graph structure while also updating
             // the input states
-            return new NodeStateTable<T>(compacted.ToImmutableAndFree(), ImmutableArray<IncrementalGeneratorRunStep>.Empty, isCompacted: true, hasTrackedSteps: false);
+            return new NodeStateTable<T>(compacted.ToImmutableAndFree(), ImmutableArray<IncrementalGeneratorRunStep>.Empty, hasTrackedSteps: false);
         }
 
         IStateTable IStateTable.AsCached() => AsCached();
@@ -127,19 +127,20 @@ namespace Microsoft.CodeAnalysis
             return (_states[^1].GetItem(0), HasTrackedSteps ? Steps[^1] : null);
         }
 
-        public Builder ToBuilder(string? stepName, bool stepTrackingEnabled)
-            => new Builder(this, stepName, stepTrackingEnabled);
+        public Builder ToBuilder(string? stepName, bool stepTrackingEnabled, IEqualityComparer<T>? equalityComparer = null)
+            => new(this, stepName, stepTrackingEnabled, equalityComparer);
 
-        public NodeStateTable<T> CreateCachedTableWithUpdatedSteps<TInput>(NodeStateTable<TInput> inputTable, string? stepName)
+        public NodeStateTable<T> CreateCachedTableWithUpdatedSteps<TInput>(NodeStateTable<TInput> inputTable, string? stepName, IEqualityComparer<T> equalityComparer)
         {
             Debug.Assert(inputTable.HasTrackedSteps && inputTable.IsCached);
-            NodeStateTable<T>.Builder builder = ToBuilder(stepName, stepTrackingEnabled: true);
+            NodeStateTable<T>.Builder builder = ToBuilder(stepName, stepTrackingEnabled: true, equalityComparer);
             foreach (var entry in inputTable)
             {
                 var inputs = ImmutableArray.Create((entry.Step!, entry.OutputIndex));
                 bool usedCachedEntry = builder.TryUseCachedEntries(TimeSpan.Zero, inputs);
                 Debug.Assert(usedCachedEntry);
             }
+
             return builder.ToImmutableAndFree();
         }
 
@@ -149,16 +150,18 @@ namespace Microsoft.CodeAnalysis
             private readonly NodeStateTable<T> _previous;
 
             private readonly string? _name;
+            private readonly IEqualityComparer<T> _equalityComparer;
             private readonly ArrayBuilder<IncrementalGeneratorRunStep>? _steps;
 
             [MemberNotNullWhen(true, nameof(_steps))]
             public bool TrackIncrementalSteps => _steps is not null;
 
-            internal Builder(NodeStateTable<T> previous, string? name, bool stepTrackingEnabled)
+            internal Builder(NodeStateTable<T> previous, string? name, bool stepTrackingEnabled, IEqualityComparer<T>? equalityComparer)
             {
-                _states = ArrayBuilder<TableEntry>.GetInstance(previous._states.Length);
+                _states = ArrayBuilder<TableEntry>.GetInstance(previous.Count);
                 _previous = previous;
                 _name = name;
+                _equalityComparer = equalityComparer ?? EqualityComparer<T>.Default;
                 if (stepTrackingEnabled)
                 {
                     _steps = ArrayBuilder<IncrementalGeneratorRunStep>.GetInstance();
@@ -259,6 +262,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         RecordStepInfoForLastEntry(elapsedTime, stepInputs, EntryState.Cached);
                     }
+
                     return true;
                 }
 
@@ -359,11 +363,17 @@ namespace Microsoft.CodeAnalysis
                     return NodeStateTable<T>.Empty;
                 }
 
-                var hasNonCached = _states.Any(static s => !s.IsCached);
+                // if we added the exact same entries as before, then we can directly embed previous' entry array,
+                // avoiding a costly allocation of the same data.
+                var finalStates = _states.Count == _previous.Count && _states.SequenceEqual(_previous._states, (e1, e2) => e1.Matches(e2, _equalityComparer))
+                    ? _previous._states
+                    : _states.ToImmutable();
+
+                _states.Free();
+
                 return new NodeStateTable<T>(
-                    _states.ToImmutableAndFree(),
+                    finalStates,
                     TrackIncrementalSteps ? _steps.ToImmutableAndFree() : default,
-                    isCompacted: !hasNonCached,
                     hasTrackedSteps: TrackIncrementalSteps);
             }
 
@@ -407,6 +417,23 @@ namespace Microsoft.CodeAnalysis
                 this._item = item;
                 this._items = items;
                 this._states = states;
+            }
+
+            public bool Matches(TableEntry entry, IEqualityComparer<T> equalityComparer)
+            {
+                if (!_states.SequenceEqual(entry._states))
+                    return false;
+
+                if (this.Count != entry.Count)
+                    return false;
+
+                for (int i = 0, n = this.Count; i < n; i++)
+                {
+                    if (!equalityComparer.Equals(this.GetItem(i), entry.GetItem(i)))
+                        return false;
+                }
+
+                return true;
             }
 
             public bool IsCached => this._states == s_allCachedEntries || this._states.All(s => s == EntryState.Cached);
@@ -481,12 +508,14 @@ namespace Microsoft.CodeAnalysis
                         {
                             sb.Builder.Append(',');
                         }
+
                         sb.Builder.Append(" (");
                         sb.Builder.Append(GetItem(i));
                         sb.Builder.Append(':');
                         sb.Builder.Append(GetState(i));
                         sb.Builder.Append(')');
                     }
+
                     sb.Builder.Append(" }");
                     return sb.ToStringAndFree();
                 }

@@ -36,10 +36,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             {
                 get
                 {
-                    if (_lazyVisitedObjects == null)
-                    {
-                        _lazyVisitedObjects = new HashSet<object>(ReferenceEqualityComparer.Instance);
-                    }
+                    _lazyVisitedObjects ??= new HashSet<object>(ReferenceEqualityComparer.Instance);
 
                     return _lazyVisitedObjects;
                 }
