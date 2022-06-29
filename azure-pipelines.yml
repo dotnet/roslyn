@@ -245,6 +245,8 @@ jobs:
 
     - task: PowerShell@2
       displayName: Restore
+      env:
+        NUGET_CERT_REVOCATION_MODE: offline
       inputs:
         filePath: eng/build.ps1
         arguments: -configuration Debug -prepareMachine -ci -restore -binaryLog
