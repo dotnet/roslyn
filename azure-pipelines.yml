@@ -35,14 +35,14 @@ jobs:
     jobName: Build_Windows_Debug
     testArtifactName: Transport_Artifacts_Windows_Debug
     configuration: Debug
-    queueName: Build.Windows.Amd64.VS2022.Pre.Open
+    vmImageName: windows-latest
 
 - template: eng/pipelines/build-windows-job.yml
   parameters:
     jobName: Build_Windows_Release
     testArtifactName: Transport_Artifacts_Windows_Release
     configuration: Release
-    queueName: Build.Windows.Amd64.VS2022.Pre.Open
+    vmImageName: windows-latest
 
 - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
   - template: eng/pipelines/test-windows-job.yml
@@ -145,7 +145,7 @@ jobs:
     jobName: Build_Unix_Debug
     testArtifactName: Transport_Artifacts_Unix_Debug
     configuration: Debug
-    queueName: Build.Ubuntu.1804.Amd64.Open
+    vmImageName: ubuntu-latest
 
 - template: eng/pipelines/test-unix-job.yml
   parameters:
@@ -182,8 +182,7 @@ jobs:
 
 - job: Correctness_Determinism
   pool:
-    name: NetCore1ESPool-Public
-    demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
+    vmImage: windows-latest
   timeoutInMinutes: 90
   steps:
     - template: eng/pipelines/checkout-task.yml
@@ -198,8 +197,7 @@ jobs:
 
 - job: Correctness_Build
   pool:
-    name: NetCore1ESPool-Public
-    demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
+    vmImage: windows-latest
   timeoutInMinutes: 90
   steps:
     - template: eng/pipelines/checkout-task.yml
@@ -230,7 +228,7 @@ jobs:
 
 - job: Correctness_TodoCheck
   pool:
-    vmImage: ubuntu-20.04
+    vmImage: ubuntu-latest
   timeoutInMinutes: 10
   steps:
     - template: eng/pipelines/checkout-task.yml
@@ -240,8 +238,7 @@ jobs:
 
 - job: Correctness_Rebuild
   pool:
-    name: NetCore1ESPool-Public
-    demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
+    vmImage: windows-latest
   timeoutInMinutes: 90
   steps:
     - template: eng/pipelines/checkout-task.yml
