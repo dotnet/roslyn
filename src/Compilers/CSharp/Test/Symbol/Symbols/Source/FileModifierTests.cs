@@ -3,9 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
@@ -43,10 +45,16 @@ public class FileModifierTests : CSharpTestBase
         comp.VerifyDiagnostics(
             // (3,16): error CS8652: The feature 'file types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     file class C { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "C").WithArguments("file types").WithLocation(3, 16));
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "C").WithArguments("file types").WithLocation(3, 16),
+            // (3,16): error CS9303: File type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
+            //     file class C { }
+            Diagnostic(ErrorCode.ERR_FileTypeNested, "C").WithArguments("Outer.C").WithLocation(3, 16));
 
         comp = CreateCompilation(source);
-        comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (3,16): error CS9303: File type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
+            //     file class C { }
+            Diagnostic(ErrorCode.ERR_FileTypeNested, "C").WithArguments("Outer.C").WithLocation(3, 16));
     }
 
     [Fact]
@@ -92,7 +100,6 @@ public class FileModifierTests : CSharpTestBase
             }
             """;
 
-        // PROTOTYPE(ft): determine whether an inner file class within a file class is an error or if it's just fine.
         var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
         comp.VerifyDiagnostics(
             // (1,12): error CS8652: The feature 'file types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
@@ -100,10 +107,16 @@ public class FileModifierTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "Outer").WithArguments("file types").WithLocation(1, 12),
             // (3,16): error CS8652: The feature 'file types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     file class C { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "C").WithArguments("file types").WithLocation(3, 16));
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "C").WithArguments("file types").WithLocation(3, 16),
+            // (3,16): error CS9303: File type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
+            //     file class C { }
+            Diagnostic(ErrorCode.ERR_FileTypeNested, "C").WithArguments("Outer.C").WithLocation(3, 16));
 
         comp = CreateCompilation(source);
-        comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (3,16): error CS9303: File type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
+            //     file class C { }
+            Diagnostic(ErrorCode.ERR_FileTypeNested, "C").WithArguments("Outer.C").WithLocation(3, 16));
     }
 
     [Fact]
@@ -167,7 +180,7 @@ public class FileModifierTests : CSharpTestBase
     }
 
     [Fact]
-    public void SameFileUse()
+    public void SameFileUse_01()
     {
         var source = """
             using System;
@@ -189,9 +202,244 @@ public class FileModifierTests : CSharpTestBase
             }
             """;
 
-        var verifier = CompileAndVerify(source, expectedOutput: "1");
+        var verifier = CompileAndVerify(source, expectedOutput: "1", symbolValidator: symbolValidator);
         verifier.VerifyDiagnostics();
-        // PROTOTYPE(ft): check metadata names
+
+        var comp = (CSharpCompilation)verifier.Compilation;
+        var symbol = comp.GetMember<NamedTypeSymbol>("C");
+        Assert.Equal("<>F0__C", symbol.MetadataName);
+
+        // The qualified name here is based on `SymbolDisplayCompilerInternalOptions.IncludeContainingFileForFileTypes`.
+        // We don't actually look up based on the file-encoded name of the type.
+        // This is similar to how generic types work (lookup based on 'C<T>' instead of 'C`1').
+        verifier.VerifyIL("C@<tree 0>.M", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldc.i4.1
+  IL_0001:  call       ""void System.Console.Write(int)""
+  IL_0006:  ret
+}");
+
+        void symbolValidator(ModuleSymbol symbol)
+        {
+            Assert.Equal(new[] { "<Module>", "<>F0__C", "Program" }, symbol.GlobalNamespace.GetMembers().Select(m => m.Name));
+            var classC = symbol.GlobalNamespace.GetMember<NamedTypeSymbol>("<>F0__C");
+            Assert.Equal(new[] { "M", ".ctor" }, classC.MemberNames);
+        }
+    }
+
+    [Fact]
+    public void SameFileUse_02()
+    {
+        var source = """
+            using System;
+
+            file class C
+            {
+                public static void M()
+                {
+                    Console.Write(1);
+                }
+            }
+
+            class Program
+            {
+                static void Main()
+                {
+                    C.M();
+                }
+            }
+            """;
+
+        var verifier = CompileAndVerify(new[] { "", source }, expectedOutput: "1", symbolValidator: symbolValidator);
+        verifier.VerifyDiagnostics();
+
+        var comp = (CSharpCompilation)verifier.Compilation;
+        var symbol = comp.GetMember<NamedTypeSymbol>("C");
+        Assert.Equal("<>F1__C", symbol.MetadataName);
+
+        // The qualified name here is based on `SymbolDisplayCompilerInternalOptions.IncludeContainingFileForFileTypes`.
+        // We don't actually look up based on the file-encoded name of the type.
+        // This is similar to how generic types work (lookup based on 'C<T>' instead of 'C`1').
+        verifier.VerifyIL("C@<tree 1>.M", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldc.i4.1
+  IL_0001:  call       ""void System.Console.Write(int)""
+  IL_0006:  ret
+}");
+
+        void symbolValidator(ModuleSymbol symbol)
+        {
+            Assert.Equal(new[] { "<Module>", "<>F1__C", "Program" }, symbol.GlobalNamespace.GetMembers().Select(m => m.Name));
+            var classC = symbol.GlobalNamespace.GetMember<NamedTypeSymbol>("<>F1__C");
+            Assert.Equal(new[] { "M", ".ctor" }, classC.MemberNames);
+        }
+    }
+
+    [Fact]
+    public void FileEnum_01()
+    {
+        var source = """
+            using System;
+
+            file enum E
+            {
+                E1, E2
+            }
+
+            class Program
+            {
+                static void Main()
+                {
+                    Console.Write(E.E2);
+                }
+            }
+            """;
+
+        var verifier = CompileAndVerify(source, expectedOutput: "E2", symbolValidator: symbolValidator);
+        verifier.VerifyDiagnostics();
+
+        var comp = (CSharpCompilation)verifier.Compilation;
+        var symbol = comp.GetMember<NamedTypeSymbol>("E");
+        Assert.Equal("<>F0__E", symbol.MetadataName);
+
+        verifier.VerifyIL("Program.Main", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldc.i4.1
+  IL_0001:  box        ""E""
+  IL_0006:  call       ""void System.Console.Write(object)""
+  IL_000b:  ret
+}");
+
+        void symbolValidator(ModuleSymbol symbol)
+        {
+            Assert.Equal(new[] { "<Module>", "<>F0__E", "Program" }, symbol.GlobalNamespace.GetMembers().Select(m => m.Name));
+            var classC = symbol.GlobalNamespace.GetMember<NamedTypeSymbol>("<>F0__E");
+            Assert.Equal(new[] { "value__", "E1", "E2", ".ctor" }, classC.MemberNames);
+        }
+    }
+
+    [Fact]
+    public void FileEnum_02()
+    {
+        var source = """
+            using System;
+
+            file enum E
+            {
+                E1, E2
+            }
+
+            file class Attr : Attribute
+            {
+                public Attr(E e) { }
+            }
+
+            [Attr(E.E2)]
+            class Program
+            {
+                static void Main()
+                {
+                    var data = typeof(Program).GetCustomAttributesData();
+                    Console.Write(data[0].ConstructorArguments[0]);
+                }
+            }
+            """;
+
+        var verifier = CompileAndVerify(source, expectedOutput: "(<>F0__E)1", symbolValidator: symbolValidator);
+        verifier.VerifyDiagnostics();
+
+        var comp = (CSharpCompilation)verifier.Compilation;
+        var symbol = comp.GetMember<NamedTypeSymbol>("E");
+        Assert.Equal("<>F0__E", symbol.MetadataName);
+
+        void symbolValidator(ModuleSymbol symbol)
+        {
+            Assert.Equal(new[] { "<Module>", "<>F0__E", "<>F0__Attr", "Program" }, symbol.GlobalNamespace.GetMembers().Select(m => m.Name));
+            var classC = symbol.GlobalNamespace.GetMember<NamedTypeSymbol>("<>F0__E");
+            Assert.Equal(new[] { "value__", "E1", "E2", ".ctor" }, classC.MemberNames);
+        }
+    }
+
+    [Fact]
+    public void FileEnum_03()
+    {
+        var source = """
+            using System;
+
+            file enum E
+            {
+                E1, E2
+            }
+
+            class Attr : Attribute
+            {
+                public Attr(E e) { } // 1
+            }
+
+            [Attr(E.E2)]
+            class Program
+            {
+                static void Main()
+                {
+                    var data = typeof(Program).GetCustomAttributesData();
+                    Console.Write(data[0].ConstructorArguments[0]);
+                }
+            }
+            """;
+
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics(
+            // (10,12): error CS9300: File type 'E' cannot be used in a member signature in non-file type 'Attr'.
+            //     public Attr(E e) { } // 1
+            Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "Attr").WithArguments("E", "Attr").WithLocation(10, 12));
+    }
+
+    [Fact]
+    public void FileEnum_04()
+    {
+        var source = """
+            using System;
+
+            file enum E
+            {
+                E1, E2
+            }
+
+            class Attr : Attribute
+            {
+                public Attr(object obj) { }
+            }
+
+            [Attr(E.E2)]
+            class Program
+            {
+                static void Main()
+                {
+                    var data = typeof(Program).GetCustomAttributesData();
+                    Console.Write(data[0].ConstructorArguments[0]);
+                }
+            }
+            """;
+
+        var verifier = CompileAndVerify(source, expectedOutput: "(<>F0__E)1", symbolValidator: symbolValidator);
+        verifier.VerifyDiagnostics();
+
+        var comp = (CSharpCompilation)verifier.Compilation;
+        var symbol = comp.GetMember<NamedTypeSymbol>("E");
+        Assert.Equal("<>F0__E", symbol.MetadataName);
+
+        void symbolValidator(ModuleSymbol symbol)
+        {
+            Assert.Equal(new[] { "<Module>", "<>F0__E", "Attr", "Program" }, symbol.GlobalNamespace.GetMembers().Select(m => m.Name));
+            var classC = symbol.GlobalNamespace.GetMember<NamedTypeSymbol>("<>F0__E");
+            Assert.Equal(new[] { "value__", "E1", "E2", ".ctor" }, classC.MemberNames);
+        }
     }
 
     [Fact]
@@ -226,11 +474,243 @@ public class FileModifierTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_NameNotInContext, "C").WithArguments("C").WithLocation(5, 9));
     }
 
+    [Fact]
+    public void Generic_01()
+    {
+        var source = """
+        using System;
+
+        C<int>.M(1);
+
+        file class C<T>
+        {
+            public static void M(T t) { Console.Write(t); }
+        }
+        """;
+
+        var verifier = CompileAndVerify(SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.RegularPreview, path: "path/to/MyFile.cs", encoding: Encoding.Default), expectedOutput: "1", symbolValidator: symbolValidator);
+        verifier.VerifyDiagnostics();
+
+        verifier.VerifyIL("C<T>@MyFile.M(T)", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""T""
+  IL_0006:  call       ""void System.Console.Write(object)""
+  IL_000b:  ret
+}
+");
+
+        var comp = (CSharpCompilation)verifier.Compilation;
+        var c = comp.GetMember("C");
+        Assert.Equal("<MyFile>F0__C`1", c.MetadataName);
+
+        void symbolValidator(ModuleSymbol module)
+        {
+            Assert.Equal(new[] { "<Module>", "Program", "<MyFile>F0__C" }, module.GlobalNamespace.GetMembers().Select(m => m.Name));
+
+            var classC = module.GlobalNamespace.GetMember<NamedTypeSymbol>("<MyFile>F0__C");
+            Assert.Equal("<MyFile>F0__C`1", classC.MetadataName);
+            Assert.Equal(new[] { "M", ".ctor" }, classC.MemberNames);
+        }
+    }
+
+    [Fact]
+    public void BadFileNames_01()
+    {
+        var source = """
+        using System;
+
+        C.M();
+
+        file class C
+        {
+            public static void M() { Console.Write(1); }
+        }
+        """;
+
+        var verifier = CompileAndVerify(SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.RegularPreview, path: "path/to/My<>File.cs", encoding: Encoding.Default), expectedOutput: "1", symbolValidator: symbolValidator);
+        verifier.VerifyDiagnostics();
+
+        var comp = (CSharpCompilation)verifier.Compilation;
+        var c = comp.GetMember("C");
+        Assert.Equal("C@My__File", c.ToTestDisplayString());
+        Assert.Equal("<My__File>F0__C", c.MetadataName);
+
+        void symbolValidator(ModuleSymbol module)
+        {
+            Assert.Equal(new[] { "<Module>", "Program", "<My__File>F0__C" }, module.GlobalNamespace.GetMembers().Select(m => m.Name));
+            var expectedSymbol = module.GlobalNamespace.GetMember<NamedTypeSymbol>("<My__File>F0__C");
+            Assert.Equal("<My__File>F0__C", expectedSymbol.MetadataName);
+            Assert.Equal(new[] { "M", ".ctor" }, expectedSymbol.MemberNames);
+        }
+    }
+
+    [Fact]
+    public void BadFileNames_02()
+    {
+        var source = """
+        using System;
+
+        C.M();
+
+        file class C
+        {
+            public static void M() { Console.Write(1); }
+        }
+        """;
+
+        var verifier = CompileAndVerify(SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.RegularPreview, path: "path/to/MyGeneratedFile.g.cs", encoding: Encoding.Default), expectedOutput: "1", symbolValidator: symbolValidator);
+        verifier.VerifyDiagnostics();
+
+        var comp = (CSharpCompilation)verifier.Compilation;
+        var c = comp.GetMember("C");
+        Assert.Equal("C@MyGeneratedFile_g", c.ToTestDisplayString());
+        Assert.Equal("<MyGeneratedFile_g>F0__C", c.MetadataName);
+
+        void symbolValidator(ModuleSymbol module)
+        {
+            Assert.Equal(new[] { "<Module>", "Program", "<MyGeneratedFile_g>F0__C" }, module.GlobalNamespace.GetMembers().Select(m => m.Name));
+            var expectedSymbol = module.GlobalNamespace.GetMember<NamedTypeSymbol>("<MyGeneratedFile_g>F0__C");
+            Assert.Equal("<MyGeneratedFile_g>F0__C", expectedSymbol.MetadataName);
+            Assert.Equal(new[] { "M", ".ctor" }, expectedSymbol.MemberNames);
+        }
+    }
+
+    [Fact]
+    public void DuplicateFileNames_01()
+    {
+        var path = "path/to/file.cs";
+        var source1 = SyntaxFactory.ParseSyntaxTree("""
+            using System;
+
+            C.M();
+
+            file class C
+            {
+                public static void M() { Console.Write(1); }
+            }
+            """, options: TestOptions.RegularPreview, path: path, encoding: Encoding.Default);
+        var source2 = SyntaxFactory.ParseSyntaxTree("""
+            using System;
+
+            file class C
+            {
+                public static void M() { Console.Write(2); }
+            }
+            """, options: TestOptions.RegularPreview, path: path, encoding: Encoding.Default);
+
+        var verifier = CompileAndVerify(new[] { source1, source2 }, expectedOutput: "1", symbolValidator: symbolValidator);
+        verifier.VerifyDiagnostics();
+
+        // note that VerifyIL doesn't work in this specific scenario because the files have the same name.
+
+        void symbolValidator(ModuleSymbol module)
+        {
+            Assert.NotNull(module.GlobalNamespace.GetMember("<file>F0__C"));
+            Assert.NotNull(module.GlobalNamespace.GetMember("<file>F1__C"));
+        }
+    }
+
+    // Data based on Lexer.ScanIdentifier_FastPath, excluding '/', '\', and ':' because those are path separators.
     [Theory]
-    [InlineData("file", "file")]
-    [InlineData("file", "")]
-    [InlineData("", "file")]
-    public void Duplication_01(string firstFileModifier, string secondFileModifier)
+    [InlineData('&')]
+    [InlineData('\0')]
+    [InlineData(' ')]
+    [InlineData('\r')]
+    [InlineData('\n')]
+    [InlineData('\t')]
+    [InlineData('!')]
+    [InlineData('%')]
+    [InlineData('(')]
+    [InlineData(')')]
+    [InlineData('*')]
+    [InlineData('+')]
+    [InlineData(',')]
+    [InlineData('-')]
+    [InlineData('.')]
+    [InlineData(';')]
+    [InlineData('<')]
+    [InlineData('=')]
+    [InlineData('>')]
+    [InlineData('?')]
+    [InlineData('[')]
+    [InlineData(']')]
+    [InlineData('^')]
+    [InlineData('{')]
+    [InlineData('|')]
+    [InlineData('}')]
+    [InlineData('~')]
+    [InlineData('"')]
+    [InlineData('\'')]
+    [InlineData('`')]
+    public void BadFileNames_03(char badChar)
+    {
+        var source = """
+        using System;
+
+        C.M();
+
+        file class C
+        {
+            public static void M() { Console.Write(1); }
+        }
+        """;
+
+        var verifier = CompileAndVerify(SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.RegularPreview, path: $"path/to/My{badChar}File.cs", encoding: Encoding.Default), expectedOutput: "1", symbolValidator: symbolValidator);
+        verifier.VerifyDiagnostics();
+
+        var comp = (CSharpCompilation)verifier.Compilation;
+        var c = comp.GetMember("C");
+        Assert.Equal("C@My_File", c.ToTestDisplayString());
+        Assert.Equal("<My_File>F0__C", c.MetadataName);
+
+        void symbolValidator(ModuleSymbol module)
+        {
+            Assert.Equal(new[] { "<Module>", "Program", "<My_File>F0__C" }, module.GlobalNamespace.GetMembers().Select(m => m.Name));
+            var expectedSymbol = module.GlobalNamespace.GetMember<NamedTypeSymbol>("<My_File>F0__C");
+            Assert.Equal("<My_File>F0__C", expectedSymbol.MetadataName);
+            Assert.Equal(new[] { "M", ".ctor" }, expectedSymbol.MemberNames);
+        }
+    }
+
+    [Fact]
+    public void Pdb_01()
+    {
+        var source = """
+        using System;
+
+        C.M();
+
+        file class C
+        {
+            public static void M() { Console.Write(1); }
+        }
+        """;
+
+        var expectedMetadataName = "<My_File>F0__C";
+        var verifier = CompileAndVerify(SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.RegularPreview, path: "path/to/My+File.cs", encoding: Encoding.Default), expectedOutput: "1", symbolValidator: validateSymbols);
+        verifier.VerifyDiagnostics();
+
+        var comp = (CSharpCompilation)verifier.Compilation;
+        var c = comp.GetMember("C");
+        Assert.Equal("C@My_File", c.ToTestDisplayString());
+        Assert.Equal(expectedMetadataName, c.MetadataName);
+
+        void validateSymbols(ModuleSymbol module)
+        {
+            var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>(expectedMetadataName);
+            Assert.NotNull(type);
+            Assert.Equal(new[] { "M", ".ctor" }, type.MemberNames);
+        }
+    }
+
+    [Theory]
+    [InlineData("file", "file", "<>F0__C", "<>F1__C")]
+    [InlineData("file", "", "<>F0__C", "C")]
+    [InlineData("", "file", "C", "<>F1__C")]
+    public void Duplication_01(string firstFileModifier, string secondFileModifier, string firstMetadataName, string secondMetadataName)
     {
         // A file type is allowed to have the same name as a non-file type from a different file.
         // When both a file type and non-file type with the same name are in scope, the file type is preferred, since it's "more local".
@@ -269,24 +749,25 @@ public class FileModifierTests : CSharpTestBase
             }
             """;
 
-        // PROTOTYPE(ft): execute and check expectedOutput once name mangling is done
-        // expectedOutput: "1"
-        var comp = CreateCompilation(new[] { source1 + main, source2 });
+        var verifier = CompileAndVerify(new[] { source1 + main, source2 }, expectedOutput: "1");
+        var comp = (CSharpCompilation)verifier.Compilation;
         var cs = comp.GetMembers("C");
         var tree = comp.SyntaxTrees[0];
         var expectedSymbol = cs[0];
+        Assert.Equal(firstMetadataName, expectedSymbol.MetadataName);
         verify();
 
-        // expectedOutput: "2"
-        comp = CreateCompilation(new[] { source1, source2 + main });
+        verifier = CompileAndVerify(new[] { source1, source2 + main }, expectedOutput: "2");
+        comp = (CSharpCompilation)verifier.Compilation;
         cs = comp.GetMembers("C");
         tree = comp.SyntaxTrees[1];
         expectedSymbol = cs[1];
+        Assert.Equal(secondMetadataName, expectedSymbol.MetadataName);
         verify();
 
         void verify()
         {
-            comp.VerifyDiagnostics();
+            verifier.VerifyDiagnostics();
             Assert.Equal(2, cs.Length);
             Assert.Equal(comp.SyntaxTrees[0], cs[0].DeclaringSyntaxReferences.Single().SyntaxTree);
             Assert.Equal(comp.SyntaxTrees[1], cs[1].DeclaringSyntaxReferences.Single().SyntaxTree);
@@ -405,7 +886,8 @@ public class FileModifierTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation(new[] { source1, source2, main }); // expectedOutput: 2
+        var verifier = CompileAndVerify(new[] { source1, source2, main }, expectedOutput: "2");
+        var comp = (CSharpCompilation)verifier.Compilation;
         comp.VerifyDiagnostics();
 
         var cs = comp.GetMembers("C");
@@ -470,7 +952,8 @@ public class FileModifierTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation(new[] { source1, main }); // expectedOutput: 2
+        var verifier = CompileAndVerify(new[] { source1, main }, expectedOutput: "2");
+        var comp = (CSharpCompilation)verifier.Compilation;
         comp.VerifyDiagnostics();
 
         var cs = comp.GetMembers("C");
@@ -531,7 +1014,8 @@ public class FileModifierTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation(new[] { source1, main }); // expectedOutput: 2
+        var verifier = CompileAndVerify(new[] { source1, main }, expectedOutput: "2");
+        var comp = (CSharpCompilation)verifier.Compilation;
         comp.VerifyDiagnostics();
 
         var cs = comp.GetMembers("C");
@@ -734,7 +1218,13 @@ public class FileModifierTests : CSharpTestBase
             """;
 
         var compilation = CreateCompilation(new[] { source1, source2, source3 });
-        compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics(
+            // (3,16): error CS9303: File type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
+            //     file class C
+            Diagnostic(ErrorCode.ERR_FileTypeNested, "C").WithArguments("Outer.C").WithLocation(3, 16),
+            // (3,16): error CS9303: File type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
+            //     file class C
+            Diagnostic(ErrorCode.ERR_FileTypeNested, "C").WithArguments("Outer.C").WithLocation(3, 16));
 
         var classOuter = compilation.GetMember<NamedTypeSymbol>("Outer");
         var cs = classOuter.GetMembers("C");
@@ -834,15 +1324,12 @@ public class FileModifierTests : CSharpTestBase
             }
             """;
 
-        // PROTOTYPE(ft): execute and check expectedOutput once name mangling is done
-        // expectedOutput: "1"
         var comp = CreateCompilation(new[] { source1 + main, source2 });
         var cs = comp.GetMembers("Program.C");
         var tree = comp.SyntaxTrees[0];
         var expectedSymbol = cs[0];
         verify();
 
-        // expectedOutput: "2"
         comp = CreateCompilation(new[] { source1, source2 + main });
         cs = comp.GetMembers("Program.C");
         tree = comp.SyntaxTrees[1];
@@ -851,7 +1338,7 @@ public class FileModifierTests : CSharpTestBase
 
         void verify()
         {
-            comp.VerifyDiagnostics();
+            comp.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_FileTypeNested).Verify();
             Assert.Equal(2, cs.Length);
             Assert.Equal(comp.SyntaxTrees[0], cs[0].DeclaringSyntaxReferences.Single().SyntaxTree);
             Assert.Equal(comp.SyntaxTrees[1], cs[1].DeclaringSyntaxReferences.Single().SyntaxTree);
@@ -909,17 +1396,16 @@ public class FileModifierTests : CSharpTestBase
             }
             """;
 
-        // PROTOTYPE(ft): execute and check expectedOutput once name mangling is done
-        // expectedOutput: "1"
-        var comp = CreateCompilation(new[] { source1 + main, source2 });
+        var comp = CreateCompilation(new[] { source1 + main, source2 }, options: TestOptions.DebugExe);
+        comp.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_FileTypeNested).Verify();
         var outers = comp.GetMembers("Outer");
         var cs = outers.Select(o => ((NamedTypeSymbol)o).GetMember("C")).ToArray();
         var tree = comp.SyntaxTrees[0];
         var expectedSymbol = cs[0];
         verify();
 
-        // expectedOutput: "2"
-        comp = CreateCompilation(new[] { source1, source2 + main });
+        comp = CreateCompilation(new[] { source1, source2 + main }, options: TestOptions.DebugExe);
+        comp.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_FileTypeNested).Verify();
         outers = comp.GetMembers("Outer");
         cs = outers.Select(o => ((NamedTypeSymbol)o).GetMember("C")).ToArray();
         tree = comp.SyntaxTrees[1];
@@ -928,7 +1414,6 @@ public class FileModifierTests : CSharpTestBase
 
         void verify()
         {
-            comp.VerifyDiagnostics();
             Assert.Equal(2, cs.Length);
             Assert.Equal(comp.SyntaxTrees[0], cs[0].DeclaringSyntaxReferences.Single().SyntaxTree);
             Assert.Equal(comp.SyntaxTrees[1], cs[1].DeclaringSyntaxReferences.Single().SyntaxTree);
@@ -1336,8 +1821,9 @@ public class FileModifierTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation(new[] { source1, source2 }); // PROTOTYPE(ft): expectedOutput: 2
-        comp.VerifyDiagnostics();
+        var verifier = CompileAndVerify(new[] { source1, source2 }, expectedOutput: "2");
+        verifier.VerifyDiagnostics();
+        var comp = (CSharpCompilation)verifier.Compilation;
 
         var tree = comp.SyntaxTrees[1];
         var model = comp.GetSemanticModel(tree);
@@ -1375,8 +1861,9 @@ public class FileModifierTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation(new[] { source1, source2 }); // PROTOTYPE(ft): expectedOutput: 1
-        comp.VerifyDiagnostics();
+        var verifier = CompileAndVerify(new[] { source1, source2 }, expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+        var comp = (CSharpCompilation)verifier.Compilation;
 
         var tree = comp.SyntaxTrees[1];
         var model = comp.GetSemanticModel(tree);
@@ -1727,7 +2214,7 @@ public class FileModifierTests : CSharpTestBase
 
             class Outer
             {
-                file class C
+                file class C // 1
                 {
                     public static void M() => Console.Write(1);
                 }
@@ -1737,17 +2224,18 @@ public class FileModifierTests : CSharpTestBase
             {
                 public static void Main()
                 {
-                    Outer.C.M(); // 1
+                    Outer.C.M(); // 2
                 }
             }
             """;
 
-        // note: there's no way to make 'file class C' internal here. it's forced to be private, at least for the initial release of the feature.
-        // we access it within the same containing type in test 'Duplication_10'.
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
+            // (5,16): error CS9303: File type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
+            //     file class C // 1
+            Diagnostic(ErrorCode.ERR_FileTypeNested, "C").WithArguments("Outer.C").WithLocation(5, 16),
             // (15,15): error CS0122: 'Outer.C' is inaccessible due to its protection level
-            //         Outer.C.M(); // 1
+            //         Outer.C.M(); // 2
             Diagnostic(ErrorCode.ERR_BadAccess, "C").WithArguments("Outer.C").WithLocation(15, 15));
     }
 
@@ -1783,7 +2271,10 @@ public class FileModifierTests : CSharpTestBase
         comp.VerifyDiagnostics(
             // (5,15): error CS0117: 'Outer' does not contain a definition for 'C'
             //         Outer.C.M(); // 1
-            Diagnostic(ErrorCode.ERR_NoSuchMember, "C").WithArguments("Outer", "C").WithLocation(5, 15));
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "C").WithArguments("Outer", "C").WithLocation(5, 15),
+            // (5,16): error CS9303: File type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
+            //     file class C
+            Diagnostic(ErrorCode.ERR_FileTypeNested, "C").WithArguments("Outer.C").WithLocation(5, 16));
     }
 
     [Fact]
@@ -1942,13 +2433,9 @@ public class FileModifierTests : CSharpTestBase
             }
             """;
 
-        // var verifier = CompileAndVerify(new[] { source1, source2 }, expectedOutput: "1");
-        // verifier.VerifyDiagnostics();
-        // var comp = (CSharpCompilation)verifier.Compilation;
-
-        // PROTOTYPE(ft): replace the following with the above commented lines once name mangling is done
-        var comp = CreateCompilation(new[] { source1, source2 });
-        comp.VerifyDiagnostics();
+        var verifier = CompileAndVerify(new[] { source1, source2 }, expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+        var comp = (CSharpCompilation)verifier.Compilation;
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -1994,16 +2481,12 @@ public class FileModifierTests : CSharpTestBase
             }
             """;
 
-        // var verifier = CompileAndVerify(new[] { source1, source2 }, expectedOutput: "2");
-        // verifier.VerifyDiagnostics();
-        // var comp = (CSharpCompilation)verifier.Compilation;
-
-        // PROTOTYPE(ft): replace the following with the above commented lines once name mangling is done
-        var comp = CreateCompilation(new[] { source1, source2 });
-        comp.VerifyDiagnostics(
+        var verifier = CompileAndVerify(new[] { source1, source2 }, expectedOutput: "2");
+        verifier.VerifyDiagnostics(
             // (2,1): hidden CS8019: Unnecessary using directive.
             // using static C;
             Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static C;").WithLocation(2, 1));
+        var comp = (CSharpCompilation)verifier.Compilation;
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -2052,9 +2535,20 @@ public class FileModifierTests : CSharpTestBase
             }
             """;
 
-        // 'Derived.C' is not actually accessible from 'Program', so we just bind to 'Base.C' and things work.
-        var compilation = CompileAndVerify(new[] { source, main }, expectedOutput: "1");
-        compilation.VerifyDiagnostics();
+        // 'Derived.C' is not actually accessible from 'Program', so we just bind to 'Base.C'.
+        var compilation = CreateCompilation(new[] { source, main });
+        compilation.VerifyDiagnostics(
+            // (16,20): error CS9303: File type 'Derived.C' must be defined in a top level type; 'Derived.C' is a nested type.
+            //     new file class C
+            Diagnostic(ErrorCode.ERR_FileTypeNested, "C").WithArguments("Derived.C").WithLocation(16, 20));
+
+        var expected = compilation.GetMember<MethodSymbol>("Base.C.M");
+
+        var tree = compilation.SyntaxTrees[1];
+        var model = compilation.GetSemanticModel(tree);
+        var invoked = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single().Expression;
+        var symbolInfo = model.GetSymbolInfo(invoked);
+        Assert.Equal(expected, symbolInfo.Symbol.GetSymbol());
     }
 
     [Fact]
@@ -2443,12 +2937,11 @@ public class FileModifierTests : CSharpTestBase
 
         var c1 = comp.GetMember<NamedTypeSymbol>("C1");
         var c2 = comp.GetMember<NamedTypeSymbol>("C2");
-        var format = SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeContainingFileForFileTypes);
-        Assert.Equal("C1@<tree 0>", c1.ToDisplayString(format));
-        Assert.Equal("C2@FileB", c2.ToDisplayString(format));
+        Assert.Equal("C1@<tree 0>", c1.ToTestDisplayString());
+        Assert.Equal("C2@FileB", c2.ToTestDisplayString());
 
-        Assert.Equal("void C1@<tree 0>.M()", c1.GetMember("M").ToDisplayString(format));
-        Assert.Equal("void C2@FileB.M()", c2.GetMember("M").ToDisplayString(format));
+        Assert.Equal("void C1@<tree 0>.M()", c1.GetMember("M").ToTestDisplayString());
+        Assert.Equal("void C2@FileB.M()", c2.GetMember("M").ToTestDisplayString());
     }
 
     [Fact]
@@ -2457,16 +2950,22 @@ public class FileModifierTests : CSharpTestBase
         var source1 = """
             using System;
 
-            C1.M();
+            C1.M("a");
 
-            file class C1
+            static file class C1
             {
-                public static void M() { }
+                public static void M(this string s) { }
             }
             """;
 
         var comp = CreateSubmission(source1, parseOptions: TestOptions.Script.WithLanguageVersion(LanguageVersion.Preview));
-        comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (5,19): error CS9303: File type 'C1' must be defined in a top level type; 'C1' is a nested type.
+            // static file class C1
+            Diagnostic(ErrorCode.ERR_FileTypeNested, "C1").WithArguments("C1").WithLocation(5, 19),
+            // (7,24): error CS1109: Extension methods must be defined in a top level static class; C1 is a nested class
+            //     public static void M(this string s) { }
+            Diagnostic(ErrorCode.ERR_ExtensionMethodsDecl, "M").WithArguments("C1").WithLocation(7, 24));
     }
 
     [Fact]
@@ -2497,5 +2996,260 @@ public class FileModifierTests : CSharpTestBase
         Assert.Equal("System.Void@<tree 0>", typeInfo.Type!.ToDisplayString(SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeContainingFileForFileTypes)));
     }
 
-    // PROTOTYPE(ft): public API (INamedTypeSymbol.IsFile?)
+    [Fact]
+    public void GetTypeByMetadataName_01()
+    {
+        var source1 = """
+            file class C { }
+            """;
+
+        // from source
+        var comp = CreateCompilation(source1);
+        comp.VerifyDiagnostics();
+        var sourceMember = comp.GetMember<NamedTypeSymbol>("C");
+        Assert.Equal("<>F0__C", sourceMember.MetadataName);
+
+        var sourceType = comp.GetTypeByMetadataName("<>F0__C");
+        Assert.Equal(sourceMember, sourceType);
+
+        Assert.Null(comp.GetTypeByMetadataName("<>F0__D"));
+        Assert.Null(comp.GetTypeByMetadataName("<>F1__C"));
+        Assert.Null(comp.GetTypeByMetadataName("F0__C"));
+        Assert.Null(comp.GetTypeByMetadataName("<file>F0__C"));
+
+        // from metadata
+        var comp2 = CreateCompilation("", references: new[] { comp.EmitToImageReference() });
+        comp2.VerifyDiagnostics();
+        var metadataMember = comp2.GetMember<NamedTypeSymbol>("<>F0__C");
+        Assert.Equal("<>F0__C", metadataMember.MetadataName);
+
+        var metadataType = comp2.GetTypeByMetadataName("<>F0__C");
+        Assert.Equal(metadataMember, metadataType);
+    }
+
+    [Fact]
+    public void GetTypeByMetadataName_02()
+    {
+        var source1 = """
+            file class C<T> { }
+            """;
+
+        // from source
+        var comp = CreateCompilation(source1);
+        comp.VerifyDiagnostics();
+        var sourceMember = comp.GetMember<NamedTypeSymbol>("C");
+        Assert.Equal("<>F0__C`1", sourceMember.MetadataName);
+
+        var sourceType = comp.GetTypeByMetadataName("<>F0__C`1");
+        Assert.Equal(sourceMember, sourceType);
+        Assert.Null(comp.GetTypeByMetadataName("<>F0__C"));
+
+        // from metadata
+        var comp2 = CreateCompilation("", references: new[] { comp.EmitToImageReference() });
+        comp2.VerifyDiagnostics();
+
+        var metadataMember = comp2.GetMember<NamedTypeSymbol>("<>F0__C");
+        Assert.Equal("<>F0__C`1", metadataMember.MetadataName);
+
+        var metadataType = comp2.GetTypeByMetadataName("<>F0__C`1");
+        Assert.Equal(metadataMember, metadataType);
+    }
+
+    [Fact]
+    public void GetTypeByMetadataName_03()
+    {
+        var source1 = """
+            class Outer
+            {
+                file class C { } // 1
+            }
+            """;
+
+        // from source
+        var comp = CreateCompilation(source1);
+        comp.VerifyDiagnostics(
+            // (3,16): error CS9303: File type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
+            //     file class C { } // 1
+            Diagnostic(ErrorCode.ERR_FileTypeNested, "C").WithArguments("Outer.C").WithLocation(3, 16));
+        var sourceMember = comp.GetMember<NamedTypeSymbol>("Outer.C");
+        Assert.Equal("<>F0__C", sourceMember.MetadataName);
+
+        var sourceType = comp.GetTypeByMetadataName("Outer.<>F0__C");
+        // Note: strictly speaking, it would be reasonable to return the (invalid) nested file type symbol here.
+        // However, since we don't actually support nested file types, we don't think we need the API to do the additional lookup
+        // when the requested type is nested, and so we end up giving a null here.
+        Assert.Null(sourceType);
+    }
+
+    [Fact]
+    public void GetTypeByMetadataName_04()
+    {
+        var source1 = """
+            file class C { }
+            """;
+
+        var source2 = """
+            class C { }
+            """;
+
+        // from source
+        var comp = CreateCompilation(new[] { source1, source2 });
+        comp.VerifyDiagnostics();
+        var sourceMember = comp.GetMembers("C")[0];
+        Assert.Equal("<>F0__C", sourceMember.MetadataName);
+
+        var sourceType = comp.GetTypeByMetadataName("<>F0__C");
+        Assert.Equal(sourceMember, sourceType);
+
+        // from metadata
+        var comp2 = CreateCompilation("", references: new[] { comp.EmitToImageReference() });
+        comp2.VerifyDiagnostics();
+
+        var metadataMember = comp2.GetMember<NamedTypeSymbol>("<>F0__C");
+        Assert.Equal("<>F0__C", metadataMember.MetadataName);
+
+        var metadataType = comp2.GetTypeByMetadataName("<>F0__C");
+        Assert.Equal(metadataMember, metadataType);
+    }
+
+    [CombinatorialData]
+    [Theory]
+    public void GetTypeByMetadataName_05(bool firstIsMetadataReference, bool secondIsMetadataReference)
+    {
+        var source1 = """
+            file class C { }
+            """;
+
+        // Create two references containing identically-named file types
+        var ref1 = CreateCompilation(source1, assemblyName: "ref1");
+        var ref2 = CreateCompilation(source1, assemblyName: "ref2");
+
+        var comp = CreateCompilation("", references: new[]
+        {
+            firstIsMetadataReference ? ref1.ToMetadataReference() : ref1.EmitToImageReference(),
+            secondIsMetadataReference ? ref2.ToMetadataReference() : ref2.EmitToImageReference()
+        });
+        comp.VerifyDiagnostics();
+
+        var sourceType = comp.GetTypeByMetadataName("<>F0__C");
+        Assert.Null(sourceType);
+
+        var types = comp.GetTypesByMetadataName("<>F0__C");
+        Assert.Equal(2, types.Length);
+        Assert.Equal(firstIsMetadataReference ? "C@<tree 0>" : "<>F0__C", types[0].ToTestDisplayString());
+        Assert.Equal(secondIsMetadataReference ? "C@<tree 0>" : "<>F0__C", types[1].ToTestDisplayString());
+        Assert.NotEqual(types[0], types[1]);
+    }
+
+    [Fact]
+    public void GetTypeByMetadataName_06()
+    {
+        var source1 = """
+            file class C { }
+            file class C { }
+            """;
+
+        var comp = CreateCompilation(source1);
+        comp.VerifyDiagnostics(
+            // (2,12): error CS0101: The namespace '<global namespace>' already contains a definition for 'C'
+            // file class C { }
+            Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "C").WithArguments("C", "<global namespace>").WithLocation(2, 12));
+
+        var sourceType = ((Compilation)comp).GetTypeByMetadataName("<>F0__C");
+        Assert.Equal("C@<tree 0>", sourceType.ToTestDisplayString());
+
+        var types = comp.GetTypesByMetadataName("<>F0__C");
+        Assert.Equal(1, types.Length);
+        Assert.Same(sourceType, types[0]);
+    }
+
+    [Fact]
+    public void GetTypeByMetadataName_07()
+    {
+        var source1 = """
+            file class C { }
+            """;
+
+        var comp = CreateCompilation(SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularPreview, path: "path/to/SomeFile.cs"));
+        comp.VerifyDiagnostics();
+
+        Assert.Null(comp.GetTypeByMetadataName("<>F0__C"));
+        Assert.Empty(comp.GetTypesByMetadataName("<>F0__C"));
+
+        Assert.Null(comp.GetTypeByMetadataName("<WrongName>F0__C"));
+        Assert.Empty(comp.GetTypesByMetadataName("<WrongName>F0__C"));
+
+        var sourceType = ((Compilation)comp).GetTypeByMetadataName("<SomeFile>F0__C");
+        Assert.Equal("C@SomeFile", sourceType.ToTestDisplayString());
+
+        var types = comp.GetTypesByMetadataName("<SomeFile>F0__C");
+        Assert.Equal(1, types.Length);
+        Assert.Same(sourceType, types[0]);
+    }
+
+    [Fact]
+    public void AssociatedSyntaxTree_01()
+    {
+        var source = """
+            file class C
+            {
+                void M(C c)
+                {
+                }
+            }
+            """;
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+        var node = tree.GetRoot().DescendantNodes().OfType<ParameterSyntax>().Single();
+        var type = model.GetTypeInfo(node.Type!).Type;
+        Assert.Equal("C@<tree 0>", type.ToTestDisplayString());
+        Assert.Equal(tree, type.GetSymbol<NamedTypeSymbol>()!.AssociatedSyntaxTree);
+    }
+
+    [Fact]
+    public void AssociatedSyntaxTree_02()
+    {
+        var source = """
+            class C
+            {
+                void M(C c)
+                {
+                }
+            }
+            """;
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+        var node = tree.GetRoot().DescendantNodes().OfType<ParameterSyntax>().Single();
+        var type = model.GetTypeInfo(node.Type!).Type;
+        Assert.Equal("C", type.ToTestDisplayString());
+        Assert.Null(type.GetSymbol<NamedTypeSymbol>()!.AssociatedSyntaxTree);
+    }
+
+    [Fact]
+    public void AssociatedSyntaxTree_03()
+    {
+        var source = """
+            file class C<T>
+            {
+                void M(C<int> c)
+                {
+                }
+            }
+            """;
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+        var node = tree.GetRoot().DescendantNodes().OfType<ParameterSyntax>().Single();
+        var type = model.GetTypeInfo(node.Type!).Type;
+        Assert.Equal("C<System.Int32>@<tree 0>", type.ToTestDisplayString());
+        Assert.Equal(tree, type.GetSymbol<NamedTypeSymbol>()!.AssociatedSyntaxTree);
+    }
 }

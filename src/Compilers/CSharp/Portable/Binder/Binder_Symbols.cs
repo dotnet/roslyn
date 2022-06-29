@@ -2493,7 +2493,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // NOTE: This won't work if the type isn't using CLS-style generic naming (i.e. `arity), but this code is
             // only intended to improve diagnostic messages, so false negatives in corner cases aren't a big deal.
-            var metadataName = MetadataHelpers.ComposeAritySuffixedMetadataName(name, arity);
+            // File types can't be forwarded, so we won't attempt to determine a file identifier to attach to the metadata name.
+            var metadataName = MetadataHelpers.ComposeAritySuffixedMetadataName(name, arity, associatedFileIdentifier: null);
             var fullMetadataName = MetadataHelpers.BuildQualifiedName(qualifierOpt?.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat), metadataName);
             var result = GetForwardedToAssembly(fullMetadataName, diagnostics, location);
             if ((object)result != null)

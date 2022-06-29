@@ -660,7 +660,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 // exported types are not emitted in EnC deltas (hence generation 0):
                 string fullEmittedName = MetadataHelpers.BuildQualifiedName(
                     ((Cci.INamespaceTypeReference)type.GetCciAdapter()).NamespaceName,
-                    Cci.MetadataWriter.GetMangledName(type.GetCciAdapter(), generation: 0));
+                    Cci.MetadataWriter.GetMetadataName(type.GetCciAdapter(), generation: 0));
 
                 // First check against types declared in the primary module
                 if (ContainsTopLevelType(fullEmittedName))
