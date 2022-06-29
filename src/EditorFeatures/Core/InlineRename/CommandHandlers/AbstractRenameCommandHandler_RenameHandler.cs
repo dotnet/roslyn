@@ -46,11 +46,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
 
             var token = _listener.BeginAsyncOperation(nameof(ExecuteCommand));
-            _ = ExecuteCommandAsync(args, context).CompletesAsyncOperation(token);
+            _ = ExecuteCommandAsync(args).CompletesAsyncOperation(token);
             return true;
         }
 
-        private async Task ExecuteCommandAsync(RenameCommandArgs args, CommandExecutionContext commandExecutionContext)
+        private async Task ExecuteCommandAsync(RenameCommandArgs args)
         {
             _threadingContext.ThrowIfNotOnUIThread();
 
