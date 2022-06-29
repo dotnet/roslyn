@@ -13,8 +13,8 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageServiceBrokerShim;
 using Microsoft.VisualStudio.Text;
 using Newtonsoft.Json.Linq;
 
@@ -128,9 +128,9 @@ namespace Microsoft.VisualStudio.LanguageServices
             return documentSymbolModels.ToImmutableAndFree();
         }
 
-        public static async Task<ManualInvocationResponse?> DocumentSymbolsRequestAsync(
+        public static async Task<JToken?> DocumentSymbolsRequestAsync(
             ITextBuffer textBuffer,
-            ILanguageServiceBroker2 languageServiceBroker,
+            ILanguageServiceBrokerShim languageServiceBroker,
             string? textViewFilePath,
             CancellationToken cancellationToken)
         {

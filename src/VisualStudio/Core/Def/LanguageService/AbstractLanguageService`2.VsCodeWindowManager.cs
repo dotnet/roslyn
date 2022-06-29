@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -25,6 +24,7 @@ using Roslyn.Utilities;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageServiceBrokerShim;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
@@ -40,7 +40,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             private IDisposable? _navigationBarController;
             private IVsDropdownBarClient? _dropdownBarClient;
             private ElementHost? _documentOutlineViewHost;
-            private DocumentOutlineControl? _documentOutlineView;
 
             public VsCodeWindowManager(TLanguageService languageService, IVsCodeWindow codeWindow)
             {
@@ -235,19 +234,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             int IVsDocOutlineProvider.GetOutline(out IntPtr phwnd, out IOleCommandTarget? ppCmdTarget)
             {
-                var languageServiceBroker = _languageService.Package.ComponentModel.GetService<ILanguageServiceBroker2>();
+                var languageServiceBroker = _languageService.Package.ComponentModel.GetService<ILanguageServiceBrokerShim>();
                 var threadingContext = _languageService.Package.ComponentModel.GetService<IThreadingContext>();
                 var asyncListenerProvider = _languageService.Package.ComponentModel.GetService<IAsynchronousOperationListenerProvider>();
                 var asyncListener = asyncListenerProvider.GetListener(FeatureAttribute.DocumentOutline);
                 var editorAdaptersFactoryService = _languageService.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
 
                 threadingContext.ThrowIfNotOnUIThread();
-                _documentOutlineView = new DocumentOutlineControl(languageServiceBroker, threadingContext, asyncListener, editorAdaptersFactoryService, _codeWindow);
+                var documentOutlineView = new DocumentOutlineControl(languageServiceBroker, threadingContext, asyncListener, editorAdaptersFactoryService, _codeWindow);
 
                 _documentOutlineViewHost = new ElementHost
                 {
                     Dock = DockStyle.Fill,
-                    Child = _documentOutlineView
+                    Child = documentOutlineView
                 };
 
                 phwnd = _documentOutlineViewHost.Handle;
@@ -261,8 +260,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             int IVsDocOutlineProvider.ReleaseOutline(IntPtr hwnd, IOleCommandTarget pCmdTarget)
             {
                 _documentOutlineViewHost?.Dispose();
-                _documentOutlineViewHost = null;
-                _documentOutlineView = null;
                 return VSConstants.S_OK;
             }
 

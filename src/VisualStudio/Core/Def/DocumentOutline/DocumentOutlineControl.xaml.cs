@@ -15,9 +15,9 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Editor;
-using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
+using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageServiceBrokerShim;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -34,11 +34,11 @@ namespace Microsoft.VisualStudio.LanguageServices
     /// </summary>
     internal partial class DocumentOutlineControl : UserControl, IVsCodeWindowEvents
     {
-        private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
+        public IVsEditorAdaptersFactoryService EditorAdaptersFactoryService { get; }
         public IVsCodeWindow CodeWindow { get; }
 
         private IThreadingContext ThreadingContext { get; }
-        private ILanguageServiceBroker2 LanguageServiceBroker { get; }
+        private ILanguageServiceBrokerShim LanguageServiceBroker { get; }
 
         private SortOption SortOption { get; set; }
 
@@ -80,7 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         private bool DocumentSymbolViewModelsIsInitialized { get; set; }
 
         public DocumentOutlineControl(
-            ILanguageServiceBroker2 languageServiceBroker,
+            ILanguageServiceBrokerShim languageServiceBroker,
             IThreadingContext threadingContext,
             IAsynchronousOperationListener asyncListener,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
@@ -90,7 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices
 
             ThreadingContext = threadingContext;
             LanguageServiceBroker = languageServiceBroker;
-            _editorAdaptersFactoryService = editorAdaptersFactoryService;
+            EditorAdaptersFactoryService = editorAdaptersFactoryService;
             CodeWindow = codeWindow;
             ComEventSink.Advise<IVsCodeWindowEvents>(codeWindow, this);
             SortOption = SortOption.Order;
@@ -134,10 +134,11 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         private void StartTrackingView(IVsTextView pTextView, out IWpfTextView? wpfTextView)
         {
+            ThreadingContext.ThrowIfNotOnUIThread();
             wpfTextView = null;
             if (pTextView != null)
             {
-                wpfTextView = _editorAdaptersFactoryService.GetWpfTextView(pTextView);
+                wpfTextView = EditorAdaptersFactoryService.GetWpfTextView(pTextView);
 
                 if (wpfTextView != null)
                 {
@@ -176,7 +177,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         {
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             CodeWindow.GetLastActiveView(out var textView);
-            var activeTextView = _editorAdaptersFactoryService.GetWpfTextView(textView);
+            var activeTextView = EditorAdaptersFactoryService.GetWpfTextView(textView);
             if (activeTextView is not null)
             {
                 var textBuffer = activeTextView.TextBuffer;
@@ -185,9 +186,9 @@ namespace Microsoft.VisualStudio.LanguageServices
                 var response = await DocumentOutlineHelper.DocumentSymbolsRequestAsync(
                     textBuffer, LanguageServiceBroker, filePath, cancellationToken).ConfigureAwait(false);
 
-                if (response?.Response is not null)
+                if (response is not null)
                 {
-                    var responseBody = response.Response.ToObject<DocumentSymbol[]>();
+                    var responseBody = response.ToObject<DocumentSymbol[]>();
                     var documentSymbols = DocumentOutlineHelper.GetNestedDocumentSymbols(responseBody);
                     DocumentSymbolViewModels = DocumentOutlineHelper.GetDocumentSymbolModels(documentSymbols);
 
@@ -233,7 +234,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                 await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 var searchQuery = searchBox.Text;
                 CodeWindow.GetLastActiveView(out var textView);
-                var activeTextView = _editorAdaptersFactoryService.GetWpfTextView(textView);
+                var activeTextView = EditorAdaptersFactoryService.GetWpfTextView(textView);
                 if (activeTextView is not null)
                 {
                     var currentSnapshot = activeTextView.TextSnapshot;
@@ -259,7 +260,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             if (DocumentSymbolViewModelsIsInitialized)
             {
                 CodeWindow.GetLastActiveView(out var textView);
-                var activeTextView = _editorAdaptersFactoryService.GetWpfTextView(textView);
+                var activeTextView = EditorAdaptersFactoryService.GetWpfTextView(textView);
                 if (activeTextView is not null)
                 {
                     var currentSnapshot = activeTextView.TextSnapshot;
@@ -342,7 +343,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             if (DocumentSymbolViewModelsIsInitialized)
             {
                 CodeWindow.GetLastActiveView(out var textView);
-                var activeTextView = _editorAdaptersFactoryService.GetWpfTextView(textView);
+                var activeTextView = EditorAdaptersFactoryService.GetWpfTextView(textView);
                 if (activeTextView is not null && sender is StackPanel panel && panel.DataContext is DocumentSymbolViewModel symbol)
                 {
                     // Avoids highlighting the node after moving the caret ourselves 
