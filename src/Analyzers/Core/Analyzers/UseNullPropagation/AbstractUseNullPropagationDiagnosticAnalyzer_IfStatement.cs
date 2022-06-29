@@ -26,7 +26,8 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
     TIfStatementSyntax,
     TExpressionStatementSyntax>
 {
-    protected abstract bool TryGetSingleTrueStatementOfIfStatement(TIfStatementSyntax ifStatement, [NotNullWhen(true)] out TStatementSyntax? trueStatement);
+    protected abstract bool TryGetPartsOfIfStatement(
+        TIfStatementSyntax ifStatement, [NotNullWhen(true)] out TExpressionSyntax? condition, [NotNullWhen(true)] out TStatementSyntax? trueStatement);
 
     private void AnalyzeIfStatement(
         SyntaxNodeAnalysisContext context,
@@ -39,10 +40,8 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
         var syntaxFacts = GetSyntaxFacts();
         var ifStatement = (TIfStatementSyntax)context.Node;
 
-        var condition = (TExpressionSyntax)syntaxFacts.GetConditionOfIfStatement(ifStatement);
-
         // The true-statement if the if-statement has to be a statement of the form `<expr1>.Name(...)`;
-        if (!TryGetSingleTrueStatementOfIfStatement(ifStatement, out var trueStatement))
+        if (!TryGetPartsOfIfStatement(ifStatement, out var condition, out var trueStatement))
             return;
 
         if (trueStatement is not TExpressionStatementSyntax expressionStatement)

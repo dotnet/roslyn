@@ -26,6 +26,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation
             MultiLineIfBlockSyntax,
             ExpressionStatementSyntax)
 
+        Protected Overrides ReadOnly Property IfStatementSyntaxKind As SyntaxKind = SyntaxKind.MultiLineIfBlock
+
         Protected Overrides Function ShouldAnalyze(compilation As Compilation) As Boolean
             Return DirectCast(compilation, VisualBasicCompilation).LanguageVersion >= LanguageVersion.VisualBasic14
         End Function
@@ -45,7 +47,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation
             Return False
         End Function
 
-        Protected Overrides Function TryGetSingleTrueStatementOfIfStatement(ifStatement As MultiLineIfBlockSyntax, ByRef trueStatement As ExecutableStatementSyntax) As Boolean
+        Protected Overrides Function TryGetPartsOfIfStatement(
+                ifStatement As MultiLineIfBlockSyntax,
+                ByRef condition As ExpressionSyntax,
+                ByRef trueStatement As ExecutableStatementSyntax) As Boolean
+
+            condition = ifStatement.IfStatement.Condition
+
             If ifStatement.ElseBlock IsNot Nothing Then
                 Return False
             End If

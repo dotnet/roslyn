@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNullPropagation
 
     public partial class UseNullPropagationTests
     {
-        private static async Task TestInRegularAndScript1Async(string testCode, string fixedCode)
+        private static async Task TestInRegularAndScript1Async(string testCode, string fixedCode, OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary)
         {
             await new VerifyCS.Test
             {
@@ -35,6 +35,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNullPropagation
                 // `.Y`.
                 CodeActionValidationMode = CodeActionValidationMode.None,
                 LanguageVersion = LanguageVersion.CSharp9,
+                TestState =
+                {
+                    OutputKind = outputKind,
+                },
             }.RunAsync();
         }
 
@@ -95,6 +99,23 @@ class C
         o?.ToString();
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestLeft_Equals_IfStatement_TopLevel()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+object o = null;
+[|if|] (o != null)
+    o.ToString();
+",
+@"using System;
+
+object o = null;
+o?.ToString();
+", OutputKind.ConsoleApplication);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]

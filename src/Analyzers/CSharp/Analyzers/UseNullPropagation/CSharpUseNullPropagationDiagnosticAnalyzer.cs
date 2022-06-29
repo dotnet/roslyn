@@ -29,6 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNullPropagation
             IfStatementSyntax,
             ExpressionStatementSyntax>
     {
+        protected override SyntaxKind IfStatementSyntaxKind => SyntaxKind.IfStatement;
+
         protected override bool ShouldAnalyze(Compilation compilation)
             => compilation.LanguageVersion() >= LanguageVersion.CSharp6;
 
@@ -65,7 +67,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNullPropagation
             return true;
         }
 
-        protected override bool TryGetSingleTrueStatementOfIfStatement(IfStatementSyntax ifStatement, [NotNullWhen(true)] out StatementSyntax? trueStatement)
+        protected override bool TryGetPartsOfIfStatement(
+            IfStatementSyntax ifStatement,
+            [NotNullWhen(true)] out ExpressionSyntax? condition,
+            [NotNullWhen(true)] out StatementSyntax? trueStatement)
         {
             // has to be of the form:
             //
@@ -78,6 +83,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNullPropagation
             //   {
             //       statement
             //   }
+
+            condition = ifStatement.Condition;
 
             trueStatement = null;
             if (ifStatement.Else == null)

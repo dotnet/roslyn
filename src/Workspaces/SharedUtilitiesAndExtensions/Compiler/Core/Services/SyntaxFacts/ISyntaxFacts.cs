@@ -561,13 +561,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SeparatedSyntaxList<SyntaxNode> GetInitializersOfObjectMemberInitializer(SyntaxNode node);
         SeparatedSyntaxList<SyntaxNode> GetExpressionsOfObjectCollectionInitializer(SyntaxNode node);
 
-        /// <summary>
-        /// This is not represented as GetPartsOfIfStatement as C# and VB do not have a common structure for the
-        /// WhenTrue/WhenFalse portions of those statements.  The only thing in common is that they both have a
-        /// condition.
-        /// </summary>
-        SyntaxNode GetConditionOfIfStatement(SyntaxNode node);
-
         #endregion
     }
 

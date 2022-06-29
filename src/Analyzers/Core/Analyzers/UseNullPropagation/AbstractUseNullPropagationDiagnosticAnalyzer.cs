@@ -66,6 +66,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
 
         protected abstract bool ShouldAnalyze(Compilation compilation);
 
+        protected abstract TSyntaxKind IfStatementSyntaxKind { get; }
         protected abstract ISyntaxFacts GetSyntaxFacts();
         protected abstract bool IsInExpressionTree(SemanticModel semanticModel, SyntaxNode node, INamedTypeSymbol? expressionTypeOpt, CancellationToken cancellationToken);
 
@@ -94,9 +95,8 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                     syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.TernaryConditionalExpression));
                 context.RegisterSyntaxNodeAction(
                     context => AnalyzeIfStatement(context, referenceEqualsMethod),
-                    syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.IfStatement));
+                    IfStatementSyntaxKind);
             });
-
         }
 
         private void AnalyzeTernaryConditionalExpression(
