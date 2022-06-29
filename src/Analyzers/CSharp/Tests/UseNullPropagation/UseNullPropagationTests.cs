@@ -102,6 +102,71 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestIfStatement_WithBlock()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void M(object o)
+    {
+        [|if|] (o != null)
+        {
+            o.ToString();
+        }
+    }
+}",
+@"using System;
+
+class C
+{
+    void M(object o)
+    {
+        o?.ToString();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestIfStatement_NotWithElse()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M(object o)
+    {
+        if (o != null)
+            o.ToString();
+        else
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestIfStatement_NotWithMultipleStatements()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M(object o)
+    {
+        if (o != null)
+        {
+            o.ToString();
+            o.ToString();
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestLeft_Equals_IfStatement_TopLevel()
         {
             await TestInRegularAndScript1Async(
@@ -1948,7 +2013,7 @@ class C
         {
             // Before2
             o.ToString();
-        }  // After
+        } // After
     }
 }",
 @"using System;
