@@ -52,51 +52,31 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
 
             foreach (var diagnostic in diagnostics)
             {
-                var ifStatement = root.FindNode(diagnostic.AdditionalLocations[0].SourceSpan);
+                var startNode = root.FindNode(diagnostic.AdditionalLocations[0].SourceSpan);
                 var throwStatementExpression = root.FindNode(diagnostic.AdditionalLocations[1].SourceSpan);
                 var assignmentValue = root.FindNode(diagnostic.AdditionalLocations[2].SourceSpan);
                 var expressionStatement = assignmentValue.GetAncestor<ExpressionStatementSyntax>();
-                var identifierName = expressionStatement.DescendantNodes().ElementAt(1);
 
-                SyntaxNode block;
-                SyntaxToken closeBrace;
-                if (ifStatement.GetType() == typeof(IfStatementSyntax))
-                {
-                    block = ((IfStatementSyntax)ifStatement).Statement.ChildNodes().FirstOrDefault();
-                    closeBrace = ((IfStatementSyntax)ifStatement).CloseParenToken;
-                }
-                else
-                {
-                    var ifStatementSyntax = ((GlobalStatementSyntax)ifStatement).Statement;
-                    block = ((IfStatementSyntax)ifStatementSyntax).ChildNodes().ElementAt(1);
-                    closeBrace = ((IfStatementSyntax)ifStatementSyntax).CloseParenToken;
-                }
+                var ifStatement = startNode is IfStatementSyntax ifStatementSyntax ? ifStatementSyntax : (IfStatementSyntax)startNode.ChildNodes().First(node => node is IfStatementSyntax);
+                var closeBrace = ifStatement.CloseParenToken;
+                var block = ifStatement.Statement is BlockSyntax blockSyntax ? blockSyntax.Statements.First() : ifStatement.Statement;
 
                 var triviaList = new SyntaxTriviaList()
                     .AddRange(closeBrace.GetAllTrailingTrivia().Where(t => !t.IsWhitespaceOrEndOfLine()))
                     .AddRange(block.GetLeadingTrivia().Where(t => !t.IsWhitespaceOrEndOfLine()))
-                    .AddRange(block.GetTrailingTrivia().Where(t => !t.IsWhitespaceOrEndOfLine()));
+                    .AddRange(block.GetTrailingTrivia().Where(t => !t.IsWhitespaceOrEndOfLine()))
+                    .Add(SyntaxFactory.ElasticCarriageReturnLineFeed);
 
                 // First, remove the if-statement entirely.
                 editor.RemoveNode(ifStatement);
 
-                // Now, update the assignment value to go from 'a' to 'a ?? throw ...'.
-                if (triviaList.IsEmpty())
-                {
-                    editor.ReplaceNode(assignmentValue,
-                        generator.CoalesceExpression(assignmentValue,
-                        generator.ThrowExpression(throwStatementExpression)));
-                }
-                else
-                {
-                    triviaList = triviaList.AddRange(block.GetTrailingTrivia().Where(t => t.IsEndOfLine()));
-
-                    var newExpression = generator.ExpressionStatement(generator.AssignmentStatement(identifierName,
-                        generator.CoalesceExpression(assignmentValue,
-                        generator.ThrowExpression(throwStatementExpression)))).WithTrailingTrivia(triviaList).WithAppendedTrailingTrivia();
-
-                    editor.ReplaceNode(expressionStatement, newExpression);
-                }
+                // Now, update the assignment value to go from 'a' to 'a ?? throw 
+                var assignment = expressionStatement.Expression as AssignmentExpressionSyntax;
+                var assignVal = assignment.Right;
+                var coalesce = generator.CoalesceExpression(assignmentValue, generator.ThrowExpression(throwStatementExpression));
+                var newExpressionStatement = expressionStatement.WithExpression(assignment.WithRight((ExpressionSyntax)coalesce));
+                newExpressionStatement = newExpressionStatement.WithTrailingTrivia(triviaList);
+                editor.ReplaceNode(expressionStatement, newExpressionStatement);
             }
 
             return Task.CompletedTask;
