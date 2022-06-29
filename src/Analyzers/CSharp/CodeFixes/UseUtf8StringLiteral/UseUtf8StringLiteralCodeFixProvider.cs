@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUtf8StringLiteral
                 // ToArray after the string literal, or we'll be regressing perf.
                 var isConvertedToReadOnlySpan = arrayOp.Parent is IConversionOperation conversion &&
                     conversion.Type is INamedTypeSymbol { IsGenericType: true } namedType &&
-                    namedType.ConstructedFrom.Equals(readOnlySpanType) &&
+                    namedType.OriginalDefinition.Equals(readOnlySpanType) &&
                     namedType.TypeArguments[0].SpecialType == SpecialType.System_Byte;
 
                 // If we're replacing a byte array that is passed to a parameter array, not and an explicit array creation
