@@ -151,9 +151,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                     Case ERRID.ERR_TypeRefResolutionError3,
                          ERRID.ERR_MissingRuntimeHelper,
                          ERRID.ERR_CannotGotoNonScopeBlocksWithClosure
-                        Assert.True(isBuildOnly, $"Check failed for ErrorCode.{err}")
+                        Assert.True(isBuildOnly, $"Check failed for ERRID.{err}")
                     Case Else
-                        Assert.False(isBuildOnly, $"Check failed for ErrorCode.{err}")
+                        Assert.False(isBuildOnly, $"Check failed for ERRID.{err}")
                 End Select
             Next
         End Sub
