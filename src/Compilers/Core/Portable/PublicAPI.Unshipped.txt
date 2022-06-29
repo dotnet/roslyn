@@ -93,9 +93,7 @@ Microsoft.CodeAnalysis.Operations.IUtf8StringOperation
 Microsoft.CodeAnalysis.Operations.IUtf8StringOperation.Value.get -> string!
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions.Keys.get -> System.Collections.Generic.IEnumerable<string!>!
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitAttribute(Microsoft.CodeAnalysis.Operations.IAttributeOperation! operation) -> void
-virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitUTF8String(Microsoft.CodeAnalysis.Operations.IUTF8StringOperation! operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitAttribute(Microsoft.CodeAnalysis.Operations.IAttributeOperation! operation, TArgument argument) -> TResult?
-virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitUTF8String(Microsoft.CodeAnalysis.Operations.IUTF8StringOperation! operation, TArgument argument) -> TResult?
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitUtf8String(Microsoft.CodeAnalysis.Operations.IUtf8StringOperation! operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitUtf8String(Microsoft.CodeAnalysis.Operations.IUtf8StringOperation! operation, TArgument argument) -> TResult?
 virtual Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>.DefaultVisit(Microsoft.CodeAnalysis.ISymbol! symbol, TArgument argument) -> TResult
