@@ -2097,6 +2097,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadBinaryReadOnlySpanConcatenation = 9047,
         ERR_ScopedRefAndRefStructOnly = 9048,
         ERR_FixedFieldMustNotBeRef = 9049,
+        ERR_RefFieldCannotReferToRefStruct = 9050,
 
         #endregion
 
