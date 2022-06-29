@@ -60,10 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static Symbol? GetAttributeTargetFromPosition(int position, SemanticModel model)
         {
             var attributedNode = model.SyntaxTree.GetRoot().FindToken(position).Parent;
-            while (attributedNode is AttributeListSyntax or AttributeSyntax or AttributeArgumentListSyntax or AttributeArgumentSyntax)
-            {
-                attributedNode = attributedNode.Parent;
-            }
+            attributedNode = attributedNode?.FirstAncestorOrSelf<AttributeListSyntax>()?.Parent;
 
             if (attributedNode is not null)
             {
@@ -110,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.Kind() == SyntaxKind.Attribute)
             {
                 var attribute = (AttributeSyntax)node;
-                return binder.BindAttribute(attribute, AttributeType, attributeTarget: _attributeTarget, diagnostics);
+                return binder.BindAttribute(attribute, AttributeType, attributedMember: ContextualAttributeBinder.GetAttributedMember(_attributeTarget), diagnostics);
             }
             else if (SyntaxFacts.IsAttributeName(node))
             {

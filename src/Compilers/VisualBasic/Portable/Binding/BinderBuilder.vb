@@ -295,7 +295,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 containingBinder = BinderBuilder.CreateBinderForMethodDeclaration(sourceMethod, containingBinder)
             End If
 
-            Return New AttributeBinder(containingBinder, tree, target)
+            Return New AttributeBinder(containingBinder, tree)
         End Function
 
         ''' <summary>

@@ -770,6 +770,51 @@ IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'Attr()')
         }
 
         [Fact]
+        public void TestAttributeCallerInfoSemanticModel_Method_Speculative2()
+        {
+            var source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Attr : Attribute { public Attr([CallerMemberName] string s = null) { } }
+
+class C
+{
+    private const string World = ""World"";
+
+    [Attr($""Hello {World}"")]
+    void M0() { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var root = tree.GetRoot();
+            var attrSyntax = root.DescendantNodes().OfType<AttributeSyntax>().Last();
+            var interpolationSyntax = root.DescendantNodes().OfType<InterpolationSyntax>().Single();
+
+            var semanticModel = comp.GetSemanticModel(tree);
+            var newRoot = root.ReplaceNode(attrSyntax, attrSyntax.WithArgumentList(SyntaxFactory.ParseAttributeArgumentList("()")));
+            var newAttrSyntax = newRoot.DescendantNodes().OfType<AttributeSyntax>().Last();
+
+            Assert.True(semanticModel.TryGetSpeculativeSemanticModel(interpolationSyntax.Position, newAttrSyntax, out var speculativeModel));
+
+            var speculativeOperation = speculativeModel.GetOperation(newAttrSyntax);
+            VerifyOperationTree(comp, speculativeOperation, @"
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'Attr()')
+  IObjectCreationOperation (Constructor: Attr..ctor([System.String s = null])) (OperationKind.ObjectCreation, Type: Attr, IsImplicit) (Syntax: 'Attr()')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Attr()')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""M0"", IsImplicit) (Syntax: 'Attr()')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
+");
+        }
+
+        [Fact]
         public void TestAttributeCallerInfoSemanticModel_Parameter_Speculative()
         {
             var source = @"

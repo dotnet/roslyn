@@ -121,30 +121,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics)
         {
             beforeAttributePartBound?.Invoke(node);
-            var boundAttribute = new ExecutableCodeBinder(node, this.ContainingMemberOrLambda, this).BindAttribute(node, boundAttributeType, (this as ContextualAttributeBinder)?.AttributeTarget, diagnostics);
+            var boundAttribute = new ExecutableCodeBinder(node, this.ContainingMemberOrLambda, this).BindAttribute(node, boundAttributeType, (this as ContextualAttributeBinder)?.AttributedMember, diagnostics);
             afterAttributePartBound?.Invoke(node);
             return (GetAttribute(boundAttribute, diagnostics), boundAttribute);
         }
 
-        internal BoundAttribute BindAttribute(AttributeSyntax node, NamedTypeSymbol attributeType, Symbol? attributeTarget, BindingDiagnosticBag diagnostics)
+        internal BoundAttribute BindAttribute(AttributeSyntax node, NamedTypeSymbol attributeType, Symbol? attributedMember, BindingDiagnosticBag diagnostics)
         {
-            return this.GetRequiredBinder(node).BindAttributeCore(node, attributeType, getAttributedMember(attributeTarget), diagnostics);
-
-            static Symbol? getAttributedMember(Symbol? symbol)
-            {
-                for (; symbol is not null; symbol = symbol.ContainingSymbol)
-                {
-                    switch (symbol.Kind)
-                    {
-                        case SymbolKind.Method:
-                        case SymbolKind.Property:
-                        case SymbolKind.Event:
-                            return symbol;
-                    }
-                }
-
-                return symbol;
-            }
+            return this.GetRequiredBinder(node).BindAttributeCore(node, attributeType, attributedMember, diagnostics);
         }
 
         private Binder SkipSemanticModelBinder()

@@ -36,10 +36,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Shared Function GetAttributeTarget(model As SyntaxTreeSemanticModel, binder As AttributeBinder) As Symbol
-            If binder.AttributeTarget IsNot Nothing Then
-                Return binder.AttributeTarget
-            End If
-
             Debug.Assert(TypeOf binder.Root Is AttributeSyntax)
             If TypeOf binder.Root.Parent Is AttributeListSyntax Then
                 Return DirectCast(model.GetDeclaredSymbolForNode(binder.Root.Parent.Parent), Symbol)
