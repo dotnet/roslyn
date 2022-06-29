@@ -10,6 +10,7 @@ using System.Windows;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Structure;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin;
 using Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph;
@@ -30,6 +31,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess
             var showInheritanceMargin = optionService.GetOption(FeatureOnOffOptions.ShowInheritanceMargin, languageName);
             var combinedWithIndicatorMargin = optionService.GetOption(FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin);
             var showGlobalUsings = optionService.GetOption(FeatureOnOffOptions.InheritanceMarginIncludeGlobalImports, languageName);
+            var collapseMetadataSignature = optionService.GetOption(BlockStructureOptionsStorage.CollapseMetadataSignatureFilesWhenFirstOpened, languageName);
 
             if (showInheritanceMargin != true)
             {
@@ -39,6 +41,11 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess
             if (!showGlobalUsings)
             {
                 optionService.SetGlobalOption(new OptionKey(FeatureOnOffOptions.InheritanceMarginIncludeGlobalImports, languageName), true);
+            }
+
+            if (!collapseMetadataSignature)
+            {
+                optionService.SetGlobalOption(new OptionKey(BlockStructureOptionsStorage.CollapseMetadataSignatureFilesWhenFirstOpened, languageName), false);
             }
 
             if (combinedWithIndicatorMargin)
