@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
     /// <summary>
     /// Looks for code snippets similar to <c>x == null ? null : x.Y()</c> and converts it to <c>x?.Y()</c>.  This form is also supported:
     /// <code>
-    /// if (x == null)
+    /// if (x != null)
     ///     x.Y();
     /// </code>
     /// </summary>

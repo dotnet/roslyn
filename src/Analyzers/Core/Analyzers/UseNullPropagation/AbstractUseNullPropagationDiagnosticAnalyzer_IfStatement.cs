@@ -38,6 +38,7 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
 
         var syntaxFacts = GetSyntaxFacts();
         var ifStatement = (TIfStatementSyntax)context.Node;
+
         var condition = (TExpressionSyntax)syntaxFacts.GetConditionOfIfStatement(ifStatement);
 
         // The true-statement if the if-statement has to be a statement of the form `<expr1>.Name(...)`;
@@ -66,8 +67,8 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
             return;
 
         // Ok, we have `if (<expr2> == null)` or `if (<expr2> != null)` (or some similar form of that.  `conditionPartToCheck` will be `<expr2>` here.
-        // We only support `if (<expr2> == null)`.  Fail out if we have the alternate form.
-        if (!isEquals)
+        // We only support `if (<expr2> != null)`.  Fail out if we have the alternate form.
+        if (isEquals)
             return;
 
         // verify that <expr1> and <expr2> are the same.
@@ -78,7 +79,9 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
             Descriptor,
             ifStatement.GetFirstToken().GetLocation(),
             option.Notification.Severity,
-            ImmutableArray.Create(ifStatement.GetLocation()),
+            ImmutableArray.Create(
+                ifStatement.GetLocation(),
+                trueStatement.GetLocation()),
             ImmutableDictionary<string, string?>.Empty));
     }
 }
