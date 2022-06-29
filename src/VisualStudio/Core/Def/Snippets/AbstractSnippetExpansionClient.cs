@@ -923,10 +923,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 }
 
                 // If we still have no value, fill in the default
-                if (value is null)
-                {
-                    value = FallbackDefaultLiteral;
-                }
+                value ??= FallbackDefaultLiteral;
 
                 newArguments = newArguments.SetItem(parameter.Name, value);
             }

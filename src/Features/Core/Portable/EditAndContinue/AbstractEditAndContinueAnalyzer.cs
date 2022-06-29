@@ -4537,11 +4537,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private bool HasMemberInitializerContainingLambda(INamedTypeSymbol type, bool isStatic, ref bool? lazyHasMemberInitializerContainingLambda, CancellationToken cancellationToken)
         {
-            if (lazyHasMemberInitializerContainingLambda == null)
-            {
-                // checking the old type for existing lambdas (it's ok for the new initializers to contain lambdas)
-                lazyHasMemberInitializerContainingLambda = HasMemberInitializerContainingLambda(type, isStatic, cancellationToken);
-            }
+            // checking the old type for existing lambdas (it's ok for the new initializers to contain lambdas)
+            lazyHasMemberInitializerContainingLambda ??= HasMemberInitializerContainingLambda(type, isStatic, cancellationToken);
 
             return lazyHasMemberInitializerContainingLambda.Value;
         }
