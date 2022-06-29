@@ -207,6 +207,9 @@ jobs:
     - script: eng/test-build-correctness.cmd -configuration Release -enableDumps
       displayName: Build - Validate correctness
 
+    - script: eng/validate-rules-missing-documentation.cmd -ci
+      displayName: Validate rules missing documentation
+
     - template: eng/pipelines/publish-logs.yml
       parameters:
         jobName: Correctness_Build
