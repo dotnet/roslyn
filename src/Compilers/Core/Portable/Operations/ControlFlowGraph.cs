@@ -147,7 +147,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             return CreateCore(attribute, nameof(attribute), cancellationToken);
         }
 
-
         /// <summary>
         /// Creates a <see cref="ControlFlowGraph"/> for the given executable code block <paramref name="constructorBody"/>.
         /// </summary>
