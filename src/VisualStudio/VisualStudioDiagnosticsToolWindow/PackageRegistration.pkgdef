@@ -11,19 +11,8 @@
 @="#0"
 "Package"="{49e24138-9ee3-49e0-8ede-6b39f49303bf}"
 
-[$RootKey$\ToolsOptionsPages\Roslyn\FeatureManager\Components]
-@="#0"
-"Package"="{49e24138-9ee3-49e0-8ede-6b39f49303bf}"
-"Page"="{6f738951-348c-4816-9ba4-f60d92d3e98e}"
-
 [$RootKey$\AutomationProperties\Roslyn\FeatureManager]
 "Package"="{49e24138-9ee3-49e0-8ede-6b39f49303bf}"
-
-[$RootKey$\AutomationProperties\Roslyn\FeatureManager\Components]
-"Package"="{49e24138-9ee3-49e0-8ede-6b39f49303bf}"
-
-[$RootKey$\AutomationProperties\Roslyn\FeatureManager\Components]
-"Name"="Roslyn\FeatureManager.Components"
 
 [$RootKey$\ToolsOptionsPages\Roslyn\FeatureManager]
 @="#0"

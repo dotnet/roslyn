@@ -41,8 +41,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
             Show_items_from_unimported_namespaces.IsChecked = this.OptionStore.GetOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp);
             AddSearchHandler(Show_items_from_unimported_namespaces);
+
             Tab_twice_to_insert_arguments.IsChecked = this.OptionStore.GetOption(CompletionViewOptions.EnableArgumentCompletionSnippets, LanguageNames.CSharp);
             AddSearchHandler(Tab_twice_to_insert_arguments);
+
+            Show_new_snippet_experience.IsChecked = this.OptionStore.GetOption(CompletionOptionsStorage.ShowNewSnippetExperience, LanguageNames.CSharp);
+            AddSearchHandler(Show_new_snippet_experience);
         }
 
         private void Show_completion_list_after_a_character_is_typed_Checked(object sender, RoutedEventArgs e)

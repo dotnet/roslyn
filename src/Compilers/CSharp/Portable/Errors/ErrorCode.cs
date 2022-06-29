@@ -1538,7 +1538,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_EscapeOther = 8349,
         ERR_CallArgMixing = 8350,
         ERR_MismatchedRefEscapeInTernary = 8351,
-        ERR_EscapeLocal = 8352,
+        ERR_EscapeVariable = 8352,
         ERR_EscapeStackAlloc = 8353,
         ERR_RefReturnThis = 8354,
         ERR_OutAttrOnInParam = 8355,
@@ -2021,6 +2021,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_EncUpdateFailedDelegateTypeChanged = 8984,
 
         ERR_ListPatternRequiresLength = 8985,
+        ERR_ScopedMismatchInParameterOfTarget = 8986,
+        ERR_ScopedMismatchInParameterOfOverrideOrImplementation = 8987,
+        ERR_ScopedMismatchInParameterOfPartial = 8988,
 
         // param-nullchecking feature removed from C# 11
         ERR_ParameterNullCheckingNotSupported = 8989,
@@ -2069,7 +2072,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ImplicitConversionOperatorCantBeChecked = 9024,
         ERR_CheckedOperatorNeedsMatch = 9025,
 
-        ERR_CannotBeConvertedToUTF8 = 9026,
+        ERR_CannotBeConvertedToUtf8 = 9026,
         ERR_MisplacedUnchecked = 9027,
         ERR_LineSpanDirectiveRequiresSpace = 9028,
 
@@ -2091,6 +2094,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ImplicitImplementationOfInaccessibleInterfaceMember = 9044,
         ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers = 9045,
         ERR_BadAbstractEqualityOperatorSignature = 9046,
+        ERR_BadBinaryReadOnlySpanConcatenation = 9047,
+        ERR_ScopedRefAndRefStructOnly = 9048,
+        ERR_FixedFieldMustNotBeRef = 9049,
 
         #endregion
 

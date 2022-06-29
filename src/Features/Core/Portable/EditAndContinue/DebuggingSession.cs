@@ -615,9 +615,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     var documentId = documentIds[i];
 
                     var document = await solution.GetTextDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
-                    if (document?.FilePath == null)
+                    if (document?.State.SupportsEditAndContinue() != true)
                     {
-                        // document has been deleted or has no path (can't have an active statement anymore):
+                        // document has been deleted or doesn't support EnC (can't have an active statement anymore):
                         continue;
                     }
 
@@ -626,6 +626,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         // document is in a project that does not support EnC
                         continue;
                     }
+
+                    Contract.ThrowIfNull(document.FilePath);
 
                     // Multiple documents may have the same path (linked file).
                     // The documents represent the files that #line directives map to.
@@ -1042,7 +1044,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private static void ReportTelemetry(DebuggingSessionTelemetry.Data data)
         {
             // report telemetry (fire and forget):
-            _ = Task.Run(() => DebuggingSessionTelemetry.Log(data, Logger.Log, CorrelationIdFactory.GetNextId));
+            _ = Task.Run(() => DebuggingSessionTelemetry.Log(data, Logger.Log, LogAggregator.GetNextId));
         }
 
         internal TestAccessor GetTestAccessor()

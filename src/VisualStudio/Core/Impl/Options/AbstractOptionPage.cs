@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Linq;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
@@ -31,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 var componentModel = (IComponentModel)this.Site.GetService(typeof(SComponentModel));
                 var workspace = componentModel.GetService<VisualStudioWorkspace>();
                 s_optionService = workspace.Services.GetService<ILegacyWorkspaceOptionService>();
-                s_optionStore = new OptionStore(new SolutionOptionSet(s_optionService), s_optionService.GlobalOptions.GetRegisteredOptions());
+                s_optionStore = new OptionStore(new SolutionOptionSet(s_optionService), Enumerable.Empty<IOption>());
             }
 
             if (pageControl == null)
@@ -60,7 +61,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             {
                 // Reset the option store to the current state of the options.
                 s_optionStore.SetOptions(new SolutionOptionSet(s_optionService));
-                s_optionStore.SetRegisteredOptions(s_optionService.GlobalOptions.GetRegisteredOptions());
 
                 s_needsToUpdateOptionStore = false;
             }

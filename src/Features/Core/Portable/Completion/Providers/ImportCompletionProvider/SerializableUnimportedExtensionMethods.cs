@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Runtime.Serialization;
 
@@ -18,10 +17,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         public readonly bool IsPartialResult;
 
         [DataMember(Order = 2)]
-        public readonly TimeSpan GetSymbolsTime;
+        public readonly int GetSymbolsTicks;
 
         [DataMember(Order = 3)]
-        public readonly TimeSpan CreateItemsTime;
+        public readonly int CreateItemsTicks;
 
         [DataMember(Order = 4)]
         public readonly bool IsRemote;
@@ -29,14 +28,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         public SerializableUnimportedExtensionMethods(
             ImmutableArray<SerializableImportCompletionItem> completionItems,
             bool isPartialResult,
-            TimeSpan getSymbolsTime,
-            TimeSpan createItemsTime,
+            int getSymbolsTicks,
+            int createItemsTicks,
             bool isRemote)
         {
             CompletionItems = completionItems;
             IsPartialResult = isPartialResult;
-            GetSymbolsTime = getSymbolsTime;
-            CreateItemsTime = createItemsTime;
+            GetSymbolsTicks = getSymbolsTicks;
+            CreateItemsTicks = createItemsTicks;
             IsRemote = isRemote;
         }
     }
