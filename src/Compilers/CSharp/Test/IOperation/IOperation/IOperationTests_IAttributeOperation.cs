@@ -40,9 +40,31 @@ IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My')
     Initializer:
       null
 ";
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My')
+          IObjectCreationOperation (Constructor: MyAttribute..ctor([System.Int32 lineNumber = -1])) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My')
+            Arguments(1):
+                IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: lineNumber) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'My')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 13, IsImplicit) (Syntax: 'My')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Initializer:
+              null
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyFlowGraphAndDiagnosticsForTest<AttributeSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
 
         [Fact]
@@ -885,7 +907,70 @@ IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(i: 1, b: 
                 Right:
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
 ";
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (4)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'My(i: 1, b: ...  10, D = 5)')
+              Value:
+                IObjectCreationOperation (Constructor: MyAttribute..ctor(System.Boolean b, System.Int32 i, params System.Object[] o)) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My(i: 1, b: ...  10, D = 5)')
+                  Arguments(3):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: 'i: 1')
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: b) (OperationKind.Argument, Type: null) (Syntax: 'b: true')
+                        ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      IArgumentOperation (ArgumentKind.ParamArray, Matching Parameter: o) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'My(i: 1, b: ...  10, D = 5)')
+                        IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Object[], IsImplicit) (Syntax: 'My(i: 1, b: ...  10, D = 5)')
+                          Dimension Sizes(1):
+                              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'My(i: 1, b: ...  10, D = 5)')
+                          Initializer:
+                            IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null, IsImplicit) (Syntax: 'My(i: 1, b: ...  10, D = 5)')
+                              Element Values(1):
+                                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '2')
+                                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                      (Boxing)
+                                    Operand:
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  Initializer:
+                    null
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'B = 10')
+              Left:
+                IPropertyReferenceOperation: System.Int32 MyAttribute.B { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'B')
+                  Instance Receiver:
+                    null
+              Right:
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'D = 5')
+              Left:
+                IPropertyReferenceOperation: System.Int32 MyAttribute.D { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'D')
+                  Instance Receiver:
+                    null
+              Right:
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
+            IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(i: 1, b: ...  10, D = 5)')
+              IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: MyAttribute, IsImplicit) (Syntax: 'My(i: 1, b: ...  10, D = 5)')
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+}
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
             VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyFlowGraphAndDiagnosticsForTest<AttributeSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
 
         [Fact]

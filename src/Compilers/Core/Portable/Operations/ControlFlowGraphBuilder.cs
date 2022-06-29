@@ -7742,6 +7742,8 @@ oneMoreTime:
         }
 
         public override IOperation VisitAttribute(IAttributeOperation operation, int? captureIdForResult)
-            => VisitNoneOperation(operation, captureIdForResult);
+        {
+            return new AttributeOperation(Visit(operation.Operation, captureIdForResult), semanticModel: null, operation.Syntax, IsImplicit(operation));
+        }
     }
 }
