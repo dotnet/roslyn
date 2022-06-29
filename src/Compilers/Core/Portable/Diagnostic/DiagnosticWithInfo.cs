@@ -136,6 +136,18 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        /// <summary>
+        /// Usage is unexpected unless <see cref="HasLazyInfo"/> is true.
+        /// </summary>
+        internal DiagnosticInfo LazyInfo
+        {
+            get
+            {
+                Debug.Assert(HasLazyInfo);
+                return _info;
+            }
+        }
+
         public override int GetHashCode()
         {
             return Hash.Combine(this.Location.GetHashCode(), this.Info.GetHashCode());

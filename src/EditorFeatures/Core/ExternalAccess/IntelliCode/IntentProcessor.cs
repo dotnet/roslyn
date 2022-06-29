@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.IntelliCode
                 }
             }
 
-            return new IntentSource(processorResult.Title, results[originalDocument.Id], processorResult.ActionName, results.ToImmutableDictionary());
+            return new IntentSource(processorResult.Title, processorResult.ActionName, results.ToImmutableDictionary());
         }
 
         private static async Task<ImmutableArray<TextChange>?> GetTextChangesForDocumentAsync(

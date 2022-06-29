@@ -33,14 +33,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             CancellationToken cancellationToken)
         {
             var stopwatch = SharedStopwatch.StartNew();
-            var sessionData = CompletionSessionData.GetOrCreateSessionData(session);
-            // This method is called exactly once, so use the opportunity to set a baseline for telemetry.
-            if (sessionData.TargetTypeFilterExperimentEnabled)
-            {
-                AsyncCompletionLogger.LogSessionHasTargetTypeFilterEnabled();
-                if (data.InitialList.Any(i => i.Filters.Any(f => f.DisplayText == FeaturesResources.Target_type_matches)))
-                    AsyncCompletionLogger.LogSessionContainsTargetTypeFilter();
-            }
 
             // Sort by default comparer of Roslyn CompletionItem
             var sortedItems = data.InitialList.OrderBy(CompletionItemData.GetOrAddDummyRoslynItem).ToImmutableArray();

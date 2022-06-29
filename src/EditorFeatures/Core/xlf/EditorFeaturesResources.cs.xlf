@@ -27,6 +27,11 @@
         <target state="translated">Vyčištění kódu není nakonfigurované.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Computing_Encapsulate_Field_information">
+        <source>Computing 'Encapsulate Field' information</source>
+        <target state="translated">Výpočet informací Encapsulate Field</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Configure_it_now">
         <source>Configure it now</source>
         <target state="translated">Nakonfigurovat teď</target>
@@ -296,6 +301,11 @@
         <source>Rename _file (not allowed on partial types)</source>
         <target state="translated">Přejmenovat _soubor (nepovoleno pro dílčí typy)</target>
         <note>Disabled text status for file rename</note>
+      </trans-unit>
+      <trans-unit id="Rename_operation_could_not_complete_due_to_external_change_to_workspace">
+        <source>Rename operation could not complete due to external change to workspace</source>
+        <target state="translated">Operaci přejmenování se nepovedlo dokončit kvůli externí změně pracovního prostoru.</target>
+        <note />
       </trans-unit>
       <trans-unit id="Rename_symbols_file">
         <source>Rename symbol's _file</source>
@@ -599,7 +609,7 @@
       </trans-unit>
       <trans-unit id="_0_Esc_to_cancel">
         <source>{0} (Esc to cancel)</source>
-        <target state="new">{0} (Esc to cancel)</target>
+        <target state="translated">{0} (zrušíte klávesou Esc)</target>
         <note>Placeholder represents an operating that is happening.  Parenthesized expression indicates how you can cancel it.</note>
       </trans-unit>
       <trans-unit id="_0_conflict_s_will_be_resolved">

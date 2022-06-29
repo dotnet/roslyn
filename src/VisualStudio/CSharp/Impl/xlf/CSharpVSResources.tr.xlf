@@ -59,7 +59,7 @@
       </trans-unit>
       <trans-unit id="Collapse_usings_on_file_open">
         <source>Collapse usings on file open</source>
-        <target state="new">Collapse usings on file open</target>
+        <target state="translated">Dosya açıkken using'leri daralt</target>
         <note />
       </trans-unit>
       <trans-unit id="Completion">

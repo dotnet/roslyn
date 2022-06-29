@@ -20,12 +20,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly int _ordinal;
         private readonly string _name;
         private readonly RefKind _refKind;
+        private readonly DeclarationScope _scope;
 
         public SynthesizedParameterSymbolBase(
             MethodSymbol? container,
             TypeWithAnnotations type,
             int ordinal,
             RefKind refKind,
+            DeclarationScope scope,
             string name)
         {
             Debug.Assert(type.HasType);
@@ -36,6 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _type = type;
             _ordinal = ordinal;
             _refKind = refKind;
+            _scope = scope;
             _name = name;
         }
 
@@ -157,6 +160,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNativeIntegerAttribute(this, type.Type));
             }
 
+            if (ParameterHelpers.RequiresLifetimeAnnotationAttribute(this))
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeLifetimeAnnotationAttribute(this, Scope));
+            }
+
             if (type.Type.ContainsTupleNames() &&
                 compilation.HasTupleNamesAttributes(BindingDiagnosticBag.Discarded, Location.None) &&
                 compilation.CanEmitSpecialType(SpecialType.System_String))
@@ -179,6 +187,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => ImmutableArray<int>.Empty;
 
         internal override bool HasInterpolatedStringHandlerArgumentError => false;
+
+        internal sealed override DeclarationScope Scope => _scope;
     }
 
     internal sealed class SynthesizedParameterSymbol : SynthesizedParameterSymbolBase
@@ -188,8 +198,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeWithAnnotations type,
             int ordinal,
             RefKind refKind,
+            DeclarationScope scope,
             string name)
-            : base(container, type, ordinal, refKind, name)
+            : base(container, type, ordinal, refKind, scope, name)
         {
         }
 
@@ -199,12 +210,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int ordinal,
             RefKind refKind,
             string name = "",
+            DeclarationScope scope = DeclarationScope.Unscoped,
             ImmutableArray<CustomModifier> refCustomModifiers = default,
-            SourceComplexParameterSymbol? baseParameterForAttributes = null)
+            SourceComplexParameterSymbolBase? baseParameterForAttributes = null)
         {
             if (refCustomModifiers.IsDefaultOrEmpty && baseParameterForAttributes is null)
             {
-                return new SynthesizedParameterSymbol(container, type, ordinal, refKind, name);
+                return new SynthesizedParameterSymbol(container, type, ordinal, refKind, scope, name);
             }
 
             return new SynthesizedComplexParameterSymbol(
@@ -212,6 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 type,
                 ordinal,
                 refKind,
+                scope,
                 name,
                 refCustomModifiers.NullToEmpty(),
                 baseParameterForAttributes);
@@ -238,6 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     oldParam.Ordinal,
                     oldParam.RefKind,
                     oldParam.Name,
+                    oldParam.Scope,
                     oldParam.RefCustomModifiers,
                     baseParameterForAttributes: null));
             }
@@ -261,17 +275,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<CustomModifier> _refCustomModifiers;
 
         // The parameter containing attributes to inherit into this synthesized parameter, if any.
-        private readonly SourceComplexParameterSymbol? _baseParameterForAttributes;
+        private readonly SourceComplexParameterSymbolBase? _baseParameterForAttributes;
 
         public SynthesizedComplexParameterSymbol(
             MethodSymbol? container,
             TypeWithAnnotations type,
             int ordinal,
             RefKind refKind,
+            DeclarationScope scope,
             string name,
             ImmutableArray<CustomModifier> refCustomModifiers,
-            SourceComplexParameterSymbol? baseParameterForAttributes)
-            : base(container, type, ordinal, refKind, name)
+            SourceComplexParameterSymbolBase? baseParameterForAttributes)
+            : base(container, type, ordinal, refKind, scope, name)
         {
             Debug.Assert(!refCustomModifiers.IsDefault);
             Debug.Assert(!refCustomModifiers.IsEmpty || baseParameterForAttributes is object);

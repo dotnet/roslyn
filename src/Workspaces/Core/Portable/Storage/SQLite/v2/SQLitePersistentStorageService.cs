@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
         private static bool TryInitializeLibraries() => s_initialized.Value;
 
-        private static readonly Lazy<bool> s_initialized = new(() => TryInitializeLibrariesLazy());
+        private static readonly Lazy<bool> s_initialized = new(TryInitializeLibrariesLazy);
 
         private static bool TryInitializeLibrariesLazy()
         {

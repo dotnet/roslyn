@@ -5,7 +5,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Extensibility.Testing;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using WindowsInput.Native;
 
 namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 {
@@ -19,7 +19,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             // Cancellation is not currently supported by SendAsync
             _ = cancellationToken;
 
-            return TestServices.Input.SendAsync(new KeyPress(VirtualKey.R, ShiftState.Ctrl), new KeyPress(VirtualKey.E, ShiftState.Ctrl));
+            return TestServices.Input.SendAsync((VirtualKeyCode.VK_R, VirtualKeyCode.CONTROL), (VirtualKeyCode.VK_E, VirtualKeyCode.CONTROL));
         }
     }
 }
