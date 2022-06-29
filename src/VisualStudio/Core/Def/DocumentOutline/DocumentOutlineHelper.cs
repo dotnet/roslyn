@@ -22,12 +22,25 @@ namespace Microsoft.VisualStudio.LanguageServices
 {
     internal static class DocumentOutlineHelper
     {
+        /// <summary>
+        /// The text snapshot from when the document symbol request was made.
+        /// </summary>
+        private static ITextSnapshot? LspSnapshot { get; set; }
+
+        /// <summary>
+        /// The text snapshot from the last active text view.
+        /// </summary>
+        private static ITextSnapshot? CurrentSnapshot { get; set; }
+
+        /// <summary>
+        /// Is true when LspSnapshot and CurrentSnapshot have been initialized.
+        /// </summary>
         [MemberNotNullWhen(true, nameof(LspSnapshot), nameof(CurrentSnapshot))]
         private static bool IsSnapshotInitialized { get; set; }
 
-        private static ITextSnapshot? LspSnapshot { get; set; }
-        private static ITextSnapshot? CurrentSnapshot { get; set; }
-
+        /// <summary>
+        /// The caret position of the last active text view.
+        /// </summary>
         private static int CaretPosition { get; set; }
 
         /// <summary>
