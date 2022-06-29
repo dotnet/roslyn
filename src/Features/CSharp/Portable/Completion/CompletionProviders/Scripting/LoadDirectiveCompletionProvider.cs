@@ -7,12 +7,13 @@ using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
+using Microsoft.CodeAnalysis.CSharp.Completion.CompletionProviders.Snippets;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     [ExportCompletionProvider(nameof(LoadDirectiveCompletionProvider), LanguageNames.CSharp)]
-    [ExtensionOrder(After = nameof(FunctionPointerUnmanagedCallingConventionCompletionProvider))]
+    [ExtensionOrder(After = nameof(CSharpSnippetCompletionProvider))]
     [Shared]
     internal sealed class LoadDirectiveCompletionProvider : AbstractLoadDirectiveCompletionProvider
     {

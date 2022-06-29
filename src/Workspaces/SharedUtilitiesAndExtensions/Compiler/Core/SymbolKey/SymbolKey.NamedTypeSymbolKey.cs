@@ -13,8 +13,8 @@ namespace Microsoft.CodeAnalysis
         {
             public static void Create(INamedTypeSymbol symbol, SymbolKeyWriter visitor)
             {
-                visitor.WriteString(symbol.MetadataName);
                 visitor.WriteSymbolKey(symbol.ContainingSymbol);
+                visitor.WriteString(symbol.Name);
                 visitor.WriteInteger(symbol.Arity);
                 visitor.WriteBoolean(symbol.IsUnboundGenericType);
 
@@ -30,8 +30,8 @@ namespace Microsoft.CodeAnalysis
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
             {
-                var metadataName = reader.ReadString()!;
                 var containingSymbolResolution = reader.ReadSymbolKey(out var containingSymbolFailureReason);
+                var name = reader.ReadRequiredString();
                 var arity = reader.ReadInteger();
                 var isUnboundGenericType = reader.ReadBoolean();
                 using var typeArguments = reader.ReadSymbolKeyArray<ITypeSymbol>(out var typeArgumentsFailureReason);
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis
                 foreach (var nsOrType in containingSymbolResolution.OfType<INamespaceOrTypeSymbol>())
                 {
                     Resolve(
-                        result, nsOrType, metadataName, arity,
+                        result, nsOrType, name, arity,
                         isUnboundGenericType, typeArgumentArray);
                 }
 
@@ -71,12 +71,12 @@ namespace Microsoft.CodeAnalysis
             private static void Resolve(
                 PooledArrayBuilder<INamedTypeSymbol> result,
                 INamespaceOrTypeSymbol container,
-                string metadataName,
+                string name,
                 int arity,
                 bool isUnboundGenericType,
                 ITypeSymbol[] typeArguments)
             {
-                foreach (var type in container.GetTypeMembers(GetName(metadataName), arity))
+                foreach (var type in container.GetTypeMembers(name, arity))
                 {
                     var currentType = typeArguments.Length > 0 ? type.Construct(typeArguments) : type;
                     currentType = isUnboundGenericType ? currentType.ConstructUnboundGenericType() : currentType;

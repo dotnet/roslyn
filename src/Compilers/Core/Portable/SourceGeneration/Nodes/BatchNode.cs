@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis
             // - Modified otherwise
 
             // update the table
-            var newTable = builder.CreateTableBuilder(previousTable, _name);
+            var newTable = builder.CreateTableBuilder(previousTable, _name, _comparer);
 
             // If this execution is tracking steps, then the source table should have also tracked steps or be the empty table.
             Debug.Assert(!newTable.TrackIncrementalSteps || (sourceTable.HasTrackedSteps || sourceTable.IsEmpty));
