@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.LanguageServices
@@ -15,12 +16,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation
         Inherits AbstractUseNullPropagationDiagnosticAnalyzer(Of
             SyntaxKind,
             ExpressionSyntax,
+            ExecutableStatementSyntax,
             TernaryConditionalExpressionSyntax,
             BinaryExpressionSyntax,
             InvocationExpressionSyntax,
             MemberAccessExpressionSyntax,
             ConditionalAccessExpressionSyntax,
-            InvocationExpressionSyntax)
+            InvocationExpressionSyntax,
+            MultiLineIfBlockSyntax,
+            ExpressionStatementSyntax)
 
         Protected Overrides Function ShouldAnalyze(compilation As Compilation) As Boolean
             Return DirectCast(compilation, VisualBasicCompilation).LanguageVersion >= LanguageVersion.VisualBasic14
@@ -38,6 +42,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation
             conditionPartToCheck = Nothing
             isEquals = False
             Return False
+        End Function
+
+        Protected Overrides Function TryGetSingleTrueStatementOfIfStatement(ifStatement As MultiLineIfBlockSyntax, ByRef trueStatement As ExecutableStatementSyntax) As Boolean
+            If ifStatement.ElseBlock IsNot Nothing Then
+                Return False
+            End If
+
+            If ifStatement.ElseIfBlocks.Count > 0 Then
+                Return False
+            End If
+
+            If ifStatement.Statements.Count <> 1 Then
+                Return False
+            End If
+
+            trueStatement = TryCast(ifStatement.Statements(0), ExecutableStatementSyntax)
+            Return trueStatement IsNot Nothing
         End Function
     End Class
 End Namespace

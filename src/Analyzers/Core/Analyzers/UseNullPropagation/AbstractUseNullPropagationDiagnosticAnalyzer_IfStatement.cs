@@ -23,12 +23,62 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
     TMemberAccessExpressionSyntax,
     TConditionalAccessExpressionSyntax,
     TElementAccessExpressionSyntax,
-    TIfStatementSyntax>
+    TIfStatementSyntax,
+    TExpressionStatementSyntax>
 {
+    protected abstract bool TryGetSingleTrueStatementOfIfStatement(TIfStatementSyntax ifStatement, [NotNullWhen(true)] out TStatementSyntax trueStatement);
+
     private void AnalyzeIfStatement(
         SyntaxNodeAnalysisContext context,
         IMethodSymbol? referenceEqualsMethod)
     {
+        var option = context.GetAnalyzerOptions().PreferNullPropagation;
+        if (!option.Value)
+            return;
 
+        var syntaxFacts = GetSyntaxFacts();
+        var ifStatement = (TIfStatementSyntax)context.Node;
+        var condition = (TExpressionSyntax)syntaxFacts.GetConditionOfIfStatement(ifStatement);
+
+        // The true-statement if the if-statement has to be a statement of the form `<expr1>.Name(...)`;
+        if (!TryGetSingleTrueStatementOfIfStatement(ifStatement, out var trueStatement))
+            return;
+
+        if (trueStatement is not TExpressionStatementSyntax expressionStatement)
+            return;
+
+        var trueExpression = (TExpressionSyntax)syntaxFacts.GetExpressionOfExpressionStatement(expressionStatement);
+        if (trueExpression is not TInvocationExpressionSyntax trueInvocation)
+            return;
+
+        var invokedExpression = (TExpressionSyntax)syntaxFacts.GetExpressionOfInvocationExpression(trueInvocation);
+        if (!syntaxFacts.IsSimpleMemberAccessExpression(invokedExpression))
+            return;
+
+        // this is the `<expr1>` portion of the invocation.
+        var accessedExpression = (TExpressionSyntax?)syntaxFacts.GetExpressionOfMemberAccessExpression(invokedExpression);
+        if (accessedExpression is null)
+            return;
+
+        // Now see if the `if (...)` looks like an appropriate null check.
+
+        if (!TryAnalyzeCondition(context, syntaxFacts, referenceEqualsMethod, condition, out var conditionPartToCheck, out var isEquals))
+            return;
+
+        // Ok, we have `if (<expr2> == null)` or `if (<expr2> != null)` (or some similar form of that.  `conditionPartToCheck` will be `<expr2>` here.
+        // We only support `if (<expr2> == null)`.  Fail out if we have the alternate form.
+        if (!isEquals)
+            return;
+
+        // verify that <expr1> and <expr2> are the same.
+        if (!syntaxFacts.AreEquivalent(conditionPartToCheck, accessedExpression))
+            return;
+
+        context.ReportDiagnostic(DiagnosticHelper.Create(
+            Descriptor,
+            ifStatement.GetFirstToken().GetLocation(),
+            option.Notification.Severity,
+            ImmutableArray.Create(ifStatement.GetLocation()),
+            ImmutableDictionary<string, string?>.Empty));
     }
 }

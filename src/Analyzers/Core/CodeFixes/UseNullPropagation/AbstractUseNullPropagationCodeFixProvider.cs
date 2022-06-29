@@ -21,26 +21,32 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
     internal abstract class AbstractUseNullPropagationCodeFixProvider<
         TSyntaxKind,
         TExpressionSyntax,
+        TStatementSyntax,
         TConditionalExpressionSyntax,
         TBinaryExpressionSyntax,
-        TInvocationExpression,
-        TMemberAccessExpression,
-        TConditionalAccessExpression,
-        TElementAccessExpression,
-        TElementBindingExpression,
-        TElementBindingArgumentList> : SyntaxEditorBasedCodeFixProvider
+        TInvocationExpressionSyntax,
+        TMemberAccessExpressionSyntax,
+        TConditionalAccessExpressionSyntax,
+        TElementAccessExpressionSyntax,
+        TElementBindingExpressionSyntax,
+        TIfStatementSyntax,
+        TExpressionStatementSyntax,
+        TElementBindingArgumentListSyntax> : SyntaxEditorBasedCodeFixProvider
         where TSyntaxKind : struct
         where TExpressionSyntax : SyntaxNode
+        where TStatementSyntax : SyntaxNode
         where TConditionalExpressionSyntax : TExpressionSyntax
         where TBinaryExpressionSyntax : TExpressionSyntax
-        where TInvocationExpression : TExpressionSyntax
-        where TMemberAccessExpression : TExpressionSyntax
-        where TConditionalAccessExpression : TExpressionSyntax
-        where TElementAccessExpression : TExpressionSyntax
-        where TElementBindingExpression : TExpressionSyntax
-        where TElementBindingArgumentList : SyntaxNode
+        where TInvocationExpressionSyntax : TExpressionSyntax
+        where TMemberAccessExpressionSyntax : TExpressionSyntax
+        where TConditionalAccessExpressionSyntax : TExpressionSyntax
+        where TElementAccessExpressionSyntax : TExpressionSyntax
+        where TElementBindingExpressionSyntax : TExpressionSyntax
+        where TIfStatementSyntax : TStatementSyntax
+        where TExpressionStatementSyntax : TStatementSyntax
+        where TElementBindingArgumentListSyntax : SyntaxNode
     {
-        protected abstract TElementBindingExpression ElementBindingExpression(TElementBindingArgumentList argumentList);
+        protected abstract TElementBindingExpressionSyntax ElementBindingExpression(TElementBindingArgumentListSyntax argumentList);
 
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseNullPropagationDiagnosticId);
@@ -106,7 +112,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         {
             if (whenPartIsNullable)
             {
-                if (match.Parent is TMemberAccessExpression memberAccess)
+                if (match.Parent is TMemberAccessExpressionSyntax memberAccess)
                 {
                     var nameNode = syntaxFacts.GetNameOfMemberAccessExpression(memberAccess);
                     syntaxFacts.GetNameAndArityOfSimpleName(nameNode, out var name, out var arity);
@@ -134,7 +140,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             ISyntaxFactsService syntaxFacts, SyntaxGeneratorInternal generator,
             SyntaxNode whenPart, SyntaxNode match, SyntaxNode matchParent, SyntaxNode currentConditional)
         {
-            if (matchParent is TMemberAccessExpression memberAccess)
+            if (matchParent is TMemberAccessExpressionSyntax memberAccess)
             {
                 return whenPart.ReplaceNode(memberAccess,
                     generator.ConditionalAccessExpression(
@@ -143,10 +149,10 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                             syntaxFacts.GetNameOfMemberAccessExpression(memberAccess))));
             }
 
-            if (matchParent is TElementAccessExpression elementAccess)
+            if (matchParent is TElementAccessExpressionSyntax elementAccess)
             {
                 Debug.Assert(syntaxFacts.IsElementAccessExpression(elementAccess));
-                var argumentList = (TElementBindingArgumentList)syntaxFacts.GetArgumentListOfElementAccessExpression(elementAccess)!;
+                var argumentList = (TElementBindingArgumentListSyntax)syntaxFacts.GetArgumentListOfElementAccessExpression(elementAccess)!;
                 return whenPart.ReplaceNode(elementAccess,
                     generator.ConditionalAccessExpression(
                         match, ElementBindingExpression(argumentList)));

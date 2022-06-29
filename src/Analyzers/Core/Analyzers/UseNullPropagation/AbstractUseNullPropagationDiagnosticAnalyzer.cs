@@ -18,6 +18,13 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         public const string WhenPartIsNullable = nameof(WhenPartIsNullable);
     }
 
+    /// <summary>
+    /// Looks for code snippets similar to <c>x == null ? null : x.Y()</c> and converts it to <c>x?.Y()</c>.  This form is also supported:
+    /// <code>
+    /// if (x == null)
+    ///     x.Y();
+    /// </code>
+    /// </summary>
     internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
         TSyntaxKind,
         TExpressionSyntax,
@@ -28,7 +35,8 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         TMemberAccessExpressionSyntax,
         TConditionalAccessExpressionSyntax,
         TElementAccessExpressionSyntax,
-        TIfStatementSyntax> : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+        TIfStatementSyntax,
+        TExpressionStatementSyntax> : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TSyntaxKind : struct
         where TExpressionSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
@@ -38,6 +46,8 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         where TMemberAccessExpressionSyntax : TExpressionSyntax
         where TConditionalAccessExpressionSyntax : TExpressionSyntax
         where TElementAccessExpressionSyntax : TExpressionSyntax
+        where TIfStatementSyntax : TStatementSyntax
+        where TExpressionStatementSyntax : TStatementSyntax
     {
         protected AbstractUseNullPropagationDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseNullPropagationDiagnosticId,
@@ -95,9 +105,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
 
             var option = context.GetAnalyzerOptions().PreferNullPropagation;
             if (!option.Value)
-            {
                 return;
-            }
 
             var syntaxFacts = GetSyntaxFacts();
             syntaxFacts.GetPartsOfConditionalExpression(
@@ -116,7 +124,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             }
 
             if (!TryAnalyzeCondition(
-                    context, syntaxFacts, referenceEqualsMethod, conditionNode,
+                    context, syntaxFacts, referenceEqualsMethod, (TExpressionSyntax)conditionNode,
                     out var conditionPartToCheck, out var isEquals))
             {
                 return;
@@ -194,7 +202,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             SyntaxNodeAnalysisContext context,
             ISyntaxFacts syntaxFacts,
             IMethodSymbol? referenceEqualsMethod,
-            SyntaxNode conditionNode,
+            TExpressionSyntax conditionNode,
             [NotNullWhen(true)] out SyntaxNode? conditionPartToCheck,
             out bool isEquals)
         {
@@ -246,6 +254,9 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             conditionPartToCheck = null;
             isEquals = true;
 
+            if (referenceEqualsMethod == null)
+                return false;
+
             var expression = syntaxFacts.GetExpressionOfInvocationExpression(invocation);
             var nameNode = syntaxFacts.IsIdentifierName(expression)
                 ? expression
@@ -286,7 +297,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             var semanticModel = context.SemanticModel;
             var cancellationToken = context.CancellationToken;
             var symbol = semanticModel.GetSymbolInfo(invocation, cancellationToken).Symbol;
-            return referenceEqualsMethod != null && referenceEqualsMethod.Equals(symbol);
+            return referenceEqualsMethod.Equals(symbol);
         }
 
         private static SyntaxNode? GetConditionPartToCheck(ISyntaxFacts syntaxFacts, SyntaxNode conditionLeft, SyntaxNode conditionRight)
