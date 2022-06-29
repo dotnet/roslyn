@@ -131,6 +131,54 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        Public Async Function TestIfStatement_NotWithElse() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"
+Imports System
+
+Class C
+    Sub M(o As Object)
+        [||]If (o IsNot Nothing)
+            o.ToString()
+        Else
+        End If
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        Public Async Function TestIfStatement_NotWithElseIf() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"
+Imports System
+
+Class C
+    Sub M(o As Object)
+        [||]If (o IsNot Nothing)
+            o.ToString()
+        ElseIf (o IsNot Nothing)
+        End If
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        Public Async Function TestIfStatement_NotWithMultipleStatements() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"
+Imports System
+
+Class C
+    Sub M(o As Object)
+        [||]If (o IsNot Nothing)
+            o.ToString()
+            o.ToString()
+        End If
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
         Public Async Function TestWithNullableType() As Task
             Await TestInRegularAndScriptAsync(
 "
