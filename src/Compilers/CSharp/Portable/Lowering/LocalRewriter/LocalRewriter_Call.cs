@@ -1108,7 +1108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundArrayCreation(
                 syntax,
                 ImmutableArray.Create(arraySize),
-                new BoundArrayInitialization(syntax, arrayArgs) { WasCompilerGenerated = true },
+                new BoundArrayInitialization(syntax, isInferred: false, arrayArgs) { WasCompilerGenerated = true },
                 paramArrayType)
             { WasCompilerGenerated = true };
         }

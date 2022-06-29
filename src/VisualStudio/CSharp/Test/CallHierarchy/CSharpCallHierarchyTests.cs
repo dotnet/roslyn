@@ -237,9 +237,9 @@ namespace N
 {
     class C
     {
-        public int g$$oo = Goo();
+        public int g$$oo;
 
-        protected int Goo() { goo = 3; }
+        protected void Goo() { goo = 3; }
     }
 }";
             using var testState = CallHierarchyTestState.Create(text);
@@ -367,7 +367,7 @@ namespace N
 
     class C : I
     {
-        public async Task Goo()
+        public void Goo()
         {
         }
     }
@@ -474,6 +474,11 @@ namespace N
         void G$$oo()
         {
         }
+
+        void M()
+        {   
+            Goo();
+        }
     }
 }";
             using var testState = CallHierarchyTestState.Create(text);
@@ -482,7 +487,29 @@ namespace N
             testState.Workspace.Documents.Single().GetTextBuffer().Insert(0, "/* hello */");
 
             testState.VerifyRoot(root, "N.C.Goo()", new[] { string.Format(EditorFeaturesResources.Calls_To_0, "Goo"), });
-            testState.VerifyResult(root, string.Format(EditorFeaturesResources.Calls_To_0, "Goo"), expectedCallers: new[] { "N.C.Goo()" });
+            testState.VerifyResult(root, string.Format(EditorFeaturesResources.Calls_To_0, "Goo"), expectedCallers: new[] { "N.C.M()" });
+        }
+
+        [WorkItem(57856, "https://github.com/dotnet/roslyn/issues/57856")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
+        public void PropertySet()
+        {
+            var code = @"
+namespace N
+{
+    class C
+    {
+        public int Property { get; s$$et; }
+        void M()
+        {
+            Property = 2;
+        }
+    }
+}";
+            using var testState = CallHierarchyTestState.Create(code);
+            var root = testState.GetRoot();
+            testState.VerifyRoot(root, "N.C.Property.set", new[] { string.Format(EditorFeaturesResources.Calls_To_0, "set_Property") });
+            testState.VerifyResult(root, string.Format(EditorFeaturesResources.Calls_To_0, "set_Property"), new[] { "N.C.M()" });
         }
     }
 }

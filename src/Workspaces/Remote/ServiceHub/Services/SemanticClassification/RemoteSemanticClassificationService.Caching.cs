@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -51,16 +51,16 @@ namespace Microsoft.CodeAnalysis.Remote
         /// same document may appear multiple times inside of this queue (for different versions of the document).
         /// However, we'll only process the last version of any document added.
         /// </summary>
-        private readonly AsyncBatchingWorkQueue<(Document, ClassificationType type, ClassificationOptions, StorageDatabase)> _workQueue;
+        private readonly AsyncBatchingWorkQueue<(Document, ClassificationType type, ClassificationOptions)> _workQueue;
         private readonly CancellationTokenSource _cancellationTokenSource = new();
 
         public RemoteSemanticClassificationService(in ServiceConstructionArguments arguments)
             : base(arguments)
         {
-            _workQueue = new AsyncBatchingWorkQueue<(Document, ClassificationType, ClassificationOptions, StorageDatabase)>(
+            _workQueue = new AsyncBatchingWorkQueue<(Document, ClassificationType, ClassificationOptions)>(
                 DelayTimeSpan.Short,
                 CacheClassificationsAsync,
-                EqualityComparer<(Document, ClassificationType, ClassificationOptions, StorageDatabase)>.Default,
+                EqualityComparer<(Document, ClassificationType, ClassificationOptions)>.Default,
                 AsynchronousOperationListenerProvider.NullListener,
                 _cancellationTokenSource.Token);
         }
@@ -80,17 +80,17 @@ namespace Microsoft.CodeAnalysis.Remote
             };
 
         public async ValueTask<SerializableClassifiedSpans?> GetCachedClassificationsAsync(
-            DocumentKey documentKey, TextSpan textSpan, ClassificationType type, Checksum checksum, StorageDatabase database, CancellationToken cancellationToken)
+            DocumentKey documentKey, TextSpan textSpan, ClassificationType type, Checksum checksum, CancellationToken cancellationToken)
         {
             var classifiedSpans = await TryGetOrReadCachedSemanticClassificationsAsync(
-                documentKey, type, checksum, database, cancellationToken).ConfigureAwait(false);
+                documentKey, type, checksum, cancellationToken).ConfigureAwait(false);
             return classifiedSpans.IsDefault
                 ? null
                 : SerializableClassifiedSpans.Dehydrate(classifiedSpans.WhereAsArray(c => c.TextSpan.IntersectsWith(textSpan)));
         }
 
         private static async ValueTask CacheClassificationsAsync(
-            ImmutableArray<(Document document, ClassificationType type, ClassificationOptions options, StorageDatabase database)> documents,
+            ImmutableSegmentedList<(Document document, ClassificationType type, ClassificationOptions options)> documents,
             CancellationToken cancellationToken)
         {
             // Group all the requests by document (as we may have gotten many requests for the same document). Then,
@@ -99,18 +99,22 @@ namespace Microsoft.CodeAnalysis.Remote
             var groups = documents.GroupBy(d => d.document.Id);
             var tasks = groups.Select(g => Task.Run(() =>
             {
-                var (document, type, options, database) = g.Last();
-                return CacheClassificationsAsync(document, type, options, database, cancellationToken);
+                var (document, type, options) = g.Last();
+                return CacheClassificationsAsync(document, type, options, cancellationToken);
             }, cancellationToken));
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
         }
 
         private static async Task CacheClassificationsAsync(
-            Document document, ClassificationType type, ClassificationOptions options, StorageDatabase database, CancellationToken cancellationToken)
+            Document document, ClassificationType type, ClassificationOptions options, CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
-            var persistenceService = solution.Workspace.Services.GetPersistentStorageService(database);
+            var persistenceService = solution.Workspace.Services.GetPersistentStorageService();
+
+            // we should never use no-op storage in OOP
+            Contract.ThrowIfTrue(persistenceService is NoOpPersistentStorageService);
+
             var storage = await persistenceService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), cancellationToken).ConfigureAwait(false);
             await using var _1 = storage.ConfigureAwait(false);
             if (storage == null)
@@ -195,7 +199,6 @@ namespace Microsoft.CodeAnalysis.Remote
             DocumentKey documentKey,
             ClassificationType type,
             Checksum checksum,
-            StorageDatabase database,
             CancellationToken cancellationToken)
         {
             // See if we've loaded this into memory first.
@@ -204,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             // Otherwise, attempt to read in classifications from persistence store.
             classifiedSpans = await TryReadCachedSemanticClassificationsAsync(
-                documentKey, type, checksum, database, cancellationToken).ConfigureAwait(false);
+                documentKey, type, checksum, cancellationToken).ConfigureAwait(false);
             if (classifiedSpans.IsDefault)
                 return default;
 
@@ -259,10 +262,9 @@ namespace Microsoft.CodeAnalysis.Remote
             DocumentKey documentKey,
             ClassificationType type,
             Checksum checksum,
-            StorageDatabase database,
             CancellationToken cancellationToken)
         {
-            var persistenceService = GetWorkspaceServices().GetPersistentStorageService(database);
+            var persistenceService = GetWorkspaceServices().GetPersistentStorageService();
             var storage = await persistenceService.GetStorageAsync(documentKey.Project.Solution, cancellationToken).ConfigureAwait(false);
             await using var _ = storage.ConfigureAwait(false);
             if (storage == null)

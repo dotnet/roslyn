@@ -678,6 +678,107 @@ class C
         }
 
         [Fact]
+        public async Task TestConvertToFileScopedWithMultiLineRawString()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+[|namespace N|]
+{
+    class C
+    {
+        void M()
+        {
+            System.Console.WriteLine(""""""
+    a
+        b
+            c
+                d
+                    e
+    """""");
+        }
+    }
+}
+",
+                FixedCode = @"
+namespace $$N;
+
+class C
+{
+    void M()
+    {
+        System.Console.WriteLine(""""""
+    a
+        b
+            c
+                d
+                    e
+    """""");
+    }
+}
+",
+                LanguageVersion = LanguageVersion.Preview,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
+                }
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestConvertToFileScopedWithUtf8MultiLineRawString()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+[|namespace N|]
+{
+    class C
+    {
+        void M()
+        {
+            M2(""""""
+    a
+        b
+            c
+                d
+                    e
+    """"""u8);
+        }
+
+        void M2(System.ReadOnlySpan<byte> x) {}
+    }
+}
+",
+                FixedCode = @"
+namespace $$N;
+
+class C
+{
+    void M()
+    {
+        M2(""""""
+    a
+        b
+            c
+                d
+                    e
+    """"""u8);
+    }
+
+    void M2(System.ReadOnlySpan<byte> x) {}
+}
+",
+                LanguageVersion = LanguageVersion.Preview,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
+                }
+            }.RunAsync();
+        }
+
+        [Fact]
         public async Task TestConvertToFileScopedSingleLineNamespace1()
         {
             await new VerifyCS.Test

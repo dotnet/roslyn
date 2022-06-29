@@ -128,7 +128,7 @@ class Program
 }
 ";
 
-            CompileAndVerifyRef(text, verify: Verification.Fails).VerifyIL("Program.M(out int)", @"
+            CompileAndVerify(text, parseOptions: TestOptions.Regular10, verify: Verification.Fails).VerifyIL("Program.M(out int)", @"
 {
   // Code size        5 (0x5)
   .maxstack  2
@@ -1449,7 +1449,7 @@ class Program
         }
 
         [Fact]
-        private void RefReturnsAreValues()
+        public void RefReturnsAreValues()
         {
             var text = @"
 class Program
@@ -3635,7 +3635,7 @@ Program+RefFunc1`2[Derived1,Base]", verify: Verification.Passes);
     }
 ";
 
-            CompileAndVerifyRef(text, expectedOutput: "37", verify: Verification.Fails).VerifyIL("Program.Main()", @"
+            CompileAndVerify(text, expectedOutput: "37", parseOptions: TestOptions.Regular10, verify: Verification.Fails).VerifyIL("Program.Main()", @"
 {
   // Code size       75 (0x4b)
   .maxstack  3

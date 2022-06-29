@@ -20,6 +20,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         private static readonly ObjectPool<Stack<(SyntaxNodeOrToken nodeOrToken, bool leading, bool trailing)>> s_stackPool
             = SharedPools.Default<Stack<(SyntaxNodeOrToken nodeOrToken, bool leading, bool trailing)>>();
 
+        public static bool IsMemberInitializerNamedAssignmentIdentifier(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+            => syntaxFacts.IsMemberInitializerNamedAssignmentIdentifier(node, out _);
+
         public static bool IsOnSingleLine(this ISyntaxFacts syntaxFacts, SyntaxNode node, bool fullSpan)
         {
             // The stack logic assumes the initial node is not null
@@ -243,7 +246,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         }
 
         private static bool SpansPreprocessorDirective(this ISyntaxFacts syntaxFacts, SyntaxTriviaList list)
-            => list.Any(t => syntaxFacts.IsPreprocessorDirective(t));
+            => list.Any(syntaxFacts.IsPreprocessorDirective);
 
         public static bool IsLegalIdentifier(this ISyntaxFacts syntaxFacts, string name)
         {
@@ -464,25 +467,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         }
 
         /// <summary>
-        /// Gets the statement container node for the statement <paramref name="node"/>.
-        /// </summary>
-        /// <param name="syntaxFacts">The <see cref="ISyntaxFacts"/> implementation.</param>
-        /// <param name="node">The statement.</param>
-        /// <returns>The statement container for <paramref name="node"/>.</returns>
-        public static SyntaxNode? GetStatementContainer(this ISyntaxFacts syntaxFacts, SyntaxNode node)
-        {
-            for (var current = node; current is object; current = current.Parent)
-            {
-                if (syntaxFacts.IsStatementContainer(current.Parent))
-                {
-                    return current.Parent;
-                }
-            }
-
-            return null;
-        }
-
-        /// <summary>
         /// Similar to <see cref="ISyntaxFacts.GetStandaloneExpression(SyntaxNode)"/>, this gets the containing
         /// expression that is actually a language expression and not just typed as an ExpressionSyntax for convenience.
         /// However, this goes beyond that that method in that if this expression is the RHS of a conditional access
@@ -510,16 +494,43 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             return argumentList;
         }
 
+        public static SeparatedSyntaxList<SyntaxNode> GetArgumentsOfInvocationExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+        {
+            var argumentList = syntaxFacts.GetArgumentListOfInvocationExpression(node);
+            return argumentList is null ? default : syntaxFacts.GetArgumentsOfArgumentList(argumentList);
+        }
+
         public static SyntaxNode? GetArgumentListOfObjectCreationExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
         {
             syntaxFacts.GetPartsOfObjectCreationExpression(node, out _, out var argumentList, out _);
             return argumentList;
         }
 
+        public static SyntaxNode? GetDefaultOfParameter(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+        {
+            syntaxFacts.GetPartsOfParameter(node, out _, out var @default);
+            return @default;
+        }
+
         public static SyntaxNode GetExpressionOfParenthesizedExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
         {
             syntaxFacts.GetPartsOfParenthesizedExpression(node, out _, out var expression, out _);
             return expression;
+        }
+
+        public static SyntaxToken GetIdentifierOfGenericName(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+        {
+            syntaxFacts.GetPartsOfGenericName(node, out var identifier, out _);
+            return identifier;
+        }
+
+        public static SyntaxToken GetIdentifierOfIdentifierName(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+            => syntaxFacts.GetIdentifierOfSimpleName(node);
+
+        public static SyntaxToken GetIdentifierOfParameter(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+        {
+            syntaxFacts.GetPartsOfParameter(node, out var identifier, out _);
+            return identifier;
         }
 
         public static SyntaxList<SyntaxNode> GetImportsOfBaseNamespaceDeclaration(this ISyntaxFacts syntaxFacts, SyntaxNode node)
@@ -574,6 +585,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         {
             syntaxFacts.GetPartsOfPrefixUnaryExpression(node, out var operatorToken, out _);
             return operatorToken;
+        }
+
+        public static SeparatedSyntaxList<SyntaxNode> GetTypeArgumentsOfGenericName(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+        {
+            syntaxFacts.GetPartsOfGenericName(node, out _, out var typeArguments);
+            return typeArguments;
         }
 
         public static SyntaxNode GetTypeOfObjectCreationExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
@@ -801,6 +818,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public static bool IsRangeExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.RangeExpression;
 
+        public static bool IsRefExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == syntaxFacts.SyntaxKinds.RefExpression;
+
         public static bool IsSimpleMemberAccessExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.SimpleMemberAccessExpression;
 
@@ -835,7 +855,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public static bool IsLockStatement(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.LockStatement;
 
-        public static bool IsReturnStatement(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode node)
+        public static bool IsReturnStatement(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.ReturnStatement;
 
         public static bool IsThrowStatement(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
@@ -843,6 +863,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         public static bool IsUsingStatement(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.UsingStatement;
+
+        public static bool IsYieldReturnStatement(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == syntaxFacts.SyntaxKinds.YieldReturnStatement;
 
         #endregion
 

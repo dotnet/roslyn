@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 {
     internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarationSyntax, TNamespaceDeclarationSyntax, TMemberDeclarationSyntax, TCompilationUnitSyntax>
     {
-        private class MoveTypeEditor : Editor
+        private sealed class MoveTypeEditor : Editor
         {
             public MoveTypeEditor(
                 TService service,
@@ -79,12 +80,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 Solution solution, DocumentId sourceDocumentId, DocumentId documentWithMovedTypeId)
             {
                 var documentWithMovedType = solution.GetRequiredDocument(documentWithMovedTypeId);
+                var documentWithMovedTypeFormattingOptions = await documentWithMovedType.GetSyntaxFormattingOptionsAsync(State.FallbackOptions, CancellationToken).ConfigureAwait(false);
 
                 var syntaxFacts = documentWithMovedType.GetRequiredLanguageService<ISyntaxFactsService>();
                 var removeUnnecessaryImports = documentWithMovedType.GetRequiredLanguageService<IRemoveUnnecessaryImportsService>();
 
                 // Remove all unnecessary imports from the new document we've created.
-                documentWithMovedType = await removeUnnecessaryImports.RemoveUnnecessaryImportsAsync(documentWithMovedType, CancellationToken).ConfigureAwait(false);
+                documentWithMovedType = await removeUnnecessaryImports.RemoveUnnecessaryImportsAsync(documentWithMovedType, documentWithMovedTypeFormattingOptions, CancellationToken).ConfigureAwait(false);
 
                 solution = solution.WithDocumentSyntaxRoot(
                     documentWithMovedTypeId, await documentWithMovedType.GetRequiredSyntaxRootAsync(CancellationToken).ConfigureAwait(false));
@@ -97,9 +99,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
                 // Now remove any unnecessary imports from the original doc that moved to the new doc.
                 var sourceDocument = solution.GetRequiredDocument(sourceDocumentId);
+                var sourceDocumentFormattingOptions = await sourceDocument.GetSyntaxFormattingOptionsAsync(State.FallbackOptions, CancellationToken).ConfigureAwait(false);
                 sourceDocument = await removeUnnecessaryImports.RemoveUnnecessaryImportsAsync(
                     sourceDocument,
                     n => movedImports.Contains(i => syntaxFacts.AreEquivalent(i, n)),
+                    sourceDocumentFormattingOptions,
                     CancellationToken).ConfigureAwait(false);
 
                 return solution.WithDocumentSyntaxRoot(
@@ -158,8 +162,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             /// </summary>
             private async Task<SyntaxNode> AddFinalNewLineIfDesiredAsync(Document document, SyntaxNode modifiedRoot)
             {
-                var options = await document.GetOptionsAsync(CancellationToken).ConfigureAwait(false);
-                var insertFinalNewLine = options.GetOption(FormattingOptions2.InsertFinalNewLine);
+                var documentFormattingOptions = await document.GetDocumentFormattingOptionsAsync(State.FallbackOptions, CancellationToken).ConfigureAwait(false);
+                var insertFinalNewLine = documentFormattingOptions.InsertFinalNewLine;
                 if (insertFinalNewLine)
                 {
                     var endOfFileToken = ((ICompilationUnitSyntax)modifiedRoot).EndOfFileToken;
@@ -169,8 +173,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                     if (endOfFileToken.LeadingTrivia.IsEmpty() &&
                         !previousToken.TrailingTrivia.Any(syntaxFacts.IsEndOfLineTrivia))
                     {
+                        var lineFormattingOptions = await document.GetLineFormattingOptionsAsync(State.FallbackOptions, CancellationToken).ConfigureAwait(false);
                         var generator = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
-                        var endOfLine = generator.EndOfLine(options.GetOption(FormattingOptions.NewLine));
+                        var endOfLine = generator.EndOfLine(lineFormattingOptions.NewLine);
                         return modifiedRoot.ReplaceToken(
                             previousToken, previousToken.WithAppendedTrailingTrivia(endOfLine));
                     }
@@ -216,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
                 // get potential namespace, types and members to remove.
                 var removableCandidates = root
-                    .DescendantNodes(n => spine.Contains(n))
+                    .DescendantNodes(spine.Contains)
                     .Where(n => FilterToTopLevelMembers(n, State.TypeNode)).ToSet();
 
                 // diff candidates with items we want to keep.

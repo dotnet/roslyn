@@ -160,23 +160,19 @@ namespace Microsoft.CodeAnalysis.FindUsages
             }
         }
 
-#pragma warning disable CS0612 // Type or member is obsolete - TypeScript
-        [Obsolete]
-        public virtual bool CanNavigateTo(Workspace workspace, CancellationToken cancellationToken) => false;
+        [Obsolete("Use GetNavigableLocationAsync instead")]
+        public Task<bool> TryNavigateToAsync(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
+            => TryNavigateToAsync(workspace, new NavigationOptions(showInPreviewTab, activateTab), cancellationToken);
 
-        [Obsolete]
-        public virtual bool TryNavigateTo(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken) => false;
+        [Obsolete("Use GetNavigableLocationAsync instead")]
+        public async Task<bool> TryNavigateToAsync(Workspace workspace, NavigationOptions options, CancellationToken cancellationToken)
+        {
+            var location = await GetNavigableLocationAsync(workspace, cancellationToken).ConfigureAwait(false);
+            return location != null &&
+                await location.NavigateToAsync(options, cancellationToken).ConfigureAwait(false);
+        }
 
-        public virtual Task<bool> CanNavigateToAsync(Workspace workspace, CancellationToken cancellationToken)
-            => Task.FromResult(CanNavigateTo(workspace, cancellationToken));
-
-        [Obsolete]
-        public virtual Task<bool> TryNavigateToAsync(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
-            => Task.FromResult(TryNavigateTo(workspace, showInPreviewTab, activateTab, cancellationToken));
-
-        public virtual Task<bool> TryNavigateToAsync(Workspace workspace, NavigationOptions options, CancellationToken cancellationToken)
-            => TryNavigateToAsync(workspace, options.PreferProvisionalTab, options.ActivateTab, cancellationToken);
-#pragma warning restore
+        public abstract Task<INavigableLocation?> GetNavigableLocationAsync(Workspace workspace, CancellationToken cancellationToken);
 
         public static DefinitionItem Create(
             ImmutableArray<string> tags,
@@ -325,5 +321,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
             return ImmutableArray<TaggedText>.Empty;
         }
+
+        public DetachedDefinitionItem Detach()
+            => new(Tags, DisplayParts, NameDisplayParts, OriginationParts, SourceSpans.SelectAsArray(ss => (DocumentIdSpan)ss), Properties, DisplayableProperties, DisplayIfNoReferences);
     }
 }

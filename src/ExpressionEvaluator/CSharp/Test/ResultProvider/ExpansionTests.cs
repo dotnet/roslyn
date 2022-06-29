@@ -2413,13 +2413,13 @@ class D : C
             var getChildrenResult = default(DkmGetChildrenAsyncResult);
             resultProvider.GetChildren(evalResult, workList, n, DefaultInspectionContext, r => getChildrenResult = r);
             Assert.Equal(0, workList.Length);
-            Assert.Equal(getChildrenResult.InitialChildren.Length, n);
+            Assert.Equal(n, getChildrenResult.InitialChildren.Length);
 
             // GetItems
             var getItemsResult = default(DkmEvaluationEnumAsyncResult);
             resultProvider.GetItems(getChildrenResult.EnumContext, workList, 0, n, r => getItemsResult = r);
             Assert.Equal(0, workList.Length);
-            Assert.Equal(getItemsResult.Items.Length, n);
+            Assert.Equal(n, getItemsResult.Items.Length);
         }
 
         /// <summary>
@@ -2554,6 +2554,36 @@ class C
             var value = CreateErrorValue(type: null, message: message);
             Verify(FormatResult(rootExpr, value),
                 EvalResult(rootExpr, message, "", rootExpr));
+        }
+
+        [WorkItem(62156, "https://github.com/dotnet/roslyn/issues/62156")]
+        [Fact(Skip = "62156")]
+        public void RefField()
+        {
+            var source =
+@"ref struct S
+{
+    public S(ref string s)
+    {
+        F = ref s;
+    }
+    public ref string F;
+}";
+            var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(GetAssembly(source)));
+            using (runtime.Load())
+            {
+                var type = runtime.GetType("S");
+                var value = type.Instantiate("Hello, world!");
+                var evalResult = FormatResult("s", value);
+                var children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult(
+                        "F",
+                        "Hello, world!",
+                        "string",
+                        "s.F",
+                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite));
+            }
         }
     }
 }

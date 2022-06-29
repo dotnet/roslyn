@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.SourceGeneration;
 using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis
 {
@@ -215,10 +216,14 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public readonly struct GeneratorSyntaxContext
     {
-        internal GeneratorSyntaxContext(SyntaxNode node, SemanticModel semanticModel)
+        internal readonly ISyntaxHelper SyntaxHelper;
+        private readonly Lazy<SemanticModel>? _semanticModel;
+
+        internal GeneratorSyntaxContext(SyntaxNode node, Lazy<SemanticModel>? semanticModel, ISyntaxHelper syntaxHelper)
         {
             Node = node;
-            SemanticModel = semanticModel;
+            _semanticModel = semanticModel;
+            SyntaxHelper = syntaxHelper;
         }
 
         /// <summary>
@@ -229,7 +234,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The <see cref="CodeAnalysis.SemanticModel" /> that can be queried to obtain information about <see cref="Node"/>.
         /// </summary>
-        public SemanticModel SemanticModel { get; }
+        public SemanticModel SemanticModel => _semanticModel!.Value;
     }
 
     /// <summary>

@@ -48,6 +48,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsDiscard { get { return false; } }
 
+        internal override DeclarationScope Scope => DeclarationScope.Unscoped;
+
         #region Not used by MethodSignatureComparer
 
         internal override bool IsMetadataIn { get { throw ExceptionUtilities.Unreachable; } }
@@ -87,8 +89,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override AssemblySymbol ContainingAssembly { get { throw ExceptionUtilities.Unreachable; } }
 
         internal override ModuleSymbol ContainingModule { get { throw ExceptionUtilities.Unreachable; } }
-
-        public override bool IsNullChecked => false;
 
         internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => throw ExceptionUtilities.Unreachable;
 

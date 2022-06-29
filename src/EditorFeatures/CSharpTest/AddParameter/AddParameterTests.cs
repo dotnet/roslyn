@@ -2902,5 +2902,138 @@ namespace System.Runtime.CompilerServices
 }
 ", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        [WorkItem(56952, "https://github.com/dotnet/roslyn/issues/56952")]
+        public async Task TestRecordsNamingConventions()
+        {
+            await TestInRegularAndScript1Async(@"[|new Test(""repro"")|];
+
+record Test();
+", @"new Test(""repro"");
+
+record Test(string V);
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        [WorkItem(56952, "https://github.com/dotnet/roslyn/issues/56952")]
+        public async Task TestRecordsNamingConventions_RecordStruct()
+        {
+            await TestInRegularAndScript1Async(@"[|new Test(""repro"")|];
+
+record struct Test();
+", @"new Test(""repro"");
+
+record struct Test(string V);
+");
+        }
+
+        [WorkItem(61715, "https://github.com/dotnet/roslyn/issues/61715")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestMethodGroup1()
+        {
+            await TestInRegularAndScript1Async(@"public class Example
+{
+    public void Add(int x)
+    {
+    }
+
+    public void DoSomething()
+    {
+    }
+
+    public void Main()
+    {
+        [|DoSomething|](Add);
+    }
+}", @"public class Example
+{
+    public void Add(int x)
+    {
+    }
+
+    public void DoSomething(System.Action<int> add)
+    {
+    }
+
+    public void Main()
+    {
+        DoSomething(Add);
+    }
+}");
+        }
+
+        [WorkItem(61715, "https://github.com/dotnet/roslyn/issues/61715")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestMethodGroup2()
+        {
+            await TestInRegularAndScript1Async(@"public class Example
+{
+    public void Add(int x, string y)
+    {
+    }
+
+    public void DoSomething()
+    {
+    }
+
+    public void Main()
+    {
+        [|DoSomething|](Add);
+    }
+}", @"public class Example
+{
+    public void Add(int x, string y)
+    {
+    }
+
+    public void DoSomething(System.Action<int, string> add)
+    {
+    }
+
+    public void Main()
+    {
+        DoSomething(Add);
+    }
+}");
+        }
+
+        [WorkItem(61715, "https://github.com/dotnet/roslyn/issues/61715")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestMethodGroup3()
+        {
+            await TestInRegularAndScript1Async(@"public class Example
+{
+    public int Add(int x, string y)
+    {
+        return 0;
+    }
+
+    public void DoSomething()
+    {
+    }
+
+    public void Main()
+    {
+        [|DoSomething|](Add);
+    }
+}", @"public class Example
+{
+    public int Add(int x, string y)
+    {
+        return 0;
+    }
+
+    public void DoSomething(System.Func<int, string, int> add)
+    {
+    }
+
+    public void Main()
+    {
+        DoSomething(Add);
+    }
+}");
+        }
     }
 }

@@ -33,8 +33,6 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(IDEDiagnosticIds.SimplifyInterpolationId);
 
-        internal override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         protected abstract AbstractSimplifyInterpolationHelpers GetHelpers();
 
         protected abstract TInterpolationSyntax WithExpression(TInterpolationSyntax interpolation, TExpressionSyntax expression);
@@ -44,15 +42,13 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(new MyCodeAction(
-                c => FixAsync(context.Document, context.Diagnostics.First(), c)),
-                context.Diagnostics);
+            RegisterCodeFix(context, AnalyzersResources.Simplify_interpolation, nameof(AnalyzersResources.Simplify_interpolation));
             return Task.CompletedTask;
         }
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var generator = editor.Generator;
@@ -107,14 +103,6 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
             }
 
             return result;
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Simplify_interpolation, createChangedDocument, AnalyzersResources.Simplify_interpolation)
-            {
-            }
         }
     }
 }

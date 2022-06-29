@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.CodeAnalysis.SourceGeneration;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -14,11 +15,16 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly SyntaxContextReceiverCreator _receiverCreator;
         private readonly Action<IIncrementalGeneratorOutputNode> _registerOutput;
+        private readonly ISyntaxHelper _syntaxHelper;
 
-        public SyntaxReceiverStrategy(SyntaxContextReceiverCreator receiverCreator, Action<IIncrementalGeneratorOutputNode> registerOutput)
+        public SyntaxReceiverStrategy(
+            SyntaxContextReceiverCreator receiverCreator,
+            Action<IIncrementalGeneratorOutputNode> registerOutput,
+            ISyntaxHelper syntaxHelper)
         {
             _receiverCreator = receiverCreator;
             _registerOutput = registerOutput;
+            _syntaxHelper = syntaxHelper;
         }
 
         public ISyntaxInputBuilder GetBuilder(StateTableStore table, object key, bool trackIncrementalSteps, string? name, IEqualityComparer<T>? comparer) => new Builder(this, key, table, trackIncrementalSteps);
@@ -48,7 +54,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (_receiver is object)
                 {
-                    _walker = new GeneratorSyntaxWalker(_receiver);
+                    _walker = new GeneratorSyntaxWalker(_receiver, owner._syntaxHelper);
                 }
             }
 
@@ -60,7 +66,11 @@ namespace Microsoft.CodeAnalysis
                 tables.SetTable(_key, _nodeStateTable.ToImmutableAndFree());
             }
 
-            public void VisitTree(Lazy<SyntaxNode> root, EntryState state, SemanticModel? model, CancellationToken cancellationToken)
+            public void VisitTree(
+                Lazy<SyntaxNode> root,
+                EntryState state,
+                Lazy<SemanticModel>? model,
+                CancellationToken cancellationToken)
             {
                 if (_walker is not null && state != EntryState.Removed)
                 {

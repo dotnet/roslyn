@@ -53,21 +53,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var typeParams = containingType.TypeParameters;
 
                     int parameterCount = typeParams.Length - (voidReturnTypeOpt is null ? 1 : 0);
-                    var parameterTypes = ArrayBuilder<TypeWithAnnotations>.GetInstance(parameterCount);
-                    var parameterRefKinds = ArrayBuilder<RefKind>.GetInstance(parameterCount);
+                    var parameters = ArrayBuilder<(TypeWithAnnotations, RefKind, DeclarationScope)>.GetInstance(parameterCount);
                     for (int i = 0; i < parameterCount; i++)
                     {
-                        parameterTypes.Add(TypeWithAnnotations.Create(typeParams[i]));
-                        parameterRefKinds.Add(refKinds.IsNull ? RefKind.None : refKinds[i]);
+                        parameters.Add((TypeWithAnnotations.Create(typeParams[i]), refKinds.IsNull ? RefKind.None : refKinds[i], DeclarationScope.Unscoped));
                     }
 
                     // if we are given Void type the method returns Void, otherwise its return type is the last type parameter of the delegate:
                     var returnType = TypeWithAnnotations.Create(voidReturnTypeOpt ?? typeParams[parameterCount]);
                     var returnRefKind = (refKinds.IsNull || voidReturnTypeOpt is { }) ? RefKind.None : refKinds[parameterCount];
 
-                    var method = new SynthesizedDelegateInvokeMethod(containingType, parameterTypes, parameterRefKinds, returnType, returnRefKind);
-                    parameterRefKinds.Free();
-                    parameterTypes.Free();
+                    var method = new SynthesizedDelegateInvokeMethod(containingType, parameters, returnType, returnRefKind);
+                    parameters.Free();
                     return method;
                 }
 
@@ -130,22 +127,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     TypeMap typeMap)
                 {
                     var parameterCount = fields.Length - 1;
-                    var parameterTypes = ArrayBuilder<TypeWithAnnotations>.GetInstance(parameterCount);
-                    var parameterRefKinds = ArrayBuilder<RefKind>.GetInstance(parameterCount);
+                    var parameters = ArrayBuilder<(TypeWithAnnotations, RefKind, DeclarationScope)>.GetInstance(parameterCount);
                     for (int i = 0; i < parameterCount; i++)
                     {
-                        var parameter = fields[i];
-                        parameterTypes.Add(typeMap.SubstituteType(parameter.Type));
-                        parameterRefKinds.Add(parameter.RefKind);
+                        var field = fields[i];
+                        parameters.Add((typeMap.SubstituteType(field.Type), field.RefKind, field.Scope));
                     }
 
                     var returnParameter = fields[^1];
                     var returnType = typeMap.SubstituteType(returnParameter.Type);
                     var returnRefKind = returnParameter.RefKind;
 
-                    var method = new SynthesizedDelegateInvokeMethod(containingType, parameterTypes, parameterRefKinds, returnType, returnRefKind);
-                    parameterRefKinds.Free();
-                    parameterTypes.Free();
+                    var method = new SynthesizedDelegateInvokeMethod(containingType, parameters, returnType, returnRefKind);
+                    parameters.Free();
                     return method;
                 }
             }
@@ -158,6 +152,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public override TypeKind TypeKind => TypeKind.Delegate;
 
             public override IEnumerable<string> MemberNames => GetMembers().SelectAsArray(member => member.Name);
+
+            internal override bool HasDeclaredRequiredMembers => false;
 
             public override ImmutableArray<Symbol> GetMembers() => _members;
 

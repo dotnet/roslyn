@@ -42,16 +42,17 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 return;
 
             var data = await ImplementAbstractClassData.TryGetDataAsync(
-                document, classNode, GetClassIdentifier(classNode), context.Options.ImplementTypeOptions, cancellationToken).ConfigureAwait(false);
+                document, classNode, GetClassIdentifier(classNode), context.Options.GetImplementTypeGenerationOptions(document.Project.LanguageServices), cancellationToken).ConfigureAwait(false);
             if (data == null)
                 return;
 
             var abstractClassType = data.AbstractClassType;
             var id = GetCodeActionId(abstractClassType.ContainingAssembly.Name, abstractClassType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
             context.RegisterCodeFix(
-                new MyCodeAction(
+                CodeAction.Create(
                     FeaturesResources.Implement_abstract_class,
-                    c => data.ImplementAbstractClassAsync(throughMember: null, canDelegateAllMembers: null, c), id),
+                    c => data.ImplementAbstractClassAsync(throughMember: null, canDelegateAllMembers: null, c),
+                    id),
                 context.Diagnostics);
 
             foreach (var (through, canDelegateAllMembers) in data.GetDelegatableMembers())
@@ -60,23 +61,17 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                     abstractClassType.ContainingAssembly.Name,
                     abstractClassType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
                     through.Name);
+
                 context.RegisterCodeFix(
-                    new MyCodeAction(
+                    CodeAction.Create(
                         string.Format(FeaturesResources.Implement_through_0, through.Name),
-                        c => data.ImplementAbstractClassAsync(through, canDelegateAllMembers, c), id),
+                        c => data.ImplementAbstractClassAsync(through, canDelegateAllMembers, c),
+                        id),
                     context.Diagnostics);
             }
         }
 
         private static string GetCodeActionId(string assemblyName, string abstractTypeFullyQualifiedName, string through = "")
             => FeaturesResources.Implement_abstract_class + ";" + assemblyName + ";" + abstractTypeFullyQualifiedName + ";" + through;
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string id)
-                : base(title, createChangedDocument, id)
-            {
-            }
-        }
     }
 }

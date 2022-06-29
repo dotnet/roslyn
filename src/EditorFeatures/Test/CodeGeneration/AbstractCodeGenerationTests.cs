@@ -4,6 +4,7 @@
 
 using System;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
@@ -38,7 +39,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             var annotatedDocument = document.WithSyntaxRoot(
                     root.WithAdditionalAnnotations(Simplifier.Annotation));
 
-            var simplifiedDocument = Simplifier.ReduceAsync(annotatedDocument).Result;
+            var options = document.Project.LanguageServices.GetRequiredService<ISimplificationService>().DefaultOptions;
+            var simplifiedDocument = Simplifier.ReduceAsync(annotatedDocument, options, CancellationToken.None).Result;
 
             var rootNode = simplifiedDocument.GetRequiredSyntaxRootAsync(default).AsTask().Result;
 

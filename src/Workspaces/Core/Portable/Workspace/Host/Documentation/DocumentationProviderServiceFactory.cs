@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Host
                 assemblyPath = Path.ChangeExtension(assemblyPath, "xml");
                 if (!_assemblyPathToDocumentationProviderMap.TryGetValue(assemblyPath, out var provider))
                 {
-                    provider = _assemblyPathToDocumentationProviderMap.GetOrAdd(assemblyPath, _path => XmlDocumentationProvider.CreateFromFile(_path));
+                    provider = _assemblyPathToDocumentationProviderMap.GetOrAdd(assemblyPath, XmlDocumentationProvider.CreateFromFile);
                 }
 
                 return provider;

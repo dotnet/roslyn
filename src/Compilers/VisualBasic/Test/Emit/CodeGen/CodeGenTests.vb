@@ -13730,6 +13730,9 @@ End Class
 5180801")
         End Sub
 
+        ' Temporarily disabling in release builds due to the following item:
+        ' https://github.com/dotnet/roslyn/issues/60472
+#If DEBUG Then
         ' Restricting to English as there are different tolerance limits on non-English cultures. The test
         ' is to prevent regressions and single language should be sufficient here
         <ConditionalFact(GetType(NoIOperationValidation), GetType(WindowsOnly), GetType(IsEnglishLocal))>
@@ -13776,7 +13779,7 @@ End Structure
     Diagnostic(ERRID.ERR_TooLongOrComplexExpression, "a").WithLocation(7, 16)
                 )
         End Sub
-
+#End If
 
         <Fact()>
         Public Sub InplaceCtorUsesLocal()

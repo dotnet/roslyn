@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                         try
                         {
                             var process = Process.GetProcessById(shutdownBuildResponse.ServerProcessId);
-#if NET50_OR_GREATER
+#if NET5_0_OR_GREATER
                             await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
 #else
                             process.WaitForExit();
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             using var pipe = await tryConnectToServer(pipeName, timeoutOverride, logger, tryCreateServerFunc, cancellationToken).ConfigureAwait(false);
             if (pipe is null)
             {
-                return new RejectedBuildResponse("Failed to connect to server");
+                return new CannotConnectResponse();
             }
             else
             {

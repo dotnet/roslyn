@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor
         }
 
         public event EventHandler<SubjectBuffersConnectedEventArgs> SubjectBuffersConnected;
+        public event EventHandler<SubjectBuffersConnectedEventArgs> SubjectBuffersDisconnected;
 
         void ITextViewConnectionListener.SubjectBuffersConnected(ITextView textView, ConnectionReason reason, IReadOnlyCollection<ITextBuffer> subjectBuffers)
         {
@@ -80,6 +81,8 @@ namespace Microsoft.CodeAnalysis.Editor
                     }
                 }
             }
+
+            this.SubjectBuffersDisconnected?.Invoke(this, new SubjectBuffersConnectedEventArgs(textView, subjectBuffers.ToReadOnlyCollection()));
         }
 
         private static bool IsSupportedContentType(IContentType contentType)
