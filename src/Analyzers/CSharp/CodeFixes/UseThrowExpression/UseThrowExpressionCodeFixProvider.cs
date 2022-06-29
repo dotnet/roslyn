@@ -58,8 +58,19 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                 var expressionStatement = assignmentValue.GetAncestor<ExpressionStatementSyntax>();
                 var identifierName = expressionStatement.DescendantNodes().ElementAt(1);
 
-                var block = ((IfStatementSyntax)ifStatement).Statement.ChildNodes().FirstOrDefault();
-                var closeBrace = ((IfStatementSyntax)ifStatement).CloseParenToken;
+                SyntaxNode block;
+                SyntaxToken closeBrace;
+                if (ifStatement.GetType() == typeof(IfStatementSyntax))
+                {
+                    block = ((IfStatementSyntax)ifStatement).Statement.ChildNodes().FirstOrDefault();
+                    closeBrace = ((IfStatementSyntax)ifStatement).CloseParenToken;
+                }
+                else
+                {
+                    var ifStatementSyntax = ((GlobalStatementSyntax)ifStatement).Statement;
+                    block = ((IfStatementSyntax)ifStatementSyntax).ChildNodes().ElementAt(1);
+                    closeBrace = ((IfStatementSyntax)ifStatementSyntax).CloseParenToken;
+                }
 
                 var triviaList = new SyntaxTriviaList()
                     .AddRange(closeBrace.GetAllTrailingTrivia().Where(t => !t.IsWhitespaceOrEndOfLine()))
