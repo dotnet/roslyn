@@ -49,17 +49,15 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
             return;
 
         var trueExpression = (TExpressionSyntax)syntaxFacts.GetExpressionOfExpressionStatement(expressionStatement);
-        if (trueExpression is not TInvocationExpressionSyntax trueInvocation)
-            return;
 
-        var invokedExpression = (TExpressionSyntax)syntaxFacts.GetExpressionOfInvocationExpression(trueInvocation);
-        if (!syntaxFacts.IsSimpleMemberAccessExpression(invokedExpression))
-            return;
+        //var invokedExpression = (TExpressionSyntax)syntaxFacts.GetExpressionOfInvocationExpression(trueInvocation);
+        //if (!syntaxFacts.IsSimpleMemberAccessExpression(invokedExpression))
+        //    return;
 
-        // this is the `<expr1>` portion of the invocation.
-        var accessedExpression = (TExpressionSyntax?)syntaxFacts.GetExpressionOfMemberAccessExpression(invokedExpression);
-        if (accessedExpression is null)
-            return;
+        //// this is the `<expr1>` portion of the invocation.
+        //var accessedExpression = (TExpressionSyntax?)syntaxFacts.GetExpressionOfMemberAccessExpression(invokedExpression);
+        //if (accessedExpression is null)
+        //    return;
 
         // Now see if the `if (...)` looks like an appropriate null check.
 
@@ -71,9 +69,15 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
         if (isEquals)
             return;
 
-        // verify that <expr1> and <expr2> are the same.
-        if (!syntaxFacts.AreEquivalent(conditionPartToCheck, accessedExpression))
+        var semanticModel = context.SemanticModel;
+        var whenPartMatch = GetWhenPartMatch(syntaxFacts, semanticModel, conditionPartToCheck, trueExpression);
+        if (whenPartMatch == null)
             return;
+
+        var whenPartIsNullable = semanticModel.GetTypeInfo(whenPartMatch).Type?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
+        var properties = whenPartIsNullable
+            ? s_whenPartIsNullableProperties
+            : ImmutableDictionary<string, string?>.Empty;
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
             Descriptor,
@@ -81,7 +85,8 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
             option.Notification.Severity,
             ImmutableArray.Create(
                 ifStatement.GetLocation(),
-                trueStatement.GetLocation()),
-            ImmutableDictionary<string, string?>.Empty));
+                trueStatement.GetLocation(),
+                whenPartMatch.GetLocation()),
+            properties));
     }
 }

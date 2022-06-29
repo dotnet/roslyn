@@ -117,7 +117,8 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                         TConditionalExpressionSyntax, TBinaryExpressionSyntax,
                         TInvocationExpressionSyntax, TMemberAccessExpressionSyntax,
                         TConditionalAccessExpressionSyntax, TElementAccessExpressionSyntax,
-                        TIfStatementSyntax, TExpressionStatementSyntax>.GetWhenPartMatch(syntaxFacts, semanticModel!, conditionalPart, currentWhenPartToCheck);
+                        TIfStatementSyntax, TExpressionStatementSyntax>.GetWhenPartMatch(
+                            syntaxFacts, semanticModel, (TExpressionSyntax)conditionalPart, (TExpressionSyntax)currentWhenPartToCheck);
                     if (match == null)
                     {
                         return conditionalExpression;
