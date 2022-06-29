@@ -58,7 +58,7 @@ class Test {
 
             var expectedChange = new TextChange(item.Span, nameof(DebugAssertTestCompletionProvider));
             var actualChange = (await completionService.GetChangeAsync(document, item).ConfigureAwait(false)).TextChange;
-            Assert.True(expectedChange ==actualChange);
+            Assert.True(expectedChange == actualChange);
         }
 
         private class MockAnalyzerReference : AnalyzerReference, ICompletionProviderFactory
@@ -106,7 +106,6 @@ class Test {
                 context.AddItem(completionItem);
                 context.CompletionListSpan = await GetTextChangeSpanAsync(context.Document, context.CompletionListSpan, context.CancellationToken).ConfigureAwait(false);
             }
-
 
             public override Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
             {
