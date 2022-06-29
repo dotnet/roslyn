@@ -380,28 +380,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                    HasChangesThatMayAffectSourceGenerators(oldProject.State, newProject.State);
         }
 
-        private static async Task PopulateChangedAndAddedDocumentsAsync(CommittedSolution oldSolution, Project newProject, ArrayBuilder<Document> changedOrAddedDocuments, CancellationToken cancellationToken)
+        private static async Task PopulateChangedAndAddedDocumentsAsync(Project oldProject, Project newProject, ArrayBuilder<Document> changedOrAddedDocuments, CancellationToken cancellationToken)
         {
             changedOrAddedDocuments.Clear();
-
-            var oldProject = oldSolution.GetProject(newProject.Id);
-            if (oldProject == null)
-            {
-                EditAndContinueWorkspaceService.Log.Write("EnC state of '{0}' [0x{1:X8}] queried: project not loaded", newProject.Id.DebugName, newProject.Id);
-
-                // TODO (https://github.com/dotnet/roslyn/issues/1204):
-                //
-                // When debugging session is started some projects might not have been loaded to the workspace yet (may be explicitly unloaded by the user).
-                // We capture the base solution. Edits in files that are in projects that haven't been loaded won't be applied
-                // and will result in source mismatch when the user steps into them.
-                //
-                // We can allow project to be added by including all its documents here.
-                // When we analyze these documents later on we'll check if they match the PDB.
-                // If so we can add them to the committed solution and detect further changes.
-                // It might be more efficient though to track added projects separately.
-
-                return;
-            }
 
             if (!await HasChangedOrAddedDocumentsAsync(oldProject, newProject, changedOrAddedDocuments, cancellationToken).ConfigureAwait(false))
             {
@@ -544,7 +525,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private static ProjectAnalysisSummary GetProjectAnalysisSymmary(ImmutableArray<DocumentAnalysisResults> documentAnalyses)
+        private static ProjectAnalysisSummary GetProjectAnalysisSummary(ImmutableArray<DocumentAnalysisResults> documentAnalyses)
         {
             var hasChanges = false;
             var hasSignificantValidChanges = false;
@@ -782,6 +763,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             try
             {
+                EditAndContinueWorkspaceService.Log.Write("EmitSolutionUpdate: '{0}'", solution.FilePath);
+
                 using var _1 = ArrayBuilder<ManagedModuleUpdate>.GetInstance(out var deltas);
                 using var _2 = ArrayBuilder<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)>)>.GetInstance(out var nonRemappableRegions);
                 using var _3 = ArrayBuilder<(ProjectId, EmitBaseline)>.GetInstance(out var emitBaselines);
@@ -796,11 +779,32 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var hasEmitErrors = false;
                 foreach (var newProject in solution.Projects)
                 {
-                    await PopulateChangedAndAddedDocumentsAsync(oldSolution, newProject, changedOrAddedDocuments, cancellationToken).ConfigureAwait(false);
+                    var oldProject = oldSolution.GetProject(newProject.Id);
+                    if (oldProject == null)
+                    {
+                        EditAndContinueWorkspaceService.Log.Write("EnC state of '{0}' queried: project not loaded", newProject.FilePath);
+
+                        // TODO (https://github.com/dotnet/roslyn/issues/1204):
+                        //
+                        // When debugging session is started some projects might not have been loaded to the workspace yet (may be explicitly unloaded by the user).
+                        // We capture the base solution. Edits in files that are in projects that haven't been loaded won't be applied
+                        // and will result in source mismatch when the user steps into them.
+                        //
+                        // We can allow project to be added by including all its documents here.
+                        // When we analyze these documents later on we'll check if they match the PDB.
+                        // If so we can add them to the committed solution and detect further changes.
+                        // It might be more efficient though to track added projects separately.
+
+                        continue;
+                    }
+
+                    await PopulateChangedAndAddedDocumentsAsync(oldProject, newProject, changedOrAddedDocuments, cancellationToken).ConfigureAwait(false);
                     if (changedOrAddedDocuments.IsEmpty())
                     {
                         continue;
                     }
+
+                    EditAndContinueWorkspaceService.Log.Write("Found {0} potentially changed document(s) in project '{1}'", changedOrAddedDocuments.Count, newProject.FilePath);
 
                     var (mvid, mvidReadError) = await DebuggingSession.GetProjectModuleIdAsync(newProject, cancellationToken).ConfigureAwait(false);
                     if (mvidReadError != null)
@@ -817,7 +821,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     if (mvid == Guid.Empty)
                     {
-                        EditAndContinueWorkspaceService.Log.Write("Emitting update of '{0}' [0x{1:X8}]: project not built", newProject.Id.DebugName, newProject.Id);
+                        EditAndContinueWorkspaceService.Log.Write("Emitting update of '{0}': project not built", newProject.FilePath);
                         continue;
                     }
 
@@ -846,15 +850,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         diagnostics.Add((newProject.Id, documentDiagnostics));
                     }
 
-                    var projectSummary = GetProjectAnalysisSymmary(changedDocumentAnalyses);
+                    var projectSummary = GetProjectAnalysisSummary(changedDocumentAnalyses);
+                    EditAndContinueWorkspaceService.Log.Write("Project summary for '{0}': {1}", projectSummary, newProject.FilePath);
                     if (projectSummary == ProjectAnalysisSummary.NoChanges)
                     {
                         continue;
                     }
 
-                    // PopulateChangedAndAddedDocumentsAsync returns no changes if base project does not exist
-                    var oldProject = oldSolution.GetProject(newProject.Id);
-                    Contract.ThrowIfNull(oldProject);
+                    foreach (var changedDocumentAnalysis in changedDocumentAnalyses)
+                    {
+                        if (changedDocumentAnalysis.HasChanges)
+                        {
+                            EditAndContinueWorkspaceService.Log.Write("Document changed, added, or deleted: '{0}'", changedDocumentAnalysis.FilePath);
+                        }
+                    }
 
                     // The capability of a module to apply edits may change during edit session if the user attaches debugger to 
                     // an additional process that doesn't support EnC (or detaches from such process). Before we apply edits 
@@ -906,7 +915,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         continue;
                     }
 
-                    EditAndContinueWorkspaceService.Log.Write("Emitting update of '{0}' [0x{1:X8}]", newProject.Id.DebugName, newProject.Id);
+                    EditAndContinueWorkspaceService.Log.Write("Emitting update of '{0}'", newProject.FilePath);
 
                     var oldCompilation = await oldProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                     var newCompilation = await newProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);

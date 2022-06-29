@@ -15,6 +15,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin
 {
@@ -23,6 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
     /// </summary>
     internal sealed class InheritanceGlyphFactory : IGlyphFactory
     {
+        private readonly Workspace _workspace;
         private readonly IThreadingContext _threadingContext;
         private readonly IStreamingFindUsagesPresenter _streamingFindUsagesPresenter;
         private readonly ClassificationTypeMap _classificationTypeMap;
@@ -33,6 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         private readonly IGlobalOptionService _globalOptions;
 
         public InheritanceGlyphFactory(
+            Workspace workspace,
             IThreadingContext threadingContext,
             IStreamingFindUsagesPresenter streamingFindUsagesPresenter,
             ClassificationTypeMap classificationTypeMap,
@@ -42,6 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             IGlobalOptionService globalOptions,
             IAsynchronousOperationListener listener)
         {
+            _workspace = workspace;
             _threadingContext = threadingContext;
             _streamingFindUsagesPresenter = streamingFindUsagesPresenter;
             _classificationTypeMap = classificationTypeMap;
@@ -77,6 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             var membersOnLine = inheritanceMarginTag.MembersOnLine;
             Contract.ThrowIfTrue(membersOnLine.IsEmpty);
             return new InheritanceMarginGlyph(
+                _workspace,
                 _threadingContext,
                 _streamingFindUsagesPresenter,
                 _classificationTypeMap,

@@ -8544,7 +8544,9 @@ done:;
         {
             // Check again for incremental re-use, since ParseBlock is called from a bunch of places
             // other than ParseStatementCore()
-            if (this.IsIncrementalAndFactoryContextMatches && this.CurrentNodeKind == SyntaxKind.Block)
+            // Also, if our caller produced any attributes, we don't want to reuse an existing block syntax
+            // directly as we don't want to lose those attributes
+            if (this.IsIncrementalAndFactoryContextMatches && this.CurrentNodeKind == SyntaxKind.Block && attributes.Count == 0)
                 return (BlockSyntax)this.EatNode();
 
             CSharpSyntaxNode openBrace = this.EatToken(SyntaxKind.OpenBraceToken);

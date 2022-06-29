@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio;
 using Roslyn.Test.Utilities;
@@ -99,6 +100,11 @@ End Module
 
             Assert.False(await TestServices.Editor.IsSavedAsync(HangMitigatingCancellationToken));
             await TestServices.Input.SendAsync((VirtualKeyCode.VK_S, VirtualKeyCode.CONTROL));
+
+            // Wait for async save operations to complete before proceeding
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace }, HangMitigatingCancellationToken);
+
+            await TestServices.SolutionExplorerVerifier.ActiveDocumentIsSavedAsync(HangMitigatingCancellationToken);
             Assert.True(await TestServices.Editor.IsSavedAsync(HangMitigatingCancellationToken));
             AssertEx.EqualOrDiff(@"Module Module1
     Sub Main(x As Integer)
