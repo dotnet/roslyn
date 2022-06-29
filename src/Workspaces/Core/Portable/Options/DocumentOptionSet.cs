@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Options
         internal DocumentOptionSet WithChangedOption<T>(PerLanguageOption2<T> option, T value)
             => (DocumentOptionSet)WithChangedOption(option, _language, value);
 
-        private protected override AnalyzerConfigOptions CreateAnalyzerConfigOptions(IOptionService optionService, string? language)
+        private protected override AnalyzerConfigOptions CreateAnalyzerConfigOptions(IEditorConfigOptionMappingService optionService, string? language)
         {
             Debug.Assert((language ?? _language) == _language, $"Use of a {nameof(DocumentOptionSet)} is not expected to differ from the language it was constructed with.");
             return base.CreateAnalyzerConfigOptions(optionService, language ?? _language);

@@ -1010,20 +1010,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        public TypeSyntax Type => GetRed(ref this.type, 2)!;
+        public SyntaxToken ScopedKeyword
+        {
+            get
+            {
+                var slot = ((Syntax.InternalSyntax.RefTypeSyntax)this.Green).scopedKeyword;
+                return slot != null ? new SyntaxToken(this, slot, GetChildPosition(2), GetChildIndex(2)) : default;
+            }
+        }
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.type, 2)! : null;
+        public TypeSyntax Type => GetRed(ref this.type, 3)!;
 
-        internal override SyntaxNode? GetCachedSlot(int index) => index == 2 ? this.type : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 3 ? GetRed(ref this.type, 3)! : null;
+
+        internal override SyntaxNode? GetCachedSlot(int index) => index == 3 ? this.type : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitRefType(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitRefType(this);
 
-        public RefTypeSyntax Update(SyntaxToken refKeyword, SyntaxToken readOnlyKeyword, TypeSyntax type)
+        public RefTypeSyntax Update(SyntaxToken refKeyword, SyntaxToken readOnlyKeyword, SyntaxToken scopedKeyword, TypeSyntax type)
         {
-            if (refKeyword != this.RefKeyword || readOnlyKeyword != this.ReadOnlyKeyword || type != this.Type)
+            if (refKeyword != this.RefKeyword || readOnlyKeyword != this.ReadOnlyKeyword || scopedKeyword != this.ScopedKeyword || type != this.Type)
             {
-                var newNode = SyntaxFactory.RefType(refKeyword, readOnlyKeyword, type);
+                var newNode = SyntaxFactory.RefType(refKeyword, readOnlyKeyword, scopedKeyword, type);
                 var annotations = GetAnnotations();
                 return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
@@ -1031,9 +1040,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return this;
         }
 
-        public RefTypeSyntax WithRefKeyword(SyntaxToken refKeyword) => Update(refKeyword, this.ReadOnlyKeyword, this.Type);
-        public RefTypeSyntax WithReadOnlyKeyword(SyntaxToken readOnlyKeyword) => Update(this.RefKeyword, readOnlyKeyword, this.Type);
-        public RefTypeSyntax WithType(TypeSyntax type) => Update(this.RefKeyword, this.ReadOnlyKeyword, type);
+        public RefTypeSyntax WithRefKeyword(SyntaxToken refKeyword) => Update(refKeyword, this.ReadOnlyKeyword, this.ScopedKeyword, this.Type);
+        public RefTypeSyntax WithReadOnlyKeyword(SyntaxToken readOnlyKeyword) => Update(this.RefKeyword, readOnlyKeyword, this.ScopedKeyword, this.Type);
+        public RefTypeSyntax WithScopedKeyword(SyntaxToken scopedKeyword) => Update(this.RefKeyword, this.ReadOnlyKeyword, scopedKeyword, this.Type);
+        public RefTypeSyntax WithType(TypeSyntax type) => Update(this.RefKeyword, this.ReadOnlyKeyword, this.ScopedKeyword, type);
     }
 
     public abstract partial class ExpressionOrPatternSyntax : CSharpSyntaxNode
@@ -1949,7 +1959,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <item><description><see cref="SyntaxKind.ArgListExpression"/></description></item>
     /// <item><description><see cref="SyntaxKind.NumericLiteralExpression"/></description></item>
     /// <item><description><see cref="SyntaxKind.StringLiteralExpression"/></description></item>
-    /// <item><description><see cref="SyntaxKind.UTF8StringLiteralExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.Utf8StringLiteralExpression"/></description></item>
     /// <item><description><see cref="SyntaxKind.CharacterLiteralExpression"/></description></item>
     /// <item><description><see cref="SyntaxKind.TrueLiteralExpression"/></description></item>
     /// <item><description><see cref="SyntaxKind.FalseLiteralExpression"/></description></item>

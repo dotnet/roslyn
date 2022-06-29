@@ -11,16 +11,16 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices
 {
-    internal class RegexEmbeddedLanguage : IEmbeddedLanguageFeatures
+    internal class RegexEmbeddedLanguage : IEmbeddedLanguage
     {
         public readonly EmbeddedLanguageInfo Info;
 
-        private readonly AbstractEmbeddedLanguageFeaturesProvider _provider;
+        private readonly AbstractEmbeddedLanguagesProvider _provider;
 
         public EmbeddedLanguageCompletionProvider CompletionProvider { get; }
 
         public RegexEmbeddedLanguage(
-            AbstractEmbeddedLanguageFeaturesProvider provider,
+            AbstractEmbeddedLanguagesProvider provider,
             EmbeddedLanguageInfo info)
         {
             Info = info;
@@ -40,14 +40,6 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
             var detector = RegexLanguageDetector.GetOrCreate(semanticModel.Compilation, this.Info);
             var tree = detector.TryParseString(token, semanticModel, cancellationToken);
             return tree == null ? default : (tree, token);
-        }
-
-        internal async Task<RegexTree> TryGetTreeAtPositionAsync(
-            Document document, int position, CancellationToken cancellationToken)
-        {
-            var (tree, _) = await TryGetTreeAndTokenAtPositionAsync(
-                document, position, cancellationToken).ConfigureAwait(false);
-            return tree;
         }
 
         public string EscapeText(string text, SyntaxToken token)

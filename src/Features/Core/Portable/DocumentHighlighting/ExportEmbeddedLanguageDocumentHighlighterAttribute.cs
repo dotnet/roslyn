@@ -12,14 +12,14 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
     internal class ExportEmbeddedLanguageDocumentHighlighterAttribute : ExportEmbeddedLanguageFeatureServiceAttribute
     {
         public ExportEmbeddedLanguageDocumentHighlighterAttribute(
-            string name, string language, params string[] identifiers)
-            : this(name, language, supportsUnannotatedAPIs: false, identifiers)
+            string name, string[] languages, params string[] identifiers)
+            : this(name, languages, supportsUnannotatedAPIs: false, identifiers)
         {
         }
 
         public ExportEmbeddedLanguageDocumentHighlighterAttribute(
-            string name, string language, bool supportsUnannotatedAPIs, params string[] identifiers)
-            : base(typeof(IEmbeddedLanguageDocumentHighlighter), name, language, supportsUnannotatedAPIs, identifiers)
+            string name, string[] languages, bool supportsUnannotatedAPIs, params string[] identifiers)
+            : base(typeof(IEmbeddedLanguageDocumentHighlighter), name, languages, supportsUnannotatedAPIs, identifiers)
         {
         }
     }

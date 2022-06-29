@@ -2,13 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -17,15 +13,16 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveUnreachableCode), Shared]
-    internal class CSharpRemoveUnreachableCodeCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+    internal sealed class CSharpRemoveUnreachableCodeCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpRemoveUnreachableCodeCodeFixProvider()
         {
         }
@@ -64,8 +61,8 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
         {
             foreach (var diagnostic in diagnostics)
             {
-                var firstUnreachableStatementLocation = diagnostic.AdditionalLocations.First();
-                var firstUnreachableStatement = (StatementSyntax)firstUnreachableStatementLocation.FindNode(cancellationToken);
+                var firstUnreachableStatementLocation = diagnostic.AdditionalLocations[0];
+                var firstUnreachableStatement = (StatementSyntax)firstUnreachableStatementLocation.FindNode(getInnermostNodeForTie: true, cancellationToken);
 
                 RemoveStatement(editor, firstUnreachableStatement);
 
@@ -85,7 +82,8 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
             static void RemoveStatement(SyntaxEditor editor, SyntaxNode statement)
             {
                 if (!statement.IsParentKind(SyntaxKind.Block)
-                    && !statement.IsParentKind(SyntaxKind.SwitchSection))
+                    && !statement.IsParentKind(SyntaxKind.SwitchSection)
+                    && !statement.IsParentKind(SyntaxKind.GlobalStatement))
                 {
                     editor.ReplaceNode(statement, SyntaxFactory.Block());
                 }

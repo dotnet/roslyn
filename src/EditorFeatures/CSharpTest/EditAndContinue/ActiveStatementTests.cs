@@ -10677,13 +10677,13 @@ class C
                 new[]
                 {
                     DocumentResults(
-                        activeStatements: GetActiveStatements(srcA1, srcA2, path: "0"),
+                        activeStatements: GetActiveStatements(srcA1, srcA2, documentIndex: 0),
                         semanticEdits: new[]
                         {
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember("F2")),
                         }),
                     DocumentResults(
-                        activeStatements: GetActiveStatements(srcB1, srcB2, path: "1"))
+                        activeStatements: GetActiveStatements(srcB1, srcB2, documentIndex: 1))
                 });
         }
 
@@ -10701,17 +10701,17 @@ class C
             var srcB2 = "<AS:0>partial class C</AS:0> { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2, documentIndex: 0), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(
-                        activeStatements: GetActiveStatements(srcA1, srcA2, path: "0"),
+                        activeStatements: GetActiveStatements(srcA1, srcA2, documentIndex: 0),
                         semanticEdits: new[]
                         {
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember("F")),
                         }),
                     DocumentResults(
-                        activeStatements: GetActiveStatements(srcB1, srcB2, path: "1"),
+                        activeStatements: GetActiveStatements(srcB1, srcB2, documentIndex: 1),
                         // TODO: this is odd AS location https://github.com/dotnet/roslyn/issues/54758
                         diagnostics: new[] { Diagnostic(RudeEditKind.DeleteActiveStatement, "      partial c", DeletedSymbolDisplay(FeaturesResources.method, "F()")) })
                 });

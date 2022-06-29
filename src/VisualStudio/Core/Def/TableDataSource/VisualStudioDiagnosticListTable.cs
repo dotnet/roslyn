@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell;
@@ -28,6 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         private readonly IAsyncServiceProvider _asyncServiceProvider;
         private readonly IThreadingContext _threadingContext;
         private readonly ITableManagerProvider _tableManagerProvider;
+        private readonly IAsynchronousOperationListener _asynchronousOperationListener;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -35,7 +37,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             [Import("Microsoft.VisualStudio.Shell.Interop.SAsyncServiceProvider")] object asyncServiceProvider,
             IGlobalOptionService globalOptions,
             IThreadingContext threadingContext,
-            ITableManagerProvider tableManagerProvider)
+            ITableManagerProvider tableManagerProvider,
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
             // MEFv2 doesn't support type based contract for Import above and for this particular contract (SAsyncServiceProvider)
             // actual type cast doesn't work. (https://github.com/microsoft/vs-mef/issues/138)
@@ -43,30 +46,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             _asyncServiceProvider = (IAsyncServiceProvider)asyncServiceProvider;
             _threadingContext = threadingContext;
             _tableManagerProvider = tableManagerProvider;
+            _asynchronousOperationListener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService);
         }
 
         public void StartListening(Workspace workspace, IDiagnosticService diagnosticService)
         {
-            var errorList = _threadingContext.JoinableTaskFactory.Run(async () =>
+            _threadingContext.RunWithShutdownBlockAsync(async cancellationToken =>
             {
-                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+                using var asyncToken = _asynchronousOperationListener.BeginAsyncOperation(nameof(VisualStudioDiagnosticListTableWorkspaceEventListener) + "." + nameof(StartListening));
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-                return await _asyncServiceProvider.GetServiceAsync(typeof(SVsErrorList)).ConfigureAwait(true) as IErrorList;
+                var errorList = (await _asyncServiceProvider.GetServiceAsync(typeof(SVsErrorList)).ConfigureAwait(true)) as IErrorList;
+
+                if (errorList == null)
+                {
+                    // nothing to do when there is no error list. 
+                    // it can happen if VS ran in command line mode
+                    return;
+                }
+
+                var table = new VisualStudioDiagnosticListTable(
+                    (VisualStudioWorkspaceImpl)workspace,
+                    _threadingContext,
+                    diagnosticService,
+                    _tableManagerProvider,
+                    errorList);
             });
-
-            if (errorList == null)
-            {
-                // nothing to do when there is no error list. 
-                // it can happen if VS ran in command line mode
-                return;
-            }
-
-            var table = new VisualStudioDiagnosticListTable(
-                (VisualStudioWorkspaceImpl)workspace,
-                _threadingContext,
-                diagnosticService,
-                _tableManagerProvider,
-                errorList);
         }
 
         internal partial class VisualStudioDiagnosticListTable : VisualStudioBaseDiagnosticListTable
