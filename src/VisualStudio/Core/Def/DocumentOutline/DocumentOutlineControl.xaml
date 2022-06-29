@@ -26,6 +26,7 @@
             <Style TargetType="GridViewColumnHeader" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogGridViewColumnHeaderStyleKey}}" />
             <Style TargetType="ListBox" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogListBoxStyleKey}}" />
             <Style TargetType="ListView" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogListViewStyleKey}}" />
+            <Style TargetType="ScrollBar" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ScrollBarStyleKey}}" />
 
             <Style TargetType="TabControl">
                 <Setter Property="Background" Value="{StaticResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}" />
