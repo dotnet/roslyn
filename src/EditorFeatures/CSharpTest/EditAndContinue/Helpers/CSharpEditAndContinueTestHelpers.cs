@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
         public override AbstractEditAndContinueAnalyzer Analyzer => _analyzer;
         public override string LanguageName => LanguageNames.CSharp;
+        public override string ProjectFileExtension => ".csproj";
         public override TreeComparer<SyntaxNode> TopSyntaxComparer => SyntaxComparer.TopLevel;
 
         public override ImmutableArray<SyntaxNode> GetDeclarators(ISymbol method)
