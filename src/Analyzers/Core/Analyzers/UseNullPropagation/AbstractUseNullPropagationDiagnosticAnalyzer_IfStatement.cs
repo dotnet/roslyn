@@ -34,7 +34,6 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
 
         var syntaxFacts = GetSyntaxFacts();
         var ifStatement = (TIfStatementSyntax)context.Node;
-        var root = ifStatement.SyntaxTree.GetRoot(context.CancellationToken);
 
         // The true-statement if the if-statement has to be a statement of the form `<expr1>.Name(...)`;
         if (!TryGetPartsOfIfStatement(ifStatement, out var condition, out var trueStatement))
@@ -43,19 +42,7 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
         if (trueStatement is not TExpressionStatementSyntax expressionStatement)
             return;
 
-        var trueExpression = (TExpressionSyntax)syntaxFacts.GetExpressionOfExpressionStatement(expressionStatement);
-
-        //var invokedExpression = (TExpressionSyntax)syntaxFacts.GetExpressionOfInvocationExpression(trueInvocation);
-        //if (!syntaxFacts.IsSimpleMemberAccessExpression(invokedExpression))
-        //    return;
-
-        //// this is the `<expr1>` portion of the invocation.
-        //var accessedExpression = (TExpressionSyntax?)syntaxFacts.GetExpressionOfMemberAccessExpression(invokedExpression);
-        //if (accessedExpression is null)
-        //    return;
-
-        // Now see if the `if (...)` looks like an appropriate null check.
-
+        // Now see if the `if (<condition>)` looks like an appropriate null check.
         if (!TryAnalyzeCondition(context, syntaxFacts, referenceEqualsMethod, condition, out var conditionPartToCheck, out var isEquals))
             return;
 
@@ -65,7 +52,9 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
             return;
 
         var semanticModel = context.SemanticModel;
-        var whenPartMatch = GetWhenPartMatch(syntaxFacts, semanticModel, conditionPartToCheck, trueExpression);
+        var whenPartMatch = GetWhenPartMatch(
+            syntaxFacts, semanticModel, conditionPartToCheck,
+            (TExpressionSyntax)syntaxFacts.GetExpressionOfExpressionStatement(expressionStatement));
         if (whenPartMatch == null)
             return;
 
