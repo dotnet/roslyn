@@ -48,7 +48,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNullPropagation
             if (conditionNode is not IsPatternExpressionSyntax patternExpression)
                 return false;
 
-            if (patternExpression.Pattern is not ConstantPatternSyntax constantPattern)
+            var pattern = patternExpression.Pattern;
+            if (pattern is UnaryPatternSyntax(SyntaxKind.NotPattern) notPattern)
+            {
+                isEquals = false;
+                pattern = notPattern.Pattern;
+            }
+
+            if (pattern is not ConstantPatternSyntax constantPattern)
                 return false;
 
             if (!syntaxFacts.IsNullLiteralExpression(constantPattern.Expression))

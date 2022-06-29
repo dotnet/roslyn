@@ -34,10 +34,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNullPropagation
                 // by just rewriting `x.Y` into `x?.Y`.  That is not correct.  the RHS of the `?` should `.Y()` not
                 // `.Y`.
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
 
-        private static async Task TestMissingInRegularAndScriptAsync(string testCode, LanguageVersion languageVersion = LanguageVersion.CSharp8)
+        private static async Task TestMissingInRegularAndScriptAsync(string testCode, LanguageVersion languageVersion = LanguageVersion.CSharp9)
         {
             await new VerifyCS.Test
             {
@@ -58,6 +59,54 @@ class C
     void M(object o)
     {
         var v = [|o == null ? null : o.ToString()|];
+    }
+}",
+@"using System;
+
+class C
+{
+    void M(object o)
+    {
+        var v = o?.ToString();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestLeft_IsNull()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void M(object o)
+    {
+        var v = [|o is null ? null : o.ToString()|];
+    }
+}",
+@"using System;
+
+class C
+{
+    void M(object o)
+    {
+        var v = o?.ToString();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestLeft_IsNotNull()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void M(object o)
+    {
+        var v = [|o is not null ? o.ToString() : null|];
     }
 }",
 @"using System;
@@ -596,6 +645,31 @@ class C
 
         [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestWithNullableTypeAndIsNotNull()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    public int? f;
+    void M(C c)
+    {
+        int? x = [|c is not null ? c.f : null|];
+    }
+}",
+@"
+class C
+{
+    public int? f;
+    void M(C c)
+    {
+        int? x = c?.f;
+    }
+}");
+        }
+
+        [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestWithNullableTypeAndIsType()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -801,6 +875,31 @@ class C
     void M(C c)
     {
         int? x = [|!(c is null) ? c.f : null|];
+    }
+}",
+@"
+class C
+{
+    public int? f;
+    void M(C c)
+    {
+        int? x = c?.f;
+    }
+}");
+        }
+
+        [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestWithNullableTypeAndNotIsNotNull()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    public int? f;
+    void M(C c)
+    {
+        int? x = [|!(c is not null) ? null : c.f|];
     }
 }",
 @"
