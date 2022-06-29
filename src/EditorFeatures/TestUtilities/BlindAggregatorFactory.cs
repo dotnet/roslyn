@@ -38,10 +38,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public static unsafe BlindAggregator* CreateInstance()
             {
                 var pResult = (BlindAggregator*)Marshal.AllocCoTaskMem(sizeof(BlindAggregator));
-                if (pResult != null)
-                {
-                    pResult->Construct();
-                }
+                pResult?.Construct();
 
                 return pResult;
             }
