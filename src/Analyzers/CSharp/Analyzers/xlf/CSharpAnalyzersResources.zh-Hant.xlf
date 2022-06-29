@@ -204,7 +204,7 @@
       </trans-unit>
       <trans-unit id="Use_Utf8_string_literal">
         <source>Use UTF-8 string literal</source>
-        <target state="translated">使用 UTF-8 字串常值</target>
+        <target state="new">Use UTF-8 string literal</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_accessors">
