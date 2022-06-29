@@ -182,7 +182,6 @@ jobs:
 
 - job: Correctness_Determinism
   pool:
-    name: NetCore1ESPool-Public
     vmImage: windows-latest
   timeoutInMinutes: 90
   steps:
@@ -198,7 +197,6 @@ jobs:
 
 - job: Correctness_Build
   pool:
-    name: NetCore1ESPool-Public
     vmImage: windows-latest
   timeoutInMinutes: 90
   steps:
@@ -240,7 +238,6 @@ jobs:
 
 - job: Correctness_Rebuild
   pool:
-    name: NetCore1ESPool-Public
     vmImage: windows-latest
   timeoutInMinutes: 90
   steps:
