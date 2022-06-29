@@ -168,6 +168,7 @@ class Implementation : IBar
         {
             var project = ProjectName;
             await TestServices.InheritanceMargin.DisableOptionsAsync(LanguageName, cancellationToken: HangMitigatingCancellationToken);
+            await TestServices.InheritanceMargin.ShowMetadataSignatureAsync(LanguageName, cancellationToken: HangMitigatingCancellationToken);
 
             await TestServices.SolutionExplorer.AddFileAsync(project, "Test.cs", cancellationToken: HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.OpenFileAsync(project, "Test.cs", HangMitigatingCancellationToken);

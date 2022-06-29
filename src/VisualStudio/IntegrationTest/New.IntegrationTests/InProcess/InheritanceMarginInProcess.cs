@@ -55,6 +55,16 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess
             }
         }
 
+        public async Task ShowMetadataSignatureAsync(string languageName, CancellationToken cancellationToken)
+        {
+            var optionService = await GetComponentModelServiceAsync<IGlobalOptionService>(cancellationToken);
+            var collapseMetadataSignature = optionService.GetOption(BlockStructureOptionsStorage.CollapseMetadataSignatureFilesWhenFirstOpened, languageName);
+            if (collapseMetadataSignature)
+            {
+                optionService.SetGlobalOption(new OptionKey(BlockStructureOptionsStorage.CollapseMetadataSignatureFilesWhenFirstOpened, languageName), false);
+            }
+        }
+
         public async Task DisableOptionsAsync(string languageName, CancellationToken cancellationToken)
         {
             var optionService = await GetComponentModelServiceAsync<IGlobalOptionService>(cancellationToken);
