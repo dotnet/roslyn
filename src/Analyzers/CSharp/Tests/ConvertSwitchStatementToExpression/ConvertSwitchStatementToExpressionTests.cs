@@ -760,6 +760,37 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        [WorkItem(52258, "https://github.com/dotnet/roslyn/issues/52258")]
+        public async Task TestTrivia_03()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+@"class Program
+{
+    int M(int i)
+    {
+        [|switch|] (i)
+        {   // Tip-toe through the trailing trivia
+            case 0: return 123;
+            case 1: return 234;
+            default: throw null;
+        }
+    }
+}",
+@"class Program
+{
+    int M(int i)
+    {
+        return i switch
+        {   // Tip-toe through the trailing trivia
+            0 => 123,
+            1 => 234,
+            _ => throw null,
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         [WorkItem(36086, "https://github.com/dotnet/roslyn/issues/36086")]
         public async Task TestSeverity()
         {

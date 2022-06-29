@@ -39,6 +39,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                     Return False
                 End Get
             End Property
+
+            Protected Overrides ReadOnly Property Language As String
+                Get
+                    Return LanguageNames.VisualBasic
+                End Get
+            End Property
         End Class
     End Class
 End Namespace

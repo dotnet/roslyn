@@ -29,6 +29,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 ?? throw new InvalidOperationException();
         }
 
+        public static IOperation GetRequiredOperation(this SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+        {
+            return semanticModel.GetOperation(node, cancellationToken)
+                ?? throw new InvalidOperationException();
+        }
+
         public static ISymbol GetRequiredEnclosingSymbol(this SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
             return semanticModel.GetEnclosingSymbol(position, cancellationToken)

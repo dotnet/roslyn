@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             }
         }
 
-        internal async Task<SymbolMappingResult?> MapSymbolAsync(Document document, SymbolKey symbolId, CancellationToken cancellationToken)
+        private async Task<Project?> MapDocumentAsync(Document document, CancellationToken cancellationToken)
         {
             MetadataAsSourceGeneratedFileInfo? fileInfo;
 
@@ -309,20 +309,22 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 }
             }
 
-            // WARANING: do not touch any state fields outside the lock.
+            // WARNING: do not touch any state fields outside the lock.
             var solution = fileInfo.Workspace.CurrentSolution;
             var project = solution.GetProject(fileInfo.SourceProjectId);
+            return project;
+        }
+
+        internal async Task<SymbolMappingResult?> MapSymbolAsync(Document document, SymbolKey symbolId, CancellationToken cancellationToken)
+        {
+            var project = await MapDocumentAsync(document, cancellationToken).ConfigureAwait(false);
             if (project == null)
-            {
                 return null;
-            }
 
             var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var resolutionResult = symbolId.Resolve(compilation, ignoreAssemblyKey: true, cancellationToken: cancellationToken);
             if (resolutionResult.Symbol == null)
-            {
                 return null;
-            }
 
             return new SymbolMappingResult(project, resolutionResult.Symbol);
         }

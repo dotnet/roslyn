@@ -7,8 +7,10 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -47,13 +49,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         /// </summary>
         public void StartListening(Workspace workspace, object serviceOpt)
         {
-            var token = this._asynchronousOperationListener.BeginAsyncOperation("LoadAsync");
             // Trigger a fire and forget request to the VS LSP client to load our ILanguageClient.
-            // This needs to be done with .Forget() as the LoadAsync (VS LSP client) synchronously stores the result task of OnLoadedAsync.
-            // The synchronous execution happens under the sln load threaded wait dialog, so user actions cannot be made in between triggering LoadAsync and storing the result task from OnLoadedAsync.
-            // The result task from OnLoadedAsync is waited on before invoking LSP requests to the ILanguageClient.
-            this._languageClientBroker.Value.LoadAsync(new LanguageClientMetadata(new[] { ContentTypeNames.CSharpContentType, ContentTypeNames.VisualBasicContentType }), _languageClient)
-                .CompletesAsyncOperation(token).Forget();
+            _ = LoadAsync();
+        }
+
+        private async Task LoadAsync()
+        {
+            try
+            {
+                using var token = _asynchronousOperationListener.BeginAsyncOperation(nameof(LoadAsync));
+
+                // Explicitly switch to the bg so that if this causes any expensive work (like mef loads) it 
+                // doesn't block the UI thread.
+                await TaskScheduler.Default;
+
+                await _languageClientBroker.Value.LoadAsync(new LanguageClientMetadata(new[]
+                {
+                        ContentTypeNames.CSharpContentType,
+                        ContentTypeNames.VisualBasicContentType,
+                        ContentTypeNames.FSharpContentType
+                }), _languageClient).ConfigureAwait(false);
+            }
+            catch (Exception e) when (FatalError.ReportAndCatch(e))
+            {
+            }
         }
 
         /// <summary>

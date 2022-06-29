@@ -9,10 +9,15 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.PullMemberUp;
+using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -23,8 +28,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
     internal static class MembersPuller
     {
         /// <summary>
-        /// Return the CodeAction to pull <paramref name="selectedMember"/> up to destinationType. If the pulling will cause error, it will return null.
+        /// Annotation used to mark imports that we move over, so that we can remove these imports if they are unnecessary
+        /// (and so we don't remove any other unnecessary imports)
         /// </summary>
+        private static readonly SyntaxAnnotation s_annotation = new("PullMemberRemovableImport");
+
         public static CodeAction TryComputeCodeAction(
             Document document,
             ISymbol selectedMember,
@@ -37,15 +45,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 return null;
             }
 
+            var title = string.Format(FeaturesResources.Pull_0_up_to_1, selectedMember.Name, result.Destination.Name);
             return new SolutionChangeAction(
-                string.Format(FeaturesResources.Pull_0_up_to_1, selectedMember.Name, result.Destination.Name),
-                cancellationToken => PullMembersUpAsync(document, result, cancellationToken));
+                title,
+                cancellationToken => PullMembersUpAsync(document, result, cancellationToken),
+                title);
         }
 
-        /// <summary>
-        /// Return the changed solution if all changes in pullMembersUpOptions are applied.
-        /// </summary>
-        /// <param name="pullMembersUpOptions">Contains the members to pull up and all the fix operations</param>>
         public static Task<Solution> PullMembersUpAsync(
             Document document,
             PullMembersUpOptions pullMembersUpOptions,
@@ -263,17 +269,39 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 options: await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false));
             var newDestination = codeGenerationService.AddMembers(destinationSyntaxNode, pullUpMembersSymbols, options: options, cancellationToken: cancellationToken);
 
+            using var _ = PooledHashSet<SyntaxNode>.GetInstance(out var sourceImports);
+            var destinationEditor = await solutionEditor.GetDocumentEditorAsync(
+                solution.GetDocumentId(destinationSyntaxNode.SyntaxTree),
+                cancellationToken).ConfigureAwait(false);
+
+            var syntaxFacts = destinationEditor.OriginalDocument.GetRequiredLanguageService<ISyntaxFactsService>();
+
             // Remove some original members since we are pulling members into class.
             // Note: If the user chooses to make the member abstract, then the original member will be changed to an override,
             // and it will pull an abstract declaration up to the destination.
             // But if the member is abstract itself, it will still be removed.
             foreach (var analysisResult in result.MemberAnalysisResults)
             {
+                var resultNamespace = analysisResult.Member.ContainingNamespace;
+                if (!resultNamespace.IsGlobalNamespace)
+                {
+                    sourceImports.Add(
+                        destinationEditor.Generator.NamespaceImportDeclaration(
+                            resultNamespace.ToDisplayString(SymbolDisplayFormats.NameFormat))
+                        .WithAdditionalAnnotations(s_annotation));
+                }
+
                 foreach (var syntax in symbolToDeclarations[analysisResult.Member])
                 {
                     var originalMemberEditor = await solutionEditor.GetDocumentEditorAsync(
                         solution.GetDocumentId(syntax.SyntaxTree),
                         cancellationToken).ConfigureAwait(false);
+
+                    sourceImports.AddRange(GetImports(syntax, syntaxFacts)
+                        .Select(import => import
+                            .WithoutLeadingTrivia()
+                            .WithTrailingTrivia(originalMemberEditor.Generator.ElasticCarriageReturnLineFeed)
+                            .WithAdditionalAnnotations(s_annotation)));
 
                     if (!analysisResult.MakeMemberDeclarationAbstract || analysisResult.Member.IsAbstract)
                     {
@@ -288,9 +316,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             }
 
             // Change the destination to abstract class if needed.
-            var destinationEditor = await solutionEditor.GetDocumentEditorAsync(
-                solution.GetDocumentId(destinationSyntaxNode.SyntaxTree),
-                cancellationToken).ConfigureAwait(false);
             if (!result.Destination.IsAbstract &&
                 result.MemberAnalysisResults.Any(analysis => analysis.Member.IsAbstract || analysis.MakeMemberDeclarationAbstract))
             {
@@ -298,8 +323,85 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 newDestination = destinationEditor.Generator.WithModifiers(newDestination, modifiers);
             }
 
-            destinationEditor.ReplaceNode(destinationSyntaxNode, (syntaxNode, generator) => newDestination);
+            destinationEditor.ReplaceNode(destinationSyntaxNode, newDestination);
+
+            // add imports by moving all source imports to destination container, then taking out unneccessary
+            // imports that we just added (marked by our annotation).
+            var addImportsService = destinationEditor.OriginalDocument.GetRequiredLanguageService<IAddImportsService>();
+            var destinationTrivia = GetLeadingTriviaBeforeFirstMember(destinationEditor.OriginalRoot, syntaxFacts);
+            destinationEditor.ReplaceNode(destinationEditor.OriginalRoot, (root, _) =>
+                RemoveLeadingTriviaBeforeFirstMember(root, syntaxFacts));
+            destinationEditor.ReplaceNode(destinationEditor.OriginalRoot, (node, generator) => addImportsService.AddImports(
+                destinationEditor.SemanticModel.Compilation,
+                node,
+                node.GetCurrentNode(newDestination),
+                sourceImports,
+                generator,
+                options.Options,
+                destinationEditor.OriginalDocument.CanAddImportsInHiddenRegions(),
+                cancellationToken));
+
+            var removeImportsService = destinationEditor.OriginalDocument.GetRequiredLanguageService<IRemoveUnnecessaryImportsService>();
+            var destinationDocument = await removeImportsService.RemoveUnnecessaryImportsAsync(
+                destinationEditor.GetChangedDocument(),
+                node => node.HasAnnotation(s_annotation),
+                cancellationToken).ConfigureAwait(false);
+
+            // Format whitespace trivia within the import statements we pull up
+            destinationDocument = await Formatter.FormatAsync(destinationDocument, s_annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+            var destinationRoot = AddLeadingTriviaBeforeFirstMember(
+                await destinationDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false),
+                syntaxFacts,
+                destinationTrivia);
+
+            destinationEditor.ReplaceNode(destinationEditor.OriginalRoot, destinationRoot);
+
             return solutionEditor.GetChangedSolution();
+        }
+
+        /// <summary>
+        /// In the case where we have leading whitespace in front of the first member and there are no imports, adding imports
+        /// moves that trivia to above the import (and sometimes removes it entirely if the import is later removed). 
+        /// So, we want to cache the trivia before, delete it, then add it back in after the imports are added.
+        /// </summary>
+        private static SyntaxTriviaList GetLeadingTriviaBeforeFirstMember(SyntaxNode root, ISyntaxFactsService syntaxFacts)
+        {
+            var members = syntaxFacts.GetMembersOfCompilationUnit(root);
+            // guaranteed to have at least one member, as we need a base class
+            var firstMember = members.First();
+            return firstMember.GetLeadingTrivia();
+        }
+
+        private static SyntaxNode RemoveLeadingTriviaBeforeFirstMember(SyntaxNode root, ISyntaxFactsService syntaxFacts)
+        {
+            var members = syntaxFacts.GetMembersOfCompilationUnit(root);
+            // guaranteed to have at least one member, as we need a base class
+            var firstMember = members.First();
+            return root.ReplaceNode(firstMember, firstMember.WithoutLeadingTrivia());
+        }
+
+        private static SyntaxNode AddLeadingTriviaBeforeFirstMember(SyntaxNode root, ISyntaxFactsService syntaxFacts, SyntaxTriviaList trivia)
+        {
+            var members = syntaxFacts.GetMembersOfCompilationUnit(root);
+            // guaranteed to have at least one member, as we need a base class
+            var firstMember = members.First();
+            return root.ReplaceNode(firstMember, firstMember.WithLeadingTrivia(trivia));
+        }
+
+        /// <summary>
+        /// Get all import statements in scope for this syntax by traversing up the tree and searching in containing namespaces and compilation units.
+        /// </summary>
+        /// <param name="start">The node to start traversing up from</param>
+        /// <returns>All the import/using directives found along the traversal</returns>
+        private static ImmutableArray<SyntaxNode> GetImports(SyntaxNode start, ISyntaxFactsService syntaxFacts)
+        {
+            return start.AncestorsAndSelf()
+                .Where(node => node is ICompilationUnitSyntax || syntaxFacts.IsBaseNamespaceDeclaration(node))
+                .SelectMany(node => node is ICompilationUnitSyntax
+                    ? syntaxFacts.GetImportsOfCompilationUnit(node)
+                    : syntaxFacts.GetImportsOfBaseNamespaceDeclaration(node))
+                .ToImmutableArray();
         }
 
         private static ISymbol MakeAbstractVersion(ISymbol member)

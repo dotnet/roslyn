@@ -4,6 +4,8 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.EventHandling
     Public Class AddHandlerKeywordRecommenderTests
+        Inherits RecommenderTests
+
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AddHandlerHelpTextTest()

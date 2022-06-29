@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     internal class AnonymousMethodExpressionStructureProvider : AbstractSyntaxNodeStructureProvider<AnonymousMethodExpressionSyntax>
     {
         protected override void CollectBlockSpans(
+            SyntaxToken previousToken,
             AnonymousMethodExpressionSyntax anonymousMethod,
             ref TemporaryArray<BlockSpan> spans,
             BlockStructureOptionProvider optionProvider,

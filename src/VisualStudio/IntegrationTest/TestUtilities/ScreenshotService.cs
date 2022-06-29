@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -56,7 +54,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// A <see cref="Bitmap"/> containing the screen capture of the desktop, or null if a screen
         /// capture can't be created.
         /// </returns>
-        private static BitmapSource TryCaptureFullScreen()
+        private static BitmapSource? TryCaptureFullScreen()
         {
             var width = Screen.PrimaryScreen.Bounds.Width;
             var height = Screen.PrimaryScreen.Bounds.Height;

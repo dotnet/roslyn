@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         }
 
         public override bool IsTriggerCharacter(char ch)
-            => ch == '(' || ch == ',';
+            => ch is '(' or ',';
 
         public override bool IsRetriggerCharacter(char ch)
             => ch == ')';

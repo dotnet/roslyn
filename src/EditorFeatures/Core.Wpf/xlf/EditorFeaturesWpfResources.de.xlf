@@ -32,51 +32,6 @@
         <target state="translated">Gibt eine Liste der Assemblys aus, auf die verwiesen wird.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Regex_Comment">
-        <source>Regex - Comment</source>
-        <target state="translated">RegEx - Kommentar</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Regex_Character_Class">
-        <source>Regex - Character Class</source>
-        <target state="translated">RegEx - Zeichenklasse</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Regex_Alternation">
-        <source>Regex - Alternation</source>
-        <target state="translated">RegEx - Wechsel</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Regex_Anchor">
-        <source>Regex - Anchor</source>
-        <target state="translated">RegEx - Anker</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Regex_Quantifier">
-        <source>Regex - Quantifier</source>
-        <target state="translated">RegEx - Quantifizierer</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Regex_SelfEscapedCharacter">
-        <source>Regex - Self Escaped Character</source>
-        <target state="translated">RegEx - Selbstständiges Escapezeichen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Regex_Grouping">
-        <source>Regex - Grouping</source>
-        <target state="translated">RegEx - Gruppierung</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Regex_Text">
-        <source>Regex - Text</source>
-        <target state="translated">RegEx - Text</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Regex_OtherEscape">
-        <source>Regex - Other Escape</source>
-        <target state="translated">RegEx - Anderes Escapezeichen</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Reset_the_execution_environment_to_the_initial_state_keep_history">
         <source>Reset the execution environment to the initial state, keep history.</source>
         <target state="translated">Setzt die Ausführungsumgebung in den ursprünglichen Zustand zurück. Der Verlauf wird beibehalten.</target>

@@ -2,11 +2,6 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="cs" original="../ServicesVSResources.resx">
     <body>
-      <trans-unit id="A_new_editorconfig_file_was_detected_at_the_root_of_your_solution_Would_you_like_to_make_it_a_solution_item">
-        <source>A new .editorconfig file was detected at the root of your solution. Would you like to make it a solution item?</source>
-        <target state="translated">V kořenovém adresáři vašeho řešení se zjistil nový soubor. editorconfig. Chcete ho nastavit jako položku řešení?</target>
-        <note />
-      </trans-unit>
       <trans-unit id="A_new_namespace_will_be_created">
         <source>A new namespace will be created</source>
         <target state="translated">Vytvoří se nový obor názvů.</target>
@@ -72,9 +67,19 @@
         <target state="translated">Povolit příkaz hned za blokem</target>
         <note />
       </trans-unit>
+      <trans-unit id="Always">
+        <source>Always</source>
+        <target state="translated">Vždy</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Always_for_clarity">
         <source>Always for clarity</source>
         <target state="translated">Vždy kvůli srozumitelnosti</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Analyzer_Defaults">
+        <source>Analyzer Defaults</source>
+        <target state="translated">Výchozí hodnoty analyzátoru</target>
         <note />
       </trans-unit>
       <trans-unit id="Analyzers">
@@ -127,6 +132,11 @@
         <target state="translated">Obor analýzy na pozadí:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Beginning_of_line">
+        <source>Beginning of line</source>
+        <target state="translated">Začátek řádku</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Bitness32">
         <source>32-bit</source>
         <target state="translated">32b</target>
@@ -146,6 +156,11 @@
         <source>C#/Visual Basic Diagnostics Language Client</source>
         <target state="translated">Klient jazyka diagnostiky C# nebo Visual Basic</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Calculating">
+        <source>Calculating...</source>
+        <target state="translated">Probíhá výpočet…</target>
+        <note>Used in UI to represent progress in the context of loading items. </note>
       </trans-unit>
       <trans-unit id="Calculating_dependents">
         <source>Calculating dependents...</source>
@@ -217,9 +232,19 @@
         <target state="translated">Obarvit regulární výrazy</target>
         <note />
       </trans-unit>
+      <trans-unit id="Combine_inheritance_margin_with_indicator_margin">
+        <source>Combine inheritance margin with indicator margin</source>
+        <target state="translated">Kombinovat okraj dědičnosti s okrajem indikátoru</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Comments">
         <source>Comments</source>
         <target state="translated">Komentáře</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Compute_Quick_Actions_asynchronously_experimental">
+        <source>Compute Quick Actions asynchronously (experimental, requires restart)</source>
+        <target state="translated">Asynchronní výpočet rychlých akcí (experimentální, vyžaduje restartování)</target>
         <note />
       </trans-unit>
       <trans-unit id="Containing_member">
@@ -240,6 +265,26 @@
       <trans-unit id="Current_parameter">
         <source>Current parameter</source>
         <target state="translated">Aktuální parametr</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Default_Current_Document">
+        <source>Default (Current Document)</source>
+        <target state="translated">Výchozí (aktuální dokument)</target>
+        <note>This text is a menu command</note>
+      </trans-unit>
+      <trans-unit id="Default_Entire_Solution">
+        <source>Default (Entire Solution)</source>
+        <target state="translated">Výchozí (celé řešení)</target>
+        <note>This text is a menu command</note>
+      </trans-unit>
+      <trans-unit id="Default_Open_Documents">
+        <source>Default (Open Documents)</source>
+        <target state="translated">Výchozí (otevřené dokumenty)</target>
+        <note>This text is a menu command</note>
+      </trans-unit>
+      <trans-unit id="Derived_types">
+        <source>Derived types</source>
+        <target state="translated">Odvozené typy</target>
         <note />
       </trans-unit>
       <trans-unit id="Disabled">
@@ -312,6 +357,11 @@
         <target state="translated">Povoleno</target>
         <note />
       </trans-unit>
+      <trans-unit id="End_of_line">
+        <source>End of line</source>
+        <target state="translated">Konec řádku</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Enter_a_call_site_value_or_choose_a_different_value_injection_kind">
         <source>Enter a call site value or choose a different value injection kind</source>
         <target state="translated">Zadejte hodnotu místa volání, nebo zvolte jiný druh vložení hodnoty.</target>
@@ -352,14 +402,14 @@
         <target state="translated">Dokončit</target>
         <note />
       </trans-unit>
+      <trans-unit id="For_non_interface_members">
+        <source>For non interface members</source>
+        <target state="translated">Pro členy mimo rozhraní</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Format_document">
         <source>Format document</source>
         <target state="translated">Formátovat dokument</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Formatting">
-        <source>Formatting</source>
-        <target state="translated">Formátování</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_dot_editorconfig_file_from_settings">
@@ -377,6 +427,11 @@
         <target state="translated">ID</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implemented_interfaces">
+        <source>Implemented interfaces</source>
+        <target state="translated">Implementovaná rozhraní</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Implemented_members">
         <source>Implemented members</source>
         <target state="translated">Implementovaní členové</target>
@@ -385,6 +440,11 @@
       <trans-unit id="Implementing_members">
         <source>Implementing members</source>
         <target state="translated">Implementace členů</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implementing_types">
+        <source>Implementing types</source>
+        <target state="translated">Implementace typů</target>
         <note />
       </trans-unit>
       <trans-unit id="In_other_operators">
@@ -412,14 +472,19 @@
         <target state="translated">Indexováno v úložišti</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inheritance_Margin_experimental">
-        <source>Inheritance Margin (experimental)</source>
-        <target state="translated">Míra dědičnosti (experimentální)</target>
+      <trans-unit id="Inheritance_Margin">
+        <source>Inheritance Margin</source>
+        <target state="translated">Míra dědičnosti</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_Hints_experimental">
-        <source>Inline Hints (experimental)</source>
-        <target state="translated">Vložené nápovědy (experimentální)</target>
+      <trans-unit id="Inherited_interfaces">
+        <source>Inherited interfaces</source>
+        <target state="translated">Zděděná rozhraní</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Hints">
+        <source>Inline Hints</source>
+        <target state="translated">Vložené nápovědy</target>
         <note />
       </trans-unit>
       <trans-unit id="Inserting_call_site_value_0">
@@ -462,6 +527,11 @@
         <target state="translated">Druh</target>
         <note />
       </trans-unit>
+      <trans-unit id="Language_client_initialization_failed">
+        <source>{0} failed to initialize. Status = {1}. Exception = {2}</source>
+        <target state="translated">Inicializace {0} se nepodařila. Stav = {1}. Výjimka = {2}</target>
+        <note>{0} is the language server name.  Status is the status of the initialization.  Exception is the exception encountered during initialization.</note>
+      </trans-unit>
       <trans-unit id="Live_analysis_VSIX_extension">
         <source>Live analysis (VSIX extension)</source>
         <target state="translated">Živá analýza (rozšíření VSIX)</target>
@@ -485,6 +555,11 @@
       <trans-unit id="Local_metadata">
         <source>Local metadata</source>
         <target state="translated">Místní metadata</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Location">
+        <source>Location</source>
+        <target state="translated">Lokalita</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_0_abstract">
@@ -541,6 +616,16 @@
         <source>Namespace: '{0}'</source>
         <target state="translated">Obor názvů: {0}</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Namespace_declarations">
+        <source>Namespace declarations</source>
+        <target state="translated">Deklarace oboru názvů</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Namespaces_have_been_updated">
+        <source>Namespaces have been updated.</source>
+        <target state="translated">Obory názvů se aktualizovaly.</target>
+        <note>"Namespaces" is the programming language concept</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Class">
         <source>class</source>
@@ -692,6 +777,11 @@
         <target state="translated">Přejít na {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Never">
+        <source>Never</source>
+        <target state="translated">Nikdy</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Never_if_unnecessary">
         <source>Never if unnecessary</source>
         <target state="translated">Nikdy, pokud jsou nadbytečné</target>
@@ -712,6 +802,11 @@
         <target state="translated">Nový řádek (\\n)</target>
         <note />
       </trans-unit>
+      <trans-unit id="No_namespaces_needed_updating">
+        <source>No namespaces needed updating.</source>
+        <target state="translated">Nebylo potřeba aktualizovat žádné obory názvů.</target>
+        <note>"Namespaces" is the programming language concept</note>
+      </trans-unit>
       <trans-unit id="No_unused_references_were_found">
         <source>No unused references were found.</source>
         <target state="translated">Nenašly se žádné nepoužívané odkazy.</target>
@@ -727,6 +822,11 @@
         <target state="translated">žádné</target>
         <note />
       </trans-unit>
+      <trans-unit id="Omit_if_default">
+        <source>Omit if default</source>
+        <target state="translated">Vynechat, pokud je výchozí</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Omit_only_for_optional_parameters">
         <source>Omit (only for optional parameters)</source>
         <target state="translated">Vynechat (jen pro nepovinné parametry)</target>
@@ -735,6 +835,11 @@
       <trans-unit id="Open_documents">
         <source>Open documents</source>
         <target state="translated">Otevřené dokumenty</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Operator_placement_when_wrapping">
+        <source>Operator placement when wrapping</source>
+        <target state="translated">Umístění operátora při zalamování</target>
         <note />
       </trans-unit>
       <trans-unit id="Optional_parameters_must_provide_a_default_value">
@@ -760,6 +865,16 @@
       <trans-unit id="Overriding_members">
         <source>Overriding members</source>
         <target state="translated">Přepsání členů</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Package_install_canceled">
+        <source>Package install canceled</source>
+        <target state="translated">Instalace balíčku se zrušila.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Package_uninstall_canceled">
+        <source>Package uninstall canceled</source>
+        <target state="translated">Odinstalace balíčku se zrušila.</target>
         <note />
       </trans-unit>
       <trans-unit id="Packages">
@@ -832,6 +947,11 @@
         <target state="translated">Preferovat operátor indexu</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_namespace_and_folder_match_structure">
+        <source>Prefer namespace and folder match structure</source>
+        <target state="translated">Preferovat strukturu oboru názvů a shody složek</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_range_operator">
         <source>Prefer range operator</source>
         <target state="translated">Preferovat operátor rozsahu</target>
@@ -852,6 +972,11 @@
         <target state="translated">Upřednostňovat zjednodušené logické výrazy</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_simplified_interpolation">
+        <source>Prefer simplified interpolation</source>
+        <target state="translated">Preferovat zjednodušenou interpolaci</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_static_local_functions">
         <source>Prefer static local functions</source>
         <target state="translated">Preferovat statické místní funkce</target>
@@ -865,6 +990,11 @@
       <trans-unit id="Pull_Members_Up">
         <source>Pull Members Up</source>
         <target state="translated">Stáhnout členy</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Quick_Actions">
+        <source>Quick Actions</source>
+        <target state="translated">Rychlé akce</target>
         <note />
       </trans-unit>
       <trans-unit id="Refactoring_Only">
@@ -907,6 +1037,11 @@
         <target state="translated">Úložiště</target>
         <note />
       </trans-unit>
+      <trans-unit id="Require_accessibility_modifiers">
+        <source>Require accessibility modifiers</source>
+        <target state="translated">Vyžadovat modifikátory dostupnosti.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Require_colon">
         <source>Require:</source>
         <target state="translated">Vyžadovat:</target>
@@ -937,6 +1072,11 @@
         <target state="translated">Spustit analýzu kódu {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Run_code_analysis_in_separate_process_requires_restart">
+        <source>Run code analysis in separate process (requires restart)</source>
+        <target state="translated">Spustit analýzu kódu v samostatném procesu (vyžaduje restartování)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Running_code_analysis_for_0">
         <source>Running code analysis for '{0}'...</source>
         <target state="translated">Spouští se analýza kódu pro {0}...</target>
@@ -960,6 +1100,11 @@
       <trans-unit id="Search_Settings">
         <source>Search Settings</source>
         <target state="translated">Nastavení hledání</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_an_appropriate_symbol_to_start_value_tracking">
+        <source>Select an appropriate symbol to start value tracking</source>
+        <target state="translated">Výběrem vhodného symbolu zahájíte sledování hodnot.</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_destination">
@@ -1017,6 +1162,11 @@
         <target state="translated">Zobrazit tipy pro implicitní vytvoření objektu</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_hints_for_indexers">
+        <source>Show hints for indexers</source>
+        <target state="translated">Zobrazit tipy pro indexery</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_hints_for_lambda_parameter_types">
         <source>Show hints for lambda parameter types</source>
         <target state="translated">Zobrazit nápovědy pro typy parametrů lambda</target>
@@ -1035,6 +1185,11 @@
       <trans-unit id="Show_inheritance_margin">
         <source>Show inheritance margin</source>
         <target state="translated">Zobrazit míru dědičnosti</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Skip_analyzers_for_implicitly_triggered_builds">
+        <source>Skip analyzers for implicitly triggered builds</source>
+        <target state="translated">Přeskočit analyzátory pro implicitně aktivované buildy</target>
         <note />
       </trans-unit>
       <trans-unit id="Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations">
@@ -1061,6 +1216,11 @@
         <source>Symbols without references</source>
         <target state="translated">Symboly bez odkazů</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Sync_Namespaces">
+        <source>Sync Namespaces</source>
+        <target state="translated">Synchronizovat obory názvů</target>
+        <note>"Namespaces" is the programming language concept</note>
       </trans-unit>
       <trans-unit id="Tab_twice_to_insert_arguments">
         <source>Tab twice to insert arguments (experimental)</source>
@@ -1097,6 +1257,11 @@
         <target state="translated">Toto je neplatný obor názvů.</target>
         <note />
       </trans-unit>
+      <trans-unit id="This_rule_is_not_configurable">
+        <source>This rule is not configurable</source>
+        <target state="translated">Toto pravidlo není konfigurovatelné.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Title">
         <source>Title</source>
         <target state="translated">Název</target>
@@ -1122,6 +1287,11 @@
         <target state="translated">Název typu se rozpoznal.</target>
         <note>"Type" is the programming language concept</note>
       </trans-unit>
+      <trans-unit id="Underline_reassigned_variables">
+        <source>Underline reassigned variables</source>
+        <target state="translated">Podtrhnout znovu přiřazené proměnné</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">
         <source>Unused value is explicitly assigned to an unused local</source>
         <target state="translated">Nepoužitá hodnota se explicitně přiřadí nepoužité lokální hodnotě.</target>
@@ -1132,6 +1302,11 @@
         <target state="translated">Nepoužitá hodnota se explicitně přiřadí k zahození.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Updating_namspaces">
+        <source>Updating namespaces...</source>
+        <target state="translated">Aktualizují se obory názvů…</target>
+        <note>"namespaces" is the programming language concept</note>
+      </trans-unit>
       <trans-unit id="Updating_project_references">
         <source>Updating project references...</source>
         <target state="translated">Aktualizují se odkazy projektů...</target>
@@ -1140,11 +1315,6 @@
       <trans-unit id="Updating_severity">
         <source>Updating severity</source>
         <target state="translated">Aktualizuje se závažnost.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_64_bit_process_for_code_analysis_requires_restart">
-        <source>Use 64-bit process for code analysis (requires restart)</source>
-        <target state="translated">Pro analýzu kódu použít 64bitový proces (vyžaduje restartování)</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_lambdas">
@@ -1166,6 +1336,11 @@
         <source>Value</source>
         <target state="translated">Hodnota</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Value_Tracking">
+        <source>Value Tracking</source>
+        <target state="translated">Sledování hodnot</target>
+        <note>Title of the "Value Tracking" tool window. "Value" is the variable/symbol and "Tracking" is the action the tool is doing to follow where the value can originate from.</note>
       </trans-unit>
       <trans-unit id="Value_assigned_here_is_never_used">
         <source>Value assigned here is never used</source>
@@ -1197,6 +1372,11 @@
         <target state="translated">Visual Studio 2019</target>
         <note />
       </trans-unit>
+      <trans-unit id="Visual_Studio_Settings">
+        <source>Visual Studio Settings</source>
+        <target state="translated">Nastavení sady Visual Studio</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Warning">
         <source>Warning</source>
         <target state="translated">Upozornění</target>
@@ -1220,6 +1400,11 @@
       <trans-unit id="This_workspace_does_not_support_updating_Visual_Basic_compilation_options">
         <source>This workspace does not support updating Visual Basic compilation options.</source>
         <target state="translated">Tento pracovní prostor nepodporuje aktualizaci možností kompilace jazyka Visual Basic.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Whitespace">
+        <source>Whitespace</source>
+        <target state="translated">Prázdné znaky</target>
         <note />
       </trans-unit>
       <trans-unit id="You_must_change_the_signature">
@@ -2443,11 +2628,6 @@ Další informace: {1}</target>
         <target state="translated">Vybrat členy</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unfortunately_a_process_used_by_Visual_Studio_has_encountered_an_unrecoverable_error_We_recommend_saving_your_work_and_then_closing_and_restarting_Visual_Studio">
-        <source>Unfortunately, a process used by Visual Studio has encountered an unrecoverable error.  We recommend saving your work, and then closing and restarting Visual Studio.</source>
-        <target state="translated">Proces využívaný sadou Visual Studio bohužel narazil na neopravitelnou chybu. Doporučujeme uložit si práci a pak ukončit a restartovat Visual Studio.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_a_symbol_specification">
         <source>Add a symbol specification</source>
         <target state="translated">Přidat specifikaci symbolu</target>
@@ -2584,34 +2764,8 @@ Další informace: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
-        <source>Enable navigation to decompiled sources (experimental)</source>
-        <target state="translated">Povolit navigaci na dekompilované zdroje (experimentální)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Decompiler_Legal_Notice_Message">
-        <source>IMPORTANT: Visual Studio includes decompiling functionality (“Decompiler”) that enables reproducing source code from binary code. By accessing and using the Decompiler, you agree to the Visual Studio license terms and the terms for the Decompiler below. If you do not agree with these combined terms, do not access or use the Decompiler.
-
-You acknowledge that binary code and source code might be protected by copyright and trademark laws.  Before using the Decompiler on any binary code, you need to first:
-(i) confirm that the license terms governing your use of the binary code do not contain a provision which prohibits you from decompiling the software; or
-(ii) obtain permission to decompile the binary code from the owner of the software.
-
-Your use of the Decompiler is optional.  Microsoft is not responsible and disclaims all liability for your use of the Decompiler that violates any laws or any software license terms which prohibit decompiling of the software.
-
-I agree to all of the foregoing:</source>
-        <target state="translated">DŮLEŽITÉ: Visual Studio zahrnuje funkci dekompilace („Dekompilátor“), která umožňuje reprodukovat zdrojový kód z binárního kódu. Spuštěním a otevřením Dekompilátoru vyjadřujete svůj souhlasit s licenčními podmínkami sady Visual Studio a s níže uvedenými podmínkami pro Dekompilátor. Pokud s těmito kombinovanými podmínkami nesouhlasíte, nesmíte Dekompilátor spouštět ani používat.
-
-Uznáváte, že binární kód a zdrojový kód mohou být chráněny na základě zákonů o autorských právech a ochranných známkách. Před použitím Dekompilátoru na libovolný binární kód musíte napřed:
-(i) ověřit, že licenční podmínky vztahující se na vaše použití binárního kódu neobsahují ustanovení, které by vám dekompilaci softwaru zakazovalo; nebo
-(ii) získat svolení k dekompilaci binárního kódu od vlastníka daného softwaru.
-
-Používání Dekompilátoru je volitelné. Společnost Microsoft nenese zodpovědnost a výslovně se zříká jakýchkoli problémů, které by mohly vyvstat v případě, že Dekompilátor použijete způsobem porušujícím jakýkoli zákon nebo licenční podmínky na software, jež dekompilaci softwaru zakazují.
-
-Souhlasím se všemi výše uvedenými podmínkami:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Decompiler_Legal_Notice_Title">
-        <source>Decompiler Legal Notice</source>
-        <target state="translated">Právní doložka pro dekompilátor</target>
+        <source>Enable navigation to decompiled sources</source>
+        <target state="translated">Povolit navigaci na dekompilované zdroje</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_style_header_use_editor_config">

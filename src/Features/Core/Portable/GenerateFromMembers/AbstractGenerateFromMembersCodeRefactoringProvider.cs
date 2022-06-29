@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -26,18 +24,18 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
         {
         }
 
-        protected static async Task<SelectedMemberInfo> GetSelectedMemberInfoAsync(
+        protected static async Task<SelectedMemberInfo?> GetSelectedMemberInfoAsync(
             Document document, TextSpan textSpan, bool allowPartialSelection, CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var selectedDeclarations = await syntaxFacts.GetSelectedFieldsAndPropertiesAsync(
                 tree, textSpan, allowPartialSelection, cancellationToken).ConfigureAwait(false);
 
             if (selectedDeclarations.Length > 0)
             {
-                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var selectedMembers = selectedDeclarations.Select(
                     d => semanticModel.GetDeclaredSymbol(d, cancellationToken)).WhereNotNull().ToImmutableArray();
                 if (selectedMembers.Length > 0)
@@ -97,6 +95,8 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
             foreach (var symbol in selectedMembers)
             {
                 var type = symbol.GetMemberType();
+                if (type == null)
+                    continue;
 
                 var identifierNameParts = IdentifierNameParts.CreateIdentifierNameParts(symbol, rules);
                 if (identifierNameParts.BaseName == "")

@@ -12,6 +12,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
@@ -136,6 +137,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 return _name;
             }
+        }
+
+        public override int MetadataToken
+        {
+            get { return MetadataTokens.GetToken(_handle); }
         }
 
         internal FieldAttributes Flags

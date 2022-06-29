@@ -1714,7 +1714,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (diagnostic.Id == AnalyzerExceptionDiagnosticId || diagnostic.Id == AnalyzerDriverExceptionDiagnosticId)
             {
-                foreach (var tag in diagnostic.Descriptor.CustomTags)
+                foreach (var tag in diagnostic.Descriptor.ImmutableCustomTags)
                 {
                     if (tag == WellKnownDiagnosticTags.AnalyzerException)
                     {

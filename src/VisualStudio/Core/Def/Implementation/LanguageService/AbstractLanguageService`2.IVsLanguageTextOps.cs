@@ -7,13 +7,13 @@
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using RoslynTextSpan = Microsoft.CodeAnalysis.Text.TextSpan;
 using TextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
@@ -26,12 +26,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
     {
         public int Format(IVsTextLayer textLayer, TextSpan[] selections)
         {
-            var waitIndicator = this.Package.ComponentModel.GetService<IWaitIndicator>();
             var result = VSConstants.S_OK;
-            waitIndicator.Wait(
+            var uiThreadOperationExecutor = this.Package.ComponentModel.GetService<IUIThreadOperationExecutor>();
+            uiThreadOperationExecutor.Execute(
                 "Intellisense",
-                allowCancel: true,
-                action: c => result = FormatWorker(textLayer, selections, c.CancellationToken));
+                defaultDescription: "",
+                allowCancellation: true,
+                showProgress: false,
+                action: c => result = FormatWorker(textLayer, selections, c.UserCancellationToken));
 
             return result;
         }

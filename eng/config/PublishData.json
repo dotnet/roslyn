@@ -49,6 +49,7 @@
       "Microsoft.CodeAnalysis.ExternalAccess.IntelliTrace": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.ProjectSystem": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.OmniSharp": "arcade",
+      "Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp": "arcade",
       "Microsoft.CodeAnalysis.ExternalAccess.Razor": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.TypeScript": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.UnitTesting": "vs-impl",
@@ -105,6 +106,7 @@
       "Microsoft.CodeAnalysis.ExternalAccess.IntelliTrace": "arcade",
       "Microsoft.CodeAnalysis.ExternalAccess.ProjectSystem": "arcade",
       "Microsoft.CodeAnalysis.ExternalAccess.OmniSharp": "arcade",
+      "Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp": "arcade",
       "Microsoft.CodeAnalysis.ExternalAccess.Razor": "arcade",
       "Microsoft.CodeAnalysis.ExternalAccess.TypeScript": "arcade",
       "Microsoft.CodeAnalysis.ExternalAccess.UnitTesting": "arcade",
@@ -171,31 +173,34 @@
       "packageFeeds": "default",
       "channels": [],
       "vsBranch": "rel/d16.10",
-      "vsMajorVersion": 16
+      "vsMajorVersion": 16,
+      "insertionTitlePrefix": "[d16.10]"
     },
-    "main-vs-deps": {
+    "release/dev16.11-vs-deps": {
       "nugetKind": [
         "Shipping",
         "NonShipping"
       ],
-      "version": "4.0.*",
+      "version": "3.11.*",
       "packageFeeds": "default",
       "channels": [],
-      "vsBranch": "main",
-      "vsMajorVersion": 17
-    },
-    "release/dev17.0-preview1-vs-deps": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "version": "4.0.*",
-      "packageFeeds": "default",
-      "channels": [],
-      "vsBranch": "feature/d17initial",
-      "vsMajorVersion": 17
+      "vsBranch": "rel/d16.11",
+      "vsMajorVersion": 16,
+      "insertionTitlePrefix": "[d16.11]"
     },
     "release/dev17.0-vs-deps": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "version": "4.0.*",
+      "packageFeeds": "default",
+      "channels": [],
+      "vsBranch": "rel/d17.0",
+      "vsMajorVersion": 17,
+      "insertionTitlePrefix": "[d17p4]"
+    },
+    "main-vs-deps": {
       "nugetKind": [
         "Shipping",
         "NonShipping"

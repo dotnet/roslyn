@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -146,9 +148,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         private static IEnumerable<UsingDirectiveSyntax> GetApplicableUsings(int position, SyntaxNode root)
         {
-            var namespaceUsings = root.FindToken(position).Parent!.GetAncestors<NamespaceDeclarationSyntax>().SelectMany(n => n.Usings);
-            var allUsings = root is CompilationUnitSyntax
-                ? ((CompilationUnitSyntax)root).Usings.Concat(namespaceUsings)
+            var namespaceUsings = root.FindToken(position).Parent!.GetAncestors<BaseNamespaceDeclarationSyntax>().SelectMany(n => n.Usings);
+            var allUsings = root is CompilationUnitSyntax compilationUnit
+                ? compilationUnit.Usings.Concat(namespaceUsings)
                 : namespaceUsings;
             return allUsings.Where(u => u.Alias != null);
         }
@@ -176,6 +178,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 default:
                     return false;
             }
+        }
+
+        public static bool TryGetRecordPrimaryConstructor(this INamedTypeSymbol typeSymbol, [NotNullWhen(true)] out IMethodSymbol? primaryConstructor)
+        {
+            if (typeSymbol.IsRecord)
+            {
+                Debug.Assert(typeSymbol.GetParameters().IsDefaultOrEmpty, "If GetParameters extension handles record, we can remove the handling here.");
+
+                // A bit hacky to determine the parameters of primary constructor associated with a given record.
+                // Simplifying is tracked by: https://github.com/dotnet/roslyn/issues/53092.
+                // Note: When the issue is handled, we can remove the logic here and handle things in GetParameters extension. BUT
+                // if GetParameters extension method gets updated to handle records, we need to test EVERY usage
+                // of the extension method and make sure the change is applicable to all these usages.
+
+                primaryConstructor = typeSymbol.InstanceConstructors.FirstOrDefault(
+                    c => c.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax() is RecordDeclarationSyntax);
+                return primaryConstructor is not null;
+            }
+
+            primaryConstructor = null;
+            return false;
         }
     }
 }

@@ -49,6 +49,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         public void Add<T>(PerLanguageOption2<CodeStyleOption2<T>> option, T value, NotificationOption2 notification)
             => _options.Add(new OptionKey2(option, _languageName), new CodeStyleOption2<T>(value, notification));
 
+        // 📝 This can be removed if/when collection initializers support AddRange.
+        public void Add(OptionsCollection options)
+            => AddRange(options);
+
         public void AddRange(OptionsCollection options)
         {
             foreach (var (key, value) in options)

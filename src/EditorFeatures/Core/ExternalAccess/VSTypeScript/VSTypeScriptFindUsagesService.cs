@@ -15,8 +15,8 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.ExternalAccess.VSTypeScript
 {
-    [ExportLanguageService(typeof(IFindUsagesServiceRenameOnceTypeScriptMovesToExternalAccess), InternalLanguageNames.TypeScript), Shared]
-    internal class VSTypeScriptFindUsagesService : IFindUsagesServiceRenameOnceTypeScriptMovesToExternalAccess
+    [ExportLanguageService(typeof(IFindUsagesService), InternalLanguageNames.TypeScript), Shared]
+    internal class VSTypeScriptFindUsagesService : IFindUsagesService
     {
         private readonly IVSTypeScriptFindUsagesService _underlyingService;
 
@@ -27,11 +27,11 @@ namespace Microsoft.CodeAnalysis.Editor.ExternalAccess.VSTypeScript
             _underlyingService = underlyingService;
         }
 
-        public Task FindReferencesAsync(Document document, int position, IFindUsagesContext context)
-            => _underlyingService.FindReferencesAsync(document, position, new VSTypeScriptFindUsagesContext(context), context.CancellationToken);
+        public Task FindReferencesAsync(Document document, int position, IFindUsagesContext context, CancellationToken cancellationToken)
+            => _underlyingService.FindReferencesAsync(document, position, new VSTypeScriptFindUsagesContext(context), cancellationToken);
 
-        public Task FindImplementationsAsync(Document document, int position, IFindUsagesContext context)
-            => _underlyingService.FindImplementationsAsync(document, position, new VSTypeScriptFindUsagesContext(context), context.CancellationToken);
+        public Task FindImplementationsAsync(Document document, int position, IFindUsagesContext context, CancellationToken cancellationToken)
+            => _underlyingService.FindImplementationsAsync(document, position, new VSTypeScriptFindUsagesContext(context), cancellationToken);
 
         private class VSTypeScriptFindUsagesContext : IVSTypeScriptFindUsagesContext
         {
@@ -46,10 +46,10 @@ namespace Microsoft.CodeAnalysis.Editor.ExternalAccess.VSTypeScript
             public IVSTypeScriptStreamingProgressTracker ProgressTracker => new VSTypeScriptStreamingProgressTracker(_context.ProgressTracker);
 
             public ValueTask ReportMessageAsync(string message, CancellationToken cancellationToken)
-                => _context.ReportMessageAsync(message);
+                => _context.ReportMessageAsync(message, cancellationToken);
 
             public ValueTask SetSearchTitleAsync(string title, CancellationToken cancellationToken)
-                => _context.SetSearchTitleAsync(title);
+                => _context.SetSearchTitleAsync(title, cancellationToken);
 
             private DefinitionItem GetOrCreateDefinitionItem(VSTypeScriptDefinitionItem item)
             {
@@ -75,13 +75,13 @@ namespace Microsoft.CodeAnalysis.Editor.ExternalAccess.VSTypeScript
             public ValueTask OnDefinitionFoundAsync(VSTypeScriptDefinitionItem definition, CancellationToken cancellationToken)
             {
                 var item = GetOrCreateDefinitionItem(definition);
-                return _context.OnDefinitionFoundAsync(item);
+                return _context.OnDefinitionFoundAsync(item, cancellationToken);
             }
 
             public ValueTask OnReferenceFoundAsync(VSTypeScriptSourceReferenceItem reference, CancellationToken cancellationToken)
             {
                 var item = GetOrCreateDefinitionItem(reference.Definition);
-                return _context.OnReferenceFoundAsync(new SourceReferenceItem(item, reference.SourceSpan, reference.SymbolUsageInfo));
+                return _context.OnReferenceFoundAsync(new SourceReferenceItem(item, reference.SourceSpan, reference.SymbolUsageInfo), cancellationToken);
             }
         }
 
@@ -95,10 +95,10 @@ namespace Microsoft.CodeAnalysis.Editor.ExternalAccess.VSTypeScript
             }
 
             public ValueTask AddItemsAsync(int count, CancellationToken cancellationToken)
-                => _progressTracker.AddItemsAsync(count);
+                => _progressTracker.AddItemsAsync(count, cancellationToken);
 
             public ValueTask ItemCompletedAsync(CancellationToken cancellationToken)
-                => _progressTracker.ItemCompletedAsync();
+                => _progressTracker.ItemCompletedAsync(cancellationToken);
         }
     }
 }

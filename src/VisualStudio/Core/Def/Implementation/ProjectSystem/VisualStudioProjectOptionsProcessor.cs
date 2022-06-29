@@ -191,7 +191,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // We've computed what the base values should be; we now give an opportunity for any host-specific settings to be computed
             // before we apply them
-            compilationOptions = ComputeCompilationOptionsWithHostValues(compilationOptions, this._ruleSetFile?.Target.Value);
+            compilationOptions = ComputeCompilationOptionsWithHostValues(compilationOptions, _ruleSetFile?.Target.Value);
             parseOptions = ComputeParseOptionsWithHostValues(parseOptions);
 
             // For managed projects, AssemblyName has to be non-null, but the command line we get might be a partial command line

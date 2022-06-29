@@ -27,8 +27,10 @@
           Outputs="$(_SwrFilePath)">
 
     <ItemGroup>
-      <_ServiceHubConfigFiles Include="@(ServiceHubService)" FileSuffix="" />
       <_ServiceHubConfigFiles Include="@(ServiceHubService)" FileSuffix="64" />
+      <_ServiceHubConfigFiles Include="@(ServiceHubService)" FileSuffix="64S" />
+      <_ServiceHubConfigFiles Include="@(ServiceHubService)" FileSuffix="Core64" />
+      <_ServiceHubConfigFiles Include="@(ServiceHubService)" FileSuffix="Core64S" />
       <_FileEntries Include='file source="$(IntermediateOutputPath)%(_ServiceHubConfigFiles.Identity)%(_ServiceHubConfigFiles.FileSuffix).servicehub.service.json"'/>
     </ItemGroup>
 
@@ -38,6 +40,7 @@
 
 package name=$(MSBuildProjectName)
         version=$(VsixVersion)
+        vs.package.productArch=neutral
 
 folder InstallDir:\Common7\ServiceHub\Services\RoslynCodeAnalysisService
   @(_FileEntries, '%0d%0a  ')

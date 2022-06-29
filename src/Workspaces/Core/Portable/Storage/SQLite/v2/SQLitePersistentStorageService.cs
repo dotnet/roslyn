@@ -3,41 +3,61 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Composition;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PersistentStorage;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SQLite.v2
 {
-    internal class SQLitePersistentStorageService : AbstractSQLitePersistentStorageService
+    internal sealed class SQLitePersistentStorageService : AbstractSQLitePersistentStorageService
     {
+        [ExportWorkspaceService(typeof(ISQLiteStorageServiceFactory)), Shared]
+        internal sealed class Factory : ISQLiteStorageServiceFactory
+        {
+            private readonly SQLiteConnectionPoolService _connectionPoolService;
+            private readonly IAsynchronousOperationListener _asyncListener;
+
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public Factory(SQLiteConnectionPoolService connectionPoolService, IAsynchronousOperationListenerProvider asyncOperationListenerProvider)
+            {
+                _connectionPoolService = connectionPoolService;
+                _asyncListener = asyncOperationListenerProvider.GetListener(FeatureAttribute.PersistentStorage);
+            }
+
+            public IChecksummedPersistentStorageService Create(IPersistentStorageConfiguration configuration)
+                => new SQLitePersistentStorageService(_connectionPoolService, configuration, _asyncListener);
+        }
+
         private const string StorageExtension = "sqlite3";
         private const string PersistentStorageFileName = "storage.ide";
 
         private readonly SQLiteConnectionPoolService _connectionPoolService;
-        private readonly OptionSet _options;
+        private readonly IAsynchronousOperationListener _asyncListener;
         private readonly IPersistentStorageFaultInjector? _faultInjector;
 
         public SQLitePersistentStorageService(
-            OptionSet options,
             SQLiteConnectionPoolService connectionPoolService,
-            IPersistentStorageLocationService locationService)
-            : base(locationService)
+            IPersistentStorageConfiguration configuration,
+            IAsynchronousOperationListener asyncListener)
+            : base(configuration)
         {
-            _options = options;
             _connectionPoolService = connectionPoolService;
+            _asyncListener = asyncListener;
         }
 
         public SQLitePersistentStorageService(
-            OptionSet options,
             SQLiteConnectionPoolService connectionPoolService,
-            IPersistentStorageLocationService locationService,
+            IPersistentStorageConfiguration configuration,
+            IAsynchronousOperationListener asyncListener,
             IPersistentStorageFaultInjector? faultInjector)
-            : this(options, connectionPoolService, locationService)
+            : this(connectionPoolService, configuration, asyncListener)
         {
             _faultInjector = faultInjector;
         }
@@ -58,13 +78,14 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             }
 
             if (solutionKey.FilePath == null)
-                return new(NoOpPersistentStorage.GetOrThrow(_options));
+                return new(NoOpPersistentStorage.GetOrThrow(Configuration.ThrowOnFailure));
 
             return new(SQLitePersistentStorage.TryCreate(
                 _connectionPoolService,
                 workingFolderPath,
                 solutionKey.FilePath,
                 databaseFilePath,
+                _asyncListener,
                 _faultInjector));
         }
 

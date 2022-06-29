@@ -13,6 +13,6 @@ namespace Microsoft.CodeAnalysis.Host
         Compilation CreateCompilation(string assemblyName, CompilationOptions options);
         Compilation CreateSubmissionCompilation(string assemblyName, CompilationOptions options, Type? hostObjectType);
         CompilationOptions GetDefaultCompilationOptions();
-        GeneratorDriver? CreateGeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts);
+        GeneratorDriver CreateGeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts);
     }
 }

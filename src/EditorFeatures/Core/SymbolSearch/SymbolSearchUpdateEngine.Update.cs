@@ -15,6 +15,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.Elfie.Model;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.RemoteControl;
@@ -36,7 +37,6 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         internal const string ChecksumAttributeName = "checksum";
         internal const string UpToDateAttributeName = "upToDate";
         internal const string TooOldAttributeName = "tooOld";
-        internal const string NugetOrgSource = "nuget.org";
 
         public const string HostId = "RoslynNuGetSearch";
         private const string MicrosoftAssemblyReferencesName = "MicrosoftAssemblyReferences";
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             internal async ValueTask UpdateInBackgroundAsync(CancellationToken cancellationToken)
             {
                 // We only support this single source currently.
-                if (_source != NugetOrgSource)
+                if (_source != PackageSourceHelper.NugetOrgSourceName)
                 {
                     return;
                 }

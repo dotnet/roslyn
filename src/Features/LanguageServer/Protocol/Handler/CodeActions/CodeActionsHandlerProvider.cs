@@ -19,9 +19,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// Exports all the code action handlers together to ensure they
     /// share the same code actions cache state.
     /// </summary>
-    [ExportLspRequestHandlerProvider, Shared]
+    [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
     [ProvidesMethod(LSP.Methods.TextDocumentCodeActionName)]
-    [ProvidesMethod(LSP.MSLSPMethods.TextDocumentCodeActionResolveName)]
+    [ProvidesMethod(LSP.Methods.CodeActionResolveName)]
     [ProvidesCommand(CodeActionsHandler.RunCodeActionCommandName)]
     internal class CodeActionsHandlerProvider : AbstractRequestHandlerProvider
     {

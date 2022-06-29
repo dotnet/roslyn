@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
@@ -69,21 +70,21 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             => HasCustomTag(diagnostic.CustomTags, WellKnownDiagnosticTags.NotConfigurable);
 
         public static bool IsNotConfigurableDiagnostic(Diagnostic diagnostic)
-            => HasCustomTag(diagnostic.Descriptor.CustomTags, WellKnownDiagnosticTags.NotConfigurable);
+            => HasCustomTag(diagnostic.Descriptor.ImmutableCustomTags(), WellKnownDiagnosticTags.NotConfigurable);
 
         public static bool IsCompilerDiagnostic(DiagnosticData diagnostic)
             => HasCustomTag(diagnostic.CustomTags, WellKnownDiagnosticTags.Compiler);
 
         public static bool IsCompilerDiagnostic(Diagnostic diagnostic)
-            => HasCustomTag(diagnostic.Descriptor.CustomTags, WellKnownDiagnosticTags.Compiler);
+            => HasCustomTag(diagnostic.Descriptor.ImmutableCustomTags(), WellKnownDiagnosticTags.Compiler);
 
         public static bool IsSynthesizedExternalSourceDiagnostic(DiagnosticData diagnostic)
             => HasCustomTag(diagnostic.CustomTags, SynthesizedExternalSourceDiagnosticTag);
 
         public static bool IsSynthesizedExternalSourceDiagnostic(Diagnostic diagnostic)
-            => HasCustomTag(diagnostic.Descriptor.CustomTags, SynthesizedExternalSourceDiagnosticTag);
+            => HasCustomTag(diagnostic.Descriptor.ImmutableCustomTags(), SynthesizedExternalSourceDiagnosticTag);
 
-        public static bool HasCustomTag(IEnumerable<string> customTags, string tagToFind)
-            => customTags != null && customTags.Any(c => CultureInfo.InvariantCulture.CompareInfo.Compare(c, tagToFind) == 0);
+        public static bool HasCustomTag(ImmutableArray<string> customTags, string tagToFind)
+            => customTags.Any(c => CultureInfo.InvariantCulture.CompareInfo.Compare(c, tagToFind) == 0);
     }
 }

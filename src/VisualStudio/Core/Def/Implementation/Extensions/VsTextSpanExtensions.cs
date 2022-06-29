@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
         {
             spanInPrimaryBuffer = default;
 
-            if (!(workspace is VisualStudioWorkspaceImpl visualStudioWorkspace))
+            if (workspace is not VisualStudioWorkspaceImpl visualStudioWorkspace)
             {
                 return false;
             }

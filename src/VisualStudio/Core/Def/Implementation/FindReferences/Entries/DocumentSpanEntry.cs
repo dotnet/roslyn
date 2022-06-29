@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis;
@@ -24,6 +25,7 @@ using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
@@ -34,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         /// contents of that line, and hovering will reveal a tooltip showing that line along
         /// with a few lines above/below it.
         /// </summary>
-        private class DocumentSpanEntry : AbstractDocumentSpanEntry, ISupportsNavigation
+        private sealed class DocumentSpanEntry : AbstractDocumentSpanEntry, ISupportsNavigation
         {
             private readonly HighlightSpanKind _spanKind;
             private readonly ExcerptResult _excerptResult;
@@ -105,7 +107,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             public static DocumentSpanEntry? TryCreate(
                 AbstractTableDataSourceFindUsagesContext context,
                 RoslynDefinitionBucket definitionBucket,
-                DocumentSpan documentSpan,
+                Guid guid,
+                string projectName,
+                string? projectFlavor,
+                string? filePath,
+                TextSpan sourceSpan,
                 HighlightSpanKind spanKind,
                 MappedSpanResult mappedSpanResult,
                 ExcerptResult excerptResult,
@@ -113,8 +119,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 SymbolUsageInfo symbolUsageInfo,
                 ImmutableDictionary<string, string> customColumnsData)
             {
-                var document = documentSpan.Document;
-                var (guid, projectName, projectFlavor) = GetGuidAndProjectInfo(document);
                 var entry = new DocumentSpanEntry(
                     context, definitionBucket,
                     projectName, projectFlavor, guid,
@@ -126,7 +130,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 // for the user. i.e. they're the same file/span.  Showing multiple entries for these
                 // is just noisy and gets worse and worse with shared projects and whatnot.  So, we
                 // collapse things down to only show a single entry for each unique file/span pair.
-                var winningEntry = definitionBucket.GetOrAddEntry(documentSpan, entry);
+                var winningEntry = definitionBucket.GetOrAddEntry(filePath, sourceSpan, entry);
 
                 // If we were the one that successfully added this entry to the bucket, then pass us
                 // back out to be put in the ui.
@@ -276,28 +280,37 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     sourceText.Lines[lastLineNumber].End);
             }
 
-            bool ISupportsNavigation.TryNavigateTo(bool isPreview, CancellationToken cancellationToken)
+            public bool CanNavigateTo()
             {
-                // If the document is a source generated document, we need to do the navigation ourselves;
-                // this is because the file path given to the table control isn't a real file path to a file
-                // on disk.
                 if (_excerptResult.Document is SourceGeneratedDocument)
                 {
                     var workspace = _excerptResult.Document.Project.Solution.Workspace;
                     var documentNavigationService = workspace.Services.GetService<IDocumentNavigationService>();
 
-                    if (documentNavigationService != null)
-                    {
-                        return documentNavigationService.TryNavigateToSpan(
-                            workspace,
-                            _excerptResult.Document.Id,
-                            _excerptResult.Span,
-                            workspace.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, isPreview),
-                            cancellationToken);
-                    }
+                    return documentNavigationService != null;
                 }
 
                 return false;
+            }
+
+            public Task NavigateToAsync(bool isPreview, CancellationToken cancellationToken)
+            {
+                Contract.ThrowIfFalse(CanNavigateTo());
+
+                // If the document is a source generated document, we need to do the navigation ourselves;
+                // this is because the file path given to the table control isn't a real file path to a file
+                // on disk.
+
+                var solution = _excerptResult.Document.Project.Solution;
+                var workspace = solution.Workspace;
+                var documentNavigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
+
+                return documentNavigationService.TryNavigateToSpanAsync(
+                    workspace,
+                    _excerptResult.Document.Id,
+                    _excerptResult.Span,
+                    solution.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, isPreview),
+                    cancellationToken);
             }
         }
     }

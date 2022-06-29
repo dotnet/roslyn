@@ -4,6 +4,8 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
     Public Class LoopKeywordRecommenderTests
+        Inherits RecommenderTests
+
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub LoopNotInMethodBodyTest()

@@ -122,6 +122,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Serialization
                 Dim value = reader.ReadValue()
                 builder.Add(KeyValuePairUtil.Create(key, value))
             Next
+
             Dim options = New VisualBasicParseOptions(languageVersion, documentationMode, kind, builder.MoveToImmutable())
             Return options.WithFeatures(features)
         End Function
