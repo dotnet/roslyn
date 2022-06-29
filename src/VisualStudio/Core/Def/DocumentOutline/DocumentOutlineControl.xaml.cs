@@ -114,25 +114,25 @@ namespace Microsoft.VisualStudio.LanguageServices
                     threadingContext.DisposalToken);
 
             codeWindow.GetPrimaryView(out var pTextViewPrimary);
-            StartTrackingView(pTextViewPrimary, out var textViewPrimary);
+            StartTrackingView(pTextViewPrimary, false, out var textViewPrimary);
 
             if (textViewPrimary is null)
                 return;
 
             codeWindow.GetSecondaryView(out var pTextViewSecondary);
             if (pTextViewSecondary is not null)
-                StartTrackingView(pTextViewSecondary, out var _);
+                StartTrackingView(pTextViewSecondary, false, out var _);
 
             StartGetModelTask();
         }
 
         int IVsCodeWindowEvents.OnNewView(IVsTextView pView)
         {
-            StartTrackingView(pView, out var _);
+            StartTrackingView(pView, true, out var _);
             return VSConstants.S_OK;
         }
 
-        private void StartTrackingView(IVsTextView pTextView, out IWpfTextView? wpfTextView)
+        private void StartTrackingView(IVsTextView pTextView, bool isNewView, out IWpfTextView? wpfTextView)
         {
             ThreadingContext.ThrowIfNotOnUIThread();
             wpfTextView = null;
@@ -145,6 +145,11 @@ namespace Microsoft.VisualStudio.LanguageServices
                     _trackedTextViews.Add(pTextView, wpfTextView);
                     wpfTextView.Caret.PositionChanged += Caret_PositionChanged;
                     wpfTextView.TextBuffer.Changed += TextBuffer_Changed;
+
+                    // If textViewPrimary was null on initialization, we want to get the
+                    // document model once we obtain a text view
+                    if (isNewView && !DocumentSymbolViewModelsIsInitialized)
+                        StartGetModelTask();
                 }
             }
         }
