@@ -73,6 +73,31 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestLeft_Equals_IfStatement()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void M(object o)
+    {
+        [|if|] (o != null)
+            o.ToString();
+    }
+}",
+@"using System;
+
+class C
+{
+    void M(object o)
+    {
+        o?.ToString();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestLeft_IsNull()
         {
             await TestInRegularAndScript1Async(
@@ -121,6 +146,31 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestLeft_IsNotNull_IfStatement()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void M(object o)
+    {
+        [|if|] (o is not null)
+            o.ToString();
+    }
+}",
+@"using System;
+
+class C
+{
+    void M(object o)
+    {
+        o?.ToString();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestMissingOnCSharp5()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -131,6 +181,22 @@ class C
     void M(object o)
     {
         var v = o == null ? null : o.ToString();
+    }
+}", LanguageVersion.CSharp5);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestMissingOnCSharp5_IfStatement()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M(object o)
+    {
+        if (o != null)
+            o.ToString();
     }
 }", LanguageVersion.CSharp5);
         }
@@ -155,6 +221,31 @@ class C
     void M(object o)
     {
         var v = o?.ToString();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestRight_Equals_IfStatement()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void M(object o)
+    {
+        [|if|] (null != o)
+                    o.ToString();
+    }
+}",
+@"using System;
+
+class C
+{
+    void M(object o)
+    {
+        o?.ToString();
     }
 }");
         }
@@ -208,6 +299,31 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestWithNullableType_IfStatement()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    public int? f;
+    void M(C c)
+    {
+        [|if|] (c != null)
+            c.f?.ToString();
+    }
+}",
+@"
+class C
+{
+    public int? f;
+    void M(C c)
+    {
+        c?.f?.ToString();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestWithNullableTypeAndObjectCast()
         {
             await TestInRegularAndScript1Async(
@@ -227,6 +343,31 @@ class C
     void M(C c)
     {
         int? x = c?.f;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestWithNullableTypeAndObjectCast_IfStatement()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    public int? f;
+    void M(C c)
+    {
+        [|if|] ((object)c != null)
+            c.f?.ToString();
+    }
+}",
+@"
+class C
+{
+    public int? f;
+    void M(C c)
+    {
+        c?.f?.ToString();
     }
 }");
         }
@@ -280,6 +421,31 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestIndexer_IfStatement()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void M(object o)
+    {
+        [|if|] (o != null)
+            {|CS0021:o[0]|}.ToString();
+    }
+}",
+@"using System;
+
+class C
+{
+    void M(object o)
+    {
+        o?{|CS0021:[0]|}.ToString();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestConditionalAccess()
         {
             await TestInRegularAndScript1Async(
@@ -299,6 +465,31 @@ class C
     void M(object o)
     {
         var v = o?{|CS1061:.B|}?.C;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestConditionalAccess_IfStatement()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void M(object o)
+    {
+        [|if|](o != null)
+            o.{|CS1061:B|}?.C();
+    }
+}",
+@"using System;
+
+class C
+{
+    void M(object o)
+    {
+        o?{|CS1061:.B|}?.C();
     }
 }");
         }
@@ -328,6 +519,31 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestMemberAccess_IfStatement()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void M(object o)
+    {
+        [|if|] (o != null)
+            o.{|CS1061:B|}();
+    }
+}",
+@"using System;
+
+class C
+{
+    void M(object o)
+    {
+        o?{|CS1061:.B|}();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestMissingOnSimpleMatch()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -338,6 +554,22 @@ class C
     void M(object o)
     {
         var v = o == null ? null : o;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestMissingOnSimpleMatch_IfStatement()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M(object o)
+    {
+        if (o != null)
+            {|CS0201:o|};
     }
 }");
         }
@@ -580,6 +812,37 @@ class C
 
         [WorkItem(19774, "https://github.com/dotnet/roslyn/issues/19774")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestNullableMemberAccess_IfStatement()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    void Main(DateTime? toDate)
+    {
+        [|if|] (toDate != null)
+            toDate.Value.ToString(""yyyy/MM/ dd"");
+    }
+}
+",
+
+@"
+using System;
+
+class C
+{
+    void Main(DateTime? toDate)
+    {
+        toDate?.ToString(""yyyy/MM/ dd"");
+    }
+}
+");
+        }
+
+        [WorkItem(19774, "https://github.com/dotnet/roslyn/issues/19774")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestNullableElementAccess()
         {
             await TestInRegularAndScript1Async(
@@ -670,6 +933,32 @@ class C
 
         [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestWithNullableTypeAndIsNotNull_IfStatement()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    public int? f;
+    void M(C c)
+    {
+        [|if|] (c is not null)
+            c.f?.ToString();
+    }
+}",
+@"
+class C
+{
+    public int? f;
+    void M(C c)
+    {
+        c?.f?.ToString();
+    }
+}");
+        }
+
+        [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestWithNullableTypeAndIsType()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -680,6 +969,57 @@ class C
     void M(C c)
     {
         int? x = c is C ? null : c.f;
+    }
+}");
+        }
+
+        [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestWithNullableTypeAndIsType_IfStatement1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    public int? f;
+    void M(C c)
+    {
+        if (c is C)
+            c.f?.ToString();
+    }
+}");
+        }
+
+        [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestWithNullableTypeAndIsType_IfStatement2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    public int? f;
+    void M(C c)
+    {
+        if (c is C d)
+            c.f?.ToString();
+    }
+}");
+        }
+
+        [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestWithNullableTypeAndIsType_IfStatement3()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    public int? f;
+    void M(C c)
+    {
+        if (c is not C)
+            c.f?.ToString();
     }
 }");
         }
@@ -726,6 +1066,32 @@ class C
 
         [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestWithNullableTypeAndReferenceEquals1_IfStatement()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    public int? f;
+    void M(C c)
+    {
+        [|if|] (!ReferenceEquals(c, null))
+            c.f?.ToString();
+    }
+}",
+@"
+class C
+{
+    public int? f;
+    void M(C c)
+    {
+        c?.f?.ToString();
+    }
+}");
+        }
+
+        [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestWithNullableTypeAndReferenceEquals2()
         {
             await TestInRegularAndScript1Async(
@@ -751,6 +1117,32 @@ class C
 
         [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestWithNullableTypeAndReferenceEquals2_IfStatement()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    public int? f;
+    void M(C c)
+    {
+        [|if|] (!ReferenceEquals(null, c))
+            c.f?.ToString();
+    }
+}",
+@"
+class C
+{
+    public int? f;
+    void M(C c)
+    {
+        c?.f?.ToString();
+    }
+}");
+        }
+
+        [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestWithNullableTypeAndReferenceEqualsOtherValue1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -761,6 +1153,40 @@ class C
     void M(C c, C other)
     {
         int? x = ReferenceEquals(c, other) ? null : c.f;
+    }
+}");
+        }
+
+        [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestWithNullableTypeAndReferenceEqualsOtherValue1_IfStatement1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    public int? f;
+    void M(C c, C other)
+    {
+        if (ReferenceEquals(c, other))
+            c.f?.ToString();
+    }
+}");
+        }
+
+        [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestWithNullableTypeAndReferenceEqualsOtherValue1_IfStatement2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    public int? f;
+    void M(C c, C other)
+    {
+        if (!ReferenceEquals(c, other))
+            c.f?.ToString();
     }
 }");
         }
@@ -808,6 +1234,32 @@ class C
 
         [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestWithNullableTypeAndReferenceEqualsWithObject1_IfStatement()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    public int? f;
+    void M(C c)
+    {
+        [|if|] (!object.ReferenceEquals(c, null))
+            c.f?.ToString();
+    }
+}",
+@"
+class C
+{
+    public int? f;
+    void M(C c)
+    {
+        c?.f?.ToString();
+    }
+}");
+        }
+
+        [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestWithNullableTypeAndReferenceEqualsWithObject2()
         {
             await TestInRegularAndScript1Async(
@@ -827,6 +1279,32 @@ class C
     void M(C c)
     {
         int? x = c?.f;
+    }
+}");
+        }
+
+        [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestWithNullableTypeAndReferenceEqualsWithObject2_IfStatement()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    public int? f;
+    void M(C c)
+    {
+        [|if|] (!object.ReferenceEquals(null, c))
+            c.f?.ToString();
+    }
+}",
+@"
+class C
+{
+    public int? f;
+    void M(C c)
+    {
+        c?.f?.ToString();
     }
 }");
         }
@@ -1129,6 +1607,32 @@ class C
     void M(C c)
     {
         int? x = c?.f;
+    }
+}");
+        }
+
+        [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestEqualsWithLogicalNot_IfStatement()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    public int? f;
+    void M(C c)
+    {
+        [|if|] (!(c == null))
+            c.f?.ToString();
+    }
+}",
+@"
+class C
+{
+    public int? f;
+    void M(C c)
+    {
+        c?.f?.ToString();
     }
 }");
         }

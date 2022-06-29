@@ -114,28 +114,16 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             syntaxFacts.GetPartsOfConditionalExpression(
                 conditionalExpression, out var condition, out var whenTrue, out var whenFalse);
 
-            var conditionNode = (TExpressionSyntax)syntaxFacts.WalkDownParentheses(condition);
+            var conditionNode = (TExpressionSyntax)condition;
+
             var whenTrueNode = (TExpressionSyntax)syntaxFacts.WalkDownParentheses(whenTrue);
             var whenFalseNode = (TExpressionSyntax)syntaxFacts.WalkDownParentheses(whenFalse);
 
-            var conditionIsNegated = false;
-            if (syntaxFacts.IsLogicalNotExpression(conditionNode))
-            {
-                conditionIsNegated = true;
-                conditionNode = (TExpressionSyntax)syntaxFacts.WalkDownParentheses(
-                    syntaxFacts.GetOperandOfPrefixUnaryExpression(conditionNode));
-            }
-
             if (!TryAnalyzeCondition(
-                    context, syntaxFacts, referenceEqualsMethod, (TExpressionSyntax)conditionNode,
+                    context, syntaxFacts, referenceEqualsMethod, conditionNode,
                     out var conditionPartToCheck, out var isEquals))
             {
                 return;
-            }
-
-            if (conditionIsNegated)
-            {
-                isEquals = !isEquals;
             }
 
             // Needs to be of the form:
@@ -173,9 +161,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             }
 
             if (IsInExpressionTree(semanticModel, conditionNode, expressionType, context.CancellationToken))
-            {
                 return;
-            }
 
             var locations = ImmutableArray.Create(
                 conditionalExpression.GetLocation(),
@@ -199,25 +185,35 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             SyntaxNodeAnalysisContext context,
             ISyntaxFacts syntaxFacts,
             IMethodSymbol? referenceEqualsMethod,
-            TExpressionSyntax conditionNode,
+            TExpressionSyntax condition,
             [NotNullWhen(true)] out TExpressionSyntax? conditionPartToCheck,
             out bool isEquals)
         {
-            switch (conditionNode)
+            condition = (TExpressionSyntax)syntaxFacts.WalkDownParentheses(condition);
+            var conditionIsNegated = false;
+            if (syntaxFacts.IsLogicalNotExpression(condition))
             {
-                case TBinaryExpressionSyntax binaryExpression:
-                    return TryAnalyzeBinaryExpressionCondition(
-                        syntaxFacts, binaryExpression, out conditionPartToCheck, out isEquals);
-
-                case TInvocationExpressionSyntax invocation:
-                    return TryAnalyzeInvocationCondition(
-                        context, syntaxFacts, referenceEqualsMethod, invocation,
-                        out conditionPartToCheck, out isEquals);
-
-                default:
-                    return TryAnalyzePatternCondition(
-                        syntaxFacts, conditionNode, out conditionPartToCheck, out isEquals);
+                conditionIsNegated = true;
+                condition = (TExpressionSyntax)syntaxFacts.WalkDownParentheses(
+                    syntaxFacts.GetOperandOfPrefixUnaryExpression(condition));
             }
+
+            var result = condition switch
+            {
+                TBinaryExpressionSyntax binaryExpression => TryAnalyzeBinaryExpressionCondition(
+                        syntaxFacts, binaryExpression, out conditionPartToCheck, out isEquals),
+
+                TInvocationExpressionSyntax invocation => TryAnalyzeInvocationCondition(
+                        context, syntaxFacts, referenceEqualsMethod, invocation,
+                        out conditionPartToCheck, out isEquals),
+
+                _ => TryAnalyzePatternCondition(syntaxFacts, condition, out conditionPartToCheck, out isEquals),
+            };
+
+            if (conditionIsNegated)
+                isEquals = !isEquals;
+
+            return result;
         }
 
         private static bool TryAnalyzeBinaryExpressionCondition(
