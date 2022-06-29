@@ -350,7 +350,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Dim fieldInfo As FieldInfo(Of TypeSymbol) = New MetadataDecoder(moduleSymbol, _containingType).DecodeFieldSignature(_handle)
                 Dim type As TypeSymbol = fieldInfo.Type
 
-                ' https://github.com/dotnet/roslyn/issues/62121: Report use-site diagnostic if fieldInfo.IsByRef.
+                If fieldInfo.IsByRef AndAlso Not _lazyCachedUseSiteInfo.IsInitialized Then
+                    _lazyCachedUseSiteInfo.Initialize(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedField1, Me))
+                End If
 
                 type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, _handle, moduleSymbol)
 
@@ -381,6 +383,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
             Dim primaryDependency As AssemblySymbol = Me.PrimaryDependency
+
+            If Not _lazyCachedUseSiteInfo.IsInitialized Then
+                ' EnsureSignatureIsLoaded() may set _lazyCachedUseSiteInfo.
+                EnsureSignatureIsLoaded()
+            End If
 
             If Not _lazyCachedUseSiteInfo.IsInitialized Then
                 Dim fieldUseSiteInfo = CalculateUseSiteInfo()
