@@ -10,8 +10,10 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.Internal.EmbeddedLanguages
 {
-    [ExportEmbeddedLanguageClassifierInternal(
-        nameof(AspNetCoreEmbeddedLanguageClassifier), LanguageNames.CSharp, supportsUnannotatedAPIs: false,
+    [ExportEmbeddedLanguageClassifier(
+        nameof(AspNetCoreEmbeddedLanguageClassifier),
+        new[] { LanguageNames.CSharp },
+        supportsUnannotatedAPIs: false,
         // Add more syntax names here in the future if there are additional cases ASP.Net would like to light up on.
         identifiers: new[] { "Route" }), Shared]
     internal class AspNetCoreEmbeddedLanguageClassifier : IEmbeddedLanguageClassifier
@@ -31,12 +33,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.Internal.EmbeddedLang
             if (classifiers.Length == 0)
                 return;
 
-            var virtualChars = context.VirtualCharService.TryConvertToVirtualChars(context.SyntaxToken);
-            if (virtualChars.IsDefaultOrEmpty)
-                return;
-
-            var aspContext = new AspNetCoreEmbeddedLanguageClassificationContext(
-                context, new AspNetCoreVirtualCharSequence(virtualChars));
+            var aspContext = new AspNetCoreEmbeddedLanguageClassificationContext(context);
             foreach (var classifier in classifiers)
                 classifier.RegisterClassifications(aspContext);
         }

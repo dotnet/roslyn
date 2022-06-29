@@ -122,6 +122,11 @@
         <target state="translated">Uno de los parámetros de un operador binario debe ser el tipo contenedor o su parámetro de tipo restringido a él.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadAbstractEqualityOperatorSignature">
+        <source>One of the parameters of an equality, or inequality operator declared in interface '{0}' must be a type parameter on '{0}' constrained to '{0}'</source>
+        <target state="new">One of the parameters of an equality, or inequality operator declared in interface '{0}' must be a type parameter on '{0}' constrained to '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadAbstractIncDecRetType">
         <source>The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.</source>
         <target state="translated">El tipo de valor devuelto para el operador ++ o -- debe coincidir con el tipo de parámetro, o bien debe derivarse del tipo de parámetro, o ser el parámetro de tipo del tipo contenedor restringido a él, a menos que el tipo de parámetro sea un parámetro de tipo diferente.</target>
@@ -145,6 +150,11 @@
       <trans-unit id="ERR_BadAbstractUnaryOperatorSignature">
         <source>The parameter of a unary operator must be the containing type, or its type parameter constrained to it.</source>
         <target state="translated">El parámetro de un operador unario debe ser el tipo contenedor o su parámetro de tipo restringido a él.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadBinaryReadOnlySpanConcatenation">
+        <source>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF-8 byte representations</source>
+        <target state="new">Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF-8 byte representations</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadCallerArgumentExpressionParamWithoutDefaultValue">
@@ -222,9 +232,9 @@
         <target state="translated">El atributo AsyncMethodBuilder no se permite en métodos anónimos sin un tipo de valor devuelto explícito.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_CannotBeConvertedToUTF8">
+      <trans-unit id="ERR_CannotBeConvertedToUtf8">
         <source>The input string cannot be converted into the equivalent UTF-8 byte representation. {0}</source>
-        <target state="translated">La cadena de entrada no se puede convertir en la representación de bytes UTF-8 equivalente. {0}</target>
+        <target state="new">The input string cannot be converted into the equivalent UTF-8 byte representation. {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotBeMadeNullable">
@@ -437,6 +447,11 @@
         <target state="translated">La propiedad del contrato de igualdad de registros "{0}" debe tener un descriptor de acceso get.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_EscapeVariable">
+        <source>Cannot use variable '{0}' in this context because it may expose referenced variables outside of their declaration scope</source>
+        <target state="new">Cannot use variable '{0}' in this context because it may expose referenced variables outside of their declaration scope</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExplicitImplementationOfOperatorsMustBeStatic">
         <source>Explicit implementation of a user-defined operator '{0}' must be declared static</source>
         <target state="translated">La implementación explícita de un operador definido por el usuario "{0}" se debe declarar como estático</target>
@@ -507,9 +522,9 @@
         <target state="translated">Un árbol de expresión no puede contener un operador de tupla == o !=.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExpressionTreeContainsUTF8StringLiterals">
+      <trans-unit id="ERR_ExpressionTreeContainsUtf8StringLiterals">
         <source>An expression tree may not contain UTF-8 string conversion or literal.</source>
-        <target state="translated">Un árbol de expresión puede no contener una conversión de cadena UTF-8 o un literal.</target>
+        <target state="new">An expression tree may not contain UTF-8 string conversion or literal.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsWithExpression">
@@ -567,6 +582,11 @@
         <target state="translated">El espacio de nombres con ámbito de archivo debe preceder a todos los demás miembros de un archivo.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FixedFieldMustNotBeRef">
+        <source>A fixed field must not be a ref field.</source>
+        <target state="new">A fixed field must not be a ref field.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ForEachMissingMemberWrongAsync">
         <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'. Did you mean 'await foreach' rather than 'foreach'?</source>
         <target state="translated">La instrucción foreach no puede funcionar en variables de tipo "{0}" porque "{0}" no contiene ninguna definición de extensión o instancia pública para "{1}". ¿Quiso decir “await foreach” en lugar de “foreach”?</target>
@@ -593,8 +613,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers">
-        <source>The interface '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. The constraint interface '{1}' or its base interface has static abstract or virtual members.</source>
-        <target state="translated">La interfaz "{3}" no se puede usar como parámetro de tipo "{2}" en el tipo o método genérico "{0}". La interfaz de restricción "{1}" o su interfaz base tiene miembros abstractos estáticos o virtuales.</target>
+        <source>The interface '{0}' cannot be used as type argument. Static member '{1}' does not have a most specific implementation in the interface.</source>
+        <target state="new">The interface '{0}' cannot be used as type argument. Static member '{1}' does not have a most specific implementation in the interface.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GlobalUsingInNamespace">
@@ -635,6 +655,11 @@
       <trans-unit id="ERR_ImplicitConversionOperatorCantBeChecked">
         <source>An 'implicit' user-defined conversion operator cannot be declared checked</source>
         <target state="translated">Un operador de conversión 'implicit' definido por el usuario no se puede declarar como comprobado</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitImplementationOfInaccessibleInterfaceMember">
+        <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement an inaccessible member.</source>
+        <target state="new">'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement an inaccessible member.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitIndexIndexerWithName">
@@ -812,6 +837,11 @@
         <target state="translated">Una expresión lambda con atributos no se puede convertir en un árbol de expresión</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember">
+        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</source>
+        <target state="new">'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_LineContainsDifferentWhitespace">
         <source>Line contains different whitespace than the closing line of the raw string literal: '{0}' versus '{1}'</source>
         <target state="translated">La línea contiene un espacio en blanco diferente de la línea de cierre del literal de cadena sin formato: \"{0}\" frente a \"{1}\"</target>
@@ -830,6 +860,11 @@
       <trans-unit id="ERR_LineSpanDirectiveInvalidValue">
         <source>The #line directive value is missing or out of range</source>
         <target state="translated">Falta el valor de directiva #line o está fuera del rango</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_LineSpanDirectiveRequiresSpace">
+        <source>The #line span directive requires space before the first parenthesis, before the character offset, and before the file name</source>
+        <target state="new">The #line span directive requires space before the first parenthesis, before the character offset, and before the file name</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ListPatternRequiresLength">
@@ -1188,8 +1223,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefLocalOrParamExpected">
-        <source>The left-hand side of a ref assignment must be a ref local or parameter.</source>
-        <target state="translated">La parte izquierda de una asignación de referencias debe ser una referencia local o un parámetro.</target>
+        <source>The left-hand side of a ref assignment must be a ref variable.</source>
+        <target state="needs-review-translation">La parte izquierda de una asignación de referencias debe ser una referencia local o un parámetro.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningPropertiesCannotBeRequired">
@@ -1270,6 +1305,31 @@
       <trans-unit id="ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv">
         <source>The target runtime doesn't support extensible or runtime-environment default calling conventions.</source>
         <target state="translated">El entorno de ejecución de destino no admite convenciones de llamada predeterminadas de entorno en tiempo de ejecución o extensible.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ScopedMismatchInParameterOfOverrideOrImplementation">
+        <source>The 'scoped' modifier of parameter '{0}' doesn't match overridden or implemented member.</source>
+        <target state="new">The 'scoped' modifier of parameter '{0}' doesn't match overridden or implemented member.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ScopedMismatchInParameterOfPartial">
+        <source>The 'scoped' modifier of parameter '{0}' doesn't match partial method declaration.</source>
+        <target state="new">The 'scoped' modifier of parameter '{0}' doesn't match partial method declaration.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ScopedMismatchInParameterOfTarget">
+        <source>The 'scoped' modifier of parameter '{0}' doesn't match target '{1}'.</source>
+        <target state="new">The 'scoped' modifier of parameter '{0}' doesn't match target '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ScopedRefAndRefStructOnly">
+        <source>The 'scoped' modifier can be used for refs and ref struct values only.</source>
+        <target state="new">The 'scoped' modifier can be used for refs and ref struct values only.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers">
+        <source>Required members are not allowed on the top level of a script or submission.</source>
+        <target state="new">Required members are not allowed on the top level of a script or submission.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SealedAPIInRecord">
@@ -1572,11 +1632,6 @@
         <target state="translated">tipo de valor devuelto de lambda</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureLineSpanDirective">
-        <source>line span directive</source>
-        <target state="translated">directiva de intervalo de línea</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_FeatureListPattern">
         <source>list pattern</source>
         <target state="translated">patrón de lista</target>
@@ -1607,6 +1662,11 @@
         <target state="translated">registros</target>
         <note>'record structs' is not localizable.</note>
       </trans-unit>
+      <trans-unit id="IDS_FeatureRefFields">
+        <source>ref fields</source>
+        <target state="new">ref fields</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureRelaxedShiftOperator">
         <source>relaxed shift operator</source>
         <target state="translated">operador de cambios relajado</target>
@@ -1627,14 +1687,14 @@
         <target state="translated">inicializadores de campo de estructura</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureUTF8StringLiterals">
-        <source>UTF-8 string literals</source>
-        <target state="translated">Literales de cadena UTF-8</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_FeatureUnsignedRightShift">
         <source>unsigned right shift</source>
         <target state="translated">cambio derecho sin firmar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUtf8StringLiterals">
+        <source>UTF-8 string literals</source>
+        <target state="new">UTF-8 string literals</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureWithOnAnonymousTypes">
@@ -2123,7 +2183,7 @@
                              Opciones del compilador de Visual C#
 
                        - ARCHIVOS DE SALIDA -
--out:&lt;archivo&gt;                   Especifica el nombre del archivo de salida (el valor predeterminado: nombre base del 
+-out:&lt;archivo&gt;                   Especifica el nombre del archivo de salida (el valor predeterminado: nombre base del
                               archivo con la clase principal o el primer archivo)
 -target:exe                   Compila un archivo ejecutable de consola (predeterminado) (forma
                               corta: -t:exe)
@@ -2185,7 +2245,7 @@
 -instrument:TestCoverage      Produce un ensamblado instrumentado para recopilar
                               información de cobertura.
 -sourcelink:&lt;archivo&gt;            Información del vínculo de origen para insertar en el PDB.
- 
+
                        - ERRORES Y ADVERTENCIAS -
 -warnaserror[+|-]             Notifica todas las advertencias como errores.
 -warnaserror[+|-]:&lt;lista de advertencias &gt; Notifica advertencias específicas como errores
@@ -2257,7 +2317,7 @@
 -pdb:&lt;archivo&gt;                   Especifica el nombre de archivo de información de depuración (valor predeterminado:
                               nombre de archivo de salida con la extensión .pdb).
 -errorendlocation             Línea y columna de salida de la ubicación final de
-                              cada error. 
+                              cada error.
 -preferreduilang              Especifica el nombre del lenguaje de salida preferido.
 -nosdkpath                    Deshabilita la búsqueda de la ruta del SDK predeterminada para los ensamblados de biblioteca estándar.
 -nostdlib[+|-]                No hace referencia a la biblioteca estándar (mscorlib.dll).
@@ -6486,8 +6546,8 @@ Si se utiliza una clase de este tipo como clase base y si la clase derivada defi
         <note />
       </trans-unit>
       <trans-unit id="ERR_LookupInTypeVariable">
-        <source>Cannot do member lookup in '{0}' because it is a type parameter</source>
-        <target state="translated">No se pueden buscar miembros en '{0}' porque es un parámetro de tipo</target>
+        <source>Cannot do non-virtual member lookup in '{0}' because it is a type parameter</source>
+        <target state="needs-review-translation">No se pueden buscar miembros en '{0}' porque es un parámetro de tipo</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadConstraintType">
@@ -11033,8 +11093,8 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnParameter">
-        <source>Cannot return a parameter by reference '{0}' because it is not a ref or out parameter</source>
-        <target state="translated">No se pude devolver por referencia un parámetro '{0}' porque no es de tipo ref o out.</target>
+        <source>Cannot return a parameter by reference '{0}' because it is not a ref parameter</source>
+        <target state="needs-review-translation">No se pude devolver por referencia un parámetro '{0}' porque no es de tipo ref o out.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnParameter2">
@@ -11060,11 +11120,6 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
       <trans-unit id="ERR_EscapeOther">
         <source>Expression cannot be used in this context because it may indirectly expose variables outside of their declaration scope</source>
         <target state="translated">No se puede usar una expresión en este contexto porque puede exponer variables indirectamente fuera de su ámbito de declaración.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_EscapeLocal">
-        <source>Cannot use local '{0}' in this context because it may expose referenced variables outside of their declaration scope</source>
-        <target state="translated">No se puede usar un elemento "{0}" local en este contexto porque puede exponer variables a las que se hace referencia fuera de su ámbito de declaración.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EscapeCall">
@@ -11658,8 +11713,8 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainConversionOrEqualityOperators">
-        <source>Conversion, equality, or inequality operators declared in interfaces must be abstract</source>
-        <target state="translated">Los operadores de conversión, igualdad o desigualdad declarados en interfaces deben ser abstractos</target>
+        <source>Conversion, equality, or inequality operators declared in interfaces must be abstract or virtual</source>
+        <target state="needs-review-translation">Los operadores de conversión, igualdad o desigualdad declarados en interfaces deben ser abstractos</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
@@ -11680,11 +11735,6 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
       <trans-unit id="ERR_MostSpecificImplementationIsNotFound">
         <source>Interface member '{0}' does not have a most specific implementation. Neither '{1}', nor '{2}' are most specific.</source>
         <target state="translated">El miembro de interfaz "{0}" no tiene una implementación más específica. Ni "{1}" ni "{2}" son los más específicos.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember">
-        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</source>
-        <target state="translated">"{0}" no puede implementar el miembro de interfaz "{1}" en el tipo "{2}" porque la característica "{3}" no está disponible en C# {4}. Use la versión de idioma "{5}" o una posterior.</target>
         <note />
       </trans-unit>
     </body>

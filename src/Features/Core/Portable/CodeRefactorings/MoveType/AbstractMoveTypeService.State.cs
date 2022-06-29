@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
                 // compiler declared types, anonymous types, types defined in metadata should be filtered out.
                 if (SemanticDocument.SemanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken) is not INamedTypeSymbol typeSymbol ||
-                    typeSymbol.Locations.Any(loc => loc.IsInMetadata) ||
+                    typeSymbol.Locations.Any(static loc => loc.IsInMetadata) ||
                     typeSymbol.IsAnonymousType ||
                     typeSymbol.IsImplicitlyDeclared ||
                     typeSymbol.Name == string.Empty)

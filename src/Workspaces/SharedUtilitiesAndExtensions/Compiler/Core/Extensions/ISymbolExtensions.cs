@@ -252,10 +252,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static bool IsDelegateType([NotNullWhen(returnValue: true)] this ISymbol? symbol)
-            => symbol is ITypeSymbol && ((ITypeSymbol)symbol).TypeKind == TypeKind.Delegate;
+            => symbol is ITypeSymbol { TypeKind: TypeKind.Delegate };
 
         public static bool IsAnonymousType([NotNullWhen(returnValue: true)] this ISymbol? symbol)
-            => symbol is INamedTypeSymbol && ((INamedTypeSymbol)symbol).IsAnonymousType;
+            => symbol is INamedTypeSymbol { IsAnonymousType: true };
 
         public static bool IsNormalAnonymousType([NotNullWhen(returnValue: true)] this ISymbol? symbol)
             => symbol.IsAnonymousType() && !symbol.IsDelegateType();
@@ -761,7 +761,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// <param name="symbol"></param>
         /// <returns><see langword="true"/> if the symbol is marked with the <see cref="System.ObsoleteAttribute"/>.</returns>
         public static bool IsObsolete(this ISymbol symbol)
-            => symbol.GetAttributes().Any(x => x.AttributeClass is
+            => symbol.GetAttributes().Any(static x => x.AttributeClass is
             {
                 MetadataName: nameof(ObsoleteAttribute),
                 ContainingNamespace.Name: nameof(System),

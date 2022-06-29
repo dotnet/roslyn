@@ -110,14 +110,6 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            private int Offset
-            {
-                get
-                {
-                    return _offset;
-                }
-            }
-
             private char Current
             {
                 get
@@ -901,7 +893,7 @@ DoneWithSequence:
         }
 
         /// <summary>
-        /// Determines whether given string can be used as a non-empty metadata identifier (a NUL-terminated UTF8 string).
+        /// Determines whether given string can be used as a non-empty metadata identifier (a NUL-terminated UTF-8 string).
         /// </summary>
         internal static bool IsValidMetadataIdentifier(string str)
         {
@@ -980,7 +972,7 @@ DoneWithSequence:
         /// 22.30.2: "The format of Name is {file name}.{file extension} with no path or drive letter; on POSIX-compliant systems Name contains no colon, no forward-slash, no backslash."
         ///          As Microsoft specific constraint.
         /// 
-        /// A reasonable restriction seems to be a valid UTF8 non-empty string that doesn't contain '\0', '\', '/', ':' characters.
+        /// A reasonable restriction seems to be a valid UTF-8 non-empty string that doesn't contain '\0', '\', '/', ':' characters.
         /// </summary>
         internal static bool IsValidMetadataFileName(string name)
         {

@@ -1610,13 +1610,13 @@ class C
                 context.CompileExpression("y", out resultProperties, out error);
                 Assert.Equal(DkmClrCompilationResultFlags.None, resultProperties.Flags);
                 context.CompileExpression("(bool)y", out resultProperties, out error);
-                Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.BoolResult | DkmClrCompilationResultFlags.ReadOnlyResult);
+                Assert.Equal(DkmClrCompilationResultFlags.BoolResult | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
                 context.CompileExpression("!y", out resultProperties, out error);
                 Assert.Equal(DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
                 context.CompileExpression("false", out resultProperties, out error);
-                Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.BoolResult | DkmClrCompilationResultFlags.ReadOnlyResult);
+                Assert.Equal(DkmClrCompilationResultFlags.BoolResult | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
                 context.CompileExpression("F()", out resultProperties, out error);
-                Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.BoolResult | DkmClrCompilationResultFlags.ReadOnlyResult | DkmClrCompilationResultFlags.PotentialSideEffect);
+                Assert.Equal(DkmClrCompilationResultFlags.BoolResult | DkmClrCompilationResultFlags.ReadOnlyResult | DkmClrCompilationResultFlags.PotentialSideEffect, resultProperties.Flags);
             });
         }
 
@@ -1668,7 +1668,7 @@ class C
                 expr: "this.M()",
                 resultProperties: out resultProperties,
                 error: out error);
-            Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+            Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
             var methodData = testData.GetMethodData("<>x.<>m0");
             var method = (MethodSymbol)methodData.Method;
             Assert.Equal(SpecialType.System_Void, method.ReturnType.SpecialType);
@@ -1841,7 +1841,7 @@ class C
         }
 
         [Fact]
-        public void EvaluateUTF8StringLiteral_01()
+        public void EvaluateUtf8StringLiteral_01()
         {
             var source =
 @"class C
@@ -2838,7 +2838,7 @@ class B : A
                 expr: "((System.Func<object>)(() => this.G))()",
                 resultProperties: out resultProperties,
                 error: out error);
-            Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+            Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
             testData.GetMethodData("<>x.<>c__DisplayClass0_0.<<>m0>b__0()").VerifyIL(
 @"{
   // Code size       12 (0xc)
@@ -2855,7 +2855,7 @@ class B : A
                 expr: "((System.Func<object>)(() => this.F() ?? this.P))()",
                 resultProperties: out resultProperties,
                 error: out error);
-            Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+            Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
             testData.GetMethodData("<>x.<>c__DisplayClass0_0.<<>m0>b__0()").VerifyIL(
 @"{
   // Code size       27 (0x1b)
@@ -4290,7 +4290,7 @@ class C
                 resultProperties: out resultProperties,
                 error: out error);
 
-            Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+            Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
             testData.GetMethodData("<>x.<>c__DisplayClass0_0.<<>m0>b__0").VerifyIL(
 @"{
   // Code size       17 (0x11)
@@ -6979,6 +6979,38 @@ class C
   IL_0007:  call       ""System.Index System.Index.op_Implicit(int)""
   IL_000c:  newobj     ""System.Range..ctor(System.Index, System.Index)""
   IL_0011:  ret
+}");
+        }
+
+        [Fact]
+        public void RefField()
+        {
+            var source =
+@"ref struct S<T>
+{
+    public ref T F;
+    public S(ref T t) { F = ref t; }
+}
+class Program
+{
+    static void Main()
+    {
+        int i = 1;
+        var s = new S<int>(ref i);
+    }
+}";
+            Evaluate(source, OutputKind.ConsoleApplication, "Program.Main", "s.F = 2").GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size       10 (0xa)
+  .maxstack  3
+  .locals init (int V_0, //i
+                S<int> V_1) //s
+  IL_0000:  ldloc.1
+  IL_0001:  ldfld      ""ref int S<int>.F""
+  IL_0006:  ldc.i4.2
+  IL_0007:  dup
+  IL_0008:  stind.i4
+  IL_0009:  ret
 }");
         }
     }

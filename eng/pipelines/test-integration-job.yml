@@ -20,7 +20,7 @@ parameters:
 
 steps:
   - ${{ if eq(parameters.shallowCheckout, true) }}:
-    - template: checkout-windows-task.yml
+    - template: checkout-task.yml
 
   - task: PowerShell@2
     displayName: Build and Test

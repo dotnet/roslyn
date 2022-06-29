@@ -122,6 +122,11 @@
         <target state="translated">이진 연산자의 매개 변수 중 하나는 포함하는 유형이거나 이에 제한되는 유형 매개 변수여야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadAbstractEqualityOperatorSignature">
+        <source>One of the parameters of an equality, or inequality operator declared in interface '{0}' must be a type parameter on '{0}' constrained to '{0}'</source>
+        <target state="new">One of the parameters of an equality, or inequality operator declared in interface '{0}' must be a type parameter on '{0}' constrained to '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadAbstractIncDecRetType">
         <source>The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.</source>
         <target state="translated">++ 또는 -- 연산자에 대한 반환 유형은 매개 변수 유형과 일치하거나 매개 변수 유형에서 파생되거나 매개 변수 유형이 다른 유형 매개 변수가 아닌 경우 포함하는 유형의 유형 매개 변수로 제한됩니다.</target>
@@ -145,6 +150,11 @@
       <trans-unit id="ERR_BadAbstractUnaryOperatorSignature">
         <source>The parameter of a unary operator must be the containing type, or its type parameter constrained to it.</source>
         <target state="translated">단항 연산자의 매개 변수는 포함하는 유형이거나 이에 제한되는 유형 매개 변수여야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadBinaryReadOnlySpanConcatenation">
+        <source>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF-8 byte representations</source>
+        <target state="new">Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF-8 byte representations</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadCallerArgumentExpressionParamWithoutDefaultValue">
@@ -222,9 +232,9 @@
         <target state="translated">AsyncMethodBuilder 특성은 명시적 반환 형식이 없는 익명 메서드에서 허용되지 않습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_CannotBeConvertedToUTF8">
+      <trans-unit id="ERR_CannotBeConvertedToUtf8">
         <source>The input string cannot be converted into the equivalent UTF-8 byte representation. {0}</source>
-        <target state="translated">입력 문자열은 해당 UTF-8 바이트 표현으로 변환할 수 없습니다. {0}</target>
+        <target state="new">The input string cannot be converted into the equivalent UTF-8 byte representation. {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotBeMadeNullable">
@@ -437,6 +447,11 @@
         <target state="translated">레코드 같음 계약 속성 '{0}'에는 get 접근자가 있어야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_EscapeVariable">
+        <source>Cannot use variable '{0}' in this context because it may expose referenced variables outside of their declaration scope</source>
+        <target state="new">Cannot use variable '{0}' in this context because it may expose referenced variables outside of their declaration scope</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExplicitImplementationOfOperatorsMustBeStatic">
         <source>Explicit implementation of a user-defined operator '{0}' must be declared static</source>
         <target state="translated">사용자 정의 연산자 '{0}'의 명시적 구현은 정적으로 선언되어야 합니다.</target>
@@ -507,9 +522,9 @@
         <target state="translated">식 트리에는 튜플 == 또는 != 연산자를 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExpressionTreeContainsUTF8StringLiterals">
+      <trans-unit id="ERR_ExpressionTreeContainsUtf8StringLiterals">
         <source>An expression tree may not contain UTF-8 string conversion or literal.</source>
-        <target state="translated">식 트리에는 UTF-8 문자열 변환 또는 리터럴이 포함될 수 없습니다.</target>
+        <target state="new">An expression tree may not contain UTF-8 string conversion or literal.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsWithExpression">
@@ -567,6 +582,11 @@
         <target state="translated">파일 범위 네임스페이스는 파일의 다른 모든 멤버보다 앞에 와야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FixedFieldMustNotBeRef">
+        <source>A fixed field must not be a ref field.</source>
+        <target state="new">A fixed field must not be a ref field.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ForEachMissingMemberWrongAsync">
         <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'. Did you mean 'await foreach' rather than 'foreach'?</source>
         <target state="translated">'{0}' 형식 변수에서 foreach 문을 수행할 수 없습니다. '{0}'에는 '{1}'의 공개 인스턴스 또는 확장 정의가 없기 때문입니다. 'foreach' 대신 'await foreach'를 사용하시겠습니까?</target>
@@ -593,8 +613,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers">
-        <source>The interface '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. The constraint interface '{1}' or its base interface has static abstract or virtual members.</source>
-        <target state="translated">인터페이스 '{3}'은(는) 제네릭 유형 또는 메소드 '{0}'에서 유형 매개 변수 '{2}'로 사용할 수 없습니다. 제약 조건 인터페이스 '{1}' 또는 기본 인터페이스에 정적 추상 또는 가상 구성원가 있습니다.</target>
+        <source>The interface '{0}' cannot be used as type argument. Static member '{1}' does not have a most specific implementation in the interface.</source>
+        <target state="new">The interface '{0}' cannot be used as type argument. Static member '{1}' does not have a most specific implementation in the interface.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GlobalUsingInNamespace">
@@ -635,6 +655,11 @@
       <trans-unit id="ERR_ImplicitConversionOperatorCantBeChecked">
         <source>An 'implicit' user-defined conversion operator cannot be declared checked</source>
         <target state="translated">'암시적' 사용자 정의 변환 연산자는 선택되었다고 선언할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitImplementationOfInaccessibleInterfaceMember">
+        <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement an inaccessible member.</source>
+        <target state="new">'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement an inaccessible member.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitIndexIndexerWithName">
@@ -812,6 +837,11 @@
         <target state="translated">특성이 있는 람다 식은 식 트리로 변환할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember">
+        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</source>
+        <target state="new">'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_LineContainsDifferentWhitespace">
         <source>Line contains different whitespace than the closing line of the raw string literal: '{0}' versus '{1}'</source>
         <target state="translated">줄에 원시 문자열 리터럴의 닫는 줄과 다른 공백이 포함되어 있습니다. '{0}' 및 '{1}' 비교.</target>
@@ -830,6 +860,11 @@
       <trans-unit id="ERR_LineSpanDirectiveInvalidValue">
         <source>The #line directive value is missing or out of range</source>
         <target state="translated">#line 지시문 값이 없거나 범위를 벗어났습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_LineSpanDirectiveRequiresSpace">
+        <source>The #line span directive requires space before the first parenthesis, before the character offset, and before the file name</source>
+        <target state="new">The #line span directive requires space before the first parenthesis, before the character offset, and before the file name</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ListPatternRequiresLength">
@@ -1188,8 +1223,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefLocalOrParamExpected">
-        <source>The left-hand side of a ref assignment must be a ref local or parameter.</source>
-        <target state="translated">참조 할당의 왼쪽은 참조 로컬 또는 매개 변수여야 합니다.</target>
+        <source>The left-hand side of a ref assignment must be a ref variable.</source>
+        <target state="needs-review-translation">참조 할당의 왼쪽은 참조 로컬 또는 매개 변수여야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningPropertiesCannotBeRequired">
@@ -1270,6 +1305,31 @@
       <trans-unit id="ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv">
         <source>The target runtime doesn't support extensible or runtime-environment default calling conventions.</source>
         <target state="translated">대상 런타임에서 확장 가능 또는 런타임 환경 기본 호출 규칙을 지원하지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ScopedMismatchInParameterOfOverrideOrImplementation">
+        <source>The 'scoped' modifier of parameter '{0}' doesn't match overridden or implemented member.</source>
+        <target state="new">The 'scoped' modifier of parameter '{0}' doesn't match overridden or implemented member.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ScopedMismatchInParameterOfPartial">
+        <source>The 'scoped' modifier of parameter '{0}' doesn't match partial method declaration.</source>
+        <target state="new">The 'scoped' modifier of parameter '{0}' doesn't match partial method declaration.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ScopedMismatchInParameterOfTarget">
+        <source>The 'scoped' modifier of parameter '{0}' doesn't match target '{1}'.</source>
+        <target state="new">The 'scoped' modifier of parameter '{0}' doesn't match target '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ScopedRefAndRefStructOnly">
+        <source>The 'scoped' modifier can be used for refs and ref struct values only.</source>
+        <target state="new">The 'scoped' modifier can be used for refs and ref struct values only.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers">
+        <source>Required members are not allowed on the top level of a script or submission.</source>
+        <target state="new">Required members are not allowed on the top level of a script or submission.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SealedAPIInRecord">
@@ -1572,11 +1632,6 @@
         <target state="translated">람다 반환 유형</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureLineSpanDirective">
-        <source>line span directive</source>
-        <target state="translated">라인 범위 지시문</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_FeatureListPattern">
         <source>list pattern</source>
         <target state="translated">목록 패턴</target>
@@ -1607,6 +1662,11 @@
         <target state="translated">레코드 구조체</target>
         <note>'record structs' is not localizable.</note>
       </trans-unit>
+      <trans-unit id="IDS_FeatureRefFields">
+        <source>ref fields</source>
+        <target state="new">ref fields</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureRelaxedShiftOperator">
         <source>relaxed shift operator</source>
         <target state="translated">완화된 시프트 연산자</target>
@@ -1627,14 +1687,14 @@
         <target state="translated">구조체 필드 이니셜라이저</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureUTF8StringLiterals">
-        <source>UTF-8 string literals</source>
-        <target state="translated">UTF-8 문자열 리터럴</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_FeatureUnsignedRightShift">
         <source>unsigned right shift</source>
         <target state="translated">부호 없는 오른쪽 시프트</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUtf8StringLiterals">
+        <source>UTF-8 string literals</source>
+        <target state="new">UTF-8 string literals</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureWithOnAnonymousTypes">
@@ -2131,7 +2191,7 @@
 -target:library              라이브러리를 빌드합니다. (약식: -t:library)
 -target:module               다른 어셈블리에 추가할 수 있는 모듈을
                              빌드합니다. (약식: -t:module)
--target:appcontainerexe      Appcontainer 실행 파일을 빌드합니다. (약식: 
+-target:appcontainerexe      Appcontainer 실행 파일을 빌드합니다. (약식:
                               -t:appcontainerexe)
 -target:winmdobj             WinMDExp에서 사용되는 Windows 런타임 중간
                              파일을 빌드합니다. (약식: -t:winmdobj)
@@ -2245,7 +2305,7 @@
                               지정합니다.
 -utf8output                   컴파일러 메시지를 UTF-8 인코딩으로 출력합니다.
 -main:&lt;type&gt;                   진입점이 포함된 형식을 지정합니다(다른
-                              모든 가능한 진입점 무시). 
+                              모든 가능한 진입점 무시).
                               (약식: -m)
 -fullpaths                    컴파일러가 정규화된 경로를 생성합니다.
 -filealign:&lt;n&gt;                출력 파일 섹션에 사용되는 맞춤을
@@ -6485,8 +6545,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_LookupInTypeVariable">
-        <source>Cannot do member lookup in '{0}' because it is a type parameter</source>
-        <target state="translated">'{0}'은(는) 형식 매개 변수이므로 멤버를 조회할 수 없습니다.</target>
+        <source>Cannot do non-virtual member lookup in '{0}' because it is a type parameter</source>
+        <target state="needs-review-translation">'{0}'은(는) 형식 매개 변수이므로 멤버를 조회할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadConstraintType">
@@ -11032,8 +11092,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnParameter">
-        <source>Cannot return a parameter by reference '{0}' because it is not a ref or out parameter</source>
-        <target state="translated">'{0}' 매개 변수는 ref 또는 out 매개 변수가 아니므로 참조로 반환할 수 없습니다.</target>
+        <source>Cannot return a parameter by reference '{0}' because it is not a ref parameter</source>
+        <target state="needs-review-translation">'{0}' 매개 변수는 ref 또는 out 매개 변수가 아니므로 참조로 반환할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnParameter2">
@@ -11059,11 +11119,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="ERR_EscapeOther">
         <source>Expression cannot be used in this context because it may indirectly expose variables outside of their declaration scope</source>
         <target state="translated">식은 선언 범위 외부의 변수를 간접적으로 노출할 수 있으므로 이 컨텍스트에서 사용할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_EscapeLocal">
-        <source>Cannot use local '{0}' in this context because it may expose referenced variables outside of their declaration scope</source>
-        <target state="translated">로컬 '{0}'은(는) 선언 범위 외부의 참조 변수를 노출할 수 있으므로 이 컨텍스트에서 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EscapeCall">
@@ -11657,8 +11712,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainConversionOrEqualityOperators">
-        <source>Conversion, equality, or inequality operators declared in interfaces must be abstract</source>
-        <target state="translated">인터페이스에 선언된 변환, 같음 또는 부등식 연산자는 추상이어야 합니다.</target>
+        <source>Conversion, equality, or inequality operators declared in interfaces must be abstract or virtual</source>
+        <target state="needs-review-translation">인터페이스에 선언된 변환, 같음 또는 부등식 연산자는 추상이어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
@@ -11679,11 +11734,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="ERR_MostSpecificImplementationIsNotFound">
         <source>Interface member '{0}' does not have a most specific implementation. Neither '{1}', nor '{2}' are most specific.</source>
         <target state="translated">인터페이스 멤버 '{0}'에 가장 한정적인 구현이 없습니다. '{1}', '{2}' 모두 가장 한정적이지 않습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember">
-        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</source>
-        <target state="translated">'{3}' 기능을 C# {4}에서 사용할 수 없으므로 '{0}'이(가) '{2}' 형식의 인터페이스 멤버 '{1}'을(를) 구현할 수 없습니다. 언어 버전 '{5}' 이상을 사용하세요.</target>
         <note />
       </trans-unit>
     </body>

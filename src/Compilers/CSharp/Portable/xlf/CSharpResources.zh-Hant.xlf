@@ -122,6 +122,11 @@
         <target state="translated">二元運算子的其中一個參數必須是包含類型，或其型別參數受其限制。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadAbstractEqualityOperatorSignature">
+        <source>One of the parameters of an equality, or inequality operator declared in interface '{0}' must be a type parameter on '{0}' constrained to '{0}'</source>
+        <target state="new">One of the parameters of an equality, or inequality operator declared in interface '{0}' must be a type parameter on '{0}' constrained to '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadAbstractIncDecRetType">
         <source>The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.</source>
         <target state="translated">++ 或 -- 運算子的傳回型別必須符合參數類型，或是衍生自參數類型，或為包含類型的型別參數受其限制，除非參數類型是不同的型別參數。</target>
@@ -145,6 +150,11 @@
       <trans-unit id="ERR_BadAbstractUnaryOperatorSignature">
         <source>The parameter of a unary operator must be the containing type, or its type parameter constrained to it.</source>
         <target state="translated">一元運算子的其中一個參數必須是包含類型，或其型別參數受其限制。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadBinaryReadOnlySpanConcatenation">
+        <source>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF-8 byte representations</source>
+        <target state="new">Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF-8 byte representations</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadCallerArgumentExpressionParamWithoutDefaultValue">
@@ -222,7 +232,7 @@
         <target state="translated">沒有明確傳回型別的匿名方法上不允許 AsyncMethodBuilder 屬性。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_CannotBeConvertedToUTF8">
+      <trans-unit id="ERR_CannotBeConvertedToUtf8">
         <source>The input string cannot be converted into the equivalent UTF-8 byte representation. {0}</source>
         <target state="translated">輸入字串無法轉換成對等的 UTF-8 位元組表示法。{0}</target>
         <note />
@@ -437,6 +447,11 @@
         <target state="translated">記錄相等 contract 屬性 '{0}' 必須要有 get 存取子。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_EscapeVariable">
+        <source>Cannot use variable '{0}' in this context because it may expose referenced variables outside of their declaration scope</source>
+        <target state="new">Cannot use variable '{0}' in this context because it may expose referenced variables outside of their declaration scope</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExplicitImplementationOfOperatorsMustBeStatic">
         <source>Explicit implementation of a user-defined operator '{0}' must be declared static</source>
         <target state="translated">使用者定義的運算子 '{0}' 的明確實作必須宣告為靜態</target>
@@ -507,7 +522,7 @@
         <target state="translated">運算式樹狀架構不得包含元組 == 或 != 運算子</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExpressionTreeContainsUTF8StringLiterals">
+      <trans-unit id="ERR_ExpressionTreeContainsUtf8StringLiterals">
         <source>An expression tree may not contain UTF-8 string conversion or literal.</source>
         <target state="translated">運算式樹狀結構不能包含 UTF-8 字串轉換或常值。</target>
         <note />
@@ -567,6 +582,11 @@
         <target state="translated">以檔為範圍的命名空間必須在檔案中的所有其他成員之前。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FixedFieldMustNotBeRef">
+        <source>A fixed field must not be a ref field.</source>
+        <target state="new">A fixed field must not be a ref field.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ForEachMissingMemberWrongAsync">
         <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'. Did you mean 'await foreach' rather than 'foreach'?</source>
         <target state="translated">因為 '{0}' 不包含 '{1}' 的公用執行個體或延伸模組定義，所以 foreach 陳述式無法在型別 '{0}' 的變數上運作。您指的是 'await foreach' 而不是 'foreach' 嗎?</target>
@@ -593,8 +613,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers">
-        <source>The interface '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. The constraint interface '{1}' or its base interface has static abstract or virtual members.</source>
-        <target state="translated">無法使用介面 '{3}' 作為泛型型別或方法 '{2}' 中的型別參數 '{0}'。限制式介面 '{1}' 或其基底介面具有靜態抽象或虛擬成員。</target>
+        <source>The interface '{0}' cannot be used as type argument. Static member '{1}' does not have a most specific implementation in the interface.</source>
+        <target state="new">The interface '{0}' cannot be used as type argument. Static member '{1}' does not have a most specific implementation in the interface.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GlobalUsingInNamespace">
@@ -635,6 +655,11 @@
       <trans-unit id="ERR_ImplicitConversionOperatorCantBeChecked">
         <source>An 'implicit' user-defined conversion operator cannot be declared checked</source>
         <target state="translated">無法將「隱式」使用者定義轉換運算子宣告為已檢查</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitImplementationOfInaccessibleInterfaceMember">
+        <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement an inaccessible member.</source>
+        <target state="new">'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement an inaccessible member.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitIndexIndexerWithName">
@@ -812,6 +837,11 @@
         <target state="translated">具有屬性的 Lambda 運算式，不可轉換成運算式樹狀架構</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember">
+        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</source>
+        <target state="new">'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_LineContainsDifferentWhitespace">
         <source>Line contains different whitespace than the closing line of the raw string literal: '{0}' versus '{1}'</source>
         <target state="translated">行包含與原始字串常值結尾行不同的空白: '{0}' 與 '{1}'</target>
@@ -830,6 +860,11 @@
       <trans-unit id="ERR_LineSpanDirectiveInvalidValue">
         <source>The #line directive value is missing or out of range</source>
         <target state="translated">#Line 指示詞值遺漏或超出範圍</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_LineSpanDirectiveRequiresSpace">
+        <source>The #line span directive requires space before the first parenthesis, before the character offset, and before the file name</source>
+        <target state="new">The #line span directive requires space before the first parenthesis, before the character offset, and before the file name</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ListPatternRequiresLength">
@@ -1188,8 +1223,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefLocalOrParamExpected">
-        <source>The left-hand side of a ref assignment must be a ref local or parameter.</source>
-        <target state="translated">參考指派的左側必須為參考本機或參數。</target>
+        <source>The left-hand side of a ref assignment must be a ref variable.</source>
+        <target state="needs-review-translation">參考指派的左側必須為參考本機或參數。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningPropertiesCannotBeRequired">
@@ -1270,6 +1305,31 @@
       <trans-unit id="ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv">
         <source>The target runtime doesn't support extensible or runtime-environment default calling conventions.</source>
         <target state="translated">目標執行階段不支援可延伸或執行階段環境的預設呼叫慣例。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ScopedMismatchInParameterOfOverrideOrImplementation">
+        <source>The 'scoped' modifier of parameter '{0}' doesn't match overridden or implemented member.</source>
+        <target state="new">The 'scoped' modifier of parameter '{0}' doesn't match overridden or implemented member.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ScopedMismatchInParameterOfPartial">
+        <source>The 'scoped' modifier of parameter '{0}' doesn't match partial method declaration.</source>
+        <target state="new">The 'scoped' modifier of parameter '{0}' doesn't match partial method declaration.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ScopedMismatchInParameterOfTarget">
+        <source>The 'scoped' modifier of parameter '{0}' doesn't match target '{1}'.</source>
+        <target state="new">The 'scoped' modifier of parameter '{0}' doesn't match target '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ScopedRefAndRefStructOnly">
+        <source>The 'scoped' modifier can be used for refs and ref struct values only.</source>
+        <target state="new">The 'scoped' modifier can be used for refs and ref struct values only.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers">
+        <source>Required members are not allowed on the top level of a script or submission.</source>
+        <target state="new">Required members are not allowed on the top level of a script or submission.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SealedAPIInRecord">
@@ -1572,11 +1632,6 @@
         <target state="translated">lambda 傳回型別</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureLineSpanDirective">
-        <source>line span directive</source>
-        <target state="translated">line span 指示詞</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_FeatureListPattern">
         <source>list pattern</source>
         <target state="translated">清單模式</target>
@@ -1607,6 +1662,11 @@
         <target state="translated">記錄結構</target>
         <note>'record structs' is not localizable.</note>
       </trans-unit>
+      <trans-unit id="IDS_FeatureRefFields">
+        <source>ref fields</source>
+        <target state="new">ref fields</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureRelaxedShiftOperator">
         <source>relaxed shift operator</source>
         <target state="translated">寬鬆移位 (Shift) 運算子</target>
@@ -1627,14 +1687,14 @@
         <target state="translated">結構欄位初始設定式</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureUTF8StringLiterals">
-        <source>UTF-8 string literals</source>
-        <target state="translated">UTF-8 字串常值</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_FeatureUnsignedRightShift">
         <source>unsigned right shift</source>
         <target state="translated">未簽署右移位</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUtf8StringLiterals">
+        <source>UTF-8 string literals</source>
+        <target state="new">UTF-8 string literals</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureWithOnAnonymousTypes">
@@ -2185,7 +2245,7 @@
 -instrument:TestCoverage      產生經檢測的組件，以收集
                               涵蓋範圍資訊
 -sourcelink:&lt;file&gt;            要內嵌至 PDB 的來源連結資訊。
- 
+
                        - 錯誤與警告 -
 -warnaserror[+|-]             將所有警告回報為錯誤
 -warnaserror[+|-]:&lt;warn list&gt; 將特定警告回報為錯誤
@@ -6486,8 +6546,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_LookupInTypeVariable">
-        <source>Cannot do member lookup in '{0}' because it is a type parameter</source>
-        <target state="translated">無法在 '{0}' 中進行成員查詢，因為其為類型參數</target>
+        <source>Cannot do non-virtual member lookup in '{0}' because it is a type parameter</source>
+        <target state="needs-review-translation">無法在 '{0}' 中進行成員查詢，因為其為類型參數</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadConstraintType">
@@ -11033,8 +11093,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnParameter">
-        <source>Cannot return a parameter by reference '{0}' because it is not a ref or out parameter</source>
-        <target state="translated">無法藉傳址方式 '{0}' 傳回參數，因為其非 ref 或 out 參數</target>
+        <source>Cannot return a parameter by reference '{0}' because it is not a ref parameter</source>
+        <target state="needs-review-translation">無法藉傳址方式 '{0}' 傳回參數，因為其非 ref 或 out 參數</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnParameter2">
@@ -11060,11 +11120,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="ERR_EscapeOther">
         <source>Expression cannot be used in this context because it may indirectly expose variables outside of their declaration scope</source>
         <target state="translated">無法在此內容中使用運算式，因為它會在其宣告範圍外間接公開變數</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_EscapeLocal">
-        <source>Cannot use local '{0}' in this context because it may expose referenced variables outside of their declaration scope</source>
-        <target state="translated">無法在此內容中使用本機 '{0}'，因為它會將參考的變數公開在其宣告範圍外</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EscapeCall">
@@ -11658,8 +11713,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainConversionOrEqualityOperators">
-        <source>Conversion, equality, or inequality operators declared in interfaces must be abstract</source>
-        <target state="translated">在介面中宣告的轉換、等式或不等式運算子必須為抽象</target>
+        <source>Conversion, equality, or inequality operators declared in interfaces must be abstract or virtual</source>
+        <target state="needs-review-translation">在介面中宣告的轉換、等式或不等式運算子必須為抽象</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
@@ -11680,11 +11735,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="ERR_MostSpecificImplementationIsNotFound">
         <source>Interface member '{0}' does not have a most specific implementation. Neither '{1}', nor '{2}' are most specific.</source>
         <target state="translated">介面成員 '{0}' 沒有最具體的實作。'{1}' 和 '{2}' 都不是最具體的。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember">
-        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</source>
-        <target state="translated">因為功能 '{3}' 不適用於 C# {4}，所以 '{0}' 無法在類型 '{2}' 中實作介面成員 '{1}'。請使用語言 '{5}' 版或更新版本。</target>
         <note />
       </trans-unit>
     </body>

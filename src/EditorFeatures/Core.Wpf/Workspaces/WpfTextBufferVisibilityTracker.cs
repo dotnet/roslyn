@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.ComponentModel.Composition;
 using System.Linq;
@@ -75,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Workspaces
             // determine the visibility of this buffer.  While unlikely to happen, this is possible with VS's
             // extensibility model, which allows for a plugin to host an ITextBuffer in their own impl of an ITextView.
             // For those cases, just assume these buffers are visible.
-            if (views.Any(v => v is not IWpfTextView))
+            if (views.Any(static v => v is not IWpfTextView))
                 return true;
 
             return views.OfType<IWpfTextView>().Any(v => v.VisualElement.IsVisible);
@@ -90,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Workspaces
                 _subjectBufferToCallbacks.Add(subjectBuffer, data);
             }
 
-            data.Callbacks.Add(callback);
+            data.AddCallback(callback);
         }
 
         public void UnregisterForVisibilityChanges(ITextBuffer subjectBuffer, Action callback)
@@ -99,7 +100,8 @@ namespace Microsoft.CodeAnalysis.Workspaces
 
             // Both of these methods must succeed.  Otherwise we're somehow unregistering something we don't know about.
             Contract.ThrowIfFalse(_subjectBufferToCallbacks.TryGetValue(subjectBuffer, out var data));
-            Contract.ThrowIfFalse(data.Callbacks.Remove(callback));
+            Contract.ThrowIfFalse(data.Callbacks.Contains(callback));
+            data.RemoveCallback(callback);
 
             // If we have nothing that wants to listen to information about this buffer anymore, then disconnect it
             // from all events and remove our map.
@@ -110,13 +112,37 @@ namespace Microsoft.CodeAnalysis.Workspaces
             }
         }
 
+        public TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
+
+        public struct TestAccessor
+        {
+            private readonly WpfTextBufferVisibilityTracker _visibilityTracker;
+
+            public TestAccessor(WpfTextBufferVisibilityTracker visibilityTracker)
+            {
+                _visibilityTracker = visibilityTracker;
+            }
+
+            public void TriggerCallbacks(ITextBuffer subjectBuffer)
+            {
+                var data = _visibilityTracker._subjectBufferToCallbacks[subjectBuffer];
+                data.TriggerCallbacks();
+            }
+        }
+
         private sealed class VisibleTrackerData : IDisposable
         {
-            public readonly HashSet<Action> Callbacks = new();
             public readonly HashSet<ITextView> TextViews = new();
 
             private readonly WpfTextBufferVisibilityTracker _tracker;
             private readonly ITextBuffer _subjectBuffer;
+
+            /// <summary>
+            /// The callbacks that want to be notified when our <see cref="TextViews"/> change visibility.  Stored as an
+            /// <see cref="ImmutableHashSet{T}"/> so we can enumerate it safely without it changing underneath us.
+            /// </summary>
+            public ImmutableHashSet<Action> Callbacks { get; private set; } = ImmutableHashSet<Action>.Empty;
 
             public VisibleTrackerData(
                 WpfTextBufferVisibilityTracker tracker,
@@ -138,6 +164,18 @@ namespace Microsoft.CodeAnalysis.Workspaces
                 UpdateTextViews(Array.Empty<ITextView>());
 
                 Contract.ThrowIfTrue(TextViews.Count > 0);
+            }
+
+            public void AddCallback(Action callback)
+            {
+                _tracker._threadingContext.ThrowIfNotOnUIThread();
+                this.Callbacks = this.Callbacks.Add(callback);
+            }
+
+            public void RemoveCallback(Action callback)
+            {
+                _tracker._threadingContext.ThrowIfNotOnUIThread();
+                this.Callbacks = this.Callbacks.Remove(callback);
             }
 
             public void UpdateAssociatedViews()
@@ -172,6 +210,11 @@ namespace Microsoft.CodeAnalysis.Workspaces
             }
 
             private void VisualElement_IsVisibleChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)
+            {
+                TriggerCallbacks();
+            }
+
+            internal void TriggerCallbacks()
             {
                 _tracker._threadingContext.ThrowIfNotOnUIThread();
                 foreach (var callback in Callbacks)

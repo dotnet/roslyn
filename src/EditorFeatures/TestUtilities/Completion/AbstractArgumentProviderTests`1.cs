@@ -44,8 +44,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Completion
 
         protected abstract (SyntaxNode argumentList, ImmutableArray<SyntaxNode> arguments) GetArgumentList(SyntaxToken token);
 
-        protected virtual OptionSet WithChangedOptions(OptionSet options) => options;
-
         private protected async Task VerifyDefaultValueAsync(
             string markup,
             string? expectedDefaultValue,
@@ -58,14 +56,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Completion
             var code = workspaceFixture.Target.Code;
             var position = workspaceFixture.Target.Position;
 
-            var changedOptions = WithChangedOptions(workspace.Options);
-            if (options is not null)
-            {
-                foreach (var option in options)
-                    changedOptions = changedOptions.WithChangedOption(option.Key, option.Value);
-            }
-
-            workspace.SetOptions(changedOptions);
+            options?.SetGlobalOptions(workspace.GlobalOptions);
 
             var document = workspaceFixture.Target.UpdateDocument(code, SourceCodeKind.Regular);
 

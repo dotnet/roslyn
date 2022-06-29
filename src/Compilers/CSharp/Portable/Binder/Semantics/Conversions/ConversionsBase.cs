@@ -1754,12 +1754,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ClassifyImplicitConversionFromType(source.Type, destination.Type, ref discardedUseSiteInfo).Kind != ConversionKind.NoConversion;
         }
 
-        public static bool HasIdentityConversionToAny<T>(T type, ArrayBuilder<T> targetTypes)
-            where T : TypeSymbol
+        private static bool HasIdentityConversionToAny(NamedTypeSymbol type, ArrayBuilder<(NamedTypeSymbol ParticipatingType, TypeParameterSymbol ConstrainedToTypeOpt)> targetTypes)
         {
             foreach (var targetType in targetTypes)
             {
-                if (HasIdentityConversionInternal(type, targetType, includeNullability: false))
+                if (HasIdentityConversionInternal(type, targetType.ParticipatingType, includeNullability: false))
                 {
                     return true;
                 }

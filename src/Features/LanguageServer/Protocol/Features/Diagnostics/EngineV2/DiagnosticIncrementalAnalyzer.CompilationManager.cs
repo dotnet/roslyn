@@ -61,10 +61,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             // we basically eagarly clear the cache on some known changes
             // to let CompilationWithAnalyzer go.
 
-            // we create new conditional weak table every time, it turns out 
-            // only way to clear ConditionalWeakTable is re-creating it.
-            // also, conditional weak table has a leak - https://github.com/dotnet/coreclr/issues/665
+            // we create new conditional weak table every time netstandard as that's the only way it has to clear it.
+#if NETSTANDARD
             _projectCompilationsWithAnalyzers = new ConditionalWeakTable<Project, CompilationWithAnalyzers?>();
+#else
+            _projectCompilationsWithAnalyzers.Clear();
+#endif
         }
 
         [Conditional("DEBUG")]

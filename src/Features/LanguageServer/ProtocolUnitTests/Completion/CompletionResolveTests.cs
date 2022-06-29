@@ -181,7 +181,7 @@ class B : A
 
             var selectedItem = CodeAnalysis.Completion.CompletionItem.Create(displayText: "M");
             var textEdit = await CompletionResolveHandler.GenerateTextEditAsync(
-                document, new TestCaretOutOfScopeCompletionService(), selectedItem, snippetsSupported: true, CancellationToken.None).ConfigureAwait(false);
+                document, new TestCaretOutOfScopeCompletionService(document.Project.Solution.Workspace), selectedItem, snippetsSupported: true, CancellationToken.None).ConfigureAwait(false);
 
             Assert.Equal(@"public override void M()
     {
@@ -431,16 +431,19 @@ link text";
 
         private class TestCaretOutOfScopeCompletionService : CompletionService
         {
+            public TestCaretOutOfScopeCompletionService(Workspace workspace) : base(workspace)
+            {
+            }
+
             public override string Language => LanguageNames.CSharp;
 
-            public override Task<CodeAnalysis.Completion.CompletionList> GetCompletionsAsync(
-                Document document,
+            internal override Task<CodeAnalysis.Completion.CompletionList> GetCompletionsAsync(Document document,
                 int caretPosition,
+                CodeAnalysis.Completion.CompletionOptions options,
+                OptionSet passThroughOptions,
                 CompletionTrigger trigger = default,
                 ImmutableHashSet<string> roles = null,
-                OptionSet options = null,
-                CancellationToken cancellationToken = default)
-                => Task.FromResult(CodeAnalysis.Completion.CompletionList.Empty);
+                CancellationToken cancellationToken = default) => Task.FromResult(CodeAnalysis.Completion.CompletionList.Empty);
 
             public override Task<CompletionChange> GetChangeAsync(
                 Document document,

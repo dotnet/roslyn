@@ -203,11 +203,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundSequencePointWithSpan(whileSyntax, base.InstrumentWhileStatementConditionalGotoStartOrBreak(original, ifConditionGotoStart), conditionSequencePointSpan);
         }
 
-        private static BoundExpression AddConditionSequencePoint(BoundExpression condition, BoundStatement containingStatement, SyntheticBoundNodeFactory factory)
-        {
-            return AddConditionSequencePoint(condition, containingStatement.Syntax, factory);
-        }
-
         /// <summary>
         /// Add sequence point |here|:
         /// 

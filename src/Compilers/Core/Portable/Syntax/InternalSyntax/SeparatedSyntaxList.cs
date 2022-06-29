@@ -107,7 +107,9 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
 #if DEBUG
         [Obsolete("For debugging only", true)]
+#pragma warning disable IDE0051 // Remove unused private members
         private TNode[] Nodes
+#pragma warning restore IDE0051 // Remove unused private members
         {
             get
             {

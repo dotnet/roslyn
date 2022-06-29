@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         protected override TestWorkspace CreateWorkspace(string fileContents)
             => TestWorkspace.CreateCSharp(fileContents, exportProvider: ExportProvider);
 
-        internal override CompletionServiceWithProviders GetCompletionService(Project project)
+        internal override CompletionService GetCompletionService(Project project)
             => Assert.IsType<CSharpCompletionService>(base.GetCompletionService(project));
 
         private protected override Task BaseVerifyWorkerAsync(
@@ -171,7 +171,7 @@ text;
 
             var service = GetCompletionService(document.Project);
             var completionList = await GetCompletionListAsync(service, document, position, RoslynTrigger.Invoke);
-            var item = completionList.Items.First(i => (i.DisplayText + i.DisplayTextSuffix).StartsWith(textTypedSoFar));
+            var item = completionList.ItemsList.First(i => (i.DisplayText + i.DisplayTextSuffix).StartsWith(textTypedSoFar));
 
             Assert.Equal(expected, CommitManager.SendEnterThroughToEditor(service.GetRules(options), item, textTypedSoFar));
         }
