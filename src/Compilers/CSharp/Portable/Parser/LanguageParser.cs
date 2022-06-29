@@ -3344,27 +3344,72 @@ parse_member_name:;
 
             try
             {
-                SyntaxToken style;
-                if (this.CurrentToken.Kind == SyntaxKind.ImplicitKeyword || this.CurrentToken.Kind == SyntaxKind.ExplicitKeyword)
-                {
-                    style = this.EatToken();
-                }
-                else
-                {
-                    style = this.EatToken(SyntaxKind.ExplicitKeyword);
-                }
+                bool haveExplicitInterfaceName = false;
 
-                ExplicitInterfaceSpecifierSyntax explicitInterfaceOpt = tryParseExplicitInterfaceSpecifier();
-                SyntaxToken opKeyword;
-                TypeSyntax type;
-                ParameterListSyntax paramList;
-
-                if (style.IsMissing)
+                if (this.CurrentToken.Kind is not (SyntaxKind.ImplicitKeyword or SyntaxKind.ExplicitKeyword))
                 {
+                    SyntaxKind separatorKind = SyntaxKind.None;
+
+                    if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
+                    {
+                        // Scan possible ExplicitInterfaceSpecifier
+
+                        while (true)
+                        {
+                            // now, scan past the next name.  if it's followed by a dot then
+                            // it's part of the explicit name we're building up.  Otherwise,
+                            // it should be an operator token
+
+                            if (this.CurrentToken.Kind == SyntaxKind.OperatorKeyword)
+                            {
+                                // We're past any explicit interface portion
+                                break;
+                            }
+                            else
+                            {
+                                var scanNamePartPoint = GetResetPoint();
+                                try
+                                {
+                                    int lastTokenPosition = -1;
+                                    IsMakingProgress(ref lastTokenPosition, assertIfFalse: true);
+                                    ScanNamedTypePart();
+
+                                    if (IsDotOrColonColonOrDotDot() ||
+                                        (IsMakingProgress(ref lastTokenPosition, assertIfFalse: false) && this.CurrentToken.Kind != SyntaxKind.OpenParenToken))
+                                    {
+                                        haveExplicitInterfaceName = true;
+
+                                        if (IsDotOrColonColonOrDotDot())
+                                        {
+                                            separatorKind = this.CurrentToken.Kind;
+                                            EatToken();
+                                        }
+                                        else
+                                        {
+                                            separatorKind = SyntaxKind.None;
+                                        }
+
+                                    }
+                                    else
+                                    {
+                                        this.Reset(ref scanNamePartPoint);
+
+                                        // We're past any explicit interface portion
+                                        break;
+                                    }
+                                }
+                                finally
+                                {
+                                    this.Release(ref scanNamePartPoint);
+                                }
+                            }
+                        }
+                    }
+
                     bool possibleConversion;
 
                     if (this.CurrentToken.Kind != SyntaxKind.OperatorKeyword ||
-                        explicitInterfaceOpt?.DotToken.IsMissing == true)
+                        (haveExplicitInterfaceName && separatorKind is not (SyntaxKind.DotToken or SyntaxKind.DotDotToken)))
                     {
                         possibleConversion = false;
                     }
@@ -3377,13 +3422,32 @@ parse_member_name:;
                         possibleConversion = !SyntaxFacts.IsAnyOverloadableOperator(this.PeekToken(1).Kind);
                     }
 
+                    this.Reset(ref point);
+
                     if (!possibleConversion)
                     {
-                        this.Reset(ref point);
                         return null;
                     }
                 }
-                else if (explicitInterfaceOpt is not null && this.CurrentToken.Kind != SyntaxKind.OperatorKeyword && style.TrailingTrivia.Any((int)SyntaxKind.EndOfLineTrivia))
+
+                SyntaxToken style;
+                if (this.CurrentToken.Kind == SyntaxKind.ImplicitKeyword || this.CurrentToken.Kind == SyntaxKind.ExplicitKeyword)
+                {
+                    style = this.EatToken();
+                }
+                else
+                {
+                    style = this.EatToken(SyntaxKind.ExplicitKeyword);
+                }
+
+                ExplicitInterfaceSpecifierSyntax explicitInterfaceOpt = tryParseExplicitInterfaceSpecifier();
+                Debug.Assert(!style.IsMissing || haveExplicitInterfaceName == explicitInterfaceOpt is not null);
+
+                SyntaxToken opKeyword;
+                TypeSyntax type;
+                ParameterListSyntax paramList;
+
+                if (!style.IsMissing && explicitInterfaceOpt is not null && this.CurrentToken.Kind != SyntaxKind.OperatorKeyword && style.TrailingTrivia.Any((int)SyntaxKind.EndOfLineTrivia))
                 {
                     // Not likely an explicit interface implementation. Likely a beginning of the next member on the next line.
                     this.Reset(ref point);
