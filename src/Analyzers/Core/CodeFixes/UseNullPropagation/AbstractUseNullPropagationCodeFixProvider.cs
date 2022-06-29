@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         where TElementBindingArgumentListSyntax : SyntaxNode
     {
         protected abstract TElementBindingExpressionSyntax ElementBindingExpression(TElementBindingArgumentListSyntax argumentList);
-        protected abstract TExpressionSyntax RewriteInvocation(TInvocationExpressionSyntax whenTrueInvocation, TMemberAccessExpressionSyntax);
+        protected abstract TExpressionSyntax RewriteInvocation(TInvocationExpressionSyntax whenTrueInvocation, TMemberAccessExpressionSyntax memberAccessExpression);
 
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseNullPropagationDiagnosticId);

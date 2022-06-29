@@ -2,14 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers;
 using Microsoft.CodeAnalysis.CSharp.UseNullPropagation;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -17,15 +17,30 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNullPropagation
 {
-    public partial class UseNullPropagationTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    using VerifyCS = CSharpCodeFixVerifier<
+        CSharpUseNullPropagationDiagnosticAnalyzer,
+        CSharpUseNullPropagationCodeFixProvider>;
+
+    public partial class UseNullPropagationTests
     {
-        public UseNullPropagationTests(ITestOutputHelper logger)
-           : base(logger)
+        private static async Task TestInRegularAndScript1Async(string testCode, string fixedCode)
         {
+            await new VerifyCS.Test
+            {
+                TestCode = testCode,
+                FixedCode = fixedCode,
+            }.RunAsync();
         }
 
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new CSharpUseNullPropagationDiagnosticAnalyzer(), new CSharpUseNullPropagationCodeFixProvider());
+        private static async Task TestMissingInRegularAndScriptAsync(string testCode, LanguageVersion languageVersion = LanguageVersion.CSharp8)
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = testCode,
+                FixedCode = testCode,
+                LanguageVersion = languageVersion,
+            }.RunAsync();
+        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestLeft_Equals()
@@ -37,7 +52,7 @@ class C
 {
     void M(object o)
     {
-        var v = [||]o == null ? null : o.ToString();
+        var v = [|o == null ? null : o.ToString()|];
     }
 }",
 @"using System;
@@ -54,16 +69,16 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestMissingOnCSharp5()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class C
 {
     void M(object o)
     {
-        var v = [||]o == null ? null : o.ToString();
+        var v = o == null ? null : o.ToString();
     }
-}", new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5)));
+}", LanguageVersion.CSharp5);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
@@ -76,7 +91,7 @@ class C
 {
     void M(object o)
     {
-        var v = [||]null == o ? null : o.ToString();
+        var v = [|null == o ? null : o.ToString()|];
     }
 }",
 @"using System;
@@ -100,7 +115,7 @@ class C
 {
     void M(object o)
     {
-        var v = [||]o != null ? o.ToString() : null;
+        var v = [|o != null ? o.ToString() : null|];
     }
 }",
 @"using System;
@@ -124,7 +139,7 @@ class C
     public int? f;
     void M(C c)
     {
-        int? x = [||]c != null ? c.f : null;
+        int? x = [|c != null ? c.f : null|];
     }
 }",
 @"
@@ -148,7 +163,7 @@ class C
     public int? f;
     void M(C c)
     {
-        int? x = (object)[||]c != null ? c.f : null;
+        int? x = (object)[|c != null ? c.f : null|];
     }
 }",
 @"
@@ -172,7 +187,7 @@ class C
 {
     void M(object o)
     {
-        var v = [||]null != o ? o.ToString() : null;
+        var v = [|null != o ? o.ToString() : null|];
     }
 }",
 @"using System;
@@ -196,7 +211,7 @@ class C
 {
     void M(object o)
     {
-        var v = [||]o == null ? null : o[0];
+        var v = [|o == null ? null : o{|CS0021:[0]|}|];
     }
 }",
 @"using System;
@@ -220,7 +235,7 @@ class C
 {
     void M(object o)
     {
-        var v = [||]o == null ? null : o.B?.C;
+        var v = [|o == null ? null : o.{|CS1061:B|}?.C|];
     }
 }",
 @"using System;
@@ -244,7 +259,7 @@ class C
 {
     void M(object o)
     {
-        var v = [||]o == null ? null : o.B;
+        var v = [|o == null ? null : o.B|];
     }
 }",
 @"using System;
@@ -268,7 +283,7 @@ class C
 {
     void M(object o)
     {
-        var v = [||]o == null ? null : o;
+        var v = o == null ? null : o;
     }
 }");
         }
@@ -283,7 +298,7 @@ class C
 {
     void M(object o)
     {
-        var v = [||](o == null) ? null : o.ToString();
+        var v = [|(o == null) ? null : o.ToString()|];
     }
 }",
 @"using System;
@@ -358,7 +373,7 @@ class C
 {
     void M(object o)
     {
-        var v = [||]o == null ? 0 : o.ToString();
+        var v = {|CS0173:o == null ? 0 : o.ToString()|};
     }
 }");
         }
@@ -374,7 +389,7 @@ class C
 {
     void M(object o)
     {
-        var v = [||]o != null ? o.ToString() : 0;
+        var v = o != null ? o.ToString() : 0;
     }
 }");
         }
@@ -392,7 +407,7 @@ class D
     void Goo()
     {
         var c = new C();
-        Action<string> a = [||]c != null ? c.M : (Action<string>)null;
+        Action<string> a = c != null ? c.M : (Action<string>)null;
     }
 }
 class C { public void M(string s) { } }");
@@ -411,7 +426,7 @@ class Program
 {
     void Main(string s)
     {
-        Method<string>(t => [||]s != null ? s.ToString() : null); // works
+        Method<string>(t => s != null ? s.ToString() : null); // works
     }
 
     public void Method<T>(Expression<Func<T, string>> functor)
@@ -434,7 +449,7 @@ class C
     void Main()
     {
         _ = from item in Enumerable.Empty<(int? x, int? y)?>().AsQueryable()
-            select [||]item == null ? null : item.Value.x;
+            select item == null ? null : item.Value.x;
     }
 }");
         }
@@ -453,7 +468,7 @@ class C
     void Main()
     {
         _ = from item in Enumerable.Empty<(int? x, int? y)?>().AsQueryable()
-            where ([||]item == null ? null : item.Value.x) > 0
+            where (item == null ? null : item.Value.x) > 0
             select item;
     }
 }");
@@ -473,7 +488,7 @@ class C
     void Main()
     {
         _ = from item in Enumerable.Empty<(int? x, int? y)?>().AsQueryable()
-            let x = [||]item == null ? null : item.Value.x
+            let x = item == null ? null : item.Value.x
             select x;
     }
 }");
@@ -491,7 +506,7 @@ class C
 {
     void Main(DateTime? toDate)
     {
-        var v = [||]toDate == null ? null : toDate.Value.ToString(""yyyy/MM/ dd"");
+        var v = [|toDate == null ? null : toDate.Value.ToString(""yyyy/MM/ dd"")|];
     }
 }
 ",
@@ -526,7 +541,7 @@ class C
 {
     void Main(S? s)
     {
-        var x = [||]s == null ? null : s.Value[0];
+        var x = [|s == null ? null : s.Value[0]|];
     }
 }
 ",
@@ -560,7 +575,7 @@ class C
     public int? f;
     void M(C c)
     {
-        int? x = [||]c is null ? null : c.f;
+        int? x = [|c is null ? null : c.f|];
     }
 }",
 @"
@@ -585,7 +600,7 @@ class C
     public int? f;
     void M(C c)
     {
-        int? x = [||]c is C ? null : c.f;
+        int? x = c is C ? null : c.f;
     }
 }");
         }
@@ -600,7 +615,7 @@ class C
 {
     void M(string s)
     {
-        int? x = [||]s is """" ? null : (int?)s.Length;
+        int? x = s is """" ? null : (int?)s.Length;
     }
 }");
         }
@@ -616,7 +631,7 @@ class C
     public int? f;
     void M(C c)
     {
-        int? x = [||]ReferenceEquals(c, null) ? null : c.f;
+        int? x = [|ReferenceEquals(c, null) ? null : c.f|];
     }
 }",
 @"
@@ -641,7 +656,7 @@ class C
     public int? f;
     void M(C c)
     {
-        int? x = [||]ReferenceEquals(null, c) ? null : c.f;
+        int? x = [|ReferenceEquals(null, c) ? null : c.f|];
     }
 }",
 @"
@@ -666,7 +681,7 @@ class C
     public int? f;
     void M(C c, C other)
     {
-        int? x = [||]ReferenceEquals(c, other) ? null : c.f;
+        int? x = ReferenceEquals(c, other) ? null : c.f;
     }
 }");
         }
@@ -682,7 +697,7 @@ class C
     public int? f;
     void M(C c, C other)
     {
-        int? x = [||]ReferenceEquals(other, c) ? null : c.f;
+        int? x = ReferenceEquals(other, c) ? null : c.f;
     }
 }");
         }
@@ -698,7 +713,7 @@ class C
     public int? f;
     void M(C c)
     {
-        int? x = [||]object.ReferenceEquals(c, null) ? null : c.f;
+        int? x = [|object.ReferenceEquals(c, null) ? null : c.f|];
     }
 }",
 @"
@@ -723,7 +738,7 @@ class C
     public int? f;
     void M(C c)
     {
-        int? x = [||]object.ReferenceEquals(null, c) ? null : c.f;
+        int? x = [|object.ReferenceEquals(null, c) ? null : c.f|];
     }
 }",
 @"
@@ -748,7 +763,7 @@ class C
     public int? f;
     void M(C c, C other)
     {
-        int? x = [||]object.ReferenceEquals(c, other) ? null : c.f;
+        int? x = object.ReferenceEquals(c, other) ? null : c.f;
     }
 }");
         }
@@ -764,7 +779,7 @@ class C
     public int? f;
     void M(C c, C other)
     {
-        int? x = [||]object.ReferenceEquals(other, c) ? null : c.f;
+        int? x = object.ReferenceEquals(other, c) ? null : c.f;
     }
 }");
         }
@@ -780,7 +795,7 @@ class C
     public int? f;
     void M(C c)
     {
-        int? x = [||]!(c is null) ? c.f : null;
+        int? x = [|!(c is null) ? c.f : null|];
     }
 }",
 @"
@@ -805,7 +820,7 @@ class C
     public int? f;
     void M(C c)
     {
-        int? x = [||]!(c is C) ? c.f : null;
+        int? x = !(c is C) ? c.f : null;
     }
 }");
         }
@@ -820,7 +835,7 @@ class C
 {
     void M(string s)
     {
-        int? x = [||]!(s is """") ? (int?)s.Length : null;
+        int? x = !(s is """") ? (int?)s.Length : null;
     }
 }");
         }
@@ -836,7 +851,7 @@ class C
     public int? f;
     void M(C c)
     {
-        int? x = [||]!ReferenceEquals(c, null) ? c.f : null;
+        int? x = [|!ReferenceEquals(c, null) ? c.f : null|];
     }
 }",
 @"
@@ -861,7 +876,7 @@ class C
     public int? f;
     void M(C c)
     {
-        int? x = [||]!ReferenceEquals(null, c) ? c.f : null;
+        int? x = [|!ReferenceEquals(null, c) ? c.f : null|];
     }
 }",
 @"
@@ -886,7 +901,7 @@ class C
     public int? f;
     void M(C c, C other)
     {
-        int? x = [||]!ReferenceEquals(c, other) ? c.f : null;
+        int? x = !ReferenceEquals(c, other) ? c.f : null;
     }
 }");
         }
@@ -902,7 +917,7 @@ class C
     public int? f;
     void M(C c, C other)
     {
-        int? x = [||]!ReferenceEquals(other, c) ? c.f : null;
+        int? x = !ReferenceEquals(other, c) ? c.f : null;
     }
 }");
         }
@@ -918,7 +933,7 @@ class C
     public int? f;
     void M(C c)
     {
-        int? x = [||]!object.ReferenceEquals(c, null) ? c.f : null;
+        int? x = [|!object.ReferenceEquals(c, null) ? c.f : null|];
     }
 }",
 @"
@@ -943,7 +958,7 @@ class C
     public int? f;
     void M(C c)
     {
-        int? x = [||]!object.ReferenceEquals(null, c) ? c.f : null;
+        int? x = [|!object.ReferenceEquals(null, c) ? c.f : null|];
     }
 }",
 @"
@@ -968,7 +983,7 @@ class C
     public int? f;
     void M(C c, C other)
     {
-        int? x = [||]!object.ReferenceEquals(c, other) ? c.f : null;
+        int? x = !object.ReferenceEquals(c, other) ? c.f : null;
     }
 }");
         }
@@ -984,7 +999,7 @@ class C
     public int? f;
     void M(C c, C other)
     {
-        int? x = [||]!object.ReferenceEquals(other, c) ? c.f : null;
+        int? x = !object.ReferenceEquals(other, c) ? c.f : null;
     }
 }");
         }
@@ -1000,7 +1015,7 @@ class C
     public int? f;
     void M(C c)
     {
-        int? x = [||]!(c == null) ? c.f : null;
+        int? x = [|!(c == null) ? c.f : null|];
     }
 }",
 @"
@@ -1025,7 +1040,7 @@ class C
     public int? f;
     void M(C c)
     {
-        int? x = [||]!(c != null) ? null : c.f;
+        int? x = [|!(c != null) ? null : c.f|];
     }
 }",
 @"
@@ -1050,7 +1065,7 @@ class C
     public int? f;
     void M(C c, C other)
     {
-        int? x = [||]!(c == other) ? c.f : null;
+        int? x = !(c == other) ? c.f : null;
     }
 }");
         }
@@ -1066,7 +1081,7 @@ class C
     public int? f;
     void M(C c, C other)
     {
-        int? x = [||]!(c != other) ? null : c.f;
+        int? x = !(c != other) ? null : c.f;
     }
 }");
         }
@@ -1082,7 +1097,7 @@ class C
 {
     void M(object o)
     {
-        var v = [||](o == null) ? null : (o.ToString());
+        var v = [|(o == null) ? null : (o.ToString())|];
     }
 }",
 @"using System;
@@ -1107,7 +1122,7 @@ class C
 {
     void M(object o)
     {
-        var v = [||](o != null) ? (o.ToString()) : null;
+        var v = [|(o != null) ? (o.ToString()) : null|];
     }
 }",
 @"using System;
@@ -1132,7 +1147,7 @@ class C
 {
     void M(object o)
     {
-        var v = [||]o == null ? (null) : o.ToString();
+        var v = [|o == null ? (null) : o.ToString()|];
     }
 }",
 @"using System;
@@ -1157,7 +1172,7 @@ class C
 {
     void M(object o)
     {
-        var v = [||]o != null ? o.ToString() : (null);
+        var v = [|o != null ? o.ToString() : (null)|];
     }
 }",
 @"using System;
