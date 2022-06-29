@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         protected abstract bool IsInExpressionTree(SemanticModel semanticModel, SyntaxNode node, INamedTypeSymbol? expressionTypeOpt, CancellationToken cancellationToken);
 
         protected abstract bool TryAnalyzePatternCondition(
-            ISyntaxFacts syntaxFacts, SyntaxNode conditionNode,
+            ISyntaxFacts syntaxFacts, TExpressionSyntax conditionNode,
             [NotNullWhen(true)] out TExpressionSyntax? conditionPartToCheck, out bool isEquals);
 
         protected override void InitializeWorker(AnalysisContext context)

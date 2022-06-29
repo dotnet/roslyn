@@ -35,19 +35,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation
             Return SyntaxFactory.InvocationExpression(Nothing, argumentList)
         End Function
 
-        Protected Overrides Function RewriteInvocation(whenTrueInvocation As InvocationExpressionSyntax, memberAccessExpression As MemberAccessExpressionSyntax) As ExpressionSyntax
-            ' convert x.Y(...) to x?.Y(...)
+        'Protected Overrides Function RewriteInvocation(whenTrueInvocation As InvocationExpressionSyntax, memberAccessExpression As MemberAccessExpressionSyntax) As ExpressionSyntax
+        '    ' convert x.Y(...) to x?.Y(...)
 
-            Dim dotToken = memberAccessExpression.OperatorToken
-            Return SyntaxFactory.ConditionalAccessExpression(
-                memberAccessExpression.Expression,
-                SyntaxFactory.Token(SyntaxKind.QuestionToken).WithLeadingTrivia(dotToken.LeadingTrivia),
-                SyntaxFactory.InvocationExpression(
-                    SyntaxFactory.SimpleMemberAccessExpression(
-                        Nothing,
-                        SyntaxFactory.Token(SyntaxKind.DotToken).WithTrailingTrivia(dotToken.TrailingTrivia),
-                        memberAccessExpression.Name),
-                    whenTrueInvocation.ArgumentList))
-        End Function
+        '    Dim dotToken = memberAccessExpression.OperatorToken
+        '    Return SyntaxFactory.ConditionalAccessExpression(
+        '        memberAccessExpression.Expression,
+        '        SyntaxFactory.Token(SyntaxKind.QuestionToken).WithLeadingTrivia(dotToken.LeadingTrivia),
+        '        SyntaxFactory.InvocationExpression(
+        '            SyntaxFactory.SimpleMemberAccessExpression(
+        '                Nothing,
+        '                SyntaxFactory.Token(SyntaxKind.DotToken).WithTrailingTrivia(dotToken.TrailingTrivia),
+        '                memberAccessExpression.Name),
+        '            whenTrueInvocation.ArgumentList))
+        'End Function
     End Class
 End Namespace

@@ -48,7 +48,6 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         where TElementBindingArgumentListSyntax : SyntaxNode
     {
         protected abstract TElementBindingExpressionSyntax ElementBindingExpression(TElementBindingArgumentListSyntax argumentList);
-        protected abstract TExpressionSyntax RewriteInvocation(TInvocationExpressionSyntax whenTrueInvocation, TMemberAccessExpressionSyntax memberAccessExpression);
 
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseNullPropagationDiagnosticId);
@@ -125,7 +124,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                     }
 
                     var newNode = CreateConditionalAccessExpression(
-                        syntaxFacts, generator, whenPartIsNullable, currentWhenPartToCheck, match, conditionalExpression);
+                        syntaxFacts, generator, whenPartIsNullable, currentWhenPartToCheck, match) ?? conditionalExpression;
 
                     newNode = newNode.WithTriviaFrom(conditionalExpression);
                     return newNode;
@@ -144,13 +143,13 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             var generator = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
 
             var whenTrueStatement = (TExpressionStatementSyntax)root.FindNode(diagnostic.AdditionalLocations[1].SourceSpan, getInnermostNodeForTie: true);
-            var whenTrueInvocation = (TInvocationExpressionSyntax)syntaxFacts.GetExpressionOfExpressionStatement(whenTrueStatement);
-            var memberAccessExpression = (TMemberAccessExpressionSyntax)syntaxFacts.GetExpressionOfInvocationExpression(whenTrueInvocation);
+            var match = (TExpressionSyntax)root.FindNode(diagnostic.AdditionalLocations[2].SourceSpan, getInnermostNodeForTie: true);
 
-            var newWhenTrueStatement = whenTrueStatement.ReplaceNode(
-                whenTrueInvocation,
-                RewriteInvocation(whenTrueInvocation, memberAccessExpression)
-                    .WithTriviaFrom(whenTrueInvocation));
+            var whenPartIsNullable = diagnostic.Properties.ContainsKey(UseNullPropagationConstants.WhenPartIsNullable);
+
+            var newWhenTrueStatement = CreateConditionalAccessExpression(
+                syntaxFacts, generator, whenPartIsNullable, whenTrueStatement, match);
+            Contract.ThrowIfNull(newWhenTrueStatement);
 
             // we have `if (x != null) x.Y();`.  Update `x.Y()` to be `x?.Y()`, then replace the entire
             // if-statement with that expression statement.
@@ -183,9 +182,9 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             editor.ReplaceNode(ifStatement, newWhenTrueStatement);
         }
 
-        private SyntaxNode CreateConditionalAccessExpression(
+        private TContainer? CreateConditionalAccessExpression<TContainer>(
             ISyntaxFactsService syntaxFacts, SyntaxGeneratorInternal generator, bool whenPartIsNullable,
-            SyntaxNode whenPart, SyntaxNode match, SyntaxNode currentConditional)
+            TContainer container, SyntaxNode match) where TContainer : SyntaxNode
         {
             if (whenPartIsNullable)
             {
@@ -202,20 +201,18 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                         //
                         //      goo?.Bar()  not   goo?.Value.Bar();
                         return CreateConditionalAccessExpression(
-                            syntaxFacts, generator, whenPart, match,
-                            memberAccess.Parent!, currentConditional);
+                            syntaxFacts, generator, container, match, memberAccess.GetRequiredParent());
                     }
                 }
             }
 
             return CreateConditionalAccessExpression(
-                syntaxFacts, generator, whenPart, match,
-                match.Parent!, currentConditional);
+                syntaxFacts, generator, container, match, match.GetRequiredParent());
         }
 
-        private SyntaxNode CreateConditionalAccessExpression(
+        private TContainer? CreateConditionalAccessExpression<TContainer>(
             ISyntaxFactsService syntaxFacts, SyntaxGeneratorInternal generator,
-            SyntaxNode whenPart, SyntaxNode match, SyntaxNode matchParent, SyntaxNode currentConditional)
+            TContainer whenPart, SyntaxNode match, SyntaxNode matchParent) where TContainer : SyntaxNode
         {
             if (matchParent is TMemberAccessExpressionSyntax memberAccess)
             {
@@ -235,7 +232,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                         match, ElementBindingExpression(argumentList)));
             }
 
-            return currentConditional;
+            return null;
         }
     }
 }

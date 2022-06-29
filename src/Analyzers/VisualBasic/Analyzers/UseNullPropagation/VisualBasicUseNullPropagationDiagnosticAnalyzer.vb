@@ -38,7 +38,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation
             Return node.IsInExpressionTree(semanticModel, expressionTypeOpt, cancellationToken)
         End Function
 
-        Protected Overrides Function TryAnalyzePatternCondition(syntaxFacts As ISyntaxFacts, conditionNode As SyntaxNode, ByRef conditionPartToCheck As SyntaxNode, ByRef isEquals As Boolean) As Boolean
+        Protected Overrides Function TryAnalyzePatternCondition(syntaxFacts As ISyntaxFacts, conditionNode As ExpressionSyntax, ByRef conditionPartToCheck As ExpressionSyntax, ByRef isEquals As Boolean) As Boolean
+            ' VB does not support patterns.
             conditionPartToCheck = Nothing
             isEquals = False
             Return False

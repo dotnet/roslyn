@@ -35,21 +35,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNullPropagation
         protected override ElementBindingExpressionSyntax ElementBindingExpression(BracketedArgumentListSyntax argumentList)
             => SyntaxFactory.ElementBindingExpression(argumentList);
 
-        protected override ExpressionSyntax RewriteInvocation(
-            InvocationExpressionSyntax whenTrueInvocation,
-            MemberAccessExpressionSyntax memberAccessExpression)
-        {
-            // convert x.Y(...) to x?.Y(...)
+        //protected override ExpressionSyntax RewriteInvocation(
+        //    InvocationExpressionSyntax whenTrueInvocation,
+        //    MemberAccessExpressionSyntax memberAccessExpression)
+        //{
+        //    // convert x.Y(...) to x?.Y(...)
 
-            var dotToken = memberAccessExpression.OperatorToken;
-            return SyntaxFactory.ConditionalAccessExpression(
-                memberAccessExpression.Expression,
-                SyntaxFactory.Token(SyntaxKind.QuestionToken).WithLeadingTrivia(dotToken.LeadingTrivia),
-                SyntaxFactory.InvocationExpression(
-                    SyntaxFactory.MemberBindingExpression(
-                        SyntaxFactory.Token(SyntaxKind.DotToken).WithTrailingTrivia(dotToken.TrailingTrivia),
-                        memberAccessExpression.Name),
-                    whenTrueInvocation.ArgumentList));
-        }
+        //    var dotToken = memberAccessExpression.OperatorToken;
+        //    return SyntaxFactory.ConditionalAccessExpression(
+        //        memberAccessExpression.Expression,
+        //        SyntaxFactory.Token(SyntaxKind.QuestionToken).WithLeadingTrivia(dotToken.LeadingTrivia),
+        //        SyntaxFactory.InvocationExpression(
+        //            SyntaxFactory.MemberBindingExpression(
+        //                SyntaxFactory.Token(SyntaxKind.DotToken).WithTrailingTrivia(dotToken.TrailingTrivia),
+        //                memberAccessExpression.Name),
+        //            whenTrueInvocation.ArgumentList));
+        //}
     }
 }

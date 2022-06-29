@@ -39,8 +39,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNullPropagation
             => node.IsInExpressionTree(semanticModel, expressionTypeOpt, cancellationToken);
 
         protected override bool TryAnalyzePatternCondition(
-            ISyntaxFacts syntaxFacts, SyntaxNode conditionNode,
-            [NotNullWhen(true)] out SyntaxNode? conditionPartToCheck, out bool isEquals)
+            ISyntaxFacts syntaxFacts, ExpressionSyntax conditionNode,
+            [NotNullWhen(true)] out ExpressionSyntax? conditionPartToCheck, out bool isEquals)
         {
             conditionPartToCheck = null;
             isEquals = true;
