@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MoveStaticMembers;
 
@@ -24,10 +26,23 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveStaticMembers
 
         public ImmutableArray<string> SelectedMembers { get; set; }
 
+        public ImmutableArray<string> ExpectedPrecheckedMembers { get; set; }
+
         public string? Filename { get; set; }
 
         public MoveStaticMembersOptions GetMoveMembersToTypeOptions(Document document, INamedTypeSymbol selectedType, ImmutableArray<ISymbol> selectedNodeSymbols)
         {
+            if (!ExpectedPrecheckedMembers.IsEmpty)
+            {
+                // if we expect to have prechecked members and don't have the correct ones, error
+                var actualPrecheckedMembers = selectedNodeSymbols.SelectAsArray(n => n.Name).Sort();
+                if (ExpectedPrecheckedMembers.Sort().SequenceEqual(actualPrecheckedMembers))
+                {
+                    System.Diagnostics.Debug.Fail("Expected Prechecked members did not match recieved members");
+                    throw new InvalidOperationException(string.Format("Expected: {0} \n Actual: {1}", ExpectedPrecheckedMembers, actualPrecheckedMembers));
+                }
+            }
+
             var selectedMembers = selectedType.GetMembers().WhereAsArray(symbol => SelectedMembers.Contains(symbol.Name));
             var namespaceDisplay = selectedType.ContainingNamespace.IsGlobalNamespace
                 ? string.Empty

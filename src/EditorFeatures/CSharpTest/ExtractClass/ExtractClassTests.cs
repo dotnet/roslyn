@@ -635,6 +635,72 @@ class Test : MyBase
         }
 
         [Fact]
+        public async Task TestFieldSelectMultipleVariables1()
+        {
+            var input = @"
+class Test
+{
+    [|private int MyField1, MyField2;|]
+}";
+
+            var expected1 = @"
+class Test : MyBase
+{
+}";
+            var expected2 = @"internal class MyBase
+{
+    private int MyField1;
+    private int MyField2;
+}";
+
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2
+                    }
+                }
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestFieldSelectMultipleVariables2()
+        {
+            var input = @"
+class Test
+{
+    private int MyField1, [|MyField2;|]
+}";
+
+            var expected1 = @"
+class Test : MyBase
+{
+    private int MyField1;
+}";
+            var expected2 = @"internal class MyBase
+{
+    private int MyField2;
+}";
+
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2
+                    }
+                }
+            }.RunAsync();
+        }
+
+        [Fact]
         public async Task TestFileHeader_FromExistingFile()
         {
             var input = @"// this is my document header

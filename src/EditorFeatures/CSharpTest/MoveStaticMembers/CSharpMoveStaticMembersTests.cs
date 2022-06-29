@@ -2427,6 +2427,241 @@ namespace TestNs1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        public async Task TestSelectInMultipleFieldIdentifiers()
+        {
+            var initialMarkup = @"
+namespace TestNs1
+{
+    public class Class1
+    {
+        [|public static int Goo = 10, Foo = 9;|]
+    }
+}";
+            var selectedDestinationName = "Class1Helpers";
+            var newFileName = "Class1Helpers.cs";
+            var selectedMembers = ImmutableArray.Create("Goo", "Foo");
+            var expectedResult1 = @"
+namespace TestNs1
+{
+    public class Class1
+    {
+    }
+}";
+            var expectedResult2 = @"namespace TestNs1
+{
+    internal static class Class1Helpers
+    {
+        public static int Goo = 10;
+        public static int Foo = 9;
+    }
+}";
+
+            await TestMovementNewFileWithSelectionAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        public async Task TestSelectMultipleMembers1()
+        {
+            var initialMarkup = @"
+namespace TestNs1
+{
+    public class Class1
+    {
+        [|public static int Goo = 10, Foo = 9;
+
+        public static int DoSomething()
+        {
+            return 5;
+        }|]
+    }
+}";
+            var selectedDestinationName = "Class1Helpers";
+            var newFileName = "Class1Helpers.cs";
+            var selectedMembers = ImmutableArray.Create("Goo", "Foo", "DoSomething");
+            var expectedResult1 = @"
+namespace TestNs1
+{
+    public class Class1
+    {
+    }
+}";
+            var expectedResult2 = @"namespace TestNs1
+{
+    internal static class Class1Helpers
+    {
+        public static int Goo = 10;
+        public static int Foo = 9;
+        public static int DoSomething()
+        {
+            return 5;
+        }
+    }
+}";
+
+            await TestMovementNewFileWithSelectionAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        public async Task TestSelectMultipleMembers2()
+        {
+            var initialMarkup = @"
+namespace TestNs1
+{
+    public class Class1
+    {
+
+        public static int DoSomething()
+        {
+            return [|5;
+        }        
+        public static int Goo = 10, Foo = 9;|]
+    }
+}";
+            var selectedDestinationName = "Class1Helpers";
+            var newFileName = "Class1Helpers.cs";
+            var selectedMembers = ImmutableArray.Create("Goo", "Foo");
+            var expectedResult1 = @"
+namespace TestNs1
+{
+    public class Class1
+    {
+        public static int DoSomething()
+        {
+            return 5;
+        }
+    }
+}";
+            var expectedResult2 = @"namespace TestNs1
+{
+    internal static class Class1Helpers
+    {
+        public static int Goo = 10;
+        public static int Foo = 9;
+    }
+}";
+
+            await TestMovementNewFileWithSelectionAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        public async Task TestSelectMultipleMembers3()
+        {
+            var initialMarkup = @"
+namespace TestNs1
+{
+    public class Class1
+    {
+        public static int Go[|o = 10, Foo = 9;
+
+        public static int DoSometh|]ing()
+        {
+            return 5;
+        }
+    }
+}";
+            var selectedDestinationName = "Class1Helpers";
+            var newFileName = "Class1Helpers.cs";
+            var selectedMembers = ImmutableArray.Create("Goo", "Foo", "DoSomething");
+            var expectedResult1 = @"
+namespace TestNs1
+{
+    public class Class1
+    {
+    }
+}";
+            var expectedResult2 = @"namespace TestNs1
+{
+    internal static class Class1Helpers
+    {
+        public static int Goo = 10;
+        public static int Foo = 9;
+        public static int DoSomething()
+        {
+            return 5;
+        }
+    }
+}";
+
+            await TestMovementNewFileWithSelectionAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        public async Task TestSelectMultipleMembers4()
+        {
+            var initialMarkup = @"
+namespace TestNs1
+{
+    public class Class1
+    {
+        public static int Goo = 10, F[|oo = 9;
+
+        public static in|]t DoSomething()
+        {
+            return 5;
+        }
+    }
+}";
+            var selectedDestinationName = "Class1Helpers";
+            var newFileName = "Class1Helpers.cs";
+            var selectedMembers = ImmutableArray.Create( "Foo");
+            var expectedResult1 = @"
+namespace TestNs1
+{
+    public class Class1
+    {
+        public static int Goo = 10;
+        public static int DoSomething()
+        {
+            return 5;
+        }
+    }
+}";
+            var expectedResult2 = @"namespace TestNs1
+{
+    internal static class Class1Helpers
+    {
+        public static int Foo = 9;
+    }
+}";
+
+            await TestMovementNewFileWithSelectionAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        public async Task TestSelectOneOfMultipleFieldIdentifiers()
+        {
+            // However, a semicolon after the initializer is still considered a declaration
+            var initialMarkup = @"
+namespace TestNs1
+{
+    public class Class1
+    {
+        public static int G[||]oo = 10, Foo = 9;
+    }
+}";
+            var selectedDestinationName = "Class1Helpers";
+            var newFileName = "Class1Helpers.cs";
+            var selectedMembers = ImmutableArray.Create("Goo");
+            var expectedResult1 = @"
+namespace TestNs1
+{
+    public class Class1
+    {
+        public static int Foo = 9;
+    }
+}";
+            var expectedResult2 = @"namespace TestNs1
+{
+    internal static class Class1Helpers
+    {
+        public static int Goo = 10;
+    }
+}";
+
+            await TestMovementNewFileWithSelectionAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
         public async Task TestSelectInTypeIdentifierOfFieldDeclaration_NoAction()
         {
             var initialMarkup = @"
@@ -2587,12 +2822,14 @@ namespace TestNs1
                 string destinationType,
                 ImmutableArray<string> selection,
                 string destinationName = "a.cs",
-                HostServices? hostServices = null)
+                HostServices? hostServices = null,
+                bool testPreselection = false)
             {
                 _destinationType = destinationType;
                 _selection = selection;
                 _destinationName = destinationName;
                 _hostServices = hostServices;
+                _testPreselection = testPreselection;
             }
 
             private readonly string _destinationType;
@@ -2602,6 +2839,8 @@ namespace TestNs1
             private readonly string _destinationName;
 
             private readonly HostServices? _hostServices;
+
+            private readonly bool _testPreselection;
 
             protected override Workspace CreateWorkspaceImpl()
             {
@@ -2614,6 +2853,7 @@ namespace TestNs1
                     testOptionsService.DestinationType = _destinationType;
                     testOptionsService.SelectedMembers = _selection;
                     testOptionsService.Filename = _destinationName;
+                    testOptionsService.ExpectedPrecheckedMembers = _testPreselection ? _selection : ImmutableArray<string>.Empty;
                 }
 
                 return workspace;
@@ -2628,6 +2868,26 @@ namespace TestNs1
             ImmutableArray<string> selectedMembers,
             string newTypeName)
             => await new Test(newTypeName, selectedMembers, newFileName)
+            {
+                TestCode = initialMarkup,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expectedSource,
+                        (newFileName, expectedNewFile)
+                    }
+                },
+            }.RunAsync().ConfigureAwait(false);
+
+        private static async Task TestMovementNewFileWithSelectionAsync(
+            string initialMarkup,
+            string expectedSource,
+            string expectedNewFile,
+            string newFileName,
+            ImmutableArray<string> selectedMembers,
+            string newTypeName)
+            => await new Test(newTypeName, selectedMembers, newFileName, testPreselection: true)
             {
                 TestCode = initialMarkup,
                 FixedState =
