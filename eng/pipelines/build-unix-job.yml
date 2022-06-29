@@ -19,8 +19,8 @@ parameters:
 jobs:
 - job: ${{ parameters.jobName }}
   pool:
-    name: NetCore1ESPool-Public
     ${{ if ne(parameters.queueName, '') }}:
+      name: NetCore1ESPool-Public
       demands: ImageOverride -equals ${{ parameters.queueName }}
 
     ${{ if ne(parameters.vmImageName, '') }}:
