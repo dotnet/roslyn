@@ -570,5 +570,117 @@ string x = null;
 x = s ?? throw new ArgumentNullException();
 ", TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
         }
+
+        [WorkItem(38102, "https://github.com/dotnet/roslyn/issues/38102")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseThrowExpression)]
+        public async Task TestKeepCommnents1()
+        {
+            await TestAsync(
+@"using System;
+
+class Program
+{
+    static void Main() { }
+
+    private object _arg;
+
+    public Program(object arg)
+    {
+        if (arg == null) // Oh no
+        { 
+            [|throw|] new ArgumentNullException(nameof(arg));
+        }
+        _arg = arg;
+    }
+}",
+@"using System;
+
+class Program
+{
+    static void Main() { }
+
+    private object _arg;
+
+    public Program(object arg)
+    {
+        _arg = arg ?? throw new ArgumentNullException(nameof(arg));// Oh no
+    }
+}", TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
+        }
+
+        [WorkItem(38102, "https://github.com/dotnet/roslyn/issues/38102")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseThrowExpression)]
+        public async Task TestKeepCommnents2()
+        {
+            await TestAsync(
+@"using System;
+
+class Program
+{
+    static void Main() { }
+
+    private object _arg;
+
+    public Program(object arg)
+    {
+        if (arg == null)
+        {
+            // Oh no
+            [|throw|] new ArgumentNullException(nameof(arg));
+        }
+        _arg = arg;
+    }
+}",
+@"using System;
+
+class Program
+{
+    static void Main() { }
+
+    private object _arg;
+
+    public Program(object arg)
+    {
+        _arg = arg ?? throw new ArgumentNullException(nameof(arg));// Oh no
+    }
+}", TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
+        }
+
+        [WorkItem(38102, "https://github.com/dotnet/roslyn/issues/38102")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseThrowExpression)]
+        public async Task TestKeepCommnents3()
+        {
+            await TestAsync(
+@"using System;
+
+class Program
+{
+    static void Main() { }
+
+    private object _arg;
+
+    public Program(object arg)
+    {
+        if (arg == null)
+        { 
+            [|throw|] new ArgumentNullException(nameof(arg));// Oh no
+        }
+        _arg = arg;
+    }
+}",
+@"using System;
+
+class Program
+{
+    static void Main() { }
+
+    private object _arg;
+
+    public Program(object arg)
+    {
+        _arg = arg ?? throw new ArgumentNullException(nameof(arg));// Oh no
+    }
+}", TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
+        }
     }
 }

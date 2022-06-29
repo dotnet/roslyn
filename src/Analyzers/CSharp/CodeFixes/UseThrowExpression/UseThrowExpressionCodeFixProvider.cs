@@ -11,6 +11,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -20,7 +23,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
 {
     [ExportCodeFixProvider(LanguageNames.CSharp,
         Name = PredefinedCodeFixProviderNames.UseThrowExpression), Shared]
-    internal partial class UseThrowExpressionCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+    internal class UseThrowExpressionCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -52,14 +55,37 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                 var ifStatement = root.FindNode(diagnostic.AdditionalLocations[0].SourceSpan);
                 var throwStatementExpression = root.FindNode(diagnostic.AdditionalLocations[1].SourceSpan);
                 var assignmentValue = root.FindNode(diagnostic.AdditionalLocations[2].SourceSpan);
+                var expressionStatement = assignmentValue.GetAncestor<ExpressionStatementSyntax>();
+                var identifierName = expressionStatement.DescendantNodes().ElementAt(1);
 
-                // First, remote the if-statement entirely.
+                var block = ((IfStatementSyntax)ifStatement).Statement.ChildNodes().FirstOrDefault();
+                var closeBrace = ((IfStatementSyntax)ifStatement).CloseParenToken;
+
+                var triviaList = new SyntaxTriviaList()
+                    .AddRange(closeBrace.GetAllTrailingTrivia().Where(t => !t.IsWhitespaceOrEndOfLine()))
+                    .AddRange(block.GetLeadingTrivia().Where(t => !t.IsWhitespaceOrEndOfLine()))
+                    .AddRange(block.GetTrailingTrivia().Where(t => !t.IsWhitespaceOrEndOfLine()));
+
+                // First, remove the if-statement entirely.
                 editor.RemoveNode(ifStatement);
 
                 // Now, update the assignment value to go from 'a' to 'a ?? throw ...'.
-                editor.ReplaceNode(assignmentValue,
-                    generator.CoalesceExpression(assignmentValue,
-                    generator.ThrowExpression(throwStatementExpression)));
+                if (triviaList.IsEmpty())
+                {
+                    editor.ReplaceNode(assignmentValue,
+                        generator.CoalesceExpression(assignmentValue,
+                        generator.ThrowExpression(throwStatementExpression)));
+                }
+                else
+                {
+                    triviaList = triviaList.AddRange(block.GetTrailingTrivia().Where(t => t.IsEndOfLine()));
+
+                    var newExpression = generator.ExpressionStatement(generator.AssignmentStatement(identifierName,
+                        generator.CoalesceExpression(assignmentValue,
+                        generator.ThrowExpression(throwStatementExpression)))).WithTrailingTrivia(triviaList).WithAppendedTrailingTrivia();
+
+                    editor.ReplaceNode(expressionStatement, newExpression);
+                }
             }
 
             return Task.CompletedTask;
