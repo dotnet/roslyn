@@ -147,18 +147,11 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
 
             var whenPartIsNullable = diagnostic.Properties.ContainsKey(UseNullPropagationConstants.WhenPartIsNullable);
 
+            // we have `if (x != null) x.Y();`.  Update `x.Y()` to be `x?.Y()`, then replace the entire
+            // if-statement with that expression statement.
             var newWhenTrueStatement = CreateConditionalAccessExpression(
                 syntaxFacts, generator, whenPartIsNullable, whenTrueStatement, match);
             Contract.ThrowIfNull(newWhenTrueStatement);
-
-            // we have `if (x != null) x.Y();`.  Update `x.Y()` to be `x?.Y()`, then replace the entire
-            // if-statement with that expression statement.
-
-            //var newAssignment = SyntaxFactory.AssignmentExpression(
-            //    SyntaxKind.CoalesceAssignmentExpression,
-            //    assignment.Left,
-            //    SyntaxFactory.Token(SyntaxKind.QuestionQuestionEqualsToken).WithTriviaFrom(assignment.OperatorToken),
-            //    assignment.Right).WithTriviaFrom(assignment);
 
             // If there's leading trivia on the original inner statement, then combine that with the leading
             // trivia on the if-statement.  We'll need to add a formatting annotation so that the leading comments
