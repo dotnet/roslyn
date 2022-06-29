@@ -81,11 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         }
 
         protected string GetNewLineCharacter(SourceText text)
-        {
-            var textBuffer = text.Container.TryGetTextBuffer();
-            var editorOptions = (textBuffer != null) ? _editorOptionsFactoryService.GetOptions(textBuffer) : _editorOptionsFactoryService.GlobalOptions;
-            return editorOptions.GetNewLineCharacter();
-        }
+            => _editorOptionsFactoryService.GetEditorOptions(text).GetNewLineCharacter();
 
         protected SyntaxToken GetTokenWithoutAnnotation(SyntaxToken current, Func<SyntaxToken, SyntaxToken> nextTokenGetter)
         {

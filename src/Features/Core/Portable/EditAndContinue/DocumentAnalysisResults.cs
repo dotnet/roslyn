@@ -21,6 +21,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public DocumentId DocumentId { get; }
 
         /// <summary>
+        /// Document file path for logging.
+        /// </summary>
+        public string FilePath;
+
+        /// <summary>
         /// Spans of active statements in the document, or null if the document has syntax errors or has not changed.
         /// Calculated even in presence of rude edits so that the active statements can be rendered in the editor.
         /// </summary>
@@ -93,6 +98,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public DocumentAnalysisResults(
             DocumentId documentId,
+            string filePath,
             ImmutableArray<ActiveStatement> activeStatementsOpt,
             ImmutableArray<RudeEditDiagnostic> rudeEdits,
             Diagnostic? syntaxError,
@@ -145,6 +151,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             DocumentId = documentId;
+            FilePath = filePath;
             RudeEditErrors = rudeEdits;
             SyntaxError = syntaxError;
             SemanticEdits = semanticEditsOpt;
@@ -168,9 +175,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Report errors blocking the document analysis.
         /// </summary>
-        public static DocumentAnalysisResults SyntaxErrors(DocumentId documentId, ImmutableArray<RudeEditDiagnostic> rudeEdits, Diagnostic? syntaxError, bool hasChanges)
+        public static DocumentAnalysisResults SyntaxErrors(DocumentId documentId, string filePath, ImmutableArray<RudeEditDiagnostic> rudeEdits, Diagnostic? syntaxError, bool hasChanges)
             => new(
                 documentId,
+                filePath,
                 activeStatementsOpt: default,
                 rudeEdits,
                 syntaxError,
@@ -184,9 +192,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Report unchanged document results.
         /// </summary>
-        public static DocumentAnalysisResults Unchanged(DocumentId documentId)
+        public static DocumentAnalysisResults Unchanged(DocumentId documentId, string filePath)
             => new(
                 documentId,
+                filePath,
                 activeStatementsOpt: default,
                 rudeEdits: ImmutableArray<RudeEditDiagnostic>.Empty,
                 syntaxError: null,
