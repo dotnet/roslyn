@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -74,38 +75,78 @@ namespace Microsoft.CodeAnalysis
             NodeStateTable<ImmutableArray<TInput>> previousTable,
             NodeStateTable<ImmutableArray<TInput>>.Builder newTable)
         {
-            var sourceValuesBuilder = BuilderAndStatistics<TInput>.Allocate();
-            try
-            {
-                var sourceInputsBuilder = newTable.TrackIncrementalSteps ? ArrayBuilder<(IncrementalGeneratorRunStep InputStep, int OutputIndex)>.GetInstance() : null;
+            // Do an initial pass to both get the steps, and determine how many entries we'll have.
+            var sourceInputsBuilder = newTable.TrackIncrementalSteps ? ArrayBuilder<(IncrementalGeneratorRunStep InputStep, int OutputIndex)>.GetInstance() : null;
 
+            var entryCount = 0;
+            foreach (var entry in sourceTable)
+            {
+                // Always keep track of its step information, regardless of if the entry was removed or not, so we
+                // can accurately report how long it took and what actually happened (for testing validation).
+                sourceInputsBuilder?.Add((entry.Step!, entry.OutputIndex));
+
+                if (entry.State != EntryState.Removed)
+                    entryCount++;
+            }
+
+            var sourceInputs = sourceInputsBuilder != null ? sourceInputsBuilder.ToImmutableAndFree() : default;
+
+            // First, see if we can reuse the entries from the previous table.
+            var result = tryReusePreviousTableValues(entryCount);
+            if (result.IsDefault)
+            {
+                // If not, produce the actual values we need from sourceTable.
+                result = computeCurrentTableValues(entryCount);
+            }
+
+            return (result, sourceInputs);
+
+            ImmutableArray<TInput> tryReusePreviousTableValues(int entryCount)
+            {
+                if (previousTable.Count != 1)
+                    return default;
+
+                var previousItems = previousTable.Single().item;
+
+                // If they don't have the same length, we clearly can't reuse them.
+                if (previousItems.Length != entryCount)
+                    return default;
+
+                var indexInPrevious = 0;
                 foreach (var entry in sourceTable)
                 {
-                    // At this point, we can remove any 'Removed' items and ensure they're not in our list of states.
-                    if (entry.State != EntryState.Removed)
-                        sourceValuesBuilder.Add(entry.Item);
+                    if (entry.State == EntryState.Removed)
+                        continue;
 
-                    // However, regardless of if the entry was removed or not, we still keep track of its step information
-                    // so we can accurately report how long it took and what actually happened (for testing validation).
-                    sourceInputsBuilder?.Add((entry.Step!, entry.OutputIndex));
+                    // If the entries aren't the same, we can't reuse.
+                    if (!EqualityComparer<TInput>.Default.Equals(entry.Item, previousItems[indexInPrevious]))
+                        return default;
+
+                    indexInPrevious++;
                 }
 
-                var sourceInputs = newTable.TrackIncrementalSteps ? sourceInputsBuilder!.ToImmutableAndFree() : default;
+                // We better have the exact same count as previousItems as we checked that above.
+                Debug.Assert(indexInPrevious == previousItems.Length);
 
-                // If we're producing the exact same values as the last time, then just point at the prior array
-                // wholesale to avoid a costly copy.
-                if (previousTable.Count == 1)
-                {
-                    var previousItems = previousTable.Single().item;
-                    if (sourceValuesBuilder.Builder.SequenceEqual(previousItems, EqualityComparer<TInput>.Default))
-                        return (previousItems, sourceInputs);
-                }
-
-                return (sourceValuesBuilder.ToImmutable(), sourceInputs);
+                // Looks good, we can reuse this.
+                return previousItems;
             }
-            finally
+
+            ImmutableArray<TInput> computeCurrentTableValues(int entryCount)
             {
-                sourceValuesBuilder.ClearAndFree();
+                // Important: we initialize with the exact capacity we need here so that we don't make a pointless
+                // scratch array that may be very large and may cause GC churn when it cannot be returned to the pool.
+                var builder = ArrayBuilder<TInput>.GetInstance(entryCount);
+                foreach (var entry in sourceTable)
+                {
+                    if (entry.State == EntryState.Removed)
+                        continue;
+
+                    builder.Add(entry.Item);
+                }
+
+                Debug.Assert(builder.Count == entryCount);
+                return builder.ToImmutableAndFree();
             }
         }
 
