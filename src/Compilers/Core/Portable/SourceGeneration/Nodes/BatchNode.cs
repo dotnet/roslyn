@@ -49,26 +49,21 @@ namespace Microsoft.CodeAnalysis
 
             var sourceInputs = sourceInputsBuilder != null ? sourceInputsBuilder.ToImmutableAndFree() : default;
 
-            // First, see if we can reuse the entries from the previous table.
-            var result = tryReusePreviousTableValues(entryCount);
-            if (result.IsDefault)
-            {
-                // If not, produce the actual values we need from sourceTable.
-                result = computeCurrentTableValues(entryCount);
-            }
-
+            // First, see if we can reuse the entries from previousTable.
+            // If not, produce the actual values we need from sourceTable.
+            var result = tryReusePreviousTableValues(entryCount) ?? computeCurrentTableValues(entryCount);
             return (result, sourceInputs);
 
-            ImmutableArray<TInput> tryReusePreviousTableValues(int entryCount)
+            ImmutableArray<TInput>? tryReusePreviousTableValues(int entryCount)
             {
                 if (previousTable.Count != 1)
-                    return default;
+                    return null;
 
                 var previousItems = previousTable.Single().item;
 
                 // If they don't have the same length, we clearly can't reuse them.
                 if (previousItems.Length != entryCount)
-                    return default;
+                    return null;
 
                 var indexInPrevious = 0;
                 foreach (var entry in sourceTable)
@@ -78,7 +73,7 @@ namespace Microsoft.CodeAnalysis
 
                     // If the entries aren't the same, we can't reuse.
                     if (!EqualityComparer<TInput>.Default.Equals(entry.Item, previousItems[indexInPrevious]))
-                        return default;
+                        return null;
 
                     indexInPrevious++;
                 }
