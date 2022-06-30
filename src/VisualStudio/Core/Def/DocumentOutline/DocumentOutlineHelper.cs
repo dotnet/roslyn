@@ -211,15 +211,15 @@ namespace Microsoft.VisualStudio.LanguageServices
         /// Sorts and returns an immutable array of DocumentSymbolViewModels based on a SortOption.
         /// </summary>
         /// <remarks>
-        /// The parameter oldSnapshot refers to the snapshot used when the LSP document symbol request was made
-        /// to obtain the symbol and currentSnapshot refers to the latest snapshot in the editor. These parameters
-        /// are required to obtain the latest DocumentSymbolViewModel range positions in the new snapshot.
+        /// The parameter oldSnapshot refers to the snapshot used when the LSP document symbol request was made to 
+        /// obtain the symbol and currentSnapshot refers to the latest snapshot in the editor. These parameters are
+        /// required to obtain the latest DocumentSymbolViewModel range positions in the new snapshot (to sort by order).
         /// </remarks>
         public static ImmutableArray<DocumentSymbolViewModel> Sort(
             ImmutableArray<DocumentSymbolViewModel> documentSymbolModels,
             SortOption sortOption,
-            ITextSnapshot oldSnapshot,
-            ITextSnapshot currentSnapshot)
+            ITextSnapshot? oldSnapshot,
+            ITextSnapshot? currentSnapshot)
         {
             // We want to log which sort option is used
             Logger.Log(sortOption switch
@@ -234,7 +234,15 @@ namespace Microsoft.VisualStudio.LanguageServices
             var sortedDocumentSymbolModels = sortOption switch
             {
                 SortOption.Name => documentSymbolModels.Sort((x, y) => x.Name.CompareTo(y.Name)),
-                SortOption.Order => documentSymbolModels.Sort((x, y) => CompareSymbolOrder(x, y, oldSnapshot, currentSnapshot)),
+                SortOption.Order => documentSymbolModels.Sort((x, y) =>
+                {
+                    if (oldSnapshot is null)
+                        throw new ArgumentNullException(nameof(oldSnapshot));
+                    else if (currentSnapshot is null)
+                        throw new ArgumentNullException(nameof(currentSnapshot));
+
+                    return CompareSymbolOrder(x, y, oldSnapshot, currentSnapshot);
+                }),
                 SortOption.Type => documentSymbolModels.Sort(CompareSymbolType),
                 _ => throw new NotImplementedException()
             };
@@ -270,6 +278,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         /// </summary>
         public static bool SearchNodeTree(DocumentSymbolViewModel tree, PatternMatcher patternMatcher)
         {
+            var pattern = patternMatcher.Matches(tree.Name);
             if (patternMatcher.GetFirstMatch(tree.Name) is not null)
                 return true;
 
