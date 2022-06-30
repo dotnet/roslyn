@@ -2491,6 +2491,7 @@ namespace TestNs1
     {
         public static int Goo = 10;
         public static int Foo = 9;
+
         public static int DoSomething()
         {
             return 5;
@@ -2525,6 +2526,7 @@ namespace TestNs1
 {
     public class Class1
     {
+
         public static int DoSomething()
         {
             return 5;
@@ -2575,6 +2577,7 @@ namespace TestNs1
     {
         public static int Goo = 10;
         public static int Foo = 9;
+
         public static int DoSomething()
         {
             return 5;
@@ -2610,6 +2613,7 @@ namespace TestNs1
     public class Class1
     {
         public static int Goo = 10;
+
         public static int DoSomething()
         {
             return 5;

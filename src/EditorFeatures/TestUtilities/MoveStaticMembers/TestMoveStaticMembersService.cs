@@ -36,10 +36,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveStaticMembers
             {
                 // if we expect to have prechecked members and don't have the correct ones, error
                 var actualPrecheckedMembers = selectedNodeSymbols.SelectAsArray(n => n.Name).Sort();
-                if (ExpectedPrecheckedMembers.Sort().SequenceEqual(actualPrecheckedMembers))
+                if (!ExpectedPrecheckedMembers.Sort().SequenceEqual(actualPrecheckedMembers))
                 {
                     System.Diagnostics.Debug.Fail("Expected Prechecked members did not match recieved members");
-                    throw new InvalidOperationException(string.Format("Expected: {0} \n Actual: {1}", ExpectedPrecheckedMembers, actualPrecheckedMembers));
+                    var errMsg = string.Format("Expected: {0} \n Actual: {1}", ExpectedPrecheckedMembers, actualPrecheckedMembers);
+                    System.Diagnostics.Debug.Fail(errMsg);
+                    throw new InvalidOperationException(errMsg);
                 }
             }
 
