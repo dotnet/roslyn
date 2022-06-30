@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
                     case 'm':
                     case 's':
                     case 't':
-                        if (index + 1 < name.Length && name[index + 1] == '_')
+                        if (index + 2 < name.Length && name[index + 1] == '_')
                         {
                             index++;
                             continue;
