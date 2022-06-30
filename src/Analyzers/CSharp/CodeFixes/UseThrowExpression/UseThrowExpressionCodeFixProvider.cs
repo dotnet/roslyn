@@ -59,22 +59,23 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
 
                 var ifStatement = startNode is IfStatementSyntax ifStatementSyntax ? ifStatementSyntax : (IfStatementSyntax)startNode.ChildNodes().First(node => node is IfStatementSyntax);
                 var closeBrace = ifStatement.CloseParenToken;
-                var block = ifStatement.Statement is BlockSyntax blockSyntax ? blockSyntax.Statements.First() : ifStatement.Statement;
+                var throwStatement = ifStatement.Statement is BlockSyntax blockSyntax ? blockSyntax.Statements.First() : ifStatement.Statement;
 
                 var triviaList = new SyntaxTriviaList()
                     .AddRange(closeBrace.GetAllTrailingTrivia().Where(t => !t.IsWhitespaceOrEndOfLine()))
-                    .AddRange(block.GetLeadingTrivia().Where(t => !t.IsWhitespaceOrEndOfLine()))
-                    .AddRange(block.GetTrailingTrivia().Where(t => !t.IsWhitespaceOrEndOfLine()))
+                    .AddRange(throwStatement.GetLeadingTrivia().Where(t => !t.IsWhitespaceOrEndOfLine()))
+                    .AddRange(throwStatement.GetTrailingTrivia().Where(t => !t.IsWhitespaceOrEndOfLine()))
                     .Add(SyntaxFactory.ElasticCarriageReturnLineFeed);
 
                 // First, remove the if-statement entirely.
                 editor.RemoveNode(ifStatement);
 
                 // Now, update the assignment value to go from 'a' to 'a ?? throw 
-                var assignment = expressionStatement.Expression as AssignmentExpressionSyntax;
-                var assignVal = assignment.Right;
+                var assignment = (AssignmentExpressionSyntax)expressionStatement.Expression;
                 var coalesce = generator.CoalesceExpression(assignmentValue, generator.ThrowExpression(throwStatementExpression));
                 var newExpressionStatement = expressionStatement.WithExpression(assignment.WithRight((ExpressionSyntax)coalesce));
+
+                // We add the trivia to the expression in order for it to be after the semicolon
                 newExpressionStatement = newExpressionStatement.WithTrailingTrivia(triviaList);
                 editor.ReplaceNode(expressionStatement, newExpressionStatement);
             }
