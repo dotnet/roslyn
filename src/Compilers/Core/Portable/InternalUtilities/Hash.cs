@@ -85,7 +85,6 @@ namespace Roslyn.Utilities
                     break;
                 }
 
-                // Should end up with a constrained virtual call to object.GetHashCode (i.e. avoid boxing where possible).
                 hashCode = Hash.Combine(value.GetHashCode(), hashCode);
             }
 
