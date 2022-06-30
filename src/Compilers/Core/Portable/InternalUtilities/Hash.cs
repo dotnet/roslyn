@@ -165,23 +165,17 @@ namespace Roslyn.Utilities
         internal static int CombineValues(ImmutableArray<string> values, StringComparer stringComparer, int maxItemsToHash = int.MaxValue)
         {
             if (values == null)
-            {
                 return 0;
-            }
 
             var hashCode = 0;
             var count = 0;
             foreach (var value in values)
             {
                 if (count++ >= maxItemsToHash)
-                {
                     break;
-                }
 
                 if (value != null)
-                {
                     hashCode = Hash.Combine(stringComparer.GetHashCode(value), hashCode);
-                }
             }
 
             return hashCode;
