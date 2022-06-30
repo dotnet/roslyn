@@ -68,6 +68,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             if (copyPasteService == null)
                 return default;
 
+            var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
+
             var spans = textView.Selection.GetSnapshotSpansOnBuffer(subjectBuffer);
 
             // We only support smart copy/paste when a single selection is copied (and a single selection is pasted
@@ -86,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             }
 
             var stringExpression = TryGetCompatibleContainingStringExpression(
-                document, new NormalizedSnapshotSpanCollection(span), cancellationToken);
+                parsedDocument, new NormalizedSnapshotSpanCollection(span));
             if (stringExpression is null)
                 return default;
 
