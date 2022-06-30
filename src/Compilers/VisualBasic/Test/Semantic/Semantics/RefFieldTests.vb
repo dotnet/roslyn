@@ -16,6 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         ''' <summary>
         ''' Ref field in ref struct.
         ''' </summary>
+        <WorkItem(62121, "https://github.com/dotnet/roslyn/issues/62121")>
         <Fact>
         Public Sub RefField_01()
             Dim sourceA =
@@ -75,6 +76,7 @@ BC30656: Field 'Public F As T' is of an unsupported type.
         ''' <summary>
         ''' Ref field in class.
         ''' </summary>
+        <WorkItem(62121, "https://github.com/dotnet/roslyn/issues/62121")>
         <Fact>
         Public Sub RefField_02()
             Dim sourceA =
