@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.CSharp
             {
                 // Compiler diagnostic analyzer does not support build-only diagnostics.
                 if (!ErrorFacts.IsBuildOnlyDiagnostic(errorCode) &&
-                    errorCode is not ErrorCode.Void or ErrorCode.Unknown)
+                    errorCode is not (ErrorCode.Void or ErrorCode.Unknown))
                 {
                     builder.Add((int)errorCode);
                 }
