@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             diagnosticService.Reanalyze(_workspace, documentIds: documentsToReanalyze);
 
             // clear emit/apply diagnostics reported previously:
-            diagnosticUpdateSource.ClearDiagnostics();
+            diagnosticUpdateSource.ClearDiagnostics(isSessionEnding: false);
         }
 
         public async ValueTask EndDebuggingSessionAsync(Solution compileTimeSolution, EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource, IDiagnosticAnalyzerService diagnosticService, CancellationToken cancellationToken)
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             diagnosticService.Reanalyze(_workspace, documentIds: designTimeDocumentsToReanalyze);
 
             // clear emit/apply diagnostics reported previously:
-            diagnosticUpdateSource.ClearDiagnostics();
+            diagnosticUpdateSource.ClearDiagnostics(isSessionEnding: true);
 
             Dispose();
         }
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             // clear emit/apply diagnostics reported previously:
-            diagnosticUpdateSource.ClearDiagnostics();
+            diagnosticUpdateSource.ClearDiagnostics(isSessionEnding: false);
 
             // clear all reported rude edits:
             diagnosticService.Reanalyze(_workspace, documentIds: rudeEdits.Select(d => d.DocumentId));
