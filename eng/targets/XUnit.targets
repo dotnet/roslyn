@@ -6,6 +6,15 @@
     <PrepareForBuildDependsOn>$(PrepareForBuildDependsOn);AddDefaultTestAppConfig</PrepareForBuildDependsOn>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(TargetFrameworkIdentifier)' != '.NETFramework'">
+    <!--
+      In newer versions of the .NET SDK a deps.json file is used instead of copying 
+      dependencies to the output directory. Because we copy and run tests across different
+      machines, we need to ensure that the dependencies are copied to the output directory.
+    -->
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" IsImplicitlyDefined="true" PrivateAssets="all" />
     <PackageReference Include="XunitXml.TestLogger" Version="$(XunitXmlTestLoggerVersion)" />
