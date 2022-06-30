@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Shared.Naming
                     // remove specified suffix
                     var suffix = rule.NamingStyle.Suffix;
                     newBaseName = newBaseName.EndsWith(suffix)
-                        ? newBaseName.Substring(0, newBaseName.Length - suffix.Length)
+                        ? newBaseName[..^suffix.Length]
                         : newBaseName;
 
                     break;
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Shared.Naming
             }
 
             // remove any common prefixes
-            newBaseName = NamingStyle.StripCommonPrefixes(newBaseName, out var _);
+            newBaseName = NamingStyle.StripCommonPrefixesIfValid(newBaseName, out var _);
 
             // If no changes were made to the basename passed in, we're done
             if (newBaseName == baseName)
