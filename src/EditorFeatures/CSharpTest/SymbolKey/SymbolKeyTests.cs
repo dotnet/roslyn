@@ -117,7 +117,7 @@ file class C
 
             var compilation = await project.GetCompilationAsync();
 
-            var type = compilation.GetTypeByMetadataName("<File1>F1__C.Inner");
+            var type = compilation.GetTypeByMetadataName("<File0>F0__C+Inner");
             Assert.NotNull(type);
             var symbolKey = SymbolKey.Create(type);
             var resolved = symbolKey.Resolve(compilation).Symbol;
