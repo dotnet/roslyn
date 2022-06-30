@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis
         public ImmutableArray<string> KeyFileSearchPaths { get; internal set; }
 
         /// <summary>
-        /// If true, use UTF8 for output.
+        /// If true, use UTF-8 for output.
         /// </summary>
         public bool Utf8Output { get; internal set; }
 

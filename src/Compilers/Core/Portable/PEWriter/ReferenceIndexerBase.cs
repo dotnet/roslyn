@@ -60,6 +60,7 @@ namespace Microsoft.Cci
                 return;
             }
 
+            this.Visit(fieldReference.RefCustomModifiers);
             this.Visit((ITypeMemberReference)fieldReference);
             this.Visit(fieldReference.GetType(Context));
             ReserveFieldToken(fieldReference);
