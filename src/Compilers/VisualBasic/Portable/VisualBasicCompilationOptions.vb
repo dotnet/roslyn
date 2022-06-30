@@ -1117,8 +1117,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Creates a hashcode for this instance.
         ''' </summary>
         ''' <returns>A hashcode representing this instance.</returns>
-        Public Overrides Function GetHashCode() As Integer
-            Return Hash.Combine(MyBase.GetHashCodeHelper(),
+        Protected Overrides Function ComputeHashCode() As Integer
+            Return Hash.Combine(GetHashCodeHelper(),
                    Hash.Combine(Hash.CombineValues(Me.GlobalImports),
                    Hash.Combine(If(Me.RootNamespace IsNot Nothing, StringComparer.Ordinal.GetHashCode(Me.RootNamespace), 0),
                    Hash.Combine(Me.OptionStrict,
