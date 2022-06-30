@@ -1638,10 +1638,7 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     SolutionState? currentPartialSolution = null;
-                    if (_latestSolutionWithPartialCompilation != null)
-                    {
-                        _latestSolutionWithPartialCompilation.TryGetTarget(out currentPartialSolution);
-                    }
+                    _latestSolutionWithPartialCompilation?.TryGetTarget(out currentPartialSolution);
 
                     var reuseExistingPartialSolution =
                         currentPartialSolution != null &&

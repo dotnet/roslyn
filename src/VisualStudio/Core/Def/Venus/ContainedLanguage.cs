@@ -171,10 +171,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             this.ContainedDocument.Dispose();
 
-            if (_bufferTagAggregator != null)
-            {
-                _bufferTagAggregator.Dispose();
-            }
+            _bufferTagAggregator?.Dispose();
         }
 
         private void OnDataBufferChanged(object sender, TextContentChangedEventArgs e)

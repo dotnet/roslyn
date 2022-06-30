@@ -25,11 +25,8 @@ namespace Roslyn.Utilities
 
                 if (index < 0)
                 {
-                    if (builder != null)
-                    {
-                        // append remaining text
-                        builder.Append(text, startIndex, text.Length - startIndex);
-                    }
+                    // append remaining text
+                    builder?.Append(text, startIndex, text.Length - startIndex);
 
                     break;
                 }
@@ -71,11 +68,8 @@ namespace Roslyn.Utilities
                 var index = text.IndexOf(escapePrefix, startIndex);
                 if (index < 0)
                 {
-                    if (builder != null)
-                    {
-                        // append remaining text
-                        builder.Append(text, startIndex, text.Length - startIndex);
-                    }
+                    // append remaining text
+                    builder?.Append(text, startIndex, text.Length - startIndex);
 
                     break;
                 }

@@ -77,10 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 
         public void CloseWorkspace()
         {
-            if (_updater != null)
-            {
-                _updater.CloseWorkspace();
-            }
+            _updater?.CloseWorkspace();
         }
 
         public int ApplyChanges()
