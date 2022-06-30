@@ -88,11 +88,16 @@ namespace Microsoft.CodeAnalysis
                     if (filePath != null)
                     {
                         if (!type.IsFile ||
-                            type.DeclaringSyntaxReferences.IsEmpty ||
+                            // note: if we found 'IsFile' returned true, we can assume DeclaringSyntaxReferences is non-empty.
                             type.DeclaringSyntaxReferences[0].SyntaxTree.FilePath != filePath)
                         {
                             continue;
                         }
+                    }
+                    else if (type.IsFile)
+                    {
+                        // since this key lacks a file path it can't match against a 'file' type
+                        continue;
                     }
 
                     var currentType = typeArguments.Length > 0 ? type.Construct(typeArguments) : type;
