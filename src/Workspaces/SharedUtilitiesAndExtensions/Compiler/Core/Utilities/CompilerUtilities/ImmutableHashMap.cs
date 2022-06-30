@@ -201,15 +201,9 @@ namespace Roslyn.Collections.Immutable
         [Pure]
         public ImmutableHashMap<TKey, TValue> WithComparers(IEqualityComparer<TKey> keyComparer, IEqualityComparer<TValue> valueComparer)
         {
-            if (keyComparer == null)
-            {
-                keyComparer = EqualityComparer<TKey>.Default;
-            }
+            keyComparer ??= EqualityComparer<TKey>.Default;
 
-            if (valueComparer == null)
-            {
-                valueComparer = EqualityComparer<TValue>.Default;
-            }
+            valueComparer ??= EqualityComparer<TValue>.Default;
 
             if (_keyComparer == keyComparer)
             {
@@ -1067,10 +1061,7 @@ namespace Roslyn.Collections.Immutable
             {
                 get
                 {
-                    if (_contents == null)
-                    {
-                        _contents = _map.ToArray();
-                    }
+                    _contents ??= _map.ToArray();
 
                     return _contents;
                 }

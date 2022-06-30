@@ -197,10 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public static bool IsEmbeddedStatement([NotNullWhen(true)] this SyntaxNode? node)
         {
             SyntaxNode? statementOrElse = node as StatementSyntax;
-            if (statementOrElse == null)
-            {
-                statementOrElse = node as ElseClauseSyntax;
-            }
+            statementOrElse ??= node as ElseClauseSyntax;
 
             return statementOrElse != null
                 && statementOrElse.Parent != null

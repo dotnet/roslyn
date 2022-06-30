@@ -52,10 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
             // Storing the actual values
             ClassName = className;
             GenerateTypeDialogOptions = generateTypeDialogOptions;
-            if (DefaultNamespace == null)
-            {
-                DefaultNamespace = projectManagementService.GetDefaultNamespace(Project, Project?.Solution.Workspace);
-            }
+            DefaultNamespace ??= projectManagementService.GetDefaultNamespace(Project, Project?.Solution.Workspace);
 
             return new GenerateTypeOptionsResult(
                 accessibility: Accessibility,

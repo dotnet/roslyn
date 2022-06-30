@@ -9748,6 +9748,40 @@ public class MyAttribute : System.Attribute
                 );
         }
 
+        [Fact, WorkItem(1556927, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1556927")]
+        public void ParameterScope_ValueLocalNotInPropertyOrAccessorAttributeNameOf_UnknownAccessor()
+        {
+            var source = @"
+class C
+{
+    int Property4 { [My(nameof(value))] unknown => throw null; }
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name) { }
+}
+";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
+            comp.VerifyDiagnostics(
+                // (4,9): error CS0548: 'C.Property4': property or indexer must have at least one accessor
+                //     int Property4 { [My(nameof(value))] unknown => throw null; }
+                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "Property4").WithArguments("C.Property4").WithLocation(4, 9),
+                // (4,41): error CS1014: A get or set accessor expected
+                //     int Property4 { [My(nameof(value))] unknown => throw null; }
+                Diagnostic(ErrorCode.ERR_GetOrSetExpected, "unknown").WithLocation(4, 41)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>()
+                .Where(i => i.Identifier.ValueText == "value")
+                .Where(i => i.Ancestors().Any(a => a.IsKind(SyntaxKind.Attribute)))
+                .Single();
+
+            Assert.Null(model.GetSymbolInfo(node).Symbol);
+        }
+
         [Fact]
         public void ParameterScope_InParameterAttributeNameOf_Constructor()
         {
@@ -10428,6 +10462,33 @@ public class MyAttribute : System.Attribute
 }
 ");
             comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(1556927, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1556927")]
+        public void LambdaOutsideMemberModel()
+        {
+            var text = @"
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+
+int P
+{
+    badAccessorName
+    {
+        M([My(nameof(P))] env => env);
+";
+            var comp = CreateCompilation(text);
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>()
+                .Where(i => i.Identifier.ValueText == "P")
+                .Where(i => i.Ancestors().Any(a => a.IsKind(SyntaxKind.Attribute)))
+                .Single();
+
+            Assert.Null(model.GetSymbolInfo(node).Symbol);
         }
     }
 }

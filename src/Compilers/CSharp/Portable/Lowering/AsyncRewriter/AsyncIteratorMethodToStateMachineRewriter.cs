@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly LabelSymbol _exprReturnLabelTrue;
 
         /// <summary>
-        /// States for `yield return` are decreasing from <see cref="StateMachineStates.InitialAsyncIteratorState"/>.
+        /// States for `yield return` are decreasing from <see cref="StateMachineState.InitialAsyncIteratorState"/>.
         /// </summary>
         private readonly ResumableStateMachineStateAllocator _iteratorStateAllocator;
 
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             _iteratorStateAllocator = new ResumableStateMachineStateAllocator(
                 slotAllocatorOpt,
-                firstState: StateMachineStates.FirstResumableAsyncIteratorState,
+                firstState: StateMachineState.FirstResumableAsyncIteratorState,
                 increasing: false);
         }
 
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We don't care about state = -2 (method already completed)
 
             // So we only want to enter the finally when the state is -1
-            return F.IntEqual(F.Local(cachedState), F.Literal(StateMachineStates.NotStartedOrRunningState));
+            return F.IntEqual(F.Local(cachedState), F.Literal(StateMachineState.NotStartedOrRunningState));
         }
 
         #region Visitors
@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //  this.state = cachedState = -1;
             //  ... rewritten body
 
-            AddState(StateMachineStates.InitialAsyncIteratorState, out GeneratedLabelSymbol resumeLabel);
+            AddState(StateMachineState.InitialAsyncIteratorState, out GeneratedLabelSymbol resumeLabel);
 
             var rewrittenBody = (BoundStatement)Visit(body);
 
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return F.Block(
                 F.Label(resumeLabel), // initialStateResumeLabel:
                 GenerateJumpToCurrentDisposalLabel(), // if (disposeMode) goto _exprReturnLabel;
-                GenerateSetBothStates(StateMachineStates.NotStartedOrRunningState), // this.state = cachedState = -1;
+                GenerateSetBothStates(StateMachineState.NotStartedOrRunningState), // this.state = cachedState = -1;
                 rewrittenBody);
         }
 
@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             blockBuilder.Add(
                 // this.state = cachedState = NotStartedStateMachine
-                GenerateSetBothStates(StateMachineStates.NotStartedOrRunningState));
+                GenerateSetBothStates(StateMachineState.NotStartedOrRunningState));
 
             Debug.Assert(_currentDisposalLabel is object); // no yield return allowed inside a finally
             blockBuilder.Add(
