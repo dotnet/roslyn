@@ -41,10 +41,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             IThreadingContext threadingContext,
             IExpansionServiceProvider expansionServiceProvider,
             IExpansionManager expansionManager,
-            IEditorOptionsFactoryService editorOptionsFactory,
-            IIndentationManagerService indentationManager,
-            IGlobalOptionService globalOptions)
-            : base(threadingContext, expansionServiceProvider, expansionManager, editorOptionsFactory, indentationManager, globalOptions)
+            EditorOptionsService editorOptionsService)
+            : base(threadingContext, expansionServiceProvider, expansionManager, editorOptionsService)
         {
         }
 
@@ -86,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
         {
             if (!textView.Properties.TryGetProperty(typeof(AbstractSnippetExpansionClient), out AbstractSnippetExpansionClient expansionClient))
             {
-                expansionClient = new SnippetExpansionClient(subjectBuffer.ContentType, textView, subjectBuffer, ExpansionServiceProvider, EditorOptionsFactory, IndentationManager, GlobalOptions);
+                expansionClient = new SnippetExpansionClient(subjectBuffer.ContentType, textView, subjectBuffer, ExpansionServiceProvider, EditorOptionsService);
                 textView.Properties.AddProperty(typeof(AbstractSnippetExpansionClient), expansionClient);
             }
 

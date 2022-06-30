@@ -30,17 +30,13 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
         private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
-        private readonly IGlobalOptionService _globalOptions;
-        private readonly IEditorOptionsFactoryService _editorOptionsFactory;
-        private readonly IIndentationManagerService _indentationManager;
+        private readonly EditorOptionsService _editorOptionsService;
 
         protected AbstractDocumentationCommentCommandHandler(
             IUIThreadOperationExecutor uiThreadOperationExecutor,
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService,
-            IEditorOptionsFactoryService editorOptionsFactory,
-            IIndentationManagerService indentationManager,
-            IGlobalOptionService globalOptions)
+            EditorOptionsService editorOptionsService)
         {
             Contract.ThrowIfNull(uiThreadOperationExecutor);
             Contract.ThrowIfNull(undoHistoryRegistry);
@@ -49,9 +45,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             _uiThreadOperationExecutor = uiThreadOperationExecutor;
             _undoHistoryRegistry = undoHistoryRegistry;
             _editorOperationsFactoryService = editorOperationsFactoryService;
-            _editorOptionsFactory = editorOptionsFactory;
-            _indentationManager = indentationManager;
-            _globalOptions = globalOptions;
+            _editorOptionsService = editorOptionsService;
         }
 
         protected abstract string ExteriorTriviaText { get; }
@@ -99,7 +93,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
             var service = document.GetRequiredLanguageService<IDocumentationCommentSnippetService>();
             var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
-            var options = subjectBuffer.GetDocumentationCommentOptions(_editorOptionsFactory, _indentationManager, _globalOptions, document.Project.LanguageServices);
+            var options = subjectBuffer.GetDocumentationCommentOptions(_editorOptionsService, document.Project.LanguageServices);
 
             // Apply snippet in reverse order so that the first applied snippet doesn't affect span of next snippets.
             var snapshots = textView.Selection.GetSnapshotSpansOnBuffer(subjectBuffer).OrderByDescending(s => s.Span.Start);
@@ -339,7 +333,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 return;
             }
 
-            var options = subjectBuffer.GetDocumentationCommentOptions(_editorOptionsFactory, _indentationManager, _globalOptions, document.Project.LanguageServices);
+            var options = subjectBuffer.GetDocumentationCommentOptions(_editorOptionsService, document.Project.LanguageServices);
 
             var snippet = service.GetDocumentationCommentSnippetFromPreviousLine(options, currentLine, previousLine);
             if (snippet != null)

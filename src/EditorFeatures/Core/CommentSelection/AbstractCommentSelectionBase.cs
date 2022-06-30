@@ -46,25 +46,19 @@ namespace Microsoft.CodeAnalysis.CommentSelection
 
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
-        private readonly IEditorOptionsFactoryService _editorOptionsFactory;
-        private readonly IIndentationManagerService _indentationManager;
-        private readonly IGlobalOptionService _globalOptions;
+        private readonly EditorOptionsService _editorOptionsService;
 
         internal AbstractCommentSelectionBase(
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService,
-            IEditorOptionsFactoryService editorOptionsFactory,
-            IIndentationManagerService indentationManager,
-            IGlobalOptionService globalOptions)
+            EditorOptionsService editorOptionsService)
         {
             Contract.ThrowIfNull(undoHistoryRegistry);
             Contract.ThrowIfNull(editorOperationsFactoryService);
 
             _undoHistoryRegistry = undoHistoryRegistry;
             _editorOperationsFactoryService = editorOperationsFactoryService;
-            _editorOptionsFactory = editorOptionsFactory;
-            _indentationManager = indentationManager;
-            _globalOptions = globalOptions;
+            _editorOptionsService = editorOptionsService;
         }
 
         public abstract string DisplayName { get; }
@@ -165,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CommentSelection
                     // Format the document only during uncomment operations.  Use second transaction so it can be undone.
                     using var transaction = new CaretPreservingEditTransaction(title, textView, _undoHistoryRegistry, _editorOperationsFactoryService);
 
-                    var formattingOptions = subjectBuffer.GetSyntaxFormattingOptions(_editorOptionsFactory, _indentationManager, _globalOptions, document.Project.LanguageServices, explicitFormat: false);
+                    var formattingOptions = subjectBuffer.GetSyntaxFormattingOptions(_editorOptionsService, document.Project.LanguageServices, explicitFormat: false);
 
                     var updatedDocument = workspace.CurrentSolution.GetRequiredDocument(document.Id);
                     var root = updatedDocument.GetRequiredSyntaxRootSynchronously(cancellationToken);

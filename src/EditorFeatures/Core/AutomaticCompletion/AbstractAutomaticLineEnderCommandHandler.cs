@@ -25,24 +25,19 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
     {
         private readonly ITextUndoHistoryRegistry _undoRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
-        private readonly IEditorOptionsFactoryService _editorOptionsFactory;
-        private readonly IIndentationManagerService _indentationManager;
-        public readonly IGlobalOptionService GlobalOptions;
+
+        public readonly EditorOptionsService EditorOptionsService;
 
         public string DisplayName => EditorFeaturesResources.Automatic_Line_Ender;
 
         protected AbstractAutomaticLineEnderCommandHandler(
             ITextUndoHistoryRegistry undoRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService,
-            IEditorOptionsFactoryService editorOptionsFactory,
-            IIndentationManagerService indentationManager,
-            IGlobalOptionService globalOptions)
+            EditorOptionsService editorOptionsService)
         {
             _undoRegistry = undoRegistry;
             _editorOperationsFactoryService = editorOperationsFactoryService;
-            _editorOptionsFactory = editorOptionsFactory;
-            _indentationManager = indentationManager;
-            GlobalOptions = globalOptions;
+            EditorOptionsService = editorOptionsService;
         }
 
         /// <summary>
@@ -96,7 +91,7 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
             }
 
             // feature off
-            if (!GlobalOptions.GetOption(InternalFeatureOnOffOptions.AutomaticLineEnder))
+            if (!EditorOptionsService.GlobalOptions.GetOption(InternalFeatureOnOffOptions.AutomaticLineEnder))
             {
                 NextAction(operations, nextHandler);
                 return;
@@ -148,7 +143,7 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
                 if (endingInsertionPosition != null)
                 {
                     using var transaction = args.TextView.CreateEditTransaction(EditorFeaturesResources.Automatic_Line_Ender, _undoRegistry, _editorOperationsFactoryService);
-                    var formattingOptions = args.SubjectBuffer.GetSyntaxFormattingOptions(_editorOptionsFactory, _indentationManager, GlobalOptions, document.Project.LanguageServices, explicitFormat: false);
+                    var formattingOptions = args.SubjectBuffer.GetSyntaxFormattingOptions(EditorOptionsService, document.Project.LanguageServices, explicitFormat: false);
                     InsertEnding(args.TextView, document, endingInsertionPosition.Value, caretPosition, formattingOptions, cancellationToken);
                     NextAction(operations, nextHandler);
                     transaction.Complete();

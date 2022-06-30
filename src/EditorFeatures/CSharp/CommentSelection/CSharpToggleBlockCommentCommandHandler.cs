@@ -35,10 +35,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CommentSelection
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService,
             ITextStructureNavigatorSelectorService navigatorSelectorService,
-            IEditorOptionsFactoryService editorOptionsFactory,
-            IIndentationManagerService indentationManager,
-            IGlobalOptionService globalOptions)
-            : base(undoHistoryRegistry, editorOperationsFactoryService, navigatorSelectorService, editorOptionsFactory, indentationManager, globalOptions)
+            EditorOptionsService editorOptionsService)
+            : base(undoHistoryRegistry, editorOperationsFactoryService, navigatorSelectorService, editorOptionsService)
         {
         }
 

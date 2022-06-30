@@ -36,9 +36,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
         Private ReadOnly _editorCommandHandlerServiceFactory As IEditorCommandHandlerServiceFactory
         Private ReadOnly _editorAdaptersFactoryService As IVsEditorAdaptersFactoryService
         Private ReadOnly _argumentProviders As ImmutableArray(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata))
-        Private ReadOnly _editorOptionsFactory As IEditorOptionsFactoryService
-        Private ReadOnly _indentationManager As IIndentationManagerService
-        Private ReadOnly _globalOptions As IGlobalOptionService
+        Private ReadOnly _editorOptionsService As EditorOptionsService
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
@@ -48,18 +46,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
             editorCommandHandlerServiceFactory As IEditorCommandHandlerServiceFactory,
             editorAdaptersFactoryService As IVsEditorAdaptersFactoryService,
             <ImportMany> argumentProviders As IEnumerable(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)),
-            editorOptionsFactory As IEditorOptionsFactoryService,
-            indentationManager As IIndentationManagerService,
-            globalOptions As IGlobalOptionService)
+            editorOptionsService As EditorOptionsService)
 
             _threadingContext = threadingContext
             _signatureHelpControllerProvider = signatureHelpControllerProvider
             _editorCommandHandlerServiceFactory = editorCommandHandlerServiceFactory
             _editorAdaptersFactoryService = editorAdaptersFactoryService
             _argumentProviders = argumentProviders.ToImmutableArray()
-            _editorOptionsFactory = editorOptionsFactory
-            _indentationManager = indentationManager
-            _globalOptions = globalOptions
+            _editorOptionsService = editorOptionsService
         End Sub
 
         Friend Overrides ReadOnly Property Language As String
@@ -137,9 +131,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
                 _editorCommandHandlerServiceFactory,
                 _editorAdaptersFactoryService,
                 _argumentProviders,
-                _editorOptionsFactory,
-                _indentationManager,
-                _globalOptions)
+                _editorOptionsService)
 
             Dim trackingSpan = triggerSnapshot.CreateTrackingSpan(completionItem.Span.ToSpan(), SpanTrackingMode.EdgeInclusive)
             Dim currentSpan = trackingSpan.GetSpan(subjectBuffer.CurrentSnapshot)

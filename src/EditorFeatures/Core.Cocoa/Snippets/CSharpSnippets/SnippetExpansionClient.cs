@@ -23,10 +23,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             ITextView textView,
             ITextBuffer subjectBuffer,
             IExpansionServiceProvider expansionServiceProvider,
-            IEditorOptionsFactoryService editorOptionsFactory,
-            IIndentationManagerService indentationManager,
-            IGlobalOptionService globalOptions)
-            : base(languageServiceGuid, textView, subjectBuffer, expansionServiceProvider, editorOptionsFactory, indentationManager, globalOptions)
+            EditorOptionsService editorOptionsService)
+            : base(languageServiceGuid, textView, subjectBuffer, expansionServiceProvider, editorOptionsService)
         {
         }
 

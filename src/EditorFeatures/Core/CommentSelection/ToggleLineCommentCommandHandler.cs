@@ -45,10 +45,8 @@ namespace Microsoft.CodeAnalysis.CommentSelection
         public ToggleLineCommentCommandHandler(
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService,
-            IEditorOptionsFactoryService editorOptionsFactory,
-            IIndentationManagerService indentationManager,
-            IGlobalOptionService globalOptions)
-            : base(undoHistoryRegistry, editorOperationsFactoryService, editorOptionsFactory, indentationManager, globalOptions)
+            EditorOptionsService editorOptionsService)
+            : base(undoHistoryRegistry, editorOperationsFactoryService, editorOptionsService)
         {
         }
 

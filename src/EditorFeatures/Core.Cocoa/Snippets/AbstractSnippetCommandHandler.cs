@@ -32,9 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         protected readonly IThreadingContext ThreadingContext;
         protected readonly IExpansionServiceProvider ExpansionServiceProvider;
         protected readonly IExpansionManager ExpansionManager;
-        protected readonly IGlobalOptionService GlobalOptions;
-        protected readonly IEditorOptionsFactoryService EditorOptionsFactory;
-        protected readonly IIndentationManagerService IndentationManager;
+        protected readonly EditorOptionsService EditorOptionsService;
 
         public string DisplayName => FeaturesResources.Snippets;
 
@@ -42,16 +40,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             IThreadingContext threadingContext,
             IExpansionServiceProvider expansionServiceProvider,
             IExpansionManager expansionManager,
-            IEditorOptionsFactoryService editorOptionsFactory,
-            IIndentationManagerService indentationManager,
-            IGlobalOptionService globalOptions)
+            EditorOptionsService editorOptionsService)
         {
             ThreadingContext = threadingContext;
             ExpansionServiceProvider = expansionServiceProvider;
             ExpansionManager = expansionManager;
-            EditorOptionsFactory = editorOptionsFactory;
-            IndentationManager = indentationManager;
-            GlobalOptions = globalOptions;
+            EditorOptionsService = editorOptionsService;
         }
 
         protected abstract AbstractSnippetExpansionClient GetSnippetExpansionClient(ITextView textView, ITextBuffer subjectBuffer);
@@ -296,7 +290,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         protected bool AreSnippetsEnabled(EditorCommandArgs args)
         {
-            return GlobalOptions.GetOption(InternalFeatureOnOffOptions.Snippets) &&
+            return EditorOptionsService.GlobalOptions.GetOption(InternalFeatureOnOffOptions.Snippets) &&
                 // TODO (https://github.com/dotnet/roslyn/issues/5107): enable in interactive
                 !(Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out var workspace) && workspace.Kind == WorkspaceKind.Interactive);
         }

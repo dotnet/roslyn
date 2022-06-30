@@ -49,7 +49,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             mockSVsServiceProvider.Setup(Function(s) s.GetService(GetType(SVsTextManager))).Returns(Nothing)
 
             Dim globalOptions = Workspace.GetService(Of IGlobalOptionService)
-            Dim editorOptionsFactory = Workspace.GetService(Of IEditorOptionsFactoryService)()
+            Dim editorOptionsService = Workspace.GetService(Of EditorOptionsService)()
             Dim indentationManager = Workspace.GetService(Of IIndentationManagerService)()
 
             SnippetCommandHandler = If(languageName = LanguageNames.CSharp,
@@ -60,9 +60,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                     Workspace.ExportProvider.GetExportedValue(Of IVsEditorAdaptersFactoryService)(),
                     mockSVsServiceProvider.Object,
                     Workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)(),
-                    editorOptionsFactory,
-                    indentationManager,
-                    globalOptions), AbstractSnippetCommandHandler),
+                    editorOptionsService), AbstractSnippetCommandHandler),
                 New VisualBasic.Snippets.SnippetCommandHandler(
                     Workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     Workspace.ExportProvider.GetExportedValue(Of SignatureHelpControllerProvider)(),
@@ -70,9 +68,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                     Workspace.ExportProvider.GetExportedValue(Of IVsEditorAdaptersFactoryService)(),
                     mockSVsServiceProvider.Object,
                     Workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)(),
-                    editorOptionsFactory,
-                    indentationManager,
-                    globalOptions))
+                    editorOptionsService))
 
             SnippetExpansionClient = New MockSnippetExpansionClient(
                 Workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
@@ -80,9 +76,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                 If(languageName Is LanguageNames.CSharp, Guids.CSharpLanguageServiceId, Guids.VisualBasicLanguageServiceId),
                 TextView,
                 SubjectBuffer,
-                editorOptionsFactory,
-                indentationManager,
-                globalOptions)
+                editorOptionsService)
             TextView.Properties.AddProperty(GetType(AbstractSnippetExpansionClient), SnippetExpansionClient)
         End Sub
 
@@ -165,9 +159,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                            languageServiceGuid As Guid,
                            textView As ITextView,
                            subjectBuffer As ITextBuffer,
-                           editorOptionsFactory As IEditorOptionsFactoryService,
-                           indentationManager As IIndentationManagerService,
-                           GlobalOptions As IGlobalOptionService)
+                           editorOptionsService As EditorOptionsService)
                 MyBase.New(threadingContext,
                            languageServiceGuid,
                            textView,
@@ -176,9 +168,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                            editorCommandHandlerServiceFactory:=Nothing,
                            Nothing,
                            ImmutableArray(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)).Empty,
-                           editorOptionsFactory,
-                           indentationManager,
-                           GlobalOptions)
+                           editorOptionsService)
 
                 If startActiveSession Then
                     TryHandleTabReturnValue = True

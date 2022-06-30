@@ -31,10 +31,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
             IUIThreadOperationExecutor uiThreadOperationExecutor,
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService,
-            IEditorOptionsFactoryService editorOptionsFactory,
-            IIndentationManagerService indentationManager,
-            IGlobalOptionService globalOptions)
-            : base(uiThreadOperationExecutor, undoHistoryRegistry, editorOperationsFactoryService, editorOptionsFactory, indentationManager, globalOptions)
+            EditorOptionsService editorOptionsService)
+            : base(uiThreadOperationExecutor, undoHistoryRegistry, editorOperationsFactoryService, editorOptionsService)
         {
         }
 

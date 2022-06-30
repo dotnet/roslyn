@@ -325,9 +325,7 @@ using G=   H.I;
                     editorCommandHandlerServiceFactory:=Nothing,
                     editorAdaptersFactoryService:=Nothing,
                     workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)().ToImmutableArray(),
-                    workspace.GetService(Of IEditorOptionsFactoryService)(),
-                    workspace.GetService(Of IIndentationManagerService)(),
-                    workspace.GetService(Of IGlobalOptionService))
+                    workspace.GetService(Of EditorOptionsService)())
 
                 SnippetExpansionClientTestsHelper.TestFormattingAndCaretPosition(snippetExpansionClient, document, expectedResult, tabSize * 3)
             End Using
@@ -351,9 +349,7 @@ using G=   H.I;
                     editorCommandHandlerServiceFactory:=Nothing,
                     editorAdaptersFactoryService:=Nothing,
                     workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)().ToImmutableArray(),
-                    workspace.GetService(Of IEditorOptionsFactoryService)(),
-                    workspace.GetService(Of IIndentationManagerService)(),
-                    workspace.GetService(Of IGlobalOptionService))
+                    workspace.GetService(Of EditorOptionsService)())
 
                 SnippetExpansionClientTestsHelper.TestProjectionBuffer(snippetExpansionClient, surfaceBufferDocument, expectedSurfaceBuffer)
             End Using
@@ -396,9 +392,7 @@ using G=   H.I;
                     editorCommandHandlerServiceFactory:=Nothing,
                     editorAdaptersFactoryService:=Nothing,
                     workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)().ToImmutableArray(),
-                    workspace.GetService(Of IEditorOptionsFactoryService)(),
-                    workspace.GetService(Of IIndentationManagerService)(),
-                    workspace.GetService(Of IGlobalOptionService))
+                    workspace.GetService(Of EditorOptionsService)())
 
                 Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()
                 Dim addImportOptions = New AddImportPlacementOptions() With

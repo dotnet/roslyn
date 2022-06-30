@@ -32,10 +32,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         protected readonly IContentType LanguageServiceGuid;
         protected readonly ITextView TextView;
         protected readonly ITextBuffer SubjectBuffer;
+        public readonly EditorOptionsService EditorOptionsService;
 
-        public readonly IGlobalOptionService GlobalOptions;
-        private readonly IEditorOptionsFactoryService _editorOptionsFactory;
-        private readonly IIndentationManagerService _indentationManager;
         protected bool _indentCaretOnCommit;
         protected int _indentDepth;
         protected bool _earlyEndExpansionHappened;
@@ -47,17 +45,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             ITextView textView,
             ITextBuffer subjectBuffer,
             IExpansionServiceProvider expansionServiceProvider,
-            IEditorOptionsFactoryService editorOptionsFactory,
-            IIndentationManagerService indentationManager,
-            IGlobalOptionService globalOptions)
+            EditorOptionsService editorOptionsService)
         {
             LanguageServiceGuid = languageServiceGuid;
             TextView = textView;
             SubjectBuffer = subjectBuffer;
             ExpansionServiceProvider = expansionServiceProvider;
-            _editorOptionsFactory = editorOptionsFactory;
-            _indentationManager = indentationManager;
-            GlobalOptions = globalOptions;
+            EditorOptionsService = editorOptionsService;
         }
 
         public abstract IExpansionFunction? GetExpansionFunction(XElement xmlFunctionNode, string fieldName);
@@ -105,7 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
             var formattingSpan = CommonFormattingHelpers.GetFormattingSpan(SubjectBuffer.CurrentSnapshot, snippetTrackingSpan.GetSpan(SubjectBuffer.CurrentSnapshot));
 
-            SubjectBuffer.FormatAndApplyToBuffer(formattingSpan, _editorOptionsFactory, _indentationManager, GlobalOptions, CancellationToken.None);
+            SubjectBuffer.FormatAndApplyToBuffer(formattingSpan, EditorOptionsService, CancellationToken.None);
 
             if (isFullSnippetFormat)
             {
@@ -159,7 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                     var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                     if (document != null)
                     {
-                        var lineFormattingOptions = SubjectBuffer.GetLineFormattingOptions(_editorOptionsFactory, _indentationManager, explicitFormat: false);
+                        var lineFormattingOptions = SubjectBuffer.GetLineFormattingOptions(EditorOptionsService, explicitFormat: false);
                         _indentDepth = lineText.GetColumnFromLineOffset(lineText.Length, lineFormattingOptions.TabSize);
                     }
                     else

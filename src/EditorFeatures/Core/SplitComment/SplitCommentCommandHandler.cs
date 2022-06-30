@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
     {
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
-        private readonly IEditorOptionsFactoryService _editorOptionsFactory;
+        private readonly EditorOptionsService _editorOptionsService;
         private readonly IIndentationManagerService _indentationManager;
         private readonly IGlobalOptionService _globalOptions;
 
@@ -43,13 +43,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
         public SplitCommentCommandHandler(
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService,
-            IEditorOptionsFactoryService editorOptionsFactory,
+            EditorOptionsService editorOptionsService,
             IIndentationManagerService indentationManager,
             IGlobalOptionService globalOptions)
         {
             _undoHistoryRegistry = undoHistoryRegistry;
             _editorOperationsFactoryService = editorOperationsFactoryService;
-            _editorOptionsFactory = editorOptionsFactory;
+            _editorOptionsService = editorOptionsService;
             _indentationManager = indentationManager;
             _globalOptions = globalOptions;
         }
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
             var textSnapshot = selectionSpan.Snapshot;
             var triviaLine = textSnapshot.GetLineFromPosition(trivia.SpanStart);
 
-            var options = textBuffer.GetLineFormattingOptions(_editorOptionsFactory, _indentationManager, explicitFormat: false);
+            var options = textBuffer.GetLineFormattingOptions(_editorOptionsService, explicitFormat: false);
             var replacementSpan = GetReplacementSpan(triviaLine, selectionSpan);
             var replacementText = GetReplacementText(textView, options, triviaLine, trivia, selectionSpan.Start);
             return (replacementSpan, replacementText);

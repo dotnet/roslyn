@@ -49,10 +49,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
             editorAdaptersFactoryService As IVsEditorAdaptersFactoryService,
             serviceProvider As SVsServiceProvider,
             <ImportMany> argumentProviders As IEnumerable(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)),
-            editorOptionsFactory As IEditorOptionsFactoryService,
-            indentationManager As IIndentationManagerService,
-            globalOptions As IGlobalOptionService)
-            MyBase.New(threadingContext, signatureHelpControllerProvider, editorCommandHandlerServiceFactory, editorAdaptersFactoryService, editorOptionsFactory, indentationManager, globalOptions, serviceProvider)
+            editorOptionsService As EditorOptionsService)
+            MyBase.New(threadingContext, signatureHelpControllerProvider, editorCommandHandlerServiceFactory, editorAdaptersFactoryService, editorOptionsService, serviceProvider)
             _argumentProviders = argumentProviders.ToImmutableArray()
         End Sub
 
@@ -72,9 +70,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
                                                                     EditorCommandHandlerServiceFactory,
                                                                     EditorAdaptersFactoryService,
                                                                     _argumentProviders,
-                                                                    EditorOptionsFactory,
-                                                                    IndentationManager,
-                                                                    GlobalOptions)
+                                                                    EditorOptionsService)
         End Function
 
         Protected Overrides Function TryInvokeInsertionUI(textView As ITextView, subjectBuffer As ITextBuffer, Optional surroundWith As Boolean = False) As Boolean

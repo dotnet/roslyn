@@ -31,11 +31,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New(undoRegistry As ITextUndoHistoryRegistry,
                        editorOperations As IEditorOperationsFactoryService,
-                       editorOptionsFactory As IEditorOptionsFactoryService,
-                       indentationManager As IIndentationManagerService,
-                       globalOptions As IGlobalOptionService)
+                       editorOptionsService As EditorOptionsService)
 
-            MyBase.New(undoRegistry, editorOperations, editorOptionsFactory, indentationManager, globalOptions)
+            MyBase.New(undoRegistry, editorOperations, editorOptionsService)
         End Sub
 
         Protected Overrides Sub NextAction(editorOperation As IEditorOperations, nextAction As Action)
