@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
@@ -246,6 +247,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         private protected void AddSearchHandler(ContentControl control)
         {
+            Debug.Assert(control.Content is string, $"I don't know how to add keyword search support for the '{control.GetType().Name}' control with content type '{control.Content?.GetType().Name ?? "null"}'");
             if (control.Content is string content)
             {
                 _searchHandlers.Add(new OptionPageSearchHandler(control, content));
