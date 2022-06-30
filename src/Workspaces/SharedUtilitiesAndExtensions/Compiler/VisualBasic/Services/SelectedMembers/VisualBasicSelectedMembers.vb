@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return containingType.Members
         End Function
 
-        Protected Overrides Function GetDeclarationsAndIdentifiers(member As StatementSyntax) As IEnumerable(Of (identifier As SyntaxToken, declaration As SyntaxNode))
+        Protected Overrides Function GetDeclaratorsAndIdentifiers(member As StatementSyntax) As IEnumerable(Of (identifier As SyntaxToken, declaration As SyntaxNode))
             If TypeOf member Is FieldDeclarationSyntax Then
                 Return DirectCast(member, FieldDeclarationSyntax).Declarators.
                     SelectMany(Function(decl) decl.Names.

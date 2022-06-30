@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         {
         }
 
-        protected override IEnumerable<(SyntaxToken identifier, SyntaxNode declaration)> GetDeclarationsAndIdentifiers(MemberDeclarationSyntax member)
+        protected override IEnumerable<(SyntaxToken identifier, SyntaxNode declaration)> GetDeclaratorsAndIdentifiers(MemberDeclarationSyntax member)
         {
             return member switch
             {

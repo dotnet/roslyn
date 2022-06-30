@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         where TVariableSyntax : SyntaxNode
     {
         protected abstract SyntaxList<TMemberDeclarationSyntax> GetMembers(TTypeDeclarationSyntax containingType);
-        protected abstract IEnumerable<(SyntaxToken identifier, SyntaxNode declaration)> GetDeclarationsAndIdentifiers(TMemberDeclarationSyntax member);
+        protected abstract IEnumerable<(SyntaxToken identifier, SyntaxNode declaration)> GetDeclaratorsAndIdentifiers(TMemberDeclarationSyntax member);
 
         public async Task<ImmutableArray<SyntaxNode>> GetSelectedFieldsAndPropertiesAsync(
             SyntaxTree tree, TextSpan textSpan, bool allowPartialSelection, CancellationToken cancellationToken)
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
             void AddAllMembers(TMemberDeclarationSyntax member)
             {
-                selectedMembers.AddRange(GetDeclarationsAndIdentifiers(member).Select(pair => pair.declaration));
+                selectedMembers.AddRange(GetDeclaratorsAndIdentifiers(member).Select(pair => pair.declaration));
             }
 
             // local functions
@@ -131,16 +131,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     }
                     else
                     {
-                        foreach (var (id, decl) in GetDeclarationsAndIdentifiers(member))
+                        foreach (var (id, decl) in GetDeclaratorsAndIdentifiers(member))
                         {
                             if (id.FullSpan.IntersectsWith(position))
                             {
                                 selectedMembers.Add(decl);
                                 return;
-                            }
-                            else
-                            {
-
                             }
                         }
                     }
@@ -154,7 +150,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     if (!allowPartialSelection)
                         return;
 
-                    foreach (var (id, decl) in GetDeclarationsAndIdentifiers(member))
+                    foreach (var (id, decl) in GetDeclaratorsAndIdentifiers(member))
                     {
                         if (textSpan.OverlapsWith(id.Span))
                         {
