@@ -611,5 +611,57 @@ internal class C : I<C>
 
             await test.RunAsync();
         }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
+        [InlineData("class")]
+        [InlineData("struct")]
+        [InlineData("record")]
+        [InlineData("record struct")]
+        [InlineData("interface")]
+        [InlineData("enum")]
+        [WorkItem(62259, "https://github.com/dotnet/roslyn/issues/62259")]
+        public async Task TestFileDeclaration(string declarationKind)
+        {
+            var source = $"file {declarationKind} C {{ }}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.Preview,
+            }.RunAsync();
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
+        [InlineData("class")]
+        [InlineData("struct")]
+        [InlineData("record")]
+        [InlineData("record struct")]
+        [InlineData("interface")]
+        [InlineData("enum")]
+        [WorkItem(62259, "https://github.com/dotnet/roslyn/issues/62259")]
+        public async Task TestNestedFileDeclaration(string declarationKind)
+        {
+            var source = $$"""
+                file class C1
+                {
+                    {{declarationKind}} [|C2|] { }
+                }
+                """;
+
+            var fixedSource = $$"""
+                file class C1
+                {
+                    public {{declarationKind}} C2 { }
+                }
+                """;
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                LanguageVersion = LanguageVersion.Preview,
+            }.RunAsync();
+        }
     }
 }

@@ -33,6 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 case SyntaxKind.RecordStructDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.EnumDeclaration:
+                    return !((BaseTypeDeclarationSyntax)declaration).Modifiers.Any(SyntaxKind.FileKeyword);
+
                 case SyntaxKind.DelegateDeclaration:
                 case SyntaxKind.FieldDeclaration:
                 case SyntaxKind.EventFieldDeclaration:
