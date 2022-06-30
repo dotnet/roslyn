@@ -1740,6 +1740,36 @@ class B : MyNameSpace.Test<int>.$$", "X");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task BaseList_InTheMiddleOfName1()
+        {
+            var markup = @"
+namespace MyNameSpace;
+
+class MyClass<T> {}
+struct MyStruct {}
+
+class B : MyNameSpace.$$MyClass<>";
+
+            await VerifyItemExistsAsync(markup, "MyClass", displayTextSuffix: "<>");
+            await VerifyItemIsAbsentAsync(markup, "MyStruct");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task BaseList_InTheMiddleOfName2()
+        {
+            var markup = @"
+namespace MyNameSpace;
+
+class MyClass<T> {}
+struct MyStruct {}
+
+class B : MyNameSpace.My$$Class<>";
+
+            await VerifyItemExistsAsync(markup, "MyClass", displayTextSuffix: "<>");
+            await VerifyItemIsAbsentAsync(markup, "MyStruct");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task BaseList_GenericQualificationChain_Interface()
         {
             await VerifyItemExistsAsync(@"
@@ -2220,6 +2250,36 @@ namespace MyNameSpace;
 {{
     interface I {{}}
 }}", "B");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task BaseListRecord_InTheMiddleOfName1()
+        {
+            var markup = @"
+namespace MyNameSpace;
+
+record MyRecord<T> {}
+struct MyStruct {}
+
+record B : MyNameSpace.$$MyRecorrd<>";
+
+            await VerifyItemExistsAsync(markup, "MyRecord", displayTextSuffix: "<>");
+            await VerifyItemIsAbsentAsync(markup, "MyStruct");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task BaseListRecord_InTheMiddleOfName2()
+        {
+            var markup = @"
+namespace MyNameSpace;
+
+record MyRecord<T> {}
+struct MyStruct {}
+
+record B : MyNameSpace.My$$Recorrd<>";
+
+            await VerifyItemExistsAsync(markup, "MyRecord", displayTextSuffix: "<>");
+            await VerifyItemIsAbsentAsync(markup, "MyStruct");
         }
 
         #endregion
