@@ -171,7 +171,7 @@ namespace N
             Assert.Equal(0, generatorRanCount);
 
             var expectedItem = forkBeforeFreeze ? "C2" : "C1";
-            Assert.True(completionList.Items.Select(item => item.DisplayText).Contains(expectedItem));
+            Assert.True(completionList.ItemsList.Select(item => item.DisplayText).Contains(expectedItem));
         }
     }
 }

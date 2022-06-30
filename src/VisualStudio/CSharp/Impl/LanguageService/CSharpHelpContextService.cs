@@ -133,6 +133,21 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 return true;
             }
 
+            if (token.IsKind(SyntaxKind.Utf8StringLiteralToken) ||
+                token.IsKind(SyntaxKind.Utf8SingleLineRawStringLiteralToken) ||
+                token.IsKind(SyntaxKind.Utf8MultiLineRawStringLiteralToken))
+            {
+                text = Keyword("Utf8StringLiteral");
+                return true;
+            }
+
+            if (token.IsKind(SyntaxKind.SingleLineRawStringLiteralToken) ||
+                token.IsKind(SyntaxKind.MultiLineRawStringLiteralToken))
+            {
+                text = Keyword("RawStringLiteral");
+                return true;
+            }
+
             text = null;
             return false;
         }
@@ -167,7 +182,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             }
 
             // Local: return the name if it's the declaration, otherwise the type
-            if (symbol is ILocalSymbol localSymbol && !symbol.DeclaringSyntaxReferences.Any(d => d.GetSyntax().DescendantTokens().Contains(token)))
+            if (symbol is ILocalSymbol localSymbol && !symbol.DeclaringSyntaxReferences.Any(static (d, token) => d.GetSyntax().DescendantTokens().Contains(token), token))
             {
                 symbol = localSymbol.Type;
             }
@@ -370,6 +385,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                             ? "whereconstraint_CSharpKeyword"
                             : "whereclause_CSharpKeyword";
 
+                        return true;
+
+                    case SyntaxKind.RequiredKeyword:
+                        text = Keyword("required");
                         return true;
                 }
             }

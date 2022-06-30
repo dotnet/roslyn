@@ -17,6 +17,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
@@ -34,6 +35,7 @@ using Roslyn.Utilities;
 using Xunit;
 using CS = Microsoft.CodeAnalysis.CSharp;
 using static Microsoft.CodeAnalysis.UnitTests.SolutionTestHelpers;
+using Microsoft.CodeAnalysis.Indentation;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -1816,7 +1818,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 .AddDocument(documentId, "DocumentName", SourceText.From("class Class{}"));
 
             var document = solution1.GetDocument(documentId);
-            var newRoot = await Formatter.FormatAsync(document).Result.GetSyntaxRootAsync();
+            var newRoot = await Formatter.FormatAsync(document, CSharpSyntaxFormattingOptions.Default, CancellationToken.None).Result.GetSyntaxRootAsync();
             var solution2 = solution1.WithDocumentSyntaxRoot(documentId, newRoot);
 
             Assert.NotEqual(solution1, solution2);
@@ -1941,7 +1943,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // stop observing it and let GC reclaim it
             if (PlatformInformation.IsWindows || PlatformInformation.IsRunningOnMono)
             {
-                Assert.IsType<TemporaryStorageServiceFactory.TemporaryStorageService>(workspace.Services.GetService<ITemporaryStorageService>());
+                Assert.IsType<TemporaryStorageService>(workspace.Services.GetService<ITemporaryStorageService>());
                 observedText.AssertReleased();
             }
             else
@@ -3264,16 +3266,16 @@ class C
                     projectReferences: new[] { new ProjectReference(dependsOnVbNormalProject.Id) }));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestOptionChangesForLanguagesNotInSolution()
         {
             // Create an empty solution with no projects.
             using var workspace = CreateWorkspace();
             var s0 = workspace.CurrentSolution;
-            var optionService = workspace.Services.GetRequiredService<IOptionService>();
+            var optionService = workspace.Services.GetRequiredService<ILegacyWorkspaceOptionService>();
 
             // Apply an option change to a C# option.
-            var option = GenerationOptions.PlaceSystemNamespaceFirst;
+            var option = FormattingOptions.UseTabs;
             var defaultValue = option.DefaultValue;
             var changedValue = !defaultValue;
             var options = s0.Options.WithChangedOption(option, LanguageNames.CSharp, changedValue);
@@ -3286,13 +3288,8 @@ class C
             var s2 = s1.AddProject("P1", "A1", LanguageNames.VisualBasic).Solution;
             VerifyOptionSet(s2.Options);
 
-            // Verify option value is preserved on roundtriping the option set (serialize and deserialize).
-            var s3 = s2.AddProject("P2", "A2", LanguageNames.CSharp).Solution;
-            var roundTripOptionSet = SerializeAndDeserialize((SerializableOptionSet)s3.Options, optionService);
-            VerifyOptionSet(roundTripOptionSet);
-
             // Verify option value is preserved on removing a project.
-            var s4 = s3.RemoveProject(s3.Projects.Single(p => p.Name == "P2").Id);
+            var s4 = s2.RemoveProject(s2.Projects.Single(p => p.Name == "P1").Id);
             VerifyOptionSet(s4.Options);
 
             return;
@@ -3301,16 +3298,6 @@ class C
             {
                 Assert.Equal(changedValue, optionSet.GetOption(option, LanguageNames.CSharp));
                 Assert.Equal(defaultValue, optionSet.GetOption(option, LanguageNames.VisualBasic));
-            }
-
-            static SerializableOptionSet SerializeAndDeserialize(SerializableOptionSet optionSet, IOptionService optionService)
-            {
-                using var stream = new MemoryStream();
-                using var writer = new ObjectWriter(stream);
-                optionSet.Serialize(writer, CancellationToken.None);
-                stream.Position = 0;
-                using var reader = ObjectReader.TryGetReader(stream);
-                return SerializableOptionSet.Deserialize(reader, optionService, CancellationToken.None);
             }
         }
 
@@ -3383,6 +3370,55 @@ class C
             sourceTextToRelease.AssertReleased();
 
             GC.KeepAlive(finalSolution);
+        }
+
+        [Theory]
+        [InlineData("a/proj.csproj", "a/.editorconfig", "a/b/test.cs", "*.cs", true, true)]
+        [InlineData("a/proj.csproj", "a/b/.editorconfig", "a/b/test.cs", "*.cs", false, true)]
+        [InlineData("a/proj.csproj", "a/.editorconfig", null, "*.cs", true, true)]
+        [InlineData("a/proj.csproj", "a/b/.editorconfig", null, "*.cs", false, false)]
+        [InlineData("a/proj.csproj", "a/.editorconfig", "", "*.cs", true, true)]
+        [InlineData("a/proj.csproj", "a/b/.editorconfig", "", "*.cs", false, false)]
+        [InlineData(null, "a/.editorconfig", "a/b/test.cs", "*.cs", false, true)]
+        [InlineData(null, "a/.editorconfig", null, "*.cs", false, false)]
+        [InlineData("a/proj.csproj", "a/.editorconfig", null, "*test.cs", false, true)]
+        public async Task EditorConfigOptions(string projectPath, string configPath, string sourcePath, string pattern, bool appliedToEntireProject, bool appliedToDocument)
+        {
+            projectPath = string.IsNullOrEmpty(projectPath) ? projectPath : Path.Combine(TempRoot.Root, projectPath);
+            configPath = Path.Combine(TempRoot.Root, configPath);
+            sourcePath = string.IsNullOrEmpty(sourcePath) ? sourcePath : Path.Combine(TempRoot.Root, sourcePath);
+
+            using var workspace = CreateWorkspace();
+            var projectId = ProjectId.CreateNewId();
+
+            var projectInfo = ProjectInfo.Create(
+                projectId,
+                VersionStamp.Default,
+                name: "proj1",
+                assemblyName: "proj1.dll",
+                language: LanguageNames.CSharp,
+                filePath: projectPath);
+
+            var documentId = DocumentId.CreateNewId(projectId);
+
+            var solution = workspace.CurrentSolution
+                .AddProject(projectInfo)
+                .AddDocument(documentId, "test.cs", SourceText.From("public class C { }"), filePath: sourcePath)
+                .AddAnalyzerConfigDocument(DocumentId.CreateNewId(projectId), ".editorconfig", SourceText.From($"[{pattern}]\nindent_style = tab"), filePath: configPath);
+
+            var document = solution.GetRequiredDocument(documentId);
+
+#pragma warning disable RS0030 // Do not used banned APIs
+            var documentOptions = await document.GetOptionsAsync(CancellationToken.None);
+            Assert.Equal(appliedToDocument, documentOptions.GetOption(FormattingOptions2.UseTabs));
+#pragma warning restore
+
+            var syntaxTree = await document.GetSyntaxTreeAsync();
+            var documentOptionsViaSyntaxTree = document.Project.State.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);
+            Assert.Equal(appliedToDocument, documentOptionsViaSyntaxTree.TryGetValue("indent_style", out var value) == true && value == "tab");
+
+            var projectOptions = document.Project.GetAnalyzerConfigOptions();
+            Assert.Equal(appliedToEntireProject, projectOptions?.AnalyzerOptions.TryGetValue("indent_style", out value) == true && value == "tab");
         }
     }
 }

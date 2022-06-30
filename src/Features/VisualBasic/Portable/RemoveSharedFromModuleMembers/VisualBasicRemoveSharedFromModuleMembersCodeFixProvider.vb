@@ -36,8 +36,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveSharedFromModuleMembers
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String) = ImmutableArray.Create(
             BC30433, BC30434, BC30503, BC30593)
 
-        Friend Overrides ReadOnly Property CodeFixCategory As CodeFixCategory = CodeFixCategory.Compile
-
         Public Overrides Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
             For Each diagnostic In context.Diagnostics
                 Dim tokenToRemove = diagnostic.Location.FindToken(context.CancellationToken)
@@ -51,14 +49,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveSharedFromModuleMembers
                 End If
 
                 context.RegisterCodeFix(
-                    New MyCodeAction(Function(ct) FixAsync(context.Document, diagnostic, context.CancellationToken)),
+                    CodeAction.Create(
+                        VBFeaturesResources.Remove_shared_keyword_from_module_member,
+                        GetDocumentUpdater(context, diagnostic),
+                        NameOf(VBFeaturesResources.Remove_shared_keyword_from_module_member)),
                     diagnostic)
             Next
 
             Return Task.CompletedTask
         End Function
 
-        Protected Overrides Function FixAllAsync(document As Document, diagnostics As ImmutableArray(Of Diagnostic), editor As SyntaxEditor, cancellationToken As CancellationToken) As Task
+        Protected Overrides Function FixAllAsync(document As Document, diagnostics As ImmutableArray(Of Diagnostic), editor As SyntaxEditor, fallbackOptions As CodeActionOptionsProvider, cancellationToken As CancellationToken) As Task
             For Each diagnostic In diagnostics
                 Dim node = diagnostic.Location.FindNode(cancellationToken)
                 Dim newNode = GetReplacement(document, node)
@@ -72,13 +73,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveSharedFromModuleMembers
             Dim generator = SyntaxGenerator.GetGenerator(document)
             Return generator.WithModifiers(node, generator.GetModifiers(node).WithIsStatic(False))
         End Function
-
-        Private Class MyCodeAction
-            Inherits CodeAction.DocumentChangeAction
-
-            Public Sub New(createChangedDocument As Func(Of CancellationToken, Task(Of Document)))
-                MyBase.New(VBFeaturesResources.Remove_shared_keyword_from_module_member, createChangedDocument, VBFeaturesResources.Remove_shared_keyword_from_module_member)
-            End Sub
-        End Class
     End Class
 End Namespace

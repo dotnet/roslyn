@@ -28,7 +28,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             /// </summary>
             private readonly MetadataUnifyingSymbolHashSet _allSymbols = new();
 
-            public BidirectionalSymbolSet(FindReferencesSearchEngine engine, HashSet<ISymbol> initialSymbols, HashSet<ISymbol> upSymbols)
+            public BidirectionalSymbolSet(
+                FindReferencesSearchEngine engine,
+                MetadataUnifyingSymbolHashSet initialSymbols,
+                MetadataUnifyingSymbolHashSet upSymbols)
                 : base(engine)
             {
                 _allSymbols.AddRange(initialSymbols);

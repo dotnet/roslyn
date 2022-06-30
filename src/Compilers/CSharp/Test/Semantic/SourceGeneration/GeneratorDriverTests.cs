@@ -1960,7 +1960,7 @@ class C { }
                         source =>
                         {
                             Assert.Empty((ImmutableArray<AdditionalText>)source.Source.Outputs[source.OutputIndex].Value);
-                            Assert.Equal(IncrementalStepRunReason.Cached, source.Source.Outputs[source.OutputIndex].Reason);
+                            Assert.Equal(IncrementalStepRunReason.Unchanged, source.Source.Outputs[source.OutputIndex].Reason);
                         });
                     Assert.Collection(step.Outputs,
                         output =>
@@ -2164,6 +2164,69 @@ class C { }
 
             // replace it with null, and check that it throws
             Assert.Throws<ArgumentNullException>(() => driver.WithUpdatedParseOptions(null!));
+        }
+
+        [Fact, WorkItem(57455, "https://github.com/dotnet/roslyn/issues/57455")]
+        public void RemoveTriggeringSyntaxAndVerifySyntaxTreeConsistentWithCompilation()
+        {
+            var source = @"
+[System.Obsolete]
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+            {
+                IncrementalValuesProvider<ClassDeclarationSyntax> classDeclarations = ctx.SyntaxProvider
+                    .CreateSyntaxProvider(static (s, t) => isSyntaxTargetForGeneration(s), static (context, ct) => getSemanticTargetForGeneration(context, ct))
+                    .Where(static c => c is not null)!;
+
+                IncrementalValueProvider<(Compilation, ImmutableArray<ClassDeclarationSyntax>)> compilationAndClasses =
+                    ctx.CompilationProvider.Combine(classDeclarations.Collect());
+
+                ctx.RegisterSourceOutput(compilationAndClasses, (context, ct) => validate(ct.Item1, ct.Item2));
+            }));
+
+            // run the generator once
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(disabledOutputs: IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+            driver = driver.RunGenerators(compilation);
+            Assert.True(driver.GetRunResult().Diagnostics.IsEmpty);
+
+            // now update the source 
+            var newSource = @"
+class C { }
+";
+            Compilation newCompilation = CreateCompilation(newSource, options: TestOptions.DebugDll, parseOptions: parseOptions);
+
+            // check we ran
+            driver = driver.RunGenerators(newCompilation);
+            Assert.True(driver.GetRunResult().Diagnostics.IsEmpty);
+            return;
+
+            static void validate(Compilation compilation, ImmutableArray<ClassDeclarationSyntax> nodes)
+            {
+                foreach (var node in nodes)
+                {
+                    Assert.True(compilation.SyntaxTrees.Contains(node.SyntaxTree));
+                }
+            }
+
+            static bool isSyntaxTargetForGeneration(SyntaxNode node)
+                => node is ClassDeclarationSyntax { AttributeLists: { Count: > 0 } };
+
+            static ClassDeclarationSyntax? getSemanticTargetForGeneration(GeneratorSyntaxContext context, CancellationToken cancellationToken)
+            {
+                var classDeclarationSyntax = (ClassDeclarationSyntax)context.Node;
+                foreach (AttributeListSyntax attributeListSyntax in classDeclarationSyntax.AttributeLists)
+                {
+                    return classDeclarationSyntax;
+                }
+                return null;
+            }
         }
 
         [Fact]
@@ -2906,6 +2969,157 @@ public static readonly string F = ""a""
             result = driver.GetRunResult();
 
             Assert.Single(result.GeneratedTrees);
+        }
+
+        [Fact]
+        public void Timing_Info_Is_Empty_If_Not_Run()
+        {
+            var source = "class C{}";
+
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var generator = new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (context, text) =>
+                {
+                    context.AddSource("generated", "");
+                });
+            }).AsSourceGenerator();
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+
+            var timing = driver.GetTimingInfo();
+
+            Assert.Equal(TimeSpan.Zero, timing.ElapsedTime);
+
+            var generatorTiming = Assert.Single(timing.GeneratorTimes);
+            Assert.Equal(generator, generatorTiming.Generator);
+            Assert.Equal(TimeSpan.Zero, generatorTiming.ElapsedTime);
+        }
+
+        [Fact]
+        public void Can_Get_Timing_Info()
+        {
+            var source = "class C{}";
+
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var generator = new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (context, text) =>
+                {
+                    context.AddSource("generated", "");
+                    Thread.Sleep(1);
+                });
+            }).AsSourceGenerator();
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+
+            driver = driver.RunGenerators(compilation);
+            var timing = driver.GetTimingInfo();
+
+            Assert.NotEqual(TimeSpan.Zero, timing.ElapsedTime);
+
+            var generatorTiming = Assert.Single(timing.GeneratorTimes);
+            Assert.Equal(generator, generatorTiming.Generator);
+            Assert.NotEqual(TimeSpan.Zero, generatorTiming.ElapsedTime);
+            Assert.True(timing.ElapsedTime >= generatorTiming.ElapsedTime);
+        }
+
+        [Fact]
+        public void Can_Get_Timing_Info_From_Multiple_Generators()
+        {
+            var source = "class C{}";
+
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var generator = new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (context, text) =>
+                {
+                    context.AddSource("generated", "");
+                    Thread.Sleep(1);
+                });
+            }).AsSourceGenerator();
+
+            var generator2 = new PipelineCallbackGenerator2(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (context, text) =>
+                {
+                    context.AddSource("generated", "");
+                    Thread.Sleep(1);
+                });
+            }).AsSourceGenerator();
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator, generator2 }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+
+            driver = driver.RunGenerators(compilation);
+            var timing = driver.GetTimingInfo();
+
+            Assert.NotEqual(TimeSpan.Zero, timing.ElapsedTime);
+            Assert.Equal(2, timing.GeneratorTimes.Length);
+
+            var timing1 = timing.GeneratorTimes[0];
+            Assert.Equal(generator, timing1.Generator);
+            Assert.NotEqual(TimeSpan.Zero, timing1.ElapsedTime);
+            Assert.True(timing.ElapsedTime >= timing1.ElapsedTime);
+
+            var timing2 = timing.GeneratorTimes[1];
+            Assert.Equal(generator2, timing2.Generator);
+            Assert.NotEqual(TimeSpan.Zero, timing2.ElapsedTime);
+            Assert.True(timing.ElapsedTime >= timing2.ElapsedTime);
+
+            Assert.True(timing.ElapsedTime >= timing1.ElapsedTime + timing2.ElapsedTime);
+        }
+
+        [Fact]
+        public void Timing_Info_Only_Includes_Last_Run()
+        {
+            var source = "class C{}";
+
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var generator = new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (context, text) =>
+                {
+                    Thread.Sleep(50);
+                    context.AddSource("generated", "");
+                });
+            }).AsSourceGenerator();
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+
+            // run once
+            driver = driver.RunGenerators(compilation);
+            var timing = driver.GetTimingInfo();
+
+            Assert.NotEqual(TimeSpan.Zero, timing.ElapsedTime);
+
+            var generatorTiming = Assert.Single(timing.GeneratorTimes);
+            Assert.Equal(generator, generatorTiming.Generator);
+            Assert.NotEqual(TimeSpan.Zero, generatorTiming.ElapsedTime);
+            Assert.True(timing.ElapsedTime >= generatorTiming.ElapsedTime);
+
+            // run a second time. No steps should be performed, so overall time should be less 
+            driver = driver.RunGenerators(compilation);
+            var timing2 = driver.GetTimingInfo();
+
+            Assert.NotEqual(TimeSpan.Zero, timing2.ElapsedTime);
+            Assert.True(timing.ElapsedTime > timing2.ElapsedTime);
+
+            var generatorTiming2 = Assert.Single(timing2.GeneratorTimes);
+            Assert.Equal(generator, generatorTiming2.Generator);
+            Assert.NotEqual(TimeSpan.Zero, generatorTiming2.ElapsedTime);
+            Assert.True(generatorTiming.ElapsedTime > generatorTiming2.ElapsedTime);
         }
     }
 }

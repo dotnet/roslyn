@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
@@ -206,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     // file doesn't exist in current solution
                     var document = await project.Solution.GetDocumentAsync(
                         documentId,
-                        includeSourceGenerated: project.Solution.Workspace.Services.GetService<ISyntaxTreeConfigurationService>() is { EnableOpeningSourceGeneratedFilesInWorkspace: true },
+                        includeSourceGenerated: project.Solution.Workspace.Services.GetService<IWorkspaceConfigurationService>()?.Options.EnableOpeningSourceGeneratedFiles == true,
                         cancellationToken).ConfigureAwait(false);
 
                     if (document == null)
@@ -259,7 +260,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // get analyzers that are not suppressed.
                 var stateSets = StateManager.GetOrCreateStateSets(project).Where(s => ShouldIncludeStateSet(project, s)).ToImmutableArrayOrEmpty();
 
-                var ideOptions = Owner.AnalyzerService.GlobalOptions.GetIdeAnalyzerOptions(project.Language);
+                var ideOptions = Owner.AnalyzerService.GlobalOptions.GetIdeAnalyzerOptions(project);
 
                 // unlike the suppressed (disabled) analyzer, we will include hidden diagnostic only analyzers here.
                 var compilation = await CreateCompilationWithAnalyzersAsync(project, ideOptions, stateSets, IncludeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);

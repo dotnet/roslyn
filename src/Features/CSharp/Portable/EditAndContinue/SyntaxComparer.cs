@@ -94,7 +94,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             ForStatement,
             ForStatementPart,                 // tied to parent
             ForEachStatement,
-            UsingStatement,
+            UsingStatementWithExpression,
+            UsingStatementWithDeclarations,
             FixedStatement,
             LockStatement,
             WhileStatement,
@@ -109,7 +110,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             SwitchExpressionArm,               // tied to parent
             WhenClause,                        // tied to parent
 
-            YieldStatement,                    // tied to parent
+            YieldReturnStatement,              // tied to parent
+            YieldBreakStatement,               // tied to parent
             GotoStatement,
             GotoCaseStatement,
             BreakContinueStatement,
@@ -206,7 +208,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case Label.CatchFilterClause:
                 case Label.FinallyClause:
                 case Label.ForStatementPart:
-                case Label.YieldStatement:
+                case Label.YieldReturnStatement:
+                case Label.YieldBreakStatement:
                 case Label.FromClauseLambda:
                 case Label.LetClauseLambda:
                 case Label.WhereClauseLambda:
@@ -360,8 +363,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return Label.ExpressionStatement;
 
                 case SyntaxKind.YieldBreakStatement:
+                    // yield break is distinct from yield return as it does not suspend the state machine in a resumable state
+                    return Label.YieldBreakStatement;
+
                 case SyntaxKind.YieldReturnStatement:
-                    return Label.YieldStatement;
+                    return Label.YieldReturnStatement;
 
                 case SyntaxKind.DoStatement:
                     return Label.DoStatement;
@@ -377,7 +383,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return Label.ForEachStatement;
 
                 case SyntaxKind.UsingStatement:
-                    return Label.UsingStatement;
+                    // We need to distinguish using statements with expression or single variable declaration from ones with multiple variable declarations. 
+                    // The former generate a single try-finally block, the latter one for each variable. The finally blocks need to match since they
+                    // affect state machine state matching. For simplicity we do not match single-declaration to expression, we just treat usings
+                    // with declarations entirely separately from usings with expressions.
+                    //
+                    // The parent is not available only when comparing nodes for value equality.
+                    // In that case it doesn't matter what label the node has as long as it has some.
+                    return node is UsingStatementSyntax { Declaration: not null } ? Label.UsingStatementWithDeclarations : Label.UsingStatementWithExpression;
 
                 case SyntaxKind.FixedStatement:
                     return Label.FixedStatement;
@@ -843,12 +856,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.AnonymousMethodExpression:
                 case SyntaxKind.LocalFunctionStatement:
                     distance = ComputeWeightedDistanceOfNestedFunctions(leftNode, rightNode);
-                    return true;
-
-                case SyntaxKind.YieldBreakStatement:
-                case SyntaxKind.YieldReturnStatement:
-                    // Ignore the expression of yield return. The structure of the state machine is more important than the yielded values.
-                    distance = (leftNode.RawKind == rightNode.RawKind) ? 0.0 : 0.1;
                     return true;
 
                 case SyntaxKind.SingleVariableDesignation:

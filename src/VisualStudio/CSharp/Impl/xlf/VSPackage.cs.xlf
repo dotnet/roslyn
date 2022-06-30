@@ -53,6 +53,9 @@ Highlight references to symbol under cursor;
 Highlight related keywords under cursor;
 Outlining;
 Enter outlining mode when files open;
+Collapse #regions on file open;
+Collapse usings on file open;
+Collapse metadata implementations on file open;
 Show procedure line separators;
 Show outlining for declaration level constructs;
 Show outlining for code level constructs;
@@ -111,6 +114,9 @@ Zvýrazňovat odkazy na symbol pod kurzorem;
 Zvýrazňovat související klíčová slova pod kurzorem;
 Sbalení;
 Po otevření souborů přejít do režimu osnovy;
+Zobrazit oddělovače řádků procedur;
+Zobrazit sbalení pro konstrukty na úrovni deklarace;
+Zobrazit sbalení pro konstrukty na úrovni kódu;
 Zobrazovat oddělovače řádků procedur;
 Zobrazit sbalení pro konstrukty na úrovni deklarace;
 Zobrazit sbalení pro konstrukty na úrovni kódu;
@@ -146,7 +152,7 @@ JSON;
 Obarvit řetězce JSON;
 Nahlásit neplatné řetězce JSON;
 Rozpoznat a nabízet funkce editoru pro řetězce JSON;
-Používat rozšířené barvy;
+ rozšířené barvy;
 Barevné schéma editoru;
 Okraj dědičnosti;</target>
         <note>C# Advanced options page keywords</note>

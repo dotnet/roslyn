@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.VisualStudio.Text;
 using TextSpan = Microsoft.CodeAnalysis.Text.TextSpan;
 using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
@@ -45,7 +45,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return (VSConstants.E_FAIL, value, hasDefaultValue);
             }
 
-            var simplifiedTypeName = await SnippetFunctionService.GetSimplifiedTypeNameAsync(document, fieldSpan.Value, _fullyQualifiedName, cancellationToken).ConfigureAwait(false);
+            var simplifierOptions = await document.GetSimplifierOptionsAsync(snippetExpansionClient.GlobalOptions, cancellationToken).ConfigureAwait(false);
+
+            var simplifiedTypeName = await SnippetFunctionService.GetSimplifiedTypeNameAsync(document, fieldSpan.Value, _fullyQualifiedName, simplifierOptions, cancellationToken).ConfigureAwait(false);
             if (string.IsNullOrEmpty(simplifiedTypeName))
             {
                 return (VSConstants.E_FAIL, value, hasDefaultValue);

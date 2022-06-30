@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FullyQualify
             // CS0138 that would result from the former.  Don't do this for using aliases though as `static` and using
             // aliases cannot be combined.
             if (resultingSymbolIsType &&
-                node.Parent is UsingDirectiveSyntax { Alias: null, StaticKeyword: { RawKind: 0 } } usingDirective)
+                node.Parent is UsingDirectiveSyntax { Alias: null, StaticKeyword.RawKind: 0 } usingDirective)
             {
                 var newUsingDirective = usingDirective
                     .WithStaticKeyword(SyntaxFactory.Token(SyntaxKind.StaticKeyword))

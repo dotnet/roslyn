@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
@@ -102,26 +103,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// that match if the user hasn't specified any for a particular symbol type.  The are added at the end so they
         /// will only be used if the user hasn't specified a preference.
         /// </summary>
-        public static Task<ImmutableArray<NamingRule>> GetNamingRulesAsync(
-            this Document document, CancellationToken cancellationToken)
-            => document.GetNamingRulesAsync(FallbackNamingRules.Default, cancellationToken);
-
-        /// <summary>
-        /// Get the user-specified naming rules, with the added <paramref name="defaultRules"/>.
-        /// </summary>
-        public static async Task<ImmutableArray<NamingRule>> GetNamingRulesAsync(this Document document,
-            ImmutableArray<NamingRule> defaultRules, CancellationToken cancellationToken)
+        public static async Task<ImmutableArray<NamingRule>> GetNamingRulesAsync(
+            this Document document, NamingStylePreferencesProvider fallbackOptions, CancellationToken cancellationToken)
         {
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var namingStyleOptions = options.GetOption(NamingStyleOptions.NamingPreferences);
-            var rules = namingStyleOptions.CreateRules().NamingRules;
-
-            return defaultRules.IsDefaultOrEmpty ? rules : rules.AddRange(defaultRules);
+            var options = await document.GetNamingStylePreferencesAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+            return options.CreateRules().NamingRules.AddRange(FallbackNamingRules.Default);
         }
 
-        public static async Task<NamingRule> GetApplicableNamingRuleAsync(this Document document, ISymbol symbol, CancellationToken cancellationToken)
+        public static async Task<NamingRule> GetApplicableNamingRuleAsync(this Document document, ISymbol symbol, NamingStylePreferencesProvider fallbackOptions, CancellationToken cancellationToken)
         {
-            var rules = await document.GetNamingRulesAsync(cancellationToken).ConfigureAwait(false);
+            var rules = await document.GetNamingRulesAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
             foreach (var rule in rules)
             {
                 if (rule.SymbolSpecification.AppliesTo(symbol))
@@ -132,9 +123,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static async Task<NamingRule> GetApplicableNamingRuleAsync(
-            this Document document, SymbolKind symbolKind, Accessibility accessibility, CancellationToken cancellationToken)
+            this Document document, SymbolKind symbolKind, Accessibility accessibility, NamingStylePreferencesProvider fallbackOptions, CancellationToken cancellationToken)
         {
-            var rules = await document.GetNamingRulesAsync(cancellationToken).ConfigureAwait(false);
+            var rules = await document.GetNamingRulesAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
             foreach (var rule in rules)
             {
                 if (rule.SymbolSpecification.AppliesTo(symbolKind, accessibility))
@@ -145,9 +136,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static async Task<NamingRule> GetApplicableNamingRuleAsync(
-            this Document document, SymbolKindOrTypeKind kind, DeclarationModifiers modifiers, Accessibility? accessibility, CancellationToken cancellationToken)
+            this Document document, SymbolKindOrTypeKind kind, DeclarationModifiers modifiers, Accessibility? accessibility, NamingStylePreferencesProvider fallbackOptions, CancellationToken cancellationToken)
         {
-            var rules = await document.GetNamingRulesAsync(cancellationToken).ConfigureAwait(false);
+            var rules = await document.GetNamingRulesAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
             foreach (var rule in rules)
             {
                 if (rule.SymbolSpecification.AppliesTo(kind, modifiers, accessibility))
@@ -155,22 +146,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             throw ExceptionUtilities.Unreachable;
-        }
-
-        public static ImmutableArray<AbstractFormattingRule> GetFormattingRules(this Document document, TextSpan span, IEnumerable<AbstractFormattingRule>? additionalRules)
-        {
-            var workspace = document.Project.Solution.Workspace;
-            var formattingRuleFactory = workspace.Services.GetRequiredService<IHostDependentFormattingRuleFactoryService>();
-            // Not sure why this is being done... there aren't any docs on CreateRule either.
-            var position = (span.Start + span.End) / 2;
-
-            var rules = ImmutableArray.Create(formattingRuleFactory.CreateRule(document, position));
-            if (additionalRules != null)
-            {
-                rules = rules.AddRange(additionalRules);
-            }
-
-            return rules.AddRange(Formatter.GetDefaultFormattingRules(document));
         }
     }
 }

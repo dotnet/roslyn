@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 ? await FindMethodDeclarationReferencesAsync(invocationDocument, method, cancellationToken).ConfigureAwait(false)
                 : method.GetAllMethodSymbolsOfPartialParts();
 
-            var anySymbolReferencesNotInSource = referencedSymbols.Any(symbol => !symbol.IsFromSource());
+            var anySymbolReferencesNotInSource = referencedSymbols.Any(static symbol => !symbol.IsFromSource());
             var locationsInSource = referencedSymbols.Where(symbol => symbol.IsFromSource());
 
             // Indexing Locations[0] is valid because IMethodSymbols have one location at most

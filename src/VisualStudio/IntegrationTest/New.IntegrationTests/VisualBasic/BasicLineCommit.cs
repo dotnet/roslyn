@@ -8,9 +8,9 @@ using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
+using WindowsInput.Native;
 using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic
@@ -35,7 +35,7 @@ Dim x = Sub()
 End Module", HangMitigatingCancellationToken);
 
             await TestServices.Editor.PlaceCaretAsync("Sub()", charsOffset: 1, HangMitigatingCancellationToken);
-            await TestServices.Input.SendAsync(VirtualKey.Enter);
+            await TestServices.Input.SendAsync(VirtualKeyCode.RETURN);
             Assert.Equal(48, await TestServices.Editor.GetCaretPositionAsync(HangMitigatingCancellationToken));
         }
 
@@ -49,7 +49,7 @@ End Module", HangMitigatingCancellationToken);
 End Module", HangMitigatingCancellationToken);
 
             await TestServices.Editor.PlaceCaretAsync("    REM", charsOffset: 0, HangMitigatingCancellationToken);
-            await TestServices.Input.SendAsync("sub", VirtualKey.Escape, " goo()", VirtualKey.Enter);
+            await TestServices.Input.SendAsync("sub", VirtualKeyCode.ESCAPE, " goo()", VirtualKeyCode.RETURN);
             AssertEx.EqualOrDiff(@"Module Module1
     Sub Main()
     End Sub
@@ -72,7 +72,7 @@ End Module", await TestServices.Editor.GetTextAsync(HangMitigatingCancellationTo
 End Module", HangMitigatingCancellationToken);
 
             await TestServices.Editor.PlaceCaretAsync("Module1", charsOffset: 0, HangMitigatingCancellationToken);
-            await TestServices.Input.SendAsync(VirtualKey.Down, VirtualKey.Enter);
+            await TestServices.Input.SendAsync(VirtualKeyCode.DOWN, VirtualKeyCode.RETURN);
             AssertEx.EqualOrDiff(@"Module Module1
 
 
@@ -95,10 +95,10 @@ End Module
 ", HangMitigatingCancellationToken);
 
             await TestServices.Editor.PlaceCaretAsync("(", charsOffset: 1, HangMitigatingCancellationToken);
-            await TestServices.Input.SendAsync("x   As   integer", VirtualKey.Tab);
+            await TestServices.Input.SendAsync("x   As   integer", VirtualKeyCode.TAB);
 
             Assert.False(await TestServices.Editor.IsSavedAsync(HangMitigatingCancellationToken));
-            await TestServices.Input.SendAsync(new KeyPress(VirtualKey.S, ShiftState.Ctrl));
+            await TestServices.Input.SendAsync((VirtualKeyCode.VK_S, VirtualKeyCode.CONTROL));
             Assert.True(await TestServices.Editor.IsSavedAsync(HangMitigatingCancellationToken));
             AssertEx.EqualOrDiff(@"Module Module1
     Sub Main(x As Integer)

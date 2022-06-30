@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Text;
@@ -16,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Classification
             /// <summary>
             /// it is a helper class that encapsulates logic on holding onto last classification result
             /// </summary>
-            private class LastLineCache : ForegroundThreadAffinitizedObject
+            private class LastLineCache
             {
                 // this helper class is primarily to improve active typing perf. don't bother to cache
                 // something very big. 
@@ -25,14 +26,16 @@ namespace Microsoft.CodeAnalysis.Classification
                 // mutating state
                 private SnapshotSpan _span;
                 private readonly ArrayBuilder<ClassifiedSpan> _classifications = new();
+                private readonly IThreadingContext _threadingContext;
 
-                public LastLineCache(IThreadingContext threadingContext) : base(threadingContext)
+                public LastLineCache(IThreadingContext threadingContext)
                 {
+                    _threadingContext = threadingContext;
                 }
 
                 private void Clear()
                 {
-                    this.AssertIsForeground();
+                    _threadingContext.ThrowIfNotOnUIThread();
 
                     _span = default;
                     _classifications.Clear();
@@ -40,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Classification
 
                 public bool TryUseCache(SnapshotSpan span, ArrayBuilder<ClassifiedSpan> classifications)
                 {
-                    this.AssertIsForeground();
+                    _threadingContext.ThrowIfNotOnUIThread();
 
                     // currently, it is using SnapshotSpan even though holding onto it could be
                     // expensive. reason being it should be very soon sync-ed to latest snapshot.
@@ -56,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Classification
 
                 public void Update(SnapshotSpan span, ArrayBuilder<ClassifiedSpan> classifications)
                 {
-                    this.AssertIsForeground();
+                    _threadingContext.ThrowIfNotOnUIThread();
                     this.Clear();
 
                     if (classifications.Count < MaxClassificationNumber)

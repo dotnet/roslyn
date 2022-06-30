@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _underlyingParameter.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
         }
 
-        public sealed override bool IsNullChecked => UnderlyingParameter.IsNullChecked;
+        internal sealed override DeclarationScope Scope => _underlyingParameter.Scope;
 
         #endregion
     }

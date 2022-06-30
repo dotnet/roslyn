@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
@@ -305,7 +306,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             var project = GetProject(hierarchy);
             var solution = _workspace.CurrentSolution;
             var projectOrSolutionName = project?.Name ?? PathUtilities.GetFileName(solution.FilePath);
-            var analysisScope = project != null ? _globalOptions.GetBackgroundAnalysisScope(project.Language) : SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption.DefaultValue;
+
+            bool isAnalysisDisabled;
+            if (project != null)
+            {
+                isAnalysisDisabled = _globalOptions.IsAnalysisDisabled(project.Language);
+            }
+            else
+            {
+                isAnalysisDisabled = true;
+                foreach (var language in solution.Projects.Select(p => p.Language).Distinct())
+                {
+                    isAnalysisDisabled = isAnalysisDisabled && _globalOptions.IsAnalysisDisabled(language);
+                }
+            }
 
             // Add a message to VS status bar that we are running code analysis.
             var statusBar = _serviceProvider?.GetService(typeof(SVsStatusbar)) as IVsStatusbar;
@@ -348,7 +362,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 }
 
                 // Now compute the new host diagostics for all projects with disabled analysis.
-                var projectsWithDisabledAnalysis = analysisScope == BackgroundAnalysisScope.None
+                var projectsWithDisabledAnalysis = isAnalysisDisabled
                     ? projects.ToImmutableArray()
                     : projects.Where(p => !p.State.RunAnalyzers).ToImmutableArrayOrEmpty();
                 if (!projectsWithDisabledAnalysis.IsEmpty)
@@ -407,7 +421,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
             public StatusBarUpdater(IVsStatusbar statusBar, IThreadingContext threadingContext, string? projectOrSolutionName, uint totalProjectCount)
             {
-                Contract.ThrowIfFalse(threadingContext.HasMainThread);
+                threadingContext.ThrowIfNotOnUIThread();
                 _statusBar = statusBar;
                 _threadingContext = threadingContext;
                 _totalProjectCount = totalProjectCount;

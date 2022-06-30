@@ -7,9 +7,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.DateAndTime;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime.LanguageServices;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -29,9 +28,9 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
             CompletionItemRules.Default.WithSelectionBehavior(CompletionItemSelectionBehavior.SoftSelection)
                                        .WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, new char[] { }));
 
-        private readonly DateAndTimeEmbeddedLanguageFeatures _language;
+        private readonly DateAndTimeEmbeddedLanguage _language;
 
-        public DateAndTimeEmbeddedCompletionProvider(DateAndTimeEmbeddedLanguageFeatures language)
+        public DateAndTimeEmbeddedCompletionProvider(DateAndTimeEmbeddedLanguage language)
             => _language = language;
 
         public override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create('"', ':');

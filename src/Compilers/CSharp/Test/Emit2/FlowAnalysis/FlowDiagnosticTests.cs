@@ -1207,15 +1207,34 @@ struct S
     int x, y;
     S(int x) { this.x = x; }
 }";
-            CreateCompilation(program)
+            CreateCompilation(program, parseOptions: TestOptions.Regular10)
                 .VerifyDiagnostics(
-                // (5,5): error CS0171: Field 'S.y' must be fully assigned before control is returned to the caller
+                // (5,5): error CS0171: Field 'S.y' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
                 //     S(int x) { this.x = x; }
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "S").WithArguments("S.y"),
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S").WithArguments("S.y", "preview").WithLocation(5, 5),
                 // (4,12): warning CS0169: The field 'S.y' is never used
                 //     int x, y;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "y").WithArguments("S.y")
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "y").WithArguments("S.y").WithLocation(4, 12)
                 );
+
+            var verifier = CompileAndVerify(program, parseOptions: TestOptions.RegularNext);
+            verifier.VerifyDiagnostics(
+                // (4,12): warning CS0169: The field 'S.y' is never used
+                //     int x, y;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "y").WithArguments("S.y").WithLocation(4, 12));
+            verifier.VerifyIL("S..ctor", @"
+{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  stfld      ""int S.y""
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.1
+  IL_0009:  stfld      ""int S.x""
+  IL_000e:  ret
+}
+");
         }
 
         [WorkItem(543429, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543429")]
@@ -1252,10 +1271,23 @@ struct Program
     {
     }
 }";
-            CreateCompilation(program)
+            CreateCompilation(program, parseOptions: TestOptions.Regular10)
                 .VerifyDiagnostics(
-                // (5,12): error CS0843: Backing field for automatically implemented property 'Program.X' must be fully assigned before control is returned to the caller. Consider calling the default constructor from a constructor initializer.
-                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.X"));
+                // (5,12): error CS0843: Auto-implemented property 'Program.X' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the property.
+                //     public Program(int x)
+                Diagnostic(ErrorCode.ERR_UnassignedThisAutoPropertyUnsupportedVersion, "Program").WithArguments("Program.X", "preview").WithLocation(5, 12));
+
+            var verifier = CompileAndVerify(program, parseOptions: TestOptions.RegularNext);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program..ctor", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  stfld      ""int Program.<X>k__BackingField""
+  IL_0007:  ret
+}");
         }
 
         [Fact]
@@ -1340,23 +1372,29 @@ struct Program
     }
 }";
 
-            var comp = CreateCompilation(text);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
     // (16,9): error CS1612: Cannot modify the return value of 'Program.x' because it is not a variable
     //         x.i = 1;
     Diagnostic(ErrorCode.ERR_ReturnNotLValue, "x").WithArguments("Program.x").WithLocation(16, 9),
-    // (16,9): error CS0170: Use of possibly unassigned field 'i'
+    // (16,9): error CS9014: Use of possibly unassigned field 'i'. Consider updating to language version 'preview' to auto-default the field.
     //         x.i = 1;
-    Diagnostic(ErrorCode.ERR_UseDefViolationField, "x.i").WithArguments("i").WithLocation(16, 9),
-    // (17,34): error CS8079: Use of possibly unassigned auto-implemented property 'x2'
+    Diagnostic(ErrorCode.ERR_UseDefViolationFieldUnsupportedVersion, "x.i").WithArguments("i", "preview").WithLocation(16, 9),
+    // (17,34): error CS9013: Use of possibly unassigned auto-implemented property 'x2'. Consider updating to language version 'preview' to auto-default the property.
     //         System.Console.WriteLine(x2.ii);
-    Diagnostic(ErrorCode.ERR_UseDefViolationProperty, "x2").WithArguments("x2").WithLocation(17, 34),
-    // (14,12): error CS0843: Auto-implemented property 'Program.x' must be fully assigned before control is returned to the caller.
+    Diagnostic(ErrorCode.ERR_UseDefViolationPropertyUnsupportedVersion, "x2").WithArguments("x2", "preview").WithLocation(17, 34),
+    // (14,12): error CS0843: Auto-implemented property 'Program.x' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the property.
     //     public Program(int dummy)
-    Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.x").WithLocation(14, 12),
-    // (14,12): error CS0843: Auto-implemented property 'Program.x2' must be fully assigned before control is returned to the caller.
+    Diagnostic(ErrorCode.ERR_UnassignedThisAutoPropertyUnsupportedVersion, "Program").WithArguments("Program.x", "preview").WithLocation(14, 12),
+    // (14,12): error CS0843: Auto-implemented property 'Program.x2' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the property.
     //     public Program(int dummy)
-    Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.x2").WithLocation(14, 12));
+    Diagnostic(ErrorCode.ERR_UnassignedThisAutoPropertyUnsupportedVersion, "Program").WithArguments("Program.x2", "preview").WithLocation(14, 12));
+
+            comp = CreateCompilation(text, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics(
+                // (16,9): error CS1612: Cannot modify the return value of 'Program.x' because it is not a variable
+                //         x.i = 1;
+                Diagnostic(ErrorCode.ERR_ReturnNotLValue, "x").WithArguments("Program.x").WithLocation(16, 9));
         }
 
         [Fact]
@@ -1391,23 +1429,47 @@ struct Program
     }
 }";
 
-            var comp = CreateCompilation(text);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
     // (16,9): error CS1612: Cannot modify the return value of 'Program.x' because it is not a variable
     //         x.i = 1;
     Diagnostic(ErrorCode.ERR_ReturnNotLValue, "x").WithArguments("Program.x").WithLocation(16, 9),
-    // (16,9): error CS0170: Use of possibly unassigned field 'i'
+    // (16,9): error CS9014: Use of possibly unassigned field 'i'. Consider updating to language version 'preview' to auto-default the field.
     //         x.i = 1;
-    Diagnostic(ErrorCode.ERR_UseDefViolationField, "x.i").WithArguments("i").WithLocation(16, 9),
-    // (17,34): error CS8079: Use of possibly unassigned auto-implemented property 'x2'
+    Diagnostic(ErrorCode.ERR_UseDefViolationFieldUnsupportedVersion, "x.i").WithArguments("i", "preview").WithLocation(16, 9),
+    // (17,34): error CS9013: Use of possibly unassigned auto-implemented property 'x2'. Consider updating to language version 'preview' to auto-default the property.
     //         System.Console.WriteLine(x2.ii);
-    Diagnostic(ErrorCode.ERR_UseDefViolationProperty, "x2").WithArguments("x2").WithLocation(17, 34),
-    // (14,12): error CS0843: Auto-implemented property 'Program.x' must be fully assigned before control is returned to the caller.
+    Diagnostic(ErrorCode.ERR_UseDefViolationPropertyUnsupportedVersion, "x2").WithArguments("x2", "preview").WithLocation(17, 34),
+    // (14,12): error CS0843: Auto-implemented property 'Program.x' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the property.
     //     public Program(int dummy)
-    Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.x").WithLocation(14, 12),
-    // (14,12): error CS0843: Auto-implemented property 'Program.x2' must be fully assigned before control is returned to the caller.
+    Diagnostic(ErrorCode.ERR_UnassignedThisAutoPropertyUnsupportedVersion, "Program").WithArguments("Program.x", "preview").WithLocation(14, 12),
+    // (14,12): error CS0843: Auto-implemented property 'Program.x2' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the property.
     //     public Program(int dummy)
-    Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.x2").WithLocation(14, 12));
+    Diagnostic(ErrorCode.ERR_UnassignedThisAutoPropertyUnsupportedVersion, "Program").WithArguments("Program.x2", "preview").WithLocation(14, 12));
+
+            comp = CreateCompilation(text, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings), parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics(
+                // (14,12): warning CS9020: Control is returned to caller before auto-implemented property 'Program.x' is explicitly assigned, causing a preceding implicit assignment of 'default'.
+                //     public Program(int dummy)
+                Diagnostic(ErrorCode.WRN_UnassignedThisAutoPropertySupportedVersion, "Program").WithArguments("Program.x").WithLocation(14, 12),
+                // (14,12): warning CS9020: Control is returned to caller before auto-implemented property 'Program.x2' is explicitly assigned, causing a preceding implicit assignment of 'default'.
+                //     public Program(int dummy)
+                Diagnostic(ErrorCode.WRN_UnassignedThisAutoPropertySupportedVersion, "Program").WithArguments("Program.x2").WithLocation(14, 12),
+                // (16,9): error CS1612: Cannot modify the return value of 'Program.x' because it is not a variable
+                //         x.i = 1;
+                Diagnostic(ErrorCode.ERR_ReturnNotLValue, "x").WithArguments("Program.x").WithLocation(16, 9),
+                // (16,9): warning CS9018: Field 'i' is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.
+                //         x.i = 1;
+                Diagnostic(ErrorCode.WRN_UseDefViolationFieldSupportedVersion, "x.i").WithArguments("i").WithLocation(16, 9),
+                // (17,34): warning CS9017: Auto-implemented property 'x2' is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.
+                //         System.Console.WriteLine(x2.ii);
+                Diagnostic(ErrorCode.WRN_UseDefViolationPropertySupportedVersion, "x2").WithArguments("x2").WithLocation(17, 34));
+
+            comp = CreateCompilation(text, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics(
+                // (16,9): error CS1612: Cannot modify the return value of 'Program.x' because it is not a variable
+                //         x.i = 1;
+                Diagnostic(ErrorCode.ERR_ReturnNotLValue, "x").WithArguments("Program.x").WithLocation(16, 9));
         }
 
         [Fact]
@@ -1675,36 +1737,57 @@ struct Program
     }
 }";
 
-            var comp = CreateCompilation(text);
-            // no errors since S1 is empty
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-    // (15,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
-    //         Goo(out x1);
-    Diagnostic(ErrorCode.ERR_RefProperty, "x1").WithArguments("Program.x1").WithLocation(15, 17),
-    // (16,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
-    //         Goo(ref x1);
-    Diagnostic(ErrorCode.ERR_RefProperty, "x1").WithArguments("Program.x1").WithLocation(16, 17),
-    // (17,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
-    //         Goo(out x2);
-    Diagnostic(ErrorCode.ERR_RefProperty, "x2").WithArguments("Program.x2").WithLocation(17, 17),
-    // (18,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
-    //         Goo(ref x2);
-    Diagnostic(ErrorCode.ERR_RefProperty, "x2").WithArguments("Program.x2").WithLocation(18, 17),
-    // (20,17): error CS1620: Argument 1 must be passed with the 'out' keyword
-    //         Goo(ref x3);
-    Diagnostic(ErrorCode.ERR_BadArgRef, "x3").WithArguments("1", "out").WithLocation(20, 17),
-    // (15,17): error CS8079: Use of automatically implemented property 'x1' whose backing field is possibly unassigned 
-    //         Goo(out x1);
-    Diagnostic(ErrorCode.ERR_UseDefViolationProperty, "x1").WithArguments("x1").WithLocation(15, 17),
-    // (16,9): error CS0188: The 'this' object cannot be used before all of its fields are assigned to
-    //         Goo(ref x1);
-    Diagnostic(ErrorCode.ERR_UseDefViolationThis, "Goo").WithArguments("this").WithLocation(16, 9),
-    // (17,17): error CS8079: Use of automatically implemented property 'x2' whose backing field is possibly unassigned 
-    //         Goo(out x2);
-    Diagnostic(ErrorCode.ERR_UseDefViolationProperty, "x2").WithArguments("x2").WithLocation(17, 17),
-    // (6,20): warning CS0649: Field 'Program.S1.x' is never assigned to, and will always have its default value 0
-    //         public int x;
-    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "x").WithArguments("Program.S1.x", "0").WithLocation(6, 20)
+                // (15,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                //         Goo(out x1);
+                Diagnostic(ErrorCode.ERR_RefProperty, "x1").WithLocation(15, 17),
+                // (16,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                //         Goo(ref x1);
+                Diagnostic(ErrorCode.ERR_RefProperty, "x1").WithLocation(16, 17),
+                // (17,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                //         Goo(out x2);
+                Diagnostic(ErrorCode.ERR_RefProperty, "x2").WithLocation(17, 17),
+                // (18,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                //         Goo(ref x2);
+                Diagnostic(ErrorCode.ERR_RefProperty, "x2").WithLocation(18, 17),
+                // (20,17): error CS1620: Argument 1 must be passed with the 'out' keyword
+                //         Goo(ref x3);
+                Diagnostic(ErrorCode.ERR_BadArgRef, "x3").WithArguments("1", "out").WithLocation(20, 17),
+                // (15,17): error CS9014: Use of possibly unassigned auto-implemented property 'x1'. Consider updating to language version 'preview' to auto-default the property.
+                //         Goo(out x1);
+                Diagnostic(ErrorCode.ERR_UseDefViolationPropertyUnsupportedVersion, "x1").WithArguments("x1", "preview").WithLocation(15, 17),
+                // (16,9): error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version 'preview' to auto-default the unassigned fields.
+                //         Goo(ref x1);
+                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "Goo").WithArguments("preview").WithLocation(16, 9),
+                // (17,17): error CS9014: Use of possibly unassigned auto-implemented property 'x2'. Consider updating to language version 'preview' to auto-default the property.
+                //         Goo(out x2);
+                Diagnostic(ErrorCode.ERR_UseDefViolationPropertyUnsupportedVersion, "x2").WithArguments("x2", "preview").WithLocation(17, 17),
+                // (6,20): warning CS0649: Field 'Program.S1.x' is never assigned to, and will always have its default value 0
+                //         public int x;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "x").WithArguments("Program.S1.x", "0").WithLocation(6, 20)
+                );
+
+            comp = CreateCompilation(text, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics(
+                // (15,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                //         Goo(out x1);
+                Diagnostic(ErrorCode.ERR_RefProperty, "x1").WithLocation(15, 17),
+                // (16,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                //         Goo(ref x1);
+                Diagnostic(ErrorCode.ERR_RefProperty, "x1").WithLocation(16, 17),
+                // (17,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                //         Goo(out x2);
+                Diagnostic(ErrorCode.ERR_RefProperty, "x2").WithLocation(17, 17),
+                // (18,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                //         Goo(ref x2);
+                Diagnostic(ErrorCode.ERR_RefProperty, "x2").WithLocation(18, 17),
+                // (20,17): error CS1620: Argument 1 must be passed with the 'out' keyword
+                //         Goo(ref x3);
+                Diagnostic(ErrorCode.ERR_BadArgRef, "x3").WithArguments("1", "out").WithLocation(20, 17),
+                // (6,20): warning CS0649: Field 'Program.S1.x' is never assigned to, and will always have its default value 0
+                //         public int x;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "x").WithArguments("Program.S1.x", "0").WithLocation(6, 20)
                 );
         }
 
@@ -2311,17 +2394,27 @@ class Program
     {
     }
 }";
-            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
                 // (8,13): error CS1501: No overload for method 'Goo' takes 2 arguments
                 //             Goo(y, null);
-                Diagnostic(ErrorCode.ERR_BadArgCount, "Goo").WithArguments("Goo", "2"),
-                // (6,9): error CS0171: Field 'C.S.x' must be fully assigned before control is returned to the caller
+                Diagnostic(ErrorCode.ERR_BadArgCount, "Goo").WithArguments("Goo", "2").WithLocation(8, 13),
+                // (6,9): error CS0171: Field 'C.S.x' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
                 //         S(dynamic y)
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "S").WithArguments("C.S.x"),
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S").WithArguments("C.S.x", "preview").WithLocation(6, 9),
                 // (5,13): warning CS0169: The field 'C.S.x' is never used
                 //         int x;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "x").WithArguments("C.S.x")
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "x").WithArguments("C.S.x").WithLocation(5, 13)
+                );
+
+            comp = CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics(
+                // (8,13): error CS1501: No overload for method 'Goo' takes 2 arguments
+                //             Goo(y, null);
+                Diagnostic(ErrorCode.ERR_BadArgCount, "Goo").WithArguments("Goo", "2").WithLocation(8, 13),
+                // (5,13): warning CS0169: The field 'C.S.x' is never used
+                //         int x;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "x").WithArguments("C.S.x").WithLocation(5, 13)
                 );
         }
 
@@ -2458,11 +2551,21 @@ class Derived2 : Base
     }
     private int x;
 }";
-            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (3,5): error CS0171: Field 'Derived.x' must be fully assigned before control is returned to the caller
+                // (3,5): error CS0171: Field 'Derived.x' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
                 //     Derived(int x) { }
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "Derived").WithArguments("Derived.x").WithLocation(3, 5),
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "Derived").WithArguments("Derived.x", "preview").WithLocation(3, 5),
+                // (4,28): error CS0103: The name 'p2' does not exist in the current context
+                //     Derived(long x) : this(p2) // error CS0188: The 'this' object cannot be used before all of its fields are assigned to
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "p2").WithArguments("p2").WithLocation(4, 28),
+                // (8,17): warning CS0169: The field 'Derived.x' is never used
+                //     private int x;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "x").WithArguments("Derived.x").WithLocation(8, 17)
+                );
+
+            comp = CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics(
                 // (4,28): error CS0103: The name 'p2' does not exist in the current context
                 //     Derived(long x) : this(p2) // error CS0188: The 'this' object cannot be used before all of its fields are assigned to
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "p2").WithArguments("p2").WithLocation(4, 28),
@@ -2579,11 +2682,17 @@ struct S
         G = y;
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (6,12): error CS0171: Field 'S.F' must be fully assigned before control is returned to the caller
+                // (6,12): error CS0171: Field 'S.F' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
                 //     public S(object x, object y)
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "S").WithArguments("S.F").WithLocation(6, 12),
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S").WithArguments("S.F", "preview").WithLocation(6, 12),
+                // (8,28): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
+                //         Action a = () => { F = x; };
+                Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "F").WithLocation(8, 28));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics(
                 // (8,28): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
                 //         Action a = () => { F = x; };
                 Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "F").WithLocation(8, 28));
@@ -2603,11 +2712,20 @@ struct S
         G = y;
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (5,12): error CS0171: Field 'S.F' must be fully assigned before control is returned to the caller
+                // (5,12): error CS0171: Field 'S.F' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
                 //     public S(object x, object y)
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "S").WithArguments("S.F").WithLocation(5, 12),
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S").WithArguments("S.F", "preview").WithLocation(5, 12),
+                // (7,14): warning CS8321: The local function 'f' is declared but never used
+                //         void f() { F = x; }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "f").WithArguments("f").WithLocation(7, 14),
+                // (7,20): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
+                //         void f() { F = x; }
+                Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "F").WithLocation(7, 20));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics(
                 // (7,14): warning CS8321: The local function 'f' is declared but never used
                 //         void f() { F = x; }
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "f").WithArguments("f").WithLocation(7, 14),

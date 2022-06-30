@@ -7,13 +7,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
-    internal class SolutionPreviewResult : ForegroundThreadAffinitizedObject
+    internal class SolutionPreviewResult
     {
+        private readonly IThreadingContext _threadingContext;
         private readonly IList<SolutionPreviewItem> _previews;
         public readonly SolutionChangeSummary? ChangeSummary;
 
@@ -22,9 +24,12 @@ namespace Microsoft.CodeAnalysis.Editor
         {
         }
 
-        public SolutionPreviewResult(IThreadingContext threadingContext, IList<SolutionPreviewItem>? previews, SolutionChangeSummary? changeSummary = null)
-            : base(threadingContext)
+        public SolutionPreviewResult(
+            IThreadingContext threadingContext,
+            IList<SolutionPreviewItem>? previews,
+            SolutionChangeSummary? changeSummary = null)
         {
+            _threadingContext = threadingContext;
             _previews = previews ?? SpecializedCollections.EmptyList<SolutionPreviewItem>();
             this.ChangeSummary = changeSummary;
         }
@@ -33,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor
 
         public async Task<IReadOnlyList<object>?> GetPreviewsAsync(DocumentId? preferredDocumentId = null, ProjectId? preferredProjectId = null, CancellationToken cancellationToken = default)
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
             cancellationToken.ThrowIfCancellationRequested();
 
             var orderedPreviews = _previews.OrderBy((i1, i2) =>
@@ -102,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor
             }
 
             return new SolutionPreviewResult(
-                result1.ThreadingContext,
+                result1._threadingContext,
                 result1._previews.Concat(result2._previews).ToList(),
                 result1.ChangeSummary ?? result2.ChangeSummary);
         }

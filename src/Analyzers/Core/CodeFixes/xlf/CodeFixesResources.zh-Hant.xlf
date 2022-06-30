@@ -17,9 +17,24 @@
         <target state="translated">新增預設案例</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_explicit_cast">
+        <source>Add explicit cast</source>
+        <target state="translated">新增明確轉換</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_file_header">
         <source>Add file header</source>
         <target state="translated">新增檔案標頭</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Alias_ambiguous_type_0">
+        <source>Alias ambiguous type '{0}'</source>
+        <target state="translated">別名不明確類型 '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_type_to_0">
+        <source>Convert type to '{0}'</source>
+        <target state="translated">將類型轉換為 '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_Name_Violation_colon_0">
@@ -30,6 +45,16 @@
       <trans-unit id="Fix_all_occurrences_in">
         <source>Fix all occurrences in</source>
         <target state="translated">修正所有出現之處於</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_class_abstract">
+        <source>Make class 'abstract'</source>
+        <target state="translated">將類別設為 'abstract'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_member_static">
+        <source>Make static</source>
+        <target state="translated">使其變成靜態</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_extra_blank_lines">

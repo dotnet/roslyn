@@ -27,6 +27,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.VirtualChars
             End Get
         End Property
 
+        Protected Overrides Function IsMultiLineRawStringToken(token As SyntaxToken) As Boolean
+            Return False
+        End Function
+
         Protected Overrides Function TryConvertToVirtualCharsWorker(token As SyntaxToken) As VirtualCharSequence
             Debug.Assert(Not token.ContainsDiagnostics)
 

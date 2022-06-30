@@ -84,8 +84,7 @@ namespace Microsoft.CodeAnalysis
 
         internal sealed override bool IsEnabledByDefault
         {
-            // All compiler errors and warnings are enabled by default.
-            get { return true; }
+            get { return this.Info.Descriptor.IsEnabledByDefault; }
         }
 
         public override bool IsSuppressed
@@ -134,6 +133,18 @@ namespace Microsoft.CodeAnalysis
             {
                 return _info.Severity == InternalDiagnosticSeverity.Unknown ||
                     _info.Severity == InternalDiagnosticSeverity.Void;
+            }
+        }
+
+        /// <summary>
+        /// Usage is unexpected unless <see cref="HasLazyInfo"/> is true.
+        /// </summary>
+        internal DiagnosticInfo LazyInfo
+        {
+            get
+            {
+                Debug.Assert(HasLazyInfo);
+                return _info;
             }
         }
 
