@@ -12,6 +12,8 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 const int expectedArguments = 4;
 const string validateOnlyPrefix = "-validateOnly:";
+const string rulesMissingDocumentationFileName = "RulesMissingDocumentation.md";
+
 
 if (args.Length != expectedArguments)
 {
@@ -19,7 +21,7 @@ if (args.Length != expectedArguments)
     return 1;
 }
 
-if (!args[0].StartsWith("-validateOnly:", StringComparison.OrdinalIgnoreCase))
+if (!args[0].StartsWith(validateOnlyPrefix, StringComparison.OrdinalIgnoreCase))
 {
     await Console.Error.WriteLineAsync($"Excepted the first argument to start with `{validateOnlyPrefix}`. found `{args[0]}`.").ConfigureAwait(false);
     return 1;
@@ -37,7 +39,7 @@ string binDirectory = args[2];
 string configuration = args[3];
 
 var directory = Directory.CreateDirectory(analyzerDocumentationFileDir);
-var fileWithPath = Path.Combine(directory.FullName, "RulesMissingDocumentation.md");
+var fileWithPath = Path.Combine(directory.FullName, rulesMissingDocumentationFileName);
 
 var builder = new StringBuilder();
 builder.Append(@"# Rules without documentation
@@ -78,7 +80,6 @@ foreach (var ruleById in allRulesById)
     var line = $"{ruleId} | {helpLinkUri} | {escapedTitle} |";
     if (validateOnly)
     {
-        // The validation for RulesMissingDocumentation.md is different than others.
         // We consider having "extra" entries as valid. This is to prevent CI failures due to rules being documented.
         // However, we consider "missing" entries as invalid. This is to force updating the file when new rules are added.
         if (!actualContent.Contains(line))
