@@ -545,16 +545,12 @@ namespace Microsoft.CodeAnalysis
                     if (!_currentState.HasValue)
                     {
                         _currentState = state;
-                        return;
                     }
-
-                    if (_states != null)
+                    else if (_states != null)
                     {
                         _states.Value.Add(state);
-                        return;
                     }
-
-                    if (_currentState != state)
+                    else if (_currentState != state)
                     {
                         _states = BuilderAndStatistics<EntryState>.Allocate();
                         var states = _states.Value;
