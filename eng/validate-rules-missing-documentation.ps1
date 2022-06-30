@@ -8,4 +8,13 @@ $ErrorActionPreference="Stop"
 
 
 Write-Host "Building Microsoft.CodeAnalysis.Features"
-Invoke-Expression "./.dotnet/dotnet.exe build src/Features/Core/Portable/Microsoft.CodeAnalysis.Features.csproj -t:GenerateRulesMissingDocumentation -p:RoslynEnforceCodeStyle=false -p:RunAnalyzersDuringBuild=false -p:ContinuousIntegrationBuild=$ci -c Release"
+try {
+    Invoke-Expression "./.dotnet/dotnet.exe build src/Features/Core/Portable/Microsoft.CodeAnalysis.Features.csproj -t:GenerateRulesMissingDocumentation -p:RoslynEnforceCodeStyle=false -p:RunAnalyzersDuringBuild=false -p:ContinuousIntegrationBuild=$ci -c Release"
+}
+catch {
+    Write-Host $_
+    Write-Host $_.Exception
+    Write-Host $_.ScriptStackTrace
+    $host.SetShouldExit(1)
+    exit 1
+}

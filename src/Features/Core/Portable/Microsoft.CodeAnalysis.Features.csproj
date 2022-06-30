@@ -163,7 +163,7 @@
     <MSBuild Projects="$(RepoRoot)src\Features\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" Targets="Build" Properties="TargetFramework=netstandard2.0" />
     <MSBuild Projects="$(RepoRoot)src\Features\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Features.vbproj" Targets="Build" Properties="TargetFramework=netstandard2.0" />
 
-    <!-- Only run validate only in CI builds. Running them in local builds will prevent refreshing auto-generated files. -->
+    <!-- Only run validation in CI builds. Running them in local builds will prevent refreshing auto-generated files. -->
     <Exec Command='"$(DotNetExecutable)" --roll-forward major "$(_GenerateRulesMissingDocumentationFilesPath)" "-validateOnly:$(ContinuousIntegrationBuild)" "$(AnalyzerDocumentationFileDir)" "$(ArtifactsBinDir)$(EscapeDirectorySuffix)" "$(Configuration)"' />
   </Target>
 

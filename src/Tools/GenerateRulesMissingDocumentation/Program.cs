@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Globalization;
-using System.Net.Http;
 using System.Net;
-using System.Text;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis;
 using System.Reflection;
+using System.Text;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 const int expectedArguments = 4;
 const string validateOnlyPrefix = "-validateOnly:";
@@ -52,7 +52,7 @@ if (validateOnly)
     actualContent = File.ReadAllLines(fileWithPath);
 }
 
-var allRulesById = GetAllRulesById(binDirectory, configuration);
+var allRulesById = getAllRulesById(binDirectory, configuration);
 
 foreach (var ruleById in allRulesById)
 {
@@ -83,7 +83,7 @@ foreach (var ruleById in allRulesById)
         // However, we consider "missing" entries as invalid. This is to force updating the file when new rules are added.
         if (!actualContent.Contains(line))
         {
-            await Console.Error.WriteLineAsync($"Missing entry in {fileWithPath}").ConfigureAwait(false);
+            await Console.Error.WriteLineAsync($"Missing entry in '{fileWithPath}'. Please add the below entry to this file to fix the build:").ConfigureAwait(false);
             await Console.Error.WriteLineAsync(line).ConfigureAwait(false);
             // The file is missing an entry. Mark it as invalid and break the loop as there is no need to continue validating.
             return 1;
@@ -120,11 +120,11 @@ async Task<bool> checkHelpLinkAsync(string helpLink)
     }
 }
 
-static SortedList<string, DiagnosticDescriptor> GetAllRulesById(string binDirectory, string configuration)
+static SortedList<string, DiagnosticDescriptor> getAllRulesById(string binDirectory, string configuration)
 {
     var allRulesById = new SortedList<string, DiagnosticDescriptor>();
 
-    foreach (string assembly in new[] { "Microsoft.CodeAnalysis.Features.dll", "Microsoft.CodeAnalysis.CSharp.Features.dll", "Microsoft.CodeAnalysis.VisualBasic.Features.dll" })
+    foreach (string assembly in s_assemblies)
     {
         var assemblyName = Path.GetFileNameWithoutExtension(assembly);
         string path = Path.Combine(binDirectory, assemblyName, configuration, "netstandard2.0", assembly);
@@ -139,8 +139,6 @@ static SortedList<string, DiagnosticDescriptor> GetAllRulesById(string binDirect
 
         foreach (var analyzer in analyzers)
         {
-            var analyzerType = analyzer.GetType();
-
             foreach (var rule in analyzer.SupportedDiagnostics)
             {
                 allRulesById[rule.Id] = rule;
@@ -155,6 +153,11 @@ return 0;
 
 partial class Program
 {
+    private static readonly ImmutableArray<string> s_assemblies = ImmutableArray.Create(
+        "Microsoft.CodeAnalysis.Features.dll",
+        "Microsoft.CodeAnalysis.CSharp.Features.dll",
+        "Microsoft.CodeAnalysis.VisualBasic.Features.dll");
+
     private sealed class AnalyzerAssemblyLoader : IAnalyzerAssemblyLoader
     {
         public static IAnalyzerAssemblyLoader Instance = new AnalyzerAssemblyLoader();
