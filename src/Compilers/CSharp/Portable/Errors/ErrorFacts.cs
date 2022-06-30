@@ -2197,6 +2197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_BadBinaryReadOnlySpanConcatenation:
                 case ErrorCode.ERR_ScopedRefAndRefStructOnly:
                 case ErrorCode.ERR_FixedFieldMustNotBeRef:
+                case ErrorCode.ERR_RefFieldCannotReferToRefStruct:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement
