@@ -114,6 +114,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return frame.TypeMap.SubstituteType(((object)local != null ? local.TypeWithAnnotations : ((ParameterSymbol)variable).TypeWithAnnotations).Type).Type;
         }
 
+        public override RefKind RefKind => RefKind.None;
+
+        public override ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
+
         internal override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {
             return _type;

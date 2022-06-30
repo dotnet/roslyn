@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (builder.DriverState.TrackIncrementalSteps)
                 {
-                    return previousTable.CreateCachedTableWithUpdatedSteps(sourceTable, _name);
+                    return previousTable.CreateCachedTableWithUpdatedSteps(sourceTable, _name, _comparer);
                 }
                 return previousTable;
             }
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis
             // - Added: perform transform and add
             // - Modified: perform transform and do element wise comparison with previous results
 
-            var newTable = builder.CreateTableBuilder(previousTable, _name);
+            var newTable = builder.CreateTableBuilder(previousTable, _name, _comparer);
 
             foreach (var entry in sourceTable)
             {

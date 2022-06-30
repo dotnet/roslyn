@@ -95,5 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         /// They should be safe to escape for evaluation purposes.
         /// </summary>
         internal override uint RefEscapeScope => Binder.TopLevelScope;
+
+        internal override DeclarationScope Scope => DeclarationScope.Unscoped;
     }
 }

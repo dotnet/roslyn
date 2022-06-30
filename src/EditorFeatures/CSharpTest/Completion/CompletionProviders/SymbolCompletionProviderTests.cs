@@ -11065,7 +11065,7 @@ class AnotherBuilder
         [Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
         public async Task TestTargetTypeFilterWithExperimentEnabled()
         {
-            TargetTypedCompletionFilterFeatureFlag = true;
+            ShowTargetTypedCompletionFilter = true;
 
             var markup =
 @"public class C
@@ -11084,7 +11084,7 @@ class AnotherBuilder
         [Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
         public async Task TestNoTargetTypeFilterWithExperimentDisabled()
         {
-            TargetTypedCompletionFilterFeatureFlag = false;
+            ShowTargetTypedCompletionFilter = false;
 
             var markup =
 @"public class C
@@ -11103,7 +11103,7 @@ class AnotherBuilder
         [Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
         public async Task TestTargetTypeFilter_NotOnObjectMembers()
         {
-            TargetTypedCompletionFilterFeatureFlag = true;
+            ShowTargetTypedCompletionFilter = true;
 
             var markup =
 @"public class C
@@ -11121,7 +11121,7 @@ class AnotherBuilder
         [Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
         public async Task TestTargetTypeFilter_NotNamedTypes()
         {
-            TargetTypedCompletionFilterFeatureFlag = true;
+            ShowTargetTypedCompletionFilter = true;
 
             var markup =
 @"public class C
@@ -11664,7 +11664,7 @@ public class C
         public async Task TestTargetTypeCompletionDescription(string targetType, string expectedParameterList)
         {
             // Check the description displayed is based on symbol matches targeted type
-            TargetTypedCompletionFilterFeatureFlag = true;
+            ShowTargetTypedCompletionFilter = true;
 
             var markup =
 $@"public class C

@@ -501,6 +501,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BindingDiagnosticBag diagnostics,
             CancellationToken cancellationToken)
         {
+            if (this.BaseTypeNoUseSiteDiagnostics?.IsErrorType() == true)
+            {
+                // Avoid cascading diagnostics
+                return;
+            }
+
             switch (this.TypeKind)
             {
                 // These checks don't make sense for enums and delegates:
@@ -1018,7 +1024,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         else if (!overridingMethod.IsAccessor())
                         {
                             // Accessors will have already been checked above
-                            checkValidNullableMethodOverride(
+                            checkValidMethodOverride(
                                 overridingMemberLocation,
                                 overriddenMethod,
                                 overridingMethod,
@@ -1091,7 +1097,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if (overridingProperty.GetMethod is object)
                         {
                             MethodSymbol overriddenGetMethod = overriddenProperty.GetOwnOrInheritedGetMethod();
-                            checkValidNullableMethodOverride(
+                            checkValidMethodOverride(
                                 overridingProperty.GetMethod.Locations[0],
                                 overriddenGetMethod,
                                 overridingProperty.GetMethod,
@@ -1107,7 +1113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if (overridingProperty.SetMethod is object)
                         {
                             var ownOrInheritedOverriddenSetMethod = overriddenProperty.GetOwnOrInheritedSetMethod();
-                            checkValidNullableMethodOverride(
+                            checkValidMethodOverride(
                                 overridingProperty.SetMethod.Locations[0],
                                 ownOrInheritedOverriddenSetMethod,
                                 overridingProperty.SetMethod,
@@ -1147,7 +1153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            static void checkValidNullableMethodOverride(
+            static void checkValidMethodOverride(
                 Location overridingMemberLocation,
                 MethodSymbol overriddenMethod,
                 MethodSymbol overridingMethod,
@@ -1155,6 +1161,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 bool checkReturnType,
                 bool checkParameters)
             {
+                if (checkParameters)
+                {
+                    CheckValidScopedOverride(
+                        overriddenMethod,
+                        overridingMethod,
+                        diagnostics,
+                        static (diagnostics, _, _, overridingParameter, _, location) =>
+                            diagnostics.Add(
+                                ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation,
+                                location,
+                                new FormattedSymbol(overridingParameter, SymbolDisplayFormat.ShortFormat)),
+                        overridingMemberLocation);
+                }
+
                 CheckValidNullableMethodOverride(overridingMethod.DeclaringCompilation, overriddenMethod, overridingMethod, diagnostics,
                                                  checkReturnType ? ReportBadReturn : null,
                                                  checkParameters ? ReportBadParameter : null,
@@ -1188,14 +1208,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        static readonly ReportMismatchInReturnType<Location> ReportBadReturn =
+        private static readonly ReportMismatchInReturnType<Location> ReportBadReturn =
             (BindingDiagnosticBag diagnostics, MethodSymbol overriddenMethod, MethodSymbol overridingMethod, bool topLevel, Location location)
             => diagnostics.Add(topLevel ?
                 ErrorCode.WRN_TopLevelNullabilityMismatchInReturnTypeOnOverride :
                 ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride,
                 location);
 
-        static readonly ReportMismatchInParameterType<Location> ReportBadParameter =
+        private static readonly ReportMismatchInParameterType<Location> ReportBadParameter =
             (BindingDiagnosticBag diagnostics, MethodSymbol overriddenMethod, MethodSymbol overridingMethod, ParameterSymbol overridingParameter, bool topLevel, Location location)
             => diagnostics.Add(
                 topLevel ? ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnOverride : ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride,
@@ -1342,6 +1362,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return conversions.ClassifyImplicitConversionFromType(sourceType, targetType, ref discardedUseSiteInfo).Kind != ConversionKind.NoConversion;
             }
         }
+
+#nullable enable
+        /// <summary>
+        /// Returns true if a diagnostic was added.
+        /// </summary>
+        internal static bool CheckValidScopedOverride<TArg>(
+            MethodSymbol? baseMethod,
+            MethodSymbol? overrideMethod,
+            BindingDiagnosticBag diagnostics,
+            ReportMismatchInParameterType<TArg> reportMismatchInParameterType,
+            TArg extraArgument,
+            bool invokedAsExtensionMethod = false)
+        {
+            Debug.Assert(reportMismatchInParameterType is { });
+
+            if (baseMethod is null || overrideMethod is null)
+            {
+                return false;
+            }
+
+            bool hasErrors = false;
+            var baseParameters = baseMethod.Parameters;
+            var overrideParameters = overrideMethod.Parameters;
+            var overrideParameterOffset = invokedAsExtensionMethod ? 1 : 0;
+            Debug.Assert(baseMethod.ParameterCount == overrideMethod.ParameterCount - overrideParameterOffset);
+
+            for (int i = 0; i < baseParameters.Length; i++)
+            {
+                var baseParameter = baseParameters[i];
+                var overrideParameter = overrideParameters[i + overrideParameterOffset];
+                if (baseParameter.Scope != overrideParameter.Scope)
+                {
+                    reportMismatchInParameterType(diagnostics, baseMethod, overrideMethod, overrideParameter, topLevel: true, extraArgument);
+                    hasErrors = true;
+                }
+            }
+            return hasErrors;
+        }
+#nullable disable
 
         private static bool PerformValidNullableOverrideCheck(
             CSharpCompilation compilation,
@@ -1609,7 +1668,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             foreach (Diagnostic diagnostic in implementingMemberAndDiagnostics.Diagnostics.Diagnostics)
             {
-                if (diagnostic.Severity == DiagnosticSeverity.Error && diagnostic.Code is not (int)ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember)
+                if (diagnostic.Severity == DiagnosticSeverity.Error && diagnostic.Code is not ((int)ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember or (int)ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember))
                 {
                     return default;
                 }

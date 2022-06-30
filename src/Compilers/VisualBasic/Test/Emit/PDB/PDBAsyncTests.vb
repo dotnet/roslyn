@@ -220,6 +220,9 @@ End Module
         <method containingType="Module1" name="F" parameterNames="a">
             <customDebugInfo>
                 <forwardIterator name="VB$StateMachine_1_F"/>
+                <encStateMachineStateMap>
+                    <state number="0" offset="0"/>
+                </encStateMachineStateMap>
             </customDebugInfo>
         </method>
     </methods>
@@ -275,6 +278,17 @@ End Module
         <method containingType="Module1" name="Test">
             <customDebugInfo>
                 <forwardIterator name="VB$StateMachine_2_Test"/>
+                <encStateMachineStateMap>
+                    <state number="0" offset="38"/>
+                    <state number="1" offset="94"/>
+                    <state number="2" offset="8"/>
+                    <state number="3" offset="171"/>
+                    <state number="4" offset="163"/>
+                    <state number="5" offset="155"/>
+                    <state number="6" offset="205"/>
+                    <state number="7" offset="125"/>
+                    <state number="8" offset="0"/>
+                </encStateMachineStateMap>
             </customDebugInfo>
         </method>
     </methods>
@@ -352,6 +366,9 @@ End Module
         <method containingType="Module1" name="S">
             <customDebugInfo>
                 <forwardIterator name="VB$StateMachine_3_S"/>
+                <encStateMachineStateMap>
+                    <state number="0" offset="0"/>
+                </encStateMachineStateMap>
             </customDebugInfo>
         </method>
     </methods>

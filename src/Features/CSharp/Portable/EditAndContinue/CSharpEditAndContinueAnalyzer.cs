@@ -2646,15 +2646,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         #region State Machines
 
-        protected override bool SupportsStateMachineUpdates
-            => true;
-
-        protected override bool IsStateMachineResumableStateSyntax(SyntaxNode node)
-            => SyntaxBindingUtilities.BindsToResumableStateMachineState(node);
-
-        protected override bool StateMachineSuspensionPointKindEquals(SyntaxNode suspensionPoint1, SyntaxNode suspensionPoint2)
-            => (suspensionPoint1 is CommonForEachStatementSyntax) ? suspensionPoint2 is CommonForEachStatementSyntax : suspensionPoint1.RawKind == suspensionPoint2.RawKind;
-
         internal override bool IsStateMachineMethod(SyntaxNode declaration)
             => SyntaxUtilities.IsAsyncDeclaration(declaration) || SyntaxUtilities.IsIterator(declaration);
 

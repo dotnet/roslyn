@@ -87,20 +87,6 @@ namespace Microsoft.CodeAnalysis
                 PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(analyzerReferences, nameof(analyzerReferences)));
         }
 
-        internal ImmutableHashSet<string> GetRemoteSupportedProjectLanguages()
-        {
-            var builder = ImmutableHashSet.CreateBuilder<string>();
-            foreach (var project in Projects)
-            {
-                if (RemoteSupportedLanguages.IsSupported(project.Language))
-                {
-                    builder.Add(project.Language);
-                }
-            }
-
-            return builder.ToImmutable();
-        }
-
         internal SolutionInfo WithTelemetryId(Guid telemetryId)
             => new(Attributes.With(telemetryId: telemetryId), Projects, AnalyzerReferences);
 

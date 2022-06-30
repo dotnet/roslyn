@@ -48,10 +48,21 @@ namespace Microsoft.CodeAnalysis
             _disposeOwner = disposeOwner;
         }
 
-        private ModuleMetadata(IntPtr metadata, int size, bool includeEmbeddedInteropTypes, bool ignoreAssemblyRefs)
+        private ModuleMetadata(
+            IntPtr metadata,
+            int size,
+            IDisposable? owner,
+            bool disposeOwner,
+            bool includeEmbeddedInteropTypes,
+            bool ignoreAssemblyRefs)
             : base(isImageOwner: true, id: MetadataId.CreateNewId())
         {
+            // If we've been asked to dispose the owner, then we better have an owner to dispose.
+            Debug.Assert(!disposeOwner || owner is not null);
+
             _module = new PEModule(this, peReader: null, metadataOpt: metadata, metadataSizeOpt: size, includeEmbeddedInteropTypes: includeEmbeddedInteropTypes, ignoreAssemblyRefs: ignoreAssemblyRefs);
+            _owner = owner;
+            _disposeOwner = disposeOwner;
         }
 
         // creates a copy
@@ -74,6 +85,37 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="ArgumentNullException"><paramref name="metadata"/> is null.</exception>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="size"/> is not positive.</exception>
         public static ModuleMetadata CreateFromMetadata(IntPtr metadata, int size)
+            => CreateFromMetadataWorker(metadata, size, owner: null, disposeOwner: false);
+
+        /// <summary>
+        /// Create metadata module from a raw memory pointer to metadata directory of a PE image or .cormeta section of an object file.
+        /// Only manifest modules are currently supported.
+        /// </summary>
+        /// <param name="metadata">Pointer to the start of metadata block.</param>
+        /// <param name="size">The size of the metadata block.</param>
+        /// <param name="owner">Data that should be kept alive as long as this <see cref="ModuleMetadata"/> is alive.  This can be
+        /// useful, for example, if there is backing memory that the metadata depends on that should be kept rooted so it
+        /// doesn't get garbage collected.</param>
+        /// <param name="disposeOwner">Whether or not <paramref name="owner"/> should be <see cref="IDisposable.Dispose"/>'d when this object is
+        /// Disposed.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="owner"/> is null.</exception>
+        public static unsafe ModuleMetadata CreateFromMetadata(
+            IntPtr metadata,
+            int size,
+            IDisposable owner,
+            bool disposeOwner)
+        {
+            if (owner is null)
+                throw new ArgumentNullException(nameof(owner));
+
+            return CreateFromMetadataWorker(metadata, size, owner, disposeOwner);
+        }
+
+        private static ModuleMetadata CreateFromMetadataWorker(
+            IntPtr metadata,
+            int size,
+            IDisposable? owner,
+            bool disposeOwner)
         {
             if (metadata == IntPtr.Zero)
             {
@@ -85,14 +127,14 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(CodeAnalysisResources.SizeHasToBePositive, nameof(size));
             }
 
-            return new ModuleMetadata(metadata, size, includeEmbeddedInteropTypes: false, ignoreAssemblyRefs: false);
+            return new ModuleMetadata(metadata, size, owner, disposeOwner, includeEmbeddedInteropTypes: false, ignoreAssemblyRefs: false);
         }
 
         internal static ModuleMetadata CreateFromMetadata(IntPtr metadata, int size, bool includeEmbeddedInteropTypes, bool ignoreAssemblyRefs = false)
         {
             Debug.Assert(metadata != IntPtr.Zero);
             Debug.Assert(size > 0);
-            return new ModuleMetadata(metadata, size, includeEmbeddedInteropTypes, ignoreAssemblyRefs);
+            return new ModuleMetadata(metadata, size, owner: null, disposeOwner: false, includeEmbeddedInteropTypes, ignoreAssemblyRefs);
         }
 
         /// <summary>

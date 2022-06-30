@@ -25,27 +25,16 @@ namespace Microsoft.CodeAnalysis.Options
     [Export(typeof(IGlobalOptionService)), Shared]
     internal sealed class GlobalOptionService : IGlobalOptionService
     {
-        private static readonly ImmutableDictionary<string, (IOption? option, IEditorConfigStorageLocation2? storageLocation)> s_emptyEditorConfigKeysToOptions
-            = ImmutableDictionary.Create<string, (IOption? option, IEditorConfigStorageLocation2? storageLocation)>(AnalyzerConfigOptions.KeyComparer);
-
         private readonly IWorkspaceThreadingService? _workspaceThreadingService;
-        private readonly Lazy<ImmutableHashSet<IOption>> _lazyAllOptions;
         private readonly ImmutableArray<Lazy<IOptionPersisterProvider>> _optionPersisterProviders;
-        private readonly ImmutableDictionary<string, Lazy<ImmutableHashSet<IOption>>> _serializableOptionsByLanguage;
-        private readonly HashSet<string> _forceComputedLanguages = new();
 
         // access is interlocked
         private ImmutableArray<Workspace> _registeredWorkspaces;
 
         private readonly object _gate = new();
+        private readonly Func<OptionKey, object?> _getOption;
 
         #region Guarded by _gate
-
-#pragma warning disable IDE0044 // Add readonly modifier - https://github.com/dotnet/roslyn/issues/46785
-        private ImmutableDictionary<string, (IOption? option, IEditorConfigStorageLocation2? storageLocation)> _neutralEditorConfigKeysToOptions = s_emptyEditorConfigKeysToOptions;
-        private ImmutableDictionary<string, (IOption? option, IEditorConfigStorageLocation2? storageLocation)> _csharpEditorConfigKeysToOptions = s_emptyEditorConfigKeysToOptions;
-        private ImmutableDictionary<string, (IOption? option, IEditorConfigStorageLocation2? storageLocation)> _visualBasicEditorConfigKeysToOptions = s_emptyEditorConfigKeysToOptions;
-#pragma warning restore IDE0044 // Add readonly modifier
 
         private ImmutableArray<IOptionPersister> _lazyOptionPersisters;
 
@@ -58,54 +47,17 @@ namespace Microsoft.CodeAnalysis.Options
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public GlobalOptionService(
             [Import(AllowDefault = true)] IWorkspaceThreadingService? workspaceThreadingService,
-            [ImportMany] IEnumerable<Lazy<IOptionProvider, LanguageMetadata>> optionProviders,
             [ImportMany] IEnumerable<Lazy<IOptionPersisterProvider>> optionPersisters)
         {
+            _getOption = GetOption;
+
             _workspaceThreadingService = workspaceThreadingService;
-            _lazyAllOptions = new Lazy<ImmutableHashSet<IOption>>(() => optionProviders.SelectMany(p => p.Value.Options).ToImmutableHashSet());
             _optionPersisterProviders = optionPersisters.ToImmutableArray();
-            _serializableOptionsByLanguage = CreateLazySerializableOptionsByLanguage(optionProviders);
             _registeredWorkspaces = ImmutableArray<Workspace>.Empty;
 
             _currentValues = ImmutableDictionary.Create<OptionKey, object?>();
             _changedOptionKeys = ImmutableHashSet<OptionKey>.Empty;
         }
-
-        private static ImmutableDictionary<string, Lazy<ImmutableHashSet<IOption>>> CreateLazySerializableOptionsByLanguage(IEnumerable<Lazy<IOptionProvider, LanguageMetadata>> optionProviders)
-        {
-            var builder = ImmutableDictionary.CreateBuilder<string, Lazy<ImmutableHashSet<IOption>>>();
-
-            foreach (var (language, lazyProvidersAndMetadata) in optionProviders.ToPerLanguageMap())
-            {
-                builder.Add(language, new Lazy<ImmutableHashSet<IOption>>(() => ComputeSerializableOptionsFromProviders(lazyProvidersAndMetadata)));
-            }
-
-            return builder.ToImmutable();
-
-            // Local functions
-            static ImmutableHashSet<IOption> ComputeSerializableOptionsFromProviders(ImmutableArray<Lazy<IOptionProvider, LanguageMetadata>> lazyProvidersAndMetadata)
-            {
-                var builder = ImmutableHashSet.CreateBuilder<IOption>();
-
-                foreach (var lazyProviderAndMetadata in lazyProvidersAndMetadata)
-                {
-                    var provider = lazyProviderAndMetadata.Value;
-                    if (!IsSolutionOptionProvider(provider))
-                    {
-                        continue;
-                    }
-
-                    builder.AddRange(provider.Options);
-                }
-
-                return builder.ToImmutable();
-            }
-        }
-
-        // We only consider the options defined in the the DefaultAssemblies (Workspaces and Features) as serializable.
-        // This is due to the fact that other layers above are VS specific and do not execute in OOP.
-        internal static bool IsSolutionOptionProvider(IOptionProvider provider)
-            => MefHostServices.IsDefaultAssembly(provider.GetType().Assembly);
 
         private ImmutableArray<IOptionPersister> GetOptionPersisters()
         {
@@ -163,167 +115,11 @@ namespace Microsoft.CodeAnalysis.Options
             return optionKey.Option.DefaultValue;
         }
 
-        public IEnumerable<IOption> GetRegisteredOptions()
-            => _lazyAllOptions.Value;
-
-        public bool TryMapEditorConfigKeyToOption(string key, string? language, [NotNullWhen(true)] out IEditorConfigStorageLocation2? storageLocation, out OptionKey optionKey)
-        {
-            var temporaryOptions = s_emptyEditorConfigKeysToOptions;
-            ref var editorConfigToOptionsStorage = ref temporaryOptions;
-            switch (language)
-            {
-                case LanguageNames.CSharp:
-                    editorConfigToOptionsStorage = ref _csharpEditorConfigKeysToOptions!;
-                    break;
-
-                case LanguageNames.VisualBasic:
-                    editorConfigToOptionsStorage = ref _visualBasicEditorConfigKeysToOptions!;
-                    break;
-
-                case null:
-                case "":
-                    editorConfigToOptionsStorage = ref _neutralEditorConfigKeysToOptions!;
-                    break;
-            }
-
-            var (option, storage) = ImmutableInterlocked.GetOrAdd(
-                ref editorConfigToOptionsStorage,
-                key,
-                (key, arg) => MapToOptionIgnorePerLanguage(arg.self, key, arg.language),
-                (self: this, language));
-
-            if (option is object)
-            {
-                RoslynDebug.AssertNotNull(storage);
-                storageLocation = storage;
-                optionKey = option.IsPerLanguage ? new OptionKey(option, language) : new OptionKey(option);
-                return true;
-            }
-
-            storageLocation = null;
-            optionKey = default;
-            return false;
-
-            // Local function
-            static (IOption? option, IEditorConfigStorageLocation2? storageLocation) MapToOptionIgnorePerLanguage(GlobalOptionService service, string key, string? language)
-            {
-                // Use GetRegisteredSerializableOptions instead of GetRegisteredOptions to avoid loading assemblies for
-                // inactive languages.
-                foreach (var option in service.GetRegisteredSerializableOptions(ImmutableHashSet.Create(language ?? "")))
-                {
-                    foreach (var storage in option.StorageLocations)
-                    {
-                        if (storage is not IEditorConfigStorageLocation2 editorConfigStorage)
-                            continue;
-
-                        if (!AnalyzerConfigOptions.KeyComparer.Equals(key, editorConfigStorage.KeyName))
-                            continue;
-
-                        return (option, editorConfigStorage);
-                    }
-                }
-
-                return (null, null);
-            }
-        }
-
-        public ImmutableHashSet<IOption> GetRegisteredSerializableOptions(ImmutableHashSet<string> languages)
-        {
-            if (languages.IsEmpty)
-            {
-                return ImmutableHashSet<IOption>.Empty;
-            }
-
-            var builder = ImmutableHashSet.CreateBuilder<IOption>();
-
-            // "string.Empty" for options from language agnostic option providers.
-            builder.AddRange(GetSerializableOptionsForLanguage(string.Empty));
-
-            foreach (var language in languages)
-            {
-                builder.AddRange(GetSerializableOptionsForLanguage(language));
-            }
-
-            return builder.ToImmutable();
-
-            // Local functions.
-            ImmutableHashSet<IOption> GetSerializableOptionsForLanguage(string language)
-            {
-                if (_serializableOptionsByLanguage.TryGetValue(language, out var lazyOptions))
-                {
-                    return lazyOptions.Value;
-                }
-
-                return ImmutableHashSet<IOption>.Empty;
-            }
-        }
-
-        /// <summary>
-        /// Gets force computed serializable options with prefetched values for all the registered options applicable to the given <paramref name="languages"/> by quering the option persisters.
-        /// </summary>
-        public SerializableOptionSet GetSerializableOptionsSnapshot(ImmutableHashSet<string> languages, IOptionService optionService)
-        {
-            Debug.Assert(languages.All(RemoteSupportedLanguages.IsSupported));
-            var serializableOptions = GetRegisteredSerializableOptions(languages);
-            var serializableOptionValues = GetSerializableOptionValues(serializableOptions, languages);
-            var changedOptionsKeysSerializable = _changedOptionKeys
-                .Where(key => serializableOptions.Contains(key.Option) && (!key.Option.IsPerLanguage || languages.Contains(key.Language!)))
-                .ToImmutableHashSet();
-            return new SerializableOptionSet(optionService, serializableOptionValues, changedOptionsKeysSerializable);
-        }
-
-        private ImmutableDictionary<OptionKey, object?> GetSerializableOptionValues(ImmutableHashSet<IOption> optionKeys, ImmutableHashSet<string> languages)
-        {
-            if (optionKeys.IsEmpty)
-            {
-                return ImmutableDictionary<OptionKey, object?>.Empty;
-            }
-
-            // Ensure the option persisters are available before taking the global lock
-            var persisters = GetOptionPersisters();
-
-            lock (_gate)
-            {
-                // Force compute the option values for languages, if required.
-                if (!languages.All(_forceComputedLanguages.Contains))
-                {
-                    foreach (var option in optionKeys)
-                    {
-                        if (!option.IsPerLanguage)
-                        {
-                            var key = new OptionKey(option);
-                            var _ = GetOption_NoLock(key, persisters);
-                            continue;
-                        }
-
-                        foreach (var language in languages)
-                        {
-                            var key = new OptionKey(option, language);
-                            var _ = GetOption_NoLock(key, persisters);
-                        }
-                    }
-
-                    _forceComputedLanguages.AddRange(languages);
-                }
-
-                return ImmutableDictionary.CreateRange(_currentValues
-                    .Where(kvp => optionKeys.Contains(kvp.Key.Option) &&
-                                   (!kvp.Key.Option.IsPerLanguage ||
-                                    languages.Contains(kvp.Key.Language!))));
-            }
-        }
-
-        public T GetOption<T>(Option<T> option)
-            => OptionsHelpers.GetOption(option, GetOption);
-
         public T GetOption<T>(Option2<T> option)
-            => OptionsHelpers.GetOption(option, GetOption);
-
-        public T GetOption<T>(PerLanguageOption<T> option, string? language)
-            => OptionsHelpers.GetOption(option, language, GetOption);
+            => OptionsHelpers.GetOption(option, _getOption);
 
         public T GetOption<T>(PerLanguageOption2<T> option, string? language)
-            => OptionsHelpers.GetOption(option, language, GetOption);
+            => OptionsHelpers.GetOption(option, language, _getOption);
 
         public object? GetOption(OptionKey optionKey)
         {
@@ -416,25 +212,18 @@ namespace Microsoft.CodeAnalysis.Options
             RaiseOptionChangedEvent(changedOptions);
         }
 
-        public void SetOptions(OptionSet optionSet)
+        public void SetOptions(OptionSet optionSet, IEnumerable<OptionKey> optionKeys)
         {
-            var changedOptionKeys = optionSet switch
-            {
-                null => throw new ArgumentNullException(nameof(optionSet)),
-                SerializableOptionSet serializableOptionSet => serializableOptionSet.GetChangedOptions(),
-                _ => throw new ArgumentException(WorkspacesResources.Options_did_not_come_from_specified_Solution, paramName: nameof(optionSet))
-            };
-
             var changedOptions = new List<OptionChangedEventArgs>();
 
             lock (_gate)
             {
-                foreach (var optionKey in changedOptionKeys)
+                foreach (var optionKey in optionKeys)
                 {
                     var newValue = optionSet.GetOption(optionKey);
-                    var currentValue = this.GetOption(optionKey);
+                    var currentValue = GetOption(optionKey);
 
-                    if (object.Equals(currentValue, newValue))
+                    if (Equals(currentValue, newValue))
                     {
                         // Identical, so nothing is changing
                         continue;

@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             _subjectBuffer = subjectBuffer;
             _eventSource = new CompilationAvailableEventSource(asyncListener);
             _underlyingSource = TaggerEventSources.Compose(eventSources);
-            _onCompilationAvailable = () => this.Changed?.Invoke(this, new TaggerEventArgs());
+            _onCompilationAvailable = () => this.Changed?.Invoke(this, TaggerEventArgs.Empty);
         }
 
         public event EventHandler<TaggerEventArgs>? Changed;

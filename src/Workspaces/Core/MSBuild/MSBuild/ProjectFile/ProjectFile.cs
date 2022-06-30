@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         private static bool IsInGAC(string filePath)
         {
-            return GlobalAssemblyCacheLocation.RootLocations.Any(gloc => PathUtilities.IsChildPath(gloc, filePath));
+            return GlobalAssemblyCacheLocation.RootLocations.Any(static (gloc, filePath) => PathUtilities.IsChildPath(gloc, filePath), filePath);
         }
 
         private static string? s_frameworkRoot;
@@ -429,10 +429,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 item = references.FirstOrDefault(it => string.Compare(it.EvaluatedInclude, shortAssemblyName, StringComparison.OrdinalIgnoreCase) == 0);
 
                 // check for full name match
-                if (item == null)
-                {
-                    item = references.FirstOrDefault(it => string.Compare(it.EvaluatedInclude, fullAssemblyName, StringComparison.OrdinalIgnoreCase) == 0);
-                }
+                item ??= references.FirstOrDefault(it => string.Compare(it.EvaluatedInclude, fullAssemblyName, StringComparison.OrdinalIgnoreCase) == 0);
             }
 
             // check for file path match
@@ -515,10 +512,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                                        || PathUtilities.PathsEqual(it.EvaluatedInclude, projectFilePath));
 
             // try to find by project name
-            if (item == null)
-            {
-                item = references.First(it => string.Compare(projectName, it.GetMetadataValue(MetadataNames.Name), StringComparison.OrdinalIgnoreCase) == 0);
-            }
+            item ??= references.First(it => string.Compare(projectName, it.GetMetadataValue(MetadataNames.Name), StringComparison.OrdinalIgnoreCase) == 0);
 
             return item;
         }

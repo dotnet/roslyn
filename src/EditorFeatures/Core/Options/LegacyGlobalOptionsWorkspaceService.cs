@@ -79,9 +79,6 @@ namespace Microsoft.CodeAnalysis.Options
         public CleanCodeGenerationOptionsProvider CleanCodeGenerationOptionsProvider
             => _provider;
 
-        public AutoFormattingOptions GetAutoFormattingOptions(HostLanguageServices languageServices)
-            => _globalOptions.GetAutoFormattingOptions(languageServices.Language);
-
         public bool GetGenerateEqualsAndGetHashCodeFromMembersGenerateOperators(string language)
             => _globalOptions.GetOption(s_implementIEquatable, language);
 

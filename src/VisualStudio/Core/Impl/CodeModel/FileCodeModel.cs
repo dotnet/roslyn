@@ -656,10 +656,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             var codeElement = ComAggregate.TryGetManagedObject<AbstractCodeElement>(element);
 
-            if (codeElement == null)
-            {
-                codeElement = ComAggregate.TryGetManagedObject<AbstractCodeElement>(this.CodeElements.Item(element));
-            }
+            codeElement ??= ComAggregate.TryGetManagedObject<AbstractCodeElement>(this.CodeElements.Item(element));
 
             if (codeElement == null)
             {

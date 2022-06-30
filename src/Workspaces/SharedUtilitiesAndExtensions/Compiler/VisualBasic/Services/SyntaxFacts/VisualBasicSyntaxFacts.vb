@@ -527,14 +527,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return name.IsKind(SyntaxKind.GenericName)
         End Function
 
-        Public Function GetTypeArgumentsOfGenericName(genericName As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetTypeArgumentsOfGenericName
-            Dim castGenericName = TryCast(genericName, GenericNameSyntax)
-            If castGenericName IsNot Nothing Then
-                Return castGenericName.TypeArgumentList.Arguments
-            End If
-            Return Nothing
-        End Function
-
         Public Function GetExpressionOfMemberAccessExpression(node As SyntaxNode, Optional allowImplicitTarget As Boolean = False) As SyntaxNode Implements ISyntaxFacts.GetExpressionOfMemberAccessExpression
             Return TryCast(node, MemberAccessExpressionSyntax)?.GetExpressionOfMemberAccessExpression(allowImplicitTarget)
         End Function
@@ -1812,6 +1804,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
 #Region "GetPartsOfXXX members"
 
+        Public Sub GetPartsOfArgumentList(node As SyntaxNode, ByRef openParenToken As SyntaxToken, ByRef arguments As SeparatedSyntaxList(Of SyntaxNode), ByRef closeParenToken As SyntaxToken) Implements ISyntaxFacts.GetPartsOfArgumentList
+            Dim argumentList = DirectCast(node, ArgumentListSyntax)
+            openParenToken = argumentList.OpenParenToken
+            arguments = argumentList.Arguments
+            closeParenToken = argumentList.CloseParenToken
+        End Sub
+
         Public Sub GetPartsOfBaseObjectCreationExpression(node As SyntaxNode, ByRef argumentList As SyntaxNode, ByRef initializer As SyntaxNode) Implements ISyntaxFacts.GetPartsOfBaseObjectCreationExpression
             Dim objectCreationExpression = DirectCast(node, ObjectCreationExpressionSyntax)
             argumentList = objectCreationExpression.ArgumentList
@@ -1948,7 +1947,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
             Return initializer.Initializer.Initializers
         End Function
-
 #End Region
     End Class
 End Namespace

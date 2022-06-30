@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     return TriggerIdentifierKind.NotRenamable;
                 }
 
-                return sourceSymbol.Locations.Any(loc => loc == token.GetLocation())
+                return sourceSymbol.Locations.Any(static (loc, token) => loc == token.GetLocation(), token)
                         ? TriggerIdentifierKind.RenamableDeclaration
                         : TriggerIdentifierKind.RenamableReference;
             }

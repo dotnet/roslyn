@@ -110,6 +110,7 @@ modifier
   | 'readonly'
   | 'ref'
   | 'required'
+  | 'scoped'
   | 'sealed'
   | 'static'
   | 'unsafe'
@@ -418,7 +419,7 @@ predefined_type
   ;
 
 ref_type
-  : 'ref' 'readonly'? type
+  : 'ref' 'readonly'? 'scoped'? type
   ;
 
 tuple_type
