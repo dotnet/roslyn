@@ -89,9 +89,7 @@ namespace Microsoft.CodeAnalysis.ExtractClass
             // Treat the entire nodes' span as the span of interest here.  That way if the user's location is closer to
             // a refactoring with a narrower span (for example, a span just on the name/parameters of a member, then it
             // will take precedence over us).
-            var start = memberNodeSymbolPairs.Min(pair => pair.node.SpanStart);
-            var end = memberNodeSymbolPairs.Max(pair => pair.node.Span.End);
-            var memberSpan = new TextSpan(start, end - start);
+            var memberSpan = new SyntaxList<SyntaxNode>(memberNodeSymbolPairs.Select(pair => pair.node)).FullSpan;
 
             // Can't extract to a new type if there's already a base. Maybe
             // in the future we could inject a new type inbetween base and

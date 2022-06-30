@@ -66,9 +66,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             }
 
             // we want to use a span which covers all the selected viable member nodes, so that more specific nodes have priority
-            var start = memberNodeSymbolPairs.Min(pair => pair.node.SpanStart);
-            var end = memberNodeSymbolPairs.Max(pair => pair.node.Span.End);
-            var memberSpan = new TextSpan(start, end - start);
+            var memberSpan = new SyntaxList<SyntaxNode>(memberNodeSymbolPairs.Select(pair => pair.node)).FullSpan;
 
             var allDestinations = FindAllValidDestinations(
                 selectedMembers,
