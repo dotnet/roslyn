@@ -93,10 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.Undo
 
             public void Dispose()
             {
-                if (_transaction != null)
-                {
-                    _transaction.Complete();
-                }
+                _transaction?.Complete();
 
                 _service.EndUndoTransaction(this);
             }

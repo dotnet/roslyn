@@ -25,10 +25,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting
             //       analyzers returned when calling this method twice would pass a reference equality check.
             //       One instance should be created by SolutionCrawler, another one by us, when calling the
             //       UnitTestingSolutionCrawlerServiceAccessor.Reanalyze method.
-            if (_analyzer == null)
-            {
-                _analyzer = new UnitTestingIncrementalAnalyzer(_incrementalAnalyzerProvider.CreateIncrementalAnalyzer());
-            }
+            _analyzer ??= new UnitTestingIncrementalAnalyzer(_incrementalAnalyzerProvider.CreateIncrementalAnalyzer());
 
             return _analyzer;
         }

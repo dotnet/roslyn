@@ -47,10 +47,7 @@ namespace Microsoft.VisualStudio.Debugger.Clr
             bool enableNativeDebugging = false)
             : base(enableNativeDebugging)
         {
-            if (getModule == null)
-            {
-                getModule = (r, a) => new DkmClrModuleInstance(r, a, (a != null) ? new DkmModule(a.GetName().Name + ".dll") : null);
-            }
+            getModule ??= (r, a) => new DkmClrModuleInstance(r, a, (a != null) ? new DkmModule(a.GetName().Name + ".dll") : null);
             this.Assemblies = assemblies;
             this.Modules = assemblies.Select(a => getModule(this, a)).Where(m => m != null).ToArray();
             _defaultModule = getModule(this, null);
