@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
             editorOptions.SetOptionValue(DefaultOptions.IndentStyleId, indentStyle.ToEditorIndentStyle());
             editorOptions.SetOptionValue(DefaultOptions.ConvertTabsToSpacesOptionId, !useTabs);
 
-            // Remote once https://github.com/dotnet/roslyn/issues/62204 is fixed:
+            // Remove once https://github.com/dotnet/roslyn/issues/62204 is fixed:
             workspace.GlobalOptions.SetGlobalOption(new OptionKey(IndentationOptionsStorage.SmartIndent, document.Project.Language), indentStyle);
 
             var snapshot = textBuffer.CurrentSnapshot;
