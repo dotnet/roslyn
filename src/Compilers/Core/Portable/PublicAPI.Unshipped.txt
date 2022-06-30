@@ -1,4 +1,5 @@
 *REMOVED*override abstract Microsoft.CodeAnalysis.Diagnostic.Equals(object? obj) -> bool
+*REMOVED*override abstract Microsoft.CodeAnalysis.CompilationOptions.GetHashCode() -> int
 abstract Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>.DefaultResult.get -> TResult
 Microsoft.CodeAnalysis.Compilation.GetTypesByMetadataName(string! fullyQualifiedMetadataName) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.INamedTypeSymbol!>
 Microsoft.CodeAnalysis.GeneratorAttributeSyntaxContext
