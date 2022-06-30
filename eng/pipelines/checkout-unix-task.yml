@@ -4,7 +4,7 @@ steps:
   - checkout: none
 
   - script: |
-      @echo on
+      set -x
       git init
       git config --local checkout.workers 0
       git config --local fetch.parallel 0
@@ -12,4 +12,3 @@ steps:
       git fetch --no-tags --no-auto-maintenance --depth=1 origin "$(Build.SourceVersion)"
       git checkout "$(Build.SourceVersion)"
     displayName: Shallow Checkout
-  

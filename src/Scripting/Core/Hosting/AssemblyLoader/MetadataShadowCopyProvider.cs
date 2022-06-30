@@ -484,10 +484,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             {
                 if (fault)
                 {
-                    if (manifestModule != null)
-                    {
-                        manifestModule.Dispose();
-                    }
+                    manifestModule?.Dispose();
 
                     if (moduleBuilder != null)
                     {

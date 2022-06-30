@@ -14,4 +14,3 @@ steps:
       git fetch --no-tags --no-auto-maintenance --depth=1 origin "$(Build.SourceVersion)"
       git checkout "$(Build.SourceVersion)"
     displayName: Shallow Checkout
-  
