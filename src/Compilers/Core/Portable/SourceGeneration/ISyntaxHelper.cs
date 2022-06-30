@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         /// <summary>
         /// <paramref name="node"/> must be a compilation unit or namespace block.
         /// </summary>
-        void AddAliases(SyntaxNode node, ArrayBuilder<(string aliasName, string symbolName)> aliases, bool global);
+        void AddAliases(GreenNode node, ArrayBuilder<(string aliasName, string symbolName)> aliases, bool global);
         void AddAliases(CompilationOptions options, ArrayBuilder<(string aliasName, string symbolName)> aliases);
     }
 
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
         public abstract bool IsLambdaExpression(SyntaxNode node);
 
-        public abstract void AddAliases(SyntaxNode node, ArrayBuilder<(string aliasName, string symbolName)> aliases, bool global);
+        public abstract void AddAliases(GreenNode node, ArrayBuilder<(string aliasName, string symbolName)> aliases, bool global);
         public abstract void AddAliases(CompilationOptions options, ArrayBuilder<(string aliasName, string symbolName)> aliases);
     }
 }

@@ -85,20 +85,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Throw ExceptionUtilities.UnexpectedValue(node.Kind())
         End Function
 
-        Public Overrides Sub AddAliases(node As SyntaxNode, aliases As ArrayBuilder(Of (aliasName As String, symbolName As String)), [global] As Boolean)
+        Public Overloads Function GetUnqualifiedIdentifierOfName(name As InternalSyntax.NameSyntax) As InternalSyntax.IdentifierTokenSyntax
+            Dim qualifiedName = TryCast(name, InternalSyntax.QualifiedNameSyntax)
+            If qualifiedName IsNot Nothing Then
+                Return qualifiedName.Right.Identifier
+            End If
+
+            Dim simpleName = TryCast(name, InternalSyntax.SimpleNameSyntax)
+            If simpleName IsNot Nothing Then
+                Return simpleName.Identifier
+            End If
+
+            Throw ExceptionUtilities.UnexpectedValue(name.KindText)
+        End Function
+
+        Public Overrides Sub AddAliases(node As GreenNode, aliases As ArrayBuilder(Of (aliasName As String, symbolName As String)), [global] As Boolean)
             ' VB does not have global aliases at the syntax level.
             If [global] Then
                 Return
             End If
 
-            Dim compilationUnit = TryCast(node, CompilationUnitSyntax)
+            Dim compilationUnit = TryCast(node, InternalSyntax.CompilationUnitSyntax)
             If compilationUnit Is Nothing Then
                 Return
             End If
 
             For Each importsStatement In compilationUnit.Imports
-                For Each importsClause In importsStatement.ImportsClauses
-                    ProcessImportsClause(aliases, importsClause)
+                For i = 0 To importsStatement.ImportsClauses.Count - 1
+                    ProcessImportsClause(aliases, importsStatement.ImportsClauses(i))
                 Next
             Next
         End Sub
@@ -108,12 +122,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             For Each globalImport In vbOptions.GlobalImports
                 Dim clause = globalImport.Clause
-                ProcessImportsClause(aliases, clause)
+                ProcessImportsClause(aliases, DirectCast(clause.Green, InternalSyntax.ImportsClauseSyntax))
             Next
         End Sub
 
-        Private Sub ProcessImportsClause(aliases As ArrayBuilder(Of (aliasName As String, symbolName As String)), clause As ImportsClauseSyntax)
-            Dim importsClause = TryCast(clause, SimpleImportsClauseSyntax)
+        Private Sub ProcessImportsClause(aliases As ArrayBuilder(Of (aliasName As String, symbolName As String)), clause As InternalSyntax.ImportsClauseSyntax)
+            Dim importsClause = TryCast(clause, InternalSyntax.SimpleImportsClauseSyntax)
             If importsClause?.Alias IsNot Nothing Then
                 aliases.Add((importsClause.Alias.Identifier.ValueText, GetUnqualifiedIdentifierOfName(importsClause.Name).ValueText))
             End If

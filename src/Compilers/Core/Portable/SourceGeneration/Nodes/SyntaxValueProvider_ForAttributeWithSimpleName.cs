@@ -104,7 +104,7 @@ public partial struct SyntaxValueProvider
             Debug.Assert(compilationUnit is ICompilationUnitSyntax);
             var globalAliases = Aliases.GetInstance();
 
-            syntaxHelper.AddAliases(compilationUnit, globalAliases, global: true);
+            syntaxHelper.AddAliases(compilationUnit.Green, globalAliases, global: true);
 
             return GlobalAliases.Create(globalAliases.ToImmutableAndFree());
         }
@@ -161,14 +161,14 @@ public partial struct SyntaxValueProvider
 
             if (node is ICompilationUnitSyntax)
             {
-                syntaxHelper.AddAliases(node, localAliases, global: false);
+                syntaxHelper.AddAliases(node.Green, localAliases, global: false);
 
                 recurseChildren(node);
             }
             else if (syntaxHelper.IsAnyNamespaceBlock(node))
             {
                 var localAliasCount = localAliases.Count;
-                syntaxHelper.AddAliases(node, localAliases, global: false);
+                syntaxHelper.AddAliases(node.Green, localAliases, global: false);
 
                 recurseChildren(node);
 
