@@ -72,18 +72,14 @@ namespace Roslyn.Utilities
             where TKey : notnull
         {
             if (values == null)
-            {
                 return 0;
-            }
 
             var hashCode = 0;
             var count = 0;
             foreach (var value in values)
             {
                 if (count++ >= maxItemsToHash)
-                {
                     break;
-                }
 
                 hashCode = Hash.Combine(value.GetHashCode(), hashCode);
             }
