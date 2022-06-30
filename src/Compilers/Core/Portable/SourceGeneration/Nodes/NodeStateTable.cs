@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.SourceGeneration;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -68,13 +69,9 @@ namespace Microsoft.CodeAnalysis
         // an excessively long row is kept around forever, we keep track of sparseness statistics with each row, and we
         // will eventually toss the row if it is too sparse too much of the time.
 
-        private static readonly ConcurrentQueue<BuilderAndStatistics<TableEntry>> s_tableEntryPool = new();
-        private static readonly ConcurrentQueue<BuilderAndStatistics<NodeStateEntry<T>>> s_nodeStateEntryPool = new();
-
         internal static NodeStateTable<T> Empty { get; } = new NodeStateTable<T>(ImmutableArray<TableEntry>.Empty, ImmutableArray<IncrementalGeneratorRunStep>.Empty, hasTrackedSteps: true);
 
         private readonly ImmutableArray<TableEntry> _states;
-
 
         private NodeStateTable(ImmutableArray<TableEntry> states, ImmutableArray<IncrementalGeneratorRunStep> steps, bool hasTrackedSteps)
         {
@@ -117,7 +114,7 @@ namespace Microsoft.CodeAnalysis
             if (IsCached)
                 return this;
 
-            var compacted = DequeuePooledItem(s_tableEntryPool);
+            var compacted = BuilderAndStatistics<TableEntry>.Allocate();
             foreach (var entry in _states)
             {
                 if (!entry.IsRemoved)
@@ -128,7 +125,7 @@ namespace Microsoft.CodeAnalysis
             // When we're preparing a table for caching between runs, we drop the step information as we cannot guarantee the graph structure while also updating
             // the input states
             var result = new NodeStateTable<T>(compacted.ToImmutable(), ImmutableArray<IncrementalGeneratorRunStep>.Empty, hasTrackedSteps: false);
-            ReturnPooledItem(s_tableEntryPool, compacted);
+            compacted.ClearAndFree();
             return result;
         }
 
@@ -159,7 +156,7 @@ namespace Microsoft.CodeAnalysis
 
         public sealed class Builder
         {
-            private readonly BuilderAndStatistics<TableEntry> _states = DequeuePooledItem(s_tableEntryPool);
+            private readonly BuilderAndStatistics<TableEntry> _states = BuilderAndStatistics<TableEntry>.Allocate();
             private readonly NodeStateTable<T> _previous;
 
             private readonly string? _name;
@@ -389,7 +386,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 finally
                 {
-                    ReturnPooledItem(s_tableEntryPool, _states);
+                    _states.ClearAndFree();
                 }
             }
 
@@ -540,10 +537,7 @@ namespace Microsoft.CodeAnalysis
 
             public ref struct Builder
             {
-                private static readonly ConcurrentQueue<BuilderAndStatistics<T>> s_itemsPool = new();
-                private static readonly ConcurrentQueue<BuilderAndStatistics<EntryState>> s_statesPool = new();
-
-                private readonly BuilderAndStatistics<T> _items = DequeuePooledItem(s_itemsPool);
+                private readonly BuilderAndStatistics<T> _items = BuilderAndStatistics<T>.Allocate();
 
                 private BuilderAndStatistics<EntryState>? _states = null;
                 private EntryState? _currentState = null;
@@ -569,7 +563,7 @@ namespace Microsoft.CodeAnalysis
 
                     if (_currentState != state)
                     {
-                        _states = DequeuePooledItem(s_statesPool);
+                        _states = BuilderAndStatistics<EntryState>.Allocate();
                         var states = _states.Value;
 
                         for (int i = 0, n = _items.Count - 1; i < n; i++)
@@ -587,9 +581,8 @@ namespace Microsoft.CodeAnalysis
 
                 public void Dispose()
                 {
-                    ReturnPooledItem(s_itemsPool, _items);
-                    if (_states != null)
-                        ReturnPooledItem(s_statesPool, _states.Value);
+                    _items.ClearAndFree();
+                    _states?.ClearAndFree();
                 }
             }
         }
