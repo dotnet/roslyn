@@ -147,7 +147,7 @@
   <Import Project="..\..\..\Analyzers\Core\Analyzers\Analyzers.projitems" Label="Shared" />
   <Import Project="..\..\..\Analyzers\Core\CodeFixes\CodeFixes.projitems" Label="Shared" />
 
-  <Target Name="GenerateRulesMissingDocumentation" DependsOnTargets="Pack">
+  <Target Name="GenerateRulesMissingDocumentation">
     <PropertyGroup>
       <AnalyzerDocumentationFileDir>$(RepoRoot)src\Features</AnalyzerDocumentationFileDir>
       <EscapeDirectorySuffix Condition="'$(OS)' == 'Windows_NT'">\</EscapeDirectorySuffix>
