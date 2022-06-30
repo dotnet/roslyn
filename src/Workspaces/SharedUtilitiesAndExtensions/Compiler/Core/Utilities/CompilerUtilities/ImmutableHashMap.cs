@@ -473,7 +473,7 @@ namespace Roslyn.Collections.Immutable
         /// <returns>A value indicating whether an equal and existing key was found in the map.</returns>
         internal bool TryExchangeKey(TKey key, [NotNullWhen(true)] out TKey? existingKey)
         {
-            var vb = _root != null ? _root.Get(_keyComparer.GetHashCode(key), key, _keyComparer) : null;
+            var vb = _root?.Get(_keyComparer.GetHashCode(key), key, _keyComparer);
             if (vb != null)
             {
                 existingKey = vb.Key;

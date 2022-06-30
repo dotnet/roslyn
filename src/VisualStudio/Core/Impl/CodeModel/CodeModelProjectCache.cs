@@ -202,10 +202,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 }
             }
 
-            if (comHandle != null)
-            {
-                comHandle.Value.Object.Shutdown();
-            }
+            comHandle?.Object.Shutdown();
         }
 
         public void OnSourceFileRenaming(string oldFileName, string newFileName)

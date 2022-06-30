@@ -347,10 +347,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         /// </summary>
         internal void AddAnalyzerHandler(object sender, EventArgs args)
         {
-            if (_analyzerReferenceManager != null)
-            {
-                _analyzerReferenceManager.ShowDialog();
-            }
+            _analyzerReferenceManager?.ShowDialog();
         }
 
         /// <summary>
