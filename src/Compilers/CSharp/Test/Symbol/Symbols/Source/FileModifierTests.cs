@@ -2364,15 +2364,56 @@ public class FileModifierTests : CSharpTestBase
             }
             """;
 
-        // PROTOTYPE(ft): it should probably be an error to reference a file type in a global using static
         var compilation = CreateCompilation(new[] { source, main });
         compilation.VerifyDiagnostics(
-            // (1,1): hidden CS8019: Unnecessary using directive.
-            // global using static C;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "global using static C;").WithLocation(1, 1),
-            // (5,9): error CS0103: The name 'M' does not exist in the current context
-            //         M();
-            Diagnostic(ErrorCode.ERR_NameNotInContext, "M").WithArguments("M").WithLocation(5, 9));
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // global using static C;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "global using static C;").WithLocation(1, 1),
+                // (1,21): error CS9304: File type 'C' cannot be used in a 'global using static' directive.
+                // global using static C;
+                Diagnostic(ErrorCode.ERR_GlobalUsingStaticFileType, "C").WithArguments("C").WithLocation(1, 21),
+                // (5,9): error CS0103: The name 'M' does not exist in the current context
+                //         M();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "M").WithArguments("M").WithLocation(5, 9));
+    }
+
+    [Fact]
+    public void GlobalUsingStatic_02()
+    {
+        var source = """
+            global using static Container<C>;
+
+            public class Container<T>
+            {
+            }
+
+            file class C
+            {
+                public static void M() { }
+            }
+            """;
+
+        var main = """
+            class Program
+            {
+                public static void Main()
+                {
+                    M();
+                }
+            }
+            """;
+
+        var compilation = CreateCompilation(new[] { source, main });
+        compilation.VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // global using static Container<C>;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "global using static Container<C>;").WithLocation(1, 1),
+                // (1,21): error CS9304: File type 'Container<C>' cannot be used in a 'global using static' directive.
+                // global using static Container<C>;
+                Diagnostic(ErrorCode.ERR_GlobalUsingStaticFileType, "Container<C>").WithArguments("Container<C>").WithLocation(1, 21),
+                // (5,9): error CS0103: The name 'M' does not exist in the current context
+                //         M();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "M").WithArguments("M").WithLocation(5, 9));
     }
 
     [Fact]

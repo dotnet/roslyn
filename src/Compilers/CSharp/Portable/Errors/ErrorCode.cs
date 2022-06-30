@@ -2096,6 +2096,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FileTypeNoExplicitAccessibility = 9301,
         ERR_FileTypeBase = 9302,
         ERR_FileTypeNested = 9303,
+        ERR_GlobalUsingStaticFileType = 9304
 
         #endregion
 

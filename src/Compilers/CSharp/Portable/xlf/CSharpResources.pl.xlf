@@ -627,6 +627,11 @@
         <target state="translated">Globalne używające dyrektywy muszą poprzedzać wszystkie nieglobalne używające dyrektywy.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_GlobalUsingStaticFileType">
+        <source>File type '{0}' cannot be used in a 'global using static' directive.</source>
+        <target state="new">File type '{0}' cannot be used in a 'global using static' directive.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
         <source>A goto cannot jump to a location before a using declaration within the same block.</source>
         <target state="translated">Instrukcja goto nie może przechodzić do lokalizacji występującej przed deklaracją using w tym samym bloku.</target>
