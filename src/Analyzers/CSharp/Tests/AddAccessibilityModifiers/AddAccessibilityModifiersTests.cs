@@ -666,7 +666,7 @@ internal class C : I<C>
             var fixedSource = $$"""
                 file class C1
                 {
-                    public {{declarationKind}} C2 { }
+                    private {{declarationKind}} C2 { }
                 }
                 """;
 
