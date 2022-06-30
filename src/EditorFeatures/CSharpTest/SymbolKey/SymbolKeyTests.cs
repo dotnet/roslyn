@@ -94,6 +94,36 @@ file class C
             Assert.Same(type, resolved);
         }
 
+        [Fact]
+        public async Task FileType_03()
+        {
+            var workspaceXml = $$"""
+<Workspace>
+    <Project Language="C#">
+        <CompilationOptions Nullable="Enable"/>
+        <Document FilePath="File0.cs">
+file class C
+{
+    public class Inner { }
+}
+        </Document>
+    </Project>
+</Workspace>
+""";
+            using var workspace = TestWorkspace.Create(workspaceXml);
+
+            var solution = workspace.CurrentSolution;
+            var project = solution.Projects.Single();
+
+            var compilation = await project.GetCompilationAsync();
+
+            var type = compilation.GetTypeByMetadataName("<File1>F1__C.Inner");
+            Assert.NotNull(type);
+            var symbolKey = SymbolKey.Create(type);
+            var resolved = symbolKey.Resolve(compilation).Symbol;
+            Assert.Same(type, resolved);
+        }
+
         [Fact, WorkItem(45437, "https://github.com/dotnet/roslyn/issues/45437")]
         public async Task TestGenericsAndNullability()
         {
