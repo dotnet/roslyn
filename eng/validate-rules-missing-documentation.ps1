@@ -8,6 +8,4 @@ $ErrorActionPreference="Stop"
 
 
 Write-Host "Building Microsoft.CodeAnalysis.Features"
-Start-Process -FilePath "./.dotnet/dotnet.exe" -ArgumentList "build src/Features/Core/Portable/Microsoft.CodeAnalysis.Features.csproj -t:GenerateRulesMissingDocumentation -p:RoslynEnforceCodeStyle=false -p:RunAnalyzersDuringBuild=false -p:ContinuousIntegrationBuild=$ci -c Release"
-
-exit 0
+Invoke-Expression "./.dotnet/dotnet.exe build src/Features/Core/Portable/Microsoft.CodeAnalysis.Features.csproj -t:GenerateRulesMissingDocumentation -p:RoslynEnforceCodeStyle=false -p:RunAnalyzersDuringBuild=false -p:ContinuousIntegrationBuild=$ci -c Release"
