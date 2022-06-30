@@ -291,10 +291,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
         internal VisualStudioProjectTracker GetProjectTrackerAndInitializeIfNecessary()
         {
-            if (_projectTracker == null)
-            {
-                _projectTracker = new VisualStudioProjectTracker(this, _projectFactory.Value, _threadingContext);
-            }
+            _projectTracker ??= new VisualStudioProjectTracker(this, _projectFactory.Value, _threadingContext);
 
             return _projectTracker;
         }

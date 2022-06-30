@@ -75,10 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
                 _previewWorkspace.CloseDocument(currentDocument, currentDocumentText);
             }
 
-            if (_previewWorkspace == null)
-            {
-                _previewWorkspace = new PreviewDialogWorkspace(document.Project.Solution);
-            }
+            _previewWorkspace ??= new PreviewDialogWorkspace(document.Project.Solution);
 
             _currentDocumentId = document.Id;
             ApplyDocumentToBuffer(document, out var container);
