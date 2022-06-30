@@ -30,9 +30,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpConsoleSnippetProvider()
+        public CSharpForLoopSnippetProvider()
         {
         }
 
+        protected override SyntaxNode CreateForLoopStatementSyntax(SyntaxGenerator generator)
+        {
+            var forLoopSyntax = SyntaxFactory.ForStatement(SyntaxFactory.VariableDeclaration(), 
+        }
     }
 }

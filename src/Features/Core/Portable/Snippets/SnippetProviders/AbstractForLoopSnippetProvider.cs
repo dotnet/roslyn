@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Snippets
         public override string SnippetIdentifier => "for";
 
         public override string SnippetDisplayName => FeaturesResources.Write_to_the_console;
-        protected abstract SyntaxNode CreateForLoopStatementSyntax();
+        protected abstract SyntaxNode CreateForLoopStatementSyntax(SyntaxGenerator generator);
 
         protected override async Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken)
         {
@@ -43,29 +43,14 @@ namespace Microsoft.CodeAnalysis.Snippets
 
         private async Task<TextChange> GenerateSnippetTextChangeAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            /*var consoleSymbol = await GetSymbolFromMetaDataNameAsync(document, cancellationToken).ConfigureAwait(false);
-            Contract.ThrowIfNull(consoleSymbol);
+            var options = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
+            if (options != null)
+            {
+                options.
+            }
             var generator = SyntaxGenerator.GetGenerator(document);
-            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken);
-
-            // We know symbol is not null at this point since it was checked when determining
-            // if we are in a valid location to insert the snippet.
-            var typeExpression = generator.TypeExpression(consoleSymbol);
-            var declaration = GetAsyncSupportingDeclaration(token);
-            var isAsync = declaration is not null && generator.GetModifiers(declaration).IsAsync;
-
-            var invocation = isAsync
-                ? generator.AwaitExpression(generator.InvocationExpression(
-                    generator.MemberAccessExpression(generator.MemberAccessExpression(typeExpression, generator.IdentifierName(nameof(Console.Out))), generator.IdentifierName(nameof(Console.Out.WriteLineAsync)))))
-                : generator.InvocationExpression(generator.MemberAccessExpression(typeExpression, generator.IdentifierName(nameof(Console.WriteLine))));
-            var expressionStatement = generator.ExpressionStatement(invocation);*/
-            var generator = SyntaxGenerator.GetGenerator(document);
-            var forLoopSyntax = CreateForLoopStatementSyntax();
+            var forLoopSyntax = CreateForLoopStatementSyntax(generator);
             return new TextChange(TextSpan.FromBounds(position, position), forLoopSyntax.ToFullString());
-
-            // Need to normalize the whitespace for the asynchronous case because it doesn't insert a space following the await
-            //return new TextChange(TextSpan.FromBounds(position, position), expressionStatement.NormalizeWhitespace().ToFullString());
         }
 
         /// <summary>
