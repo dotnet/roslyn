@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Shared.Naming
             }
 
             // remove any common prefixes
-            newBaseName = NamingStyle.StripCommonPrefixesIfValid(newBaseName, out var _);
+            newBaseName = NamingStyle.StripCommonPrefixes(newBaseName, out var _);
 
             // If no changes were made to the basename passed in, we're done
             if (newBaseName == baseName)

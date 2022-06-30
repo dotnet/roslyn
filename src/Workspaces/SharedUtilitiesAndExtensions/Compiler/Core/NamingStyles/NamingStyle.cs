@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
             }
 
             // remove specified Prefix, then look for any other common prefixes
-            name = StripCommonPrefixesIfValid(name[Prefix.Length..], out var prefix);
+            name = StripCommonPrefixes(name[Prefix.Length..], out var prefix);
 
             if (prefix != string.Empty)
             {
@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
         {
             // Example: for specified prefix = "Test_" and name = "Test_m_BaseName", we remove "Test_m_"
             // "Test_" will be added back later in this method
-            name = StripCommonPrefixesIfValid(name.StartsWith(Prefix) ? name.Substring(Prefix.Length) : name, out _);
+            name = StripCommonPrefixes(name.StartsWith(Prefix) ? name.Substring(Prefix.Length) : name, out _);
 
             var addPrefix = !name.StartsWith(Prefix);
             var addSuffix = !name.EndsWith(Suffix);
@@ -332,14 +332,14 @@ namespace Microsoft.CodeAnalysis.NamingStyles
 
         private string CreateCompliantNameReusingPartialPrefixesAndSuffixes(string name)
         {
-            name = StripCommonPrefixesIfValid(name, out _);
+            name = StripCommonPrefixes(name, out _);
             name = EnsurePrefix(name);
             name = EnsureSuffix(name);
 
             return FinishFixingName(name);
         }
 
-        public static string StripCommonPrefixesIfValid(string name, out string prefix)
+        public static string StripCommonPrefixes(string name, out string prefix)
         {
             var index = 0;
             while (index + 1 < name.Length)
