@@ -247,6 +247,11 @@
         <target state="translated">Özellikler için blok gövdesi kullan</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_constant_interpolated_string">
+        <source>Use constant interpolated string</source>
+        <target state="new">Use constant interpolated string</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_explicit_type">
         <source>Use explicit type</source>
         <target state="translated">Açık tür kullanma</target>

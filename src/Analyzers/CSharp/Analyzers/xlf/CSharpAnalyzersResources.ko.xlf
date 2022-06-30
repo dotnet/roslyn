@@ -247,6 +247,11 @@
         <target state="translated">속성에 블록 본문 사용</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_constant_interpolated_string">
+        <source>Use constant interpolated string</source>
+        <target state="new">Use constant interpolated string</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_explicit_type">
         <source>Use explicit type</source>
         <target state="translated">명시적 형식 사용</target>

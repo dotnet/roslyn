@@ -247,6 +247,11 @@
         <target state="translated">プロパティにブロック本体を使用する</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_constant_interpolated_string">
+        <source>Use constant interpolated string</source>
+        <target state="new">Use constant interpolated string</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_explicit_type">
         <source>Use explicit type</source>
         <target state="translated">明示的な型の使用</target>

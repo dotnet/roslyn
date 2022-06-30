@@ -408,6 +408,9 @@ dotnet_diagnostic.IDE0120.severity = %value%
 # IDE0130
 dotnet_diagnostic.IDE0130.severity = %value%
 
+# IDE0131
+dotnet_diagnostic.IDE0131.severity = %value%
+
 # IDE0150
 dotnet_diagnostic.IDE0150.severity = %value%
 
@@ -1030,6 +1033,9 @@ No editorconfig based code style option
 
 # IDE0130, PreferNamespaceAndFolderMatchStructure
 dotnet_style_namespace_match_folder = true
+
+# IDE0131
+No editorconfig based code style option
 
 # IDE0150, PreferNullCheckOverTypeCheck
 csharp_style_prefer_null_check_over_type_check = true

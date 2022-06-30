@@ -247,6 +247,11 @@
         <target state="translated">使用属性的程序块主体</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_constant_interpolated_string">
+        <source>Use constant interpolated string</source>
+        <target state="new">Use constant interpolated string</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_explicit_type">
         <source>Use explicit type</source>
         <target state="translated">使用显式类型</target>

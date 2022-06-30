@@ -80,6 +80,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const EnforceOnBuild InvokeDelegateWithConditionalAccess = /*IDE1005*/ EnforceOnBuild.Recommended;
         public const EnforceOnBuild NamingRule = /*IDE1006*/ EnforceOnBuild.Recommended;
         public const EnforceOnBuild MatchFolderAndNamespace = /*IDE0130*/ EnforceOnBuild.Recommended;
+        public const EnforceOnBuild UseConstantInterpolatedString = /*IDE0131*/ EnforceOnBuild.Recommended;
         public const EnforceOnBuild SimplifyObjectCreation = /*IDE0140*/ EnforceOnBuild.Recommended;
         public const EnforceOnBuild SimplifyPropertyPattern = /*IDE0170*/ EnforceOnBuild.Recommended;
         public const EnforceOnBuild RemoveRedundantNullableDirective = /*IDE0240*/ EnforceOnBuild.Recommended;

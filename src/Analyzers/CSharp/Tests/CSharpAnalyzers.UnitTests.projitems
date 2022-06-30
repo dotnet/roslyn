@@ -14,6 +14,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)AddInheritdoc\AddInheritdocTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddObsoleteAttribute\AddObsoleteAttributeTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AliasAmbiguousType\AliasAmbiguousTypeTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ConstantInterpolatedString\ConstantInterpolatedStringTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DisambiguateSameVariable\DisambiguateSameVariableTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FixReturnType\FixReturnTypeTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\FormattingAnalyzerTests.cs" />
