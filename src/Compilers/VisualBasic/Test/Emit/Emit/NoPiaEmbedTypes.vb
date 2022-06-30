@@ -1533,7 +1533,8 @@ End Interface
 ]]></file>
                            </compilation>
             Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
-            Dim verifier = CompileAndVerify(compilation0, verify:=Verification.Fails)
+            ' PEVerify: Error: Method cannot be both generic and defined on an imported type.
+            Dim verifier = CompileAndVerify(compilation0, verify:=Verification.FailsPEVerify)
             AssertTheseDiagnostics(verifier, (<errors/>))
             Dim validator As Action(Of ModuleSymbol) = Sub([module])
                                                            DirectCast([module], PEModuleSymbol).Module.PretendThereArentNoPiaLocalTypes()
@@ -1603,13 +1604,13 @@ End Interface
                 sources1,
                 options:=TestOptions.DebugDll,
                 references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True), SystemCoreRef})
-            verifier = CompileAndVerify(compilation1, symbolValidator:=validator, verify:=Verification.Fails)
+            verifier = CompileAndVerify(compilation1, symbolValidator:=validator, verify:=Verification.FailsPEVerify)
             AssertTheseDiagnostics(verifier, (<errors/>))
             compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
                 options:=TestOptions.DebugDll,
                 references:={compilation0.EmitToImageReference(embedInteropTypes:=True), SystemCoreRef})
-            verifier = CompileAndVerify(compilation1, symbolValidator:=validator, verify:=Verification.Fails)
+            verifier = CompileAndVerify(compilation1, symbolValidator:=validator, verify:=Verification.FailsPEVerify)
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
 
@@ -3711,12 +3712,12 @@ BC31539: Cannot find the interop type that matches the embedded type 'I1'. Are y
             Dim compilation3 = CreateCompilationWithMscorlib40AndReferences(
                 consumer,
                 references:={New VisualBasicCompilationReference(piaCompilation2)})
-            CompileAndVerify(compilation3, verify:=Verification.Fails)
+            CompileAndVerify(compilation3, verify:=Verification.FailsPEVerify)
 
             Dim compilation4 = CreateCompilationWithMscorlib40AndReferences(
                 consumer,
                 references:={MetadataReference.CreateFromImage(piaCompilation2.EmitToArray())})
-            CompileAndVerify(compilation4, verify:=Verification.Fails)
+            CompileAndVerify(compilation4, verify:=Verification.FailsPEVerify)
         End Sub
 
         <Fact()>
@@ -4128,15 +4129,17 @@ BC36924: Type 'List(Of I1)' cannot be used across assembly boundaries because it
             VerifyEmitDiagnostics(compilation2, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation2)
 
+            ' PEVerify: [ : C::M][mdToken=0x6000002][offset 0x00000001] Unable to resolve token.
             Dim compilation3 = CreateCompilationWithMscorlib40AndReferences(
                 consumer,
                 references:={New VisualBasicCompilationReference(piaCompilation2)})
-            CompileAndVerify(compilation3, verify:=Verification.Fails)
+            CompileAndVerify(compilation3, verify:=Verification.FailsPEVerify)
 
+            ' PEVerify: [ : C::M][mdToken=0x6000002][offset 0x00000001] Unable to resolve token.
             Dim compilation4 = CreateCompilationWithMscorlib40AndReferences(
                 consumer,
                 references:={MetadataReference.CreateFromImage(piaCompilation2.EmitToArray())})
-            CompileAndVerify(compilation4, verify:=Verification.Fails)
+            CompileAndVerify(compilation4, verify:=Verification.FailsPEVerify)
         End Sub
 
         <Fact(), WorkItem(673546, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/673546")>

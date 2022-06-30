@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 // caller.
                 if (_state.IsException &&
                     _state.BaseTypeOrInterfaceOpt.InstanceConstructors.Any(
-                        c => c.Parameters.Select(p => p.Type).SequenceEqual(parameterTypes, SymbolEqualityComparer.Default)))
+                        static (c, parameterTypes) => c.Parameters.Select(p => p.Type).SequenceEqual(parameterTypes, SymbolEqualityComparer.Default), parameterTypes))
                 {
                     return;
                 }
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     // parameters of any of the constructors we have in our base class.  This will have the added
                     // benefit of allowing us to infer better types for complex type-less expressions (like lambdas).
                     var syntaxFacts = _semanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
-                    var refKinds = argumentList.SelectAsArray(a => syntaxFacts.GetRefKindOfArgument(a));
+                    var refKinds = argumentList.SelectAsArray(syntaxFacts.GetRefKindOfArgument);
                     var parameters = parameterTypes.Zip(refKinds,
                         (t, r) => CodeGenerationSymbolFactory.CreateParameterSymbol(r, t, name: "")).ToImmutableArray();
 
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 {
                     members.AddRange(factory.CreateMemberDelegatingConstructor(
                         _semanticDocument.SemanticModel,
-                        DetermineName(), null, parameters.ToImmutable(),
+                        DetermineName(), null, parameters.ToImmutable(), Accessibility.Public,
                         parameterToExistingFieldMap.ToImmutable(),
                         parameterToNewFieldMap.ToImmutable(),
                         addNullChecks: false,

@@ -9,11 +9,10 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Extensions;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
@@ -27,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices
     /// Listens to broadcast notifications from the Visual Studio Shell indicating that the application is running
     /// low on available virtual memory.
     /// </summary>
-    internal sealed class VirtualMemoryNotificationListener : ForegroundThreadAffinitizedObject, IVsBroadcastMessageEvents
+    internal sealed class VirtualMemoryNotificationListener : IVsBroadcastMessageEvents
     {
         // memory threshold to turn off full solution analysis - 200MB
         private const long MemoryThreshold = 200 * 1024 * 1024;
@@ -42,11 +41,9 @@ namespace Microsoft.VisualStudio.LanguageServices
         private bool _infoBarShown;
 
         private VirtualMemoryNotificationListener(
-            IThreadingContext threadingContext,
             IVsShell shell,
             IGlobalOptionService globalOptions,
             VisualStudioWorkspace workspace)
-            : base(threadingContext, assertIsForeground: true)
         {
             _globalOptions = globalOptions;
             _workspace = workspace;
@@ -77,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             var shell = (IVsShell?)await serviceProvider.GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
             Assumes.Present(shell);
 
-            return new VirtualMemoryNotificationListener(threadingContext, shell, globalOptions, workspace);
+            return new VirtualMemoryNotificationListener(shell, globalOptions, workspace);
         }
 
         /// <summary>
@@ -138,20 +135,20 @@ namespace Microsoft.VisualStudio.LanguageServices
             // 3. Background analysis memory monitor is on (user can set it off using registry to prevent turning off background analysis)
 
             return availableMemory < MemoryThreshold &&
-                !SolutionCrawlerOptions.LowMemoryForcedMinimalBackgroundAnalysis &&
+                !SolutionCrawlerOptionsStorage.LowMemoryForcedMinimalBackgroundAnalysis &&
                 _globalOptions.GetOption(InternalFeatureOnOffOptions.BackgroundAnalysisMemoryMonitor);
         }
 
-        private void DisableBackgroundAnalysis()
+        private static void DisableBackgroundAnalysis()
         {
             // Force low VM minimal background analysis for the current VS session.
-            SolutionCrawlerOptions.LowMemoryForcedMinimalBackgroundAnalysis = true;
+            SolutionCrawlerOptionsStorage.LowMemoryForcedMinimalBackgroundAnalysis = true;
         }
 
         private void RenableBackgroundAnalysis()
         {
             // Revert forced low VM minimal background analysis for the current VS session.
-            SolutionCrawlerOptions.LowMemoryForcedMinimalBackgroundAnalysis = false;
+            SolutionCrawlerOptionsStorage.LowMemoryForcedMinimalBackgroundAnalysis = false;
         }
 
         private void ShowInfoBarIfRequired()

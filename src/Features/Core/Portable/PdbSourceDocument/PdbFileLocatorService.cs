@@ -33,9 +33,9 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             _logger = logger;
         }
 
-        public async Task<DocumentDebugInfoReader?> GetDocumentDebugInfoReaderAsync(string dllPath, TelemetryMessage telemetry, CancellationToken cancellationToken)
+        public async Task<DocumentDebugInfoReader?> GetDocumentDebugInfoReaderAsync(string dllPath, bool useDefaultSymbolServers, TelemetryMessage telemetry, CancellationToken cancellationToken)
         {
-            var dllStream = IOUtilities.PerformIO(() => File.OpenRead(dllPath));
+            var dllStream = IOUtilities.PerformIO(() => ReadFileIfExists(dllPath));
             if (dllStream is null)
                 return null;
 
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             try
             {
                 // Try to load the pdb file from disk, or embedded
-                if (peReader.TryOpenAssociatedPortablePdb(dllPath, pdbPath => File.OpenRead(pdbPath), out var pdbReaderProvider, out var pdbFilePath))
+                if (peReader.TryOpenAssociatedPortablePdb(dllPath, ReadFileIfExists, out var pdbReaderProvider, out var pdbFilePath))
                 {
                     Contract.ThrowIfNull(pdbReaderProvider);
 
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                     {
                         var delay = Task.Delay(SymbolLocatorTimeout, cancellationToken);
                         // Call the debugger to find the PDB from a symbol server etc.
-                        var pdbResultTask = _sourceLinkService.GetPdbFilePathAsync(dllPath, peReader, cancellationToken);
+                        var pdbResultTask = _sourceLinkService.GetPdbFilePathAsync(dllPath, peReader, useDefaultSymbolServers, cancellationToken);
 
                         var winner = await Task.WhenAny(pdbResultTask, delay).ConfigureAwait(false);
 
@@ -126,6 +126,14 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             }
 
             return result;
+
+            static FileStream? ReadFileIfExists(string fileName)
+            {
+                if (File.Exists(fileName))
+                    return File.OpenRead(fileName);
+
+                return null;
+            }
         }
     }
 }

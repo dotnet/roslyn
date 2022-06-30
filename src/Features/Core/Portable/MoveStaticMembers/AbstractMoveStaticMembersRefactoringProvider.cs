@@ -4,6 +4,7 @@
 
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PullMemberUp;
@@ -18,6 +19,12 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, span, cancellationToken) = context;
+
+            var service = document.Project.Solution.Workspace.Services.GetService<IMoveStaticMembersOptionsService>();
+            if (service == null)
+            {
+                return;
+            }
 
             var memberDeclaration = await GetSelectedNodeAsync(context).ConfigureAwait(false);
             if (memberDeclaration == null)
@@ -40,7 +47,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             var selectedMembers = selectedType.GetMembers()
                 .WhereAsArray(m => m.IsStatic &&
                     MemberAndDestinationValidator.IsMemberValid(m) &&
-                    m.DeclaringSyntaxReferences.Any(sr => memberDeclaration.FullSpan.Contains(sr.Span)));
+                    m.DeclaringSyntaxReferences.Any(static (sr, memberDeclaration) => memberDeclaration.FullSpan.Contains(sr.Span), memberDeclaration));
             if (selectedMembers.IsEmpty)
             {
                 return;
@@ -48,9 +55,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
 
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-            var service = document.Project.Solution.Workspace.Services.GetRequiredService<IMoveStaticMembersOptionsService>();
-
-            var action = new MoveStaticMembersWithDialogCodeAction(document, span, service, selectedType, selectedMember: selectedMembers[0]);
+            var action = new MoveStaticMembersWithDialogCodeAction(document, span, service, selectedType, context.Options, selectedMember: selectedMembers[0]);
 
             context.RegisterRefactoring(action, selectedMembers[0].DeclaringSyntaxReferences[0].Span);
         }

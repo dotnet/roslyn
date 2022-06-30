@@ -6,9 +6,14 @@ using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.OrganizeImports;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
@@ -21,10 +26,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
         }
 
-        public async Task<Document> FormatNewDocumentAsync(Document document, Document? hintDocument, CancellationToken cancellationToken)
+        public async Task<Document> FormatNewDocumentAsync(Document document, Document? hintDocument, CodeCleanupOptions options, CancellationToken cancellationToken)
         {
-            var organizedDocument = await Formatter.OrganizeImportsAsync(document, cancellationToken).ConfigureAwait(false);
-            return await MisplacedUsingDirectivesCodeFixProvider.TransformDocumentIfRequiredAsync(organizedDocument, cancellationToken).ConfigureAwait(false);
+            var organizeImportsService = document.GetRequiredLanguageService<IOrganizeImportsService>();
+            var organizedDocument = await organizeImportsService.OrganizeImportsAsync(document, options.GetOrganizeImportsOptions(), cancellationToken).ConfigureAwait(false);
+
+            return await MisplacedUsingDirectivesCodeFixProvider.TransformDocumentIfRequiredAsync(
+                organizedDocument, options.SimplifierOptions, options.AddImportOptions.UsingDirectivePlacement, cancellationToken).ConfigureAwait(false);
         }
     }
 }

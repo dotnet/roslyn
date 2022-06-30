@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -16,12 +17,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
     internal partial class InternalOptionsControl : AbstractOptionPageControl
     {
-        private readonly string _featureOptionName;
+        private readonly IEnumerable<IOption> _options;
 
-        public InternalOptionsControl(string featureOptionName, OptionStore optionStore)
+        public InternalOptionsControl(IEnumerable<IOption> options, OptionStore optionStore)
             : base(optionStore)
         {
-            _featureOptionName = featureOptionName;
+            _options = options;
 
             // options
             var optionsPanel = new StackPanel();
@@ -108,7 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         protected virtual void AddOptions(Panel panel)
         {
-            foreach (var option in OptionStore.GetRegisteredOptions().Where(o => o.Feature == _featureOptionName).OrderBy(o => o.Name))
+            foreach (var option in _options)
             {
                 if (!option.IsPerLanguage)
                 {
@@ -165,7 +166,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             return null;
         }
 
-        private string GetAdditionalText(string additional)
+        private static string GetAdditionalText(string additional)
         {
             if (additional == null)
             {
@@ -175,7 +176,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             return " [" + additional + "]";
         }
 
-        private string GetLanguage(string languageName)
+        private static string GetLanguage(string languageName)
         {
             if (languageName == null)
             {

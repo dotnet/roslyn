@@ -48,31 +48,34 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         protected sealed override CodeAction CreateCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, MergeDirection direction, string ifKeywordText)
         {
             var resourceText = direction == MergeDirection.Up ? FeaturesResources.Merge_with_previous_0_statement : FeaturesResources.Merge_with_next_0_statement;
-            return new MyCodeAction(string.Format(resourceText, ifKeywordText), createChangedDocument);
+            var title = string.Format(resourceText, ifKeywordText);
+            return CodeAction.Create(title, createChangedDocument, title);
         }
 
         protected sealed override Task<bool> CanBeMergedUpAsync(
             Document document, SyntaxNode ifOrElseIf, CancellationToken cancellationToken, out SyntaxNode firstIfOrElseIf)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var blockFacts = document.GetLanguageService<IBlockFactsService>();
             var ifGenerator = document.GetLanguageService<IIfLikeStatementGenerator>();
 
-            if (CanBeMergedWithParent(syntaxFacts, ifGenerator, ifOrElseIf, out firstIfOrElseIf))
+            if (CanBeMergedWithParent(syntaxFacts, blockFacts, ifGenerator, ifOrElseIf, out firstIfOrElseIf))
                 return SpecializedTasks.True;
 
-            return CanBeMergedWithPreviousStatementAsync(document, syntaxFacts, ifGenerator, ifOrElseIf, cancellationToken, out firstIfOrElseIf);
+            return CanBeMergedWithPreviousStatementAsync(document, syntaxFacts, blockFacts, ifGenerator, ifOrElseIf, cancellationToken, out firstIfOrElseIf);
         }
 
         protected sealed override Task<bool> CanBeMergedDownAsync(
             Document document, SyntaxNode ifOrElseIf, CancellationToken cancellationToken, out SyntaxNode secondIfOrElseIf)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var blockFacts = document.GetLanguageService<IBlockFactsService>();
             var ifGenerator = document.GetLanguageService<IIfLikeStatementGenerator>();
 
-            if (CanBeMergedWithElseIf(syntaxFacts, ifGenerator, ifOrElseIf, out secondIfOrElseIf))
+            if (CanBeMergedWithElseIf(syntaxFacts, blockFacts, ifGenerator, ifOrElseIf, out secondIfOrElseIf))
                 return SpecializedTasks.True;
 
-            return CanBeMergedWithNextStatementAsync(document, syntaxFacts, ifGenerator, ifOrElseIf, cancellationToken, out secondIfOrElseIf);
+            return CanBeMergedWithNextStatementAsync(document, syntaxFacts, blockFacts, ifGenerator, ifOrElseIf, cancellationToken, out secondIfOrElseIf);
         }
 
         protected sealed override SyntaxNode GetChangedRoot(Document document, SyntaxNode root, SyntaxNode firstIfOrElseIf, SyntaxNode secondIfOrElseIf)
@@ -132,53 +135,58 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 
         private static bool CanBeMergedWithParent(
             ISyntaxFactsService syntaxFacts,
+            IBlockFactsService blockFacts,
             IIfLikeStatementGenerator ifGenerator,
             SyntaxNode ifOrElseIf,
             out SyntaxNode parentIfOrElseIf)
         {
             return ifGenerator.IsElseIfClause(ifOrElseIf, out parentIfOrElseIf) &&
-                   ContainEquivalentStatements(syntaxFacts, ifOrElseIf, parentIfOrElseIf, out _);
+                   ContainEquivalentStatements(syntaxFacts, blockFacts, ifOrElseIf, parentIfOrElseIf, out _);
         }
 
         private static bool CanBeMergedWithElseIf(
             ISyntaxFactsService syntaxFacts,
+            IBlockFactsService blockFacts,
             IIfLikeStatementGenerator ifGenerator,
             SyntaxNode ifOrElseIf,
             out SyntaxNode elseIfClause)
         {
             return ifGenerator.HasElseIfClause(ifOrElseIf, out elseIfClause) &&
-                   ContainEquivalentStatements(syntaxFacts, ifOrElseIf, elseIfClause, out _);
+                   ContainEquivalentStatements(syntaxFacts, blockFacts, ifOrElseIf, elseIfClause, out _);
         }
 
         private static Task<bool> CanBeMergedWithPreviousStatementAsync(
             Document document,
             ISyntaxFactsService syntaxFacts,
+            IBlockFactsService blockFacts,
             IIfLikeStatementGenerator ifGenerator,
             SyntaxNode ifOrElseIf,
             CancellationToken cancellationToken,
             out SyntaxNode previousStatement)
         {
-            return TryGetSiblingStatement(syntaxFacts, ifOrElseIf, relativeIndex: -1, out previousStatement)
-                ? CanStatementsBeMergedAsync(document, syntaxFacts, ifGenerator, previousStatement, ifOrElseIf, cancellationToken)
+            return TryGetSiblingStatement(syntaxFacts, blockFacts, ifOrElseIf, relativeIndex: -1, out previousStatement)
+                ? CanStatementsBeMergedAsync(document, syntaxFacts, blockFacts, ifGenerator, previousStatement, ifOrElseIf, cancellationToken)
                 : SpecializedTasks.False;
         }
 
         private static Task<bool> CanBeMergedWithNextStatementAsync(
             Document document,
             ISyntaxFactsService syntaxFacts,
+            IBlockFactsService blockFacts,
             IIfLikeStatementGenerator ifGenerator,
             SyntaxNode ifOrElseIf,
             CancellationToken cancellationToken,
             out SyntaxNode nextStatement)
         {
-            return TryGetSiblingStatement(syntaxFacts, ifOrElseIf, relativeIndex: 1, out nextStatement)
-                ? CanStatementsBeMergedAsync(document, syntaxFacts, ifGenerator, ifOrElseIf, nextStatement, cancellationToken)
+            return TryGetSiblingStatement(syntaxFacts, blockFacts, ifOrElseIf, relativeIndex: 1, out nextStatement)
+                ? CanStatementsBeMergedAsync(document, syntaxFacts, blockFacts, ifGenerator, ifOrElseIf, nextStatement, cancellationToken)
                 : SpecializedTasks.False;
         }
 
         private static async Task<bool> CanStatementsBeMergedAsync(
             Document document,
             ISyntaxFactsService syntaxFacts,
+            IBlockFactsService blockFacts,
             IIfLikeStatementGenerator ifGenerator,
             SyntaxNode firstStatement,
             SyntaxNode secondStatement,
@@ -192,7 +200,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             if (!ifGenerator.IsIfOrElseIf(secondStatement))
                 return false;
 
-            if (!ContainEquivalentStatements(syntaxFacts, firstStatement, secondStatement, out var insideStatements))
+            if (!ContainEquivalentStatements(syntaxFacts, blockFacts, firstStatement, secondStatement, out var insideStatements))
                 return false;
 
             if (insideStatements.Count == 0)
@@ -216,12 +224,16 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         }
 
         private static bool TryGetSiblingStatement(
-            ISyntaxFactsService syntaxFacts, SyntaxNode ifOrElseIf, int relativeIndex, out SyntaxNode statement)
+            ISyntaxFactsService syntaxFacts,
+            IBlockFactsService blockFacts,
+            SyntaxNode ifOrElseIf,
+            int relativeIndex,
+            out SyntaxNode statement)
         {
             if (syntaxFacts.IsExecutableStatement(ifOrElseIf) &&
-                syntaxFacts.IsExecutableBlock(ifOrElseIf.Parent))
+                blockFacts.IsExecutableBlock(ifOrElseIf.Parent))
             {
-                var blockStatements = syntaxFacts.GetExecutableBlockStatements(ifOrElseIf.Parent);
+                var blockStatements = blockFacts.GetExecutableBlockStatements(ifOrElseIf.Parent);
 
                 statement = blockStatements.ElementAtOrDefault(blockStatements.IndexOf(ifOrElseIf) + relativeIndex);
                 return statement != null;
@@ -233,23 +245,16 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 
         private static bool ContainEquivalentStatements(
             ISyntaxFactsService syntaxFacts,
+            IBlockFactsService blockFacts,
             SyntaxNode ifStatement1,
             SyntaxNode ifStatement2,
             out IReadOnlyList<SyntaxNode> statements)
         {
-            var statements1 = WalkDownScopeBlocks(syntaxFacts, syntaxFacts.GetStatementContainerStatements(ifStatement1));
-            var statements2 = WalkDownScopeBlocks(syntaxFacts, syntaxFacts.GetStatementContainerStatements(ifStatement2));
+            var statements1 = WalkDownScopeBlocks(blockFacts, blockFacts.GetStatementContainerStatements(ifStatement1));
+            var statements2 = WalkDownScopeBlocks(blockFacts, blockFacts.GetStatementContainerStatements(ifStatement2));
 
             statements = statements1;
             return statements1.SequenceEqual(statements2, syntaxFacts.AreEquivalent);
-        }
-
-        private sealed class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, title)
-            {
-            }
         }
     }
 }

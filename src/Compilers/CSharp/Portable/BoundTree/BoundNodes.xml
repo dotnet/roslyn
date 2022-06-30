@@ -603,6 +603,14 @@
     <Field Name="LeftConversion" Type="BoundExpression?" SkipInVisitor="true" Null="allow"/>
 
     <Field Name="OperatorResultKind" Type="BoundNullCoalescingOperatorResultKind" Null="NotApplicable"/>
+    <!--
+    This flag reflects the evaluation context used by the operator for conversions.
+    Semantics of the node is well defined without this flag because the necessary
+    conversions, if any, are stored in the dedicated properties. Flag's value is not
+    important for lowering or code generation. It is only used by NullableWalker
+    when it attempts to re-apply conversions to the original operands.
+    -->
+    <Field Name="Checked" Type="bool"/>
   </Node>
 
   <Node Name="BoundNullCoalescingAssignmentOperator" Base="BoundExpression">
@@ -1057,6 +1065,14 @@
   <Node Name="BoundReturnStatement" Base="BoundStatement">
     <Field Name="RefKind" Type="RefKind"/>
     <Field Name="ExpressionOpt" Type="BoundExpression?"/>
+    <!--
+    This flag reflects the evaluation context used by the return statement to convert
+    the original return expression. Semantics of the node is well defined without this
+    flag because the necessary conversion is part of ExpressionOpt. Flag’s value is not
+    important for lowering or code generation. It is only used by NullableWalker when
+    it attempts to re-infer the best return type for a lambda expression.
+    -->
+    <Field Name="Checked" Type="bool"/>
   </Node>
 
   <Node Name="BoundYieldReturnStatement" Base="BoundStatement">
@@ -1088,7 +1104,7 @@
     <Field Name="InnerLocals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="InnerLocalFunctions" Type="ImmutableArray&lt;LocalFunctionSymbol&gt;"/>
     <Field Name="SwitchSections" Type="ImmutableArray&lt;BoundSwitchSection&gt;"/>
-    <Field Name="DecisionDag" Type="BoundDecisionDag" Null="disallow" SkipInVisitor="true"/>
+    <Field Name="ReachabilityDecisionDag" Type="BoundDecisionDag" Null="disallow" SkipInVisitor="true"/>
     <Field Name="DefaultLabel" Type="BoundSwitchLabel?"/>
     <Field Name="BreakLabel" Type="GeneratedLabelSymbol"/>
   </Node>
@@ -1118,8 +1134,6 @@
     <Field Name="Expression" Type="BoundExpression" Null="disallow" />
     <Field Name="Cases" Type="ImmutableArray&lt;(ConstantValue value, LabelSymbol label)&gt;" />
     <Field Name="DefaultLabel" Type="LabelSymbol" Null="disallow" />
-    <!-- Equality method to be used when dispatching on a non-integral type such as string. -->
-    <Field Name="EqualityMethod" Type="MethodSymbol?" />
   </Node>
 
   <Node Name="BoundIfStatement" Base="BoundStatement">
@@ -1288,6 +1302,12 @@
     <Field Name="ConstantValueOpt" Type="ConstantValue?"/>
   </Node>
 
+  <Node Name="BoundUtf8String" Base="BoundExpression">
+    <!-- Non-null type is required for this node kind -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <Field Name="Value" Type="string" Null="disallow"/>
+  </Node>
+
   <Node Name="BoundThisReference" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>   
@@ -1411,7 +1431,7 @@
   <AbstractNode Name="BoundSwitchExpression" Base="BoundExpression">
     <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
     <Field Name="SwitchArms" Type="ImmutableArray&lt;BoundSwitchExpressionArm&gt;"/>
-    <Field Name="DecisionDag" Type="BoundDecisionDag" Null="disallow" SkipInVisitor="true"/>
+    <Field Name="ReachabilityDecisionDag" Type="BoundDecisionDag" Null="disallow" SkipInVisitor="true"/>
     <Field Name="DefaultLabel" Type="LabelSymbol?"/>
     <Field Name="ReportedNotExhaustive" Type="bool"/>
   </AbstractNode>
@@ -1755,6 +1775,7 @@
     <Field Name="ConstructorArgumentNamesOpt" Type="ImmutableArray&lt;string?&gt;" Null="allow"/>
     <Field Name="ConstructorArgumentsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
     <Field Name="ConstructorExpanded" Type="bool" />
+    <Field Name="ConstructorDefaultArguments" Type="BitVector"/>
     <Field Name="NamedArguments" Type ="ImmutableArray&lt;BoundAssignmentOperator&gt;"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
   </Node>
@@ -1764,12 +1785,13 @@
   It does not survive past initial binding.
   -->
   <Node Name="BoundUnconvertedObjectCreationExpression" Base="BoundExpression">
-      <!-- Type is not significant for this node type; always null -->
-      <Field Name="Type" Type="TypeSymbol?" Override="true" Null="always"/>
-      <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
-      <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;(string Name, Location Location)?&gt;" Null="allow"/>
-      <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
-      <Field Name="InitializerOpt" Type="InitializerExpressionSyntax?" Null="allow"/>
+    <!-- Type is not significant for this node type; always null -->
+    <Field Name="Type" Type="TypeSymbol?" Override="true" Null="always"/>
+    <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
+    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;(string Name, Location Location)?&gt;" Null="allow"/>
+    <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
+    <Field Name="InitializerOpt" Type="InitializerExpressionSyntax?" Null="allow"/>
+    <Field Name="Binder" Type="Binder" Null="disallow"/>
   </Node>
 
   <AbstractNode Name="BoundObjectCreationExpressionBase" Base="BoundExpression">
@@ -1986,6 +2008,8 @@
     <!-- Type is not significant for this node type; always null -->
     <Field Name="Type" Type="TypeSymbol?" Override="true" Null="always"/>
 
+    <!-- Whether the containing BoundArrayCreation or BoundStackAllocArrayCreationBase has an inferred vs. explicit type. -->
+    <Field Name="IsInferred" Type="bool"/>
     <Field Name="Initializers" Type="ImmutableArray&lt;BoundExpression&gt;"/>
   </Node>
 
@@ -2200,7 +2224,7 @@
     <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
     <Field Name="Pattern" Type="BoundPattern" Null="disallow"/>
     <Field Name="IsNegated" Type="bool"/>
-    <Field Name="DecisionDag" Type="BoundDecisionDag" Null="disallow" SkipInVisitor="true"/>
+    <Field Name="ReachabilityDecisionDag" Type="BoundDecisionDag" Null="disallow" SkipInVisitor="true"/>
     <Field Name="WhenTrueLabel" Type="LabelSymbol" Null="disallow"/>
     <Field Name="WhenFalseLabel" Type="LabelSymbol" Null="disallow"/>
   </Node>

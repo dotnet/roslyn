@@ -5449,21 +5449,6 @@ record C2: Error;
 
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (2,8): error CS0115: 'C2.ToString()': no suitable method found to override
-                // record C2: Error;
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C2").WithArguments("C2.ToString()").WithLocation(2, 8),
-                // (2,8): error CS0115: 'C2.EqualityContract': no suitable method found to override
-                // record C2: Error;
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C2").WithArguments("C2.EqualityContract").WithLocation(2, 8),
-                // (2,8): error CS0115: 'C2.Equals(object?)': no suitable method found to override
-                // record C2: Error;
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C2").WithArguments("C2.Equals(object?)").WithLocation(2, 8),
-                // (2,8): error CS0115: 'C2.GetHashCode()': no suitable method found to override
-                // record C2: Error;
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C2").WithArguments("C2.GetHashCode()").WithLocation(2, 8),
-                // (2,8): error CS0115: 'C2.PrintMembers(StringBuilder)': no suitable method found to override
-                // record C2: Error;
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C2").WithArguments("C2.PrintMembers(System.Text.StringBuilder)").WithLocation(2, 8),
                 // (2,12): error CS0246: The type or namespace name 'Error' could not be found (are you missing a using directive or an assembly reference?)
                 // record C2: Error;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Error").WithArguments("Error").WithLocation(2, 12)
@@ -5481,22 +5466,7 @@ record R : R;
             comp.VerifyEmitDiagnostics(
                 // (2,8): error CS0146: Circular base type dependency involving 'R' and 'R'
                 // record R : R;
-                Diagnostic(ErrorCode.ERR_CircularBase, "R").WithArguments("R", "R").WithLocation(2, 8),
-                // (2,8): error CS0115: 'R.ToString()': no suitable method found to override
-                // record R : R;
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "R").WithArguments("R.ToString()").WithLocation(2, 8),
-                // (2,8): error CS0115: 'R.EqualityContract': no suitable method found to override
-                // record R : R;
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "R").WithArguments("R.EqualityContract").WithLocation(2, 8),
-                // (2,8): error CS0115: 'R.Equals(object?)': no suitable method found to override
-                // record R : R;
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "R").WithArguments("R.Equals(object?)").WithLocation(2, 8),
-                // (2,8): error CS0115: 'R.GetHashCode()': no suitable method found to override
-                // record R : R;
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "R").WithArguments("R.GetHashCode()").WithLocation(2, 8),
-                // (2,8): error CS0115: 'R.PrintMembers(StringBuilder)': no suitable method found to override
-                // record R : R;
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "R").WithArguments("R.PrintMembers(System.Text.StringBuilder)").WithLocation(2, 8)
+                Diagnostic(ErrorCode.ERR_CircularBase, "R").WithArguments("R", "R").WithLocation(2, 8)
                 );
         }
 
@@ -9736,7 +9706,7 @@ record C(int Y)
             comp.VerifyDiagnostics(
                 // (9,9): error CS8147: Properties which return by reference cannot have set accessors
                 //         set { }
-                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithArguments("C.X.set").WithLocation(9, 9),
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithLocation(9, 9),
                 // (15,32): error CS1525: Invalid expression term 'ref'
                 //         var c = new C(0) { X = ref a[0] };
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref a[0]").WithArguments("ref").WithLocation(15, 32),
@@ -13450,21 +13420,6 @@ record C(int j) : B(3, 4)
 
             var compB2 = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9, assemblyName: "AssemblyB2");
             compB2.VerifyEmitDiagnostics(
-                // (2,8): error CS0115: 'C.ToString()': no suitable method found to override
-                // record C(int j) : B(3, 4);
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C").WithArguments("C.ToString()").WithLocation(2, 8),
-                // (2,8): error CS0115: 'C.GetHashCode()': no suitable method found to override
-                // record C(int j) : B(3, 4);
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C").WithArguments("C.GetHashCode()").WithLocation(2, 8),
-                // (2,8): error CS0115: 'C.EqualityContract': no suitable method found to override
-                // record C(int j) : B(3, 4);
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C").WithArguments("C.EqualityContract").WithLocation(2, 8),
-                // (2,8): error CS0115: 'C.Equals(object?)': no suitable method found to override
-                // record C(int j) : B(3, 4);
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C").WithArguments("C.Equals(object?)").WithLocation(2, 8),
-                // (2,8): error CS0115: 'C.PrintMembers(StringBuilder)': no suitable method found to override
-                // record C(int j) : B(3, 4);
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C").WithArguments("C.PrintMembers(System.Text.StringBuilder)").WithLocation(2, 8),
                 // (2,19): error CS0122: 'B' is inaccessible due to its protection level
                 // record C(int j) : B(3, 4);
                 Diagnostic(ErrorCode.ERR_BadAccess, "B").WithArguments("B").WithLocation(2, 19),
@@ -24430,21 +24385,6 @@ record B : A<int>, System.IEquatable<B>;
                 // (1,8): error CS0518: Predefined type 'System.Type' is not defined or imported
                 // record A<T> : System.IEquatable<A<T>>;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.Type").WithLocation(1, 8),
-                // (1,8): error CS0115: 'A<T>.ToString()': no suitable method found to override
-                // record A<T> : System.IEquatable<A<T>>;
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.ToString()").WithLocation(1, 8),
-                // (1,8): error CS0115: 'A<T>.EqualityContract': no suitable method found to override
-                // record A<T> : System.IEquatable<A<T>>;
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.EqualityContract").WithLocation(1, 8),
-                // (1,8): error CS0115: 'A<T>.Equals(object?)': no suitable method found to override
-                // record A<T> : System.IEquatable<A<T>>;
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.Equals(object?)").WithLocation(1, 8),
-                // (1,8): error CS0115: 'A<T>.GetHashCode()': no suitable method found to override
-                // record A<T> : System.IEquatable<A<T>>;
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.GetHashCode()").WithLocation(1, 8),
-                // (1,8): error CS0115: 'A<T>.PrintMembers(StringBuilder)': no suitable method found to override
-                // record A<T> : System.IEquatable<A<T>>;
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.PrintMembers(System.Text.StringBuilder)").WithLocation(1, 8),
                 // (1,22): error CS0234: The type or namespace name 'IEquatable<>' does not exist in the namespace 'System' (are you missing an assembly reference?)
                 // record A<T> : System.IEquatable<A<T>>;
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "IEquatable<A<T>>").WithArguments("IEquatable<>", "System").WithLocation(1, 22),
@@ -24519,21 +24459,6 @@ record B : A<int>, IEquatable<B>;
                 // (2,8): error CS0518: Predefined type 'System.Type' is not defined or imported
                 // record A<T> : IEquatable<A<T>>;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.Type").WithLocation(2, 8),
-                // (2,8): error CS0115: 'A<T>.ToString()': no suitable method found to override
-                // record A<T> : IEquatable<A<T>>;
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.ToString()").WithLocation(2, 8),
-                // (2,8): error CS0115: 'A<T>.EqualityContract': no suitable method found to override
-                // record A<T> : IEquatable<A<T>>;
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.EqualityContract").WithLocation(2, 8),
-                // (2,8): error CS0115: 'A<T>.Equals(object?)': no suitable method found to override
-                // record A<T> : IEquatable<A<T>>;
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.Equals(object?)").WithLocation(2, 8),
-                // (2,8): error CS0115: 'A<T>.GetHashCode()': no suitable method found to override
-                // record A<T> : IEquatable<A<T>>;
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.GetHashCode()").WithLocation(2, 8),
-                // (2,8): error CS0115: 'A<T>.PrintMembers(StringBuilder)': no suitable method found to override
-                // record A<T> : IEquatable<A<T>>;
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.PrintMembers(System.Text.StringBuilder)").WithLocation(2, 8),
                 // (2,15): error CS0246: The type or namespace name 'IEquatable<>' could not be found (are you missing a using directive or an assembly reference?)
                 // record A<T> : IEquatable<A<T>>;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "IEquatable<A<T>>").WithArguments("IEquatable<>").WithLocation(2, 15),
@@ -25832,42 +25757,12 @@ record B<T> : A<B<T>> {
 ";
             var comp = CreateCompilation(text);
             comp.GetDeclarationDiagnostics().Verify(
-                // (2,8): error CS0146: Circular base type dependency involving 'B<A<T>>' and 'A<T>'
-                // record A<T> : B<A<T>> { }
-                Diagnostic(ErrorCode.ERR_CircularBase, "A").WithArguments("B<A<T>>", "A<T>").WithLocation(2, 8),
                 // (3,8): error CS0146: Circular base type dependency involving 'A<B<T>>' and 'B<T>'
                 // record B<T> : A<B<T>> {
                 Diagnostic(ErrorCode.ERR_CircularBase, "B").WithArguments("A<B<T>>", "B<T>").WithLocation(3, 8),
-                // (2,8): error CS0115: 'A<T>.ToString()': no suitable method found to override
+                // (2,8): error CS0146: Circular base type dependency involving 'B<A<T>>' and 'A<T>'
                 // record A<T> : B<A<T>> { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.ToString()").WithLocation(2, 8),
-                // (2,8): error CS0115: 'A<T>.EqualityContract': no suitable method found to override
-                // record A<T> : B<A<T>> { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.EqualityContract").WithLocation(2, 8),
-                // (2,8): error CS0115: 'A<T>.Equals(object?)': no suitable method found to override
-                // record A<T> : B<A<T>> { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.Equals(object?)").WithLocation(2, 8),
-                // (2,8): error CS0115: 'A<T>.GetHashCode()': no suitable method found to override
-                // record A<T> : B<A<T>> { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.GetHashCode()").WithLocation(2, 8),
-                // (2,8): error CS0115: 'A<T>.PrintMembers(StringBuilder)': no suitable method found to override
-                // record A<T> : B<A<T>> { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.PrintMembers(System.Text.StringBuilder)").WithLocation(2, 8),
-                // (3,8): error CS0115: 'B<T>.EqualityContract': no suitable method found to override
-                // record B<T> : A<B<T>> {
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B<T>.EqualityContract").WithLocation(3, 8),
-                // (3,8): error CS0115: 'B<T>.Equals(object?)': no suitable method found to override
-                // record B<T> : A<B<T>> {
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B<T>.Equals(object?)").WithLocation(3, 8),
-                // (3,8): error CS0115: 'B<T>.GetHashCode()': no suitable method found to override
-                // record B<T> : A<B<T>> {
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B<T>.GetHashCode()").WithLocation(3, 8),
-                // (3,8): error CS0115: 'B<T>.PrintMembers(StringBuilder)': no suitable method found to override
-                // record B<T> : A<B<T>> {
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B<T>.PrintMembers(System.Text.StringBuilder)").WithLocation(3, 8),
-                // (3,8): error CS0115: 'B<T>.ToString()': no suitable method found to override
-                // record B<T> : A<B<T>> {
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B<T>.ToString()").WithLocation(3, 8)
+                Diagnostic(ErrorCode.ERR_CircularBase, "A").WithArguments("B<A<T>>", "A<T>").WithLocation(2, 8)
                 );
         }
 
@@ -25911,42 +25806,12 @@ public partial record C3 : Base<(int a, int b)> { }
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (5,23): error CS0263: Partial declarations of 'C2' must not specify different base classes
-                // public partial record C2 : Base<(int a, int b)> { }
-                Diagnostic(ErrorCode.ERR_PartialMultipleBases, "C2").WithArguments("C2").WithLocation(5, 23),
                 // (3,23): error CS0263: Partial declarations of 'C1' must not specify different base classes
                 // public partial record C1 : Base<(int a, int b)> { }
                 Diagnostic(ErrorCode.ERR_PartialMultipleBases, "C1").WithArguments("C1").WithLocation(3, 23),
-                // (5,23): error CS0115: 'C2.ToString()': no suitable method found to override
+                // (5,23): error CS0263: Partial declarations of 'C2' must not specify different base classes
                 // public partial record C2 : Base<(int a, int b)> { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C2").WithArguments("C2.ToString()").WithLocation(5, 23),
-                // (5,23): error CS0115: 'C2.EqualityContract': no suitable method found to override
-                // public partial record C2 : Base<(int a, int b)> { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C2").WithArguments("C2.EqualityContract").WithLocation(5, 23),
-                // (5,23): error CS0115: 'C2.Equals(object?)': no suitable method found to override
-                // public partial record C2 : Base<(int a, int b)> { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C2").WithArguments("C2.Equals(object?)").WithLocation(5, 23),
-                // (5,23): error CS0115: 'C2.GetHashCode()': no suitable method found to override
-                // public partial record C2 : Base<(int a, int b)> { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C2").WithArguments("C2.GetHashCode()").WithLocation(5, 23),
-                // (5,23): error CS0115: 'C2.PrintMembers(StringBuilder)': no suitable method found to override
-                // public partial record C2 : Base<(int a, int b)> { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C2").WithArguments("C2.PrintMembers(System.Text.StringBuilder)").WithLocation(5, 23),
-                // (3,23): error CS0115: 'C1.ToString()': no suitable method found to override
-                // public partial record C1 : Base<(int a, int b)> { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C1").WithArguments("C1.ToString()").WithLocation(3, 23),
-                // (3,23): error CS0115: 'C1.EqualityContract': no suitable method found to override
-                // public partial record C1 : Base<(int a, int b)> { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C1").WithArguments("C1.EqualityContract").WithLocation(3, 23),
-                // (3,23): error CS0115: 'C1.Equals(object?)': no suitable method found to override
-                // public partial record C1 : Base<(int a, int b)> { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C1").WithArguments("C1.Equals(object?)").WithLocation(3, 23),
-                // (3,23): error CS0115: 'C1.GetHashCode()': no suitable method found to override
-                // public partial record C1 : Base<(int a, int b)> { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C1").WithArguments("C1.GetHashCode()").WithLocation(3, 23),
-                // (3,23): error CS0115: 'C1.PrintMembers(StringBuilder)': no suitable method found to override
-                // public partial record C1 : Base<(int a, int b)> { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C1").WithArguments("C1.PrintMembers(System.Text.StringBuilder)").WithLocation(3, 23)
+                Diagnostic(ErrorCode.ERR_PartialMultipleBases, "C2").WithArguments("C2").WithLocation(5, 23)
                 );
         }
 
@@ -26288,11 +26153,9 @@ class Attr3 : System.Attribute {}
             Assert.Equal(1, analyzer.FireCount7);
             Assert.Equal(1, analyzer.FireCount8);
             Assert.Equal(1, analyzer.FireCount9);
-            Assert.Equal(1, analyzer.FireCount10);
             Assert.Equal(1, analyzer.FireCount11);
             Assert.Equal(1, analyzer.FireCount12);
             Assert.Equal(1, analyzer.FireCount13);
-            Assert.Equal(1, analyzer.FireCount14);
             Assert.Equal(1, analyzer.FireCount15);
             Assert.Equal(1, analyzer.FireCount16);
             Assert.Equal(1, analyzer.FireCount17);
@@ -26324,11 +26187,9 @@ class Attr3 : System.Attribute {}
             public int FireCount7;
             public int FireCount8;
             public int FireCount9;
-            public int FireCount10;
             public int FireCount11;
             public int FireCount12;
             public int FireCount13;
-            public int FireCount14;
             public int FireCount15;
             public int FireCount16;
             public int FireCount17;
@@ -26490,9 +26351,6 @@ class Attr3 : System.Attribute {}
 
                 switch (context.ContainingSymbol.ToTestDisplayString())
                 {
-                    case "B..ctor([System.Int32 Y = 1])":
-                        Interlocked.Increment(ref FireCount10);
-                        break;
                     case "B":
                         Interlocked.Increment(ref FireCount11);
                         break;
@@ -26501,9 +26359,6 @@ class Attr3 : System.Attribute {}
                         break;
                     case "C":
                         Interlocked.Increment(ref FireCount13);
-                        break;
-                    case "A..ctor([System.Int32 X = 0])":
-                        Interlocked.Increment(ref FireCount14);
                         break;
                     default:
                         Assert.True(false);
@@ -27550,11 +27405,9 @@ interface I1 {}
             Assert.Equal(1, analyzer.FireCount7);
             Assert.Equal(0, analyzer.FireCount8);
             Assert.Equal(1, analyzer.FireCount9);
-            Assert.Equal(0, analyzer.FireCount10);
             Assert.Equal(0, analyzer.FireCount11);
             Assert.Equal(0, analyzer.FireCount12);
             Assert.Equal(0, analyzer.FireCount13);
-            Assert.Equal(0, analyzer.FireCount14);
             Assert.Equal(1, analyzer.FireCount15);
             Assert.Equal(1, analyzer.FireCount16);
             Assert.Equal(0, analyzer.FireCount17);
@@ -28326,7 +28179,11 @@ namespace System.Runtime.CompilerServices
             Assert.Equal("", constructor.GetParameters()[0].GetDocumentationCommentXml());
 
             var property = cMember.GetMembers("I1").Single();
-            Assert.Equal("", property.GetDocumentationCommentXml());
+            AssertEx.Equal(
+@"<member name=""P:C.I1"">
+    <summary>Description for I1</summary>
+</member>
+", property.GetDocumentationCommentXml());
         }
 
         [Fact, WorkItem(53912, "https://github.com/dotnet/roslyn/issues/53912")]
@@ -28357,7 +28214,8 @@ namespace NamespaceA
 
             var actual = GetDocumentationCommentText(comp);
             // the cref becomes `P:...`
-            var expected = (@"<?xml version=""1.0""?>
+            var expected =
+@"<?xml version=""1.0""?>
 <doc>
     <assembly>
         <name>Test</name>
@@ -28379,6 +28237,11 @@ namespace NamespaceA
             A property
             </param>
         </member>
+        <member name=""P:NamespaceA.LinkDestinationRecord.Prop1"">
+            <summary>
+            A property
+            </summary>
+        </member>
         <member name=""T:NamespaceA.LinkingClass"">
             <summary>
             Simple class.
@@ -28388,7 +28251,7 @@ namespace NamespaceA
             <inheritdoc cref=""P:NamespaceA.LinkDestinationRecord.Prop1"" />
         </member>
     </members>
-</doc>");
+</doc>";
             Assert.Equal(expected, actual);
         }
 
@@ -28430,7 +28293,11 @@ namespace System.Runtime.CompilerServices
             Assert.Equal("", constructor.GetParameters()[0].GetDocumentationCommentXml());
 
             var property = cMember.GetMembers("I1").Single();
-            Assert.Equal("", property.GetDocumentationCommentXml());
+            AssertEx.Equal(
+@"<member name=""P:C.I1"">
+    <summary>Description for I1</summary>
+</member>
+", property.GetDocumentationCommentXml());
         }
 
         [Fact]
@@ -28718,7 +28585,11 @@ namespace System.Runtime.CompilerServices
 ", cConstructor.GetDocumentationCommentXml());
 
             Assert.Equal("", cConstructor.GetParameters()[0].GetDocumentationCommentXml());
-            Assert.Equal("", c.GetMembers("I1").Single().GetDocumentationCommentXml());
+            AssertEx.Equal(
+@"<member name=""P:C.I1"">
+    <summary>Description for I1</summary>
+</member>
+", c.GetMembers("I1").Single().GetDocumentationCommentXml());
         }
 
         [Fact]
@@ -28761,7 +28632,11 @@ namespace System.Runtime.CompilerServices
 ", dConstructor.GetDocumentationCommentXml());
 
             Assert.Equal("", dConstructor.GetParameters()[0].GetDocumentationCommentXml());
-            Assert.Equal("", d.GetMembers("I1").Single().GetDocumentationCommentXml());
+            AssertEx.Equal(
+@"<member name=""P:D.I1"">
+    <summary>Description for I1</summary>
+</member>
+", d.GetMembers("I1").Single().GetDocumentationCommentXml());
         }
 
         [Fact]
@@ -28805,7 +28680,11 @@ namespace System.Runtime.CompilerServices
             var eConstructor = e.GetMembers(".ctor").OfType<SynthesizedRecordConstructor>().Single();
             Assert.Equal("", eConstructor.GetDocumentationCommentXml());
             Assert.Equal("", eConstructor.GetParameters()[0].GetDocumentationCommentXml());
-            Assert.Equal("", e.GetMembers("I1").Single().GetDocumentationCommentXml());
+            AssertEx.Equal(
+@"<member name=""P:E.I1"">
+    <summary>Description for I1</summary>
+</member>
+", e.GetMembers("I1").Single().GetDocumentationCommentXml());
         }
 
         [Fact]
@@ -28849,7 +28728,11 @@ namespace System.Runtime.CompilerServices
             var eConstructor = e.GetMembers(".ctor").OfType<SynthesizedRecordConstructor>().Single();
             Assert.Equal("", eConstructor.GetDocumentationCommentXml());
             Assert.Equal("", eConstructor.GetParameters()[0].GetDocumentationCommentXml());
-            Assert.Equal("", e.GetMembers("I1").Single().GetDocumentationCommentXml());
+            AssertEx.Equal(
+@"<member name=""P:E.I1"">
+    <summary>Description for I1</summary>
+</member>
+", e.GetMembers("I1").Single().GetDocumentationCommentXml());
         }
 
         [Fact]
@@ -28897,7 +28780,11 @@ namespace System.Runtime.CompilerServices
             Assert.Equal(1, cConstructor.DeclaringSyntaxReferences.Count());
             Assert.Equal("", cConstructor.GetDocumentationCommentXml());
             Assert.Equal("", cConstructor.GetParameters()[0].GetDocumentationCommentXml());
-            Assert.Equal("", c.GetMembers("I1").Single().GetDocumentationCommentXml());
+            AssertEx.Equal(
+@"<member name=""P:C.I1"">
+    <summary>Description for I1</summary>
+</member>
+", c.GetMembers("I1").Single().GetDocumentationCommentXml());
         }
 
         [Fact]
@@ -28944,7 +28831,11 @@ namespace System.Runtime.CompilerServices
 ", dConstructor.GetDocumentationCommentXml());
 
             Assert.Equal("", dConstructor.GetParameters()[0].GetDocumentationCommentXml());
-            Assert.Equal("", d.GetMembers("I1").Single().GetDocumentationCommentXml());
+            AssertEx.Equal(
+@"<member name=""P:D.I1"">
+    <summary>Description for I1</summary>
+</member>
+", d.GetMembers("I1").Single().GetDocumentationCommentXml());
         }
 
         [Fact]
@@ -28998,7 +28889,12 @@ namespace System.Runtime.CompilerServices
 </member>
 ", eConstructor.GetDocumentationCommentXml());
             Assert.Equal("", eConstructor.GetParameters()[0].GetDocumentationCommentXml());
-            Assert.Equal("", e.GetMembers("I1").Single().GetDocumentationCommentXml());
+            AssertEx.Equal(
+@"<member name=""P:E.I1"">
+    <summary>Description1 for I1</summary>
+    <summary>Description2 for I1</summary>
+</member>
+", e.GetMembers("I1").Single().GetDocumentationCommentXml());
         }
 
         [Fact]
@@ -29100,7 +28996,11 @@ namespace System.Runtime.CompilerServices
 </member>
 ", eConstructor.GetDocumentationCommentXml());
             Assert.Equal("", eConstructor.GetParameters()[0].GetDocumentationCommentXml());
-            Assert.Equal("", e.GetMembers("I1").Single().GetDocumentationCommentXml());
+            AssertEx.Equal(
+@"<member name=""P:E.I1"">
+    <summary>Description1 for I1</summary>
+</member>
+", e.GetMembers("I1").Single().GetDocumentationCommentXml());
         }
 
         [Fact]
@@ -29147,7 +29047,11 @@ namespace System.Runtime.CompilerServices
             Assert.Equal("", constructor.GetParameters()[0].GetDocumentationCommentXml());
 
             var property = cMember.GetMembers("I1").Single();
-            Assert.Equal("", property.GetDocumentationCommentXml());
+            AssertEx.Equal(
+@"<member name=""P:Outer.C.I1"">
+    <summary>Description for I1</summary>
+</member>
+", property.GetDocumentationCommentXml());
         }
 
         [Fact]
@@ -30120,21 +30024,6 @@ record R2(int X) : Error(X)
 ";
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (2,8): error CS0115: 'R2.ToString()': no suitable method found to override
-                // record R2(int X) : Error(X)
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "R2").WithArguments("R2.ToString()").WithLocation(2, 8),
-                // (2,8): error CS0115: 'R2.EqualityContract': no suitable method found to override
-                // record R2(int X) : Error(X)
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "R2").WithArguments("R2.EqualityContract").WithLocation(2, 8),
-                // (2,8): error CS0115: 'R2.Equals(object?)': no suitable method found to override
-                // record R2(int X) : Error(X)
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "R2").WithArguments("R2.Equals(object?)").WithLocation(2, 8),
-                // (2,8): error CS0115: 'R2.GetHashCode()': no suitable method found to override
-                // record R2(int X) : Error(X)
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "R2").WithArguments("R2.GetHashCode()").WithLocation(2, 8),
-                // (2,8): error CS0115: 'R2.PrintMembers(StringBuilder)': no suitable method found to override
-                // record R2(int X) : Error(X)
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "R2").WithArguments("R2.PrintMembers(System.Text.StringBuilder)").WithLocation(2, 8),
                 // (2,20): error CS0246: The type or namespace name 'Error' could not be found (are you missing a using directive or an assembly reference?)
                 // record R2(int X) : Error(X)
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Error").WithArguments("Error").WithLocation(2, 20),
@@ -30274,7 +30163,8 @@ class C2 : I(0)
                 );
         }
 
-        [Theory, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        [Theory]
+        [WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
         [CombinatorialData]
         public void CrossAssemblySupportingAndNotSupportingCovariantReturns(bool useCompilationReference)
         {
@@ -30286,7 +30176,7 @@ class C2 : I(0)
 public record C(int I) : B(I);";
 
             var compA = CreateEmptyCompilation(new[] { sourceA, IsExternalInitTypeDefinition }, references: TargetFrameworkUtil.GetReferences(TargetFramework.NetStandard20));
-            compA.VerifyDiagnostics();
+            compA.VerifyEmitDiagnostics();
             Assert.False(compA.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
             var actualMembers = compA.GetMember<NamedTypeSymbol>("C").GetMembers().ToTestDisplayStrings();
             var expectedMembers = new[]
@@ -30314,7 +30204,7 @@ public record C(int I) : B(I);";
 
             // CS1701: Assuming assembly reference '{0}' used by '{1}' matches identity '{2}' of '{3}', you may need to supply runtime policy
             var compB = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseDll.WithSpecificDiagnosticOptions("CS1701", ReportDiagnostic.Suppress), parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.NetCoreApp);
-            compB.VerifyDiagnostics();
+            compB.VerifyEmitDiagnostics();
             Assert.True(compB.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
 
             actualMembers = compB.GetMember<NamedTypeSymbol>("D").GetMembers().ToTestDisplayStrings();
@@ -30336,6 +30226,84 @@ public record C(int I) : B(I);";
                 "void D.Deconstruct(out System.Int32 I)"
             };
             AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [Fact, WorkItem(60379, "https://github.com/dotnet/roslyn/issues/60379")]
+        public void RecordPositionalMembersScope()
+        {
+            var src = @"
+using System;
+
+[Obsolete(nameof(Id))]
+record R1(string Id) { }
+
+[Obsolete(nameof(Id))]
+record R2(string Id);
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(60379, "https://github.com/dotnet/roslyn/issues/60379")]
+        public void TypeParametersAndTypeMembersInScopeOnTypeAttribute()
+        {
+            var src = @"
+using System;
+
+[Obsolete(nameof(Id))]
+class C1
+{
+    int Id { get; set; }
+}
+
+[Obsolete(Constant)]
+class C2
+{
+    const string Constant = """";
+}
+
+[Obsolete(T)]
+class C3<T>
+{
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                    // (16,11): error CS0119: 'T' is a type, which is not valid in the given context
+                    // [Obsolete(T)]
+                    Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type").WithLocation(16, 11)
+                    );
+        }
+
+        [Fact, WorkItem(62051, "https://github.com/dotnet/roslyn/issues/62051")]
+        public void MisingBaseType()
+        {
+            var src = @"
+record R : // 1
+{
+}
+
+record R2 : Missing // 2
+{
+}
+
+public class C : // 3
+{
+    public override void M() { }
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (2,11): error CS1031: Type expected
+                // record R : // 1
+                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(2, 11),
+                // (6,13): error CS0246: The type or namespace name 'Missing' could not be found (are you missing a using directive or an assembly reference?)
+                // record R2 : Missing // 2
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Missing").WithArguments("Missing").WithLocation(6, 13),
+                // (10,17): error CS1031: Type expected
+                // public class C : // 3
+                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(10, 17)
+                );
         }
     }
 }

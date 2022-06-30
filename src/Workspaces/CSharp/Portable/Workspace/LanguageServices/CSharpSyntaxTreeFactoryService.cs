@@ -23,22 +23,20 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class CSharpSyntaxTreeFactoryServiceFactory : ILanguageServiceFactory
     {
         private static readonly CSharpParseOptions _parseOptionWithLatestLanguageVersion = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview);
-        private readonly IGlobalOptionService _optionService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpSyntaxTreeFactoryServiceFactory(IGlobalOptionService optionService)
+        public CSharpSyntaxTreeFactoryServiceFactory()
         {
-            _optionService = optionService;
         }
 
         public ILanguageService CreateLanguageService(HostLanguageServices provider)
-            => new CSharpSyntaxTreeFactoryService(_optionService, provider);
+            => new CSharpSyntaxTreeFactoryService(provider);
 
         private partial class CSharpSyntaxTreeFactoryService : AbstractSyntaxTreeFactoryService
         {
-            public CSharpSyntaxTreeFactoryService(IGlobalOptionService optionService, HostLanguageServices languageServices)
-                : base(optionService, languageServices)
+            public CSharpSyntaxTreeFactoryService(HostLanguageServices languageServices)
+                : base(languageServices)
             {
             }
 
@@ -59,6 +57,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new CSharpParseOptions(
                     languageVersion: langVersion,
                     preprocessorSymbols: metadata.TryGetValue("define", out var defines) ? defines.Split(',') : null);
+            }
+
+            public override bool OptionsDifferOnlyByPreprocessorDirectives(ParseOptions options1, ParseOptions options2)
+            {
+                var csharpOptions1 = (CSharpParseOptions)options1;
+                var csharpOptions2 = (CSharpParseOptions)options2;
+
+                // The easy way to figure out if these only differ by a single field is to update one with the preprocessor symbols of the
+                // other, and then do an equality check from there; this is future proofed if another value is ever added.
+                return csharpOptions1.WithPreprocessorSymbols(csharpOptions2.PreprocessorSymbolNames) == csharpOptions2;
             }
 
             public override SyntaxTree CreateSyntaxTree(string filePath, ParseOptions options, Encoding encoding, SyntaxNode root)

@@ -13,12 +13,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CodeActions;
-
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using Microsoft.CodeAnalysis.Options;
-#endif
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 {
@@ -93,10 +89,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 #pragma warning restore RS0030 // Do not used banned APIs
         }
 
+        protected abstract ISyntaxFacts SyntaxFacts { get; }
         protected abstract LocalizableString GetTitleAndMessageFormatForClassificationIdDescriptor();
         protected abstract ImmutableArray<SyntaxNode> MergeImports(ImmutableArray<SyntaxNode> unnecessaryImports);
         protected abstract bool IsRegularCommentOrDocComment(SyntaxTrivia trivia);
         protected abstract IUnnecessaryImportsProvider UnnecessaryImportsProvider { get; }
+
+        protected abstract SyntaxToken? TryGetLastToken(SyntaxNode node);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
@@ -112,7 +111,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
         }
 
         public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
-        public bool OpenFileOnly(OptionSet options) => false;
+        public bool OpenFileOnly(SimplifierOptions? options) => false;
 
         public override void Initialize(AnalysisContext context)
         {
@@ -138,7 +137,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
                 // for us appropriately.
                 unnecessaryImports = MergeImports(unnecessaryImports);
 
-                var fadeOut = ShouldFade(context.Options, tree, language, cancellationToken);
+                var fadeOut = context.GetIdeAnalyzerOptions().FadeOutUnusedImports;
 
                 DiagnosticDescriptor descriptor;
                 if (GeneratedCodeUtilities.IsGeneratedCode(tree, IsRegularCommentOrDocComment, cancellationToken))
@@ -150,8 +149,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
                     descriptor = fadeOut ? _unnecessaryClassificationIdDescriptor : _classificationIdDescriptor;
                 }
 
-                var getLastTokenFunc = GetLastTokenDelegateForContiguousSpans();
-                var contiguousSpans = unnecessaryImports.GetContiguousSpans(getLastTokenFunc);
+                var contiguousSpans = GetContiguousSpans(unnecessaryImports);
                 var diagnostics =
                     CreateClassificationDiagnostics(contiguousSpans, tree, descriptor, cancellationToken).Concat(
                     CreateFixableDiagnostics(unnecessaryImports, tree, cancellationToken));
@@ -161,19 +159,58 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
                     context.ReportDiagnostic(diagnostic);
                 }
             }
-
-            static bool ShouldFade(AnalyzerOptions options, SyntaxTree tree, string language, CancellationToken cancellationToken)
-            {
-#if CODE_STYLE
-                return true;
-#else
-                return options.GetOption(Fading.FadingOptions.FadeOutUnusedImports, language, tree, cancellationToken);
-#endif
-            }
         }
 
-        protected virtual Func<SyntaxNode, SyntaxToken>? GetLastTokenDelegateForContiguousSpans()
-            => null;
+        private IEnumerable<TextSpan> GetContiguousSpans(ImmutableArray<SyntaxNode> nodes)
+        {
+            var syntaxFacts = this.SyntaxFacts;
+            (SyntaxNode node, TextSpan textSpan)? previous = null;
+
+            // Sort the nodes in source location order.
+            foreach (var node in nodes.OrderBy(n => n.SpanStart))
+            {
+                TextSpan textSpan;
+                var nodeEnd = GetEnd(node);
+                if (previous == null)
+                {
+                    textSpan = TextSpan.FromBounds(node.Span.Start, nodeEnd);
+                }
+                else
+                {
+                    var lastToken = TryGetLastToken(previous.Value.node) ?? previous.Value.node.GetLastToken();
+                    if (lastToken.GetNextToken(includeDirectives: true) == node.GetFirstToken())
+                    {
+                        // Expand the span
+                        textSpan = TextSpan.FromBounds(previous.Value.textSpan.Start, nodeEnd);
+                    }
+                    else
+                    {
+                        // Return the last span, and start a new one
+                        yield return previous.Value.textSpan;
+                        textSpan = TextSpan.FromBounds(node.Span.Start, nodeEnd);
+                    }
+                }
+
+                previous = (node, textSpan);
+            }
+
+            if (previous.HasValue)
+                yield return previous.Value.textSpan;
+
+            yield break;
+
+            int GetEnd(SyntaxNode node)
+            {
+                var end = node.Span.End;
+                foreach (var trivia in node.GetTrailingTrivia())
+                {
+                    if (syntaxFacts.IsRegularComment(trivia))
+                        end = trivia.Span.End;
+                }
+
+                return end;
+            }
+        }
 
         // Create one diagnostic for each unnecessary span that will be classified as Unnecessary
         private static IEnumerable<Diagnostic> CreateClassificationDiagnostics(

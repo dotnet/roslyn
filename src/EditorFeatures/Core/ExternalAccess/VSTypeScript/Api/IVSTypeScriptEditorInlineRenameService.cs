@@ -13,15 +13,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
     /// <summary>
     /// Language service that allows a language to participate in the editor's inline rename feature.
     /// </summary>
-    [Obsolete]
-    internal interface IVSTypeScriptEditorInlineRenameService
-    {
-        Task<IVSTypeScriptInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken);
-    }
-
-    /// <summary>
-    /// Language service that allows a language to participate in the editor's inline rename feature.
-    /// </summary>
     internal abstract class VSTypeScriptEditorInlineRenameServiceImplementation
     {
         public abstract Task<VSTypeScriptInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken);

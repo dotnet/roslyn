@@ -431,7 +431,8 @@ namespace Microsoft.CodeAnalysis.Serialization
 
             // make sure we keep storageStream alive while Metadata is alive
             // we use conditional weak table since we can't control metadata liftetime
-            s_lifetimeMap.Add(metadata, lifeTimeObject);
+            if (lifeTimeObject != null)
+                s_lifetimeMap.Add(metadata, lifeTimeObject);
 
             return (metadata, storage);
         }
@@ -487,13 +488,18 @@ namespace Microsoft.CodeAnalysis.Serialization
             throw ExceptionUtilities.UnexpectedValue(kind);
         }
 
-        private static void GetMetadata(Stream stream, long length, out ModuleMetadata metadata, out object lifeTimeObject)
+        private static void GetMetadata(Stream stream, long length, out ModuleMetadata metadata, out object? lifeTimeObject)
         {
-            if (stream is ISupportDirectMemoryAccess directAccess)
+            if (stream is UnmanagedMemoryStream unmanagedStream)
             {
-                metadata = ModuleMetadata.CreateFromMetadata(directAccess.GetPointer(), (int)length);
-                lifeTimeObject = stream;
-                return;
+                // For an unmanaged memory stream, ModuleMetadata can take ownership directly.
+                unsafe
+                {
+                    metadata = ModuleMetadata.CreateFromMetadata(
+                        (IntPtr)unmanagedStream.PositionPointer, (int)unmanagedStream.Length, unmanagedStream, disposeOwner: true);
+                    lifeTimeObject = null;
+                    return;
+                }
             }
 
             PinnedObject pinnedObject;

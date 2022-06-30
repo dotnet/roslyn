@@ -147,7 +147,7 @@ To reload the Roslyn compiler package, close Visual Studio and any MSBuild proce
 
         private async Task<string> GetMSBuildVersionStringAsync(CancellationToken cancellationToken)
         {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var dte = (DTE)await GetServiceAsync(typeof(SDTE)).ConfigureAwait(true);
             var parts = dte.Version.Split('.');

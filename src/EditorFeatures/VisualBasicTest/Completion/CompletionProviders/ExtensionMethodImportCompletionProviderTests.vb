@@ -14,8 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 
         Public Sub New()
             ShowImportCompletionItemsOptionValue = True
-            IsExpandedCompletion = True
-            TimeoutInMilliseconds = -1 ' -1 would disable timebox
+            ForceExpandedCompletionIndexCreation = True
         End Sub
 
         Friend Overrides Function GetCompletionProviderType() As Type

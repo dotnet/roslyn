@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 
         public NativeIntegerKeywordRecommenderTests()
         {
-            this.RecommendKeywordsAsync = (position, context) => Task.FromResult(_recommender.RecommendKeywords(position, context, CancellationToken.None));
+            RecommendKeywordsAsync = (position, context) => Task.FromResult(_recommender.RecommendKeywords(position, context, CancellationToken.None));
         }
 
         private async Task VerifyKeywordAsync(string text)
@@ -120,12 +120,84 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 @"enum E : $$");
         }
 
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInTypeParameterConstraint()
+        public async Task TestNotInTypeParameterConstraint_TypeDeclaration1()
         {
-            // Ideally, keywords should not be recommended for constraint types.
-            await VerifyKeywordAsync(
+            await VerifyAbsenceAsync(
 @"class C<T> where T : $$");
+        }
+
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInTypeParameterConstraint_TypeDeclaration_WhenNotDirectlyInConstraint1()
+        {
+            await VerifyKeywordAsync(
+@"class C<T> where T : IList<$$");
+        }
+
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInTypeParameterConstraint_TypeDeclaration2()
+        {
+            await VerifyAbsenceAsync(
+@"class C<T>
+        where T : $$
+        where U : U");
+        }
+
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInTypeParameterConstraint_TypeDeclaration_WhenNotDirectlyInConstraint2()
+        {
+            await VerifyKeywordAsync(
+@"class C<T>
+        where T : IList<$$
+        where U : U");
+        }
+
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInTypeParameterConstraint_MethodDeclaration1()
+        {
+            await VerifyAbsenceAsync(
+@"class C
+{
+    public void M<T>() where T : $$");
+        }
+
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInTypeParameterConstraint_MethodDeclaration_WhenNotDirectlyInConstraint1()
+        {
+            await VerifyKeywordAsync(
+@"class C
+{
+    public void M<T>() where T : IList<$$");
+        }
+
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInTypeParameterConstraint_MethodDeclaration2()
+        {
+            await VerifyAbsenceAsync(
+@"class C
+{
+    public void M<T>()
+        where T : $$
+        where U : T");
+        }
+
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInTypeParameterConstraint_MethodDeclaration_WhenNotDirectlyInConstraint2()
+        {
+            await VerifyKeywordAsync(
+@"class C
+{
+    public void M<T>()
+        where T : IList<$$
+        where U : T");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -292,6 +364,16 @@ class C
     delegate*<ref $$");
         }
 
+        [WorkItem(60341, "https://github.com/dotnet/roslyn/issues/60341")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterAsync()
+        {
+            await VerifyAbsenceAsync(@"
+class C
+{
+    async $$");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterDelegateAsterisk()
         {
@@ -303,10 +385,19 @@ class C
 
         [WorkItem(53585, "https://github.com/dotnet/roslyn/issues/53585")]
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [ClassData(typeof(TheoryDataKeywordsIndicatingLocalFunction))]
-        public async Task TestAfterKeywordIndicatingLocalFunction(string keyword)
+        [ClassData(typeof(TheoryDataKeywordsIndicatingLocalFunctionWithoutAsync))]
+        public async Task TestAfterKeywordIndicatingLocalFunctionWithoutAsync(string keyword)
         {
             await VerifyKeywordAsync(AddInsideMethod($@"
+{keyword} $$"));
+        }
+
+        [WorkItem(60341, "https://github.com/dotnet/roslyn/issues/60341")]
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [ClassData(typeof(TheoryDataKeywordsIndicatingLocalFunctionWithAsync))]
+        public async Task TestNotAfterKeywordIndicatingLocalFunctionWithAsync(string keyword)
+        {
+            await VerifyAbsenceAsync(AddInsideMethod($@"
 {keyword} $$"));
         }
 

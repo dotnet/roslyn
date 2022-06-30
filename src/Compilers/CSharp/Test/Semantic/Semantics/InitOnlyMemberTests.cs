@@ -1280,7 +1280,7 @@ public class C
             comp.VerifyEmitDiagnostics(
                 // (8,16): error CS0206: A property or indexer may not be passed as an out or ref parameter
                 //         M2(out Property); // 1
-                Diagnostic(ErrorCode.ERR_RefProperty, "Property").WithArguments("C.Property").WithLocation(8, 16)
+                Diagnostic(ErrorCode.ERR_RefProperty, "Property").WithLocation(8, 16)
                 );
         }
 
@@ -1408,19 +1408,19 @@ public class C
             comp.VerifyEmitDiagnostics(
                 // (4,13): error CS8145: Auto-implemented properties cannot return by reference
                 //     ref int Property1 { get; init; }
-                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "Property1").WithArguments("C.Property1").WithLocation(4, 13),
+                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "Property1").WithLocation(4, 13),
                 // (4,30): error CS8147: Properties which return by reference cannot have set accessors
                 //     ref int Property1 { get; init; }
-                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "init").WithArguments("C.Property1.init").WithLocation(4, 30),
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "init").WithLocation(4, 30),
                 // (5,13): error CS8146: Properties which return by reference must have a get accessor
                 //     ref int Property2 { init; }
-                Diagnostic(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, "Property2").WithArguments("C.Property2").WithLocation(5, 13),
+                Diagnostic(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, "Property2").WithLocation(5, 13),
                 // (6,44): error CS8147: Properties which return by reference cannot have set accessors
                 //     ref int Property3 { get => throw null; init => throw null; }
-                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "init").WithArguments("C.Property3.init").WithLocation(6, 44),
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "init").WithLocation(6, 44),
                 // (7,13): error CS8146: Properties which return by reference must have a get accessor
                 //     ref int Property4 { init => throw null; }
-                Diagnostic(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, "Property4").WithArguments("C.Property4").WithLocation(7, 13)
+                Diagnostic(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, "Property4").WithLocation(7, 13)
                 );
         }
 
@@ -1438,9 +1438,9 @@ public class C
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             comp.VerifyDiagnostics();
 
-            // PE verification fails:  [ : C::set_Property] Cannot change initonly field outside its .ctor.
+            // PEVerify:  [ : C::set_Property] Cannot change initonly field outside its .ctor.
             CompileAndVerify(comp, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
-                verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Fails);
+                verify: Verification.FailsPEVerify);
 
             void symbolValidator(ModuleSymbol m)
             {
@@ -2730,9 +2730,9 @@ public class C
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition },
                 options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
-            // [ : C::set_Property] Cannot change initonly field outside its .ctor.
+            // PEVerify: [ : C::set_Property] Cannot change initonly field outside its .ctor.
             CompileAndVerify(comp, expectedOutput: "42 43",
-                verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Fails);
+                verify: Verification.FailsPEVerify);
         }
 
         [Fact]
@@ -4181,7 +4181,7 @@ class Program
                 targetFramework: TargetFramework.Mscorlib40, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             // PEVerify: [ : S::set_Property] Cannot change initonly field outside its .ctor.
             CompileAndVerify(comp1, expectedOutput: "42",
-                verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Fails);
+                verify: Verification.FailsPEVerify);
             var comp1Ref = new[] { comp1.ToMetadataReference() };
 
             var comp7 = CreateCompilation(source2, references: comp1Ref,
@@ -4205,7 +4205,7 @@ public readonly struct S
 {
     public int I { get; init; }
 }
-" }, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Fails, expectedOutput: "1");
+" }, verify: Verification.FailsPEVerify, expectedOutput: "1");
 
 
 
@@ -4243,7 +4243,7 @@ public readonly struct S
     private readonly int i;
     public int I { get => i; init => i = value; }
 }
-" }, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Fails, expectedOutput: "1");
+" }, verify: Verification.FailsPEVerify, expectedOutput: "1");
 
             var s = verifier.Compilation.GetTypeByMetadataName("S");
             var i = s.GetMember<IPropertySymbol>("I");
@@ -4282,7 +4282,7 @@ public struct S
 {
     public readonly int I { get; init; }
 }
-" }, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Fails, expectedOutput: "1");
+" }, verify: Verification.FailsPEVerify, expectedOutput: "1");
 
             var s = verifier.Compilation.GetTypeByMetadataName("S");
             var i = s.GetMember<IPropertySymbol>("I");
@@ -4322,7 +4322,7 @@ public struct S
     private readonly int i;
     public readonly int I { get => i; init => i = value; }
 }
-" }, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Fails, expectedOutput: "1");
+" }, verify: Verification.FailsPEVerify, expectedOutput: "1");
 
             var s = verifier.Compilation.GetTypeByMetadataName("S");
             var i = s.GetMember<IPropertySymbol>("I");
@@ -4417,7 +4417,7 @@ public readonly struct S
         }
     }
 }
-" }, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Fails, expectedOutput: @"I1 was 1
+" }, verify: Verification.FailsPEVerify, expectedOutput: @"I1 was 1
 I1 is 0");
 
             var s = verifier.Compilation.GetTypeByMetadataName("S");
@@ -4551,7 +4551,7 @@ public record Container(Person Person);
             var comp = CreateCompilation(new[] { IsExternalInitTypeDefinition, source }, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
             // PEVerify: Cannot change initonly field outside its .ctor.
-            CompileAndVerify(comp, expectedOutput: "c", verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Fails);
+            CompileAndVerify(comp, expectedOutput: "c", verify: Verification.FailsPEVerify);
         }
 
         [Fact]

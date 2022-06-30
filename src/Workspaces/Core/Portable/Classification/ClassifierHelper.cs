@@ -46,7 +46,11 @@ namespace Microsoft.CodeAnalysis.Classification
             using var _2 = ArrayBuilder<ClassifiedSpan>.GetInstance(out var semanticSpans);
 
             await classificationService.AddSyntacticClassificationsAsync(document, span, syntaxSpans, cancellationToken).ConfigureAwait(false);
+
+            // Intentional that we're adding both semantic and embedded lang classifications to the same array.  Both
+            // are 'semantic' from the perspective of this helper method.
             await classificationService.AddSemanticClassificationsAsync(document, span, options, semanticSpans, cancellationToken).ConfigureAwait(false);
+            await classificationService.AddEmbeddedLanguageClassificationsAsync(document, span, options, semanticSpans, cancellationToken).ConfigureAwait(false);
 
             // MergeClassifiedSpans will ultimately filter multiple classifications for the same
             // span down to one. We know that additive classifications are there just to 
@@ -137,11 +141,13 @@ namespace Microsoft.CodeAnalysis.Classification
 
                 if (i > 0 && intersection != null)
                 {
-                    var isAdditiveClassification = spans[i - 1].TextSpan == span.TextSpan &&
-                        ClassificationTypeNames.AdditiveTypeNames.Contains(span.ClassificationType);
+                    // The additiveType's may appear before or after their modifier due to sorting.
+                    var previousSpan = spans[i - 1];
+                    var isAdditiveClassification = previousSpan.TextSpan == span.TextSpan &&
+                        ClassificationTypeNames.AdditiveTypeNames.Contains(span.ClassificationType) || ClassificationTypeNames.AdditiveTypeNames.Contains(previousSpan.ClassificationType);
 
                     // Additive classifications are intended to overlap so do not ignore it.
-                    if (!isAdditiveClassification && spans[i - 1].TextSpan.End > intersection.Value.Start)
+                    if (!isAdditiveClassification && previousSpan.TextSpan.End > intersection.Value.Start)
                     {
                         // This span isn't strictly after the previous span.  Ignore it.
                         intersection = null;

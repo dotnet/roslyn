@@ -1820,7 +1820,8 @@ End Structure
                                                      Optional checked As Boolean = True,
                                                      Optional optimize As Boolean = True,
                                                      Optional latestReferences As Boolean = False,
-                                                     Optional addXmlReferences As Boolean = False) As CompilationVerifier
+                                                     Optional addXmlReferences As Boolean = False,
+                                                     Optional verify As Verification = Verification.Passes) As CompilationVerifier
 
             Debug.Assert(Not latestReferences OrElse Not addXmlReferences) ' NYI
 
@@ -1833,7 +1834,8 @@ End Structure
                 options:=If(optimize, TestOptions.ReleaseExe, TestOptions.DebugExe).WithOverflowChecks(checked),
                 expectedOutput:=If(result IsNot Nothing, result.Trim, Nothing),
                 references:=If(addXmlReferences, Net40XmlReferences, {}),
-                useLatestFramework:=latestReferences)
+                useLatestFramework:=latestReferences,
+                verify:=verify)
         End Function
 
         Private Sub TestExpressionTrees(sourceFile As XElement, result As String,
@@ -1841,9 +1843,10 @@ End Structure
                                         Optional optimize As Boolean = True,
                                         Optional latestReferences As Boolean = False,
                                         Optional addXmlReferences As Boolean = False,
-                                        Optional diagnostics() As DiagnosticDescription = Nothing)
+                                        Optional diagnostics() As DiagnosticDescription = Nothing,
+                                        Optional verify As Verification = Verification.Passes)
 
-            TestExpressionTreesVerifier(sourceFile, result, checked, optimize, latestReferences, addXmlReferences).VerifyDiagnostics(If(diagnostics, {}))
+            TestExpressionTreesVerifier(sourceFile, result, checked, optimize, latestReferences, addXmlReferences, verify).VerifyDiagnostics(If(diagnostics, {}))
         End Sub
 
         Private Sub TestExpressionTrees(sourceFile As XElement, result As XCData,
@@ -3667,6 +3670,7 @@ Lambda(
 
         <Fact>
         Public Sub ExprTree_LegacyTests02_v40()
+            ' ILVerify: Unrecognized arguments for delegate .ctor. { Offset = 1223 }
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
 Imports System
@@ -3707,11 +3711,12 @@ Module Form1
     End Sub
 End Module
 ]]></file>
-            TestExpressionTrees(file, ExpTreeTestResources.ExprTree_LegacyTests02_v40_Result)
+            TestExpressionTrees(file, ExpTreeTestResources.ExprTree_LegacyTests02_v40_Result, verify:=Verification.FailsILVerify)
         End Sub
 
         <Fact>
         Public Sub ExprTree_LegacyTests02_v45()
+            ' ILVerify: Unrecognized arguments for delegate .ctor. { Offset = 1167 }
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
 Imports System
@@ -3749,7 +3754,7 @@ Module Form1
     End Sub
 End Module
 ]]></file>
-            TestExpressionTrees(file, ExpTreeTestResources.ExprTree_LegacyTests02_v45_Result, latestReferences:=True)
+            TestExpressionTrees(file, ExpTreeTestResources.ExprTree_LegacyTests02_v45_Result, latestReferences:=True, verify:=Verification.FailsILVerify)
         End Sub
 
         <Fact>

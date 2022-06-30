@@ -15,7 +15,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Debugging
 
     <ExportLanguageService(GetType(IBreakpointResolutionService), LanguageNames.VisualBasic), [Shared]>
-    Partial Friend Class VisualBasicBreakpointResolutionService
+    Friend NotInheritable Class VisualBasicBreakpointResolutionService
         Implements IBreakpointResolutionService
 
         <ImportingConstructor>
@@ -26,6 +26,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Debugging
         Friend Shared Async Function GetBreakpointAsync(document As Document, position As Integer, length As Integer, cancellationToken As CancellationToken) As Task(Of BreakpointResolutionResult)
             Try
                 Dim tree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
+                If tree Is Nothing Then
+                    Return Nothing
+                End If
 
                 ' Non-zero length means that the span is passed by the debugger and we may need validate it.
                 ' In a rare VB case, this span may contain multiple methods, e.g., 
@@ -42,15 +45,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Debugging
                 ' which happens to have a breakpoint on its head. In this situation, we should attempt to validate the span of the existing method,
                 ' not that of a newly-prepended method.
 
-                Dim descendIntoChildren As Func(Of SyntaxNode, Boolean) =
-                Function(n)
-                    Return (Not n.IsKind(SyntaxKind.ConstructorBlock)) _
-                        AndAlso (Not n.IsKind(SyntaxKind.SubBlock))
-                End Function
-
                 If length > 0 Then
                     Dim root = Await tree.GetRootAsync(cancellationToken).ConfigureAwait(False)
-                    Dim item = root.DescendantNodes(New TextSpan(position, length), descendIntoChildren:=descendIntoChildren).OfType(Of MethodBlockSyntax).Skip(1).LastOrDefault()
+
+                    Dim item = root.DescendantNodes(
+                            span:=New TextSpan(position, length),
+                            descendIntoChildren:=Function(n) Not n.IsKind(SyntaxKind.ConstructorBlock, SyntaxKind.SubBlock)).
+                        OfType(Of MethodBlockSyntax).Skip(1).LastOrDefault()
+
                     If item IsNot Nothing Then
                         position = item.SpanStart
                     End If

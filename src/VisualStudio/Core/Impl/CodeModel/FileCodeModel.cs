@@ -10,8 +10,12 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Collections;
@@ -36,6 +40,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             bool isSourceGeneratorOutput,
             ITextManagerAdapter textManagerAdapter)
         {
+            // Keep track that code model was accessed.  We want to get a sense of how widespread usage of it still is.
+            Logger.Log(FunctionId.CodeModel_FileCodeModel_Create);
             return new FileCodeModel(state, parent, documentId, isSourceGeneratorOutput, textManagerAdapter).GetComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>();
         }
 
@@ -92,6 +98,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             get; set;
         }
+
+        internal IGlobalOptionService GlobalOptions
+            => State.ProjectCodeModelFactory.GlobalOptions;
 
         /// <summary>
         /// Internally, we store the DocumentId for the document that the FileCodeModel represents. If the underlying file
@@ -339,8 +348,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
                 var formatted = State.ThreadingContext.JoinableTaskFactory.Run(async () =>
                 {
-                    var formatted = await Formatter.FormatAsync(result, Formatter.Annotation).ConfigureAwait(true);
-                    formatted = await Formatter.FormatAsync(formatted, SyntaxAnnotation.ElasticAnnotation).ConfigureAwait(true);
+                    var formattingOptions = await result.GetSyntaxFormattingOptionsAsync(GlobalOptions, CancellationToken.None).ConfigureAwait(false);
+                    var formatted = await Formatter.FormatAsync(result, Formatter.Annotation, formattingOptions, CancellationToken.None).ConfigureAwait(true);
+                    formatted = await Formatter.FormatAsync(formatted, SyntaxAnnotation.ElasticAnnotation, formattingOptions, CancellationToken.None).ConfigureAwait(true);
 
                     return formatted;
                 });
@@ -374,7 +384,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             }
             else
             {
-                workspace.TryApplyChanges(document.Project.Solution);
+                var applied = workspace.TryApplyChanges(document.Project.Solution);
+                if (!applied)
+                {
+                    FatalError.ReportAndPropagate(new Exception("Failed to apply the workspace changes."), ErrorSeverity.Critical);
+                }
             }
         }
 
@@ -437,6 +451,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             {
                 return GetDocument()
                     .GetRequiredSemanticModelAsync(CancellationToken.None).AsTask();
+            });
+
+        internal CodeGenerationOptions GetDocumentOptions()
+            => State.ThreadingContext.JoinableTaskFactory.Run(() =>
+            {
+                return GetDocument()
+                    .GetCodeGenerationOptionsAsync(GlobalOptions, CancellationToken.None).AsTask();
             });
 
         internal Compilation GetCompilation()
@@ -694,8 +715,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                     if (_batchDocument != null)
                     {
                         // perform expensive operations at once
-                        var newDocument = State.ThreadingContext.JoinableTaskFactory.Run(() =>
-                            Simplifier.ReduceAsync(_batchDocument, Simplifier.Annotation, cancellationToken: CancellationToken.None));
+                        var newDocument = State.ThreadingContext.JoinableTaskFactory.Run(async () =>
+                        {
+                            var simplifierOptions = await _batchDocument.GetSimplifierOptionsAsync(GlobalOptions, CancellationToken.None).ConfigureAwait(false);
+                            return await Simplifier.ReduceAsync(_batchDocument, Simplifier.Annotation, simplifierOptions, CancellationToken.None).ConfigureAwait(false);
+                        });
 
                         _batchDocument.Project.Solution.Workspace.TryApplyChanges(newDocument.Project.Solution);
 

@@ -31,20 +31,28 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </summary>
         public readonly ImmutableArray<DocumentActiveStatementChanges> ActiveStatementChanges;
 
+        /// <summary>
+        /// Runtime capabilities required to apply the changes.
+        /// </summary>
+        public readonly EditAndContinueCapabilities RequiredCapabilities;
+
         public ProjectChanges(
             ImmutableArray<SemanticEdit> semanticEdits,
             ImmutableArray<SequencePointUpdates> lineChanges,
             ImmutableHashSet<ISymbol> addedSymbols,
-            ImmutableArray<DocumentActiveStatementChanges> activeStatementChanges)
+            ImmutableArray<DocumentActiveStatementChanges> activeStatementChanges,
+            EditAndContinueCapabilities requiredCapabilities)
         {
             Debug.Assert(!semanticEdits.IsDefault);
             Debug.Assert(!lineChanges.IsDefault);
             Debug.Assert(!activeStatementChanges.IsDefault);
+            Debug.Assert(requiredCapabilities != EditAndContinueCapabilities.None);
 
             SemanticEdits = semanticEdits;
             LineChanges = lineChanges;
             AddedSymbols = addedSymbols;
             ActiveStatementChanges = activeStatementChanges;
+            RequiredCapabilities = requiredCapabilities;
         }
     }
 }

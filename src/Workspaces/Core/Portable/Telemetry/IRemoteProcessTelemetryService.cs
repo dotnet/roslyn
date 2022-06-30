@@ -5,6 +5,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -19,6 +20,12 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Initializes telemetry session.
         /// </summary>
-        ValueTask InitializeTelemetrySessionAsync(int hostProcessId, string serializedSession, CancellationToken cancellationToken);
+        ValueTask InitializeTelemetrySessionAsync(int hostProcessId, string serializedSession, bool logDelta, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Sets <see cref="WorkspaceConfigurationOptions"/> for the process.
+        /// Called as soon as the remote process is created but can't guarantee that solution entities (projects, documents, syntax trees) have not been created beforehand.
+        /// </summary>
+        ValueTask InitializeWorkspaceConfigurationOptionsAsync(WorkspaceConfigurationOptions options, CancellationToken cancellationToken);
     }
 }

@@ -69,7 +69,6 @@ namespace Microsoft.Cci
         /// </remarks>
         internal const int PdbLengthLimit = 2046; // Empirical, based on when ISymUnmanagedWriter2 methods start throwing.
 
-        private readonly int _numTypeDefsEstimate;
         private readonly bool _deterministic;
 
         internal readonly bool MetadataOnly;
@@ -108,8 +107,6 @@ namespace Microsoft.Cci
             // much of the reallocation that would occur when growing these from empty.
             _signatureIndex = new Dictionary<ISignature, KeyValuePair<BlobHandle, ImmutableArray<byte>>>(module.HintNumberOfMethodDefinitions, ReferenceEqualityComparer.Instance); //ignores field signatures
 
-            _numTypeDefsEstimate = module.HintNumberOfMethodDefinitions / 6;
-
             this.Context = context;
             this.messageProvider = messageProvider;
             _cancellationToken = cancellationToken;
@@ -119,8 +116,6 @@ namespace Microsoft.Cci
             _dynamicAnalysisDataWriterOpt = dynamicAnalysisDataWriterOpt;
             _smallMethodBodies = new Dictionary<(ImmutableArray<byte>, bool), int>(ByteSequenceBoolTupleComparer.Instance);
         }
-
-        private int NumberOfTypeDefsEstimate { get { return _numTypeDefsEstimate; } }
 
         /// <summary>
         /// Returns true if writing full metadata, false if writing delta.
@@ -3336,7 +3331,16 @@ namespace Microsoft.Cci
 
         private void SerializeFieldSignature(IFieldReference fieldReference, BlobBuilder builder)
         {
+            Debug.Assert(fieldReference.RefCustomModifiers.Length == 0 || fieldReference.IsByReference);
+
+            // https://github.com/dotnet/roslyn/issues/61385: Use System.Reflection.Metadata.Ecma335.FieldTypeEncoder
+            // instead, since that type supports ref fields directly.
             var typeEncoder = new BlobEncoder(builder).FieldSignature();
+            SerializeCustomModifiers(new CustomModifiersEncoder(builder), fieldReference.RefCustomModifiers);
+            if (fieldReference.IsByReference)
+            {
+                typeEncoder.Builder.WriteByte((byte)SignatureTypeCode.ByReference);
+            }
             SerializeTypeReference(typeEncoder, fieldReference.GetType(Context));
         }
 
@@ -4054,12 +4058,17 @@ namespace Microsoft.Cci
                 encLocalSlots = GetLocalSlotDebugInfos(encSlotInfo);
             }
 
-            return new EditAndContinueMethodDebugInformation(methodBody.MethodId.Ordinal, encLocalSlots, methodBody.ClosureDebugInfo, methodBody.LambdaDebugInfo);
+            return new EditAndContinueMethodDebugInformation(
+                methodBody.MethodId.Ordinal,
+                encLocalSlots,
+                methodBody.ClosureDebugInfo,
+                methodBody.LambdaDebugInfo,
+                methodBody.StateMachineStatesDebugInfo.States);
         }
 
         internal static ImmutableArray<LocalSlotDebugInfo> GetLocalSlotDebugInfos(ImmutableArray<ILocalDefinition> locals)
         {
-            if (!locals.Any(variable => !variable.SlotInfo.Id.IsNone))
+            if (!locals.Any(static variable => !variable.SlotInfo.Id.IsNone))
             {
                 return ImmutableArray<LocalSlotDebugInfo>.Empty;
             }
@@ -4069,7 +4078,7 @@ namespace Microsoft.Cci
 
         internal static ImmutableArray<LocalSlotDebugInfo> GetLocalSlotDebugInfos(ImmutableArray<EncHoistedLocalInfo> locals)
         {
-            if (!locals.Any(variable => !variable.SlotInfo.Id.IsNone))
+            if (!locals.Any(static variable => !variable.SlotInfo.Id.IsNone))
             {
                 return ImmutableArray<LocalSlotDebugInfo>.Empty;
             }

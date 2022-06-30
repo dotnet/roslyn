@@ -128,6 +128,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     return false;
                 }
 
+                var syntaxFacts = semanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
+                if (syntaxFacts.IsLeftSideOfAnyAssignment(simpleNameOrMemberAccessExpression))
+                    return false;
+
                 IdentifierToken = identifierToken;
                 SimpleNameOrMemberAccessExpression = simpleNameOrMemberAccessExpression;
                 InvocationExpressionOpt = invocationExpressionOpt;
@@ -180,7 +184,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
 
                 // If the name bound with errors, then this is a candidate for generate method.
                 var semanticInfo = semanticModel.GetSymbolInfo(SimpleNameOrMemberAccessExpression, cancellationToken);
-                if (semanticInfo.GetAllSymbols().Any(s => s.Kind is SymbolKind.Local or SymbolKind.Parameter) &&
+                if (semanticInfo.GetAllSymbols().Any(static s => s.Kind is SymbolKind.Local or SymbolKind.Parameter) &&
                     !service.AreSpecialOptionsActive(semanticModel))
                 {
                     // if the name bound to something in scope then we don't want to generate the

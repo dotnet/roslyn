@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 }
 
                 var typeStyle = CSharpUseImplicitTypeHelper.Instance.AnalyzeTypeName(
-                    typeSyntax, this.SemanticModel, this.OptionSet, this.CancellationToken);
+                    typeSyntax, this.SemanticModel, this.Options, this.CancellationToken);
 
                 if (!typeStyle.IsStylePreferred || !typeStyle.CanConvert())
                 {

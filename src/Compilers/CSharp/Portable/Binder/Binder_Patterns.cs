@@ -71,13 +71,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         case BoundConstantPattern _:
                         case BoundITuplePattern _:
-                        case BoundListPattern:
                             // these patterns can fail in practice
                             throw ExceptionUtilities.Unreachable;
                         case BoundRelationalPattern _:
                         case BoundTypePattern _:
                         case BoundNegatedPattern _:
                         case BoundBinaryPattern _:
+                        case BoundListPattern:
                             Debug.Assert(expression.Type is object);
                             diagnostics.Add(ErrorCode.WRN_IsPatternAlways, node.Location, expression.Type);
                             break;
@@ -289,7 +289,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundListPatternReceiverPlaceholder? receiverPlaceholder;
             BoundListPatternIndexPlaceholder? argumentPlaceholder;
 
-            if (inputType.IsErrorType())
+            if (inputType.IsDynamic())
+            {
+                Error(diagnostics, ErrorCode.ERR_UnsupportedTypeForListPattern, node, inputType);
+            }
+
+            if (inputType.IsErrorType() || inputType.IsDynamic())
             {
                 hasErrors = true;
                 elementType = inputType;
@@ -337,13 +342,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool BindLengthAndIndexerForListPattern(SyntaxNode node, TypeSymbol inputType, uint inputValEscape, BindingDiagnosticBag diagnostics,
             out BoundExpression indexerAccess, out BoundExpression lengthAccess, out BoundListPatternReceiverPlaceholder? receiverPlaceholder, out BoundListPatternIndexPlaceholder argumentPlaceholder)
         {
-            bool hasErrors = false;
-            if (inputType.IsDynamic())
-            {
-                hasErrors |= true;
-                Error(diagnostics, ErrorCode.ERR_UnsupportedTypeForListPattern, node, inputType);
-            }
+            Debug.Assert(!inputType.IsDynamic());
 
+            bool hasErrors = false;
             receiverPlaceholder = new BoundListPatternReceiverPlaceholder(node, GetValEscape(inputType, inputValEscape), inputType) { WasCompilerGenerated = true };
             if (inputType.IsSZArray())
             {
@@ -359,7 +360,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                hasErrors |= !TryBindLengthOrCount(node, receiverPlaceholder, out lengthAccess, diagnostics);
+                if (!TryBindLengthOrCount(node, receiverPlaceholder, out lengthAccess, diagnostics))
+                {
+                    hasErrors = true;
+                    Error(diagnostics, ErrorCode.ERR_ListPatternRequiresLength, node, inputType);
+                }
             }
 
             var analyzedArguments = AnalyzedArguments.GetInstance();
@@ -406,8 +411,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             var convertedExpression = BindExpressionOrTypeForPattern(inputType, innerExpression, ref hasErrors, diagnostics, out var constantValueOpt, out bool wasExpression);
             if (wasExpression)
             {
+                var convertedType = convertedExpression.Type ?? inputType;
+                if (convertedType.SpecialType == SpecialType.System_String && inputType.IsSpanOrReadOnlySpanChar())
+                {
+                    convertedType = inputType;
+                }
+
                 return new BoundConstantPattern(
-                    node, convertedExpression, constantValueOpt ?? ConstantValue.Bad, inputType, convertedExpression.Type ?? inputType, hasErrors || constantValueOpt is null);
+                    node, convertedExpression, constantValueOpt ?? ConstantValue.Bad, inputType, convertedType, hasErrors || constantValueOpt is null);
             }
             else
             {
@@ -567,7 +578,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var requiredVersion = MessageID.IDS_FeatureRecursivePatterns.RequiredVersion();
                         if (Compilation.LanguageVersion < requiredVersion &&
-                            !this.Conversions.ClassifyConversionFromExpression(expression, inputType, ref useSiteInfo).IsImplicit)
+                            !this.Conversions.ClassifyConversionFromExpression(expression, inputType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo).IsImplicit)
                         {
                             diagnostics.Add(ErrorCode.ERR_ConstantPatternVsOpenType,
                                 expression.Syntax.Location, inputType, expression.Display, new CSharpRequiredLanguageVersion(requiredVersion));
@@ -579,6 +590,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                if (expression.Type?.SpecialType == SpecialType.System_String && inputType.IsSpanOrReadOnlySpanChar())
+                {
+                    if (MessageID.IDS_FeatureSpanCharConstantPattern.CheckFeatureAvailability(diagnostics, Compilation, node.Location))
+                    {
+                        // report missing member and use site diagnostics
+                        bool isReadOnlySpan = inputType.IsReadOnlySpanChar();
+                        _ = GetWellKnownTypeMember(
+                            isReadOnlySpan ? WellKnownMember.System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T : WellKnownMember.System_MemoryExtensions__SequenceEqual_Span_T,
+                            diagnostics,
+                            syntax: node);
+                        _ = GetWellKnownTypeMember(WellKnownMember.System_MemoryExtensions__AsSpan_String, diagnostics, syntax: node);
+                        _ = GetWellKnownTypeMember(isReadOnlySpan ? WellKnownMember.System_ReadOnlySpan_T__get_Length : WellKnownMember.System_Span_T__get_Length,
+                            diagnostics,
+                            syntax: node);
+                    }
+
+                    convertedExpression = BindToNaturalType(expression, diagnostics);
+
+                    constantValue = convertedExpression.ConstantValue;
+                    if (constantValue == ConstantValue.Null)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_PatternSpanCharCannotBeStringNull, convertedExpression.Syntax.Location, inputType);
+                    }
+                    return convertedExpression;
+                }
+
                 // This will allow user-defined conversions, even though they're not permitted here.  This is acceptable
                 // because the result of a user-defined conversion does not have a ConstantValue. A constant pattern
                 // requires a constant value so we'll report a diagnostic to that effect later.
@@ -723,8 +760,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expressionType = conversions.CorLibrary.GetSpecialType(SpecialType.System_Object);
             }
 
-            conversion = conversions.ClassifyBuiltInConversion(expressionType, patternType, ref useSiteInfo);
+            conversion = conversions.ClassifyBuiltInConversion(expressionType, patternType, isChecked: false, ref useSiteInfo);
             ConstantValue result = Binder.GetIsOperatorConstantResult(expressionType, patternType, conversion.Kind, operandConstantValue, operandCouldBeNull);
+
+            // Don't need to worry about checked user-defined operators
+            Debug.Assert(!conversion.IsUserDefined || result == ConstantValue.False);
+
             return
                 (result == null) ? (bool?)null :
                 (result == ConstantValue.True) ? true :
@@ -1197,7 +1238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasBaseInterface(TypeSymbol type, NamedTypeSymbol possibleBaseInterface)
             {
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                var result = Compilation.Conversions.ClassifyBuiltInConversion(type, possibleBaseInterface, ref useSiteInfo).IsImplicit;
+                var result = Compilation.Conversions.ClassifyBuiltInConversion(type, possibleBaseInterface, isChecked: CheckOverflowAtRuntime, ref useSiteInfo).IsImplicit;
                 diagnostics.Add(node, useSiteInfo);
                 return result;
             }

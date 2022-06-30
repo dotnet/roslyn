@@ -3,9 +3,14 @@
 
 *.yml @dotnet/roslyn-infrastructure
 .github/ @dotnet/roslyn-infrastructure
+
+docs/compilers @dotnet/roslyn-compiler
+docs/ide @dotnet/roslyn-ide
+
 eng/ @dotnet/roslyn-infrastructure
 scripts/ @dotnet/roslyn-infrastructure
 
+src/Analyzers/ @dotnet/roslyn-ide
 src/CodeStyle/ @dotnet/roslyn-ide
 src/Compilers/ @dotnet/roslyn-compiler
 # Both IDE and Compiler traits are in this file, so we don't want to ping each other for changes to just this file.
@@ -35,3 +40,5 @@ src/Compilers/**/PublicAPI.Unshipped.txt @dotnet/roslyn-api-owners
 src/Workspaces/**/PublicAPI.Unshipped.txt @dotnet/roslyn-api-owners
 src/Features/**/PublicAPI.Unshipped.txt @dotnet/roslyn-api-owners
 src/EditorFeatures/**/PublicAPI.Unshipped.txt @dotnet/roslyn-api-owners
+
+src/Tools/ExternalAccess/OmniSharp*/ @333fred @joerobich

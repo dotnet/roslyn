@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
@@ -691,7 +692,7 @@ internal class MyBase
                 Options = {
                     { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped, NotificationOption2.Error },
                     { CodeStyleOptions2.FileHeaderTemplate, "this is my real document header" },
-                    { CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, CodeAnalysis.AddImports.AddImportPlacement.InsideNamespace }
+                    { CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, AddImportPlacement.InsideNamespace }
                 }
             }.RunAsync();
         }
@@ -758,7 +759,7 @@ namespace ConsoleApp185
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options = {
                     { CodeStyleOptions2.FileHeaderTemplate, "this is my real document header" },
-                    { CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, CodeAnalysis.AddImports.AddImportPlacement.InsideNamespace }
+                    { CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, AddImportPlacement.InsideNamespace }
                 }
             }.RunAsync();
         }
@@ -811,7 +812,7 @@ internal class MyBase
                 },
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options = {
-                    { CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, CodeAnalysis.AddImports.AddImportPlacement.InsideNamespace }
+                    { CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, AddImportPlacement.InsideNamespace }
                 }
             }.RunAsync();
         }
@@ -879,7 +880,7 @@ namespace N1
                 },
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options = {
-                    { CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, CodeAnalysis.AddImports.AddImportPlacement.InsideNamespace }
+                    { CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, AddImportPlacement.InsideNamespace }
                 }
             }.RunAsync();
         }
@@ -2019,6 +2020,51 @@ class Test : MyBase
                     }
                 },
                 IsClassDeclarationSelection = true,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(55871, "https://github.com/dotnet/roslyn/issues/55871")]
+        public async Task TestGenericClass()
+        {
+            var input = @"using System.Collections.Generic;
+
+[|class C<T1, T2, T3>
+{
+    public List<T1> Field1;
+    public T2 Field2;
+    public T3 Method()
+    {
+        return default;
+    }|]
+}";
+            var expected1 = @"using System.Collections.Generic;
+
+class C<T1, T2, T3> : MyBase<T1, T3>
+{
+    public T2 Field2;
+}";
+            var expected2 = @"using System.Collections.Generic;
+
+internal class MyBase<T1, T3>
+{
+    public List<T1> Field1;
+    public T3 Method()
+    {
+        return default;
+    }
+}";
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2
+                    }
+                },
+                DialogSelection = MakeSelection("Field1", "Method")
             }.RunAsync();
         }
 

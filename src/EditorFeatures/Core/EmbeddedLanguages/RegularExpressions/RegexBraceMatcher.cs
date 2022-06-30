@@ -2,18 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Threading;
-using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.BraceMatching;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
+namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 {
     using RegexToken = EmbeddedSyntaxToken<RegexKind>;
     using RegexTrivia = EmbeddedSyntaxTrivia<RegexKind>;
@@ -21,45 +22,50 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
     /// <summary>
     /// Brace matching impl for embedded regex strings.
     /// </summary>
-    internal sealed class RegexBraceMatcher : IBraceMatcher
+    [ExportEmbeddedLanguageBraceMatcher(
+        PredefinedEmbeddedLanguageNames.Regex,
+        new[] { LanguageNames.CSharp, LanguageNames.VisualBasic },
+        supportsUnannotatedAPIs: true,
+        "Regex", "Regexp"), Shared]
+    internal sealed class RegexBraceMatcher : IEmbeddedLanguageBraceMatcher
     {
-        private readonly RegexEmbeddedLanguage _language;
-
-        public RegexBraceMatcher(RegexEmbeddedLanguage language)
-            => _language = language;
-
-        public async Task<BraceMatchingResult?> FindBracesAsync(
-            Document document, int position, BraceMatchingOptions options, CancellationToken cancellationToken)
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public RegexBraceMatcher()
         {
-            if (!options.HighlightRelatedRegexComponentsUnderCursor)
-            {
-                return null;
-            }
+        }
 
-            var tree = await _language.TryGetTreeAtPositionAsync(document, position, cancellationToken).ConfigureAwait(false);
+        public BraceMatchingResult? FindBraces(
+            Project project,
+            SemanticModel semanticModel,
+            SyntaxToken token,
+            int position,
+            BraceMatchingOptions options,
+            CancellationToken cancellationToken)
+        {
+            if (!options.HighlightingOptions.HighlightRelatedRegexComponentsUnderCursor)
+                return null;
+
+            var info = project.GetRequiredLanguageService<IEmbeddedLanguagesProvider>().EmbeddedLanguageInfo;
+            var detector = RegexLanguageDetector.GetOrCreate(semanticModel.Compilation, info);
+            var tree = detector.TryParseString(token, semanticModel, cancellationToken);
+
             return tree == null ? null : GetMatchingBraces(tree, position);
         }
 
         private static BraceMatchingResult? GetMatchingBraces(RegexTree tree, int position)
         {
-            var virtualChar = tree.Text.FirstOrNull(vc => vc.Span.Contains(position));
+            var virtualChar = tree.Text.Find(position);
             if (virtualChar == null)
-            {
                 return null;
-            }
 
             var ch = virtualChar.Value;
-            switch (ch.Value)
+            return ch.Value switch
             {
-                case '(':
-                case ')':
-                    return FindGroupingBraces(tree, ch) ?? FindCommentBraces(tree, ch);
-                case '[':
-                case ']':
-                    return FindCharacterClassBraces(tree, ch);
-                default:
-                    return null;
-            }
+                '(' or ')' => FindGroupingBraces(tree, ch) ?? FindCommentBraces(tree, ch),
+                '[' or ']' => FindCharacterClassBraces(tree, ch),
+                _ => null,
+            };
         }
 
         private static BraceMatchingResult? CreateResult(RegexToken open, RegexToken close)
@@ -71,9 +77,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
         {
             var trivia = FindTrivia(tree.Root, ch);
             if (trivia?.Kind != RegexKind.CommentTrivia)
-            {
                 return null;
-            }
 
             var firstChar = trivia.Value.VirtualChars[0];
             var lastChar = trivia.Value.VirtualChars[trivia.Value.VirtualChars.Length - 1];
@@ -94,21 +98,19 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             return node == null ? null : CreateResult(node.OpenBracketToken, node.CloseBracketToken);
         }
 
-        private static RegexGroupingNode FindGroupingNode(RegexNode node, VirtualChar ch)
+        private static RegexGroupingNode? FindGroupingNode(RegexNode node, VirtualChar ch)
             => FindNode<RegexGroupingNode>(node, ch, (grouping, c) =>
                     grouping.OpenParenToken.VirtualChars.Contains(c) || grouping.CloseParenToken.VirtualChars.Contains(c));
 
-        private static RegexBaseCharacterClassNode FindCharacterClassNode(RegexNode node, VirtualChar ch)
+        private static RegexBaseCharacterClassNode? FindCharacterClassNode(RegexNode node, VirtualChar ch)
             => FindNode<RegexBaseCharacterClassNode>(node, ch, (grouping, c) =>
                     grouping.OpenBracketToken.VirtualChars.Contains(c) || grouping.CloseBracketToken.VirtualChars.Contains(c));
 
-        private static TNode FindNode<TNode>(RegexNode node, VirtualChar ch, Func<TNode, VirtualChar, bool> predicate)
+        private static TNode? FindNode<TNode>(RegexNode node, VirtualChar ch, Func<TNode, VirtualChar, bool> predicate)
             where TNode : RegexNode
         {
             if (node is TNode nodeMatch && predicate(nodeMatch, ch))
-            {
                 return nodeMatch;
-            }
 
             foreach (var child in node)
             {
@@ -116,9 +118,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
                 {
                     var result = FindNode(child.Node, ch, predicate);
                     if (result != null)
-                    {
                         return result;
-                    }
                 }
             }
 
@@ -133,9 +133,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
                 {
                     var result = FindTrivia(child.Node, ch);
                     if (result != null)
-                    {
                         return result;
-                    }
                 }
                 else
                 {
@@ -144,9 +142,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
                                  TryGetTrivia(token.TrailingTrivia, ch);
 
                     if (trivia != null)
-                    {
                         return trivia;
-                    }
                 }
             }
 
@@ -158,9 +154,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             foreach (var trivia in triviaList)
             {
                 if (trivia.VirtualChars.Contains(ch))
-                {
                     return trivia;
-                }
             }
 
             return null;

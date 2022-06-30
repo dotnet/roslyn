@@ -7,6 +7,16 @@
         <target state="translated">MSB3883: Beklenmeyen özel durum: </target>
         <note>{StrBegin="MSB3883: "}</note>
       </trans-unit>
+      <trans-unit id="CopyRefAssembly_Changed">
+        <source>Source reference assembly "{0}" (timestamp "{1}", MVID "{2}") differs from destination "{3}" (timestamp "{4}", MVID "{5}").</source>
+        <target state="translated">"{0}" kaynak başvuru bütünleştirilmiş kodu (zaman damgası: "{1}", MVID: "{2}") "{3}" hedefinden (zaman damgası: "{4}", MVID: "{5}") farklı.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CopyRefAssembly_Copying">
+        <source>Copying reference assembly from "{0}" to "{1}".</source>
+        <target state="translated">Başvuru bütünleştirilmiş kodu "{0}" konumundan "{1}" konumuna kopyalanıyor.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Csc_AssemblyAliasContainsIllegalCharacters">
         <source>MSB3053: The assembly alias "{1}" on reference "{0}" contains illegal characters.</source>
         <target state="translated">MSB3053: "{0}" başvurusundaki "{1}" derleme diğer adında geçersiz karakterler var.</target>

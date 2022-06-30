@@ -637,7 +637,7 @@ class D
 
             var service = GetCompletionService(document.Project);
             var completionList = await GetCompletionListAsync(service, document, position, triggerInfo);
-            var item = completionList.Items.First();
+            var item = completionList.ItemsList.First();
 
             Assert.False(CommitManager.SendEnterThroughToEditor(service.GetRules(CompletionOptions.Default), item, string.Empty), "Expected false from SendEnterThroughToEditor()");
         }
@@ -1206,7 +1206,7 @@ class Program
             var service = GetCompletionService(document.Project);
             var completionList = await GetCompletionListAsync(service, document, position, triggerInfo);
 
-            if (completionList != null)
+            if (!completionList.IsEmpty)
             {
                 Assert.True(exclusive == completionList.GetTestAccessor().IsExclusive, "group.IsExclusive == " + completionList.GetTestAccessor().IsExclusive);
             }

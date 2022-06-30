@@ -9,9 +9,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
+using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Features.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -21,10 +20,21 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.DocumentHighlighting
 {
-    internal abstract partial class AbstractDocumentHighlightsService : IDocumentHighlightsService
+    internal abstract partial class AbstractDocumentHighlightsService :
+        AbstractEmbeddedLanguageFeatureService<IEmbeddedLanguageDocumentHighlighter>,
+        IDocumentHighlightsService
     {
+        protected AbstractDocumentHighlightsService(
+            string languageName,
+            EmbeddedLanguageInfo info,
+            ISyntaxKinds syntaxKinds,
+            IEnumerable<Lazy<IEmbeddedLanguageDocumentHighlighter, EmbeddedLanguageMetadata>> allServices)
+            : base(languageName, info, syntaxKinds, allServices)
+        {
+        }
+
         public async Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsAsync(
-            Document document, int position, IImmutableSet<Document> documentsToSearch, DocumentHighlightingOptions options, CancellationToken cancellationToken)
+            Document document, int position, IImmutableSet<Document> documentsToSearch, HighlightingOptions options, CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
 
@@ -51,16 +61,15 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         }
 
         private async Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsInCurrentProcessAsync(
-            Document document, int position, IImmutableSet<Document> documentsToSearch, DocumentHighlightingOptions options, CancellationToken cancellationToken)
+            Document document, int position, IImmutableSet<Document> documentsToSearch, HighlightingOptions options, CancellationToken cancellationToken)
         {
-            var result = await TryGetEmbeddedLanguageHighlightsAsync(
-                document, position, documentsToSearch, options, cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var result = TryGetEmbeddedLanguageHighlights(document, semanticModel, position, options, cancellationToken);
             if (!result.IsDefaultOrEmpty)
                 return result;
 
             var solution = document.Project.Solution;
 
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var symbol = await SymbolFinder.FindSymbolAtPositionAsync(
                 semanticModel, position, solution.Workspace, cancellationToken).ConfigureAwait(false);
             if (symbol == null)
@@ -74,32 +83,24 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             // position the caller was asking for.  For example, if the user had `$$new X();` then 
             // SymbolFinder will consider that the symbol `X`. However, the doc highlights won't include
             // the `new` part, so it's not appropriate for us to highlight `X` in that case.
-            if (!tags.Any(t => t.HighlightSpans.Any(hs => hs.TextSpan.IntersectsWith(position))))
+            if (!tags.Any(static (t, position) => t.HighlightSpans.Any(static (hs, position) => hs.TextSpan.IntersectsWith(position), position), position))
                 return ImmutableArray<DocumentHighlights>.Empty;
 
             return tags;
         }
 
-        private static async Task<ImmutableArray<DocumentHighlights>> TryGetEmbeddedLanguageHighlightsAsync(
-            Document document, int position, IImmutableSet<Document> documentsToSearch, DocumentHighlightingOptions options, CancellationToken cancellationToken)
+        private ImmutableArray<DocumentHighlights> TryGetEmbeddedLanguageHighlights(
+            Document document, SemanticModel semanticModel, int position, HighlightingOptions options, CancellationToken cancellationToken)
         {
-            var languagesProvider = document.GetLanguageService<IEmbeddedLanguagesProvider>();
-            if (languagesProvider != null)
+            var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
+            var token = root.FindToken(position);
+            var embeddedHighlightsServices = this.GetServices(semanticModel, token, cancellationToken);
+            foreach (var service in embeddedHighlightsServices)
             {
-                foreach (var language in languagesProvider.Languages)
-                {
-                    var highlighter = (language as IEmbeddedLanguageFeatures)?.DocumentHighlightsService;
-                    if (highlighter != null)
-                    {
-                        var highlights = await highlighter.GetDocumentHighlightsAsync(
-                            document, position, documentsToSearch, options, cancellationToken).ConfigureAwait(false);
-
-                        if (!highlights.IsDefaultOrEmpty)
-                        {
-                            return highlights;
-                        }
-                    }
-                }
+                var result = service.Value.GetDocumentHighlights(
+                    document, semanticModel, token, position, options, cancellationToken);
+                if (!result.IsDefaultOrEmpty)
+                    return result;
             }
 
             return default;
@@ -116,7 +117,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             {
                 var progress = new StreamingProgressCollector();
 
-                var options = FindSymbols.FindReferencesSearchOptions.GetFeatureOptionsForStartingSymbol(symbol);
+                var options = FindReferencesSearchOptions.GetFeatureOptionsForStartingSymbol(symbol);
                 await SymbolFinder.FindReferencesAsync(
                     symbol, document.Project.Solution, progress,
                     documentsToSearch, options, cancellationToken).ConfigureAwait(false);
@@ -156,7 +157,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         private async Task<ImmutableArray<DocumentHighlights>> FilterAndCreateSpansAsync(
             ImmutableArray<ReferencedSymbol> references, Document startingDocument,
             IImmutableSet<Document> documentsToSearch, ISymbol symbol,
-            FindSymbols.FindReferencesSearchOptions options, CancellationToken cancellationToken)
+            FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
             var solution = startingDocument.Project.Solution;
             references = references.FilterToItemsToShow(options);

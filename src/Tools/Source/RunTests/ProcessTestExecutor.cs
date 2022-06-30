@@ -8,8 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,7 +25,7 @@ namespace RunTests
             Options = options;
         }
 
-        public string GetCommandLineArguments(AssemblyInfo assemblyInfo, bool useSingleQuotes)
+        public string GetCommandLineArguments(AssemblyInfo assemblyInfo, bool useSingleQuotes, bool isHelix)
         {
             // http://www.gnu.org/software/bash/manual/html_node/Single-Quotes.html
             // Single quotes are needed in bash to avoid the need to escape characters such as backtick (`) which are found in metadata names.
@@ -46,7 +44,12 @@ namespace RunTests
                 foreach (var typeInfo in typeInfoList)
                 {
                     MaybeAddSeparator();
+                    // https://docs.microsoft.com/en-us/dotnet/core/testing/selective-unit-tests?pivots=mstest#syntax
+                    // We want to avoid matching other test classes whose names are prefixed with this test class's name.
+                    // For example, avoid running 'AttributeTests_WellKnownMember', when the request here is to run 'AttributeTests'.
+                    // We append a '.', assuming that all test methods in the class *will* match it, but not methods in other classes.
                     builder.Append(typeInfo.FullName);
+                    builder.Append('.');
                 }
                 builder.Append(sep);
 
@@ -67,6 +70,7 @@ namespace RunTests
                 }
             }
 
+            builder.Append($@" --arch {assemblyInfo.Architecture}");
             builder.Append($@" --framework {assemblyInfo.TargetFramework}");
             builder.Append($@" --logger {sep}xunit;LogFilePath={GetResultsFilePath(assemblyInfo, "xml")}{sep}");
 
@@ -75,14 +79,31 @@ namespace RunTests
                 builder.AppendFormat($@" --logger {sep}html;LogFileName={GetResultsFilePath(assemblyInfo, "html")}{sep}");
             }
 
-            builder.Append(" --blame-crash --blame-hang-dump-type full --blame-hang-timeout 15minutes");
+            if (!Options.CollectDumps)
+            {
+                // The 'CollectDumps' option uses operating system features to collect dumps when a process crashes. We
+                // only enable the test executor blame feature in remaining cases, as the latter relies on ProcDump and
+                // interferes with automatic crash dump collection on Windows.
+                builder.Append(" --blame-crash");
+            }
+
+            // The 25 minute timeout in integration tests accounts for the fact that VSIX deployment and/or experimental hive reset and
+            // configuration can take significant time (seems to vary from ~10 seconds to ~15 minutes), and the blame
+            // functionality cannot separate this configuration overhead from the first test which will eventually run.
+            // https://github.com/dotnet/roslyn/issues/59851
+            //
+            // Helix timeout is 15 minutes as helix jobs fully timeout in 30minutes.  So in order to capture dumps we need the timeout
+            // to be 2x shorter than the expected test run time (15min) in case only the last test hangs.
+            var timeout = isHelix ? "15minutes" : "25minutes";
+
+            builder.Append($" --blame-hang-dump-type full --blame-hang-timeout {timeout}");
 
             return builder.ToString();
         }
 
         private string GetResultsFilePath(AssemblyInfo assemblyInfo, string suffix = "xml")
         {
-            var fileName = $"{assemblyInfo.DisplayName}_{assemblyInfo.TargetFramework}_{assemblyInfo.Platform}_test_results.{suffix}";
+            var fileName = $"{assemblyInfo.DisplayName}_{assemblyInfo.TargetFramework}_{assemblyInfo.Architecture}_test_results.{suffix}";
             return Path.Combine(Options.TestResultsDirectory, fileName);
         }
 
@@ -91,19 +112,25 @@ namespace RunTests
             var result = await RunTestAsyncInternal(assemblyInfo, retry: false, cancellationToken);
 
             // For integration tests (TestVsi), we make one more attempt to re-run failed tests.
-            if (Options.Retry && !Options.IncludeHtml && !result.Succeeded)
+            if (Options.Retry && !HasBuiltInRetry(assemblyInfo) && !Options.IncludeHtml && !result.Succeeded)
             {
                 return await RunTestAsyncInternal(assemblyInfo, retry: true, cancellationToken);
             }
 
             return result;
+
+            static bool HasBuiltInRetry(AssemblyInfo assemblyInfo)
+            {
+                // vs-extension-testing handles test retry internally.
+                return assemblyInfo.AssemblyName == "Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll";
+            }
         }
 
         private async Task<TestResult> RunTestAsyncInternal(AssemblyInfo assemblyInfo, bool retry, CancellationToken cancellationToken)
         {
             try
             {
-                var commandLineArguments = GetCommandLineArguments(assemblyInfo, useSingleQuotes: false);
+                var commandLineArguments = GetCommandLineArguments(assemblyInfo, useSingleQuotes: false, isHelix: false);
                 var resultsFilePath = GetResultsFilePath(assemblyInfo);
                 var resultsDir = Path.GetDirectoryName(resultsFilePath);
                 var htmlResultsFilePath = Options.IncludeHtml ? GetResultsFilePath(assemblyInfo, "html") : null;
@@ -196,7 +223,7 @@ namespace RunTests
                     }
                 }
 
-                Logger.Log($"Command line {assemblyInfo.DisplayName}: {Options.DotnetFilePath} {commandLineArguments}");
+                Logger.Log($"Command line {assemblyInfo.DisplayName} completed in {span.TotalSeconds} seconds: {Options.DotnetFilePath} {commandLineArguments}");
                 var standardOutput = string.Join(Environment.NewLine, xunitProcessResult.OutputLines) ?? "";
                 var errorOutput = string.Join(Environment.NewLine, xunitProcessResult.ErrorLines) ?? "";
 

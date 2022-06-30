@@ -7,14 +7,14 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue;
+using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Classification;
@@ -42,11 +42,12 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             IThreadingContext threadingContext,
             IDiagnosticService diagnosticService,
             IGlobalOptionService globalOptions,
+            [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
             IAsynchronousOperationListenerProvider listenerProvider,
             IEditorFormatMapService editorFormatMapService,
             IClassificationFormatMapService classificationFormatMapService,
             IClassificationTypeRegistryService classificationTypeRegistryService)
-            : base(threadingContext, diagnosticService, globalOptions, listenerProvider)
+            : base(threadingContext, diagnosticService, globalOptions, visibilityTracker, listenerProvider)
         {
             _editorFormatMap = editorFormatMapService.GetEditorFormatMap("text");
             _classificationFormatMapService = classificationFormatMapService;
@@ -55,11 +56,11 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 
         // Need to override this from AbstractDiagnosticsTaggerProvider because the location option needs to be added
         // to the TaggerEventSource, otherwise it does not get updated until there is a change in the editor.
-        protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
+        protected override ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer subjectBuffer)
         {
             return TaggerEventSources.Compose(
-                base.CreateEventSource(textViewOpt, subjectBuffer),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineDiagnosticsOptions.Location));
+                base.CreateEventSource(textView, subjectBuffer),
+                TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineDiagnosticsOptions.Location));
         }
 
         protected internal override bool IncludeDiagnostic(DiagnosticData diagnostic)
@@ -84,13 +85,13 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                 return null;
             }
 
-            var document = workspace.CurrentSolution.GetDocument(diagnostic.DocumentId);
-            if (document is null)
+            var project = workspace.CurrentSolution.GetProject(diagnostic.DocumentId.ProjectId);
+            if (project is null)
             {
                 return null;
             }
 
-            var locationOption = GlobalOptions.GetOption(InlineDiagnosticsOptions.Location, document.Project.Language);
+            var locationOption = GlobalOptions.GetOption(InlineDiagnosticsOptions.Location, project.Language);
             var navigateService = workspace.Services.GetRequiredService<INavigateToLinkService>();
             return new InlineDiagnosticsTag(errorType, diagnostic, _editorFormatMap, _classificationFormatMapService,
                 _classificationTypeRegistryService, locationOption, navigateService);

@@ -338,6 +338,43 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [WorkItem(59255, "https://github.com/dotnet/roslyn/issues/59255")]
+        public async Task TestUseExpressionBody5()
+        {
+            var code = @"
+using System;
+
+class C
+{
+    event EventHandler Goo
+    {
+        {|IDE0027:add
+        {
+            throw new NotImplementedException();
+        }|}
+
+        {|IDE0027:remove
+        {
+            throw new NotImplementedException();
+        }|}
+    }
+}";
+            var fixedCode = @"
+using System;
+
+class C
+{
+    event EventHandler Goo
+    {
+        add => throw new NotImplementedException();
+
+        remove => throw new NotImplementedException();
+    }
+}";
+            await TestWithUseExpressionBody(code, fixedCode);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestUseBlockBody1()
         {
             var code = @"
@@ -506,6 +543,42 @@ class C
                     { CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, ExpressionBodyPreference.WhenOnSingleLine, NotificationOption2.None },
                 }
             }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [WorkItem(59255, "https://github.com/dotnet/roslyn/issues/59255")]
+        public async Task TestUseBlockBody6()
+        {
+            var code = @"
+using System;
+
+class C
+{
+    event EventHandler Goo
+    {
+        {|IDE0027:add => throw new NotImplementedException();|}
+        {|IDE0027:remove => throw new NotImplementedException();|}
+        }
+    }";
+            var fixedCode = @"
+using System;
+
+class C
+{
+    event EventHandler Goo
+    {
+        add
+        {
+            throw new NotImplementedException();
+        }
+
+        remove
+        {
+            throw new NotImplementedException();
+        }
+    }
+}";
+            await TestWithUseBlockBodyIncludingPropertiesAndIndexers(code, fixedCode);
         }
 
         [WorkItem(20350, "https://github.com/dotnet/roslyn/issues/20350")]

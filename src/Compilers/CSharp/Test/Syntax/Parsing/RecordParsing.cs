@@ -453,7 +453,7 @@ abstract record D
             UsingTree("record R<T> where T   class;",
                 // (1,23): error CS1003: Syntax error, ':' expected
                 // record R<T> where T   class;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "class").WithArguments(":", "class").WithLocation(1, 23)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "class").WithArguments(":").WithLocation(1, 23)
                 );
 
             N(SyntaxKind.CompilationUnit);
@@ -555,7 +555,7 @@ abstract record D
             UsingTree("abstract class C<T> where T : class;",
                 // (1,36): error CS1003: Syntax error, ',' expected
                 // abstract class C<T> where T : class;
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",", ";").WithLocation(1, 36),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(1, 36),
                 // (1,37): error CS1514: { expected
                 // abstract class C<T> where T : class;
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(1, 37),
@@ -607,7 +607,7 @@ abstract record D
             UsingTree("abstract class C<T1, T2> where T1 : class where T2 : class;",
                 // (1,59): error CS1003: Syntax error, ',' expected
                 // abstract class C<T1, T2> where T1 : class where T2 : class;
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",", ";").WithLocation(1, 59),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(1, 59),
                 // (1,60): error CS1514: { expected
                 // abstract class C<T1, T2> where T1 : class where T2 : class;
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(1, 60),
@@ -755,7 +755,7 @@ abstract record D
             UsingTree("class a<b> where b : c where b { }",
                 // (1,32): error CS1003: Syntax error, ':' expected
                 // class a<b> where b : c where b { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(":", "{").WithLocation(1, 32),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(":").WithLocation(1, 32),
                 // (1,32): error CS1031: Type expected
                 // class a<b> where b : c where b { }
                 Diagnostic(ErrorCode.ERR_TypeExpected, "{").WithLocation(1, 32)
@@ -825,7 +825,7 @@ abstract record D
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(1, 30),
                 // (1,30): error CS1003: Syntax error, ':' expected
                 // class a<b> where b : c where { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(":", "{").WithLocation(1, 30),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(":").WithLocation(1, 30),
                 // (1,30): error CS1031: Type expected
                 // class a<b> where b : c where { }
                 Diagnostic(ErrorCode.ERR_TypeExpected, "{").WithLocation(1, 30)
@@ -1032,10 +1032,10 @@ abstract record D
             UsingTree("public class Goo<T> : System.Object where where { }",
                 // (1,37): error CS1003: Syntax error, ',' expected
                 // public class Goo<T> : System.Object where where { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "where").WithArguments(",", "").WithLocation(1, 37),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "where").WithArguments(",").WithLocation(1, 37),
                 // (1,43): error CS1003: Syntax error, ',' expected
                 // public class Goo<T> : System.Object where where { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "where").WithArguments(",", "").WithLocation(1, 43)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "where").WithArguments(",").WithLocation(1, 43)
                 );
 
             N(SyntaxKind.CompilationUnit);
@@ -1103,13 +1103,13 @@ abstract record D
             UsingTree("public class Goo<T> : System.Object where where where { }",
                 // (1,37): error CS1003: Syntax error, ',' expected
                 // public class Goo<T> : System.Object where where where { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "where").WithArguments(",", "").WithLocation(1, 37),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "where").WithArguments(",").WithLocation(1, 37),
                 // (1,43): error CS1003: Syntax error, ',' expected
                 // public class Goo<T> : System.Object where where where { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "where").WithArguments(",", "").WithLocation(1, 43),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "where").WithArguments(",").WithLocation(1, 43),
                 // (1,49): error CS1003: Syntax error, ',' expected
                 // public class Goo<T> : System.Object where where where { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "where").WithArguments(",", "").WithLocation(1, 49)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "where").WithArguments(",").WithLocation(1, 49)
                 );
 
             N(SyntaxKind.CompilationUnit);
@@ -1221,7 +1221,7 @@ class C
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "int x = with { ").WithLocation(6, 5),
                 // (6,18): error CS1003: Syntax error, ',' expected
                 //     int x = with { };
-                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(6, 18),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(6, 18),
                 // (6,20): error CS1002: ; expected
                 //     int x = with { };
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(6, 20),
@@ -1495,7 +1495,7 @@ class C
             UsingExpression(text,
                 // (1,12): error CS1003: Syntax error, ',' expected
                 // 0 with { X 3 =,
-                Diagnostic(ErrorCode.ERR_SyntaxError, "3").WithArguments(",", "").WithLocation(1, 12),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "3").WithArguments(",").WithLocation(1, 12),
                 // (1,15): error CS1525: Invalid expression term ','
                 // 0 with { X 3 =,
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(1, 15),
@@ -1914,7 +1914,7 @@ class C
             UsingStatement(text,
                 // (1,8): error CS1003: Syntax error, ',' expected
                 // x with { X = "2" };
-                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(1, 8));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(1, 8));
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -1985,7 +1985,7 @@ class C
             UsingExpression(text,
                 // (1,23): error CS1003: Syntax error, ',' expected
                 // x with { A = e is T y B = y }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "B").WithArguments(",", "").WithLocation(1, 23));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "B").WithArguments(",").WithLocation(1, 23));
             N(SyntaxKind.WithExpression);
             {
                 N(SyntaxKind.IdentifierName);
@@ -2318,13 +2318,13 @@ class C(int X, int Y)
             UsingTree(text,
                 // (2,7): error CS1003: Syntax error, ',' expected
                 // : B, D(X, Y)
-                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(",", "(").WithLocation(2, 7),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(",").WithLocation(2, 7),
                 // (2,8): error CS1003: Syntax error, ',' expected
                 // : B, D(X, Y)
-                Diagnostic(ErrorCode.ERR_SyntaxError, "X").WithArguments(",", "").WithLocation(2, 8),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "X").WithArguments(",").WithLocation(2, 8),
                 // (2,12): error CS1003: Syntax error, ',' expected
                 // : B, D(X, Y)
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",", ")").WithLocation(2, 12)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(2, 12)
                 );
 
             N(SyntaxKind.CompilationUnit);
@@ -2412,7 +2412,7 @@ class C(int X, int Y)
             UsingTree(text,
                 // (1,16): error CS1003: Syntax error, ',' expected
                 // interface C : B;
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",", ";").WithLocation(1, 16),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(1, 16),
                 // (1,17): error CS1514: { expected
                 // interface C : B;
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(1, 17),
@@ -2541,7 +2541,7 @@ class C(int X, int Y)
             UsingTree(text,
                 // (1,22): error CS1003: Syntax error, ',' expected
                 // interface C : B(X, Y);
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",", ";").WithLocation(1, 22),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(1, 22),
                 // (1,23): error CS1514: { expected
                 // interface C : B(X, Y);
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(1, 23),
@@ -3072,13 +3072,13 @@ class C(int X, int Y)
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(1, 17),
                 // (1,21): error CS1003: Syntax error, ',' expected
                 // record record C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "X").WithArguments(",", "").WithLocation(1, 21),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "X").WithArguments(",").WithLocation(1, 21),
                 // (1,24): error CS1525: Invalid expression term 'int'
                 // record record C(int X, int Y);
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(1, 24),
                 // (1,28): error CS1003: Syntax error, ',' expected
                 // record record C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "Y").WithArguments(",", "").WithLocation(1, 28)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "Y").WithArguments(",").WithLocation(1, 28)
                 );
 
             N(SyntaxKind.CompilationUnit);
@@ -3145,11 +3145,56 @@ class C(int X, int Y)
             EOF();
         }
 
-        [Fact, CompilerTrait(CompilerFeature.RecordStructs)]
-        public void RecordStructParsing_WrongOrder()
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs), WorkItem(59534, "https://github.com/dotnet/roslyn/issues/59534")]
+        public void RecordStructParsing_WrongOrder_CSharp10()
         {
             var text = "struct record C(int X, int Y);";
-            UsingTree(text, options: TestOptions.RegularPreview,
+            UsingTree(text, options: TestOptions.Regular10,
+                // (1,8): error CS9012: Unexpected keyword 'record'. Did you mean 'record struct' or 'record class'?
+                // struct record C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_MisplacedRecord, "record").WithLocation(1, 8));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.RecordStructDeclaration);
+                {
+                    N(SyntaxKind.RecordKeyword);
+                    M(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "X");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "Y");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs), WorkItem(59534, "https://github.com/dotnet/roslyn/issues/59534")]
+        public void RecordStructParsing_WrongOrder_CSharp9()
+        {
+            var text = "struct record C(int X, int Y);";
+            UsingTree(text, options: TestOptions.Regular9,
                 // (1,15): error CS1514: { expected
                 // struct record C(int X, int Y);
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "C").WithLocation(1, 15),
@@ -3164,13 +3209,13 @@ class C(int X, int Y)
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(1, 17),
                 // (1,21): error CS1003: Syntax error, ',' expected
                 // struct record C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "X").WithArguments(",", "").WithLocation(1, 21),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "X").WithArguments(",").WithLocation(1, 21),
                 // (1,24): error CS1525: Invalid expression term 'int'
                 // struct record C(int X, int Y);
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(1, 24),
                 // (1,28): error CS1003: Syntax error, ',' expected
                 // struct record C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "Y").WithArguments(",", "").WithLocation(1, 28)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "Y").WithArguments(",").WithLocation(1, 28)
                 );
 
             N(SyntaxKind.CompilationUnit);
@@ -3237,11 +3282,116 @@ class C(int X, int Y)
             EOF();
         }
 
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs), WorkItem(59534, "https://github.com/dotnet/roslyn/issues/59534")]
+        public void StructNamedRecord_CSharp8()
+        {
+            var text = "struct record { }";
+            UsingTree(text, options: TestOptions.Regular8);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.StructDeclaration);
+                {
+                    N(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "record");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs), WorkItem(59534, "https://github.com/dotnet/roslyn/issues/59534")]
+        public void StructNamedRecord_CSharp9()
+        {
+            var text = "struct record { }";
+            UsingTree(text, options: TestOptions.Regular9);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.StructDeclaration);
+                {
+                    N(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "record");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs), WorkItem(59534, "https://github.com/dotnet/roslyn/issues/59534")]
+        public void StructNamedRecord_CSharp10()
+        {
+            var text = "struct record { }";
+            UsingTree(text, options: TestOptions.Regular10);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.StructDeclaration);
+                {
+                    N(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "record");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
         [Fact, CompilerTrait(CompilerFeature.RecordStructs)]
-        public void RecordClassParsing_WrongOrder()
+        public void RecordClassParsing_WrongOrder_CSharp10()
         {
             var text = "class record C(int X, int Y);";
-            UsingTree(text, options: TestOptions.RegularPreview,
+            UsingTree(text, options: TestOptions.Regular10,
+                // (1,7): error CS9012: Unexpected keyword 'record'. Did you mean 'record struct' or 'record class'?
+                // class record C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_MisplacedRecord, "record").WithLocation(1, 7));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.RecordDeclaration);
+                {
+                    N(SyntaxKind.RecordKeyword);
+                    M(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "X");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "Y");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs)]
+        public void RecordClassParsing_WrongOrder_CSharp9()
+        {
+            var text = "class record C(int X, int Y);";
+            UsingTree(text, options: TestOptions.Regular9,
                 // (1,14): error CS1514: { expected
                 // class record C(int X, int Y);
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "C").WithLocation(1, 14),
@@ -3256,13 +3406,13 @@ class C(int X, int Y)
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(1, 16),
                 // (1,20): error CS1003: Syntax error, ',' expected
                 // class record C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "X").WithArguments(",", "").WithLocation(1, 20),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "X").WithArguments(",").WithLocation(1, 20),
                 // (1,23): error CS1525: Invalid expression term 'int'
                 // class record C(int X, int Y);
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(1, 23),
                 // (1,27): error CS1003: Syntax error, ',' expected
                 // class record C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "Y").WithArguments(",", "").WithLocation(1, 27)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "Y").WithArguments(",").WithLocation(1, 27)
                 );
 
             N(SyntaxKind.CompilationUnit);
@@ -3348,13 +3498,13 @@ class C(int X, int Y)
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(1, 20),
                 // (1,24): error CS1003: Syntax error, ',' expected
                 // interface record C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "X").WithArguments(",", "").WithLocation(1, 24),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "X").WithArguments(",").WithLocation(1, 24),
                 // (1,27): error CS1525: Invalid expression term 'int'
                 // interface record C(int X, int Y);
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(1, 27),
                 // (1,31): error CS1003: Syntax error, ',' expected
                 // interface record C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "Y").WithArguments(",", "").WithLocation(1, 31)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "Y").WithArguments(",").WithLocation(1, 31)
                 );
 
             N(SyntaxKind.CompilationUnit);
@@ -3753,6 +3903,68 @@ class C(int X, int Y)
         }
 
         [Fact, CompilerTrait(CompilerFeature.RecordStructs)]
+        public void RecordParsing_Ref()
+        {
+            var text = "ref record R;";
+            UsingTree(text, options: TestOptions.RegularPreview);
+
+            verifyParsedAsRecord();
+
+            UsingTree(text, options: TestOptions.Regular8,
+                // (1,1): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // ref record R;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "ref record R;").WithArguments("top-level statements", "9.0").WithLocation(1, 1));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.RefType);
+                            {
+                                N(SyntaxKind.RefKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "record");
+                                }
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "R");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
+            UsingTree(text, options: TestOptions.Regular9);
+
+            verifyParsedAsRecord();
+
+            void verifyParsedAsRecord()
+            {
+                N(SyntaxKind.CompilationUnit);
+                {
+                    N(SyntaxKind.RecordDeclaration);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.RecordKeyword);
+                        N(SyntaxKind.IdentifierToken, "R");
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.EndOfFileToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs)]
         public void RecordStructParsing_Const()
         {
             var text = "const record struct S;";
@@ -3818,10 +4030,10 @@ class C(int X, int Y)
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "struct").WithLocation(1, 14),
                 // (1,14): error CS1003: Syntax error, '[' expected
                 // fixed record struct S;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "struct").WithArguments("[", "struct").WithLocation(1, 14),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "struct").WithArguments("[").WithLocation(1, 14),
                 // (1,14): error CS1003: Syntax error, ']' expected
                 // fixed record struct S;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "struct").WithArguments("]", "struct").WithLocation(1, 14),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "struct").WithArguments("]").WithLocation(1, 14),
                 // (1,14): error CS0443: Syntax error; value expected
                 // fixed record struct S;
                 Diagnostic(ErrorCode.ERR_ValueExpected, "struct").WithLocation(1, 14),

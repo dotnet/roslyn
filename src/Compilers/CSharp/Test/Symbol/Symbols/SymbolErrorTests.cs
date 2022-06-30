@@ -1120,19 +1120,19 @@ class C
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "int").WithLocation(5, 11),
                 // (5,11): error CS1003: Syntax error, '>' expected
                 //     int F<int>() { }  // CS0081
-                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(">", "int").WithLocation(5, 11),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(">").WithLocation(5, 11),
                 // (5,11): error CS1003: Syntax error, '(' expected
                 //     int F<int>() { }  // CS0081
-                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments("(", "int").WithLocation(5, 11),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments("(").WithLocation(5, 11),
                 // (5,14): error CS1001: Identifier expected
                 //     int F<int>() { }  // CS0081
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ">").WithLocation(5, 14),
                 // (5,14): error CS1003: Syntax error, ',' expected
                 //     int F<int>() { }  // CS0081
-                Diagnostic(ErrorCode.ERR_SyntaxError, ">").WithArguments(",", ">").WithLocation(5, 14),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ">").WithArguments(",").WithLocation(5, 14),
                 // (5,15): error CS1003: Syntax error, ',' expected
                 //     int F<int>() { }  // CS0081
-                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(",", "(").WithLocation(5, 15),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(",").WithLocation(5, 15),
                 // (5,16): error CS8124: Tuple must contain at least two elements.
                 //     int F<int>() { }  // CS0081
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(5, 16),
@@ -1171,19 +1171,19 @@ class C
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "int").WithLocation(5, 11),
                 // (5,11): error CS1003: Syntax error, '>' expected
                 //     int F<int>() { }  // CS0081
-                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(">", "int").WithLocation(5, 11),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(">").WithLocation(5, 11),
                 // (5,11): error CS1003: Syntax error, '(' expected
                 //     int F<int>() { }  // CS0081
-                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments("(", "int").WithLocation(5, 11),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments("(").WithLocation(5, 11),
                 // (5,14): error CS1001: Identifier expected
                 //     int F<int>() { }  // CS0081
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ">").WithLocation(5, 14),
                 // (5,14): error CS1003: Syntax error, ',' expected
                 //     int F<int>() { }  // CS0081
-                Diagnostic(ErrorCode.ERR_SyntaxError, ">").WithArguments(",", ">").WithLocation(5, 14),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ">").WithArguments(",").WithLocation(5, 14),
                 // (5,15): error CS1003: Syntax error, ',' expected
                 //     int F<int>() { }  // CS0081
-                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(",", "(").WithLocation(5, 15),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(",").WithLocation(5, 15),
                 // (5,15): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
                 //     int F<int>() { }  // CS0081
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7.0").WithLocation(5, 15),
@@ -2126,13 +2126,8 @@ class B : A
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "Q").WithArguments("readonly automatically implemented properties", "6").WithLocation(8, 34),
                 // (9,37): error CS0112: A static member cannot be marked as 'abstract'
                 //     internal static abstract object R { get; set; }
-                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "R").WithArguments("abstract").WithLocation(9, 37),
-                // (9,41): error CS0513: 'B.R.get' is abstract but it is contained in non-abstract type 'B'
-                //     internal static abstract object R { get; set; }
-                Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "get").WithArguments("B.R.get", "B").WithLocation(9, 41),
-                // (9,46): error CS0513: 'B.R.set' is abstract but it is contained in non-abstract type 'B'
-                //     internal static abstract object R { get; set; }
-                Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "set").WithArguments("B.R.set", "B").WithLocation(9, 46));
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "R").WithArguments("abstract").WithLocation(9, 37)
+                );
         }
 
         [Fact]
@@ -2171,7 +2166,10 @@ abstract class B : A
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "Q").WithArguments("B.Q").WithLocation(8, 47),
                 // (9,50): error CS0112: A static member cannot be marked as 'abstract'
                 //     internal static abstract event System.Action R;
-                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "R").WithArguments("abstract").WithLocation(9, 50)
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "R").WithArguments("abstract").WithLocation(9, 50),
+                // (9,50): warning CS0067: The event 'B.R' is never used
+                //     internal static abstract event System.Action R;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "R").WithArguments("B.R").WithLocation(9, 50)
                 );
         }
 
@@ -3880,10 +3878,10 @@ namespace N
             comp.VerifyDiagnostics(
                 // (3,23): error CS0268: Imported type 'C2' is invalid. It contains a circular base type dependency.
                 //     public class C3 : C1 { }
-                Diagnostic(ErrorCode.ERR_ImportedCircularBase, "C1").WithArguments("C2", "C1"),
+                Diagnostic(ErrorCode.ERR_ImportedCircularBase, "C1").WithArguments("C2"),
                 // (4,22): error CS0268: Imported type 'I2' is invalid. It contains a circular base type dependency.
                 //     public interface I3 : I1 { }
-                Diagnostic(ErrorCode.ERR_ImportedCircularBase, "I3").WithArguments("I2", "I1")
+                Diagnostic(ErrorCode.ERR_ImportedCircularBase, "I3").WithArguments("I2")
                 );
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
@@ -4573,7 +4571,7 @@ public class NormalType
             comp.VerifyDiagnostics(
                 // (14,17): error CS0400: The type or namespace name 'G' could not be found in the global namespace (are you missing an assembly reference?)
                 //         global::G field;
-                Diagnostic(ErrorCode.ERR_GlobalSingleTypeNameNotFound, "G").WithArguments("G", "<global namespace>"),
+                Diagnostic(ErrorCode.ERR_GlobalSingleTypeNameNotFound, "G").WithArguments("G"),
                 // (14,19): warning CS0169: The field 'NS.S.field' is never used
                 //         global::G field;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "field").WithArguments("NS.S.field")
@@ -6072,7 +6070,8 @@ namespace NS
                     s_mod2.GetReference(),
                 });
 
-            CompileAndVerify(comp).VerifyDiagnostics();
+            // ILVerify: Assembly or module not found: ErrTestMod02
+            CompileAndVerify(comp, verify: Verification.FailsILVerify).VerifyDiagnostics();
         }
 
         [Fact()]
@@ -10547,20 +10546,65 @@ class C
     {
         return 0;
     }
+    public static int operator >>>(int c1, int c2) // CS0564
+    {
+        return 0;
+    }
     static void Main()
     {
     }
 }
-";
-            var comp = CreateCompilation(text);
-            comp.VerifyDiagnostics(
-                // (4,32): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int
-                //     public static int operator <<(C c1, C c2) // CS0564
-                Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, "<<"),
 
-                // (8,32): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int
+class C1
+{
+    public static int operator <<(C1 c1, int c2)
+    {
+        return 0;
+    }
+}
+
+class C2
+{
+    public static int operator <<(C2 c1, int? c2)
+    {
+        return 0;
+    }
+}
+";
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (8,32): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type
                 //     public static int operator >>(int c1, int c2) // CS0564
-                Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, ">>")
+                Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, ">>").WithLocation(8, 32),
+                // (12,32): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int
+                //     public static int operator >>>(int c1, int c2) // CS0564
+                Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, ">>>").WithLocation(12, 32)
+                );
+
+            comp = CreateCompilation(text, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (4,32): error CS8652: The feature 'relaxed shift operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static int operator <<(C c1, C c2) // CS0564
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "<<").WithArguments("relaxed shift operator").WithLocation(4, 32),
+                // (8,32): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type
+                //     public static int operator >>(int c1, int c2) // CS0564
+                Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, ">>").WithLocation(8, 32),
+                // (12,32): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static int operator >>>(int c1, int c2) // CS0564
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>").WithArguments("unsigned right shift").WithLocation(12, 32),
+                // (12,32): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int
+                //     public static int operator >>>(int c1, int c2) // CS0564
+                Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, ">>>").WithLocation(12, 32)
+                );
+
+            comp = CreateCompilation(text, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics(
+                // (8,32): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type
+                //     public static int operator >>(int c1, int c2) // CS0564
+                Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, ">>").WithLocation(8, 32),
+                // (12,32): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int
+                //     public static int operator >>>(int c1, int c2) // CS0564
+                Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, ">>>").WithLocation(12, 32)
                 );
         }
 
@@ -10956,6 +11000,7 @@ public class C
     public static implicit operator void(C c1) { }
     public static void operator +(C c) { }
     public static void operator >>(C c, int x) { }
+    public static void operator >>>(C c, int x) { }
 }
 ";
             var comp = CreateCompilation(text);
@@ -10966,15 +11011,18 @@ public class C
                 // (5,33): error CS0590: User-defined operators cannot return void
                 //     public static implicit operator void(C c1) { }
                 Diagnostic(ErrorCode.ERR_OperatorCantReturnVoid, "void"),
-// (5,46): error CS1547: Keyword 'void' cannot be used in this context
-//     public static implicit operator void(C c1) { }
-Diagnostic(ErrorCode.ERR_NoVoidHere, "void"),
+                // (5,46): error CS1547: Keyword 'void' cannot be used in this context
+                //     public static implicit operator void(C c1) { }
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "void"),
                 // (6,33): error CS0590: User-defined operators cannot return void
                 //     public static void operator +(C c) { }
                 Diagnostic(ErrorCode.ERR_OperatorCantReturnVoid, "+"),
                 // (73): error CS0590: User-defined operators cannot return void
                 //     public static void operator >>(C c, int x) { }
-                Diagnostic(ErrorCode.ERR_OperatorCantReturnVoid, ">>")
+                Diagnostic(ErrorCode.ERR_OperatorCantReturnVoid, ">>"),
+                // (74): error CS0590: User-defined operators cannot return void
+                //     public static void operator >>>(C c, int x) { }
+                Diagnostic(ErrorCode.ERR_OperatorCantReturnVoid, ">>>")
                 );
         }
 
@@ -12982,10 +13030,12 @@ static class D : B { }
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (7,29): error CS0714: 'NS.C': static classes cannot implement interfaces
-                Diagnostic(ErrorCode.ERR_StaticClassInterfaceImpl, "I").WithArguments("NS.C", "NS.I"),
-                // (15,25): error CS0714: 'NS.D<V>': static classes cannot implement interfaces
-                Diagnostic(ErrorCode.ERR_StaticClassInterfaceImpl, "IGoo<string, V>").WithArguments("NS.D<V>", "NS.IGoo<string, V>"));
+                // (7,29): error CS0714: 'C': static classes cannot implement interfaces
+                //     public static class C : I
+                Diagnostic(ErrorCode.ERR_StaticClassInterfaceImpl, "I").WithArguments("NS.C").WithLocation(7, 29),
+                // (15,25): error CS0714: 'D<V>': static classes cannot implement interfaces
+                //     static class D<V> : IGoo<string, V>
+                Diagnostic(ErrorCode.ERR_StaticClassInterfaceImpl, "IGoo<string, V>").WithArguments("NS.D<V>").WithLocation(15, 25));
         }
 
         [Fact]
@@ -15452,7 +15502,7 @@ unsafe struct @s
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (8,15): error CS1003: Syntax error, '(' expected
                 //         fixed bool _buffer[2]; // error CS1001: Identifier expected        
-                Diagnostic(ErrorCode.ERR_SyntaxError, "bool").WithArguments("(", "bool"),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "bool").WithArguments("("),
                 // (8,27): error CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.
                 //         fixed bool _buffer[2]; // error CS1001: Identifier expected        
                 Diagnostic(ErrorCode.ERR_CStyleArray, "[2]"),
@@ -16563,13 +16613,13 @@ namespace N1
             CreateCompilation(source).VerifyDiagnostics(
                 // (5,9): error CS8050: Only auto-implemented properties can have initializers.
                 //     int I { get { throw null; } set {  } } = 1;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "I").WithArguments("C.I").WithLocation(5, 9),
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "I").WithLocation(5, 9),
                 // (6,16): error CS8050: Only auto-implemented properties can have initializers.
                 //     static int S { get { throw null; } set {  } } = 1;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "S").WithArguments("C.S").WithLocation(6, 16),
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "S").WithLocation(6, 16),
                 // (7,19): error CS8050: Only auto-implemented properties can have initializers.
                 //     protected int P { get { throw null; } set {  } } = 1;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P").WithArguments("C.P").WithLocation(7, 19)
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P").WithLocation(7, 19)
             );
         }
 
@@ -21423,6 +21473,376 @@ class Test
                 // (10,18): error CS0029: Cannot implicitly convert type 'Derived' to 'Test'
                 //         Test x = new Derived();
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "new Derived()").WithArguments("Derived", "Test").WithLocation(10, 18)
+                );
+        }
+
+        [Fact]
+        [WorkItem(61264, "https://github.com/dotnet/roslyn/issues/61264")]
+        public void ForwardObsoleteType_01()
+        {
+            var source1 = @"
+using System;
+
+[Obsolete(""Error"", error: true)]
+public class C1
+{
+}
+
+[Obsolete(""Warning"", error: false)]
+public class C2
+{
+}
+";
+
+            var comp1 = CreateCompilation(source1, assemblyName: "Lib1");
+            comp1.VerifyDiagnostics();
+
+            var source2 = @"
+using System.Runtime.CompilerServices;
+
+[assembly: TypeForwardedTo(typeof(C1))]
+[assembly: TypeForwardedTo(typeof(C2))]
+";
+
+            var comp2 = CreateCompilation(source2, references: new[] { comp1.ToMetadataReference() });
+            comp2.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(61264, "https://github.com/dotnet/roslyn/issues/61264")]
+        public void ForwardObsoleteType_02()
+        {
+            var source1 = @"
+using System;
+
+[Obsolete(""Error"", error: true)]
+public class C1
+{
+}
+
+[Obsolete(""Warning"", error: false)]
+public class C2
+{
+}
+";
+
+            var source2 = @"
+using System.Runtime.CompilerServices;
+
+[assembly: TypeForwardedTo(typeof(C1))]
+[assembly: TypeForwardedTo(typeof(C2))]
+";
+
+            var comp2 = CreateCompilation(new[] { source1, source2 });
+            comp2.VerifyEmitDiagnostics(
+                // (4,12): error CS0729: Type 'C1' is defined in this assembly, but a type forwarder is specified for it
+                // [assembly: TypeForwardedTo(typeof(C1))]
+                Diagnostic(ErrorCode.ERR_ForwardedTypeInThisAssembly, "TypeForwardedTo(typeof(C1))").WithArguments("C1").WithLocation(4, 12),
+                // (5,12): error CS0729: Type 'C2' is defined in this assembly, but a type forwarder is specified for it
+                // [assembly: TypeForwardedTo(typeof(C2))]
+                Diagnostic(ErrorCode.ERR_ForwardedTypeInThisAssembly, "TypeForwardedTo(typeof(C2))").WithArguments("C2").WithLocation(5, 12)
+                );
+        }
+
+        [Fact]
+        [WorkItem(61264, "https://github.com/dotnet/roslyn/issues/61264")]
+        public void ForwardObsoleteType_03()
+        {
+            // Other attributes are not affected
+            var source1 = @"
+using System;
+
+[Obsolete(""Error"", error: true)]
+public class C1
+{
+}
+
+[Obsolete(""Warning"", error: false)]
+public class C2
+{
+}
+";
+
+            var comp1 = CreateCompilation(source1, assemblyName: "Lib1");
+            comp1.VerifyDiagnostics();
+
+            var source2 = @"
+[assembly: TypeForwarded_2(typeof(C1))]
+[assembly: TypeForwarded_2(typeof(C2))]
+
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true)]
+class TypeForwarded_2Attribute : System.Attribute
+{
+    public TypeForwarded_2Attribute(System.Type type) { }
+}
+";
+
+            var comp2 = CreateCompilation(source2, references: new[] { comp1.ToMetadataReference() });
+            comp2.VerifyEmitDiagnostics(
+                // (2,35): error CS0619: 'C1' is obsolete: 'Error'
+                // [assembly: TypeForwarded_2(typeof(C1))]
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "C1").WithArguments("C1", "Error").WithLocation(2, 35),
+                // (3,35): warning CS0618: 'C2' is obsolete: 'Warning'
+                // [assembly: TypeForwarded_2(typeof(C2))]
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "C2").WithArguments("C2", "Warning").WithLocation(3, 35)
+                );
+        }
+
+        [Fact]
+        [WorkItem(61264, "https://github.com/dotnet/roslyn/issues/61264")]
+        public void ForwardObsoleteType_04()
+        {
+            // Other attributes in the same file are not affected
+            var source1 = @"
+using System;
+
+[Obsolete(""Error"", error: true)]
+public class C1
+{
+}
+
+[Obsolete(""Warning"", error: false)]
+public class C2
+{
+}
+";
+
+            var comp1 = CreateCompilation(source1, assemblyName: "Lib1");
+            comp1.VerifyDiagnostics();
+
+            var source2 = @"
+using System.Runtime.CompilerServices;
+
+[assembly: TypeForwardedTo(typeof(C1))]
+
+[assembly: TypeForwarded_2(typeof(C1))]
+[assembly: TypeForwarded_2(typeof(C2))]
+
+[assembly: TypeForwardedTo(typeof(C2))]
+
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true)]
+class TypeForwarded_2Attribute : System.Attribute
+{
+    public TypeForwarded_2Attribute(System.Type type) { }
+}
+";
+
+            var comp2 = CreateCompilation(source2, references: new[] { comp1.ToMetadataReference() });
+            comp2.VerifyEmitDiagnostics(
+                // (6,35): error CS0619: 'C1' is obsolete: 'Error'
+                // [assembly: TypeForwarded_2(typeof(C1))]
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "C1").WithArguments("C1", "Error").WithLocation(6, 35),
+                // (7,35): warning CS0618: 'C2' is obsolete: 'Warning'
+                // [assembly: TypeForwarded_2(typeof(C2))]
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "C2").WithArguments("C2", "Warning").WithLocation(7, 35)
+                );
+        }
+
+        [Fact]
+        [WorkItem(61264, "https://github.com/dotnet/roslyn/issues/61264")]
+        public void ForwardObsoleteType_05()
+        {
+            // Other attributes in a different file at the same position are not affected
+            var source1 = @"
+using System;
+
+[Obsolete(""Error"", error: true)]
+public class C1
+{
+}
+
+[Obsolete(""Warning"", error: false)]
+public class C2
+{
+}
+";
+
+            var comp1 = CreateCompilation(source1, assemblyName: "Lib1");
+            comp1.VerifyDiagnostics();
+
+            var source2 = @"
+[assembly: {0}(typeof(C1))]
+[assembly: {0}(typeof(C2))]
+";
+            var source3 = @"
+global using System.Runtime.CompilerServices;
+
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true)]
+class TypeForwarded_2Attribute : System.Attribute
+{
+    public TypeForwarded_2Attribute(System.Type type) { }
+}
+";
+
+            var comp2 = CreateCompilation(new[] { string.Format(source2, "TypeForwarded_2"), string.Format(source2, "TypeForwardedTo"), source3 }, references: new[] { comp1.ToMetadataReference() });
+            comp2.VerifyEmitDiagnostics(
+                // (2,35): error CS0619: 'C1' is obsolete: 'Error'
+                // [assembly: TypeForwarded_2(typeof(C1))]
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "C1").WithArguments("C1", "Error").WithLocation(2, 35),
+                // (3,35): warning CS0618: 'C2' is obsolete: 'Warning'
+                // [assembly: TypeForwarded_2(typeof(C2))]
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "C2").WithArguments("C2", "Warning").WithLocation(3, 35)
+                );
+
+            comp2.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, comp2.SyntaxTrees[0], filterSpanWithinTree: null, includeEarlierStages: true).Verify(
+                // (2,35): error CS0619: 'C1' is obsolete: 'Error'
+                // [assembly: TypeForwarded_2(typeof(C1))]
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "C1").WithArguments("C1", "Error").WithLocation(2, 35),
+                // (3,35): warning CS0618: 'C2' is obsolete: 'Warning'
+                // [assembly: TypeForwarded_2(typeof(C2))]
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "C2").WithArguments("C2", "Warning").WithLocation(3, 35)
+                );
+        }
+
+        [Fact]
+        [WorkItem(61264, "https://github.com/dotnet/roslyn/issues/61264")]
+        public void ForwardObsoleteType_06()
+        {
+            // Attributes on other targets are not affected, including mistaken application of TypeForwardedTo
+            var source1 = @"
+using System;
+
+[Obsolete(""Error"", error: true)]
+public class C1
+{
+}
+
+[Obsolete(""Warning"", error: false)]
+public class C2
+{
+}
+";
+
+            var comp1 = CreateCompilation(source1, assemblyName: "Lib1");
+            comp1.VerifyDiagnostics();
+
+            var source2 = @"
+using System.Runtime.CompilerServices;
+
+[module: TypeForwardedTo(typeof(C1))]
+[module: TypeForwarded_2(typeof(C2))]
+
+[TypeForwardedTo(typeof(C1))][TypeForwarded_2(typeof(C2))] class C3
+{
+    [TypeForwardedTo(typeof(C1))][TypeForwarded_2(typeof(C2))]void M1()
+    {}
+}
+
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true)]
+class TypeForwarded_2Attribute : System.Attribute
+{
+    public TypeForwarded_2Attribute(System.Type type) { }
+}
+";
+
+            var comp2 = CreateCompilation(source2, references: new[] { comp1.ToMetadataReference() });
+            comp2.VerifyEmitDiagnostics(
+                // (4,10): error CS0592: Attribute 'TypeForwardedTo' is not valid on this declaration type. It is only valid on 'assembly' declarations.
+                // [module: TypeForwardedTo(typeof(C1))]
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "TypeForwardedTo").WithArguments("TypeForwardedTo", "assembly").WithLocation(4, 10),
+                // (4,33): error CS0619: 'C1' is obsolete: 'Error'
+                // [module: TypeForwardedTo(typeof(C1))]
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "C1").WithArguments("C1", "Error").WithLocation(4, 33),
+                // (5,33): warning CS0618: 'C2' is obsolete: 'Warning'
+                // [module: TypeForwarded_2(typeof(C2))]
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "C2").WithArguments("C2", "Warning").WithLocation(5, 33),
+                // (7,2): error CS0592: Attribute 'TypeForwardedTo' is not valid on this declaration type. It is only valid on 'assembly' declarations.
+                // [TypeForwardedTo(typeof(C1))][TypeForwarded_2(typeof(C2))] class C3
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "TypeForwardedTo").WithArguments("TypeForwardedTo", "assembly").WithLocation(7, 2),
+                // (7,25): error CS0619: 'C1' is obsolete: 'Error'
+                // [TypeForwardedTo(typeof(C1))][TypeForwarded_2(typeof(C2))] class C3
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "C1").WithArguments("C1", "Error").WithLocation(7, 25),
+                // (7,54): warning CS0618: 'C2' is obsolete: 'Warning'
+                // [TypeForwardedTo(typeof(C1))][TypeForwarded_2(typeof(C2))] class C3
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "C2").WithArguments("C2", "Warning").WithLocation(7, 54),
+                // (9,6): error CS0592: Attribute 'TypeForwardedTo' is not valid on this declaration type. It is only valid on 'assembly' declarations.
+                //     [TypeForwardedTo(typeof(C1))][TypeForwarded_2(typeof(C2))]void M1()
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "TypeForwardedTo").WithArguments("TypeForwardedTo", "assembly").WithLocation(9, 6),
+                // (9,29): error CS0619: 'C1' is obsolete: 'Error'
+                //     [TypeForwardedTo(typeof(C1))][TypeForwarded_2(typeof(C2))]void M1()
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "C1").WithArguments("C1", "Error").WithLocation(9, 29),
+                // (9,58): warning CS0618: 'C2' is obsolete: 'Warning'
+                //     [TypeForwardedTo(typeof(C1))][TypeForwarded_2(typeof(C2))]void M1()
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "C2").WithArguments("C2", "Warning").WithLocation(9, 58)
+                );
+        }
+
+        [Fact]
+        [WorkItem(61264, "https://github.com/dotnet/roslyn/issues/61264")]
+        public void ForwardObsoleteType_07()
+        {
+            // Other errors within the same span are not affected
+
+            // IL is equivalent to:
+            // 
+            // using System;
+            // using System.Runtime.CompilerServices;
+            // 
+            // [Obsolete("Error", error: true)]
+            // [CompilerFeatureRequired("SomeFeatureIsRequired")]
+            // public class C1
+            // {
+            // }
+
+            var ilSsource1 = @"
+.class public auto ansi beforefieldinit C1
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string, bool) = (
+        01 00 05 45 72 72 6f 72 01 00 00
+    )
+    .custom instance void System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::.ctor(string) = (
+        01 00 15 53 6f 6d 65 46 65 61 74 75 72 65 49 73
+        52 65 71 75 69 72 65 64 00 00
+    )
+    // Methods
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: nop
+        IL_0007: ret
+    } // end of method C1::.ctor
+
+} // end of class C1
+
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute
+    extends [mscorlib]System.Attribute
+{
+    .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = (
+        01 00 ff 7f 00 00 02 00 54 02 0d 41 6c 6c 6f 77
+        4d 75 6c 74 69 70 6c 65 01 54 02 09 49 6e 68 65
+        72 69 74 65 64 00
+    )
+
+    // Methods
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor (
+            string featureName
+        ) cil managed 
+    {
+        IL_000f: ret
+    } // end of method CompilerFeatureRequiredAttribute::.ctor
+} // end of class System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute
+";
+
+            var source2 = @"
+using System.Runtime.CompilerServices;
+
+[assembly: TypeForwardedTo(typeof(C1))]
+";
+
+            var comp2 = CreateCompilationWithIL(source2, ilSsource1);
+            comp2.VerifyEmitDiagnostics(
+                // (4,12): error CS9041: 'C1' requires compiler feature 'SomeFeatureIsRequired', which is not supported by this version of the C# compiler.
+                // [assembly: TypeForwardedTo(typeof(C1))]
+                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "TypeForwardedTo(typeof(C1))").WithArguments("C1", "SomeFeatureIsRequired").WithLocation(4, 12),
+                // (4,35): error CS9041: 'C1' requires compiler feature 'SomeFeatureIsRequired', which is not supported by this version of the C# compiler.
+                // [assembly: TypeForwardedTo(typeof(C1))]
+                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "C1").WithArguments("C1", "SomeFeatureIsRequired").WithLocation(4, 35)
                 );
         }
     }

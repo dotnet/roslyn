@@ -82,9 +82,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     // All operation blocks for a symbol belong to the same tree.
                     var firstBlock = context.OperationBlocks[0];
                     if (!symbolStartAnalyzer._compilationAnalyzer.TryGetOptions(firstBlock.Syntax.SyntaxTree,
-                                                                                firstBlock.Language,
                                                                                 context.Options,
-                                                                                context.CancellationToken,
                                                                                 out var options))
                     {
                         return;
@@ -124,7 +122,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         foreach (var operationBlock in context.OperationBlocks)
                         {
                             if (operationBlock.Syntax.DescendantNodes(descendIntoTrivia: true)
-                                                     .Any(n => symbolStartAnalyzer._compilationAnalyzer.IsIfConditionalDirective(n)))
+                                                     .Any(symbolStartAnalyzer._compilationAnalyzer.IsIfConditionalDirective))
                             {
                                 return true;
                             }
@@ -422,7 +420,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                                         return false;
 
                                     default:
-                                        // Workaround for https://github.com/dotnet/roslyn/issues/32100
+                                        // Workaround for https://github.com/dotnet/roslyn/issues/27564
                                         // Bail out in presence of OperationKind.None - not implemented IOperation.
                                         if (operation.Kind == OperationKind.None)
                                         {
@@ -466,7 +464,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     //     We can analyze this correctly when we do points-to-analysis.
                     if (owningSymbol is IMethodSymbol method &&
                         (method.ReturnType.IsDelegateType() ||
-                         method.Parameters.Any(p => p.IsRefOrOut() && p.Type.IsDelegateType())))
+                         method.Parameters.Any(static p => p.IsRefOrOut() && p.Type.IsDelegateType())))
                     {
                         return false;
                     }
@@ -595,7 +593,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                                     if (shouldReport)
                                     {
-                                        _symbolStartAnalyzer.ReportUnusedParameterDiagnostic(unusedParameter, hasReference, context.ReportDiagnostic, context.Options, context.CancellationToken);
+                                        _symbolStartAnalyzer.ReportUnusedParameterDiagnostic(unusedParameter, hasReference, context.ReportDiagnostic, context.Options);
                                     }
                                 }
 

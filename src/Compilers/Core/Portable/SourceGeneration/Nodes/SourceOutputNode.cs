@@ -17,13 +17,13 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly IIncrementalGeneratorNode<TInput> _source;
 
-        private readonly Action<SourceProductionContext, TInput> _action;
+        private readonly Action<SourceProductionContext, TInput, CancellationToken> _action;
 
         private readonly IncrementalGeneratorOutputKind _outputKind;
 
         private readonly string _sourceExtension;
 
-        public SourceOutputNode(IIncrementalGeneratorNode<TInput> source, Action<SourceProductionContext, TInput> action, IncrementalGeneratorOutputKind outputKind, string sourceExtension)
+        public SourceOutputNode(IIncrementalGeneratorNode<TInput> source, Action<SourceProductionContext, TInput, CancellationToken> action, IncrementalGeneratorOutputKind outputKind, string sourceExtension)
         {
             _source = source;
             _action = action;
@@ -43,12 +43,12 @@ namespace Microsoft.CodeAnalysis
             {
                 if (graphState.DriverState.TrackIncrementalSteps)
                 {
-                    return previousTable.CreateCachedTableWithUpdatedSteps(sourceTable, stepName);
+                    return previousTable.CreateCachedTableWithUpdatedSteps(sourceTable, stepName, EqualityComparer<TOutput>.Default);
                 }
                 return previousTable;
             }
 
-            var nodeTable = graphState.CreateTableBuilder(previousTable, stepName);
+            var nodeTable = graphState.CreateTableBuilder(previousTable, stepName, EqualityComparer<TOutput>.Default);
             foreach (var entry in sourceTable)
             {
                 var inputs = nodeTable.TrackIncrementalSteps ? ImmutableArray.Create((entry.Step!, entry.OutputIndex)) : default;
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis
                     try
                     {
                         var stopwatch = SharedStopwatch.StartNew();
-                        _action(context, entry.Item);
+                        _action(context, entry.Item, cancellationToken);
                         var sourcesAndDiagnostics = (sourcesBuilder.ToImmutable(), diagnostics.ToReadOnly());
                         nodeTable.AddEntry(sourcesAndDiagnostics, EntryState.Added, stopwatch.Elapsed, inputs, EntryState.Added);
                     }

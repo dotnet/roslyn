@@ -43,7 +43,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
                 _workspaceServices = workspace.Services;
             }
 
-            return new InternalOptionsControl(nameof(LoggerOptions), optionStore);
+            return new InternalOptionsControl(FunctionIdOptions.GetOptions(), optionStore);
         }
 
         protected override void OnApply(PageApplyEventArgs e)
@@ -58,7 +58,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
             var loggerTypeNames = GetLoggerTypes(globalOptions).ToImmutableArray();
 
             // update loggers in VS
-            var isEnabled = Logger.GetLoggingChecker(globalOptions);
+            var isEnabled = FunctionIdOptions.CreateFunctionIsEnabledPredicate(globalOptions);
 
             SetRoslynLogger(loggerTypeNames, () => new EtwLogger(isEnabled));
             SetRoslynLogger(loggerTypeNames, () => new TraceLogger(isEnabled));

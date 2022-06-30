@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
@@ -22,17 +23,17 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
     {
         private class NavigableSymbol : INavigableSymbol
         {
+            private readonly Workspace _workspace;
             private readonly ImmutableArray<DefinitionItem> _definitions;
-            private readonly Document _document;
             private readonly IThreadingContext _threadingContext;
             private readonly IStreamingFindUsagesPresenter _presenter;
             private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
             private readonly IAsynchronousOperationListener _listener;
 
             public NavigableSymbol(
+                Workspace workspace,
                 ImmutableArray<DefinitionItem> definitions,
                 SnapshotSpan symbolSpan,
-                Document document,
                 IThreadingContext threadingContext,
                 IStreamingFindUsagesPresenter streamingPresenter,
                 IUIThreadOperationExecutor uiThreadOperationExecutor,
@@ -40,8 +41,8 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
             {
                 Contract.ThrowIfFalse(definitions.Length > 0);
 
+                _workspace = workspace;
                 _definitions = definitions;
-                _document = document;
                 SymbolSpan = symbolSpan;
                 _threadingContext = threadingContext;
                 _presenter = streamingPresenter;
@@ -57,32 +58,25 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
             public void Navigate(INavigableRelationship relationship)
             {
                 // Fire and forget.
-                _ = NavigateAsync();
+                var token = _listener.BeginAsyncOperation(nameof(NavigateAsync));
+                _ = NavigateAsync().ReportNonFatalErrorAsync().CompletesAsyncOperation(token);
             }
 
             private async Task NavigateAsync()
             {
-                try
-                {
-                    using var token = _listener.BeginAsyncOperation(nameof(NavigateAsync));
-                    using var context = _uiThreadOperationExecutor.BeginExecute(
-                        title: EditorFeaturesResources.Go_to_Definition,
-                        defaultDescription: EditorFeaturesResources.Navigating_to_definition,
-                        allowCancellation: true,
-                        showProgress: false);
-                    await _presenter.TryNavigateToOrPresentItemsAsync(
-                        _threadingContext,
-                        _document.Project.Solution.Workspace,
-                        _definitions[0].NameDisplayParts.GetFullText(),
-                        _definitions,
-                        context.UserCancellationToken).ConfigureAwait(false);
-                }
-                catch (OperationCanceledException)
-                {
-                }
-                catch (Exception ex) when (FatalError.ReportAndCatch(ex))
-                {
-                }
+                using var context = _uiThreadOperationExecutor.BeginExecute(
+                    title: EditorFeaturesResources.Go_to_Definition,
+                    defaultDescription: EditorFeaturesResources.Navigating_to_definition,
+                    allowCancellation: true,
+                    showProgress: false);
+
+                var cancellationToken = context.UserCancellationToken;
+                await _presenter.TryPresentLocationOrNavigateIfOneAsync(
+                    _threadingContext,
+                    _workspace,
+                    _definitions[0].NameDisplayParts.GetFullText(),
+                    _definitions,
+                    cancellationToken).ConfigureAwait(false);
             }
         }
     }

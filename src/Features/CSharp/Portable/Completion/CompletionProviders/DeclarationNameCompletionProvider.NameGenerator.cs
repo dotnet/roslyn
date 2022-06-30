@@ -4,11 +4,11 @@
 
 using System.Collections.Immutable;
 using Humanizer;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 using Words = System.Collections.Immutable.ImmutableArray<string>;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
@@ -17,9 +17,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     {
         internal class NameGenerator
         {
+            private const char DefaultInterfacePrefix = 'I';
+            private const char DefaultGenericParameterPrefix = 'T';
+
             internal static ImmutableArray<Words> GetBaseNames(ITypeSymbol type, bool pluralize)
             {
-                var baseName = TryRemoveInterfacePrefix(type);
+                var baseName = TryRemoveKnownPrefixes(type);
                 using var parts = TemporaryArray<TextSpan>.Empty;
                 StringBreaker.AddWordParts(baseName, ref parts.AsRef());
                 var result = GetInterleavedPatterns(parts, baseName, pluralize);
@@ -32,9 +35,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var name = alias.Name;
                 if (alias.Target.IsType &&
                     ((INamedTypeSymbol)alias.Target).IsInterfaceType() &&
-                    CanRemoveInterfacePrefix(name))
+                    CanRemovePrefix(name, DefaultInterfacePrefix))
                 {
-                    name = name.Substring(1);
+                    name = name[1..];
                 }
 
                 using var breaks = TemporaryArray<TextSpan>.Empty;
@@ -94,14 +97,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return result.ToImmutableAndClear();
             }
 
-            private static string TryRemoveInterfacePrefix(ITypeSymbol type)
+            //Tries to remove "I" prefix from interfaces and "T" prefix from generic parameter names
+            private static string TryRemoveKnownPrefixes(ITypeSymbol type)
             {
                 var name = type.Name;
-                if (type.TypeKind == TypeKind.Interface && name.Length > 1)
+
+                if (type.TypeKind == TypeKind.Interface)
                 {
-                    if (CanRemoveInterfacePrefix(name))
+                    if (CanRemovePrefix(name, DefaultInterfacePrefix))
                     {
-                        return name.Substring(1);
+                        return name[1..];
+                    }
+                }
+
+                if (type.TypeKind == TypeKind.TypeParameter)
+                {
+                    if (CanRemovePrefix(name, DefaultGenericParameterPrefix))
+                    {
+                        return name[1..];
+                    }
+                    else if (name.Length == 1 && name[0] == DefaultGenericParameterPrefix)
+                    {
+                        return ITypeSymbolExtensions.DefaultParameterName;
                     }
                 }
 
@@ -109,6 +126,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
-        private static bool CanRemoveInterfacePrefix(string name) => name.Length > 1 && name[0] == 'I' && char.IsUpper(name[1]);
+        private static bool CanRemovePrefix(string name, char prefix) => name.Length > 1 && name[0] == prefix && char.IsUpper(name[1]);
     }
 }

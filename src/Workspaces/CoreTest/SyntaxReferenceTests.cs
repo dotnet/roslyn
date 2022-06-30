@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             => CreateWorkspace(new[]
             {
                 typeof(TestProjectCacheService),
-                typeof(TestTemporaryStorageService)
+                typeof(TestTemporaryStorageServiceFactory)
             });
 
         private static Solution AddSingleFileCSharpProject(Solution solution, string source)

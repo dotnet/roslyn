@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis
                 return previousTable;
             }
 
-            var builder = graphState.CreateTableBuilder(previousTable, _name);
+            var builder = graphState.CreateTableBuilder(previousTable, _name, _comparer);
 
             // Semantics of a join:
             //
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis
         private NodeStateTable<(TInput1, TInput2)> RecordStepsForCachedTable(DriverStateTable.Builder graphState, NodeStateTable<(TInput1, TInput2)> previousTable, NodeStateTable<TInput1> input1Table, NodeStateTable<TInput2> input2Table)
         {
             Debug.Assert(input1Table.HasTrackedSteps && input2Table.IsCached);
-            var builder = graphState.CreateTableBuilder(previousTable, _name);
+            var builder = graphState.CreateTableBuilder(previousTable, _name, _comparer);
             (_, IncrementalGeneratorRunStep? input2Step) = input2Table.Single();
             foreach (var entry in input1Table)
             {

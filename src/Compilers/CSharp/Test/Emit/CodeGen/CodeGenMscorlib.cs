@@ -744,6 +744,12 @@ namespace System
             //IMPORTANT: we should NOT delegate E1.GetHashCode() to int.GetHashCode()
             //           it is entirely possible that Enum.GetHashCode and int.GetHashCode 
             //           have different implementations
+
+            // PEVerify:
+            // Error: Token 0x02000009 following ELEMENT_TYPE_CLASS (_VALUETYPE) in signature is a ValueType (Class,respectively).
+            // Error: Token 0x02000009 following ELEMENT_TYPE_CLASS(_VALUETYPE) in signature is a ValueType (Class, respectively).
+            // Type load failed.
+            // ILVerify: Failed to load type 'System.String' from assembly ... 
             CompileAndVerify(comp, verify: Verification.Fails).
                 VerifyIL("program.Main()",
 @"
@@ -871,6 +877,8 @@ namespace System
             //           but see the bug see VSW #396011, JIT needs references when loading
             //           fields of certain clr-ambiguous structs (only possible when building mscorlib)
 
+            // PEVerify: Type load failed.
+            // ILVerify: Failed to load type 'System.String' from assembly ... 
             CompileAndVerify(comp, verify: Verification.Fails).
                 VerifyIL("System.IntPtr..ctor(int)", @"
 {
