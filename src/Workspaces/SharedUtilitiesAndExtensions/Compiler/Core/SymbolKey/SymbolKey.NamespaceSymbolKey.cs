@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
             {
-                var metadataName = reader.ReadString()!;
+                var metadataName = reader.ReadRequiredString();
                 var isCompilationGlobalNamespace = reader.ReadBoolean();
                 var containingSymbolResolution = reader.ReadSymbolKey(out var containingSymbolFailureReason);
 

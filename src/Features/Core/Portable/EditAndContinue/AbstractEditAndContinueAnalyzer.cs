@@ -495,11 +495,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             AsyncLazy<EditAndContinueCapabilities> lazyCapabilities,
             CancellationToken cancellationToken)
         {
-            DocumentAnalysisResults.Log.Write("Analyzing document {0}", newDocument.Name);
+            var filePath = newDocument.FilePath;
 
+            Debug.Assert(newDocument.State.SupportsEditAndContinue());
             Debug.Assert(!newActiveStatementSpans.IsDefault);
             Debug.Assert(newDocument.SupportsSyntaxTree);
             Debug.Assert(newDocument.SupportsSemanticModel);
+            Debug.Assert(filePath != null);
+
+            DocumentAnalysisResults.Log.Write("Analyzing document '{0}'", filePath);
 
             // assume changes until we determine there are none so that EnC is blocked on unexpected exception:
             var hasChanges = true;
@@ -515,9 +519,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var oldDocument = await oldProject.GetDocumentAsync(newDocument.Id, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
                 if (oldDocument != null)
                 {
-                    oldTree = await oldDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                    Contract.ThrowIfNull(oldTree);
-
+                    oldTree = await oldDocument.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                     oldRoot = await oldTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
                     oldText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 }
@@ -549,8 +551,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     // Bail, since we can't do syntax diffing on broken trees (it would not produce useful results anyways).
                     // If we needed to do so for some reason, we'd need to harden the syntax tree comparers.
-                    DocumentAnalysisResults.Log.Write("{0}: syntax errors", newDocument.Name);
-                    return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, ImmutableArray<RudeEditDiagnostic>.Empty, syntaxError, hasChanges);
+                    DocumentAnalysisResults.Log.Write("{0}: syntax errors", filePath);
+                    return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, filePath, ImmutableArray<RudeEditDiagnostic>.Empty, syntaxError, hasChanges);
                 }
 
                 if (!hasChanges)
@@ -560,17 +562,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // a) comparing texts is cheaper than diffing trees
                     // b) we need to ignore errors in unchanged documents
 
-                    DocumentAnalysisResults.Log.Write("{0}: unchanged", newDocument.Name);
-                    return DocumentAnalysisResults.Unchanged(newDocument.Id);
+                    DocumentAnalysisResults.Log.Write("{0}: unchanged", filePath);
+                    return DocumentAnalysisResults.Unchanged(newDocument.Id, filePath);
                 }
 
                 // Disallow modification of a file with experimental features enabled.
                 // These features may not be handled well by the analysis below.
                 if (ExperimentalFeaturesEnabled(newTree))
                 {
-                    DocumentAnalysisResults.Log.Write("{0}: experimental features enabled", newDocument.Name);
+                    DocumentAnalysisResults.Log.Write("{0}: experimental features enabled", filePath);
 
-                    return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, ImmutableArray.Create(
+                    return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, filePath, ImmutableArray.Create(
                         new RudeEditDiagnostic(RudeEditKind.ExperimentalFeaturesEnabled, default)), syntaxError: null, hasChanges);
                 }
 
@@ -580,7 +582,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // If the document has changed at all, lets make sure Edit and Continue is supported
                 if (!capabilities.Grant(EditAndContinueCapabilities.Baseline))
                 {
-                    return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, ImmutableArray.Create(
+                    return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, filePath, ImmutableArray.Create(
                        new RudeEditDiagnostic(RudeEditKind.NotSupportedByRuntime, default)), syntaxError: null, hasChanges);
                 }
 
@@ -606,7 +608,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 if (diagnostics.Count > 0 && !hasRudeEdits)
                 {
-                    DocumentAnalysisResults.Log.Write("{0} syntactic rude edits, first: '{1}'", diagnostics.Count, newDocument.FilePath);
+                    DocumentAnalysisResults.Log.Write("{0} syntactic rude edits, first: '{1}'", diagnostics.Count, filePath);
                     hasRudeEdits = true;
                 }
 
@@ -657,12 +659,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 if (diagnostics.Count > 0 && !hasRudeEdits)
                 {
-                    DocumentAnalysisResults.Log.Write("{0}@{1}: rude edit ({2} total)", newDocument.FilePath, diagnostics.First().Span.Start, diagnostics.Count);
+                    DocumentAnalysisResults.Log.Write("{0}@{1}: rude edit ({2} total)", filePath, diagnostics.First().Span.Start, diagnostics.Count);
                     hasRudeEdits = true;
                 }
 
                 return new DocumentAnalysisResults(
                     newDocument.Id,
+                    filePath,
                     newActiveStatements.MoveToImmutable(),
                     diagnostics.ToImmutable(),
                     syntaxError: null,
@@ -684,7 +687,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     new RudeEditDiagnostic(RudeEditKind.InternalError, span: default, arguments: new[] { newDocument.FilePath, e.ToString() });
 
                 // Report as "syntax error" - we can't analyze the document
-                return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, ImmutableArray.Create(diagnostic), syntaxError: null, hasChanges);
+                return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, filePath, ImmutableArray.Create(diagnostic), syntaxError: null, hasChanges);
             }
         }
 
@@ -4534,11 +4537,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private bool HasMemberInitializerContainingLambda(INamedTypeSymbol type, bool isStatic, ref bool? lazyHasMemberInitializerContainingLambda, CancellationToken cancellationToken)
         {
-            if (lazyHasMemberInitializerContainingLambda == null)
-            {
-                // checking the old type for existing lambdas (it's ok for the new initializers to contain lambdas)
-                lazyHasMemberInitializerContainingLambda = HasMemberInitializerContainingLambda(type, isStatic, cancellationToken);
-            }
+            // checking the old type for existing lambdas (it's ok for the new initializers to contain lambdas)
+            lazyHasMemberInitializerContainingLambda ??= HasMemberInitializerContainingLambda(type, isStatic, cancellationToken);
 
             return lazyHasMemberInitializerContainingLambda.Value;
         }

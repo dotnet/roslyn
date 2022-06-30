@@ -833,6 +833,71 @@ class Program
             Assert.True(comp.Assembly.RuntimeSupportsByRefFields);
         }
 
+        /// <summary>
+        /// Ref fields of ref struct type are not supported.
+        /// </summary>
+        [Fact]
+        public void RefFieldTypeRefStruct_01()
+        {
+            var source =
+@"#pragma warning disable 169
+ref struct R1<T>
+{
+}
+ref struct R2<T>
+{
+    public ref R1<T> F;
+}
+class Program
+{
+    static void F(ref R1<int> r1)
+    {
+        var r2 = new R2<int>();
+        r2.F = ref r1;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (7,12): error CS9050: A ref field cannot refer to a ref struct.
+                //     public ref R1<T> F;
+                Diagnostic(ErrorCode.ERR_RefFieldCannotReferToRefStruct, "ref R1<T>").WithLocation(7, 12));
+        }
+
+        /// <summary>
+        /// Ref fields of ref struct type are not supported.
+        /// </summary>
+        [Fact]
+        public void RefFieldTypeRefStruct_02()
+        {
+            var sourceA =
+@".class public sealed R1 extends [mscorlib]System.ValueType
+{
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = (01 00 00 00)
+}
+.class public sealed R2 extends [mscorlib]System.ValueType
+{
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = (01 00 00 00)
+  .field public valuetype R1& F
+}
+";
+            var refA = CompileIL(sourceA);
+
+            var sourceB =
+@"class Program
+{
+    static void F(ref R1 r1)
+    {
+        var r2 = new R2();
+        r2.F = ref r1;
+    }
+}";
+            var comp = CreateCompilation(sourceB, references: new[] { refA });
+            comp.VerifyEmitDiagnostics(
+                // (6,12): error CS0570: 'R2.F' is not supported by the language
+                //         r2.F = ref r1;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "F").WithArguments("R2.F").WithLocation(6, 12));
+        }
+
         [Fact]
         public void RefFields_RefEscape()
         {
@@ -5467,31 +5532,11 @@ class Program
         return r2In.R1.F;
     }
 }";
-            var verifier = CompileAndVerify(source, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
-@"42
-42
-42
-"));
-            verifier.VerifyIL("Program.Read<T>",
-@"{
-  // Code size       18 (0x12)
-  .maxstack  1
-  IL_0000:  ldarga.s   V_0
-  IL_0002:  ldfld      ""ref R1<T> R2<T>.R1""
-  IL_0007:  ldfld      ""ref T R1<T>.F""
-  IL_000c:  ldobj      ""T""
-  IL_0011:  ret
-}");
-            verifier.VerifyIL("Program.ReadIn<T>",
-@"{
-  // Code size       17 (0x11)
-  .maxstack  1
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""ref R1<T> R2<T>.R1""
-  IL_0006:  ldfld      ""ref T R1<T>.F""
-  IL_000b:  ldobj      ""T""
-  IL_0010:  ret
-}");
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (9,12): error CS9050: A ref field cannot refer to a ref struct.
+                //     public ref R1<T> R1;
+                Diagnostic(ErrorCode.ERR_RefFieldCannotReferToRefStruct, "ref R1<T>").WithLocation(9, 12));
         }
 
         [Fact]
@@ -6197,6 +6242,9 @@ class Program
             var comp = CreateCompilation(source);
             // https://github.com/dotnet/roslyn/issues/62098: Allow ref field of the containing type.
             comp.VerifyEmitDiagnostics(
+                // (3,12): error CS9050: A ref field cannot refer to a ref struct.
+                //     public ref R<T> Next;
+                Diagnostic(ErrorCode.ERR_RefFieldCannotReferToRefStruct, "ref R<T>").WithLocation(3, 12),
                 // (3,21): error CS0523: Struct member 'R<T>.Next' of type 'R<T>' causes a cycle in the struct layout
                 //     public ref R<T> Next;
                 Diagnostic(ErrorCode.ERR_StructLayoutCycle, "Next").WithArguments("R<T>.Next", "R<T>").WithLocation(3, 21));
@@ -7336,6 +7384,9 @@ ref struct R2
                 // (6,5): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     ref scoped R1 F2;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref scoped R1").WithArguments("ref fields").WithLocation(6, 5),
+                // (6,5): error CS9050: A ref field cannot refer to a ref struct.
+                //     ref scoped R1 F2;
+                Diagnostic(ErrorCode.ERR_RefFieldCannotReferToRefStruct, "ref scoped R1").WithLocation(6, 5),
                 // (6,9): error CS0106: The modifier 'scoped' is not valid for this item
                 //     ref scoped R1 F2;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(6, 9),
@@ -7351,6 +7402,9 @@ ref struct R2
                 // (5,15): error CS0106: The modifier 'scoped' is not valid for this item
                 //     scoped R1 F1;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "F1").WithArguments("scoped").WithLocation(5, 15),
+                // (6,5): error CS9050: A ref field cannot refer to a ref struct.
+                //     ref scoped R1 F2;
+                Diagnostic(ErrorCode.ERR_RefFieldCannotReferToRefStruct, "ref scoped R1").WithLocation(6, 5),
                 // (6,9): error CS0106: The modifier 'scoped' is not valid for this item
                 //     ref scoped R1 F2;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(6, 9),
