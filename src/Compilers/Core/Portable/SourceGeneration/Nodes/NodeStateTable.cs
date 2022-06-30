@@ -178,7 +178,9 @@ namespace Microsoft.CodeAnalysis
 #if DEBUG
                 _requestedTableCapacity = tableCapacity;
 #endif
-                _states = ArrayBuilder<TableEntry>.GetInstance(tableCapacity ?? previous.Count);
+                // If the caller specified a desired capacity, then use that.  Otherwise, use the previous table's total
+                // entry count as a reasonable approximation for what we will need.
+                _states = ArrayBuilder<TableEntry>.GetInstance(tableCapacity ?? previous.GetTotalEntryItemCount());
                 _previous = previous;
                 _name = name;
                 _equalityComparer = equalityComparer ?? EqualityComparer<T>.Default;
