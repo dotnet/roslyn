@@ -174,13 +174,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 return false;
             }
 
-            public override bool TryGetPreviousStateMachineState(SyntaxNode awaitOrYieldSyntax, out int stateOrdinal)
+            public override bool TryGetPreviousStateMachineState(SyntaxNode awaitOrYieldSyntax, out StateMachineState state)
             {
-                stateOrdinal = 0;
+                state = 0;
                 return false;
             }
 
-            public override int? GetFirstUnusedStateMachineState(bool increasing) => null;
+            public override StateMachineState? GetFirstUnusedStateMachineState(bool increasing) => null;
             public override string? PreviousStateMachineTypeName => null;
             public override int PreviousHoistedLocalSlotCount => 0;
             public override int PreviousAwaiterSlotCount => 0;
