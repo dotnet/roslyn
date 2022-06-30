@@ -632,6 +632,20 @@ internal class C : I<C>
             }.RunAsync();
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
+        [WorkItem(62259, "https://github.com/dotnet/roslyn/issues/62259")]
+        public async Task TestFileDelegate()
+        {
+            var source = "file delegate void M();";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.Preview,
+            }.RunAsync();
+        }
+
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
         [InlineData("class")]
         [InlineData("struct")]
