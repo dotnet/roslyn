@@ -129,10 +129,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
             base.OnClosed(e);
 
-            if (pageControl != null)
-            {
-                pageControl.Close();
-            }
+            pageControl?.Close();
         }
     }
 }
