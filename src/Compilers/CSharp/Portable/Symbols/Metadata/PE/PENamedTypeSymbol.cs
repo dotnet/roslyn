@@ -376,6 +376,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get;
         }
 
+        internal override SyntaxTree AssociatedSyntaxTree => null;
+
         internal abstract int MetadataArity
         {
             get;

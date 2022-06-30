@@ -664,7 +664,13 @@ public class FileModifierParsingTests : ParsingTests
             {
                 file class C { }
             }
-            """);
+            """,
+            expectedBindingDiagnostics: new[]
+            {
+                // (3,16): error CS9303: File type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
+                //     file class C { }
+                Diagnostic(ErrorCode.ERR_FileTypeNested, "C").WithArguments("Outer.C").WithLocation(3, 16)
+            });
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -1998,7 +2004,13 @@ public class FileModifierParsingTests : ParsingTests
             {
                 file record X();
             }
-            """);
+            """,
+            expectedBindingDiagnostics: new[]
+            {
+                // (3,17): error CS9303: File type 'C.X' must be defined in a top level type; 'C.X' is a nested type.
+                //     file record X();
+                Diagnostic(ErrorCode.ERR_FileTypeNested, "X").WithArguments("C.X").WithLocation(3, 17)
+            });
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -2090,7 +2102,13 @@ public class FileModifierParsingTests : ParsingTests
             {
                 file record X() { }
             }
-            """);
+            """,
+            expectedBindingDiagnostics: new[]
+            {
+                // (3,17): error CS9303: File type 'C.X' must be defined in a top level type; 'C.X' is a nested type.
+                //     file record X() { }
+                Diagnostic(ErrorCode.ERR_FileTypeNested, "X").WithArguments("C.X").WithLocation(3, 17)
+            });
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -2179,7 +2197,13 @@ public class FileModifierParsingTests : ParsingTests
             {
                 file record X;
             }
-            """);
+            """,
+            expectedBindingDiagnostics: new[]
+            {
+                // (3,17): error CS9303: File type 'C.X' must be defined in a top level type; 'C.X' is a nested type.
+                //     file record X;
+                Diagnostic(ErrorCode.ERR_FileTypeNested, "X").WithArguments("C.X").WithLocation(3, 17)
+            });
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -2196,6 +2220,32 @@ public class FileModifierParsingTests : ParsingTests
                     N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void FileRecord_04_CSharpNext()
+    {
+        UsingNode("""
+            file record X();
+            """);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.RecordDeclaration);
+            {
+                N(SyntaxKind.FileKeyword);
+                N(SyntaxKind.RecordKeyword);
+                N(SyntaxKind.IdentifierToken, "X");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.SemicolonToken);
             }
             N(SyntaxKind.EndOfFileToken);
         }

@@ -253,6 +253,9 @@ namespace Microsoft.Cci
         /// If true, the persisted type name is mangled by appending "`n" where n is the number of type parameters, if the number of type parameters is greater than 0.
         /// </summary>
         bool MangleName { get; }
+
+        /// <summary>Indicates that the type is scoped to the file it is declared in. Used as a prefix for the metadata name.</summary>
+        string? AssociatedFileIdentifier { get; }
     }
 
     /// <summary>
