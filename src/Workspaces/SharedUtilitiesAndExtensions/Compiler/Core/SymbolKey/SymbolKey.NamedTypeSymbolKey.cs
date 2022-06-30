@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Text.RegularExpressions;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -69,9 +68,6 @@ namespace Microsoft.CodeAnalysis
                 return CreateResolution(result, $"({nameof(NamedTypeSymbolKey)} failed)", out failureReason);
             }
 
-            // <(ContainingType)>F(Ordinal)__(SourceName)
-            private static readonly Regex s_fileTypeNamePattern = new Regex(@"<[a-zA-Z_0-9]*>F\d+__", RegexOptions.Compiled);
-
             private static void Resolve(
                 PooledArrayBuilder<INamedTypeSymbol> result,
                 INamespaceOrTypeSymbol container,
@@ -80,32 +76,12 @@ namespace Microsoft.CodeAnalysis
                 bool isUnboundGenericType,
                 ITypeSymbol[] typeArguments)
             {
-                var nameWithoutArity = removeArity(metadataName);
-                // Need to do a "decoding" step to get a file type source name from its metadata name
-                var sourceName = s_fileTypeNamePattern.Match(nameWithoutArity) is { Success: true, Length: var length }
-                    ? nameWithoutArity.Substring(length)
-                    : nameWithoutArity;
-
-                // PERF: We avoid calling GetTypeMembers(sourceName, arity) here to reduce allocations
-                foreach (var type in container.GetTypeMembers(sourceName))
+                foreach (var type in container.GetTypeMembers(GetName(metadataName), arity))
                 {
-                    // In case we have a file type, checking the MetadataName here allows us to distinguish whether we found the file type from the appropriate file.
-                    // e.g. we might have found multiple file types named 'C' in the container, but with differing metadata names such as '<FileOne>F1__C' or '<FileTwo>F2__C'.
-                    if (type.Arity == arity && string.Equals(type.MetadataName, metadataName, StringComparison.Ordinal))
-                    {
-                        var currentType = typeArguments.Length > 0 ? type.Construct(typeArguments) : type;
-                        currentType = isUnboundGenericType ? currentType.ConstructUnboundGenericType() : currentType;
+                    var currentType = typeArguments.Length > 0 ? type.Construct(typeArguments) : type;
+                    currentType = isUnboundGenericType ? currentType.ConstructUnboundGenericType() : currentType;
 
-                        result.AddIfNotNull(currentType);
-                    }
-                }
-
-                static string removeArity(string metadataName)
-                {
-                    var index = metadataName.IndexOf('`');
-                    return index > 0
-                        ? metadataName.Substring(0, index)
-                        : metadataName;
+                    result.AddIfNotNull(currentType);
                 }
             }
         }
