@@ -32,10 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 
         public void CloseWorkspace()
         {
-            if (_previewWorkspace != null)
-            {
-                _previewWorkspace.Dispose();
-            }
+            _previewWorkspace?.Dispose();
         }
 
         public void UpdateView(TextDocument document, SpanChange spanSource)
