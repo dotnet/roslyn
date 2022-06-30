@@ -115,9 +115,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             End Function
 
             Private Function GetUnqualifiedSymbolsForType() As ImmutableArray(Of ISymbol)
-                ' Edge case when interface declare Implements block.
-                ' We shouldn't provide any symbols in this case
-                If IsInterfaceImplementsErrorBlock() Then
+                ' We should not provide any symbols for "interface implements X" case
+                If IsInterfaceImplementsCase() Then
                     Return ImmutableArray(Of ISymbol).Empty
                 End If
                 Return _context.SemanticModel.LookupNamespacesAndTypes(_context.TargetToken.SpanStart)
@@ -160,9 +159,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             End Function
 
             Private Function GetSymbolsForQualifiedNameSyntax(node As QualifiedNameSyntax) As ImmutableArray(Of ISymbol)
-                ' Edge case when interface declare Implements block.
-                ' We shouldn't provide any symbols in this case
-                If IsInterfaceImplementsErrorBlock() Then
+                ' We should not provide any symbols for "interface implements X" case
+                If IsInterfaceImplementsCase() Then
                     Return ImmutableArray(Of ISymbol).Empty
                 End If
 
@@ -194,18 +192,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
                 Return symbols
             End Function
 
-            Private Function IsInterfaceImplementsErrorBlock() As Boolean
+            ''' <summary>
+            ''' Checks if we are in "interface implements X" case, e.g.:
+            ''' <code>
+            ''' Interface I
+            '''   Implements $$
+            ''' End Interface
+            ''' </code>
+            ''' This case is VB-specific, so it cannot be taken to a shared layer
+            ''' </summary>
+            Private Function IsInterfaceImplementsCase() As Boolean
                 Dim possibleTypeBlock = _context.TargetToken.Parent?.FirstAncestorOrSelf(Of TypeBlockSyntax)()
-                If possibleTypeBlock IsNot Nothing Then
-                    Dim typeSymbol As ISymbol = _context.SemanticModel.GetDeclaredSymbol(possibleTypeBlock, _cancellationToken)
-                    If typeSymbol.IsInterfaceType() Then
-                        Dim token = _context.TargetToken
-                        If token.IsChildToken(Of ImplementsStatementSyntax)(Function(n) n.ImplementsKeyword) Then
-                            Return True
-                        End If
-                        Return token.IsChildToken(Of QualifiedNameSyntax)(Function(n) n.DotToken) AndAlso
-                               token.Parent?.FirstAncestorOrSelf(Of ImplementsStatementSyntax) IsNot Nothing
+                If possibleTypeBlock IsNot Nothing AndAlso possibleTypeBlock.IsKind(SyntaxKind.InterfaceBlock) Then
+                    Dim token = _context.TargetToken
+                    If token.IsChildToken(Of ImplementsStatementSyntax)(Function(n) n.ImplementsKeyword) Then
+                        Return True
                     End If
+                    Return token.IsChildToken(Of QualifiedNameSyntax)(Function(n) n.DotToken) AndAlso
+                           token.Parent?.FirstAncestorOrSelf(Of ImplementsStatementSyntax) IsNot Nothing
                 End If
                 Return False
             End Function
