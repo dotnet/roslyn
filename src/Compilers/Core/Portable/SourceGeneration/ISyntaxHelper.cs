@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
     internal interface ISyntaxHelper
     {
         bool IsCaseSensitive { get; }
+        int AttributeListKind { get; }
 
         bool IsValidIdentifier(string name);
 
@@ -40,6 +41,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
     internal abstract class AbstractSyntaxHelper : ISyntaxHelper
     {
         public abstract bool IsCaseSensitive { get; }
+        public abstract int AttributeListKind { get; }
 
         public abstract bool IsValidIdentifier(string name);
 

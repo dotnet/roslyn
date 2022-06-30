@@ -19,6 +19,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides ReadOnly Property IsCaseSensitive As Boolean = False
 
+        Public Overrides ReadOnly Property AttributeListKind As Integer = SyntaxKind.AttributeList
+
         Public Overrides Function IsValidIdentifier(name As String) As Boolean
             Return SyntaxFacts.IsValidIdentifier(name)
         End Function
