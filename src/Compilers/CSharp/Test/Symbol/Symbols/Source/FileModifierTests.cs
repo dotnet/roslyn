@@ -1069,7 +1069,7 @@ public class FileModifierTests : CSharpTestBase
             """;
 
         var comp = CreateCompilation(new[] { source1, source2 });
-        // PROTOTYPE(ft): should this diagnostic be more specific?
+        // https://github.com/dotnet/roslyn/issues/62333: should this diagnostic be more specific?
         // the issue more precisely is that a definition for 'C' already exists in the current file--not that it's already in this namespace.
         comp.VerifyDiagnostics(
             // (8,12): error CS0101: The namespace '<global namespace>' already contains a definition for 'C'
@@ -1101,7 +1101,6 @@ public class FileModifierTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_MissingPartial, "C").WithArguments("C").WithLocation(8, 12));
 
         var c = comp.GetMember("C");
-        // PROTOTYPE(ft): is it a problem that we consider this symbol a file type in this scenario?
         Assert.True(c is SourceMemberContainerTypeSymbol { IsFile: true });
         syntaxReferences = c.DeclaringSyntaxReferences;
         Assert.Equal(3, syntaxReferences.Length);
@@ -1943,14 +1942,14 @@ public class FileModifierTests : CSharpTestBase
             }
             class C : I
             {
-                void I.F(I i) { } // PROTOTYPE(ft): is this acceptable, since it's only callable by casting to the referenced file type?
+                void I.F(I i) { }
             }
             """;
 
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
             // (7,12): error CS9300: File type 'I' cannot be used in a member signature in non-file type 'C'.
-            //     void I.F(I i) { } // PROTOTYPE(ft): is this acceptable, since it's only callable by casting to the referenced file type?
+            //     void I.F(I i) { }
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "F").WithArguments("I", "C").WithLocation(7, 12));
     }
 
@@ -3015,7 +3014,7 @@ public class FileModifierTests : CSharpTestBase
         var source1 = """
             using System;
 
-            void M(Void v) { }  // PROTOTYPE(ft): error here for explicit use of System.Void?
+            void M(Void v) { }
 
             namespace System
             {
@@ -3023,10 +3022,12 @@ public class FileModifierTests : CSharpTestBase
             }
             """;
 
+        // https://github.com/dotnet/roslyn/issues/62331
+        // Ideally we would give an error about use of System.Void here.
         var comp = CreateCompilation(source1);
         comp.VerifyDiagnostics(
                 // (3,6): warning CS8321: The local function 'M' is declared but never used
-                // void M(Void v) { }  // PROTOTYPE(ft): error here for explicit use of System.Void?
+                // void M(Void v) { }
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "M").WithArguments("M").WithLocation(3, 6));
 
         var tree = comp.SyntaxTrees[0];

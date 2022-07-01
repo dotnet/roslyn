@@ -2099,12 +2099,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FixedFieldMustNotBeRef = 9049,
         ERR_RefFieldCannotReferToRefStruct = 9050,
 
-        // PROTOTYPE(ft): compress these before feature merge
-        ERR_FileTypeDisallowedInSignature = 9300,
-        ERR_FileTypeNoExplicitAccessibility = 9301,
-        ERR_FileTypeBase = 9302,
-        ERR_FileTypeNested = 9303,
-        ERR_GlobalUsingStaticFileType = 9304
+        ERR_FileTypeDisallowedInSignature = 9351,
+        ERR_FileTypeNoExplicitAccessibility = 9352,
+        ERR_FileTypeBase = 9353,
+        ERR_FileTypeNested = 9354,
+        ERR_GlobalUsingStaticFileType = 9355,
+        ERR_FileTypeNameDisallowed = 9356,
 
         #endregion
 
