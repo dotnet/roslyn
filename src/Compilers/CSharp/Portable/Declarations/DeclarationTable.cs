@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Internal for unit tests only.
         internal MergedNamespaceDeclaration CalculateMergedRoot(CSharpCompilation compilation)
         {
-            var oldRoot = _cache.MergedRoot.Value;
+            var oldRoot = _cache.MergedRoot;
             if (_latestLazyRootDeclaration == null)
             {
                 return oldRoot;
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ICollection<string> GetMergedTypeNames()
         {
-            var cachedTypeNames = _cache.TypeNames.Value;
+            var cachedTypeNames = _cache.TypeNames;
 
             if (_latestLazyRootDeclaration == null)
             {
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ICollection<string> GetMergedNamespaceNames()
         {
-            var cachedNamespaceNames = _cache.NamespaceNames.Value;
+            var cachedNamespaceNames = _cache.NamespaceNames;
 
             if (_latestLazyRootDeclaration == null)
             {
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ICollection<ReferenceDirective> GetMergedReferenceDirectives()
         {
-            var cachedReferenceDirectives = _cache.ReferenceDirectives.Value;
+            var cachedReferenceDirectives = _cache.ReferenceDirectives;
 
             if (_latestLazyRootDeclaration == null)
             {
