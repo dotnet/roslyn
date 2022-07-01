@@ -54,6 +54,13 @@
     <EnableXlfLocalization>false</EnableXlfLocalization>
   </PropertyGroup>
 
+  <!--
+   Use the RAR assembly cache to speed up the first build on a machine.
+  -->
+  <PropertyGroup>
+    <AssemblyInformationCachePaths Condition="Exists('$(NetCoreRoot)sdk\$(NetCoreSdkVersion)\SdkPrecomputedAssemblyReferences.cache')">$(AssemblyInformationCachePaths);$(NetCoreRoot)sdk\$(NetCoreSdkVersion)\SDKPrecomputedAssemblyReferences.cache</AssemblyInformationCachePaths>
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(IsTestProject)' == 'true'" >
     <!--
       Choose default target frameworks to use for testing on Mono and Core.
