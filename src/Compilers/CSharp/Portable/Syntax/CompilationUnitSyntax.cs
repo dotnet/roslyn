@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
@@ -19,9 +20,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         internal IList<ReferenceDirectiveTriviaSyntax> GetReferenceDirectives(Func<ReferenceDirectiveTriviaSyntax, bool>? filter)
         {
+            if (!this.ContainsDirectives)
+                return SpecializedCollections.EmptyList<ReferenceDirectiveTriviaSyntax>();
+
             // #r directives are always on the first token of the compilation unit.
             var firstToken = (SyntaxNodeOrToken)this.GetFirstToken(includeZeroWidth: true);
-            return firstToken.GetDirectives<ReferenceDirectiveTriviaSyntax>(filter);
+            return firstToken.GetDirectives(filter);
         }
 
         /// <summary>
@@ -29,6 +33,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// </summary>
         public IList<LoadDirectiveTriviaSyntax> GetLoadDirectives()
         {
+            if (!this.ContainsDirectives)
+                return SpecializedCollections.EmptyList<LoadDirectiveTriviaSyntax>();
+
             // #load directives are always on the first token of the compilation unit.
             var firstToken = (SyntaxNodeOrToken)this.GetFirstToken(includeZeroWidth: true);
             return firstToken.GetDirectives<LoadDirectiveTriviaSyntax>(filter: null);
