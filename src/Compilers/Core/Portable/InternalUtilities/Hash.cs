@@ -68,6 +68,25 @@ namespace Roslyn.Utilities
             return hashCode;
         }
 
+        internal static int CombineValues<TKey, TValue>(ImmutableDictionary<TKey, TValue> values, int maxItemsToHash = int.MaxValue)
+            where TKey : notnull
+        {
+            if (values == null)
+                return 0;
+
+            var hashCode = 0;
+            var count = 0;
+            foreach (var value in values)
+            {
+                if (count++ >= maxItemsToHash)
+                    break;
+
+                hashCode = Hash.Combine(value.GetHashCode(), hashCode);
+            }
+
+            return hashCode;
+        }
+
         internal static int CombineValues<T>(T[]? values, int maxItemsToHash = int.MaxValue)
         {
             if (values == null)
@@ -138,6 +157,25 @@ namespace Roslyn.Utilities
                 {
                     hashCode = Hash.Combine(stringComparer.GetHashCode(value), hashCode);
                 }
+            }
+
+            return hashCode;
+        }
+
+        internal static int CombineValues(ImmutableArray<string> values, StringComparer stringComparer, int maxItemsToHash = int.MaxValue)
+        {
+            if (values == null)
+                return 0;
+
+            var hashCode = 0;
+            var count = 0;
+            foreach (var value in values)
+            {
+                if (count++ >= maxItemsToHash)
+                    break;
+
+                if (value != null)
+                    hashCode = Hash.Combine(stringComparer.GetHashCode(value), hashCode);
             }
 
             return hashCode;

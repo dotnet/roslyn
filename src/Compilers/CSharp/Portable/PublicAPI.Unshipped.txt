@@ -1,3 +1,4 @@
+*REMOVED*override Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.GetHashCode() -> int
 Microsoft.CodeAnalysis.CSharp.Conversion.ConstrainedToType.get -> Microsoft.CodeAnalysis.ITypeSymbol?
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.InterpolatedMultiLineRawStringStartToken = 9073 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.InterpolatedRawStringEndToken = 9074 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
