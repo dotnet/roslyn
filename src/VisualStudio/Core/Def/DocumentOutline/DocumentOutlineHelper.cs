@@ -278,8 +278,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         /// </summary>
         public static bool SearchNodeTree(DocumentSymbolViewModel tree, PatternMatcher patternMatcher)
         {
-            var pattern = patternMatcher.Matches(tree.Name);
-            if (patternMatcher.GetFirstMatch(tree.Name) is not null)
+            if (patternMatcher.Matches(tree.Name))
                 return true;
 
             foreach (var childItem in tree.Children)
