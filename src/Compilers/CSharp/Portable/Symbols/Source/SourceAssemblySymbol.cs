@@ -1686,6 +1686,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 #nullable disable
 
+        //Please don't use thread local storage widely. This is hoped to be the second one-off usage.
+        [ThreadStatic]
+        private static PooledHashSet<AttributeSyntax> t_forwardedTypesAttributesInProgress;
+
         /// <summary>
         /// This only forces binding of attributes that look like they may be forwarded types attributes (syntactically).
         /// </summary>
@@ -1698,11 +1702,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ((CommonAssemblyWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData)?.ForwardedTypes;
             }
 
-            attributesBag = null;
-            LoadAndValidateAttributes(OneOrMany.Create(GetAttributeDeclarations()), ref attributesBag, attributeMatchesOpt: this.IsPossibleForwardedTypesAttribute);
+            var allocate = t_forwardedTypesAttributesInProgress is null;
 
-            var wellKnownAttributeData = (CommonAssemblyWellKnownAttributeData)attributesBag?.DecodedWellKnownAttributeData;
-            return wellKnownAttributeData?.ForwardedTypes;
+            if (allocate)
+            {
+                t_forwardedTypesAttributesInProgress = PooledHashSet<AttributeSyntax>.GetInstance();
+            }
+
+            try
+            {
+                attributesBag = null;
+                LoadAndValidateAttributes(
+                    OneOrMany.Create(GetAttributeDeclarations()), ref attributesBag,
+                    attributeMatchesOpt: this.IsPossibleForwardedTypesAttribute,
+                    beforeAttributePartBound: BeforePossibleForwardedTypesAttributePartBound,
+                    afterAttributePartBound: AfterPossibleForwardedTypesAttributePartBound);
+
+                var wellKnownAttributeData = (CommonAssemblyWellKnownAttributeData)attributesBag?.DecodedWellKnownAttributeData;
+                return wellKnownAttributeData?.ForwardedTypes;
+            }
+            finally
+            {
+                if (allocate)
+                {
+                    var tofree = t_forwardedTypesAttributesInProgress;
+                    t_forwardedTypesAttributesInProgress = null;
+                    tofree.Free();
+                }
+            }
+        }
+
+        private static void BeforePossibleForwardedTypesAttributePartBound(AttributeSyntax node)
+        {
+            bool added = t_forwardedTypesAttributesInProgress.Add(node);
+            Debug.Assert(added);
+        }
+
+        private static void AfterPossibleForwardedTypesAttributePartBound(AttributeSyntax node)
+        {
+            bool removed = t_forwardedTypesAttributesInProgress.Remove(node);
+            Debug.Assert(removed);
         }
 
         private bool IsPossibleForwardedTypesAttribute(AttributeSyntax node)
@@ -1710,7 +1749,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             QuickAttributeChecker checker =
                 this.DeclaringCompilation.GetBinderFactory(node.SyntaxTree).GetBinder(node).QuickAttributeChecker;
 
-            return checker.IsPossibleMatch(node, QuickAttributes.TypeForwardedTo);
+            if (checker.IsPossibleMatch(node, QuickAttributes.TypeForwardedTo))
+            {
+                if (!t_forwardedTypesAttributesInProgress.Contains(node))
+                {
+                    return true;
+                }
+
+                // It looks like we started binding this attribute and circled back to it again.
+                // Let's skip it.
+                ;
+            }
+
+            return false;
         }
 
         private static IEnumerable<Cci.SecurityAttribute> GetSecurityAttributes(CustomAttributesBag<CSharpAttributeData> attributesBag)
@@ -1888,7 +1939,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // (c) There is no applied CompilationRelaxationsAttribute assembly attribute for any of the added PE modules.
             // Above requirements also hold for synthesizing RuntimeCompatibilityAttribute attribute.
 
-            bool emitCompilationRelaxationsAttribute = !isBuildingNetModule && !this.Modules.Any(m => m.HasAssemblyCompilationRelaxationsAttribute);
+            bool emitCompilationRelaxationsAttribute = !isBuildingNetModule && !this.Modules.Any(static m => m.HasAssemblyCompilationRelaxationsAttribute);
             if (emitCompilationRelaxationsAttribute)
             {
                 // Synthesize attribute: [CompilationRelaxationsAttribute(CompilationRelaxations.NoStringInterning)]
@@ -1908,7 +1959,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            bool emitRuntimeCompatibilityAttribute = !isBuildingNetModule && !this.Modules.Any(m => m.HasAssemblyRuntimeCompatibilityAttribute);
+            bool emitRuntimeCompatibilityAttribute = !isBuildingNetModule && !this.Modules.Any(static m => m.HasAssemblyRuntimeCompatibilityAttribute);
             if (emitRuntimeCompatibilityAttribute)
             {
                 // Synthesize attribute: [RuntimeCompatibilityAttribute(WrapNonExceptionThrows = true)]
@@ -2275,7 +2326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        protected override void DecodeWellKnownAttributeImpl(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
             DecodeWellKnownAttribute(ref arguments, arguments.Index, isFromNetModule: false);
         }

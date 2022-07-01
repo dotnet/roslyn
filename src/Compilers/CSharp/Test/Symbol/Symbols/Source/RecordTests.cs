@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 expectedOutput: expectedOutput,
                 parseOptions: TestOptions.Regular9,
                 // init-only fails verification
-                verify: Verification.Skipped);
+                verify: Verification.FailsPEVerify);
 
         [Fact]
         public void GeneratedConstructor()
@@ -749,7 +749,8 @@ True").VerifyDiagnostics();
             Assert.Equal(1, ctor.ParameterCount);
             Assert.True(ctor.Parameters[0].Type.Equals(c, TypeCompareKind.ConsiderEverything));
 
-            var verifier = CompileAndVerify(comp, verify: Verification.Fails).VerifyDiagnostics();
+            // PEVerify: Cannot change initonly field outside its .ctor.
+            var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify).VerifyDiagnostics();
             verifier.VerifyIL("C." + WellKnownMemberNames.CloneMethodName, @"
 {
   // Code size        7 (0x7)
@@ -801,7 +802,8 @@ record C(int x, int y)
             Assert.Equal(1, ctor.ParameterCount);
             Assert.True(ctor.Parameters[0].Type.Equals(c, TypeCompareKind.ConsiderEverything));
 
-            var verifier = CompileAndVerify(comp, verify: Verification.Fails).VerifyDiagnostics();
+            // PEVerify: Cannot change initonly field outside its .ctor.
+            var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify).VerifyDiagnostics();
             verifier.VerifyIL("C." + WellKnownMemberNames.CloneMethodName, @"
 {
   // Code size        7 (0x7)
@@ -897,7 +899,8 @@ public record C(int x, int y)
             Assert.Equal(1, ctor.ParameterCount);
             Assert.True(ctor.Parameters[0].Type.Equals(c, TypeCompareKind.ConsiderEverything));
 
-            var verifier = CompileAndVerify(comp, verify: Verification.Fails).VerifyDiagnostics(
+            // PEVerify: Cannot change initonly field outside its .ctor.
+            var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify).VerifyDiagnostics(
                 // (5,25): warning CS0067: The event 'C.E' is never used
                 //     public event Action E;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(5, 25)
@@ -965,7 +968,7 @@ record C
         Console.WriteLine(c.Equals(c2));
         Console.WriteLine(c.Equals((object)c2));
     }
-}", expectedOutput: @"False
+}", verify: Verification.Passes, expectedOutput: @"False
 False
 True
 True").VerifyDiagnostics(
@@ -1049,7 +1052,7 @@ record C
     public int X { get; }
     public string Y { get; }
     public event Action E;
-}").VerifyDiagnostics(
+}", verify: Verification.Passes).VerifyDiagnostics(
                 // (7,25): warning CS0067: The event 'C.E' is never used
                 //     public event Action E;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(7, 25)
@@ -1803,23 +1806,6 @@ class Test
 ";
             CompileAndVerify(src1 + src2 + src3, expectedOutput: "C { Y = 22, X = 11, U = 44, Z = 33 }").VerifyDiagnostics();
             CompileAndVerify(new[] { src1, src2, src3 }, expectedOutput: "C { Y = 22, X = 11, U = 44, Z = 33 }").VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void EqualityContractGetter_CompilerGeneratedAttribute()
-        {
-            var verifier = CompileAndVerify(@"
-using System;
-
-record C;
-", symbolValidator: validate);
-
-            static void validate(ModuleSymbol module)
-            {
-                var member = module.GlobalNamespace.GetTypeMember("C").GetMember("get_EqualityContract");
-                var attributes = member.GetAttributes();
-                Assert.Equal(new[] { "CompilerGeneratedAttribute" }, GetAttributeNames(attributes));
-            }
         }
     }
 }

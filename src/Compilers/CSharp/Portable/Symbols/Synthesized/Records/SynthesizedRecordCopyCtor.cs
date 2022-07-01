@@ -5,6 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -52,6 +54,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     statements.Add(F.Assignment(F.Field(F.This(), field), F.Field(param, field)));
                 }
+            }
+        }
+
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        {
+            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
+            Debug.Assert(IsImplicitlyDeclared);
+            var compilation = this.DeclaringCompilation;
+            AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
+            Debug.Assert(WellKnownMembers.IsSynthesizedAttributeOptional(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
+
+            if (HasSetsRequiredMembersImpl)
+            {
+                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_CodeAnalysis_SetsRequiredMembersAttribute__ctor));
             }
         }
 
@@ -116,5 +132,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 method.Parameters[0].Type.Equals(containingType, TypeCompareKind.AllIgnoreOptions) &&
                 method.Parameters[0].RefKind == RefKind.None;
         }
+
+        protected sealed override bool HasSetsRequiredMembersImpl
+            // If the record type has a required members error, then it does have required members of some kind, we emit the SetsRequiredMembers attribute.
+            => ContainingType.HasAnyRequiredMembers || ContainingType.HasRequiredMembersError;
     }
 }

@@ -55,9 +55,9 @@ class C
             var model = comp.GetSemanticModel(tree);
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().ToArray();
 
-            assert(0, type: "C", convertedType: "C", symbol: "C..ctor()", ConversionKind.Identity);
-            assert(1, type: "S", convertedType: "S", symbol: "S..ctor()", ConversionKind.Identity);
-            assert(2, type: "S", convertedType: "S?", symbol: "S..ctor()", ConversionKind.ImplicitNullable);
+            assert(0, type: "C", convertedType: "C", symbol: "C..ctor()", ConversionKind.ObjectCreation);
+            assert(1, type: "S", convertedType: "S", symbol: "S..ctor()", ConversionKind.ObjectCreation);
+            assert(2, type: "S", convertedType: "S?", symbol: "S..ctor()", ConversionKind.ObjectCreation);
 
             void assert(int index, string type, string convertedType, string symbol, ConversionKind conversionKind)
             {
@@ -125,9 +125,9 @@ class C
             var model = comp.GetSemanticModel(tree);
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().ToArray();
 
-            assert(0, type: "C", convertedType: "C", symbol: "C..ctor()", ConversionKind.Identity);
-            assert(1, type: "S", convertedType: "S", symbol: "S..ctor()", ConversionKind.Identity);
-            assert(2, type: "S", convertedType: "S?", symbol: "S..ctor()", ConversionKind.ImplicitNullable);
+            assert(0, type: "C", convertedType: "C", symbol: "C..ctor()", ConversionKind.ObjectCreation);
+            assert(1, type: "S", convertedType: "S", symbol: "S..ctor()", ConversionKind.ObjectCreation);
+            assert(2, type: "S", convertedType: "S?", symbol: "S..ctor()", ConversionKind.ObjectCreation);
 
             void assert(int index, string type, string convertedType, string symbol, ConversionKind conversionKind)
             {
@@ -172,9 +172,9 @@ class C
             var model = comp.GetSemanticModel(tree);
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().ToArray();
 
-            assert(0, type: "C", convertedType: "C", symbol: "C..ctor()", ConversionKind.Identity);
-            assert(1, type: "S", convertedType: "S", symbol: "S..ctor()", ConversionKind.Identity);
-            assert(2, type: "S", convertedType: "S?", symbol: "S..ctor()", ConversionKind.ImplicitNullable);
+            assert(0, type: "C", convertedType: "C", symbol: "C..ctor()", ConversionKind.ObjectCreation);
+            assert(1, type: "S", convertedType: "S", symbol: "S..ctor()", ConversionKind.ObjectCreation);
+            assert(2, type: "S", convertedType: "S?", symbol: "S..ctor()", ConversionKind.ObjectCreation);
 
             void assert(int index, string type, string convertedType, string symbol, ConversionKind conversionKind)
             {
@@ -213,20 +213,20 @@ class C
                 // (9,16): error CS1736: Default parameter value for 'p1' must be a compile-time constant
                 //         C p1 = new(),
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new()").WithArguments("p1").WithLocation(9, 16),
-                // (11,17): error CS1736: Default parameter value for 'p3' must be a compile-time constant
-                //         S? p3 = new()
-                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new()").WithArguments("p3").WithLocation(11, 17)
+                // (11,12): error CS1770: A value of type 'S' cannot be used as default parameter for nullable parameter 'p3' because 'S' is not a simple type
+                //         S? p3 = new(),
+                Diagnostic(ErrorCode.ERR_NoConversionForNubDefaultParam, "p3").WithArguments("S", "p3").WithLocation(11, 12)
                 );
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().ToArray();
 
-            assert(0, type: "C", convertedType: "C", symbol: "C..ctor()", constant: null, ConversionKind.Identity);
-            assert(1, type: "S", convertedType: "S", symbol: "S..ctor()", constant: null, ConversionKind.Identity);
-            assert(2, type: "S", convertedType: "S?", symbol: "S..ctor()", constant: null, ConversionKind.ImplicitNullable);
-            assert(3, type: "System.Int32", convertedType: "System.Int32", symbol: "System.Int32..ctor()", constant: "0", ConversionKind.Identity);
-            assert(4, type: "System.Boolean", convertedType: "System.Boolean?", symbol: "System.Boolean..ctor()", constant: "False", ConversionKind.ImplicitNullable);
+            assert(0, type: "C", convertedType: "C", symbol: "C..ctor()", constant: null, ConversionKind.ObjectCreation);
+            assert(1, type: "S", convertedType: "S", symbol: "S..ctor()", constant: null, ConversionKind.ObjectCreation);
+            assert(2, type: "S", convertedType: "S?", symbol: "S..ctor()", constant: null, ConversionKind.ObjectCreation);
+            assert(3, type: "System.Int32", convertedType: "System.Int32", symbol: "System.Int32..ctor()", constant: "0", ConversionKind.ObjectCreation);
+            assert(4, type: "System.Boolean", convertedType: "System.Boolean?", symbol: "System.Boolean..ctor()", constant: "False", ConversionKind.ObjectCreation);
 
             void assert(int index, string type, string convertedType, string symbol, string constant, ConversionKind conversionKind)
             {
@@ -840,7 +840,7 @@ public class Program
             Assert.Equal("InterfaceType", model.GetTypeInfo(@new).Type.ToTestDisplayString());
             Assert.Equal("InterfaceType", model.GetTypeInfo(@new).ConvertedType.ToTestDisplayString());
             Assert.Equal("CoClassType..ctor()", model.GetSymbolInfo(@new).Symbol.ToTestDisplayString());
-            Assert.Equal(ConversionKind.Identity, model.GetConversion(@new).Kind);
+            Assert.Equal(ConversionKind.ObjectCreation, model.GetConversion(@new).Kind);
         }
 
         [Fact]
@@ -881,7 +881,7 @@ public class MainClass
             Assert.Equal("NonGenericInterfaceType", model.GetTypeInfo(@new).Type.ToTestDisplayString());
             Assert.Equal("NonGenericInterfaceType", model.GetTypeInfo(@new).ConvertedType.ToTestDisplayString());
             Assert.Equal("GenericCoClassType<System.Int32, System.String>..ctor(System.String x)", model.GetSymbolInfo(@new).Symbol.ToTestDisplayString());
-            Assert.Equal(ConversionKind.Identity, model.GetConversion(@new).Kind);
+            Assert.Equal(ConversionKind.ObjectCreation, model.GetConversion(@new).Kind);
         }
 
         [Fact]
@@ -1865,7 +1865,7 @@ class C
             Assert.Equal("C", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
             Assert.Equal("C..ctor()", model.GetSymbolInfo(def).Symbol.ToTestDisplayString());
             Assert.False(model.GetConstantValue(def).HasValue);
-            Assert.True(model.GetConversion(def).IsIdentity);
+            Assert.True(model.GetConversion(def).IsObjectCreation);
         }
 
         [Fact]
@@ -1895,7 +1895,7 @@ struct S
             Assert.Equal("S", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
             Assert.Equal("S..ctor(System.Int32 i)", model.GetSymbolInfo(def).Symbol.ToTestDisplayString());
             Assert.False(model.GetConstantValue(def).HasValue);
-            Assert.True(model.GetConversion(def).IsIdentity);
+            Assert.True(model.GetConversion(def).IsObjectCreation);
         }
 
         [Fact]
@@ -1925,7 +1925,7 @@ struct S
             Assert.Equal("S?", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
             Assert.Equal("S..ctor(System.Int32 i)", model.GetSymbolInfo(def).Symbol.ToTestDisplayString());
             Assert.False(model.GetConstantValue(def).HasValue);
-            Assert.True(model.GetConversion(def).IsNullable);
+            Assert.True(model.GetConversion(def).IsObjectCreation);
             Assert.True(model.GetConversion(def).IsImplicit);
         }
 
@@ -2045,6 +2045,41 @@ class C
         }
 
         [Fact]
+        public void InRawStringInterpolation()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        System.Console.Write($""""""({new()}) ({new object()})"""""");
+    }
+}
+";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "(System.Object) (System.Object)");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var @new = nodes.OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+            Assert.Equal("new()", @new.ToString());
+            Assert.Equal("System.Object", model.GetTypeInfo(@new).Type.ToTestDisplayString());
+            Assert.Equal("System.Object", model.GetTypeInfo(@new).ConvertedType.ToTestDisplayString());
+            Assert.Equal("System.Object..ctor()", model.GetSymbolInfo(@new).Symbol?.ToTestDisplayString());
+            Assert.False(model.GetConstantValue(@new).HasValue);
+
+            var newObject = nodes.OfType<ObjectCreationExpressionSyntax>().Single();
+            Assert.Equal("new object()", newObject.ToString());
+            Assert.Equal("System.Object", model.GetTypeInfo(newObject).Type.ToTestDisplayString());
+            Assert.Equal("System.Object", model.GetTypeInfo(newObject).ConvertedType.ToTestDisplayString());
+            Assert.Equal("System.Object..ctor()", model.GetSymbolInfo(newObject).Symbol?.ToTestDisplayString());
+        }
+
+        [Fact]
         public void InUsing01()
         {
             string source = @"
@@ -2086,7 +2121,7 @@ class C
 
             assert(0, type: "?", convertedType: "?", ConversionKind.Identity);
             assert(1, type: "?", convertedType: "?", ConversionKind.Identity);
-            assert(2, type: "System.IDisposable", convertedType: "System.IDisposable", ConversionKind.Identity);
+            assert(2, type: "System.IDisposable", convertedType: "System.IDisposable", ConversionKind.NoConversion);
 
             void assert(int index, string type, string convertedType, ConversionKind conversionKind)
             {
@@ -2182,7 +2217,7 @@ class C
             Assert.Equal("T", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(def).Symbol);
             Assert.False(model.GetConstantValue(def).HasValue);
-            Assert.True(model.GetConversion(def).IsIdentity);
+            Assert.True(model.GetConversion(def).IsObjectCreation);
         }
 
         [Fact]
@@ -2881,10 +2916,10 @@ class C
             var model = comp.GetSemanticModel(tree);
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().ToArray();
 
-            assert(0, type: "System.Index", convertedType: "System.Index", symbol: "System.Index..ctor()", ConversionKind.Identity);
-            assert(1, type: "System.Index", convertedType: "System.Index", symbol: "System.Index..ctor()", ConversionKind.Identity);
-            assert(2, type: "System.Index", convertedType: "System.Index", symbol: "System.Index..ctor()", ConversionKind.Identity);
-            assert(3, type: "System.Index", convertedType: "System.Index", symbol: "System.Index..ctor()", ConversionKind.Identity);
+            assert(0, type: "System.Index", convertedType: "System.Index", symbol: "System.Index..ctor()", ConversionKind.ObjectCreation);
+            assert(1, type: "System.Index", convertedType: "System.Index", symbol: "System.Index..ctor()", ConversionKind.ObjectCreation);
+            assert(2, type: "System.Index", convertedType: "System.Index", symbol: "System.Index..ctor()", ConversionKind.ObjectCreation);
+            assert(3, type: "System.Index", convertedType: "System.Index", symbol: "System.Index..ctor()", ConversionKind.ObjectCreation);
 
             void assert(int index, string type, string convertedType, string symbol, ConversionKind conversionKind)
             {
@@ -3335,6 +3370,7 @@ class C
         var q = new() && new();
         var r = new() || new();
         var s = new() ?? new();
+        var t = new() >>> new();
     }
 }
 ";
@@ -3403,7 +3439,10 @@ class C
                 Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(23, 26),
                 // (24,17): error CS8754: There is no target type for 'new()'
                 //         var s = new() ?? new();
-                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(24, 17)
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(24, 17),
+                // (25,17): error CS8310: Operator '>>>' cannot be applied to operand 'new()'
+                //         var t = new() >>> new();
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new() >>> new()").WithArguments(">>>", "new()").WithLocation(25, 17)
                 );
         }
 
@@ -3434,6 +3473,7 @@ class C
         _ = new() && 1;
         _ = new() || 1;
         _ = new() ?? 1;
+        _ = new() >>> 1;
     }
 }
 ";
@@ -3496,7 +3536,10 @@ class C
                 Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(23, 13),
                 // (24,13): error CS8754: There is no target type for 'new()'
                 //         _ = new() ?? 1;
-                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(24, 13)
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(24, 13),
+                // (25,13): error CS8310: Operator '>>>' cannot be applied to operand 'new()'
+                //         _ = new() >>> 1;
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new() >>> 1").WithArguments(">>>", "new()").WithLocation(25, 13)
                 );
         }
 
@@ -3527,6 +3570,7 @@ class C
         _ = 1 && new();
         _ = 1 || new();
         _ = 1 ?? new();
+        _ = 1 >>> new();
     }
 }
 ";
@@ -3589,7 +3633,10 @@ class C
                 Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(23, 18),
                 // (24,13): error CS0019: Operator '??' cannot be applied to operands of type 'int' and 'new()'
                 //         _ = 1 ?? new();
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "1 ?? new()").WithArguments("??", "int", "new()").WithLocation(24, 13)
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "1 ?? new()").WithArguments("??", "int", "new()").WithLocation(24, 13),
+                // (25,13): error CS8310: Operator '>>>' cannot be applied to operand 'new()'
+                //         _ = 1 >>> new();
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "1 >>> new()").WithArguments(">>>", "new()").WithLocation(25, 13)
                 );
         }
 
@@ -4806,6 +4853,54 @@ class C
                 // (13,18): error CS0150: A constant value is expected
                 //         if (t is new T()) { } // 4
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "new T()").WithLocation(13, 18)
+                );
+        }
+
+        [Fact, WorkItem(60960, "https://github.com/dotnet/roslyn/issues/60960")]
+        public void TestInCollectionInitializer()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+
+_ = new List<A> {new A()};
+_ = new MyList<A> {new A()};
+
+_ = new List<A> {new()};
+_ = new MyList<A> {new()};
+
+class MyList<T> : List<T>
+{
+    [Obsolete(""Message"")]
+    public new void Add(T value) { }
+}
+
+class A
+{
+    [Obsolete(""Message"")]
+    public A() { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,18): warning CS0618: 'A.A()' is obsolete: 'Message'
+                // _ = new List<A> {new A()};
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "new A()").WithArguments("A.A()", "Message").WithLocation(5, 18),
+                // (6,20): warning CS0618: 'A.A()' is obsolete: 'Message'
+                // _ = new MyList<A> {new A()};
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "new A()").WithArguments("A.A()", "Message").WithLocation(6, 20),
+                // (6,20): warning CS1062: The best overloaded Add method 'MyList<A>.Add(A)' for the collection initializer element is obsolete. Message
+                // _ = new MyList<A> {new A()};
+                Diagnostic(ErrorCode.WRN_DeprecatedCollectionInitAddStr, "new A()").WithArguments("MyList<A>.Add(A)", "Message").WithLocation(6, 20),
+                // (8,18): warning CS0618: 'A.A()' is obsolete: 'Message'
+                // _ = new List<A> {new()};
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "new()").WithArguments("A.A()", "Message").WithLocation(8, 18),
+                // (9,20): warning CS0618: 'A.A()' is obsolete: 'Message'
+                // _ = new MyList<A> {new()};
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "new()").WithArguments("A.A()", "Message").WithLocation(9, 20),
+                // (9,20): warning CS1062: The best overloaded Add method 'MyList<A>.Add(A)' for the collection initializer element is obsolete. Message
+                // _ = new MyList<A> {new()};
+                Diagnostic(ErrorCode.WRN_DeprecatedCollectionInitAddStr, "new()").WithArguments("MyList<A>.Add(A)", "Message").WithLocation(9, 20)
                 );
         }
     }

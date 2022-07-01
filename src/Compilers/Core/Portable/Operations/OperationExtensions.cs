@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 return false;
             }
 
-            return model.GetDiagnostics(operation.Syntax.Span, cancellationToken).Any(d => d.DefaultSeverity == DiagnosticSeverity.Error);
+            return model.GetDiagnostics(operation.Syntax.Span, cancellationToken).Any(static d => d.DefaultSeverity == DiagnosticSeverity.Error);
         }
 
         /// <summary>
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 yield return operation;
             }
 
-            var stack = ArrayBuilder<Operation.Enumerator>.GetInstance();
+            var stack = ArrayBuilder<IOperation.OperationList.Enumerator>.GetInstance();
             stack.Push(((Operation)operation).ChildOperations.GetEnumerator());
 
             while (stack.Any())

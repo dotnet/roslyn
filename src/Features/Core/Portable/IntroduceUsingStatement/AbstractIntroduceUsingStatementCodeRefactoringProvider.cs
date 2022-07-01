@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
         protected abstract SyntaxList<TStatementSyntax> GetStatements(SyntaxNode parentOfStatementsToSurround);
         protected abstract SyntaxNode WithStatements(SyntaxNode parentOfStatementsToSurround, SyntaxList<TStatementSyntax> statements);
 
-        protected abstract TStatementSyntax CreateUsingStatement(TLocalDeclarationSyntax declarationStatement, SyntaxTriviaList sameLineTrivia, SyntaxList<TStatementSyntax> statementsToSurround);
+        protected abstract TStatementSyntax CreateUsingStatement(TLocalDeclarationSyntax declarationStatement, SyntaxList<TStatementSyntax> statementsToSurround);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -41,9 +42,10 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
             if (declarationSyntax != null)
             {
                 context.RegisterRefactoring(
-                    new MyCodeAction(
+                    CodeAction.Create(
                         CodeActionTitle,
-                        cancellationToken => IntroduceUsingStatementAsync(document, declarationSyntax, cancellationToken)),
+                        cancellationToken => IntroduceUsingStatementAsync(document, declarationSyntax, cancellationToken),
+                        CodeActionTitle),
                     declarationSyntax.Span);
             }
         }
@@ -123,20 +125,11 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var syntaxFactsService = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-            var statementsToSurround = GetStatementsToSurround(declarationStatement, semanticModel, syntaxFactsService, cancellationToken);
+            var statementsToSurround = GetStatementsToSurround(declarationStatement, semanticModel, syntaxFacts, cancellationToken);
 
-            // Separate the newline from the trivia that is going on the using declaration line.
-            var (sameLine, endOfLine) = SplitTrailingTrivia(declarationStatement, syntaxFactsService);
-
-            var usingStatement =
-                CreateUsingStatement(
-                    declarationStatement,
-                    sameLine,
-                    statementsToSurround)
-                    .WithLeadingTrivia(declarationStatement.GetLeadingTrivia())
-                    .WithTrailingTrivia(endOfLine);
+            var usingStatement = CreateUsingStatement(declarationStatement, statementsToSurround);
 
             if (statementsToSurround.Any())
             {
@@ -191,16 +184,6 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
             return new SyntaxList<TStatementSyntax>(parentStatements
                 .Take(lastUsageStatementIndex + 1)
                 .Skip(declarationStatementIndex + 1));
-        }
-
-        private static (SyntaxTriviaList sameLine, SyntaxTriviaList endOfLine) SplitTrailingTrivia(SyntaxNode node, ISyntaxFactsService syntaxFactsService)
-        {
-            var trailingTrivia = node.GetTrailingTrivia();
-            var lastIndex = trailingTrivia.Count - 1;
-
-            return lastIndex != -1 && syntaxFactsService.IsEndOfLineTrivia(trailingTrivia[lastIndex])
-                ? (sameLine: trailingTrivia.RemoveAt(lastIndex), endOfLine: new SyntaxTriviaList(trailingTrivia[lastIndex]))
-                : (sameLine: trailingTrivia, endOfLine: SyntaxTriviaList.Empty);
         }
 
         private static TStatementSyntax FindSiblingStatementContainingLastUsage(
@@ -328,14 +311,6 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
                 }
 
                 AddReferencedLocalVariables(referencedVariables, childNode, localVariables, semanticModel, syntaxFactsService, cancellationToken);
-            }
-        }
-
-        private sealed class MyCodeAction : DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, title)
-            {
             }
         }
     }

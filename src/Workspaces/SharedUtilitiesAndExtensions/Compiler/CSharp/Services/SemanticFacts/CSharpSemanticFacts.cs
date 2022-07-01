@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -28,6 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private CSharpSemanticFacts()
         {
         }
+
+        public ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
 
         public bool SupportsImplicitInterfaceImplementation => true;
 
@@ -64,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // The token may be part of a larger name (for example, `int` in `public static operator int[](Goo g);`.
                         // So check if the symbol's location encompasses the span of the token we're asking about.
-                        if (symbol.Locations.Any(loc => loc.SourceTree == location.SourceTree && loc.SourceSpan.Contains(location.SourceSpan)))
+                        if (symbol.Locations.Any(static (loc, location) => loc.SourceTree == location.SourceTree && loc.SourceSpan.Contains(location.SourceSpan), location))
                             return symbol;
                     }
                     else
@@ -232,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsPartial(ITypeSymbol typeSymbol, CancellationToken cancellationToken)
         {
             var syntaxRefs = typeSymbol.DeclaringSyntaxReferences;
-            return syntaxRefs.Any(n => ((BaseTypeDeclarationSyntax)n.GetSyntax(cancellationToken)).Modifiers.Any(SyntaxKind.PartialKeyword));
+            return syntaxRefs.Any(static (n, cancellationToken) => ((BaseTypeDeclarationSyntax)n.GetSyntax(cancellationToken)).Modifiers.Any(SyntaxKind.PartialKeyword), cancellationToken);
         }
 
         public IEnumerable<ISymbol> GetDeclaredSymbols(
@@ -254,8 +257,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public IParameterSymbol FindParameterForArgument(SemanticModel semanticModel, SyntaxNode argumentNode, CancellationToken cancellationToken)
-            => ((ArgumentSyntax)argumentNode).DetermineParameter(semanticModel, allowParams: false, cancellationToken);
+        public IParameterSymbol FindParameterForArgument(SemanticModel semanticModel, SyntaxNode argument, bool allowUncertainCandidates, CancellationToken cancellationToken)
+            => ((ArgumentSyntax)argument).DetermineParameter(semanticModel, allowUncertainCandidates, allowParams: false, cancellationToken);
+
+        public IParameterSymbol FindParameterForAttributeArgument(SemanticModel semanticModel, SyntaxNode argument, bool allowUncertainCandidates, CancellationToken cancellationToken)
+            => ((AttributeArgumentSyntax)argument).DetermineParameter(semanticModel, allowUncertainCandidates, allowParams: false, cancellationToken);
+
+        // Normal arguments can't reference fields/properties in c#
+        public ISymbol FindFieldOrPropertyForArgument(SemanticModel semanticModel, SyntaxNode argument, CancellationToken cancellationToken)
+            => null;
+
+        public ISymbol FindFieldOrPropertyForAttributeArgument(SemanticModel semanticModel, SyntaxNode argument, CancellationToken cancellationToken)
+            => argument is AttributeArgumentSyntax { NameEquals.Name: var name }
+                ? semanticModel.GetSymbolInfo(name, cancellationToken).GetAnySymbol()
+                : null;
 
         public ImmutableArray<ISymbol> GetBestOrAllSymbols(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken)
         {
@@ -333,5 +348,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsInsideNameOfExpression(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
             => (node as ExpressionSyntax).IsInsideNameOfExpression(semanticModel, cancellationToken);
+
+        public ImmutableArray<IMethodSymbol> GetLocalFunctionSymbols(Compilation compilation, ISymbol symbol, CancellationToken cancellationToken)
+        {
+            using var _ = ArrayBuilder<IMethodSymbol>.GetInstance(out var builder);
+            foreach (var syntaxReference in symbol.DeclaringSyntaxReferences)
+            {
+                var semanticModel = compilation.GetSemanticModel(syntaxReference.SyntaxTree);
+                var node = syntaxReference.GetSyntax(cancellationToken);
+
+                foreach (var localFunction in node.DescendantNodes().Where(CSharpSyntaxFacts.Instance.IsLocalFunctionStatement))
+                {
+                    var localFunctionSymbol = semanticModel.GetDeclaredSymbol(localFunction, cancellationToken);
+                    if (localFunctionSymbol is IMethodSymbol methodSymbol)
+                    {
+                        builder.Add(methodSymbol);
+                    }
+                }
+            }
+
+            return builder.ToImmutable();
+        }
+
+        public bool IsInExpressionTree(SemanticModel semanticModel, SyntaxNode node, INamedTypeSymbol expressionTypeOpt, CancellationToken cancellationToken)
+            => node.IsInExpressionTree(semanticModel, expressionTypeOpt, cancellationToken);
     }
 }

@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             private readonly RefKind _refKind;
             private readonly SemanticDocument _semanticDocument;
             private readonly string _equivalenceKey;
+            private readonly CodeAndImportGenerationOptionsProvider _fallbackOptions;
 
             public GenerateVariableCodeAction(
                 SemanticDocument document,
@@ -35,7 +36,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 bool generateProperty,
                 bool isReadonly,
                 bool isConstant,
-                RefKind refKind)
+                RefKind refKind,
+                CodeAndImportGenerationOptionsProvider fallbackOptions)
             {
                 _semanticDocument = document;
                 _state = state;
@@ -44,30 +46,32 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 _isConstant = isConstant;
                 _refKind = refKind;
                 _equivalenceKey = Title;
+                _fallbackOptions = fallbackOptions;
             }
 
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
-                var solution = _semanticDocument.Project.Solution;
                 var generateUnsafe = _state.TypeMemberType.RequiresUnsafeModifier() &&
                                      !_state.IsContainedInUnsafeType;
 
-                var options = new CodeGenerationOptions(
-                    afterThisLocation: _state.AfterThisLocation,
-                    beforeThisLocation: _state.BeforeThisLocation,
-                    contextLocation: _state.IdentifierToken.GetLocation(),
-                    options: await _semanticDocument.Document.GetOptionsAsync(cancellationToken).ConfigureAwait(false));
+                var context = new CodeGenerationSolutionContext(
+                    _semanticDocument.Project.Solution,
+                    new CodeGenerationContext(
+                        afterThisLocation: _state.AfterThisLocation,
+                        beforeThisLocation: _state.BeforeThisLocation,
+                        contextLocation: _state.IdentifierToken.GetLocation()),
+                    _fallbackOptions);
 
                 if (_generateProperty)
                 {
-                    var getAccessor = CreateAccessor(DetermineMaximalAccessibility(_state));
+                    var getAccessor = CreateAccessor(_state.DetermineMaximalAccessibility());
                     var setAccessor = _isReadonly || _refKind != RefKind.None
                         ? null
                         : CreateAccessor(DetermineMinimalAccessibility(_state));
 
                     var propertySymbol = CodeGenerationSymbolFactory.CreatePropertySymbol(
                         attributes: default,
-                        accessibility: DetermineMaximalAccessibility(_state),
+                        accessibility: _state.DetermineMaximalAccessibility(),
                         modifiers: new DeclarationModifiers(isStatic: _state.IsStatic, isUnsafe: generateUnsafe),
                         type: _state.TypeMemberType,
                         refKind: _refKind,
@@ -79,7 +83,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                         setMethod: setAccessor);
 
                     return await CodeGenerator.AddPropertyDeclarationAsync(
-                        solution, _state.TypeToGenerateIn, propertySymbol, options, cancellationToken).ConfigureAwait(false);
+                        context, _state.TypeToGenerateIn, propertySymbol, cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
@@ -93,7 +97,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                         name: _state.IdentifierToken.ValueText);
 
                     return await CodeGenerator.AddFieldDeclarationAsync(
-                        solution, _state.TypeToGenerateIn, fieldSymbol, options, cancellationToken).ConfigureAwait(false);
+                        context, _state.TypeToGenerateIn, fieldSymbol, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -115,31 +119,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 return _state.TypeToGenerateIn.TypeKind != TypeKind.Interface && _refKind != RefKind.None
                     ? ImmutableArray.Create(throwStatement)
                     : default;
-            }
-
-            private static Accessibility DetermineMaximalAccessibility(State state)
-            {
-                if (state.TypeToGenerateIn.TypeKind == TypeKind.Interface)
-                {
-                    return Accessibility.NotApplicable;
-                }
-
-                var accessibility = Accessibility.Public;
-
-                // Ensure that we're not overly exposing a type.
-                var containingTypeAccessibility = state.TypeToGenerateIn.DetermineMinimalAccessibility();
-                var effectiveAccessibility = AccessibilityUtilities.Minimum(
-                    containingTypeAccessibility, accessibility);
-
-                var returnTypeAccessibility = state.TypeMemberType.DetermineMinimalAccessibility();
-
-                if (AccessibilityUtilities.Minimum(effectiveAccessibility, returnTypeAccessibility) !=
-                    effectiveAccessibility)
-                {
-                    return returnTypeAccessibility;
-                }
-
-                return accessibility;
             }
 
             private Accessibility DetermineMinimalAccessibility(State state)

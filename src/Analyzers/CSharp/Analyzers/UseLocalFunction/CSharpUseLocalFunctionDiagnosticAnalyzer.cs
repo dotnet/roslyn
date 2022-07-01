@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
 
                 // Local functions are only available in C# 7.0 and above.  Don't offer this refactoring
                 // in projects targeting a lesser version.
-                if (((CSharpCompilation)compilation).LanguageVersion < LanguageVersion.CSharp7)
+                if (compilation.LanguageVersion() < LanguageVersion.CSharp7)
                     return;
 
                 var expressionType = compilation.GetTypeByMetadataName(typeof(Expression<>).FullName!);
@@ -70,11 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
 
         private void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext, INamedTypeSymbol? expressionType)
         {
-            var options = syntaxContext.Options;
-            var syntaxTree = syntaxContext.Node.SyntaxTree;
-            var cancellationToken = syntaxContext.CancellationToken;
-
-            var styleOption = options.GetOption(CSharpCodeStyleOptions.PreferLocalOverAnonymousFunction, syntaxTree, cancellationToken);
+            var styleOption = syntaxContext.GetCSharpAnalyzerOptions().PreferLocalOverAnonymousFunction;
             if (!styleOption.Value)
             {
                 // Bail immediately if the user has disabled this feature.
@@ -108,6 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 return;
             }
 
+            var cancellationToken = syntaxContext.CancellationToken;
             var local = semanticModel.GetDeclaredSymbol(localDeclaration.Declaration.Variables[0], cancellationToken);
             if (local == null)
             {
@@ -378,7 +375,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 var typeParams = localEnclosingSymbol.GetTypeParameters();
                 if (typeParams.Any())
                 {
-                    if (typeParams.Any(p => delegateTypeParamNames.Contains(p.Name)))
+                    if (typeParams.Any(static (p, delegateTypeParamNames) => delegateTypeParamNames.Contains(p.Name), delegateTypeParamNames))
                     {
                         return false;
                     }

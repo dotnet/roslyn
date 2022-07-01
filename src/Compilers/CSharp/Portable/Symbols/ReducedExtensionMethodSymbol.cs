@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // For the purpose of construction we use original type parameters in place of type arguments that we couldn't infer from the first argument.
             ImmutableArray<TypeWithAnnotations> typeArgsForConstruct = typeArgs;
-            if (typeArgs.Any(t => !t.HasType))
+            if (typeArgs.Any(static t => !t.HasType))
             {
                 typeArgsForConstruct = typeArgs.ZipAsArray(
                     method.TypeParameters,
@@ -588,6 +588,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _reducedFrom.GetHashCode();
         }
 
+        protected sealed override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable;
+
+#nullable enable
+
         private sealed class ReducedExtensionMethodParameterSymbol : WrappedParameterSymbol
         {
             private readonly ReducedExtensionMethodSymbol _containingMethod;
@@ -595,6 +599,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public ReducedExtensionMethodParameterSymbol(ReducedExtensionMethodSymbol containingMethod, ParameterSymbol underlyingParameter) :
                 base(underlyingParameter)
             {
+                Debug.Assert(containingMethod != null);
                 Debug.Assert(underlyingParameter.Ordinal > 0);
                 _containingMethod = containingMethod;
             }
@@ -663,7 +668,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // ReferenceEquals.
 
                 var other = obj as ReducedExtensionMethodParameterSymbol;
-                return (object)other != null &&
+                return other is not null &&
                     this.Ordinal == other.Ordinal &&
                     this.ContainingSymbol.Equals(other.ContainingSymbol, compareKind);
             }
@@ -673,5 +678,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return Hash.Combine(ContainingSymbol, _underlyingParameter.Ordinal);
             }
         }
+#nullable disable
     }
 }

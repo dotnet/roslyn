@@ -31,52 +31,48 @@ namespace Microsoft.CodeAnalysis.Formatting
         private readonly ChainedFormattingRules _formattingRules;
 
         private readonly SyntaxNode _commonRoot;
-        private readonly SyntaxToken _token1;
-        private readonly SyntaxToken _token2;
+        private readonly SyntaxToken _startToken;
+        private readonly SyntaxToken _endToken;
 
         protected readonly TextSpan SpanToFormat;
 
-        internal readonly AnalyzerConfigOptions Options;
+        internal readonly SyntaxFormattingOptions Options;
         internal readonly TreeData TreeData;
 
         public AbstractFormatEngine(
             TreeData treeData,
-            AnalyzerConfigOptions options,
+            SyntaxFormattingOptions options,
             IEnumerable<AbstractFormattingRule> formattingRules,
-            SyntaxToken token1,
-            SyntaxToken token2)
+            SyntaxToken startToken,
+            SyntaxToken endToken)
             : this(
                   treeData,
                   options,
                   new ChainedFormattingRules(formattingRules, options),
-                  token1,
-                  token2)
+                  startToken,
+                  endToken)
         {
         }
 
         internal AbstractFormatEngine(
             TreeData treeData,
-            AnalyzerConfigOptions options,
+            SyntaxFormattingOptions options,
             ChainedFormattingRules formattingRules,
-            SyntaxToken token1,
-            SyntaxToken token2)
+            SyntaxToken startToken,
+            SyntaxToken endToken)
         {
-            Contract.ThrowIfNull(options);
-            Contract.ThrowIfNull(treeData);
-            Contract.ThrowIfNull(formattingRules);
-
-            Contract.ThrowIfTrue(treeData.Root.IsInvalidTokenRange(token1, token2));
+            Contract.ThrowIfTrue(treeData.Root.IsInvalidTokenRange(startToken, endToken));
 
             this.Options = options;
             this.TreeData = treeData;
             _formattingRules = formattingRules;
 
-            _token1 = token1;
-            _token2 = token2;
+            _startToken = startToken;
+            _endToken = endToken;
 
             // get span and common root
             this.SpanToFormat = GetSpanToFormat();
-            _commonRoot = token1.GetCommonRoot(token2) ?? throw ExceptionUtilities.Unreachable;
+            _commonRoot = startToken.GetCommonRoot(endToken) ?? throw ExceptionUtilities.Unreachable;
         }
 
         internal abstract IHeaderFacts HeaderFacts { get; }
@@ -91,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 // setup environment
                 var nodeOperations = CreateNodeOperations(cancellationToken);
 
-                var tokenStream = new TokenStream(this.TreeData, this.Options, this.SpanToFormat, CreateTriviaFactory());
+                var tokenStream = new TokenStream(this.TreeData, Options, this.SpanToFormat, CreateTriviaFactory());
                 var tokenOperation = CreateTokenOperation(tokenStream, cancellationToken);
 
                 // initialize context
@@ -120,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             // initialize context
             var context = new FormattingContext(this, tokenStream);
-            context.Initialize(_formattingRules, _token1, _token2, cancellationToken);
+            context.Initialize(_formattingRules, _startToken, _endToken, cancellationToken);
 
             return context;
         }
@@ -150,21 +146,21 @@ namespace Microsoft.CodeAnalysis.Formatting
             List<IndentBlockOperation> indentBlockOperation;
             using (Logger.LogBlock(FunctionId.Formatting_CollectIndentBlock, cancellationToken))
             {
-                indentBlockOperation = AddOperations<IndentBlockOperation>(nodeIterator, (l, n) => _formattingRules.AddIndentBlockOperations(l, n), cancellationToken);
+                indentBlockOperation = AddOperations<IndentBlockOperation>(nodeIterator, _formattingRules.AddIndentBlockOperations, cancellationToken);
             }
 
             cancellationToken.ThrowIfCancellationRequested();
             List<SuppressOperation> suppressOperation;
             using (Logger.LogBlock(FunctionId.Formatting_CollectSuppressOperation, cancellationToken))
             {
-                suppressOperation = AddOperations<SuppressOperation>(nodeIterator, (l, n) => _formattingRules.AddSuppressOperations(l, n), cancellationToken);
+                suppressOperation = AddOperations<SuppressOperation>(nodeIterator, _formattingRules.AddSuppressOperations, cancellationToken);
             }
 
             cancellationToken.ThrowIfCancellationRequested();
             List<AlignTokensOperation> alignmentOperation;
             using (Logger.LogBlock(FunctionId.Formatting_CollectAlignOperation, cancellationToken))
             {
-                var operations = AddOperations<AlignTokensOperation>(nodeIterator, (l, n) => _formattingRules.AddAlignTokensOperations(l, n), cancellationToken);
+                var operations = AddOperations<AlignTokensOperation>(nodeIterator, _formattingRules.AddAlignTokensOperations, cancellationToken);
 
                 // make sure we order align operation from left to right
                 operations.Sort((o1, o2) => o1.BaseToken.Span.CompareTo(o2.BaseToken.Span));
@@ -176,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             List<AnchorIndentationOperation> anchorIndentationOperations;
             using (Logger.LogBlock(FunctionId.Formatting_CollectAnchorOperation, cancellationToken))
             {
-                anchorIndentationOperations = AddOperations<AnchorIndentationOperation>(nodeIterator, (l, n) => _formattingRules.AddAnchorIndentationOperations(l, n), cancellationToken);
+                anchorIndentationOperations = AddOperations<AnchorIndentationOperation>(nodeIterator, _formattingRules.AddAnchorIndentationOperations, cancellationToken);
             }
 
             return new NodeOperations(indentBlockOperation, suppressOperation, anchorIndentationOperations, alignmentOperation);
@@ -312,7 +308,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 triviaInfo.Format(
                     ctx,
                     formattingRules,
-                    (tokenPairIndex1, ts, info) => RegularApplier(tokenPairIndex1, ts, info),
+                    RegularApplier,
                     ct,
                     tokenPairIndex);
             }
@@ -320,8 +316,8 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         private TextSpan GetSpanToFormat()
         {
-            var startPosition = this.TreeData.IsFirstToken(_token1) ? this.TreeData.StartPosition : _token1.SpanStart;
-            var endPosition = this.TreeData.IsLastToken(_token2) ? this.TreeData.EndPosition : _token2.Span.End;
+            var startPosition = this.TreeData.IsFirstToken(_startToken) ? this.TreeData.StartPosition : _startToken.SpanStart;
+            var endPosition = this.TreeData.IsLastToken(_endToken) ? this.TreeData.EndPosition : _endToken.Span.End;
 
             return TextSpan.FromBounds(startPosition, endPosition);
         }
@@ -491,8 +487,8 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             return string.Format("({0}) ({1} - {2})",
                 this.SpanToFormat,
-                _token1.ToString().Replace("\r\n", "\\r\\n"),
-                _token2.ToString().Replace("\r\n", "\\r\\n"));
+                _startToken.ToString().Replace("\r\n", "\\r\\n"),
+                _endToken.ToString().Replace("\r\n", "\\r\\n"));
         }
     }
 }

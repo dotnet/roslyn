@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(originalVariable != null);
             Debug.Assert(type.HasType);
             Debug.Assert(containingSymbol != null);
+            Debug.Assert(containingSymbol.DeclaringCompilation is not null);
 
             _originalVariable = originalVariable;
             _type = type;
@@ -108,6 +109,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Checking escape scopes is not valid here.
         /// </summary>
         internal override uint RefEscapeScope => throw ExceptionUtilities.Unreachable;
+
+        /// <summary>
+        /// Compiler should always be synthesizing locals with correct escape semantics.
+        /// Checking escape scopes is not valid here.
+        /// </summary>
+        internal override DeclarationScope Scope => throw new System.NotImplementedException();
 
         internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, BindingDiagnosticBag diagnostics)
         {

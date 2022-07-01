@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
 using System.Threading;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DocumentationComments;
@@ -94,15 +95,12 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
             return count;
         }
 
-        protected override bool IsMemberDeclaration(MemberDeclarationSyntax member)
-            => true;
-
-        protected override List<string> GetDocumentationCommentStubLines(MemberDeclarationSyntax member)
+        protected override List<string> GetDocumentationCommentStubLines(MemberDeclarationSyntax member, string existingCommentText)
         {
             var list = new List<string>
             {
                 "/// <summary>",
-                "/// ",
+                "///" + (existingCommentText.StartsWith(" ") ? existingCommentText : $" {existingCommentText}"),
                 "/// </summary>"
             };
 
@@ -153,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
             var throwExpressionsAndStatements = member.DescendantNodes().Where(n => n.IsKind(SyntaxKind.ThrowExpression, SyntaxKind.ThrowStatement));
 
             var usings = member.GetEnclosingUsingDirectives();
-            var hasUsingSystem = usings.Any(u => u.Name is IdentifierNameSyntax { Identifier: { ValueText: nameof(System) } });
+            var hasUsingSystem = usings.Any(u => u.Name is IdentifierNameSyntax { Identifier.ValueText: nameof(System) });
 
             using var _ = PooledHashSet<string>.GetInstance(out var seenExceptionTypes);
             foreach (var throwExpressionOrStatement in throwExpressionsAndStatements)
@@ -210,15 +208,15 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
                         return true;
 
                     if (hasUsingSystem &&
-                        catchClause.Declaration.Type is IdentifierNameSyntax { Identifier: { ValueText: nameof(Exception) } })
+                        catchClause.Declaration.Type is IdentifierNameSyntax { Identifier.ValueText: nameof(Exception) })
                     {
                         return true;
                     }
 
                     if (catchClause.Declaration.Type is QualifiedNameSyntax
                         {
-                            Left: IdentifierNameSyntax { Identifier: { ValueText: nameof(System) } },
-                            Right: IdentifierNameSyntax { Identifier: { ValueText: nameof(Exception) } },
+                            Left: IdentifierNameSyntax { Identifier.ValueText: nameof(System) },
+                            Right: IdentifierNameSyntax { Identifier.ValueText: nameof(Exception) },
                         })
                     {
                         return true;
@@ -259,8 +257,10 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
         protected override bool IsEndOfLineTrivia(SyntaxTrivia trivia)
             => trivia.RawKind == (int)SyntaxKind.EndOfLineTrivia;
 
-        protected override bool IsSingleExteriorTrivia(DocumentationCommentTriviaSyntax documentationComment, bool allowWhitespace = false)
+        protected override bool IsSingleExteriorTrivia(DocumentationCommentTriviaSyntax documentationComment, [NotNullWhen(true)] out string? existingCommentText)
         {
+            existingCommentText = null;
+
             if (IsMultilineDocComment(documentationComment))
             {
                 return false;
@@ -282,18 +282,18 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
                 return false;
             }
 
-            if (!allowWhitespace && textTokens.Count != 1)
-            {
-                return false;
-            }
-
-            if (textTokens.Any(t => !string.IsNullOrWhiteSpace(t.ToString())))
-            {
-                return false;
-            }
-
             var lastTextToken = textTokens.Last();
             var firstTextToken = textTokens.First();
+
+            // We only allow more than one token if the first one is an actual comment, not whitespace
+            if (textTokens.Count != 1 && string.IsNullOrWhiteSpace(firstTextToken.ValueText))
+            {
+                return false;
+            }
+
+            // If there are two text tokens it means there is an existing comment that we want to
+            // preserve.
+            existingCommentText = textTokens.Count == 1 ? "" : firstTextToken.ValueText;
 
             return lastTextToken.Kind() == SyntaxKind.XmlTextLiteralNewLineToken
                 && firstTextToken.LeadingTrivia.Count == 1

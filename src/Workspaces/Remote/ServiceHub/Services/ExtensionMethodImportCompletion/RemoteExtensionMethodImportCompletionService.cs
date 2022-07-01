@@ -30,19 +30,18 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public ValueTask<SerializableUnimportedExtensionMethods?> GetUnimportedExtensionMethodsAsync(
-            PinnedSolutionInfo solutionInfo,
+            Checksum solutionChecksum,
             DocumentId documentId,
             int position,
             string receiverTypeSymbolKeyData,
             ImmutableArray<string> namespaceInScope,
             ImmutableArray<string> targetTypesSymbolKeyData,
-            bool forceIndexCreation,
+            bool forceCacheCreation,
             bool hideAdvancedMembers,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async cancellationToken =>
+            return RunServiceAsync(solutionChecksum, async solution =>
             {
-                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
                 var document = solution.GetDocument(documentId)!;
                 var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var symbol = SymbolKey.ResolveString(receiverTypeSymbolKeyData, compilation, cancellationToken: cancellationToken).GetAnySymbol();
@@ -56,20 +55,20 @@ namespace Microsoft.CodeAnalysis.Remote
                             .WhereNotNull().ToImmutableArray();
 
                     return await ExtensionMethodImportCompletionHelper.GetUnimportedExtensionMethodsInCurrentProcessAsync(
-                        document, position, receiverTypeSymbol, namespaceInScopeSet, targetTypes, forceIndexCreation, hideAdvancedMembers, isRemote: true, cancellationToken).ConfigureAwait(false);
+                        document, position, receiverTypeSymbol, namespaceInScopeSet, targetTypes, forceCacheCreation, hideAdvancedMembers, isRemote: true, cancellationToken).ConfigureAwait(false);
                 }
 
                 return null;
             }, cancellationToken);
         }
 
-        public ValueTask WarmUpCacheAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, CancellationToken cancellationToken)
+        public ValueTask WarmUpCacheAsync(Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async cancellationToken =>
+            return RunServiceAsync(solutionChecksum, solution =>
             {
-                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
-                var document = solution.GetRequiredDocument(documentId);
-                await ExtensionMethodImportCompletionHelper.WarmUpCacheInCurrentProcessAsync(document, cancellationToken).ConfigureAwait(false);
+                var project = solution.GetRequiredProject(projectId);
+                ExtensionMethodImportCompletionHelper.WarmUpCacheInCurrentProcess(project);
+                return ValueTaskFactory.CompletedTask;
             }, cancellationToken);
         }
     }

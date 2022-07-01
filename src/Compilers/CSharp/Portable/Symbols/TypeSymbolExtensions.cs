@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type.GetEnumUnderlyingType() ?? type;
         }
 
-        public static bool IsNativeIntegerOrNullableNativeIntegerType(this TypeSymbol? type)
+        public static bool IsNativeIntegerOrNullableThereof(this TypeSymbol? type)
         {
             return type?.StrippedType().IsNativeIntegerType == true;
         }
@@ -476,6 +476,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
+        internal static bool IsErrorTypeOrRefLikeType(this TypeSymbol type)
+        {
+            return type.IsErrorType() || type.IsRefLikeType;
+        }
+
         private static readonly string[] s_expressionsNamespaceName = { "Expressions", "Linq", MetadataHelpers.SystemString, "" };
 
         private static bool IsNamespaceName(Symbol symbol, string[] names)
@@ -637,7 +642,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this TypeSymbol type,
             Func<TypeSymbol, T, bool, bool> predicate,
             T arg,
-            bool canDigThroughNullable = false)
+            bool canDigThroughNullable = false,
+            bool visitCustomModifiers = false)
         {
             return VisitType(
                 typeWithAnnotationsOpt: default,
@@ -645,7 +651,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 typeWithAnnotationsPredicate: null,
                 typePredicate: predicate,
                 arg,
-                canDigThroughNullable);
+                canDigThroughNullable,
+                visitCustomModifiers: visitCustomModifiers);
         }
 
         /// <summary>
@@ -666,10 +673,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Func<TypeSymbol, T, bool, bool>? typePredicate,
             T arg,
             bool canDigThroughNullable = false,
-            bool useDefaultType = false)
+            bool useDefaultType = false,
+            bool visitCustomModifiers = false)
         {
             RoslynDebug.Assert(typeWithAnnotationsOpt.HasType == (type is null));
             RoslynDebug.Assert(canDigThroughNullable == false || useDefaultType == false, "digging through nullable will cause early resolution of nullable types");
+            RoslynDebug.Assert(canDigThroughNullable == false || visitCustomModifiers == false);
+            RoslynDebug.Assert(visitCustomModifiers == false || typePredicate is { });
 
             // In order to handle extremely "deep" types like "int[][][][][][][][][]...[]"
             // or int*****************...* we implement manual tail recursion rather than 
@@ -693,7 +703,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if ((object)containingType != null)
                             {
                                 isNestedNamedType = true;
-                                var result = VisitType(default, containingType, typeWithAnnotationsPredicate, typePredicate, arg, canDigThroughNullable, useDefaultType);
+                                var result = VisitType(default, containingType, typeWithAnnotationsPredicate, typePredicate, arg, canDigThroughNullable, useDefaultType, visitCustomModifiers);
                                 if (result is object)
                                 {
                                     return result;
@@ -722,6 +732,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
+                if (visitCustomModifiers && typeWithAnnotationsOpt.HasType)
+                {
+                    foreach (var customModifier in typeWithAnnotationsOpt.CustomModifiers)
+                    {
+                        var result = VisitType(
+                            typeWithAnnotationsOpt: default, type: ((CSharpCustomModifier)customModifier).ModifierSymbol,
+                            typeWithAnnotationsPredicate, typePredicate, arg,
+                            canDigThroughNullable, useDefaultType, visitCustomModifiers);
+                        if (result is object)
+                        {
+                            return result;
+                        }
+                    }
+                }
+
                 TypeWithAnnotations next;
 
                 switch (current.TypeKind)
@@ -737,32 +762,71 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case TypeKind.Struct:
                     case TypeKind.Interface:
                     case TypeKind.Delegate:
-                        var typeArguments = ((NamedTypeSymbol)current).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
-                        if (typeArguments.IsEmpty)
-                        {
-                            return null;
-                        }
 
-                        int i;
-                        for (i = 0; i < typeArguments.Length - 1; i++)
+                        if (current.IsAnonymousType)
                         {
-                            // Let's try to avoid early resolution of nullable types
-                            (TypeWithAnnotations nextTypeWithAnnotations, TypeSymbol? nextType) = getNextIterationElements(typeArguments[i], canDigThroughNullable);
-                            var result = VisitType(
-                                typeWithAnnotationsOpt: nextTypeWithAnnotations,
-                                type: nextType,
-                                typeWithAnnotationsPredicate,
-                                typePredicate,
-                                arg,
-                                canDigThroughNullable,
-                                useDefaultType);
-                            if (result is object)
+                            var anonymous = (AnonymousTypeManager.AnonymousTypeOrDelegatePublicSymbol)current;
+                            var fields = anonymous.TypeDescriptor.Fields;
+
+                            if (fields.IsEmpty)
                             {
-                                return result;
+                                return null;
                             }
+
+                            int i;
+                            for (i = 0; i < fields.Length - 1; i++)
+                            {
+                                // Let's try to avoid early resolution of nullable types
+                                (TypeWithAnnotations nextTypeWithAnnotations, TypeSymbol? nextType) = getNextIterationElements(fields[i].TypeWithAnnotations, canDigThroughNullable);
+                                var result = VisitType(
+                                    typeWithAnnotationsOpt: nextTypeWithAnnotations,
+                                    type: nextType,
+                                    typeWithAnnotationsPredicate,
+                                    typePredicate,
+                                    arg,
+                                    canDigThroughNullable,
+                                    useDefaultType,
+                                    visitCustomModifiers);
+                                if (result is object)
+                                {
+                                    return result;
+                                }
+                            }
+
+                            next = fields[i].TypeWithAnnotations;
+                        }
+                        else
+                        {
+                            var typeArguments = ((NamedTypeSymbol)current).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
+
+                            if (typeArguments.IsEmpty)
+                            {
+                                return null;
+                            }
+
+                            int i;
+                            for (i = 0; i < typeArguments.Length - 1; i++)
+                            {
+                                // Let's try to avoid early resolution of nullable types
+                                (TypeWithAnnotations nextTypeWithAnnotations, TypeSymbol? nextType) = getNextIterationElements(typeArguments[i], canDigThroughNullable);
+                                var result = VisitType(
+                                    typeWithAnnotationsOpt: nextTypeWithAnnotations,
+                                    type: nextType,
+                                    typeWithAnnotationsPredicate,
+                                    typePredicate,
+                                    arg,
+                                    canDigThroughNullable,
+                                    useDefaultType,
+                                    visitCustomModifiers);
+                                if (result is object)
+                                {
+                                    return result;
+                                }
+                            }
+
+                            next = typeArguments[i];
                         }
 
-                        next = typeArguments[i];
                         break;
 
                     case TypeKind.Array:
@@ -775,7 +839,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     case TypeKind.FunctionPointer:
                         {
-                            var result = visitFunctionPointerType((FunctionPointerTypeSymbol)current, typeWithAnnotationsPredicate, typePredicate, arg, useDefaultType, canDigThroughNullable, out next);
+                            var result = visitFunctionPointerType((FunctionPointerTypeSymbol)current, typeWithAnnotationsPredicate, typePredicate, arg, useDefaultType, canDigThroughNullable, visitCustomModifiers, out next);
                             if (result is object)
                             {
                                 return result;
@@ -796,7 +860,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             static (TypeWithAnnotations, TypeSymbol?) getNextIterationElements(TypeWithAnnotations type, bool canDigThroughNullable)
                 => canDigThroughNullable ? (default(TypeWithAnnotations), type.NullableUnderlyingTypeOrSelf) : (type, null);
 
-            static TypeSymbol? visitFunctionPointerType(FunctionPointerTypeSymbol type, Func<TypeWithAnnotations, T, bool, bool>? typeWithAnnotationsPredicate, Func<TypeSymbol, T, bool, bool>? typePredicate, T arg, bool useDefaultType, bool canDigThroughNullable, out TypeWithAnnotations next)
+            static TypeSymbol? visitFunctionPointerType(FunctionPointerTypeSymbol type, Func<TypeWithAnnotations, T, bool, bool>? typeWithAnnotationsPredicate, Func<TypeSymbol, T, bool, bool>? typePredicate, T arg, bool useDefaultType, bool canDigThroughNullable, bool visitCustomModifiers, out TypeWithAnnotations next)
             {
                 MethodSymbol currentPointer = type.Signature;
                 if (currentPointer.ParameterCount == 0)
@@ -812,7 +876,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     typePredicate,
                     arg,
                     canDigThroughNullable,
-                    useDefaultType);
+                    useDefaultType,
+                    visitCustomModifiers);
                 if (result is object)
                 {
                     next = default;
@@ -830,7 +895,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         typePredicate,
                         arg,
                         canDigThroughNullable,
-                        useDefaultType);
+                        useDefaultType,
+                        visitCustomModifiers);
                     if (result is object)
                     {
                         next = default;
@@ -843,7 +909,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static bool IsAsRestrictive(NamedTypeSymbol s1, Symbol sym2, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        internal static bool IsAsRestrictive(this Symbol s1, Symbol sym2, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Accessibility acc1 = s1.DeclaredAccessibility;
 
@@ -1088,15 +1154,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static readonly Func<TypeSymbol, object?, bool, bool> s_containsDynamicPredicate = (type, unused1, unused2) => type.TypeKind == TypeKind.Dynamic;
 
-        internal static bool ContainsNativeInteger(this TypeSymbol type)
+        internal static bool ContainsNativeIntegerWrapperType(this TypeSymbol type)
         {
-            var result = type.VisitType((type, unused1, unused2) => type.IsNativeIntegerType, (object?)null, canDigThroughNullable: true);
+            var result = type.VisitType((type, unused1, unused2) => type.IsNativeIntegerWrapperType, (object?)null, canDigThroughNullable: true);
             return result is object;
         }
 
-        internal static bool ContainsNativeInteger(this TypeWithAnnotations type)
+        internal static bool ContainsNativeIntegerWrapperType(this TypeWithAnnotations type)
         {
-            return type.Type?.ContainsNativeInteger() == true;
+            return type.Type?.ContainsNativeIntegerWrapperType() == true;
         }
 
         internal static bool ContainsErrorType(this TypeSymbol type)
@@ -1202,6 +1268,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return false;
+        }
+
+        internal static bool IsSpanChar(this TypeSymbol type)
+        {
+            return type is NamedTypeSymbol
+            {
+                ContainingNamespace: { Name: "System", ContainingNamespace: { IsGlobalNamespace: true } },
+                MetadataName: "Span`1",
+                TypeArgumentsWithAnnotationsNoUseSiteDiagnostics: { Length: 1 } arguments,
+            }
+            && arguments[0].SpecialType == SpecialType.System_Char;
+        }
+
+        internal static bool IsReadOnlySpanChar(this TypeSymbol type)
+        {
+            return type is NamedTypeSymbol
+            {
+                ContainingNamespace: { Name: "System", ContainingNamespace: { IsGlobalNamespace: true } },
+                MetadataName: "ReadOnlySpan`1",
+                TypeArgumentsWithAnnotationsNoUseSiteDiagnostics: { Length: 1 } arguments,
+            }
+            && arguments[0].SpecialType == SpecialType.System_Char;
+        }
+
+        internal static bool IsSpanOrReadOnlySpanChar(this TypeSymbol type)
+        {
+            return type is NamedTypeSymbol
+            {
+                ContainingNamespace: { Name: "System", ContainingNamespace: { IsGlobalNamespace: true } },
+                MetadataName: "ReadOnlySpan`1" or "Span`1",
+                TypeArgumentsWithAnnotationsNoUseSiteDiagnostics: { Length: 1 } arguments,
+            }
+            && arguments[0].SpecialType == SpecialType.System_Char;
         }
 
 #pragma warning disable CA1200 // Avoid using cref tags with a prefix
@@ -1886,7 +1985,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     addIfNotNull(builder, compilation.SynthesizeTupleNamesAttribute(type.Type));
                 }
-                if (type.Type.ContainsNativeInteger())
+                if (compilation.ShouldEmitNativeIntegerAttributes(type.Type))
                 {
                     addIfNotNull(builder, moduleBuilder.SynthesizeNativeIntegerAttribute(declaringSymbol, type.Type));
                 }
@@ -1940,6 +2039,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool IsCompilerServicesTopLevelType(this TypeSymbol typeSymbol)
             => typeSymbol.ContainingType is null && IsContainedInNamespace(typeSymbol, "System", "Runtime", "CompilerServices");
+
+        internal static bool IsWellKnownSetsRequiredMembersAttribute(this TypeSymbol type)
+            => type.Name == "SetsRequiredMembersAttribute" && type.IsWellKnownDiagnosticsCodeAnalysisTopLevelType();
+
+        private static bool IsWellKnownDiagnosticsCodeAnalysisTopLevelType(this TypeSymbol typeSymbol)
+            => typeSymbol.ContainingType is null && IsContainedInNamespace(typeSymbol, "System", "Diagnostics", "CodeAnalysis");
 
         private static bool IsContainedInNamespace(this TypeSymbol typeSymbol, string outerNS, string midNS, string innerNS)
         {

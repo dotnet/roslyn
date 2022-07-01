@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         CSharpFeaturesResources.Autoselect_disabled_due_to_member_declaration);
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, ErrorSeverity.General))
             {
                 // nop
             }

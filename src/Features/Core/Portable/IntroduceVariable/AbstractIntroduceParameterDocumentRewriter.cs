@@ -31,14 +31,17 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             private readonly IMethodSymbol _methodSymbol;
             private readonly SyntaxNode _containerMethod;
             private readonly IntroduceParameterCodeActionKind _actionKind;
+            private readonly CodeGenerationOptionsProvider _fallbackOptions;
             private readonly bool _allOccurrences;
 
-            public IntroduceParameterDocumentRewriter(AbstractIntroduceParameterService<TExpressionSyntax, TInvocationExpressionSyntax, TObjectCreationExpressionSyntax, TIdentifierNameSyntax> service,
+            public IntroduceParameterDocumentRewriter(
+                AbstractIntroduceParameterService<TExpressionSyntax, TInvocationExpressionSyntax, TObjectCreationExpressionSyntax, TIdentifierNameSyntax> service,
                 Document originalDocument,
                 TExpressionSyntax expression,
                 IMethodSymbol methodSymbol,
                 SyntaxNode containingMethod,
                 IntroduceParameterCodeActionKind selectedCodeAction,
+                CodeGenerationOptionsProvider fallbackOptions,
                 bool allOccurrences)
             {
                 _service = service;
@@ -51,6 +54,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 _containerMethod = containingMethod;
                 _actionKind = selectedCodeAction;
                 _allOccurrences = allOccurrences;
+                _fallbackOptions = fallbackOptions;
             }
 
             public async Task<SyntaxNode> RewriteDocumentAsync(Compilation compilation, Document document, List<SyntaxNode> invocations, CancellationToken cancellationToken)
@@ -449,12 +453,15 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 string? newMethodIdentifier, ITypeSymbol? typeSymbol, bool isTrampoline, CancellationToken cancellationToken)
             {
                 var codeGenerationService = _originalDocument.GetRequiredLanguageService<ICodeGenerationService>();
-                var options = await _originalDocument.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+                var codeGenOptions = await _originalDocument.GetCodeGenerationOptionsAsync(_fallbackOptions, cancellationToken).ConfigureAwait(false);
+                var info = codeGenOptions.GetInfo(CodeGenerationContext.Default, _originalDocument.Project);
 
                 var newMethod = isTrampoline
                     ? CodeGenerationSymbolFactory.CreateMethodSymbol(_methodSymbol, name: newMethodIdentifier, parameters: validParameters, statements: ImmutableArray.Create(newStatement), returnType: typeSymbol)
                     : CodeGenerationSymbolFactory.CreateMethodSymbol(_methodSymbol, statements: ImmutableArray.Create(newStatement), containingType: _methodSymbol.ContainingType);
-                var newMethodDeclaration = codeGenerationService.CreateMethodDeclaration(newMethod, options: new CodeGenerationOptions(options: options, parseOptions: _expression.SyntaxTree.Options));
+
+                var newMethodDeclaration = codeGenerationService.CreateMethodDeclaration(newMethod, CodeGenerationDestination.Unspecified, info, cancellationToken);
+                Contract.ThrowIfNull(newMethodDeclaration);
                 return newMethodDeclaration;
             }
 

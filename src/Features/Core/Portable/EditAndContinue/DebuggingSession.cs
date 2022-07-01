@@ -615,11 +615,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     var documentId = documentIds[i];
 
                     var document = await solution.GetTextDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
-                    if (document?.FilePath == null)
+                    if (document?.State.SupportsEditAndContinue() != true)
                     {
-                        // document has been deleted or has no path (can't have an active statement anymore):
+                        // document has been deleted or doesn't support EnC (can't have an active statement anymore):
                         continue;
                     }
+
+                    if (!document.Project.SupportsEditAndContinue())
+                    {
+                        // document is in a project that does not support EnC
+                        continue;
+                    }
+
+                    Contract.ThrowIfNull(document.FilePath);
 
                     // Multiple documents may have the same path (linked file).
                     // The documents represent the files that #line directives map to.
@@ -643,6 +651,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     var newProject = solution.GetRequiredProject(projectId);
                     var analyzer = newProject.LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
+
                     await foreach (var documentId in EditSession.GetChangedDocumentsAsync(oldProject, newProject, cancellationToken).ConfigureAwait(false))
                     {
                         cancellationToken.ThrowIfCancellationRequested();
@@ -659,7 +668,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         var oldDocumentActiveStatements = await baseActiveStatements.GetOldActiveStatementsAsync(analyzer, oldDocument, cancellationToken).ConfigureAwait(false);
 
                         var analysis = await analyzer.AnalyzeDocumentAsync(
-                            LastCommittedSolution.GetRequiredProject(documentId.ProjectId),
+                            oldProject,
                             EditSession.BaseActiveStatements,
                             newDocument,
                             newActiveStatementSpans: ImmutableArray<LinePositionSpan>.Empty,
@@ -1023,7 +1032,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
 
                 var oldActiveStatements = await baseActiveStatements.GetOldActiveStatementsAsync(analyzer, oldDocument, cancellationToken).ConfigureAwait(false);
-                if (oldActiveStatements.Any(s => s.Statement == activeStatement))
+                if (oldActiveStatements.Any(static (s, activeStatement) => s.Statement == activeStatement, activeStatement))
                 {
                     return documentId;
                 }

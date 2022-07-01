@@ -2,24 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis.BraceCompletion;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Test.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.BraceCompletion.AbstractBraceCompletionService;
-using static Microsoft.CodeAnalysis.CSharp.BraceCompletion.CurlyBraceCompletionService;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
 {
@@ -790,11 +786,12 @@ class C
         }
     }
 }";
-            var optionSet = new Dictionary<OptionKey2, object>
-                            {
-                                { CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers, false }
-                            };
-            using var session = CreateSession(code, optionSet);
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers, false }
+            };
+
+            using var session = CreateSession(code, globalOptions);
             Assert.NotNull(session);
 
             CheckStart(session.Session);
@@ -865,11 +862,12 @@ class Goo
 {
     public int bar;
 }";
-            var optionSet = new Dictionary<OptionKey2, object>
-                            {
-                                { CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers, false }
-                            };
-            using var session = CreateSession(code, optionSet);
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers, false }
+            };
+
+            using var session = CreateSession(code, globalOptions);
             Assert.NotNull(session);
 
             CheckStart(session.Session);
@@ -936,11 +934,12 @@ class Goo
         }
     }
 }";
-            var optionSet = new Dictionary<OptionKey2, object>
-                            {
-                                { CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers, false }
-                            };
-            using var session = CreateSession(code, optionSet);
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers, false }
+            };
+
+            using var session = CreateSession(code, globalOptions);
             Assert.NotNull(session);
 
             CheckStart(session.Session);
@@ -997,11 +996,12 @@ class Goo
         }
     }
 }";
-            var optionSet = new Dictionary<OptionKey2, object>
-                            {
-                                { CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers, false }
-                            };
-            using var session = CreateSession(code, optionSet);
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers, false }
+            };
+
+            using var session = CreateSession(code, globalOptions);
             Assert.NotNull(session);
 
             CheckStart(session.Session);
@@ -1058,11 +1058,11 @@ class Goo
         }
     }
 }";
-            var optionSet = new Dictionary<OptionKey2, object>
-                            {
-                                { CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers, false }
-                            };
-            using var session = CreateSession(code, optionSet);
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers, false }
+            };
+            using var session = CreateSession(code, globalOptions);
             Assert.NotNull(session);
 
             CheckStart(session.Session);
@@ -1122,13 +1122,13 @@ class Goo
 
     }
 }";
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { AutoFormattingOptionsStorage.FormatOnCloseBrace, false },
+                { FormattingOptions2.SmartIndent, FormattingOptions2.IndentStyle.Block },
+            };
 
-            var optionSet = new Dictionary<OptionKey2, object>
-                            {
-                                { new OptionKey2(BraceCompletionOptions.AutoFormattingOnCloseBrace, LanguageNames.CSharp), false },
-                                { new OptionKey2(FormattingBehaviorOptions.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.Block }
-                            };
-            using var session = CreateSession(code, optionSet);
+            using var session = CreateSession(code, globalOptions);
             Assert.NotNull(session);
 
             CheckStart(session.Session);
@@ -1153,11 +1153,12 @@ $$
 { }
 }";
 
-            var optionSet = new Dictionary<OptionKey2, object>
-                            {
-                                { new OptionKey2(FormattingBehaviorOptions.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.None }
-                            };
-            using var session = CreateSession(code, optionSet);
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { FormattingOptions2.SmartIndent, FormattingOptions2.IndentStyle.None },
+            };
+
+            using var session = CreateSession(code, globalOptions);
             Assert.NotNull(session);
 
             CheckStart(session.Session);
@@ -1188,11 +1189,12 @@ $$
         }
 }";
 
-            var optionSet = new Dictionary<OptionKey2, object>
-                            {
-                                { new OptionKey2(FormattingBehaviorOptions.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.Block }
-                            };
-            using var session = CreateSession(code, optionSet);
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { FormattingOptions2.SmartIndent, FormattingOptions2.IndentStyle.Block },
+            };
+
+            using var session = CreateSession(code, globalOptions);
             Assert.NotNull(session);
 
             CheckStart(session.Session);
@@ -1231,11 +1233,12 @@ $$
         }
 }";
 
-            var optionSet = new Dictionary<OptionKey2, object>
-                            {
-                                { new OptionKey2(FormattingBehaviorOptions.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.Block }
-                            };
-            using var session = CreateSession(code, optionSet);
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { FormattingOptions2.SmartIndent, FormattingOptions2.IndentStyle.Block },
+            };
+
+            using var session = CreateSession(code, globalOptions);
             Assert.NotNull(session);
 
             CheckStart(session.Session);
@@ -1337,22 +1340,337 @@ $$
         {
             var code = @"class C $$";
 
-            var optionSet = new Dictionary<OptionKey2, object>
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { new OptionKey2(FormattingOptions2.NewLine, LanguageNames.CSharp), "\r" }
+                { FormattingOptions2.NewLine, "\r" }
             };
-            using var session = CreateSession(code, optionSet);
+            using var session = CreateSession(code, globalOptions);
             Assert.NotNull(session);
 
             CheckStart(session.Session);
             CheckReturn(session.Session, 4, result: "class C\r{\r\r}");
         }
 
-        internal static Holder CreateSession(string code, Dictionary<OptionKey2, object> optionSet = null)
+        [WorkItem(50275, "https://github.com/dotnet/roslyn/issues/50275")]
+        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void WithInitializer_Enter(bool bracesOnNewLine)
+        {
+            var code = @"
+record R
+{
+    public void man(R r)
+    {
+        var r2 = r with $$
+    }
+}";
+            var expected = bracesOnNewLine ? @"
+record R
+{
+    public void man(R r)
+    {
+        var r2 = r with
+        {
+
+        }
+    }
+}" : @"
+record R
+{
+    public void man(R r)
+    {
+        var r2 = r with {
+
+        }
+    }
+}";
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers, bracesOnNewLine }
+            };
+            using var session = CreateSession(code, globalOptions);
+            Assert.NotNull(session);
+
+            CheckStart(session.Session);
+            CheckReturn(session.Session, 12, expected);
+        }
+
+        [WorkItem(50275, "https://github.com/dotnet/roslyn/issues/50275")]
+        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void PropertyPatternClause_Enter(bool bracesOnNewLine)
+        {
+            var code = @"
+class C
+{
+    public void man()
+    {
+        if (x is string $$
+    }
+}";
+
+            var expected = bracesOnNewLine ? @"
+class C
+{
+    public void man()
+    {
+        if (x is string
+            {
+
+            }
+    }
+}" : @"
+class C
+{
+    public void man()
+    {
+        if (x is string {
+
+        }
+    }
+}";
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers, bracesOnNewLine }
+            };
+            using var session = CreateSession(code, globalOptions);
+            Assert.NotNull(session);
+
+            CheckStart(session.Session);
+            CheckReturn(session.Session, bracesOnNewLine ? 16 : 12, expected);
+        }
+
+        [WorkItem(50275, "https://github.com/dotnet/roslyn/issues/50275")]
+        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Accessor_Enter(bool bracesOnNewLine)
+        {
+            var code = @"
+class C
+{
+    public int I
+    {
+        get $$
+    }
+}";
+
+            var expected = bracesOnNewLine ? @"
+class C
+{
+    public int I
+    {
+        get
+        {
+
+        }
+    }
+}" : @"
+class C
+{
+    public int I
+    {
+        get {
+
+        }
+    }
+}";
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { CSharpFormattingOptions2.NewLinesForBracesInAccessors, bracesOnNewLine }
+            };
+            using var session = CreateSession(code, globalOptions);
+            Assert.NotNull(session);
+
+            CheckStart(session.Session);
+            CheckReturn(session.Session, 12, expected);
+        }
+
+        [WorkItem(50275, "https://github.com/dotnet/roslyn/issues/50275")]
+        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void AnonymousMethod_Enter(bool bracesOnNewLine)
+        {
+            var code = @"
+class C
+{
+    public void man()
+    {
+        Action a = delegate() $$
+    }
+}";
+
+            var expected = bracesOnNewLine ? @"
+class C
+{
+    public void man()
+    {
+        Action a = delegate()
+        {
+
+        }
+    }
+}" : @"
+class C
+{
+    public void man()
+    {
+        Action a = delegate() {
+
+        }
+    }
+}";
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { CSharpFormattingOptions2.NewLinesForBracesInAnonymousMethods, bracesOnNewLine }
+            };
+            using var session = CreateSession(code, globalOptions);
+            Assert.NotNull(session);
+
+            CheckStart(session.Session);
+            CheckReturn(session.Session, 12, expected);
+        }
+
+        [WorkItem(50275, "https://github.com/dotnet/roslyn/issues/50275")]
+        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void AnonymousType_Enter(bool bracesOnNewLine)
+        {
+            var code = @"
+class C
+{
+    public void man()
+    {
+        var x = new $$
+    }
+}";
+
+            var expected = bracesOnNewLine ? @"
+class C
+{
+    public void man()
+    {
+        var x = new
+        {
+
+        }
+    }
+}" : @"
+class C
+{
+    public void man()
+    {
+        var x = new {
+
+        }
+    }
+}";
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { CSharpFormattingOptions2.NewLinesForBracesInAnonymousTypes, bracesOnNewLine }
+            };
+            using var session = CreateSession(code, globalOptions);
+            Assert.NotNull(session);
+
+            CheckStart(session.Session);
+            CheckReturn(session.Session, 12, expected);
+        }
+
+        [WorkItem(50275, "https://github.com/dotnet/roslyn/issues/50275")]
+        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void If_OpenBraceOnSameLine_Enter(bool bracesOnNewLine)
+        {
+            var code = @"
+class C
+{
+    public void man()
+    {
+        if (true) $$
+    }
+}";
+
+            var expected = bracesOnNewLine ? @"
+class C
+{
+    public void man()
+    {
+        if (true)
+        {
+
+        }
+    }
+}" : @"
+class C
+{
+    public void man()
+    {
+        if (true) {
+
+        }
+    }
+}";
+
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { CSharpFormattingOptions2.NewLinesForBracesInControlBlocks, bracesOnNewLine }
+            };
+            using var session = CreateSession(code, globalOptions);
+            Assert.NotNull(session);
+
+            CheckStart(session.Session);
+            CheckReturn(session.Session, 12, expected);
+        }
+
+        [WorkItem(50275, "https://github.com/dotnet/roslyn/issues/50275")]
+        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Else_OpenBraceOnSameLine_Enter(bool bracesOnNewLine)
+        {
+            var code = @"
+class C
+{
+    public void man()
+    {
+        if (true) {
+        }
+        else $$
+    }
+}";
+
+            var expected = bracesOnNewLine ? @"
+class C
+{
+    public void man()
+    {
+        if (true) {
+        }
+        else
+        {
+
+        }
+    }
+}" : @"
+class C
+{
+    public void man()
+    {
+        if (true) {
+        }
+        else {
+
+        }
+    }
+}";
+
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { CSharpFormattingOptions2.NewLinesForBracesInControlBlocks, bracesOnNewLine }
+            };
+            using var session = CreateSession(code, globalOptions);
+            Assert.NotNull(session);
+
+            CheckStart(session.Session);
+            CheckReturn(session.Session, 12, expected);
+        }
+
+        internal static Holder CreateSession(string code, OptionsCollection? globalOptions = null)
         {
             return CreateSession(
                 TestWorkspace.CreateCSharp(code),
-                CurlyBrace.OpenCharacter, CurlyBrace.CloseCharacter, optionSet);
+                CurlyBrace.OpenCharacter, CurlyBrace.CloseCharacter, globalOptions);
         }
     }
 }

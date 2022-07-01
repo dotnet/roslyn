@@ -163,6 +163,13 @@ dotnet_diagnostic.IDE0043.severity = warning
 # IDE0044: Make field readonly
 dotnet_diagnostic.IDE0044.severity = warning
 
+# CONSIDER: Are IDE0051 and IDE0052 too noisy to be warnings for IDE editing scenarios? Should they be made build-only warnings?
+# IDE0051: Remove unused private member
+dotnet_diagnostic.IDE0051.severity = warning
+
+# IDE0170: Prefer extended property pattern
+dotnet_diagnostic.IDE0170.severity = warning
+
 # RS0016: Only enable if API files are present
 dotnet_public_api_analyzer.require_api_files = true
 
@@ -211,6 +218,7 @@ csharp_style_pattern_matching_over_as_with_null_check = true:suggestion
 csharp_style_inlined_variable_declaration = true:suggestion
 csharp_style_throw_expression = true:suggestion
 csharp_style_conditional_delegate_call = true:suggestion
+csharp_style_prefer_extended_property_pattern = true:suggestion
 
 # Space preferences
 csharp_space_after_cast = false
@@ -241,14 +249,6 @@ csharp_prefer_braces = true:silent
 csharp_preserve_single_line_blocks = true
 csharp_preserve_single_line_statements = true
 
-# Currently only enabled for C# due to crash in VB analyzer.  VB can be enabled once
-# https://github.com/dotnet/roslyn/pull/54259 has been published.
-dotnet_style_allow_statement_immediately_after_block_experimental = false
-
-[src/CodeStyle/**.{cs,vb}]
-# warning RS0005: Do not use generic CodeAction.Create to create CodeAction
-dotnet_diagnostic.RS0005.severity = none
-
 [src/{Analyzers,CodeStyle,Features,Workspaces,EditorFeatures,VisualStudio}/**/*.{cs,vb}]
 
 # IDE0011: Add braces
@@ -258,10 +258,6 @@ dotnet_diagnostic.IDE0011.severity = warning
 
 # IDE0040: Add accessibility modifiers
 dotnet_diagnostic.IDE0040.severity = warning
-
-# CONSIDER: Are IDE0051 and IDE0052 too noisy to be warnings for IDE editing scenarios? Should they be made build-only warnings?
-# IDE0051: Remove unused private member
-dotnet_diagnostic.IDE0051.severity = warning
 
 # IDE0052: Remove unread private member
 dotnet_diagnostic.IDE0052.severity = warning
@@ -301,6 +297,5 @@ dotnet_diagnostic.IDE2004.severity = warning
 
 [src/{VisualStudio}/**/*.{cs,vb}]
 # CA1822: Make member static
-# Not enforced as a build 'warning' for 'VisualStudio' layer due to large number of false positives from https://github.com/dotnet/roslyn-analyzers/issues/3857 and https://github.com/dotnet/roslyn-analyzers/issues/3858
-# Additionally, there is a risk of accidentally breaking an internal API that partners rely on though IVT.
-dotnet_diagnostic.CA1822.severity = suggestion
+# There is a risk of accidentally breaking an internal API that partners rely on though IVT.
+dotnet_code_quality.CA1822.api_surface = private

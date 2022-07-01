@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
             }
 
             if (semanticModel.GetDiagnostics(forEachStatement.Span, cancellationToken)
-                .Any(diagnostic => diagnostic.DefaultSeverity == DiagnosticSeverity.Error))
+                .Any(static diagnostic => diagnostic.DefaultSeverity == DiagnosticSeverity.Error))
             {
                 return;
             }
@@ -113,9 +113,10 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
             //  select n1 + n2
             //
             context.RegisterRefactoring(
-                new ForEachToLinqQueryCodeAction(
+                CodeAction.Create(
                     FeaturesResources.Convert_to_linq,
-                    c => ApplyConversionAsync(queryConverter, document, convertToQuery: true, c)),
+                    c => ApplyConversionAsync(queryConverter, document, convertToQuery: true, c),
+                    nameof(FeaturesResources.Convert_to_linq)),
                 forEachStatement.Span);
 
             // Offer refactoring to convert foreach to LINQ invocation expression. For example:
@@ -135,9 +136,10 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
             if (TryBuildConverter(forEachStatement, semanticModel, convertLocalDeclarations: false, cancellationToken, out var linqConverter))
             {
                 context.RegisterRefactoring(
-                    new ForEachToLinqQueryCodeAction(
+                    CodeAction.Create(
                         FeaturesResources.Convert_to_linq_call_form,
-                        c => ApplyConversionAsync(linqConverter, document, convertToQuery: false, c)),
+                        c => ApplyConversionAsync(linqConverter, document, convertToQuery: false, c),
+                        nameof(FeaturesResources.Convert_to_linq_call_form)),
                     forEachStatement.Span);
             }
         }
@@ -148,7 +150,7 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
             bool convertToQuery,
             CancellationToken cancellationToken)
         {
-            var editor = new SyntaxEditor(converter.ForEachInfo.SemanticModel.SyntaxTree.GetRoot(cancellationToken), document.Project.Solution.Workspace);
+            var editor = new SyntaxEditor(converter.ForEachInfo.SemanticModel.SyntaxTree.GetRoot(cancellationToken), document.Project.Solution.Workspace.Services);
             converter.Convert(editor, convertToQuery, cancellationToken);
             var newRoot = editor.GetChangedRoot();
             var rootWithLinqUsing = AddLinqUsing(converter, converter.ForEachInfo.SemanticModel, newRoot);
@@ -182,14 +184,6 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
 
             converter = null;
             return false;
-        }
-
-        private class ForEachToLinqQueryCodeAction : CodeAction.DocumentChangeAction
-        {
-            public ForEachToLinqQueryCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, title)
-            {
-            }
         }
     }
 }

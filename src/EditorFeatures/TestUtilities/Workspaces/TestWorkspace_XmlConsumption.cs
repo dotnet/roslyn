@@ -14,7 +14,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.ServiceModel.Description;
 using System.Threading;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp;
@@ -29,7 +28,6 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.VisualStudio.Composition;
-using Microsoft.VisualStudio.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
 using Roslyn.Utilities;
@@ -103,6 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 compilationOptions,
                 parseOptions,
                 files,
+                sourceGeneratedFiles: Array.Empty<string>(),
                 metadataReferences,
                 extension,
                 commonReferences);
@@ -338,8 +337,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 documents.Add(document);
             }
 
+            SingleFileTestGenerator testGenerator = null;
             foreach (var sourceGeneratedDocumentElement in projectElement.Elements(DocumentFromSourceGeneratorElementName))
             {
+                if (testGenerator is null)
+                {
+                    testGenerator = new SingleFileTestGenerator();
+                    analyzers.Add(new TestGeneratorReference(testGenerator));
+                }
+
                 var name = GetFileName(workspace, sourceGeneratedDocumentElement, ref documentId);
 
                 var markupCode = sourceGeneratedDocumentElement.NormalizedValue();
@@ -347,10 +353,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     out var code, out var cursorPosition, out IDictionary<string, ImmutableArray<TextSpan>> spans);
 
                 var documentFilePath = typeof(SingleFileTestGenerator).Assembly.GetName().Name + '\\' + typeof(SingleFileTestGenerator).FullName + '\\' + name;
-                var document = new TestHostDocument(exportProvider, languageServices, code, name, documentFilePath, cursorPosition, spans, isSourceGenerated: true);
+                var document = new TestHostDocument(exportProvider, languageServices, code, name, documentFilePath, cursorPosition, spans, generator: testGenerator);
                 documents.Add(document);
 
-                analyzers.Add(new TestGeneratorReference(new SingleFileTestGenerator(code, name)));
+                testGenerator.AddSource(code, name);
             }
 
             var additionalDocuments = new List<TestHostDocument>();
@@ -781,8 +787,39 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     : (SourceCodeKind)Enum.Parse(typeof(SourceCodeKind), attr.Value);
             }
 
-            TestFileMarkupParser.GetPositionAndSpans(markupCode,
-                out var code, out int? cursorPosition, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
+            var markupAttribute = documentElement.Attribute(MarkupAttributeName);
+            var isMarkup = markupAttribute == null || (string)markupAttribute == "true" || (string)markupAttribute == "SpansOnly";
+
+            string code;
+            int? cursorPosition;
+            ImmutableDictionary<string, ImmutableArray<TextSpan>> spans;
+
+            if (isMarkup)
+            {
+                // if the caller doesn't want us caring about positions, then replace any $'s with a character unlikely
+                // to ever show up in the doc naturally.  Then, after we convert things, change that character back. We
+                // do this as a single character so that all the positions of the spans do not change.
+                if ((string)markupAttribute == "SpansOnly")
+                    markupCode = markupCode.Replace("$", "\uD7FF");
+
+                TestFileMarkupParser.GetPositionAndSpans(markupCode, out code, out cursorPosition, out spans);
+
+                // if we were told SpansOnly then that means that $$ isn't actually a caret (but is something like a raw
+                // interpolated string delimiter.  In that case, if we did see a $$ add it back it at the location we
+                // found it, and set the cursor back to null as the test will be specifying that location manually
+                // itself.
+                if ((string)markupAttribute == "SpansOnly")
+                {
+                    Contract.ThrowIfTrue(cursorPosition != null);
+                    code = code.Replace("\uD7FF", "$");
+                }
+            }
+            else
+            {
+                code = markupCode;
+                cursorPosition = null;
+                spans = ImmutableDictionary<string, ImmutableArray<TextSpan>>.Empty;
+            }
 
             var testDocumentServiceProvider = GetDocumentServiceProvider(documentElement);
 
@@ -1001,7 +1038,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 ((bool?)net45).HasValue &&
                 ((bool?)net45).Value)
             {
-                references = new List<MetadataReference> { TestBase.MscorlibRef_v4_0_30316_17626, TestBase.SystemRef_v4_0_30319_17929, TestBase.SystemCoreRef_v4_0_30319_17929 };
+                references = new List<MetadataReference> { TestBase.MscorlibRef_v4_0_30316_17626, TestBase.SystemRef_v4_0_30319_17929, TestBase.SystemCoreRef_v4_0_30319_17929, TestBase.SystemRuntimeSerializationRef_v4_0_30319_17929 };
                 if (GetLanguage(workspace, element) == LanguageNames.VisualBasic)
                 {
                     references.Add(TestBase.MsvbRef);
@@ -1070,6 +1107,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 ((bool?)netstandard20).Value)
             {
                 references = TargetFrameworkUtil.NetStandard20References.ToList();
+            }
+
+            var net6 = element.Attribute(CommonReferencesNet6Name);
+            if (net6 != null &&
+                ((bool?)net6).HasValue &&
+                ((bool?)net6).Value)
+            {
+                references = TargetFrameworkUtil.GetReferences(TargetFramework.Net60).ToList();
             }
 
             return references;

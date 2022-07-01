@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Xaml;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -25,24 +27,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
     /// <summary>
     /// Handle a completion resolve request to add description.
     /// </summary>
-    [ExportLspRequestHandlerProvider(StringConstants.XamlLanguageName), Shared]
-    [ProvidesMethod(LSP.Methods.TextDocumentCompletionResolveName)]
-    internal class CompletionResolveHandler : AbstractStatelessRequestHandler<LSP.CompletionItem, LSP.CompletionItem>
+    [ExportStatelessXamlLspService(typeof(CompletionResolveHandler)), Shared]
+    [Method(LSP.Methods.TextDocumentCompletionResolveName)]
+    internal class CompletionResolveHandler : IRequestHandler<LSP.CompletionItem, LSP.CompletionItem>
     {
-        public override string Method => LSP.Methods.TextDocumentCompletionResolveName;
+        private readonly IGlobalOptionService _globalOptions;
 
-        public override bool MutatesSolutionState => false;
-        public override bool RequiresLSPSolution => true;
+        public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CompletionResolveHandler()
+        public CompletionResolveHandler(IGlobalOptionService globalOptions)
         {
+            _globalOptions = globalOptions;
         }
 
-        public override TextDocumentIdentifier? GetTextDocumentIdentifier(CompletionItem request) => null;
+        public TextDocumentIdentifier? GetTextDocumentIdentifier(CompletionItem request) => null;
 
-        public override async Task<LSP.CompletionItem> HandleRequestAsync(LSP.CompletionItem completionItem, RequestContext context, CancellationToken cancellationToken)
+        public async Task<LSP.CompletionItem> HandleRequestAsync(LSP.CompletionItem completionItem, RequestContext context, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(context.Solution);
 
@@ -77,7 +80,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 return completionItem;
             }
 
-            var description = await symbol.GetDescriptionAsync(document, cancellationToken).ConfigureAwait(false);
+            var options = _globalOptions.GetSymbolDescriptionOptions(document.Project.Language);
+            var description = await symbol.GetDescriptionAsync(document, options, cancellationToken).ConfigureAwait(false);
 
             vsCompletionItem.Description = new ClassifiedTextElement(description.Select(tp => new ClassifiedTextRun(tp.Tag.ToClassificationTypeName(), tp.Text)));
             return vsCompletionItem;

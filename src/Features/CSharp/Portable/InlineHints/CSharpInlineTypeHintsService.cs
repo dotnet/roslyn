@@ -20,8 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpInlineTypeHintsService(IGlobalOptionService globalOptions)
-            : base(globalOptions)
+        public CSharpInlineTypeHintsService()
         {
         }
 
@@ -36,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
         {
             if (forImplicitVariableTypes || displayAllOverride)
             {
-                if (node is VariableDeclarationSyntax { Type: { IsVar: true } } variableDeclaration &&
+                if (node is VariableDeclarationSyntax { Type.IsVar: true } variableDeclaration &&
                     variableDeclaration.Variables.Count == 1 &&
                     !variableDeclaration.Variables[0].Identifier.IsMissing)
                 {
@@ -45,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
                         return CreateTypeHint(type, displayAllOverride, forImplicitVariableTypes, variableDeclaration.Type, variableDeclaration.Variables[0].Identifier);
                 }
 
-                if (node is DeclarationExpressionSyntax { Type: { IsVar: true } } declarationExpression)
+                if (node is DeclarationExpressionSyntax { Type.IsVar: true } declarationExpression)
                 {
                     var type = semanticModel.GetTypeInfo(declarationExpression.Type, cancellationToken).Type;
                     if (IsValidType(type))
@@ -59,10 +58,10 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
                     {
                         return node.Parent is VarPatternSyntax varPattern
                             ? CreateTypeHint(type, displayAllOverride, forImplicitVariableTypes, varPattern.VarKeyword, variableDesignation.Identifier)
-                            : new(type, new TextSpan(variableDesignation.Identifier.SpanStart, 0), trailingSpace: true);
+                            : new(type, new TextSpan(variableDesignation.Identifier.SpanStart, 0), textChange: null, trailingSpace: true);
                     }
                 }
-                else if (node is ForEachStatementSyntax { Type: { IsVar: true } } forEachStatement)
+                else if (node is ForEachStatementSyntax { Type.IsVar: true } forEachStatement)
                 {
                     var info = semanticModel.GetForEachStatementInfo(forEachStatement);
                     var type = info.ElementType;
@@ -75,11 +74,14 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
             {
                 if (node is ParameterSyntax { Type: null } parameterNode)
                 {
+                    var span = new TextSpan(parameterNode.Identifier.SpanStart, 0);
                     var parameter = semanticModel.GetDeclaredSymbol(parameterNode, cancellationToken);
                     if (parameter?.ContainingSymbol is IMethodSymbol { MethodKind: MethodKind.AnonymousFunction } &&
                         IsValidType(parameter?.Type))
                     {
-                        return new(parameter.Type, new TextSpan(parameterNode.Identifier.SpanStart, 0), trailingSpace: true);
+                        return parameterNode.Parent?.Parent?.Kind() is SyntaxKind.ParenthesizedLambdaExpression
+                            ? new TypeHint(parameter.Type, span, textChange: new TextChange(span, parameter.Type.ToDisplayString(s_minimalTypeStyle) + " "), trailingSpace: true)
+                            : new TypeHint(parameter.Type, span, textChange: null, trailingSpace: true);
                     }
                 }
             }
@@ -91,7 +93,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
                     var type = semanticModel.GetTypeInfo(implicitNew, cancellationToken).Type;
                     if (IsValidType(type))
                     {
-                        return new(type, new TextSpan(implicitNew.NewKeyword.Span.End, 0), leadingSpace: true);
+                        var span = new TextSpan(implicitNew.NewKeyword.Span.End, 0);
+                        return new(type, span, new TextChange(span, " " + type.ToDisplayString(s_minimalTypeStyle)), leadingSpace: true);
                     }
                 }
             }
@@ -110,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
             // if this is a hint that is placed in-situ (i.e. it's not overwriting text like 'var'), then place
             // a space after it to make things feel less cramped.
             var trailingSpace = span.Length == 0;
-            return new TypeHint(type, span, trailingSpace: trailingSpace);
+            return new TypeHint(type, span, new TextChange(displayAllSpan.Span, type.ToDisplayString(s_minimalTypeStyle)), trailingSpace: trailingSpace);
         }
 
         private static TextSpan GetSpan(

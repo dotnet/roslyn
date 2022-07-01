@@ -67,9 +67,6 @@
     <Compile Remove="Debugging\Resources\*.*" />
     <EmbeddedResource Include="Debugging\Resources\*.*" LogicalName="Debugging/%(FileName)%(Extension)" />
   </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="EmbeddedLanguages\RegularExpressions\Regex_RealWorldPatterns.json" />
-  </ItemGroup>
   <Import Project="..\..\Analyzers\CSharp\Tests\CSharpAnalyzers.UnitTests.projitems" Label="Shared" />
   <Import Project="$(RepositoryEngineeringDir)targets\ILAsm.targets" />
 </Project>

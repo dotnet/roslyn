@@ -17,19 +17,20 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             private readonly AnchorIndentationOperation _operation;
 
-            public AnchorData(AnchorIndentationOperation operation, int originalColumn)
+            public AnchorData(AnchorIndentationOperation operation, SyntaxToken anchorToken, int originalColumn)
             {
                 _operation = operation;
+                this.AnchorToken = anchorToken;
                 this.OriginalColumn = originalColumn;
             }
 
             public TextSpan TextSpan => _operation.TextSpan;
 
-            public SyntaxToken AnchorToken => _operation.AnchorToken;
-
             public SyntaxToken StartToken => _operation.StartToken;
 
             public SyntaxToken EndToken => _operation.EndToken;
+
+            public SyntaxToken AnchorToken { get; }
 
             public int OriginalColumn { get; }
         }

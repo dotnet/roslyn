@@ -550,7 +550,7 @@ namespace Microsoft.Cci
         }
 
         /// <summary>
-        /// Write string as UTF8 with null terminator.
+        /// Write string as UTF-8 with null terminator.
         /// </summary>
         private static void WriteUtf8String(BlobBuilder builder, string str)
         {
@@ -815,6 +815,18 @@ namespace Microsoft.Cci
                 _debugMetadataOpt.AddCustomDebugInformation(
                     parent: method,
                     kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.EncLambdaAndClosureMap),
+                    value: _debugMetadataOpt.GetOrAddBlob(writer));
+            }
+
+            if (!encInfo.StateMachineStates.IsDefaultOrEmpty)
+            {
+                var writer = new BlobBuilder();
+
+                encInfo.SerializeStateMachineStates(writer);
+
+                _debugMetadataOpt.AddCustomDebugInformation(
+                    parent: method,
+                    kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.EncStateMachineStateMap),
                     value: _debugMetadataOpt.GetOrAddBlob(writer));
             }
         }

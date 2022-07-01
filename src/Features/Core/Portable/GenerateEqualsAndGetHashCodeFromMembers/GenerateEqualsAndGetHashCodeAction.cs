@@ -6,9 +6,12 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -31,12 +34,14 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             private readonly SyntaxNode _typeDeclaration;
             private readonly INamedTypeSymbol _containingType;
             private readonly ImmutableArray<ISymbol> _selectedMembers;
+            private readonly CleanCodeGenerationOptionsProvider _fallbackOptions;
 
             public GenerateEqualsAndGetHashCodeAction(
                 Document document,
                 SyntaxNode typeDeclaration,
                 INamedTypeSymbol containingType,
                 ImmutableArray<ISymbol> selectedMembers,
+                CleanCodeGenerationOptionsProvider fallbackOptions,
                 bool generateEquals,
                 bool generateGetHashCode,
                 bool implementIEquatable,
@@ -46,6 +51,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 _typeDeclaration = typeDeclaration;
                 _containingType = containingType;
                 _selectedMembers = selectedMembers;
+                _fallbackOptions = fallbackOptions;
                 _generateEquals = generateEquals;
                 _generateGetHashCode = generateGetHashCode;
                 _implementIEquatable = implementIEquatable;
@@ -80,10 +86,13 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                     await AddOperatorsAsync(methods, cancellationToken).ConfigureAwait(false);
                 }
 
-                var options = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-                var newTypeDeclaration = CodeGenerator.AddMemberDeclarations(
-                    _typeDeclaration, methods, _document.Project.Solution.Workspace,
-                    new CodeGenerationOptions(options: options));
+                var codeGenerator = _document.GetRequiredLanguageService<ICodeGenerationService>();
+
+                var codeGenOptions = await _document.GetCodeGenerationOptionsAsync(_fallbackOptions, cancellationToken).ConfigureAwait(false);
+                var formattingOptions = await _document.GetSyntaxFormattingOptionsAsync(_fallbackOptions, cancellationToken).ConfigureAwait(false);
+
+                var info = codeGenOptions.GetInfo(CodeGenerationContext.Default, _document.Project);
+                var newTypeDeclaration = codeGenerator.AddMembers(_typeDeclaration, methods, info, cancellationToken);
 
                 if (constructedTypeToImplement is object)
                 {
@@ -98,7 +107,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 
                 var service = _document.GetRequiredLanguageService<IGenerateEqualsAndGetHashCodeService>();
                 var formattedDocument = await service.FormatDocumentAsync(
-                    newDocument, cancellationToken).ConfigureAwait(false);
+                    newDocument, formattingOptions, cancellationToken).ConfigureAwait(false);
 
                 return formattedDocument;
             }
@@ -125,11 +134,10 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             private async Task<Document> UpdateDocumentAndAddImportsAsync(SyntaxNode oldType, SyntaxNode newType, CancellationToken cancellationToken)
             {
                 var oldRoot = await _document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var newDocument = _document.WithSyntaxRoot(
-                    oldRoot.ReplaceNode(oldType, newType));
-                newDocument = await ImportAdder.AddImportsFromSymbolAnnotationAsync(
-                    newDocument,
-                    cancellationToken: cancellationToken).ConfigureAwait(false);
+                var newDocument = _document.WithSyntaxRoot(oldRoot.ReplaceNode(oldType, newType));
+                var addImportOptions = await _document.GetAddImportPlacementOptionsAsync(_fallbackOptions, cancellationToken).ConfigureAwait(false);
+
+                newDocument = await ImportAdder.AddImportsFromSymbolAnnotationAsync(newDocument, addImportOptions, cancellationToken).ConfigureAwait(false);
                 return newDocument;
             }
 

@@ -9,18 +9,27 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.Shared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)CodeFixesAndRefactorings\FixAllHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AddImport\AddImportPlacementOptionsProviders.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeActions\CodeFixOptionsProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeFixes\CodeActionOptions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeFixes\FixAllContextExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\AnalyzerOptionsProviders.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\VirtualChars\IVirtualCharLanguageService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ContextQuery\ISyntaxContextService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ContextQuery\SyntaxContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\HostWorkspaceServicesExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\StringBuilderExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxGeneratorExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxGeneratorExtensions_CreateGetHashCodeMethod.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxGeneratorExtensions_Negate.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Helpers\SimplificationHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\OptionsProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Simplification\SimplificationHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Indentation\AbstractIndentationService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Indentation\IIndentationService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\AddImports\AbstractAddImportsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\AddImports\AddImportHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\AddImports\IAddImportsService.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CodeFixes\CodeFixCategory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeFixes\CustomCodeActions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DocumentExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ISolutionExtensions.cs" />
@@ -28,9 +37,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ProjectExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxEditorExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\TextDocumentExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CodeFixes\FixAllContextHelper.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CodeFixes\FixAll\FixAllState.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CodeFixes\FixAll\FixAllState.FixMultipleDiagnosticProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\CommandLine\ICommandLineParserService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\GeneratedCodeRecognition\AbstractGeneratedCodeRecognitionService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\GeneratedCodeRecognition\IGeneratedCodeRecognitionService.cs" />
@@ -40,6 +46,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\RemoveUnnecessaryImports\AbstractRemoveUnnecessaryImportsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\RemoveUnnecessaryImports\IRemoveUnnecessaryImportsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\ReplaceDiscardDeclarationsWithAssignments\IReplaceDiscardDeclarationsWithAssignmentsService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\SyntaxFactsService\IBlockFactsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\SyntaxFactsService\IFileBannerFactsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\SyntaxFactsService\IHeaderFactsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\SyntaxFactsService\ISyntaxKindsService.cs" />
@@ -61,6 +68,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\MefHostServicesHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AsyncSymbolVisitor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AsyncSymbolVisitor`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\ParsedDocument.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\IProgressTracker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\NoOpProgressTracker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SemanticDocument.cs" />
@@ -88,7 +96,9 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)WorkspaceExtensionsResources.resx" GenerateSource="true" Link="WorkspaceExtensionsResources.resx" />
-    <None Include="$(MSBuildThisFileDirectory)WorkspaceExtensionsResources.resx" />
+    <None Include="$(MSBuildThisFileDirectory)WorkspaceExtensionsResources.resx">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
     <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />

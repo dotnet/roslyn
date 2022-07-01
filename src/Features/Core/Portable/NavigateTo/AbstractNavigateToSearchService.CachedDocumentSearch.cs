@@ -18,7 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NavigateTo
 {
-    using CachedIndexMap = ConcurrentDictionary<(IChecksummedPersistentStorageService service, DocumentKey documentKey, StringTable stringTable), AsyncLazy<SyntaxTreeIndex?>>;
+    using CachedIndexMap = ConcurrentDictionary<(IChecksummedPersistentStorageService service, DocumentKey documentKey, StringTable stringTable), AsyncLazy<TopLevelSyntaxTreeIndex?>>;
 
     internal abstract partial class AbstractNavigateToSearchService
     {
@@ -63,22 +63,21 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             var solution = project.Solution;
             var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
             var onItemFound = GetOnItemFoundCallback(solution, onResultFound, cancellationToken);
-            var database = solution.Options.GetPersistentStorageDatabase();
 
-            var documentKeys = project.Documents.SelectAsArray(d => DocumentKey.ToDocumentKey(d));
-            var priorityDocumentKeys = priorityDocuments.SelectAsArray(d => DocumentKey.ToDocumentKey(d));
+            var documentKeys = project.Documents.SelectAsArray(DocumentKey.ToDocumentKey);
+            var priorityDocumentKeys = priorityDocuments.SelectAsArray(DocumentKey.ToDocumentKey);
             if (client != null)
             {
                 var callback = new NavigateToSearchServiceCallback(onItemFound);
                 await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
                     (service, callbackId, cancellationToken) =>
-                        service.SearchCachedDocumentsAsync(documentKeys, priorityDocumentKeys, database, searchPattern, kinds.ToImmutableArray(), callbackId, cancellationToken),
+                        service.SearchCachedDocumentsAsync(documentKeys, priorityDocumentKeys, searchPattern, kinds.ToImmutableArray(), callbackId, cancellationToken),
                     callback, cancellationToken).ConfigureAwait(false);
 
                 return;
             }
 
-            var storageService = solution.Workspace.Services.GetPersistentStorageService(database);
+            var storageService = solution.Workspace.Services.GetPersistentStorageService();
             await SearchCachedDocumentsInCurrentProcessAsync(
                 storageService, documentKeys, priorityDocumentKeys, searchPattern, kinds, onItemFound, cancellationToken).ConfigureAwait(false);
         }
@@ -115,7 +114,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         private static async Task SearchCachedDocumentsInCurrentProcessAsync(
             IChecksummedPersistentStorageService storageService,
             string patternName,
-            string patternContainer,
+            string? patternContainer,
             DeclaredSymbolInfoKindSet kinds,
             Func<RoslynNavigateToItem, Task> onItemFound,
             ImmutableArray<DocumentKey> documentKeys,
@@ -139,7 +138,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             await Task.WhenAll(tasks).ConfigureAwait(false);
         }
 
-        private static Task<SyntaxTreeIndex?> GetIndexAsync(
+        private static Task<TopLevelSyntaxTreeIndex?> GetIndexAsync(
             IChecksummedPersistentStorageService storageService,
             DocumentKey documentKey,
             CancellationToken cancellationToken)
@@ -147,7 +146,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             // Retrieve the string table we use to dedupe strings.  If we can't get it, that means the solution has 
             // fully loaded and we've switched over to normal navto lookup.
             if (!ShouldSearchCachedDocuments(out var cachedIndexMap, out var stringTable))
-                return SpecializedTasks.Null<SyntaxTreeIndex>();
+                return SpecializedTasks.Null<TopLevelSyntaxTreeIndex>();
 
             // Add the async lazy to compute the index for this document.  Or, return the existing cached one if already
             // present.  This ensures that subsequent searches that are run while the solution is still loading are fast
@@ -157,8 +156,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             // match on disk anymore.
             var asyncLazy = cachedIndexMap.GetOrAdd(
                 (storageService, documentKey, stringTable),
-                static t => new AsyncLazy<SyntaxTreeIndex?>(
-                    c => SyntaxTreeIndex.LoadAsync(
+                static t => new AsyncLazy<TopLevelSyntaxTreeIndex?>(
+                    c => TopLevelSyntaxTreeIndex.LoadAsync(
                         t.service, t.documentKey, checksum: null, t.stringTable, c), cacheResult: true));
             return asyncLazy.GetValueAsync(cancellationToken);
         }

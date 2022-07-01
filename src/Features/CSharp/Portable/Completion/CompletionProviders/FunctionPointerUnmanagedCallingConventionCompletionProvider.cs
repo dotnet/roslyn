@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 context.AddItems(completionItems);
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, ErrorSeverity.General))
             {
                 // nop
             }

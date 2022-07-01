@@ -637,7 +637,7 @@ class D
 
             var service = GetCompletionService(document.Project);
             var completionList = await GetCompletionListAsync(service, document, position, triggerInfo);
-            var item = completionList.Items.First();
+            var item = completionList.ItemsList.First();
 
             Assert.False(CommitManager.SendEnterThroughToEditor(service.GetRules(CompletionOptions.Default), item, string.Empty), "Expected false from SendEnterThroughToEditor()");
         }
@@ -996,6 +996,28 @@ class D
             await VerifyItemIsAbsentAsync(markup, "this");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task RequiredMembersLabeledAndSelected()
+        {
+            var markup = @"
+class C
+{
+    public required int RequiredField;
+    public required int RequiredProperty { get; set; }
+}
+
+class D
+{
+    static void Main(string[] args)
+    {
+        var t = new C() { $$ };
+    }
+}";
+
+            await VerifyItemExistsAsync(markup, "RequiredField", inlineDescription: FeaturesResources.Required, matchPriority: MatchPriority.Preselect);
+            await VerifyItemExistsAsync(markup, "RequiredProperty", inlineDescription: FeaturesResources.Required);
+        }
+
         [WorkItem(15205, "https://github.com/dotnet/roslyn/issues/15205")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NestedPropertyInitializers1()
@@ -1206,7 +1228,7 @@ class Program
             var service = GetCompletionService(document.Project);
             var completionList = await GetCompletionListAsync(service, document, position, triggerInfo);
 
-            if (completionList != null)
+            if (!completionList.IsEmpty)
             {
                 Assert.True(exclusive == completionList.GetTestAccessor().IsExclusive, "group.IsExclusive == " + completionList.GetTestAccessor().IsExclusive);
             }

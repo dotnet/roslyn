@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
         private class AddConstructorParametersCodeAction : CodeAction
         {
             private readonly Document _document;
+            private readonly CodeGenerationContextInfo _info;
             private readonly ConstructorCandidate _constructorCandidate;
             private readonly ISymbol _containingType;
             private readonly ImmutableArray<IParameterSymbol> _missingParameters;
@@ -35,34 +36,42 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
 
             public AddConstructorParametersCodeAction(
                 Document document,
+                CodeGenerationContextInfo info,
                 ConstructorCandidate constructorCandidate,
                 ISymbol containingType,
                 ImmutableArray<IParameterSymbol> missingParameters,
                 bool useSubMenuName)
             {
                 _document = document;
+                _info = info;
                 _constructorCandidate = constructorCandidate;
                 _containingType = containingType;
                 _missingParameters = missingParameters;
                 _useSubMenuName = useSubMenuName;
             }
 
-            protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
+            protected override Task<Solution?> GetChangedSolutionAsync(CancellationToken cancellationToken)
             {
-                var workspace = _document.Project.Solution.Workspace;
+                var services = _document.Project.Solution.Workspace.Services;
                 var declarationService = _document.GetRequiredLanguageService<ISymbolDeclarationService>();
                 var constructor = declarationService.GetDeclarations(
                     _constructorCandidate.Constructor).Select(r => r.GetSyntax(cancellationToken)).First();
 
+                var codeGenerator = _document.GetRequiredLanguageService<ICodeGenerationService>();
+
                 var newConstructor = constructor;
-                newConstructor = CodeGenerator.AddParameterDeclarations(newConstructor, _missingParameters, workspace);
-                newConstructor = CodeGenerator.AddStatements(newConstructor, CreateAssignStatements(_constructorCandidate), workspace)
+                newConstructor = codeGenerator.AddParameters(newConstructor, _missingParameters, _info, cancellationToken);
+                newConstructor = codeGenerator.AddStatements(newConstructor, CreateAssignStatements(_constructorCandidate), _info, cancellationToken)
                                                       .WithAdditionalAnnotations(Formatter.Annotation);
 
                 var syntaxTree = constructor.SyntaxTree;
                 var newRoot = syntaxTree.GetRoot(cancellationToken).ReplaceNode(constructor, newConstructor);
 
-                return Task.FromResult(_document.WithSyntaxRoot(newRoot));
+                // Make sure we get the document that contains the constructor we just updated
+                var constructorDocument = _document.Project.GetDocument(syntaxTree);
+                Contract.ThrowIfNull(constructorDocument);
+
+                return Task.FromResult<Solution?>(constructorDocument.WithSyntaxRoot(newRoot).Project.Solution);
             }
 
             private IEnumerable<SyntaxNode> CreateAssignStatements(ConstructorCandidate constructorCandidate)

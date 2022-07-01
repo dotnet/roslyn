@@ -1610,13 +1610,13 @@ class C
                 context.CompileExpression("y", out resultProperties, out error);
                 Assert.Equal(DkmClrCompilationResultFlags.None, resultProperties.Flags);
                 context.CompileExpression("(bool)y", out resultProperties, out error);
-                Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.BoolResult | DkmClrCompilationResultFlags.ReadOnlyResult);
+                Assert.Equal(DkmClrCompilationResultFlags.BoolResult | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
                 context.CompileExpression("!y", out resultProperties, out error);
                 Assert.Equal(DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
                 context.CompileExpression("false", out resultProperties, out error);
-                Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.BoolResult | DkmClrCompilationResultFlags.ReadOnlyResult);
+                Assert.Equal(DkmClrCompilationResultFlags.BoolResult | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
                 context.CompileExpression("F()", out resultProperties, out error);
-                Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.BoolResult | DkmClrCompilationResultFlags.ReadOnlyResult | DkmClrCompilationResultFlags.PotentialSideEffect);
+                Assert.Equal(DkmClrCompilationResultFlags.BoolResult | DkmClrCompilationResultFlags.ReadOnlyResult | DkmClrCompilationResultFlags.PotentialSideEffect, resultProperties.Flags);
             });
         }
 
@@ -1668,7 +1668,7 @@ class C
                 expr: "this.M()",
                 resultProperties: out resultProperties,
                 error: out error);
-            Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+            Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
             var methodData = testData.GetMethodData("<>x.<>m0");
             var method = (MethodSymbol)methodData.Method;
             Assert.Equal(SpecialType.System_Void, method.ReturnType.SpecialType);
@@ -1742,7 +1742,7 @@ class C
     static void M2() { }
     static void M2(int i) { }
 }";
-            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, parseOptions: TestOptions.Regular10, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(
@@ -1756,7 +1756,12 @@ class C
                     error: out error,
                     testData: testData);
                 Assert.Equal("error CS8917: The delegate type could not be inferred.", error);
+
                 testData = new CompilationTestData();
+
+                // If you see this failing, please fix https://github.com/dotnet/roslyn/issues/58449
+                Assert.Equal(compilation0.LanguageVersion, context.Compilation.LanguageVersion);
+
                 context.CompileAssignment(
                     target: "o",
                     expr: "M1",
@@ -1833,6 +1838,35 @@ class C
                     testData: testData);
                 Assert.Equal("error CS0131: The left-hand side of an assignment must be a variable, property or indexer", error);
             });
+        }
+
+        [Fact]
+        public void EvaluateUtf8StringLiteral_01()
+        {
+            var source =
+@"class C
+{
+    static void F()
+    {
+    }
+}";
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.F",
+                expr: @"""hello""u8",
+                targetFramework: TargetFramework.NetCoreApp);
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  2
+  IL_0000:  ldsflda    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=6 <PrivateImplementationDetails>.F3AEFE62965A91903610F0E23CC8A69D5B87CEA6D28E75489B0D2CA02ED7993C""
+  IL_0005:  ldc.i4.5
+  IL_0006:  newobj     ""System.ReadOnlySpan<byte>..ctor(void*, int)""
+  IL_000b:  ret
+}
+");
         }
 
         [Fact]
@@ -2299,7 +2333,7 @@ class C
         /// normally be allowed.
         /// </remarks>
         [WorkItem(1075258, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075258")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/58198")]
+        [Fact]
         public void Await()
         {
             var source = @"
@@ -2335,7 +2369,7 @@ class C
         /// This would be illegal in any non-debugger context.
         /// </remarks>
         [WorkItem(1075258, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075258")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/58198")]
+        [Fact]
         public void AwaitInUnsafeContext()
         {
             var source = @"
@@ -2804,7 +2838,7 @@ class B : A
                 expr: "((System.Func<object>)(() => this.G))()",
                 resultProperties: out resultProperties,
                 error: out error);
-            Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+            Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
             testData.GetMethodData("<>x.<>c__DisplayClass0_0.<<>m0>b__0()").VerifyIL(
 @"{
   // Code size       12 (0xc)
@@ -2821,7 +2855,7 @@ class B : A
                 expr: "((System.Func<object>)(() => this.F() ?? this.P))()",
                 resultProperties: out resultProperties,
                 error: out error);
-            Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+            Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
             testData.GetMethodData("<>x.<>c__DisplayClass0_0.<<>m0>b__0()").VerifyIL(
 @"{
   // Code size       27 (0x1b)
@@ -4170,13 +4204,20 @@ class C
     {
     }
 }";
-            var testData = Evaluate(
-                source,
-                OutputKind.DynamicallyLinkedLibrary,
-                methodName: "C.M",
-                expr: "G(F)");
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
-@"{
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular10, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation, runtime =>
+            {
+                var context = CreateMethodContext(
+                    runtime,
+                    methodName: "C.M");
+                var testData = new CompilationTestData();
+                var result = context.CompileExpression("G(F)", out var error, testData);
+
+                // If you see this failing, please fix https://github.com/dotnet/roslyn/issues/58449
+                Assert.Equal(compilation.LanguageVersion, context.Compilation.LanguageVersion);
+
+                testData.GetMethodData("<>x.<>m0").VerifyIL(@"
+{
   // Code size       18 (0x12)
   .maxstack  2
   IL_0000:  ldnull
@@ -4184,7 +4225,9 @@ class C
   IL_0007:  newobj     ""D..ctor(object, System.IntPtr)""
   IL_000c:  call       ""void C.G(D)""
   IL_0011:  ret
-}");
+}
+");
+            });
         }
 
         [Fact]
@@ -4247,7 +4290,7 @@ class C
                 resultProperties: out resultProperties,
                 error: out error);
 
-            Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+            Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
             testData.GetMethodData("<>x.<>c__DisplayClass0_0.<<>m0>b__0").VerifyIL(
 @"{
   // Code size       17 (0x11)
@@ -6073,7 +6116,7 @@ class C
         /// <summary>
         /// Ignore accessibility in async rewriter.
         /// </summary>
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/58198")]
+        [Fact]
         public void AsyncRewriterIgnoreAccessibility()
         {
             var source =
@@ -6936,6 +6979,38 @@ class C
   IL_0007:  call       ""System.Index System.Index.op_Implicit(int)""
   IL_000c:  newobj     ""System.Range..ctor(System.Index, System.Index)""
   IL_0011:  ret
+}");
+        }
+
+        [Fact]
+        public void RefField()
+        {
+            var source =
+@"ref struct S<T>
+{
+    public ref T F;
+    public S(ref T t) { F = ref t; }
+}
+class Program
+{
+    static void Main()
+    {
+        int i = 1;
+        var s = new S<int>(ref i);
+    }
+}";
+            Evaluate(source, OutputKind.ConsoleApplication, "Program.Main", "s.F = 2").GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size       10 (0xa)
+  .maxstack  3
+  .locals init (int V_0, //i
+                S<int> V_1) //s
+  IL_0000:  ldloc.1
+  IL_0001:  ldfld      ""ref int S<int>.F""
+  IL_0006:  ldc.i4.2
+  IL_0007:  dup
+  IL_0008:  stind.i4
+  IL_0009:  ret
 }");
         }
     }

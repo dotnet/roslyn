@@ -13,13 +13,14 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.InlineHints;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Classification;
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
     /// This is the tag which implements the IntraTextAdornmentTag and is meant to create the UIElements that get shown
     /// in the editor
     /// </summary>
-    internal class InlineHintsTag : IntraTextAdornmentTag
+    internal sealed class InlineHintsTag : IntraTextAdornmentTag
     {
         public const string TagId = "inline hints";
 
@@ -61,6 +62,11 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             // information in the Border_ToolTipOpening event handler
             adornment.ToolTip = "Quick info";
             adornment.ToolTipOpening += Border_ToolTipOpening;
+
+            if (_hint.ReplacementTextChange is not null)
+            {
+                adornment.MouseLeftButtonDown += Adornment_MouseLeftButtonDown;
+            }
         }
 
         /// <summary>
@@ -93,6 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 {
                     var context = new IntellisenseQuickInfoBuilderContext(
                         document,
+                        _taggerProvider.GlobalOptions.GetClassificationOptions(document.Project.Language),
                         _taggerProvider.ThreadingContext,
                         _taggerProvider.OperationExecutor,
                         _taggerProvider.AsynchronousOperationListener,
@@ -252,6 +259,24 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(threadingContext.DisposalToken);
 
             toolTipPresenter.StartOrUpdate(_textView.TextSnapshot.CreateTrackingSpan(_span.Start, _span.Length, SpanTrackingMode.EdgeInclusive), uiList);
+        }
+
+        private void Adornment_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ClickCount == 2)
+            {
+                e.Handled = true;
+                var textChange = _hint.ReplacementTextChange!.Value;
+
+                var snapshot = _span.Snapshot;
+                var subjectBuffer = snapshot.TextBuffer;
+
+                // Selected SpanTrackingMode to be EdgeExclusive by default.
+                // Will revise if there are some scenarios we did not think of that produce undesirable behavior.
+                subjectBuffer.Replace(
+                    textChange.Span.ToSnapshotSpan(snapshot).TranslateTo(subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeExclusive),
+                    textChange.NewText);
+            }
         }
     }
 }

@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -52,37 +53,40 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         public InlineHintsDataTaggerProvider(
             IThreadingContext threadingContext,
             IGlobalOptionService globalOptions,
+            [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, globalOptions, listenerProvider.GetListener(FeatureAttribute.InlineHints))
+            : base(threadingContext, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.InlineHints))
         {
             _listener = listenerProvider.GetListener(FeatureAttribute.InlineHints);
         }
 
         protected override TaggerDelay EventChangeDelay => TaggerDelay.Short;
 
-        protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
+        protected override ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer subjectBuffer)
         {
+            Contract.ThrowIfNull(textView);
             return TaggerEventSources.Compose(
-                TaggerEventSources.OnViewSpanChanged(ThreadingContext, textViewOpt),
+                TaggerEventSources.OnViewSpanChanged(this.ThreadingContext, textView),
                 TaggerEventSources.OnWorkspaceChanged(subjectBuffer, _listener),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsGlobalStateOption.DisplayAllOverride),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineParameterHintsOptions.Metadata.EnabledForParameters),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineParameterHintsOptions.Metadata.ForLiteralParameters),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineParameterHintsOptions.Metadata.ForIndexerParameters),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineParameterHintsOptions.Metadata.ForObjectCreationParameters),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineParameterHintsOptions.Metadata.ForOtherParameters),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineParameterHintsOptions.Metadata.SuppressForParametersThatMatchMethodIntent),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineParameterHintsOptions.Metadata.SuppressForParametersThatDifferOnlyBySuffix),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineParameterHintsOptions.Metadata.SuppressForParametersThatMatchArgumentName),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineTypeHintsOptions.Metadata.EnabledForTypes),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineTypeHintsOptions.Metadata.ForImplicitVariableTypes),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineTypeHintsOptions.Metadata.ForLambdaParameterTypes),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineTypeHintsOptions.Metadata.ForImplicitObjectCreation));
+                TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsGlobalStateOption.DisplayAllOverride),
+                TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsOptionsStorage.EnabledForParameters),
+                TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsOptionsStorage.ForLiteralParameters),
+                TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsOptionsStorage.ForIndexerParameters),
+                TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsOptionsStorage.ForObjectCreationParameters),
+                TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsOptionsStorage.ForOtherParameters),
+                TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsOptionsStorage.SuppressForParametersThatMatchMethodIntent),
+                TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsOptionsStorage.SuppressForParametersThatDifferOnlyBySuffix),
+                TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsOptionsStorage.SuppressForParametersThatMatchArgumentName),
+                TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsOptionsStorage.EnabledForTypes),
+                TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsOptionsStorage.ForImplicitVariableTypes),
+                TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsOptionsStorage.ForLambdaParameterTypes),
+                TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsOptionsStorage.ForImplicitObjectCreation));
         }
 
-        protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textView, ITextBuffer subjectBuffer)
+        protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView? textView, ITextBuffer subjectBuffer)
         {
-            this.AssertIsForeground();
+            this.ThreadingContext.ThrowIfNotOnUIThread();
+            Contract.ThrowIfNull(textView);
 
             // Find the visible span some 100 lines +/- what's actually in view.  This way
             // if the user scrolls up/down, we'll already have the results.
@@ -107,8 +111,10 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             if (service == null)
                 return;
 
+            var options = GlobalOptions.GetInlineHintsOptions(document.Project.Language);
+
             var snapshotSpan = documentSnapshotSpan.SnapshotSpan;
-            var hints = await service.GetInlineHintsAsync(document, snapshotSpan.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
+            var hints = await service.GetInlineHintsAsync(document, snapshotSpan.Span.ToTextSpan(), options, cancellationToken).ConfigureAwait(false);
             foreach (var hint in hints)
             {
                 // If we don't have any text to actually show the user, then don't make a tag.

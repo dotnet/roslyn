@@ -7,10 +7,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using AnalyzerRunner;
@@ -18,6 +18,7 @@ using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Diagnosers;
 using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MSBuild;
@@ -26,7 +27,9 @@ using Microsoft.CodeAnalysis.Storage;
 
 namespace IdeCoreBenchmarks
 {
+    // [GcServer(true)]
     [MemoryDiagnoser]
+    [SimpleJob(launchCount: 1, warmupCount: 0, targetCount: 0, invocationCount: 1, id: "QuickJob")]
     public class NavigateToBenchmarks
     {
         string _solutionPath;
@@ -69,7 +72,7 @@ namespace IdeCoreBenchmarks
             if (!File.Exists(_solutionPath))
                 throw new ArgumentException("Couldn't find Roslyn.sln");
 
-            Console.Write("Found Roslyn.sln: " + Process.GetCurrentProcess().Id);
+            Console.WriteLine("Found Roslyn.sln: " + Process.GetCurrentProcess().Id);
             var assemblies = MSBuildMefHostServices.DefaultAssemblies
                 .Add(typeof(AnalyzerRunnerHelper).Assembly)
                 .Add(typeof(FindReferencesBenchmarks).Assembly);
@@ -84,18 +87,16 @@ namespace IdeCoreBenchmarks
             if (_workspace == null)
                 throw new ArgumentException("Couldn't create workspace");
 
-            _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
-                .WithChangedOption(StorageOptions.Database, StorageDatabase.SQLite)));
-
             Console.WriteLine("Opening roslyn.  Attach to: " + Process.GetCurrentProcess().Id);
 
             var start = DateTime.Now;
+
             var solution = _workspace.OpenSolutionAsync(_solutionPath, progress: null, CancellationToken.None).Result;
             Console.WriteLine("Finished opening roslyn: " + (DateTime.Now - start));
 
             // Force a storage instance to be created.  This makes it simple to go examine it prior to any operations we
             // perform, including seeing how big the initial string table is.
-            var storageService = _workspace.Services.GetPersistentStorageService(_workspace.CurrentSolution.Options);
+            var storageService = _workspace.Services.GetPersistentStorageService();
             if (storageService == null)
                 throw new ArgumentException("Couldn't get storage service");
 
@@ -113,7 +114,75 @@ namespace IdeCoreBenchmarks
         }
 
         [Benchmark]
+        public async Task RunSerialIndexing()
+        {
+            Console.WriteLine("start profiling now");
+            // Thread.Sleep(10000);
+            Console.WriteLine("Starting serial indexing");
+            var start = DateTime.Now;
+            foreach (var project in _workspace.CurrentSolution.Projects)
+            {
+                foreach (var document in project.Documents)
+                {
+                    // await WalkTree(document);
+                    await SyntaxTreeIndex.PrecalculateAsync(document, default).ConfigureAwait(false);
+                }
+            }
+            Console.WriteLine("Serial: " + (DateTime.Now - start));
+            Console.WriteLine("Precalculated count: " + SyntaxTreeIndex.PrecalculatedCount);
+            Console.WriteLine("Computed count: " + SyntaxTreeIndex.ComputedCount);
+            Console.ReadLine();
+        }
 
+#pragma warning disable IDE0051 // Remove unused private members
+        private static async Task WalkTree(Document document)
+#pragma warning restore IDE0051 // Remove unused private members
+        {
+            var root = await document.GetSyntaxRootAsync();
+            if (root != null)
+            {
+                foreach (var child in root.DescendantNodesAndTokensAndSelf())
+                {
+
+                }
+            }
+        }
+
+        // [Benchmark]
+        public async Task RunProjectParallelIndexing()
+        {
+            Console.WriteLine("start profiling now");
+            // Thread.Sleep(10000);
+            Console.WriteLine("Starting parallel indexing");
+            var start = DateTime.Now;
+            foreach (var project in _workspace.CurrentSolution.Projects)
+            {
+                var tasks = project.Documents.Select(d => Task.Run(
+                    async () =>
+                    {
+                        // await WalkTree(d);
+                        await TopLevelSyntaxTreeIndex.PrecalculateAsync(d, default);
+                    })).ToList();
+                await Task.WhenAll(tasks);
+            }
+            Console.WriteLine("Project parallel: " + (DateTime.Now - start));
+            Console.ReadLine();
+        }
+
+        //  [Benchmark]
+        public async Task RunFullParallelIndexing()
+        {
+            Console.WriteLine("Attach now");
+            Console.ReadLine();
+            Console.WriteLine("Starting indexing");
+            var start = DateTime.Now;
+            var tasks = _workspace.CurrentSolution.Projects.SelectMany(p => p.Documents).Select(d => Task.Run(
+                () => SyntaxTreeIndex.PrecalculateAsync(d, default))).ToList();
+            await Task.WhenAll(tasks);
+            Console.WriteLine("Solution parallel: " + (DateTime.Now - start));
+        }
+
+        // [Benchmark]
         public async Task RunNavigateTo()
         {
             Console.WriteLine("Starting navigate to");
@@ -126,8 +195,8 @@ namespace IdeCoreBenchmarks
             var result = await Task.WhenAll(searchTasks).ConfigureAwait(false);
             var sum = result.Sum();
 
-            //start = DateTime.Now;
-            Console.WriteLine("Num results: " + (DateTime.Now - start));
+            Console.WriteLine("Num results: " + sum);
+            Console.WriteLine("Time to search: " + (DateTime.Now - start));
         }
 
         private async Task<int> SearchAsync(Project project, ImmutableArray<Document> priorityDocuments)

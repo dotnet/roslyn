@@ -9,6 +9,7 @@ using System.Composition;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
@@ -22,6 +23,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
     {
         internal interface ICallback
         {
+            ValueTask<FindUsagesOptions> GetOptionsAsync(RemoteServiceCallbackId callbackId, string language, CancellationToken cancellationToken);
             ValueTask AddItemsAsync(RemoteServiceCallbackId callbackId, int count, CancellationToken cancellationToken);
             ValueTask ItemsCompletedAsync(RemoteServiceCallbackId callbackId, int count, CancellationToken cancellationToken);
             ValueTask ReportMessageAsync(RemoteServiceCallbackId callbackId, string message, CancellationToken cancellationToken);
@@ -32,14 +34,14 @@ namespace Microsoft.CodeAnalysis.FindUsages
         }
 
         ValueTask FindReferencesAsync(
-            PinnedSolutionInfo solutionInfo,
+            Checksum solutionChecksum,
             RemoteServiceCallbackId callbackId,
             SerializableSymbolAndProjectId symbolAndProjectId,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken);
 
         ValueTask FindImplementationsAsync(
-            PinnedSolutionInfo solutionInfo,
+            Checksum solutionChecksum,
             RemoteServiceCallbackId callbackId,
             SerializableSymbolAndProjectId symbolAndProjectId,
             CancellationToken cancellationToken);
@@ -56,6 +58,9 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
         private new FindUsagesServerCallback GetCallback(RemoteServiceCallbackId callbackId)
             => (FindUsagesServerCallback)base.GetCallback(callbackId);
+
+        public ValueTask<FindUsagesOptions> GetOptionsAsync(RemoteServiceCallbackId callbackId, string language, CancellationToken cancellationToken)
+            => GetCallback(callbackId).GetOptionsAsync(language, cancellationToken);
 
         public ValueTask AddItemsAsync(RemoteServiceCallbackId callbackId, int count, CancellationToken cancellationToken)
             => GetCallback(callbackId).AddItemsAsync(count, cancellationToken);
@@ -91,6 +96,9 @@ namespace Microsoft.CodeAnalysis.FindUsages
             _context = context;
         }
 
+        public ValueTask<FindUsagesOptions> GetOptionsAsync(string language, CancellationToken cancellationToken)
+            => _context.GetOptionsAsync(language, cancellationToken);
+
         public ValueTask AddItemsAsync(int count, CancellationToken cancellationToken)
             => _context.ProgressTracker.AddItemsAsync(count, cancellationToken);
 
@@ -108,22 +116,35 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
         public async ValueTask OnDefinitionFoundAsync(SerializableDefinitionItem definition, CancellationToken cancellationToken)
         {
-            var id = definition.Id;
-            var rehydrated = await definition.RehydrateAsync(_solution, cancellationToken).ConfigureAwait(false);
-
-            lock (_idToDefinition)
+            try
             {
-                _idToDefinition.Add(id, rehydrated);
-            }
+                var id = definition.Id;
+                var rehydrated = await definition.RehydrateAsync(_solution, cancellationToken).ConfigureAwait(false);
 
-            await _context.OnDefinitionFoundAsync(rehydrated, cancellationToken).ConfigureAwait(false);
+                lock (_idToDefinition)
+                {
+                    _idToDefinition.Add(id, rehydrated);
+                }
+
+                await _context.OnDefinitionFoundAsync(rehydrated, cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
         }
 
         public async ValueTask OnReferenceFoundAsync(SerializableSourceReferenceItem reference, CancellationToken cancellationToken)
         {
-            var rehydrated = await reference.RehydrateAsync(_solution, GetDefinition(reference.DefinitionId), cancellationToken).ConfigureAwait(false);
-
-            await _context.OnReferenceFoundAsync(rehydrated, cancellationToken).ConfigureAwait(false);
+            try
+            {
+                var rehydrated = await reference.RehydrateAsync(_solution, GetDefinition(reference.DefinitionId), cancellationToken).ConfigureAwait(false);
+                await _context.OnReferenceFoundAsync(rehydrated, cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
         }
 
         private DefinitionItem GetDefinition(int definitionId)
@@ -221,7 +242,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                    item.DisplayParts,
                    item.NameDisplayParts,
                    item.OriginationParts,
-                   item.SourceSpans.SelectAsArray(ss => SerializableDocumentSpan.Dehydrate(ss)),
+                   item.SourceSpans.SelectAsArray(SerializableDocumentSpan.Dehydrate),
                    item.Properties,
                    item.DisplayableProperties,
                    item.DisplayIfNoReferences);

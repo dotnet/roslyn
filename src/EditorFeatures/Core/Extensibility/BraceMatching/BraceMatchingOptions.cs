@@ -2,19 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
-using Microsoft.CodeAnalysis.Options;
+using System.Runtime.Serialization;
+using Microsoft.CodeAnalysis.DocumentHighlighting;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
+    [DataContract]
     internal readonly record struct BraceMatchingOptions(
-        bool HighlightRelatedRegexComponentsUnderCursor)
+        [property: DataMember(Order = 0)] HighlightingOptions HighlightingOptions)
     {
-        public static BraceMatchingOptions From(Project project)
-            => From(project.Solution.Options, project.Language);
+        public BraceMatchingOptions()
+            : this(HighlightingOptions.Default)
+        {
+        }
 
-        public static BraceMatchingOptions From(OptionSet options, string language)
-            => new(
-                HighlightRelatedRegexComponentsUnderCursor: options.GetOption(RegularExpressionsOptions.HighlightRelatedRegexComponentsUnderCursor, language));
+        public static readonly BraceMatchingOptions Default = new();
     }
 }

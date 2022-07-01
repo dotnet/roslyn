@@ -32,18 +32,17 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 Dim document = workspace.CurrentSolution.Projects.First.Documents.First
                 Dim completionService = New TestCompletionService(workspace)
 
-                Dim list = Await completionService.GetCompletionsInternalAsync(
-                    document, caretPosition:=0, options:=CompletionOptions.Default, trigger:=CompletionTrigger.Invoke)
+                Dim list = Await completionService.GetCompletionsAsync(
+                    document, caretPosition:=0, CompletionOptions.Default, OptionValueSet.Empty, CompletionTrigger.Invoke)
 
-                Assert.NotNull(list)
-                Assert.NotEmpty(list.completionList.Items)
-                Assert.True(list.completionList.Items.Length = 1, "Completion list contained more than one item")
-                Assert.Equal("Completion Item From Test Completion Provider", list.completionList.Items.First.DisplayText)
+                Assert.NotEmpty(list.ItemsList)
+                Assert.True(list.ItemsList.Count = 1, "Completion list contained more than one item")
+                Assert.Equal("Completion Item From Test Completion Provider", list.ItemsList.First.DisplayText)
             End Using
         End Function
 
         Friend Class TestCompletionService
-            Inherits CompletionServiceWithProviders
+            Inherits CompletionService
 
             Public Sub New(workspace As Workspace)
                 MyBase.New(workspace)

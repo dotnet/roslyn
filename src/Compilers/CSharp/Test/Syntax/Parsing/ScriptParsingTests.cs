@@ -1688,13 +1688,13 @@ new public bool this[int index] { get; }
             CreateCompilation(test).VerifyDiagnostics(
                 // (1,13): error CS1003: Syntax error, '[' expected
                 // string this ="";
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments("[", "=").WithLocation(1, 13),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments("[").WithLocation(1, 13),
                 // (1,13): error CS1001: Identifier expected
                 // string this ="";
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "=").WithLocation(1, 13),
                 // (1,16): error CS1003: Syntax error, ']' expected
                 // string this ="";
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(1, 16),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]").WithLocation(1, 16),
                 // (1,16): error CS1514: { expected
                 // string this ="";
                 Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(1, 16),

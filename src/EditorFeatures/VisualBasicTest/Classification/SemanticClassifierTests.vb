@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedClassifications
 Imports Microsoft.CodeAnalysis.Remote.Testing
+Imports Microsoft.CodeAnalysis.Test.Utilities.EmbeddedLanguages
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
@@ -623,6 +624,333 @@ Regex.Quantifier("5"),
 Regex.Quantifier("}"),
 Regex.Quantifier("?"),
 Regex.Anchor("^"))
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem(61982, "https://github.com/dotnet/roslyn/issues/61982")>
+        Public Async Function TestRegexAmbiguity1(testHost As TestHost) As Task
+            Await TestAsync(
+"
+imports System.Diagnostics.CodeAnalysis
+imports System.Text.RegularExpressions
+
+class Program
+    sub Goo()
+        me.field = Regex.Match("""", [|""$(\b\G\z)""|]
+    end sub
+end class",
+                testHost,
+Regex.Anchor("$"),
+Regex.Grouping("("),
+Regex.Anchor("\"),
+Regex.Anchor("b"),
+Regex.Anchor("\"),
+Regex.Anchor("G"),
+Regex.Anchor("\"),
+Regex.Anchor("z"),
+Regex.Grouping(")"))
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem(61982, "https://github.com/dotnet/roslyn/issues/61982")>
+        Public Async Function TestRegexAmbiguity2(testHost As TestHost) As Task
+            Await TestAsync(
+"
+imports System.Diagnostics.CodeAnalysis
+imports System.Text.RegularExpressions
+
+class Program
+    sub Goo()
+        me.field = Regex.Match("""", [|""$(\b\G\z)""|],
+    end sub
+end class",
+                testHost,
+Regex.Anchor("$"),
+Regex.Grouping("("),
+Regex.Anchor("\"),
+Regex.Anchor("b"),
+Regex.Anchor("\"),
+Regex.Anchor("G"),
+Regex.Anchor("\"),
+Regex.Anchor("z"),
+Regex.Grouping(")"))
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestRegexStringSyntaxAttribute_Field(testHost As TestHost) As Task
+            Await TestAsync(
+"
+imports System.Diagnostics.CodeAnalysis
+imports System.Text.RegularExpressions
+
+class Program
+    <StringSyntax(StringSyntaxAttribute.Regex)>
+    dim field as string
+
+    sub Goo()
+        [|me.field = ""$(\b\G\z)""|]
+    end sub
+end class" & EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeVB,
+                testHost,
+Field("field"),
+Regex.Anchor("$"),
+Regex.Grouping("("),
+Regex.Anchor("\"),
+Regex.Anchor("b"),
+Regex.Anchor("\"),
+Regex.Anchor("G"),
+Regex.Anchor("\"),
+Regex.Anchor("z"),
+Regex.Grouping(")"))
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestRegexStringSyntaxAttribute_Field2(testHost As TestHost) As Task
+            Await TestAsync(
+"
+imports System.Diagnostics.CodeAnalysis
+imports System.Text.RegularExpressions
+
+class Program
+    <StringSyntax(StringSyntaxAttribute.Regex)>
+    [|dim field as string = ""$(\b\G\z)""|]
+end class" & EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeVB,
+                testHost,
+Regex.Anchor("$"),
+Regex.Grouping("("),
+Regex.Anchor("\"),
+Regex.Anchor("b"),
+Regex.Anchor("\"),
+Regex.Anchor("G"),
+Regex.Anchor("\"),
+Regex.Anchor("z"),
+Regex.Grouping(")"))
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestRegexStringSyntaxAttribute_Attribute(testHost As TestHost) As Task
+            Await TestAsync(
+"
+imports system
+imports System.Diagnostics.CodeAnalysis
+imports System.Text.RegularExpressions
+
+<AttributeUsage(AttributeTargets.Field)>
+class RegexTestAttribute 
+    inherits Attribute
+
+    public sub new(<StringSyntax(StringSyntaxAttribute.Regex)> value as string)
+    end sub
+end class
+
+class Program
+    [|<RegexTest(""$(\b\G\z)"")>|]
+    dim field as string
+end class" & EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeVB,
+                testHost,
+[Class]("RegexTest"),
+Regex.Anchor("$"),
+Regex.Grouping("("),
+Regex.Anchor("\"),
+Regex.Anchor("b"),
+Regex.Anchor("\"),
+Regex.Anchor("G"),
+Regex.Anchor("\"),
+Regex.Anchor("z"),
+Regex.Grouping(")"))
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem(61947, "https://github.com/dotnet/roslyn/issues/61947")>
+        Public Async Function TestRegexStringSyntaxAttribute_AttributeField(testHost As TestHost) As Task
+            Await TestAsync(
+"
+imports system
+imports System.Diagnostics.CodeAnalysis
+imports System.Text.RegularExpressions
+
+<AttributeUsage(AttributeTargets.Field)>
+class RegexTestAttribute 
+    inherits Attribute
+
+    public sub new()
+    end sub
+
+    <StringSyntax(StringSyntaxAttribute.Regex)> 
+    public value as string
+end class
+
+class Program
+    [|<RegexTest(value:=""$(\b\G\z)"")>|]
+    dim field as string
+end class" & EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeVB,
+                testHost,
+[Class]("RegexTest"),
+Field("value"),
+Regex.Anchor("$"),
+Regex.Grouping("("),
+Regex.Anchor("\"),
+Regex.Anchor("b"),
+Regex.Anchor("\"),
+Regex.Anchor("G"),
+Regex.Anchor("\"),
+Regex.Anchor("z"),
+Regex.Grouping(")"))
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem(61947, "https://github.com/dotnet/roslyn/issues/61947")>
+        Public Async Function TestRegexStringSyntaxAttribute_AttributeProperty(testHost As TestHost) As Task
+            Await TestAsync(
+"
+imports system
+imports System.Diagnostics.CodeAnalysis
+imports System.Text.RegularExpressions
+
+<AttributeUsage(AttributeTargets.Field)>
+class RegexTestAttribute 
+    inherits Attribute
+
+    public sub new()
+    end sub
+
+    <StringSyntax(StringSyntaxAttribute.Regex)> 
+    public property value as string
+end class
+
+class Program
+    [|<RegexTest(value:=""$(\b\G\z)"")>|]
+    dim field as string
+end class" & EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeVB,
+                testHost,
+[Class]("RegexTest"),
+[Property]("value"),
+Regex.Anchor("$"),
+Regex.Grouping("("),
+Regex.Anchor("\"),
+Regex.Anchor("b"),
+Regex.Anchor("\"),
+Regex.Anchor("G"),
+Regex.Anchor("\"),
+Regex.Anchor("z"),
+Regex.Grouping(")"))
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestRegexStringSyntaxAttribute_Property(testHost As TestHost) As Task
+            Await TestAsync(
+"
+imports System.Diagnostics.CodeAnalysis
+imports System.Text.RegularExpressions
+
+class Program
+    <StringSyntax(StringSyntaxAttribute.Regex)>
+    property prop as string
+
+    sub Goo()
+        [|me.prop = ""$(\b\G\z)""|]
+    end sub
+end class" & EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeVB,
+                testHost,
+[Property]("prop"),
+Regex.Anchor("$"),
+Regex.Grouping("("),
+Regex.Anchor("\"),
+Regex.Anchor("b"),
+Regex.Anchor("\"),
+Regex.Anchor("G"),
+Regex.Anchor("\"),
+Regex.Anchor("z"),
+Regex.Grouping(")"))
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestRegexStringSyntaxAttribute_Property2(testHost As TestHost) As Task
+            Await TestAsync(
+"
+imports System.Diagnostics.CodeAnalysis
+imports System.Text.RegularExpressions
+
+class Program
+    <StringSyntax(StringSyntaxAttribute.Regex)>
+    [|property prop as string = ""$(\b\G\z)""|]
+end class" & EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeVB,
+                testHost,
+Regex.Anchor("$"),
+Regex.Grouping("("),
+Regex.Anchor("\"),
+Regex.Anchor("b"),
+Regex.Anchor("\"),
+Regex.Anchor("G"),
+Regex.Anchor("\"),
+Regex.Anchor("z"),
+Regex.Grouping(")"))
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestRegexNotOnUnannotatedParameter(testHost As TestHost) As Task
+            Await TestAsync(
+"
+imports System.Diagnostics.CodeAnalysis
+imports System.Text.RegularExpressions
+
+class Program
+    Sub M([|optional x as string = ""$(\b\G\z)""|])
+    End Sub()
+end class",
+                testHost)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestRegexOnAnnotatedParameter(testHost As TestHost) As Task
+            Await TestAsync(
+"
+imports System.Diagnostics.CodeAnalysis
+imports System.Text.RegularExpressions
+
+class Program
+    ' lang=regex
+    Sub M([|optional x as string = ""$(\b\G\z)""|])
+    End Sub()
+end class",
+                testHost,
+Regex.Anchor("$"),
+Regex.Grouping("("),
+Regex.Anchor("\"),
+Regex.Anchor("b"),
+Regex.Anchor("\"),
+Regex.Anchor("G"),
+Regex.Anchor("\"),
+Regex.Anchor("z"),
+Regex.Grouping(")"))
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestRegexStringSyntaxAttribute_Sub(testHost As TestHost) As Task
+            Await TestAsync(
+"
+imports System.Diagnostics.CodeAnalysis
+imports System.Text.RegularExpressions
+
+class Program
+    sub M(<StringSyntax(StringSyntaxAttribute.Regex)>p as string)
+    end sub
+
+    sub Goo()
+        [|M(""$(\b\G\z)"")|]
+    end sub
+end class" & EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeVB,
+                testHost,
+Method("M"),
+Regex.Anchor("$"),
+Regex.Grouping("("),
+Regex.Anchor("\"),
+Regex.Anchor("b"),
+Regex.Anchor("\"),
+Regex.Anchor("G"),
+Regex.Anchor("\"),
+Regex.Anchor("z"),
+Regex.Grouping(")"))
         End Function
 
         <Theory, CombinatorialData>

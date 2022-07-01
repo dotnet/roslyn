@@ -923,7 +923,7 @@ class Program
 
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
                 // (11,30): error CS8168: Cannot return local 'local' by reference because it is not a ref local
                 //             return ref M(ref local);
@@ -938,6 +938,15 @@ class Program
                 //             return ref M1(out local).Alice;
                 Diagnostic(ErrorCode.ERR_EscapeCall2, "M1(out local)").WithArguments("Program.M1(out int)", "x").WithLocation(15, 24)
             );
+
+            comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (11,30): error CS8168: Cannot return local 'local' by reference because it is not a ref local
+                //             return ref M(ref local);
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "local").WithArguments("local").WithLocation(11, 30),
+                // (11,24): error CS8347: Cannot use a result of 'Program.M(ref int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //             return ref M(ref local);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "M(ref local)").WithArguments("Program.M(ref int)", "x").WithLocation(11, 24));
         }
 
         [Fact]
@@ -1019,10 +1028,10 @@ struct S1
             comp.VerifyDiagnostics(
                 // (8,20): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //         return ref this;
-                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this").WithArguments("this").WithLocation(8, 20),
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this").WithLocation(8, 20),
                 // (11,44): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //     in int this[in int i] => ref x;
-                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "x").WithArguments("this").WithLocation(11, 44)
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "x").WithLocation(11, 44)
             );
         }
 

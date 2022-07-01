@@ -22,12 +22,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             Document document,
             InvocationExpressionSyntax invocationExpression,
             SemanticModel semanticModel,
-            SymbolInfo currentSymbol,
+            SymbolInfo symbolInfo,
+            IMethodSymbol? currentSymbol,
             CancellationToken cancellationToken)
         {
             return Task.FromResult(
                 (accessibleMethods.SelectAsArray(m => ConvertMethodGroupMethod(document, m, invocationExpression.SpanStart, semanticModel)),
-                 TryGetSelectedIndex(accessibleMethods, currentSymbol.Symbol)));
+                 TryGetSelectedIndex(accessibleMethods, currentSymbol)));
         }
 
         private static ImmutableArray<IMethodSymbol> GetAccessibleMethods(
@@ -52,13 +53,16 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                     throughType = semanticModel.GetTypeInfo(throughExpression, cancellationToken).Type;
                 }
 
-                var includeInstance = !throughExpression.IsKind(SyntaxKind.IdentifierName) ||
-                    semanticModel.LookupSymbols(throughExpression.SpanStart, name: throughSymbol?.Name).Any(s => s is not INamedTypeSymbol) ||
-                    (!(throughSymbol is INamespaceOrTypeSymbol) && semanticModel.LookupSymbols(throughExpression.SpanStart, container: throughSymbol?.ContainingType).Any(s => s is not INamedTypeSymbol));
+                // SyntaxKind.IdentifierName is for basic case, e.g. "MyClass.MyStaticMethod(...)"
+                // SyntaxKind.SimpleMemberAccessExpression is for not imported types, e.g. "MyNamespace.MyClass.MyStaticMethod(...)"
+                // SyntaxKind.PredefinedType is for built-in types, e.g. "string.Equals(...)"
+                var includeInstance = !throughExpression.IsKind(SyntaxKind.IdentifierName, SyntaxKind.SimpleMemberAccessExpression, SyntaxKind.PredefinedType) ||
+                    semanticModel.LookupSymbols(throughExpression.SpanStart, name: throughSymbol?.Name).Any(static s => s is not INamedTypeSymbol) ||
+                    (throughSymbol is not INamespaceOrTypeSymbol && semanticModel.LookupSymbols(throughExpression.SpanStart, container: throughSymbol?.ContainingType).Any(static s => s is not INamedTypeSymbol));
 
                 var includeStatic = throughSymbol is INamedTypeSymbol ||
                     (throughExpression.IsKind(SyntaxKind.IdentifierName) &&
-                    semanticModel.LookupNamespacesAndTypes(throughExpression.SpanStart, name: throughSymbol?.Name).Any(t => Equals(t.GetSymbolType(), throughType)));
+                    semanticModel.LookupNamespacesAndTypes(throughExpression.SpanStart, name: throughSymbol?.Name).Any(static (t, throughType) => Equals(t.GetSymbolType(), throughType), throughType));
 
                 Contract.ThrowIfFalse(includeInstance || includeStatic);
                 methodGroup = methodGroup.Where(m => (m.IsStatic && includeStatic) || (!m.IsStatic && includeInstance));

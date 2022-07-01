@@ -56,13 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             // Report a message in debug and log a watson exception so that if this is hit we can try to narrow down how
             // this happened.
             Debug.Fail($"{nameof(InnerInvokeAsync)} should not be called on a {nameof(SuggestedActionWithNestedActions)}");
-            try
-            {
-                throw new InvalidOperationException($"{nameof(InnerInvokeAsync)} should not be called on a {nameof(SuggestedActionWithNestedActions)}");
-            }
-            catch (Exception e) when (FatalError.ReportAndCatch(e))
-            {
-            }
+            FatalError.ReportAndCatch(new InvalidOperationException($"{nameof(InnerInvokeAsync)} should not be called on a {nameof(SuggestedActionWithNestedActions)}"), ErrorSeverity.Critical);
 
             return Task.CompletedTask;
         }

@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseExplicitTupleName
 {
@@ -28,19 +29,15 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
             = ImmutableArray.Create(IDEDiagnosticIds.UseExplicitTupleNameDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(new MyCodeAction(
-                c => FixAsync(context.Document, context.Diagnostics[0], c)),
-                context.Diagnostics);
+            RegisterCodeFix(context, AnalyzersResources.Use_explicitly_provided_tuple_name, nameof(AnalyzersResources.Use_explicitly_provided_tuple_name));
             return Task.CompletedTask;
         }
 
         protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var generator = editor.Generator;
 
@@ -50,22 +47,14 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
                     getInnermostNodeForTie: true, cancellationToken: cancellationToken);
 
                 var preferredName = diagnostic.Properties[nameof(UseExplicitTupleNameDiagnosticAnalyzer.ElementName)];
+                Contract.ThrowIfNull(preferredName);
+
                 var newNameNode = generator.IdentifierName(preferredName).WithTriviaFrom(oldNameNode);
 
                 editor.ReplaceNode(oldNameNode, newNameNode);
             }
 
             return Task.CompletedTask;
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Use_explicitly_provided_tuple_name,
-                       createChangedDocument,
-                       AnalyzersResources.Use_explicitly_provided_tuple_name)
-            {
-            }
         }
     }
 }

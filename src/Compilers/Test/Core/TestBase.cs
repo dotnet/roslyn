@@ -61,19 +61,6 @@ namespace Roslyn.Test.Utilities
 
         #region Metadata References
 
-        /// <summary>
-        /// Helper for atomically acquiring and saving a metadata reference. Necessary
-        /// if the acquired reference will ever be used in object identity comparisons.
-        /// </summary>
-        private static MetadataReference GetOrCreateMetadataReference(ref MetadataReference field, Func<MetadataReference> getReference)
-        {
-            if (field == null)
-            {
-                Interlocked.CompareExchange(ref field, getReference(), null);
-            }
-            return field;
-        }
-
         private static readonly Lazy<MetadataReference[]> s_lazyDefaultVbReferences = new Lazy<MetadataReference[]>(
             () => new[] { Net40.mscorlib, Net40.System, Net40.SystemCore, Net40.MicrosoftVisualBasic },
             LazyThreadSafetyMode.PublicationOnly);
@@ -150,6 +137,11 @@ namespace Roslyn.Test.Utilities
             () => AssemblyMetadata.CreateFromImage(ResourcesNet451.SystemCore).GetReference(display: "System.Core.v4_0_30319_17929.dll"),
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference SystemCoreRef_v4_0_30319_17929 => s_systemCoreRef_v4_0_30319_17929.Value;
+
+        private static readonly Lazy<MetadataReference> s_systemRuntimeSerializationRef_v4_0_30319_17929 = new Lazy<MetadataReference>(
+            () => AssemblyMetadata.CreateFromImage(ResourcesNet451.SystemRuntimeSerialization).GetReference(display: "System.Runtime.Serialization.v4_0_30319_17929.dll"),
+            LazyThreadSafetyMode.PublicationOnly);
+        public static MetadataReference SystemRuntimeSerializationRef_v4_0_30319_17929 => s_systemRuntimeSerializationRef_v4_0_30319_17929.Value;
 
         private static readonly Lazy<MetadataReference> s_systemCoreRef_v46 = new Lazy<MetadataReference>(
             () => AssemblyMetadata.CreateFromImage(ResourcesNet461.SystemCore).GetReference(display: "System.Core.v4_6_1038_0.dll"),

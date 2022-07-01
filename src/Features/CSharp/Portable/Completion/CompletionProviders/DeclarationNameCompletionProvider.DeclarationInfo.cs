@@ -72,7 +72,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return result;
                 }
 
-                return default;
+                return new NameDeclarationInfo(
+                    possibleSymbolKinds: ImmutableArray<SymbolKindOrTypeKind>.Empty,
+                    accessibility: null,
+                    declarationModifiers: default,
+                    type: null,
+                    alias: null);
             }
 
             private static bool IsTupleTypeElement(

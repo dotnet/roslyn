@@ -4,8 +4,11 @@
 
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MoveStaticMembers;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities.MoveStaticMembers
 {
@@ -20,23 +23,31 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveStaticMembers
         {
         }
 
-        public string? DestinationType { get; set; }
+        public string? DestinationName { get; set; }
 
         public ImmutableArray<string> SelectedMembers { get; set; }
 
         public string? Filename { get; set; }
 
+        public bool CreateNew { get; set; } = true;
+
         public MoveStaticMembersOptions GetMoveMembersToTypeOptions(Document document, INamedTypeSymbol selectedType, ISymbol? selectedNodeSymbol)
         {
             var selectedMembers = selectedType.GetMembers().WhereAsArray(symbol => SelectedMembers.Contains(symbol.Name));
-            var namespaceDisplay = selectedType.ContainingNamespace.IsGlobalNamespace
-                ? string.Empty
-                : selectedType.ContainingNamespace.ToDisplayString();
-            // just return all the selected members
-            return new MoveStaticMembersOptions(
-                Filename!,
-                string.Join(".", namespaceDisplay, DestinationType!),
-                selectedMembers);
+            if (CreateNew)
+            {
+                var namespaceDisplay = selectedType.ContainingNamespace.IsGlobalNamespace
+                    ? string.Empty
+                    : selectedType.ContainingNamespace.ToDisplayString();
+                // just return all the selected members
+                return new MoveStaticMembersOptions(
+                    Filename!,
+                    string.Join(".", namespaceDisplay, DestinationName!),
+                    selectedMembers);
+            }
+
+            var destination = selectedType.ContainingNamespace.GetAllTypes(CancellationToken.None).First(t => t.ToDisplayString() == DestinationName);
+            return new MoveStaticMembersOptions(destination, selectedMembers);
         }
     }
 }

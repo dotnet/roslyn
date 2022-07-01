@@ -1383,6 +1383,8 @@ public sealed class C : IDisposable
             var options = Option(CodeStyleOptions2.UnusedParameters,
                 new CodeStyleOption2<UnusedParametersPreference>((UnusedParametersPreference)2, NotificationOption2.Suggestion));
 
+            var parameters = new TestParameters(globalOptions: options, retainNonFixableDiagnostics: true);
+
             await TestDiagnosticMissingAsync(
 @"using System;
 using System.Threading.Tasks;
@@ -1402,7 +1404,7 @@ public sealed class C : IDisposable
     private void myAction() { }
 
     public void Dispose() => task.Result.MyAction -= myAction;
-}", options);
+}", parameters);
         }
 #endif
 
@@ -1500,6 +1502,36 @@ class C
 {
     public C(int [|i|])
         => throw new NotImplementedException();
+}");
+        }
+
+        [WorkItem(56317, "https://github.com/dotnet/roslyn/issues/56317")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task NotImplementedException_NoDiagnostic4()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System;
+
+class C
+{
+    private int Goo(int [|i|])
+        => throw new NotImplementedException();
+}");
+        }
+
+        [WorkItem(56317, "https://github.com/dotnet/roslyn/issues/56317")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task NotImplementedException_NoDiagnostic5()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System;
+
+class C
+{
+    private int Goo(int [|i|])
+    {
+        throw new NotImplementedException();
+    }
 }");
         }
 

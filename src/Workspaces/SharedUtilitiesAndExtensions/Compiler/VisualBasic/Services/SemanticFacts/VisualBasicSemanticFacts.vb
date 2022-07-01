@@ -19,6 +19,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Sub New()
         End Sub
 
+        Public ReadOnly Property SyntaxFacts As ISyntaxFacts Implements ISemanticFacts.SyntaxFacts
+            Get
+                Return VisualBasicSyntaxFacts.Instance
+            End Get
+        End Property
+
         Public ReadOnly Property SupportsImplicitInterfaceImplementation As Boolean Implements ISemanticFacts.SupportsImplicitInterfaceImplementation
             Get
                 Return False
@@ -99,11 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-        Public ReadOnly Property SupportsParameterizedProperties As Boolean Implements ISemanticFacts.SupportsParameterizedProperties
-            Get
-                Return True
-            End Get
-        End Property
+        Public ReadOnly Property SupportsParameterizedProperties As Boolean = True Implements ISemanticFacts.SupportsParameterizedProperties
 
         Public Function TryGetSpeculativeSemanticModel(oldSemanticModel As SemanticModel, oldNode As SyntaxNode, newNode As SyntaxNode, <Out> ByRef speculativeModel As SemanticModel) As Boolean Implements ISemanticFacts.TryGetSpeculativeSemanticModel
             Debug.Assert(oldNode.Kind = newNode.Kind)
@@ -225,8 +227,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return SpecializedCollections.SingletonEnumerable(semanticModel.GetDeclaredSymbol(memberDeclaration, cancellationToken))
         End Function
 
-        Public Function FindParameterForArgument(semanticModel As SemanticModel, argumentNode As SyntaxNode, cancellationToken As CancellationToken) As IParameterSymbol Implements ISemanticFacts.FindParameterForArgument
-            Return DirectCast(argumentNode, ArgumentSyntax).DetermineParameter(semanticModel, allowParamArray:=False, cancellationToken)
+        Public Function FindParameterForArgument(semanticModel As SemanticModel, argument As SyntaxNode, allowUncertainCandidates As Boolean, cancellationToken As CancellationToken) As IParameterSymbol Implements ISemanticFacts.FindParameterForArgument
+            Return DirectCast(argument, ArgumentSyntax).DetermineParameter(semanticModel, allowUncertainCandidates, allowParamArray:=False, cancellationToken)
+        End Function
+
+        Public Function FindParameterForAttributeArgument(semanticModel As SemanticModel, argument As SyntaxNode, allowUncertainCandidates As Boolean, cancellationToken As CancellationToken) As IParameterSymbol Implements ISemanticFacts.FindParameterForAttributeArgument
+            Return Nothing
+        End Function
+
+        Public Function FindFieldOrPropertyForArgument(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As ISymbol Implements ISemanticFacts.FindFieldOrPropertyForArgument
+            Dim argument = TryCast(node, SimpleArgumentSyntax)
+            If argument?.NameColonEquals IsNot Nothing AndAlso
+               TypeOf argument.Parent Is ArgumentListSyntax AndAlso
+               TypeOf argument.Parent.Parent Is AttributeSyntax Then
+
+                Dim symbol = semanticModel.GetSymbolInfo(argument.NameColonEquals.Name, cancellationToken).GetAnySymbol()
+                If symbol?.Kind = SymbolKind.Field OrElse symbol?.Kind = SymbolKind.Property Then
+                    Return symbol
+                End If
+            End If
+
+            Return Nothing
+        End Function
+
+        Public Function FindFieldOrPropertyForAttributeArgument(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As ISymbol Implements ISemanticFacts.FindFieldOrPropertyForAttributeArgument
+            Return Nothing
         End Function
 
         Public Function GetBestOrAllSymbols(semanticModel As SemanticModel, node As SyntaxNode, token As SyntaxToken, cancellationToken As CancellationToken) As ImmutableArray(Of ISymbol) Implements ISemanticFacts.GetBestOrAllSymbols
@@ -237,6 +262,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function IsInsideNameOfExpression(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As Boolean Implements ISemanticFacts.IsInsideNameOfExpression
             Return node.FirstAncestorOrSelf(Of NameOfExpressionSyntax) IsNot Nothing
+        End Function
+
+        Public Function GetLocalFunctionSymbols(compilation As Compilation, symbol As ISymbol, cancellationToken As CancellationToken) As ImmutableArray(Of IMethodSymbol) Implements ISemanticFacts.GetLocalFunctionSymbols
+            Return ImmutableArray(Of IMethodSymbol).Empty
+        End Function
+
+        Public Function IsInExpressionTree(semanticModel As SemanticModel, node As SyntaxNode, expressionTypeOpt As INamedTypeSymbol, cancellationToken As CancellationToken) As Boolean Implements ISemanticFacts.IsInExpressionTree
+            Return node.IsInExpressionTree(semanticModel, expressionTypeOpt, cancellationToken)
         End Function
     End Class
 End Namespace

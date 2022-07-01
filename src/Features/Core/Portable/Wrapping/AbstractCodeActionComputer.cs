@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -12,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -49,11 +51,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
             protected readonly Document OriginalDocument;
             protected readonly SourceText OriginalSourceText;
             protected readonly CancellationToken CancellationToken;
-
-            protected readonly bool UseTabs;
-            protected readonly int TabSize;
-            protected readonly string NewLine;
-            protected readonly int WrappingColumn;
+            protected readonly SyntaxWrappingOptions Options;
 
             protected readonly SyntaxTriviaList NewLineTrivia;
             protected readonly SyntaxTriviaList SingleWhitespaceTrivia;
@@ -69,48 +67,50 @@ namespace Microsoft.CodeAnalysis.Wrapping
                 TWrapper service,
                 Document document,
                 SourceText originalSourceText,
-                DocumentOptionSet options,
+                SyntaxWrappingOptions options,
                 CancellationToken cancellationToken)
             {
                 Wrapper = service;
                 OriginalDocument = document;
                 OriginalSourceText = originalSourceText;
                 CancellationToken = cancellationToken;
-
-                UseTabs = options.GetOption(FormattingOptions.UseTabs);
-                TabSize = options.GetOption(FormattingOptions.TabSize);
-                NewLine = options.GetOption(FormattingOptions.NewLine);
-                WrappingColumn = options.GetOption(FormattingBehaviorOptions.PreferredWrappingColumn);
+                Options = options;
 
                 var generator = SyntaxGenerator.GetGenerator(document);
                 var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
-                NewLineTrivia = new SyntaxTriviaList(generatorInternal.EndOfLine(NewLine));
+                NewLineTrivia = new SyntaxTriviaList(generatorInternal.EndOfLine(options.FormattingOptions.NewLine));
                 SingleWhitespaceTrivia = new SyntaxTriviaList(generator.Whitespace(" "));
             }
 
             protected abstract Task<ImmutableArray<WrappingGroup>> ComputeWrappingGroupsAsync();
 
             protected string GetSmartIndentationAfter(SyntaxNodeOrToken nodeOrToken)
+                => GetIndentationAfter(nodeOrToken, FormattingOptions2.IndentStyle.Smart);
+
+            protected string GetIndentationAfter(SyntaxNodeOrToken nodeOrToken, FormattingOptions2.IndentStyle indentStyle)
             {
-                var newSourceText = OriginalSourceText.WithChanges(new TextChange(new TextSpan(nodeOrToken.Span.End, 0), NewLine));
+                var newLine = Options.FormattingOptions.NewLine;
+                var newSourceText = OriginalSourceText.WithChanges(new TextChange(new TextSpan(nodeOrToken.Span.End, 0), newLine));
                 newSourceText = newSourceText.WithChanges(
-                    new TextChange(TextSpan.FromBounds(nodeOrToken.Span.End + NewLine.Length, newSourceText.Length), ""));
+                    new TextChange(TextSpan.FromBounds(nodeOrToken.Span.End + newLine.Length, newSourceText.Length), ""));
+
                 var newDocument = OriginalDocument.WithText(newSourceText);
+
+                // The only auto-formatting option that's relevant is indent style. Others only control behavior on typing.
+                var indentationOptions = new IndentationOptions(Options.FormattingOptions) { IndentStyle = indentStyle };
 
                 var indentationService = Wrapper.IndentationService;
                 var originalLineNumber = newSourceText.Lines.GetLineFromPosition(nodeOrToken.Span.End).LineNumber;
+
+                // TODO: should be async https://github.com/dotnet/roslyn/issues/61998
+                var newParsedDocument = ParsedDocument.CreateSynchronously(newDocument, CancellationToken);
+
                 var desiredIndentation = indentationService.GetIndentation(
-                    newDocument, originalLineNumber + 1,
-                    FormattingOptions.IndentStyle.Smart,
+                    newParsedDocument, originalLineNumber + 1,
+                    indentationOptions,
                     CancellationToken);
 
-                var baseLine = newSourceText.Lines.GetLineFromPosition(desiredIndentation.BasePosition);
-                var baseOffsetInLine = desiredIndentation.BasePosition - baseLine.Start;
-
-                var indent = baseOffsetInLine + desiredIndentation.Offset;
-
-                var indentString = indent.CreateIndentationString(UseTabs, TabSize);
-                return indentString;
+                return desiredIndentation.GetIndentationString(newSourceText, Options.FormattingOptions.UseTabs, Options.FormattingOptions.TabSize);
             }
 
             /// <summary>
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
             {
                 var newDocument = OriginalDocument.WithSyntaxRoot(rewrittenRoot);
                 var formattedDocument = await Formatter.FormatAsync(
-                    newDocument, spanToFormat, cancellationToken: CancellationToken).ConfigureAwait(false);
+                    newDocument, spanToFormat, Options.FormattingOptions, CancellationToken).ConfigureAwait(false);
                 return formattedDocument;
             }
 
@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
                     // Make our code action low priority.  This option will be offered *a lot*, and 
                     // much of  the time will not be something the user particularly wants to do.  
                     // It should be offered after all other normal refactorings.
-                    result.Add(new CodeActionWithNestedActions(
+                    result.Add(CodeActionWithNestedActions.Create(
                         wrappingActions[0].ParentTitle, sorted,
                         group.IsInlinable, CodeActionPriority.Low));
                 }

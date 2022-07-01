@@ -13,6 +13,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class DocumentExtensions
     {
+        public static bool IsFromPrimaryBranch(this Document document)
+            => document.Project.Solution.BranchId == document.Project.Solution.Workspace.PrimaryBranchId;
+
         public static async ValueTask<SyntaxTreeIndex> GetSyntaxTreeIndexAsync(this Document document, CancellationToken cancellationToken)
         {
             var result = await SyntaxTreeIndex.GetIndexAsync(document, loadOnly: false, cancellationToken).ConfigureAwait(false);
@@ -46,6 +49,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         internal static Document WithSolutionOptions(this Document document, OptionSet options)
-            => document.Project.Solution.WithOptions(options).GetDocument(document.Id)!;
+            => document.Project.Solution.WithOptions(options).GetRequiredDocument(document.Id);
     }
 }

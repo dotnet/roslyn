@@ -12,30 +12,9 @@ using Microsoft.CodeAnalysis.Storage;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Options
 {
-    [ExportGlobalOptionProvider, Shared]
-    internal sealed class InternalFeatureOnOffOptions : IOptionProvider
+    internal sealed class InternalFeatureOnOffOptions
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public InternalFeatureOnOffOptions()
-        {
-        }
-
-        ImmutableArray<IOption> IOptionProvider.Options { get; } = ImmutableArray.Create<IOption>(
-            BraceMatching,
-            Classification,
-            SemanticColorizer,
-            SyntacticColorizer,
-            AutomaticLineEnder,
-            SmartIndenter,
-            Squiggles,
-            FormatOnSave,
-            RenameTracking,
-            EventHookup,
-            Snippets,
-            BackgroundAnalysisMemoryMonitor);
-
-        private const string LocalRegistryPath = StorageOptions.LocalRegistryPath;
+        private const string LocalRegistryPath = @"Roslyn\Internal\OnOff\Features\";
         private const string FeatureName = "InternalFeatureOnOffOptions";
 
         public static readonly Option2<bool> BraceMatching = new(FeatureName, "BraceMatching", defaultValue: true,

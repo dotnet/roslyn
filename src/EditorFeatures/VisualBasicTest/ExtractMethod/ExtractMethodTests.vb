@@ -5,9 +5,14 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.AddImport
+Imports Microsoft.CodeAnalysis.CodeCleanup
+Imports Microsoft.CodeAnalysis.CodeGeneration
+Imports Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.ExtractMethod
+Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
@@ -96,11 +101,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
             Dim document = workspace.CurrentSolution.GetDocument(testDocument.Id)
             Assert.NotNull(document)
 
-            Dim originalOptions = Await document.GetOptionsAsync()
-            Dim options = originalOptions.WithChangedOption(ExtractMethodOptions.DontPutOutOrRefOnStruct, document.Project.Language, dontPutOutOrRefOnStruct)
+            Dim extractOptions = New ExtractMethodOptions() With {.DontPutOutOrRefOnStruct = dontPutOutOrRefOnStruct}
+            Dim cleanupOptions = CodeCleanupOptions.GetDefault(document.Project.LanguageServices)
 
             Dim sdocument = Await SemanticDocument.CreateAsync(document, CancellationToken.None)
-            Dim validator = New VisualBasicSelectionValidator(sdocument, snapshotSpan.Span.ToTextSpan(), options)
+            Dim validator = New VisualBasicSelectionValidator(sdocument, snapshotSpan.Span.ToTextSpan(), extractOptions)
 
             Dim selectedCode = Await validator.GetValidSelectionAsync(CancellationToken.None)
             If Not succeeded And selectedCode.Status.Failed() Then
@@ -110,12 +115,17 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
             Assert.True(selectedCode.ContainsValidContext)
 
             ' extract method
-            Dim extractor = New VisualBasicMethodExtractor(CType(selectedCode, VisualBasicSelectionResult))
+            Dim extractGenerationOptions = New ExtractMethodGenerationOptions(CodeGenerationOptions.GetDefault(document.Project.LanguageServices)) With
+            {
+                .ExtractOptions = extractOptions
+            }
+
+            Dim extractor = New VisualBasicMethodExtractor(CType(selectedCode, VisualBasicSelectionResult), extractGenerationOptions)
             Dim result = Await extractor.ExtractMethodAsync(CancellationToken.None)
             Assert.NotNull(result)
             Assert.Equal(succeeded, result.Succeeded OrElse result.SucceededWithSuggestion)
 
-            Return Await (Await result.GetFormattedDocumentAsync(CancellationToken.None)).document.GetSyntaxRootAsync()
+            Return Await (Await result.GetFormattedDocumentAsync(cleanupOptions, CancellationToken.None)).document.GetSyntaxRootAsync()
         End Function
 
         Private Shared Async Function TestSelectionAsync(codeWithMarker As XElement, Optional ByVal expectedFail As Boolean = False) As Tasks.Task
@@ -128,10 +138,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
                 Assert.NotNull(document)
 
-                Dim originalOptions = Await document.GetOptionsAsync()
-
                 Dim sdocument = Await SemanticDocument.CreateAsync(document, CancellationToken.None)
-                Dim validator = New VisualBasicSelectionValidator(sdocument, namedSpans("b").Single(), originalOptions)
+                Dim validator = New VisualBasicSelectionValidator(sdocument, namedSpans("b").Single(), ExtractMethodOptions.Default)
                 Dim result = Await validator.GetValidSelectionAsync(CancellationToken.None)
 
                 If expectedFail Then
@@ -163,11 +171,9 @@ End Class</text>
                 Dim root = Await document.GetSyntaxRootAsync()
                 Dim iterator = root.DescendantNodesAndSelf()
 
-                Dim originalOptions = Await document.GetOptionsAsync()
-
                 For Each node In iterator
                     Try
-                        Dim validator = New VisualBasicSelectionValidator(sdocument, node.Span, originalOptions)
+                        Dim validator = New VisualBasicSelectionValidator(sdocument, node.Span, ExtractMethodOptions.Default)
                         Dim result = Await validator.GetValidSelectionAsync(CancellationToken.None)
 
                         ' check the obvious case

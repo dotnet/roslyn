@@ -54,6 +54,7 @@ namespace Microsoft.CodeAnalysis
                "System.Runtime.CompilerServices.Unsafe",
                "System.Runtime.Extensions",
                "System.Runtime.InteropServices",
+               "System.Runtime.InteropServices.RuntimeInformation",
                "System.Runtime.Loader",
                "System.Runtime.Numerics",
                "System.Runtime.Serialization.Primitives",

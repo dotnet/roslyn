@@ -5015,7 +5015,7 @@ class Class1
             Assert.Equal(TypeKind.Class, semanticInfo.Type.TypeKind);
             Assert.Equal("Class1", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
-            Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
+            Assert.Equal(ConversionKind.NoConversion, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.Inaccessible, semanticInfo.CandidateReason);
@@ -8985,7 +8985,7 @@ public class Test
             CreateCompilation(sourceCode).VerifyDiagnostics(
                 // (12,30): error CS1003: Syntax error, ':' expected
                 //             case /*<bind>*/()=>3/*</bind>*/:
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(":", "=>").WithLocation(12, 30),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(":").WithLocation(12, 30),
                 // (12,30): error CS1513: } expected
                 //             case /*<bind>*/()=>3/*</bind>*/:
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "=>").WithLocation(12, 30),
@@ -9032,7 +9032,7 @@ public class Test
             CreateCompilation(sourceCode).VerifyDiagnostics(
                 // (13,30): error CS1003: Syntax error, ':' expected
                 //             case /*<bind>*/()=>/*</bind>*/:
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(":", "=>").WithLocation(13, 30),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(":").WithLocation(13, 30),
                 // (13,30): error CS1513: } expected
                 //             case /*<bind>*/()=>/*</bind>*/:
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "=>").WithLocation(13, 30),
@@ -12351,7 +12351,7 @@ class Program<T>
         }
 
         [Fact]
-        public void AbstractClassWithNew()
+        public void AbstractClassWithNew_01()
         {
             string sourceCode = @"
 using System;
@@ -12365,6 +12365,42 @@ class Program
 }
 
 abstract class X { }
+
+";
+            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
+
+            Assert.Null(semanticInfo.Type);
+            Assert.Null(semanticInfo.ConvertedType);
+            Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
+
+            Assert.Null(semanticInfo.Symbol);
+            Assert.Equal(CandidateReason.NotCreatable, semanticInfo.CandidateReason);
+            Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
+            Assert.Equal("X", sortedCandidates[0].ToTestDisplayString());
+            Assert.Equal(SymbolKind.NamedType, sortedCandidates[0].Kind);
+
+            Assert.Equal(0, semanticInfo.MemberGroup.Length);
+        }
+
+        [Fact]
+        public void AbstractClassWithNew_02()
+        {
+            string sourceCode = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        object o = new /*<bind>*/X/*</bind>*/();
+    }
+}
+
+abstract class X
+{
+    public X() {}
+}
 
 ";
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);

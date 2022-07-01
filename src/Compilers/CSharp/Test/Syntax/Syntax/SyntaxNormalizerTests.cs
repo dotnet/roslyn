@@ -4,13 +4,9 @@
 
 #nullable disable
 
-using System.Text;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
+using System;
 using Roslyn.Test.Utilities;
 using Xunit;
-using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -73,6 +69,99 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
   2 => ""two"",
   3 => ""three"",
   { } => "">= 4""
+};".NormalizeLineEndings()
+            );
+        }
+
+        [Fact]
+        public void TestNormalizeSwitchExpressionRawStrings()
+        {
+            TestNormalizeStatement(
+                @"var x = (int)1 switch { 1 => """"""one"""""", 2 => """"""two"""""", 3 => """"""three"""""", {} => """""">= 4"""""" };",
+                @"var x = (int)1 switch
+{
+  1 => """"""one"""""",
+  2 => """"""two"""""",
+  3 => """"""three"""""",
+  { } => """""">= 4""""""
+};".NormalizeLineEndings()
+            );
+        }
+
+        [Fact]
+        public void TestNormalizeSwitchExpressionRawStringsUtf8_01()
+        {
+            TestNormalizeStatement(
+                @"var x = (int)1 switch { 1 => """"""one""""""u8, 2 => """"""two""""""U8, 3 => """"""three""""""u8, {} => """""">= 4""""""U8 };",
+                @"var x = (int)1 switch
+{
+  1 => """"""one""""""u8,
+  2 => """"""two""""""U8,
+  3 => """"""three""""""u8,
+  { } => """""">= 4""""""U8
+};".NormalizeLineEndings()
+            );
+        }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void TestNormalizeSwitchExpressionRawStringsMultiline()
+        {
+            TestNormalizeStatement(
+                @"var x = (int)1 switch { 1 => """"""
+       one
+  """""", 2 =>
+""""""
+   two
+"""""" };",
+                @"var x = (int)1 switch
+{
+  1 => """"""
+       one
+  """""",
+  2 => """"""
+   two
+""""""
+};".NormalizeLineEndings()
+            );
+        }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void TestNormalizeSwitchExpressionRawStringsMultilineUtf8_01()
+        {
+            TestNormalizeStatement(
+                @"var x = (int)1 switch { 1 => """"""
+       one
+  """"""U8, 2 =>
+""""""
+   two
+""""""u8 };",
+                @"var x = (int)1 switch
+{
+  1 => """"""
+       one
+  """"""U8,
+  2 => """"""
+   two
+""""""u8
+};".NormalizeLineEndings()
+            );
+        }
+
+        [Fact]
+        public void TestNormalizeSwitchExpressionStringsUtf8()
+        {
+            TestNormalizeStatement(
+                @"var x = (int)1 switch { 1 =>
+    ""one""u8     , 2 =>
+  @""two""u8   , 3 =>
+ ""three""U8  , {} =>
+@"">= 4""U8 };",
+                @"var x = (int)1 switch
+{
+  1 => ""one""u8,
+  2 => @""two""u8,
+  3 => ""three""U8,
+  { } => @"">= 4""U8
 };".NormalizeLineEndings()
             );
         }
@@ -185,6 +274,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             );
         }
 
+        [Fact]
+        public void TestLineBreakRawInterpolations()
+        {
+            TestNormalizeExpression(
+                @"$""""""Printed: {                    new Printer() { TextToPrint = ""Hello world!"" }.PrintedText }""""""",
+                @"$""""""Printed: {new Printer()
+{TextToPrint = ""Hello world!""}.PrintedText}""""""".Replace("\r\n", "\n").Replace("\n", "\r\n")
+            );
+        }
+
         [Fact, WorkItem(50742, "https://github.com/dotnet/roslyn/issues/50742")]
         public void TestVerbatimStringInterpolationWithLineBreaks()
         {
@@ -200,6 +299,26 @@ breaks
 breaks
 {new[]{1, 2, 3}[2]}
             "");"
+            );
+        }
+
+        [Fact]
+        public void TestRawStringInterpolationWithLineBreaks()
+        {
+            TestNormalizeStatement(@"Console.WriteLine($""""""
+            Test with line
+            breaks
+            {
+                            new[]{
+                 1, 2, 3
+              }[2]
+            }
+            """""");",
+            @"Console.WriteLine($""""""
+            Test with line
+            breaks
+            {new[]{1, 2, 3}[2]}
+            """""");"
             );
         }
 
@@ -230,6 +349,9 @@ breaks
             TestNormalizeExpression("a!=b", "a != b");
             TestNormalizeExpression("a<<b", "a << b");
             TestNormalizeExpression("a>>b", "a >> b");
+            TestNormalizeExpression("a>>>b", "a >>> b");
+            TestNormalizeExpression("a>>=b", "a >>= b");
+            TestNormalizeExpression("a>>>=b", "a >>>= b");
             TestNormalizeExpression("a??b", "a ?? b");
 
             TestNormalizeExpression("a<b>.c", "a<b>.c");
@@ -253,6 +375,7 @@ breaks
 
             TestNormalizeExpression("(IList<int>)args", "(IList<int>)args");
             TestNormalizeExpression("(IList<IList<int>>)args", "(IList<IList<int>>)args");
+            TestNormalizeExpression("(IList<IList<IList<int>>>)args", "(IList<IList<IList<int>>>)args");
 
             TestNormalizeExpression("(IList<string?>)args", "(IList<string?>)args");
         }
@@ -359,6 +482,35 @@ breaks
         }
 
         [Theory]
+        [InlineData("[ return:A ]void Local( [ B ]object o){}", "[return: A]\r\nvoid Local([B] object o)\r\n{\r\n}")]
+        [InlineData("[A,B][C]T Local<T>()=>default;", "[A, B]\r\n[C]\r\nT Local<T>() => default;")]
+        public void TestLocalFunctionAttributes(string text, string expected)
+        {
+            TestNormalizeStatement(text, expected);
+        }
+
+        [Theory]
+        [InlineData("( [ A ]x)=>x", "([A] x) => x")]
+        [InlineData("[return:A]([B]object o)=>{}", "[return: A]\r\n([B] object o) =>\r\n{\r\n}")]
+        [InlineData("[ A ,B ] [C]()=>x", "[A, B]\r\n[C]\r\n() => x")]
+        [InlineData("[A]B()=>{ }", "[A]\r\nB() =>\r\n{\r\n}")]
+        [WorkItem(59653, "https://github.com/dotnet/roslyn/issues/59653")]
+        public void TestLambdaAttributes(string text, string expected)
+        {
+            TestNormalizeExpression(text, expected);
+        }
+
+        [Theory]
+        [InlineData("int( x )=>x", "int (x) => x")]
+        [InlineData("A( B b )=>{}", "A(B b) =>\r\n{\r\n}")]
+        [InlineData("static\r\nasync\r\nA<int>()=>x", "static async A<int>() => x")]
+        [WorkItem(59653, "https://github.com/dotnet/roslyn/issues/59653")]
+        public void TestLambdaReturnType(string text, string expected)
+        {
+            TestNormalizeExpression(text, expected);
+        }
+
+        [Theory]
         [InlineData("int*p;", "int* p;")]
         [InlineData("int *p;", "int* p;")]
         [InlineData("int*p1,p2;", "int* p1, p2;")]
@@ -444,6 +596,20 @@ breaks
             TestNormalizeDeclaration("class a{void b(){}void c(){}}", "class a\r\n{\r\n  void b()\r\n  {\r\n  }\r\n\r\n  void c()\r\n  {\r\n  }\r\n}");
             TestNormalizeDeclaration("class a{a(){}}", "class a\r\n{\r\n  a()\r\n  {\r\n  }\r\n}");
             TestNormalizeDeclaration("class a{~a(){}}", "class a\r\n{\r\n  ~a()\r\n  {\r\n  }\r\n}");
+
+            // operators
+            TestNormalizeDeclaration("class a{b operator    checked-(c d){}}", "class a\r\n{\r\n  b operator checked -(c d)\r\n  {\r\n  }\r\n}");
+            TestNormalizeDeclaration("class a{ implicit operator    checked    b(c d){}}", "class a\r\n{\r\n  implicit operator checked b(c d)\r\n  {\r\n  }\r\n}");
+            TestNormalizeDeclaration("class a{ explicit operator    checked    b(c d){}}", "class a\r\n{\r\n  explicit operator checked b(c d)\r\n  {\r\n  }\r\n}");
+
+            TestNormalizeDeclaration("class a{b I1 . operator    checked-(c d){}}", "class a\r\n{\r\n  b I1.operator checked -(c d)\r\n  {\r\n  }\r\n}");
+            TestNormalizeDeclaration("class a{ implicit I1 . operator    checked    b(c d){}}", "class a\r\n{\r\n  implicit I1.operator checked b(c d)\r\n  {\r\n  }\r\n}");
+            TestNormalizeDeclaration("class a{ explicit I1 . operator    checked    b(c d){}}", "class a\r\n{\r\n  explicit I1.operator checked b(c d)\r\n  {\r\n  }\r\n}");
+
+            TestNormalizeDeclaration("class a{b operator    >>>  ( c  d , e f ){}}", "class a\r\n{\r\n  b operator >>>(c d, e f)\r\n  {\r\n  }\r\n}");
+            TestNormalizeDeclaration("class a{b I1 . operator    >>>  ( c  d , e f ){}}", "class a\r\n{\r\n  b I1.operator >>>(c d, e f)\r\n  {\r\n  }\r\n}");
+            TestNormalizeDeclaration("class a{b operator>>>  ( c  d , e f ){}}", "class a\r\n{\r\n  b operator >>>(c d, e f)\r\n  {\r\n  }\r\n}");
+            TestNormalizeDeclaration("class a{b I1 . operator>>>  ( c  d , e f ){}}", "class a\r\n{\r\n  b I1.operator >>>(c d, e f)\r\n  {\r\n  }\r\n}");
 
             // properties
             TestNormalizeDeclaration("class a{b c{get;}}", "class a\r\n{\r\n  b c { get; }\r\n}");
@@ -596,6 +762,29 @@ breaks
         }
 
         [Fact]
+        public void TestSpacingOnRawInterpolatedString()
+        {
+            TestNormalizeExpression("$\"\"\"{3:C}\"\"\"", "$\"\"\"{3:C}\"\"\"");
+            TestNormalizeExpression("$\"\"\"{3: C}\"\"\"", "$\"\"\"{3: C}\"\"\"");
+            TestNormalizeExpression("$\"\"\"{3:C }\"\"\"", "$\"\"\"{3:C }\"\"\"");
+            TestNormalizeExpression("$\"\"\"{3: C }\"\"\"", "$\"\"\"{3: C }\"\"\"");
+
+            TestNormalizeExpression("$\"\"\"{ 3:C}\"\"\"", "$\"\"\"{3:C}\"\"\"");
+            TestNormalizeExpression("$\"\"\"{ 3: C}\"\"\"", "$\"\"\"{3: C}\"\"\"");
+            TestNormalizeExpression("$\"\"\"{ 3:C }\"\"\"", "$\"\"\"{3:C }\"\"\"");
+            TestNormalizeExpression("$\"\"\"{ 3: C }\"\"\"", "$\"\"\"{3: C }\"\"\"");
+            TestNormalizeExpression("$\"\"\"{3 :C}\"\"\"", "$\"\"\"{3:C}\"\"\"");
+            TestNormalizeExpression("$\"\"\"{3 : C}\"\"\"", "$\"\"\"{3: C}\"\"\"");
+            TestNormalizeExpression("$\"\"\"{3 :C }\"\"\"", "$\"\"\"{3:C }\"\"\"");
+            TestNormalizeExpression("$\"\"\"{3 : C }\"\"\"", "$\"\"\"{3: C }\"\"\"");
+
+            TestNormalizeExpression("$\"\"\"{ 3 :C}\"\"\"", "$\"\"\"{3:C}\"\"\"");
+            TestNormalizeExpression("$\"\"\"{ 3 : C}\"\"\"", "$\"\"\"{3: C}\"\"\"");
+            TestNormalizeExpression("$\"\"\"{ 3 :C }\"\"\"", "$\"\"\"{3:C }\"\"\"");
+            TestNormalizeExpression("$\"\"\"{ 3 : C }\"\"\"", "$\"\"\"{3: C }\"\"\"");
+        }
+
+        [Fact]
         [WorkItem(23618, "https://github.com/dotnet/roslyn/issues/23618")]
         public void TestSpacingOnMethodConstraint()
         {
@@ -633,6 +822,12 @@ breaks
         public void TestNormalizeInterpolatedString()
         {
             TestNormalizeExpression(@"$""Message is {a}""", @"$""Message is {a}""");
+        }
+
+        [Fact]
+        public void TestNormalizeRawInterpolatedString()
+        {
+            TestNormalizeExpression(@"$""""""Message is {a}""""""", @"$""""""Message is {a}""""""");
         }
 
         [WorkItem(528584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528584")]
@@ -750,6 +945,29 @@ namespace goo
 ");
             // Note: without all the escaping, it looks like this '#line 1 @"""a\b"""' (i.e. the string literal has a value of '"a\b"').
             // Note: the literal was formatted as a C# string literal, not as a directive string literal.
+        }
+
+        [Fact]
+        public void TestNormalizeLineSpanDirectiveNode()
+        {
+            TestNormalize(
+                SyntaxFactory.LineSpanDirectiveTrivia(
+                    SyntaxFactory.Token(SyntaxKind.HashToken),
+                    SyntaxFactory.Token(SyntaxKind.LineKeyword),
+                    SyntaxFactory.LineDirectivePosition(SyntaxFactory.Literal(1), SyntaxFactory.Literal(2)),
+                    SyntaxFactory.Token(SyntaxKind.MinusToken),
+                    SyntaxFactory.LineDirectivePosition(SyntaxFactory.Literal(3), SyntaxFactory.Literal(4)),
+                    SyntaxFactory.Literal(5),
+                    SyntaxFactory.Literal("a.txt"),
+                    SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken),
+                    isActive: true),
+                "#line (1, 2) - (3, 4) 5 \"a.txt\"\r\n");
+        }
+
+        [Fact]
+        public void TestNormalizeLineSpanDirectiveTrivia()
+        {
+            TestNormalizeTrivia("  #  line( 1,2 )-(3,4)5\"a.txt\"", "#line (1, 2) - (3, 4) 5 \"a.txt\"\r\n");
         }
 
         [WorkItem(538115, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538115")]
@@ -1026,6 +1244,127 @@ class Derived : Base
         {
             var actual = trivia.NormalizeWhitespace("    ").ToFullString().NormalizeLineEndings();
             Assert.Equal(expected.NormalizeLineEndings(), actual);
+        }
+
+        [Fact]
+        [WorkItem(60884, "https://github.com/dotnet/roslyn/issues/60884")]
+        public void TestNormalizeXmlArgumentsInDocComment1()
+        {
+            const string Expected = @"/// Prefix <b a=""x"" b=""y"">S_OK</b> suffix";
+            const string Text = @"/// Prefix <b    a=""x""  b=""y"" >S_OK</b> suffix";
+            TestNormalizeDeclaration(Text, Expected);
+        }
+
+        [Fact]
+        [WorkItem(60884, "https://github.com/dotnet/roslyn/issues/60884")]
+        public void TestNormalizeXmlArgumentsInDocComment2()
+        {
+            const string Expected = @"/// Prefix <b a=""x"" b=""y"">S_OK</b> suffix";
+            TestNormalizeDeclaration(Expected, Expected);
+        }
+
+        [Fact]
+        [WorkItem(60884, "https://github.com/dotnet/roslyn/issues/60884")]
+        public void TestNormalizeXmlArgumentsInDocComment3()
+        {
+            const string Expected = @"/// Prefix <b a=""x"" b=""y""/> suffix";
+            const string Text = @"/// Prefix <b a=""x"" b=""y"" /> suffix";
+            TestNormalizeDeclaration(Text, Expected);
+        }
+
+        [Fact]
+        [WorkItem(60884, "https://github.com/dotnet/roslyn/issues/60884")]
+        public void TestNormalizeXmlArgumentsInDocComment4()
+        {
+            const string Expected = @"/// Prefix <b a=""x"">S_OK</b> suffix";
+            const string Text = @"/// Prefix <b    a=""x""	>S_OK</b> suffix";
+            TestNormalizeDeclaration(Text, Expected);
+        }
+
+        [Fact]
+        [WorkItem(60884, "https://github.com/dotnet/roslyn/issues/60884")]
+        public void TestNormalizeXmlArgumentsInDocComment5()
+        {
+            const string Expected = @"/// Prefix <b a=""x"" b=""y""/> suffix";
+            TestNormalizeDeclaration(Expected, Expected);
+        }
+
+        [Fact]
+        [WorkItem(60884, "https://github.com/dotnet/roslyn/issues/60884")]
+        public void TestNormalizeXmlArgumentsInDocComment6()
+        {
+            const string Expected = @"/// Prefix <b a=""x"" b=""y""/> suffix";
+            const string Text = @"/// Prefix <b a=""x""b=""y""/> suffix";
+            TestNormalizeDeclaration(Text, Expected);
+        }
+
+        [Fact]
+        [WorkItem(60884, "https://github.com/dotnet/roslyn/issues/60884")]
+        public void TestNormalizeXmlArgumentsInDocComment7()
+        {
+            const string Expected = @"/// Prefix <b b=""y"" a=""x"">S_OK</b> suffix";
+            const string Text = @"/// Prefix <b    b=""y""a=""x""	>S_OK</b> suffix";
+            TestNormalizeDeclaration(Text, Expected);
+        }
+
+        [Fact]
+        public void TestRequiredKeywordNormalization()
+        {
+            const string Expected = @"public required partial int Field;";
+            const string Text = @"public  required  partial int Field;";
+            TestNormalizeDeclaration(Text, Expected);
+        }
+
+        [Fact]
+        [WorkItem(61518, "https://github.com/dotnet/roslyn/issues/61518")]
+        public void TestNormalizeNestedUsingStatements1()
+        {
+            TestNormalizeStatement("using(a)using(b)c;", "using (a)\r\nusing (b)\r\n  c;");
+            TestNormalizeStatement("using(a)using(b){c;}", "using (a)\r\nusing (b)\r\n{\r\n  c;\r\n}");
+            TestNormalizeStatement("using(a)using(b)using(c)d;", "using (a)\r\nusing (b)\r\nusing (c)\r\n  d;");
+            TestNormalizeStatement("using(a)using(b)using(c){d;}", "using (a)\r\nusing (b)\r\nusing (c)\r\n{\r\n  d;\r\n}");
+
+            TestNormalizeStatement("using(a){using(b)c;}", "using (a)\r\n{\r\n  using (b)\r\n    c;\r\n}");
+            TestNormalizeStatement("using(a){using(b)using(c)d;}", "using (a)\r\n{\r\n  using (b)\r\n  using (c)\r\n    d;\r\n}");
+            TestNormalizeStatement("using(a)using(b){using(c)d;}", "using (a)\r\nusing (b)\r\n{\r\n  using (c)\r\n    d;\r\n}");
+            TestNormalizeStatement("using(a){using(b){using(c)d;}}", "using (a)\r\n{\r\n  using (b)\r\n  {\r\n    using (c)\r\n      d;\r\n  }\r\n}");
+        }
+
+        [Fact]
+        [WorkItem(61518, "https://github.com/dotnet/roslyn/issues/61518")]
+        public void TestNormalizeNestedFixedStatements1()
+        {
+            TestNormalizeStatement("fixed(int* a = null)fixed(int* b = null)c;", "fixed (int* a = null)\r\nfixed (int* b = null)\r\n  c;");
+            TestNormalizeStatement("fixed(int* a = null)fixed(int* b = null){c;}", "fixed (int* a = null)\r\nfixed (int* b = null)\r\n{\r\n  c;\r\n}");
+            TestNormalizeStatement("fixed(int* a = null)fixed(int* b = null)fixed(int* c = null)d;", "fixed (int* a = null)\r\nfixed (int* b = null)\r\nfixed (int* c = null)\r\n  d;");
+            TestNormalizeStatement("fixed(int* a = null)fixed(int* b = null)fixed(int* c = null){d;}", "fixed (int* a = null)\r\nfixed (int* b = null)\r\nfixed (int* c = null)\r\n{\r\n  d;\r\n}");
+
+            TestNormalizeStatement("fixed(int* a = null){fixed(int* b = null)c;}", "fixed (int* a = null)\r\n{\r\n  fixed (int* b = null)\r\n    c;\r\n}");
+            TestNormalizeStatement("fixed(int* a = null){fixed(int* b = null)fixed(int* c = null)d;}", "fixed (int* a = null)\r\n{\r\n  fixed (int* b = null)\r\n  fixed (int* c = null)\r\n    d;\r\n}");
+            TestNormalizeStatement("fixed(int* a = null)fixed(int* b = null){fixed(int* c = null)d;}", "fixed (int* a = null)\r\nfixed (int* b = null)\r\n{\r\n  fixed (int* c = null)\r\n    d;\r\n}");
+            TestNormalizeStatement("fixed(int* a = null){fixed(int* b = null){fixed(int* c = null)d;}}", "fixed (int* a = null)\r\n{\r\n  fixed (int* b = null)\r\n  {\r\n    fixed (int* c = null)\r\n      d;\r\n  }\r\n}");
+        }
+
+        [Fact]
+        [WorkItem(61518, "https://github.com/dotnet/roslyn/issues/61518")]
+        public void TestNormalizeNestedFixedUsingStatements1()
+        {
+            TestNormalizeStatement("using(a)fixed(int* b = null)c;", "using (a)\r\n  fixed (int* b = null)\r\n    c;");
+            TestNormalizeStatement("fixed(int* b = null)using(a)c;", "fixed (int* b = null)\r\n  using (a)\r\n    c;");
+        }
+
+        [Fact]
+        public void TestNormalizeScopedParameters()
+        {
+            TestNormalizeStatement("static  void  F  (  scoped  R  x  ,  scoped  ref  R  y  ,  ref  scoped  R  z  )  {  }", "static void F(scoped R x, scoped ref R y, ref scoped R z)\r\n{\r\n}");
+        }
+
+        [Fact]
+        public void TestNormalizeScopedLocals()
+        {
+            TestNormalizeStatement("scoped  R  x  ;", "scoped R x;");
+            TestNormalizeStatement("scoped  ref  R  y  ;", "scoped ref R y;");
+            TestNormalizeStatement("ref  scoped  R  z  ;", "ref scoped R z;");
         }
     }
 }

@@ -5,18 +5,14 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.AddImports
+Imports Microsoft.CodeAnalysis.AddImport
+Imports Microsoft.CodeAnalysis.CodeStyle
+Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
-
-#If CODE_STYLE Then
-Imports OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions
-#Else
-Imports Microsoft.CodeAnalysis.Options
-#End If
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.AddImports
     <ExportLanguageService(GetType(IAddImportsService), LanguageNames.VisualBasic), [Shared]>
@@ -63,9 +59,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImports
                                                FirstOrDefault()?.Alias
         End Function
 
-        Protected Overrides Function PlaceImportsInsideNamespaces(options As OptionSet) As Boolean
+        Public Overrides Function GetUsingDirectivePlacementCodeStyleOption(configOptions As AnalyzerConfigOptions, fallbackValue As CodeStyleOption2(Of AddImportPlacement)) As CodeStyleOption2(Of AddImportPlacement)
             ' Visual Basic doesn't support imports inside namespaces
-            Return False
+            Return fallbackValue
         End Function
 
         Protected Overrides Function IsStaticUsing(usingOrAlias As ImportsStatementSyntax) As Boolean
@@ -94,20 +90,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImports
                 usingContainer As SyntaxNode,
                 staticUsingContainer As SyntaxNode,
                 aliasContainer As SyntaxNode,
-                placeSystemNamespaceFirst As Boolean,
-                allowInHiddenRegions As Boolean,
+                options As AddImportPlacementOptions,
                 root As SyntaxNode,
                 cancellationToken As CancellationToken) As SyntaxNode
 
             Dim compilationUnit = DirectCast(root, CompilationUnitSyntax)
 
-            If Not compilationUnit.CanAddImportsStatements(allowInHiddenRegions, cancellationToken) Then
+            If Not compilationUnit.CanAddImportsStatements(options.AllowInHiddenRegions, cancellationToken) Then
                 Return compilationUnit
             End If
 
             Return compilationUnit.AddImportsStatements(
                 usingDirectives.Concat(aliasDirectives).ToList(),
-                placeSystemNamespaceFirst,
+                options.PlaceSystemNamespaceFirst,
                 Array.Empty(Of SyntaxAnnotation))
         End Function
 

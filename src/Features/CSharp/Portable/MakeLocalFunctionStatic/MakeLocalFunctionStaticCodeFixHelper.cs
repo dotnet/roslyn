@@ -25,11 +25,12 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             Document document,
             LocalFunctionStatementSyntax localFunction,
             ImmutableArray<ISymbol> captures,
+            CodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var root = (await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false))!;
-            var syntaxEditor = new SyntaxEditor(root, document.Project.Solution.Workspace);
-            await MakeLocalFunctionStaticAsync(document, localFunction, captures, syntaxEditor, cancellationToken).ConfigureAwait(false);
+            var syntaxEditor = new SyntaxEditor(root, document.Project.Solution.Workspace.Services);
+            await MakeLocalFunctionStaticAsync(document, localFunction, captures, syntaxEditor, fallbackOptions, cancellationToken).ConfigureAwait(false);
             return document.WithSyntaxRoot(syntaxEditor.GetChangedRoot());
         }
 
@@ -38,6 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             LocalFunctionStatementSyntax localFunction,
             ImmutableArray<ISymbol> captures,
             SyntaxEditor syntaxEditor,
+            CodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var root = (await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false))!;
@@ -138,15 +140,20 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
                 }
             }
 
+            var codeGenerator = document.GetRequiredLanguageService<ICodeGenerationService>();
+            var options = await document.GetCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var info = options.GetInfo(CodeGenerationContext.Default, document.Project);
+
             // Updates the local function declaration with variables passed in as parameters
             syntaxEditor.ReplaceNode(
                 localFunction,
                 (node, generator) =>
                 {
-                    var localFunctionWithNewParameters = CodeGenerator.AddParameterDeclarations(
+                    var localFunctionWithNewParameters = codeGenerator.AddParameters(
                         node,
                         parameterAndCapturedSymbols.SelectAsArray(p => p.symbol),
-                        document.Project.Solution.Workspace);
+                        info,
+                        cancellationToken);
 
                     if (shouldWarn)
                     {

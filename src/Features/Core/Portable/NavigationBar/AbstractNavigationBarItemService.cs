@@ -18,16 +18,17 @@ namespace Microsoft.CodeAnalysis.NavigationBar
     {
         protected abstract Task<ImmutableArray<RoslynNavigationBarItem>> GetItemsInCurrentProcessAsync(Document document, bool supportsCodeGeneration, CancellationToken cancellationToken);
 
-        public async Task<ImmutableArray<RoslynNavigationBarItem>> GetItemsAsync(Document document, bool supportsCodeGeneration, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<RoslynNavigationBarItem>> GetItemsAsync(Document document, bool supportsCodeGeneration, bool forceFrozenPartialSemanticsForCrossProcessOperations, CancellationToken cancellationToken)
         {
             var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
                 // Call the project overload.  We don't need the full solution synchronized over to the OOP
                 // in order to get accurate navbar contents for this document.
+                var documentId = document.Id;
                 var result = await client.TryInvokeAsync<IRemoteNavigationBarItemService, ImmutableArray<SerializableNavigationBarItem>>(
                     document.Project,
-                    (service, solutionInfo, cancellationToken) => service.GetItemsAsync(solutionInfo, document.Id, supportsCodeGeneration, cancellationToken),
+                    (service, solutionInfo, cancellationToken) => service.GetItemsAsync(solutionInfo, documentId, supportsCodeGeneration, forceFrozenPartialSemanticsForCrossProcessOperations, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
                 return result.HasValue

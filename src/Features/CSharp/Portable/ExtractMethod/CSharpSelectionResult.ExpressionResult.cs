@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 OperationStatus status,
                 TextSpan originalSpan,
                 TextSpan finalSpan,
-                OptionSet options,
+                ExtractMethodOptions options,
                 bool selectionInExpression,
                 SemanticDocument document,
                 SyntaxAnnotation firstTokenAnnotation,
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             // let's see whether this interface has coclass attribute
-            return info.ConvertedType.GetAttributes().Any(c => c.AttributeClass?.Equals(coclassSymbol) == true);
+            return info.ConvertedType.GetAttributes().Any(static (c, coclassSymbol) => c.AttributeClass?.Equals(coclassSymbol) == true, coclassSymbol);
         }
     }
 }

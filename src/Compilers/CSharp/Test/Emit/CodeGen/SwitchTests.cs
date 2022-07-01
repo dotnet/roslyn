@@ -4106,8 +4106,10 @@ class Program
                 source: new[] { Parse(text) },
                 references: new[] { AacorlibRef });
 
-
-            var verifier = CompileAndVerify(comp, verify: Verification.Fails);
+            // PEVerify:
+            // Error: Assembly name contains leading spaces or path or extension.
+            // Type load failed.
+            var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify);
             verifier.VerifyIL("Program.Main", @"
 {
   // Code size      223 (0xdf)

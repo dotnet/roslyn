@@ -2,13 +2,16 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
+Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 Imports Microsoft.CodeAnalysis.VisualBasic.Indentation
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.VisualStudio.Text.Editor
@@ -153,7 +156,7 @@ $$)
 End Class
 </code>.Value.Replace(vbLf, vbCrLf)
 
-            Await ExpectException_TestAsync(code, 4, FormattingOptions.IndentStyle.Block)
+            Await ExpectException_TestAsync(code, 4, FormattingOptions2.IndentStyle.Block)
         End Function
 
         <Fact>
@@ -166,22 +169,19 @@ $$)
 End Class
 </code>.Value.Replace(vbLf, vbCrLf)
 
-            Await ExpectException_TestAsync(code, indentation:=0, indentStyle:=FormattingOptions.IndentStyle.None)
+            Await ExpectException_TestAsync(code, indentation:=0, indentStyle:=FormattingOptions2.IndentStyle.None)
         End Function
 
-        Private Shared Async Function ExpectException_TestAsync(codeWithMarkup As String, indentation As Integer, Optional indentStyle As FormattingOptions.IndentStyle = FormattingOptions.IndentStyle.Smart) As Task
+        Private Shared Async Function ExpectException_TestAsync(codeWithMarkup As String, indentation As Integer, Optional indentStyle As FormattingOptions2.IndentStyle = FormattingOptions2.IndentStyle.Smart) As Task
             Assert.NotNull(Await Record.ExceptionAsync(Function() TestAsync(codeWithMarkup, indentation, indentStyle:=indentStyle)))
         End Function
 
-        Private Shared Async Function TestAsync(codeWithMarkup As String, indentation As Integer, Optional indentStyle As FormattingOptions.IndentStyle = FormattingOptions.IndentStyle.Smart) As Threading.Tasks.Task
+        Private Shared Async Function TestAsync(codeWithMarkup As String, indentation As Integer, Optional indentStyle As FormattingOptions2.IndentStyle = FormattingOptions2.IndentStyle.Smart) As Threading.Tasks.Task
             Dim code As String = Nothing
             Dim position As Integer = 0
             MarkupTestFile.GetPosition(codeWithMarkup, code, position)
 
             Using workspace = TestWorkspace.CreateVisualBasic(code)
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(FormattingOptions.SmartIndent, LanguageNames.VisualBasic, indentStyle)))
-
                 Dim hostdoc = workspace.Documents.First()
                 Dim buffer = hostdoc.GetTextBuffer()
 
@@ -190,10 +190,9 @@ End Class
 
                 Dim document = workspace.CurrentSolution.GetDocument(hostdoc.Id)
                 Dim root = DirectCast(Await document.GetSyntaxRootAsync(), CompilationUnitSyntax)
-                Dim options = Await document.GetOptionsAsync()
-                Dim documentIndentStyle = options.GetOption(FormattingOptions.SmartIndent, root.Language)
+                Dim options = VisualBasicSyntaxFormattingOptions.Default
 
-                Dim formattingRules = New SpecialFormattingRule(documentIndentStyle).Concat(Formatter.GetDefaultFormattingRules(document))
+                Dim formattingRules = ImmutableArray.Create(Of AbstractFormattingRule)(New SpecialFormattingRule(indentStyle)).AddRange(Formatter.GetDefaultFormattingRules(document))
 
                 ' get token
                 Dim token = root.FindToken(position)
@@ -201,14 +200,12 @@ End Class
                 Dim previousToken = token.GetPreviousToken(includeZeroWidth:=True)
                 Dim ignoreMissingToken = previousToken.IsMissing AndAlso line.Start.Position = position
 
-                Dim optionService = workspace.Services.GetRequiredService(Of IOptionService)()
-
                 Assert.True(VisualBasicIndentationService.ShouldUseSmartTokenFormatterInsteadOfIndenter(
-                            formattingRules, root, line.AsTextLine, optionService, workspace.Options,
-                            Nothing, ignoreMissingToken))
+                            formattingRules, root, line.AsTextLine, options, Nothing, ignoreMissingToken))
 
-                Dim smartFormatter = New VisualBasicSmartTokenFormatter(Await document.GetOptionsAsync(CancellationToken.None), formattingRules, root)
-                Dim changes = Await smartFormatter.FormatTokenAsync(workspace, token, Nothing)
+                Dim formatOptions = VisualBasicSyntaxFormattingOptions.Default
+                Dim smartFormatter = New VisualBasicSmartTokenFormatter(formatOptions, formattingRules, root)
+                Dim changes = smartFormatter.FormatToken(token, Nothing)
 
                 Using edit = buffer.CreateEdit()
                     For Each change In changes

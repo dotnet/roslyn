@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -65,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 
         private static async Task TestWithOptionsAsync(Document document, QuickInfoService service, int position, Action<QuickInfoItem>[] expectedResults)
         {
-            var info = await service.GetQuickInfoAsync(document, position, cancellationToken: CancellationToken.None);
+            var info = await service.GetQuickInfoAsync(document, position, SymbolDescriptionOptions.Default, CancellationToken.None);
 
             if (expectedResults.Length == 0)
             {
@@ -100,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 
             var service = QuickInfoService.GetService(document);
 
-            var info = await service.GetQuickInfoAsync(document, position, cancellationToken: CancellationToken.None);
+            var info = await service.GetQuickInfoAsync(document, position, SymbolDescriptionOptions.Default, CancellationToken.None);
 
             if (expectedResults.Length == 0)
             {
@@ -143,6 +144,12 @@ using System.Linq;
         private Task TestInMethodAsync(string markup, params Action<QuickInfoItem>[] expectedResults)
         {
             var markupInMethod = "class C { void M() { " + markup + " } }";
+            return TestWithUsingsAsync(markupInMethod, expectedResults);
+        }
+
+        private Task TestInMethodAsync(string markup, string extraSource, params Action<QuickInfoItem>[] expectedResults)
+        {
+            var markupInMethod = "class C { void M() { " + markup + " } }" + extraSource;
             return TestWithUsingsAsync(markupInMethod, expectedResults);
         }
 
@@ -244,7 +251,7 @@ using System.Linq;
 
             var service = QuickInfoService.GetService(document);
 
-            var info = await service.GetQuickInfoAsync(document, position, cancellationToken: CancellationToken.None);
+            var info = await service.GetQuickInfoAsync(document, position, SymbolDescriptionOptions.Default, CancellationToken.None);
 
             if (expectedResults.Length == 0)
             {
@@ -1031,7 +1038,97 @@ x = x + $$x;",
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestOperatorCustomTypeBuiltIn()
+        public async Task TestOperatorBuiltIn5()
+        {
+            await TestInMethodAsync(
+@"int x;
+
+x = unchecked (x$$+1);",
+                MainDescription("int int.operator +(int left, int right)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestOperatorBuiltIn6()
+        {
+            await TestInMethodAsync(
+@"int x;
+
+x = checked (x$$+1);",
+                MainDescription("int int.operator checked +(int left, int right)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestOperatorBuiltIn7()
+        {
+            await TestInMethodAsync(
+@"int x;
+
+x = unchecked (x +$$ x);",
+                MainDescription("int int.operator +(int left, int right)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestOperatorBuiltIn8()
+        {
+            await TestInMethodAsync(
+@"int x;
+
+x = checked (x +$$ x);",
+                MainDescription("int int.operator checked +(int left, int right)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestOperatorBuiltIn9()
+        {
+            await TestInMethodAsync(
+@"int x;
+
+x = $$-x;",
+                MainDescription("int int.operator -(int value)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestOperatorBuiltIn10()
+        {
+            await TestInMethodAsync(
+@"int x;
+
+x = unchecked ($$-x);",
+                MainDescription("int int.operator -(int value)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestOperatorBuiltIn11()
+        {
+            await TestInMethodAsync(
+@"int x;
+
+x = checked ($$-x);",
+                MainDescription("int int.operator checked -(int value)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestOperatorBuiltIn12()
+        {
+            await TestInMethodAsync(
+@"int x;
+
+x = x >>>$$ x;",
+                MainDescription("int int.operator >>>(int left, int right)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestOperatorBuiltIn13()
+        {
+            await TestInMethodAsync(
+@"int x;
+
+x >>>=$$ x;",
+                MainDescription("int int.operator >>>(int left, int right)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestOperatorCustomTypeBuiltIn_01()
         {
             var markup =
 @"class C
@@ -1043,7 +1140,19 @@ x = x + $$x;",
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestOperatorCustomTypeOverload()
+        public async Task TestOperatorCustomTypeBuiltIn_02()
+        {
+            var markup =
+@"class C
+{
+    static void M() { C c; c = c >>>$$ c; }
+}";
+
+            await TestAsync(markup);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestOperatorCustomTypeOverload_01()
         {
             var markup =
 @"class C
@@ -1054,6 +1163,136 @@ x = x + $$x;",
 
             await TestAsync(markup,
                 MainDescription("C C.operator +(C a, C b)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestOperatorCustomTypeOverload_02()
+        {
+            var markup =
+@"class C
+{
+    static void M() { C c; c = unchecked (c +$$ c); }
+    static C operator+(C a, C b) { return a; }
+}";
+
+            await TestAsync(markup,
+                MainDescription("C C.operator +(C a, C b)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestOperatorCustomTypeOverload_03()
+        {
+            var markup =
+@"class C
+{
+    static void M() { C c; c = unchecked (c +$$ c); }
+    static C operator+(C a, C b) { return a; }
+    static C operator checked +(C a, C b) { return a; }
+}";
+
+            await TestAsync(markup,
+                MainDescription("C C.operator +(C a, C b)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestOperatorCustomTypeOverload_04()
+        {
+            var markup =
+@"class C
+{
+    static void M() { C c; c = checked (c +$$ c); }
+    static C operator+(C a, C b) { return a; }
+    static C operator checked +(C a, C b) { return a; }
+}";
+
+            await TestAsync(markup,
+                MainDescription("C C.operator checked +(C a, C b)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestOperatorCustomTypeOverload_05()
+        {
+            var markup =
+@"class C
+{
+    static void M() { C c; c =  $$-c; }
+    static C operator-(C a) { return a; }
+}";
+
+            await TestAsync(markup,
+                MainDescription("C C.operator -(C a)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestOperatorCustomTypeOverload_06()
+        {
+            var markup =
+@"class C
+{
+    static void M() { C c; c =  unchecked ($$-c); }
+    static C operator-(C a) { return a; }
+}";
+
+            await TestAsync(markup,
+                MainDescription("C C.operator -(C a)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestOperatorCustomTypeOverload_07()
+        {
+            var markup =
+@"class C
+{
+    static void M() { C c; c =  unchecked ($$-c); }
+    static C operator-(C a) { return a; }
+    static C operator checked -(C a) { return a; }
+}";
+
+            await TestAsync(markup,
+                MainDescription("C C.operator -(C a)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestOperatorCustomTypeOverload_08()
+        {
+            var markup =
+@"class C
+{
+    static void M() { C c; c =  checked ($$-c); }
+    static C operator-(C a) { return a; }
+    static C operator checked -(C a) { return a; }
+}";
+
+            await TestAsync(markup,
+                MainDescription("C C.operator checked -(C a)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestOperatorCustomTypeOverload_09()
+        {
+            var markup =
+@"class C
+{
+    static void M() { C c; c = c >>>$$ c; }
+    static C operator>>>(C a, C b) { return a; }
+}";
+
+            await TestAsync(markup,
+                MainDescription("C C.operator >>>(C a, C b)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestOperatorCustomTypeOverload_10()
+        {
+            var markup =
+@"class C
+{
+    static void M() { C c; c >>>=$$ c; }
+    static C operator>>>(C a, C b) { return a; }
+}";
+
+            await TestAsync(markup,
+                MainDescription("C C.operator >>>(C a, C b)"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -1586,12 +1825,104 @@ class C
                 MainDescription("class System.String"));
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestStringLiteralUtf8_01()
+        {
+            await TestInMethodAsync(@"var f = ""Goo""u8$$",
+                TestSources.Span,
+                MainDescription("readonly ref struct System.ReadOnlySpan<T>"),
+                TypeParameterMap($"\r\nT {FeaturesResources.is_} byte"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestStringLiteralUtf8_02()
+        {
+            await TestInMethodAsync(@"var f = ""Goo""U8$$",
+                TestSources.Span,
+                MainDescription("readonly ref struct System.ReadOnlySpan<T>"),
+                TypeParameterMap($"\r\nT {FeaturesResources.is_} byte"));
+        }
+
         [WorkItem(1280, "https://github.com/dotnet/roslyn/issues/1280")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestVerbatimStringLiteral()
         {
             await TestInMethodAsync(@"string f = @""cat""$$",
                 MainDescription("class System.String"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestVerbatimStringLiteralUtf8_01()
+        {
+            await TestInMethodAsync(@"string f = @""cat""u8$$",
+                TestSources.Span,
+                MainDescription("readonly ref struct System.ReadOnlySpan<T>"),
+                TypeParameterMap($"\r\nT {FeaturesResources.is_} byte"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestVerbatimStringLiteralUtf8_02()
+        {
+            await TestInMethodAsync(@"string f = @""cat""U8$$",
+                TestSources.Span,
+                MainDescription("readonly ref struct System.ReadOnlySpan<T>"),
+                TypeParameterMap($"\r\nT {FeaturesResources.is_} byte"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestRawStringLiteral()
+        {
+            await TestInMethodAsync(@"string f = """"""Goo""""""$$",
+                MainDescription("class System.String"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestRawStringLiteralUtf8_01()
+        {
+            await TestInMethodAsync(@"string f = """"""Goo""""""u8$$",
+                TestSources.Span,
+                MainDescription("readonly ref struct System.ReadOnlySpan<T>"),
+                TypeParameterMap($"\r\nT {FeaturesResources.is_} byte"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestRawStringLiteralUtf8_02()
+        {
+            await TestInMethodAsync(@"string f = """"""Goo""""""U8$$",
+                TestSources.Span,
+                MainDescription("readonly ref struct System.ReadOnlySpan<T>"),
+                TypeParameterMap($"\r\nT {FeaturesResources.is_} byte"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestRawStringLiteralMultiline()
+        {
+            await TestInMethodAsync(@"string f = """"""
+                Goo
+    """"""$$",
+                MainDescription("class System.String"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestRawStringLiteralMultilineUtf8_01()
+        {
+            await TestInMethodAsync(@"string f = """"""
+                Goo
+    """"""u8$$",
+                TestSources.Span,
+                MainDescription("readonly ref struct System.ReadOnlySpan<T>"),
+                TypeParameterMap($"\r\nT {FeaturesResources.is_} byte"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestRawStringLiteralMultilineUtf8_02()
+        {
+            await TestInMethodAsync(@"string f = """"""
+                Goo
+    """"""U8$$",
+                TestSources.Span,
+                MainDescription("readonly ref struct System.ReadOnlySpan<T>"),
+                TypeParameterMap($"\r\nT {FeaturesResources.is_} byte"));
         }
 
         [WorkItem(1280, "https://github.com/dotnet/roslyn/issues/1280")]
@@ -7537,6 +7868,23 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task QuickInfoRecordProperty()
+        {
+            await TestWithOptionsAsync(
+                Options.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
+@"/// <param name=""First"">The person's first name.</param>
+record Person(string First, string Last)
+{
+    void M(Person p)
+    {
+        _ = p.$$First;
+    }
+}",
+    MainDescription("string Person.First { get; init; }"),
+    Documentation("The person's first name."));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         [WorkItem(51615, "https://github.com/dotnet/roslyn/issues/51615")]
         public async Task TestVarPatternOnVarKeyword()
         {
@@ -7914,6 +8262,23 @@ T {FeaturesResources.is_} int
 TResult {FeaturesResources.is_} string"));
         }
 
+        [WorkItem(58871, "https://github.com/dotnet/roslyn/issues/58871")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInferredNonAnonymousDelegateType1()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        $$var v = (int i) => i.ToString();
+    }
+}",
+                MainDescription("delegate TResult System.Func<in T, out TResult>(T arg)"),
+                AnonymousTypes(""));
+        }
+
+        [WorkItem(58871, "https://github.com/dotnet/roslyn/issues/58871")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestAnonymousSynthesizedLambdaType()
         {
@@ -7925,9 +8290,52 @@ TResult {FeaturesResources.is_} string"));
         $$var v = (ref int i) => i.ToString();
     }
 }",
-                MainDescription("delegate string <anonymous delegate>(ref int)"));
+                MainDescription("delegate string <anonymous delegate>(ref int)"),
+                AnonymousTypes(""));
         }
 
+        [WorkItem(58871, "https://github.com/dotnet/roslyn/issues/58871")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestAnonymousSynthesizedLambdaType2()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        var $$v = (ref int i) => i.ToString();
+    }
+}",
+                MainDescription($"({FeaturesResources.local_variable}) 'a v"),
+                AnonymousTypes(
+$@"
+{FeaturesResources.Types_colon}
+    'a {FeaturesResources.is_} delegate string (ref int)"));
+        }
+
+        [WorkItem(58871, "https://github.com/dotnet/roslyn/issues/58871")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestAnonymousSynthesizedLambdaType3()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        var v = (ref int i) => i.ToString();
+        $$Goo(v);
+    }
+
+    T Goo<T>(T t) => default;
+}",
+                MainDescription("'a C.Goo<'a>('a t)"),
+                AnonymousTypes(
+$@"
+{FeaturesResources.Types_colon}
+    'a {FeaturesResources.is_} delegate string (ref int)"));
+        }
+
+        [WorkItem(61320, "https://github.com/dotnet/roslyn/issues/61320")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestSingleTupleType()
         {
@@ -7938,7 +8346,8 @@ TResult {FeaturesResources.is_} string"));
     $$M(default);
   }",
                 MainDescription(@"void C.M((int x, string y) t)"),
-                NoTypeParameterMap);
+                NoTypeParameterMap,
+                AnonymousTypes(string.Empty));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -8054,6 +8463,145 @@ TResult {FeaturesResources.is_} string"));
 {FeaturesResources.Types_colon}
     'a {FeaturesResources.is_} new {{ 'b x, 'b y }}
     'b {FeaturesResources.is_} (int a, string b)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInRawStringInterpolation_SingleLine()
+        {
+            await TestInMethodAsync(
+@"var x = 1;
+var s = $""""""Hello world {$$x}""""""",
+                MainDescription($"({FeaturesResources.local_variable}) int x"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInRawStringInterpolation_SingleLine_MultiBrace()
+        {
+            await TestInMethodAsync(
+@"var x = 1;
+var s = ${|#0:|}$""""""Hello world {{$$x}}""""""",
+                MainDescription($"({FeaturesResources.local_variable}) int x"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInRawStringLiteral_SingleLine_Const()
+        {
+            await TestInClassAsync(
+@"const string $$s = """"""Hello world""""""",
+                MainDescription(@$"({FeaturesResources.constant}) string C.s = """"""Hello world"""""""));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInRawStringInterpolation_MultiLine()
+        {
+            await TestInMethodAsync(
+@"var x = 1;
+var s = $""""""
+Hello world {$$x}
+""""""",
+                MainDescription($"({FeaturesResources.local_variable}) int x"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInRawStringInterpolation_MultiLine_MultiBrace()
+        {
+            await TestInMethodAsync(
+@"var x = 1;
+var s = ${|#0:|}$""""""
+Hello world {{$$x}}
+""""""",
+                MainDescription($"({FeaturesResources.local_variable}) int x"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInRawStringLiteral_MultiLine_Const()
+        {
+            await TestInClassAsync(
+@"const string $$s = """"""
+        Hello world
+    """"""",
+                MainDescription(@$"({FeaturesResources.constant}) string C.s = """"""
+        Hello world
+    """""""));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestArgsInTopLevel()
+        {
+            var markup =
+@"
+forach (var arg in $$args)
+{
+}
+";
+
+            await TestWithOptionsAsync(
+                Options.Regular, markup,
+                MainDescription($"({FeaturesResources.parameter}) string[] args"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestArgsInNormalProgram()
+        {
+            var markup =
+@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        foreach (var arg in $$args)
+        {
+        }
+    }
+}
+";
+
+            await TestAsync(markup,
+                MainDescription($"({FeaturesResources.parameter}) string[] args"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestParameterInMethodAttributeNameof()
+        {
+            var source = @"
+class Program
+{
+    [My(nameof($$s))]
+    void M(string s) { }
+}
+";
+            await TestWithOptionsAsync(Options.Regular.WithLanguageVersion(LanguageVersionFacts.CSharpNext), source,
+                MainDescription($"({FeaturesResources.parameter}) string s"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestParameterInMethodParameterAttributeNameof()
+        {
+            var source = @"
+class Program
+{
+    void M([My(nameof($$s))] string s) { }
+}
+";
+            await TestWithOptionsAsync(Options.Regular.WithLanguageVersion(LanguageVersionFacts.CSharpNext), source,
+                MainDescription($"({FeaturesResources.parameter}) string s"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestParameterInLocalFunctionAttributeNameof()
+        {
+            var source = @"
+class Program
+{
+    void M()
+    {
+        [My(nameof($$s))]
+        void local(string s) { }
+    }
+}
+";
+            await TestWithOptionsAsync(Options.Regular.WithLanguageVersion(LanguageVersionFacts.CSharpNext), source,
+                MainDescription($"({FeaturesResources.parameter}) string s"));
         }
     }
 }

@@ -63,9 +63,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                     return;
                 }
 
+                var hideAdvancedMembers = context.Options.GetOptions(document.Project.LanguageServices).HideAdvancedMembers;
                 var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-                var matchingTypes = await GetMatchingTypesAsync(document, semanticModel, node, cancellationToken).ConfigureAwait(false);
+                var matchingTypes = await GetMatchingTypesAsync(document, semanticModel, node, hideAdvancedMembers, cancellationToken).ConfigureAwait(false);
                 var matchingNamespaces = await GetMatchingNamespacesAsync(project, semanticModel, node, cancellationToken).ConfigureAwait(false);
 
                 if (matchingTypes.IsEmpty && matchingNamespaces.IsEmpty)
@@ -121,9 +122,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                     memberName = name;
                 }
 
-                var codeAction = new MyCodeAction(
-                    $"{containerName}.{memberName}",
-                    c => ProcessNodeAsync(document, node, containerName, symbolResult.OriginalSymbol, c));
+                var title = $"{containerName}.{memberName}";
+                var codeAction = CodeAction.Create(
+                    title,
+                    c => ProcessNodeAsync(document, node, containerName, symbolResult.OriginalSymbol, c),
+                    title);
 
                 yield return codeAction;
             }
@@ -147,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
         }
 
         private async Task<ImmutableArray<SymbolResult>> GetMatchingTypesAsync(
-            Document document, SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+            Document document, SemanticModel semanticModel, SyntaxNode node, bool hideAdvancedMembers, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -171,8 +174,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                 symbols = symbols.Concat(attributeSymbols);
             }
 
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var hideAdvancedMembers = options.GetOption(CompletionOptions.Metadata.HideAdvancedMembers);
             var editorBrowserInfo = new EditorBrowsableInfo(semanticModel.Compilation);
 
             var validSymbols = symbols
@@ -335,14 +336,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             => symbols.Distinct()
                .Where(n => n.Symbol is INamedTypeSymbol || !((INamespaceSymbol)n.Symbol).IsGlobalNamespace)
                .Order();
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, equivalenceKey: title)
-            {
-            }
-        }
 
         private class GroupingCodeAction : CodeAction.CodeActionWithNestedActions
         {

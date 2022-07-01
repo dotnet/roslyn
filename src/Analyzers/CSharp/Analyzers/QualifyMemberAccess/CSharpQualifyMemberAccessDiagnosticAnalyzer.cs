@@ -4,10 +4,12 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.QualifyMemberAccess;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.QualifyMemberAccess
 {
@@ -17,6 +19,9 @@ namespace Microsoft.CodeAnalysis.CSharp.QualifyMemberAccess
     {
         protected override string GetLanguageName()
             => LanguageNames.CSharp;
+
+        protected override ISimplification Simplification
+            => CSharpSimplification.Instance;
 
         protected override bool IsAlreadyQualifiedMemberAccess(ExpressionSyntax node)
             => node.IsKind(SyntaxKind.ThisExpression);

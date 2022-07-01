@@ -40,8 +40,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static IPropertySymbol RemoveInaccessibleAttributesAndAttributesOfTypes(
             this IPropertySymbol property, ISymbol accessibleWithin, params INamedTypeSymbol[] attributesToRemove)
         {
+            // Many static predicates use the same state argument in this method
+            var arg = (attributesToRemove, accessibleWithin);
+
             var someParameterHasAttribute = property.Parameters
-                .Any(p => p.GetAttributes().Any(shouldRemoveAttribute));
+                .Any(static (p, arg) => p.GetAttributes().Any(shouldRemoveAttribute, arg), arg);
             if (!someParameterHasAttribute)
             {
                 return property;
@@ -56,18 +59,18 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 property.RefKind,
                 property.ExplicitInterfaceImplementations,
                 property.Name,
-                property.Parameters.SelectAsArray(p =>
+                property.Parameters.SelectAsArray(static (p, arg) =>
                     CodeGenerationSymbolFactory.CreateParameterSymbol(
-                        p.GetAttributes().WhereAsArray(a => !shouldRemoveAttribute(a)),
+                        p.GetAttributes().WhereAsArray(static (a, arg) => !shouldRemoveAttribute(a, arg), arg),
                         p.RefKind, p.IsParams, p.Type, p.Name, p.IsOptional,
-                        p.HasExplicitDefaultValue, p.HasExplicitDefaultValue ? p.ExplicitDefaultValue : null)),
+                        p.HasExplicitDefaultValue, p.HasExplicitDefaultValue ? p.ExplicitDefaultValue : null), arg),
                 property.GetMethod,
                 property.SetMethod,
                 property.IsIndexer);
 
-            bool shouldRemoveAttribute(AttributeData a) =>
-                attributesToRemove.Any(attr => attr.Equals(a.AttributeClass)) ||
-                a.AttributeClass?.IsAccessibleWithin(accessibleWithin) == false;
+            static bool shouldRemoveAttribute(AttributeData a, (INamedTypeSymbol[] attributesToRemove, ISymbol accessibleWithin) arg) =>
+                arg.attributesToRemove.Any(attr => attr.Equals(a.AttributeClass)) ||
+                a.AttributeClass?.IsAccessibleWithin(arg.accessibleWithin) == false;
         }
 
         public static bool IsWritableInConstructor(this IPropertySymbol property)

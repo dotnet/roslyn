@@ -2,16 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 {
@@ -23,48 +21,53 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
         {
             private readonly bool _supportsOrPatterns;
 
-            private ExpressionSyntax _assignmentTargetOpt;
+            private ExpressionSyntax? _assignmentTargetOpt;
 
             private Analyzer(bool supportsOrPatterns)
             {
                 _supportsOrPatterns = supportsOrPatterns;
             }
 
-            public static (SyntaxKind nodeToGenerate, VariableDeclaratorSyntax declaratorToRemoveOpt) Analyze(
+            public static (SyntaxKind nodeToGenerate, VariableDeclaratorSyntax? declaratorToRemoveOpt) Analyze(
                 SwitchStatementSyntax node,
                 SemanticModel semanticModel,
                 out bool shouldRemoveNextStatement)
             {
-                var parseOptions = (CSharpParseOptions)semanticModel.SyntaxTree.Options;
-                var analyzer = new Analyzer(supportsOrPatterns: parseOptions.LanguageVersion.IsCSharp9OrAbove());
+                var analyzer = new Analyzer(supportsOrPatterns: semanticModel.SyntaxTree.Options.LanguageVersion() >= LanguageVersion.CSharp9);
                 var nodeToGenerate = analyzer.AnalyzeSwitchStatement(node, out shouldRemoveNextStatement);
 
                 if (nodeToGenerate == SyntaxKind.SimpleAssignmentExpression &&
                     analyzer.TryGetVariableDeclaratorAndSymbol(semanticModel) is var (declarator, symbol))
                 {
-                    if (shouldRemoveNextStatement &&
-                        semanticModel.AnalyzeDataFlow(node.GetNextStatement()).DataFlowsIn.Contains(symbol))
+                    if (shouldRemoveNextStatement && node.GetNextStatement() is StatementSyntax nextStatement)
                     {
-                        // Bail out if data flows into the next statement that we want to move
-                        // For example:
-                        //
-                        //      string name = "";
-                        //      switch (index)
-                        //      {
-                        //          case 0: name = "0"; break;
-                        //          case 1: name = "1"; break;
-                        //      }
-                        //      throw new Exception(name);
-                        //
-                        return default;
+                        var dataFlow = semanticModel.AnalyzeDataFlow(nextStatement);
+                        Contract.ThrowIfNull(dataFlow);
+                        if (dataFlow.DataFlowsIn.Contains(symbol))
+                        {
+                            // Bail out if data flows into the next statement that we want to move
+                            // For example:
+                            //
+                            //      string name = "";
+                            //      switch (index)
+                            //      {
+                            //          case 0: name = "0"; break;
+                            //          case 1: name = "1"; break;
+                            //      }
+                            //      throw new Exception(name);
+                            //
+                            return default;
+                        }
                     }
 
                     var declaration = declarator.GetAncestor<StatementSyntax>();
+                    Contract.ThrowIfNull(declaration);
                     if (declaration.Parent == node.Parent && declarator.Initializer is null)
                     {
                         var beforeSwitch = node.GetPreviousStatement() is StatementSyntax previousStatement
                             ? semanticModel.AnalyzeDataFlow(declaration, previousStatement)
                             : semanticModel.AnalyzeDataFlow(declaration);
+                        Contract.ThrowIfNull(beforeSwitch);
                         if (!beforeSwitch.WrittenInside.Contains(symbol))
                         {
                             // Move declarator only if it has no initializer and it's not used before switch
@@ -205,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 return default;
             }
 
-            private SyntaxKind AnalyzeNextStatement(StatementSyntax nextStatement)
+            private SyntaxKind AnalyzeNextStatement(StatementSyntax? nextStatement)
             {
                 // Only the following "throw" and "return" can be moved into the switch expression.
                 return nextStatement.IsKind(SyntaxKind.ThrowStatement, SyntaxKind.ReturnStatement)

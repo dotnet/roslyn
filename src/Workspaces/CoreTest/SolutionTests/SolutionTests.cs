@@ -17,6 +17,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
@@ -34,6 +35,7 @@ using Roslyn.Utilities;
 using Xunit;
 using CS = Microsoft.CodeAnalysis.CSharp;
 using static Microsoft.CodeAnalysis.UnitTests.SolutionTestHelpers;
+using Microsoft.CodeAnalysis.Indentation;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -738,6 +740,73 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectParseOptions(null!, options));
             Assert.Throws<InvalidOperationException>(() => solution.WithProjectParseOptions(ProjectId.CreateNewId(), options));
+        }
+
+        [Fact]
+        public async Task ChangingLanguageVersionReparses()
+        {
+            var projectId = ProjectId.CreateNewId();
+            var documentId = DocumentId.CreateNewId(projectId);
+
+            using var workspace = CreateWorkspace();
+            var document = workspace.CurrentSolution
+                            .AddProject(projectId, "proj1", "proj1.dll", LanguageNames.CSharp)
+                            .AddDocument(documentId, "Test.cs", "// File")
+                            .GetRequiredDocument(documentId);
+
+            var oldTree = await document.GetRequiredSyntaxTreeAsync(CancellationToken.None);
+
+            Assert.Equal(document.Project.ParseOptions, oldTree.Options);
+
+            document = document.Project.WithParseOptions(new CSharpParseOptions(languageVersion: CS.LanguageVersion.CSharp1)).GetRequiredDocument(documentId);
+
+            var newTree = await document.GetRequiredSyntaxTreeAsync(CancellationToken.None);
+
+            Assert.Equal(document.Project.ParseOptions, newTree.Options);
+
+            Assert.False(oldTree.GetRoot().IsIncrementallyIdenticalTo(newTree.GetRoot()));
+        }
+
+        [Theory]
+        [InlineData("#if DEBUG", false, LanguageNames.CSharp, false)]
+        [InlineData("#if DEBUG", false, LanguageNames.CSharp, true)]
+        [InlineData("// File", true, LanguageNames.CSharp, false)]
+        [InlineData("// File", true, LanguageNames.CSharp, true)]
+        [InlineData("#if DEBUG", false, LanguageNames.VisualBasic, false)]
+        [InlineData("#if DEBUG", false, LanguageNames.VisualBasic, true)]
+        [InlineData("' File", true, LanguageNames.VisualBasic, false)]
+        [InlineData("' File", true, LanguageNames.VisualBasic, true)]
+        public async Task ChangingPreprocessorDirectivesMayReparse(string source, bool expectReuse, string languageName, bool useRecoverableTrees)
+        {
+            var projectId = ProjectId.CreateNewId();
+            var documentId = DocumentId.CreateNewId(projectId);
+
+            using var workspace = useRecoverableTrees ? CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations() : CreateWorkspace();
+            var document = workspace.CurrentSolution
+                            .AddProject(projectId, "proj1", "proj1.dll", languageName)
+                            .AddDocument(documentId, "Test", source)
+                            .GetRequiredDocument(documentId);
+
+            var oldTree = await document.GetRequiredSyntaxTreeAsync(CancellationToken.None);
+
+            // Hold onto the old root, so we don't actually release the root; if the root were to fall away
+            // we're unable to use IsIncrementallyIdenticalTo to see if we didn't reparse, since asking for
+            // the old root will recover the tree and produce a new green node.
+            var oldRoot = oldTree.GetRoot();
+
+            Assert.Equal(document.Project.ParseOptions, oldTree.Options);
+
+            ParseOptions newOptions =
+                languageName == LanguageNames.CSharp ? new CSharpParseOptions(preprocessorSymbols: new[] { "DEBUG" })
+                                                     : new VisualBasicParseOptions(preprocessorSymbols: new KeyValuePair<string, object?>[] { new("DEBUG", null) });
+
+            document = document.Project.WithParseOptions(newOptions).GetRequiredDocument(documentId);
+
+            var newTree = await document.GetRequiredSyntaxTreeAsync(CancellationToken.None);
+
+            Assert.Equal(document.Project.ParseOptions, newTree.Options);
+
+            Assert.Equal(expectReuse, oldRoot.IsIncrementallyIdenticalTo(newTree.GetRoot()));
         }
 
         [Fact]
@@ -1749,7 +1818,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 .AddDocument(documentId, "DocumentName", SourceText.From("class Class{}"));
 
             var document = solution1.GetDocument(documentId);
-            var newRoot = await Formatter.FormatAsync(document).Result.GetSyntaxRootAsync();
+            var newRoot = await Formatter.FormatAsync(document, CSharpSyntaxFormattingOptions.Default, CancellationToken.None).Result.GetSyntaxRootAsync();
             var solution2 = solution1.WithDocumentSyntaxRoot(documentId, newRoot);
 
             Assert.NotEqual(solution1, solution2);
@@ -1855,7 +1924,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var file = Temp.CreateFile().WriteAllText(text1, Encoding.UTF8);
 
             // create a solution that evicts from the cache immediately.
-            using var workspace = CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations();
+            using var workspace = CreateWorkspaceWithRecoverableTextAndSyntaxTreesAndWeakCompilations();
             var sol = workspace.CurrentSolution;
 
             var pid = ProjectId.CreateNewId();
@@ -1872,7 +1941,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(text2, textOnDisk);
 
             // stop observing it and let GC reclaim it
-            observedText.AssertReleased();
+            if (PlatformInformation.IsWindows || PlatformInformation.IsRunningOnMono)
+            {
+                Assert.IsType<TemporaryStorageService>(workspace.Services.GetService<ITemporaryStorageService>());
+                observedText.AssertReleased();
+            }
+            else
+            {
+                // If this assertion fails, it means a new target supports the true temporary storage service, and the
+                // condition above should be updated to ensure 'AssertReleased' is called for this target.
+                Assert.IsType<TrivialTemporaryStorageService>(workspace.Services.GetService<ITemporaryStorageService>());
+            }
 
             // if we ask for the same text again we should get the original content
             var observedText2 = sol.GetDocument(did).GetTextAsync().Result;
@@ -2661,22 +2740,30 @@ public class C : A {
             Assert.True(transitivelyDependsOnNormalProjects.HasSuccessfullyLoadedAsync().Result);
         }
 
+        private class TestSmallFileTextLoader : FileTextLoader
+        {
+            public TestSmallFileTextLoader(string path, Encoding encoding)
+                : base(path, encoding)
+            {
+            }
+
+            // set max file length to 1 byte
+            internal override int MaxFileLength => 1;
+        }
+
         [Fact]
         public async Task TestMassiveFileSize()
         {
-            // set max file length to 1 bytes
-            var maxLength = 1;
             var workspace = new AdhocWorkspace();
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(FileTextLoaderOptions.FileLengthThreshold, maxLength)));
 
             using var root = new TempRoot();
             var file = root.CreateFile(prefix: "massiveFile", extension: ".cs").WriteAllText("hello");
 
-            var loader = new FileTextLoader(file.Path, Encoding.UTF8);
+            var loader = new TestSmallFileTextLoader(file.Path, Encoding.UTF8);
+
             var textLength = FileUtilities.GetFileLength(file.Path);
 
-            var expected = string.Format(WorkspacesResources.File_0_size_of_1_exceeds_maximum_allowed_size_of_2, file.Path, textLength, maxLength);
+            var expected = string.Format(WorkspacesResources.File_0_size_of_1_exceeds_maximum_allowed_size_of_2, file.Path, textLength, 1);
             var exceptionThrown = false;
 
             try
@@ -3179,16 +3266,16 @@ class C
                     projectReferences: new[] { new ProjectReference(dependsOnVbNormalProject.Id) }));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestOptionChangesForLanguagesNotInSolution()
         {
             // Create an empty solution with no projects.
             using var workspace = CreateWorkspace();
             var s0 = workspace.CurrentSolution;
-            var optionService = workspace.Services.GetRequiredService<IOptionService>();
+            var optionService = workspace.Services.GetRequiredService<ILegacyWorkspaceOptionService>();
 
             // Apply an option change to a C# option.
-            var option = GenerationOptions.PlaceSystemNamespaceFirst;
+            var option = FormattingOptions.UseTabs;
             var defaultValue = option.DefaultValue;
             var changedValue = !defaultValue;
             var options = s0.Options.WithChangedOption(option, LanguageNames.CSharp, changedValue);
@@ -3201,13 +3288,8 @@ class C
             var s2 = s1.AddProject("P1", "A1", LanguageNames.VisualBasic).Solution;
             VerifyOptionSet(s2.Options);
 
-            // Verify option value is preserved on roundtriping the option set (serialize and deserialize).
-            var s3 = s2.AddProject("P2", "A2", LanguageNames.CSharp).Solution;
-            var roundTripOptionSet = SerializeAndDeserialize((SerializableOptionSet)s3.Options, optionService);
-            VerifyOptionSet(roundTripOptionSet);
-
             // Verify option value is preserved on removing a project.
-            var s4 = s3.RemoveProject(s3.Projects.Single(p => p.Name == "P2").Id);
+            var s4 = s2.RemoveProject(s2.Projects.Single(p => p.Name == "P1").Id);
             VerifyOptionSet(s4.Options);
 
             return;
@@ -3216,16 +3298,6 @@ class C
             {
                 Assert.Equal(changedValue, optionSet.GetOption(option, LanguageNames.CSharp));
                 Assert.Equal(defaultValue, optionSet.GetOption(option, LanguageNames.VisualBasic));
-            }
-
-            static SerializableOptionSet SerializeAndDeserialize(SerializableOptionSet optionSet, IOptionService optionService)
-            {
-                using var stream = new MemoryStream();
-                using var writer = new ObjectWriter(stream);
-                optionSet.Serialize(writer, CancellationToken.None);
-                stream.Position = 0;
-                using var reader = ObjectReader.TryGetReader(stream);
-                return SerializableOptionSet.Deserialize(reader, optionService, CancellationToken.None);
             }
         }
 
@@ -3298,6 +3370,55 @@ class C
             sourceTextToRelease.AssertReleased();
 
             GC.KeepAlive(finalSolution);
+        }
+
+        [Theory]
+        [InlineData("a/proj.csproj", "a/.editorconfig", "a/b/test.cs", "*.cs", true, true)]
+        [InlineData("a/proj.csproj", "a/b/.editorconfig", "a/b/test.cs", "*.cs", false, true)]
+        [InlineData("a/proj.csproj", "a/.editorconfig", null, "*.cs", true, true)]
+        [InlineData("a/proj.csproj", "a/b/.editorconfig", null, "*.cs", false, false)]
+        [InlineData("a/proj.csproj", "a/.editorconfig", "", "*.cs", true, true)]
+        [InlineData("a/proj.csproj", "a/b/.editorconfig", "", "*.cs", false, false)]
+        [InlineData(null, "a/.editorconfig", "a/b/test.cs", "*.cs", false, true)]
+        [InlineData(null, "a/.editorconfig", null, "*.cs", false, false)]
+        [InlineData("a/proj.csproj", "a/.editorconfig", null, "*test.cs", false, true)]
+        public async Task EditorConfigOptions(string projectPath, string configPath, string sourcePath, string pattern, bool appliedToEntireProject, bool appliedToDocument)
+        {
+            projectPath = string.IsNullOrEmpty(projectPath) ? projectPath : Path.Combine(TempRoot.Root, projectPath);
+            configPath = Path.Combine(TempRoot.Root, configPath);
+            sourcePath = string.IsNullOrEmpty(sourcePath) ? sourcePath : Path.Combine(TempRoot.Root, sourcePath);
+
+            using var workspace = CreateWorkspace();
+            var projectId = ProjectId.CreateNewId();
+
+            var projectInfo = ProjectInfo.Create(
+                projectId,
+                VersionStamp.Default,
+                name: "proj1",
+                assemblyName: "proj1.dll",
+                language: LanguageNames.CSharp,
+                filePath: projectPath);
+
+            var documentId = DocumentId.CreateNewId(projectId);
+
+            var solution = workspace.CurrentSolution
+                .AddProject(projectInfo)
+                .AddDocument(documentId, "test.cs", SourceText.From("public class C { }"), filePath: sourcePath)
+                .AddAnalyzerConfigDocument(DocumentId.CreateNewId(projectId), ".editorconfig", SourceText.From($"[{pattern}]\nindent_style = tab"), filePath: configPath);
+
+            var document = solution.GetRequiredDocument(documentId);
+
+#pragma warning disable RS0030 // Do not used banned APIs
+            var documentOptions = await document.GetOptionsAsync(CancellationToken.None);
+            Assert.Equal(appliedToDocument, documentOptions.GetOption(FormattingOptions2.UseTabs));
+#pragma warning restore
+
+            var syntaxTree = await document.GetSyntaxTreeAsync();
+            var documentOptionsViaSyntaxTree = document.Project.State.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);
+            Assert.Equal(appliedToDocument, documentOptionsViaSyntaxTree.TryGetValue("indent_style", out var value) == true && value == "tab");
+
+            var projectOptions = document.Project.GetAnalyzerConfigOptions();
+            Assert.Equal(appliedToEntireProject, projectOptions?.AnalyzerOptions.TryGetValue("indent_style", out value) == true && value == "tab");
         }
     }
 }

@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Microsoft.VisualStudio.Text;
@@ -31,13 +32,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
             SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
             int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
             string displayTextPrefix, string inlineDescription, bool? isComplexTextEdit,
-            List<CompletionFilter> matchingFilters, CompletionItemFlags? flags = null)
+            List<CompletionFilter> matchingFilters, CompletionItemFlags? flags = null, CompletionOptions options = null, bool skipSpeculation = false)
         {
             return base.VerifyWorkerAsync(code, position,
                 expectedItemOrNull, expectedDescriptionOrNull,
                 SourceCodeKind.Regular, usePreviousCharAsTrigger, checkForAbsence,
                 glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
-                displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, flags);
+                displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, flags, options);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -338,9 +339,9 @@ class C
             var service = CompletionService.GetService(document);
             var options = CompletionOptions.Default;
             var displayOptions = SymbolDescriptionOptions.Default;
-            var (completions, _) = await service.GetCompletionsInternalAsync(document, position, options);
+            var completions = await service.GetCompletionsAsync(document, position, options, OptionValueSet.Empty);
 
-            var item = completions.Items.First(i => i.DisplayText == "Beep");
+            var item = completions.ItemsList.First(i => i.DisplayText == "Beep");
             var edit = testDocument.GetTextBuffer().CreateEdit();
             edit.Delete(Span.FromBounds(position - 10, position));
             edit.Apply();

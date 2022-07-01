@@ -6,19 +6,26 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Rename;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp
 {
     internal static class OmniSharpRenamer
     {
-        public static Task<ConflictResolution> RenameSymbolAsync(
+        public readonly record struct RenameResult(Solution Solution, string? ErrorMessage);
+
+        public static async Task<RenameResult> RenameSymbolAsync(
             Solution solution,
             ISymbol symbol,
             string newName,
             OmniSharpRenameOptions options,
             ImmutableHashSet<ISymbol>? nonConflictSymbols,
             CancellationToken cancellationToken)
-            => Renamer.RenameSymbolAsync(solution, symbol, newName, options.ToRenameOptions(), nonConflictSymbols, cancellationToken);
+        {
+            var resolution = await Renamer.RenameSymbolAsync(solution, symbol, newName, options.ToRenameOptions(), CodeActionOptions.DefaultProvider, nonConflictSymbols, cancellationToken).ConfigureAwait(false);
+            return new RenameResult(resolution.NewSolution, resolution.ErrorMessage);
+        }
     }
 }

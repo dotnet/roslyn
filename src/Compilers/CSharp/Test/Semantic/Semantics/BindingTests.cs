@@ -678,7 +678,7 @@ delegate";
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ""),
                 // (3,9): error CS1003: Syntax error, '(' expected
                 // delegate
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(", ""),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("("),
                 // (3,9): error CS1026: ) expected
                 // delegate
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, ""),
@@ -2040,9 +2040,9 @@ class Program
                 //         bool c = true;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "c").WithArguments("c").WithLocation(6, 14));
         }
-        [Fact, WorkItem(543426, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543426")]
 
-        private void NestedInterfaceImplementationWithOuterGenericType()
+        [Fact, WorkItem(543426, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543426")]
+        public void NestedInterfaceImplementationWithOuterGenericType()
         {
             CompileAndVerify(@"
 namespace System.ServiceModel

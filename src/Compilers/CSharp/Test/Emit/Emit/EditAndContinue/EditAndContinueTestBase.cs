@@ -39,14 +39,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         }
 
         internal static SourceWithMarkedNodes MarkedSource(string markedSource, string fileName = "", CSharpParseOptions options = null, bool removeTags = false)
-        {
-            return new SourceWithMarkedNodes(markedSource, s => Parse(s, fileName, options), s => (int)(SyntaxKind)typeof(SyntaxKind).GetField(s).GetValue(null), removeTags);
-        }
+            => new SourceWithMarkedNodes(
+                WithWindowsLineBreaks(markedSource),
+                parser: s => Parse(s, fileName, options),
+                getSyntaxKind: s => (int)(SyntaxKind)typeof(SyntaxKind).GetField(s).GetValue(null),
+                removeTags);
 
         internal static Func<SyntaxNode, SyntaxNode> GetSyntaxMapFromMarkers(SourceWithMarkedNodes source0, SourceWithMarkedNodes source1)
-        {
-            return SourceWithMarkedNodes.GetSyntaxMap(source0, source1);
-        }
+            => SourceWithMarkedNodes.GetSyntaxMap(source0, source1);
 
         internal static ImmutableArray<SyntaxNode> GetAllLocals(MethodSymbol method)
         {
@@ -129,8 +129,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             return null;
         }
 
-        internal static SemanticEditDescription Edit(SemanticEditKind kind, Func<Compilation, ISymbol> symbolProvider)
-            => new(kind, symbolProvider);
+        internal static SemanticEditDescription Edit(SemanticEditKind kind, Func<Compilation, ISymbol> symbolProvider, Func<Compilation, ISymbol> newSymbolProvider = null)
+            => new(kind, symbolProvider, newSymbolProvider);
 
         internal static EditAndContinueLogEntry Row(int rowNumber, TableIndex table, EditAndContinueOperation operation)
         {
@@ -276,12 +276,18 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
     {
         internal static CSharpCompilation WithSource(this CSharpCompilation compilation, CSharpTestSource newSource)
         {
-            return compilation.RemoveAllSyntaxTrees().AddSyntaxTrees(newSource.GetSyntaxTrees(TestOptions.Regular));
+            var previousParseOptions = (CSharpParseOptions)compilation.SyntaxTrees.FirstOrDefault()?.Options;
+            return compilation.RemoveAllSyntaxTrees().AddSyntaxTrees(newSource.GetSyntaxTrees(previousParseOptions));
         }
 
         internal static CSharpCompilation WithSource(this CSharpCompilation compilation, SyntaxTree newTree)
         {
             return compilation.RemoveAllSyntaxTrees().AddSyntaxTrees(newTree);
+        }
+
+        internal static CSharpCompilation WithSource(this CSharpCompilation compilation, SyntaxTree[] newTrees)
+        {
+            return compilation.RemoveAllSyntaxTrees().AddSyntaxTrees(newTrees);
         }
     }
 }

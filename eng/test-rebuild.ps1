@@ -54,6 +54,7 @@ try {
 # Rebuilds with missing references
 # Rebuilds with other issues
   " --exclude net472\Microsoft.CodeAnalysis.EditorFeatures2.UnitTests.dll" +
+  " --exclude net6.0\Microsoft.CodeAnalysis.Collections.Package.dll" +
   " --exclude netcoreapp3.1\Microsoft.CodeAnalysis.Collections.Package.dll" +
   " --exclude netstandard2.0\Microsoft.CodeAnalysis.Collections.Package.dll" +
   " --exclude net45\Microsoft.CodeAnalysis.Debugging.Package.dll" +

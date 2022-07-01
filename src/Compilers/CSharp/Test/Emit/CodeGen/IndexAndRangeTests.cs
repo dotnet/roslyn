@@ -3582,5 +3582,210 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(10, 5)
                 );
         }
+
+        [Fact]
+        public void PatternIndexArrayAndAwait_01()
+        {
+            var src = @"
+class C
+{
+    static async System.Threading.Tasks.Task M1(int[] arr)
+    {
+        arr[^1] = await System.Threading.Tasks.Task.FromResult(0);
+    }
+
+    static async System.Threading.Tasks.Task Main()
+    {
+        var arr = new[] { 123 };
+        System.Console.WriteLine(arr[0]);
+        await M1(arr);
+        System.Console.WriteLine(arr[0]);
+    }
+}
+";
+            CompileAndVerifyWithIndexAndRange(src, expectedOutput:
+@"
+123
+0
+").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void PatternIndexArrayAndAwait_02()
+        {
+            var src = @"
+class C
+{
+    static async System.Threading.Tasks.Task M1(int[] arr)
+    {
+        (arr[^1], arr[0]) = (123, await System.Threading.Tasks.Task.FromResult(124));
+    }
+
+    static async System.Threading.Tasks.Task Main()
+    {
+        var arr = new int[2];
+        await M1(arr);
+        System.Console.WriteLine(arr[0]);
+        System.Console.WriteLine(arr[1]);
+    }
+}
+";
+            CompileAndVerifyWithIndexAndRange(src, expectedOutput:
+@"
+124
+123
+").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void PatternIndexArrayAndAwait_03()
+        {
+            var src = @"
+class C
+{
+    static async System.Threading.Tasks.Task M1((int x, int y)[] arr)
+    {
+        arr[^1].x = await System.Threading.Tasks.Task.FromResult(124);
+    }
+
+    static async System.Threading.Tasks.Task Main()
+    {
+        var arr = new (int x, int y)[1];
+        await M1(arr);
+        System.Console.WriteLine(arr[0].x);
+    }
+}
+";
+            CompileAndVerifyWithIndexAndRange(src, expectedOutput:
+@"
+124
+").VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(58569, "https://github.com/dotnet/roslyn/issues/58569")]
+        public void PatternIndexArrayAndAwait_04()
+        {
+            var src = @"
+class C
+{
+    static async System.Threading.Tasks.Task M1((int x, int y)[] arr)
+    {
+        (arr[^1].x, arr[0].y) = (123, await System.Threading.Tasks.Task.FromResult(124));
+    }
+
+    static async System.Threading.Tasks.Task Main()
+    {
+        var arr = new (int x, int y)[2];
+        await M1(arr);
+        System.Console.WriteLine(arr[0].y);
+        System.Console.WriteLine(arr[1].x);
+    }
+}
+";
+            CompileAndVerifyWithIndexAndRange(src, expectedOutput:
+@"
+124
+123
+").VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(58569, "https://github.com/dotnet/roslyn/issues/58569")]
+        public void PatternIndexArrayAndAwait_05()
+        {
+            var src = @"
+class C
+{
+    static async System.Threading.Tasks.Task M1((int x, int y)[] arr)
+    {
+        arr[^1].x += await System.Threading.Tasks.Task.FromResult(124);
+    }
+
+    static async System.Threading.Tasks.Task Main()
+    {
+        var arr = new (int x, int y)[] { (1, 2) };
+        await M1(arr);
+        System.Console.WriteLine(arr[0].x);
+    }
+}
+";
+            CompileAndVerifyWithIndexAndRange(src, expectedOutput:
+@"
+125
+").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void PatternIndexArrayAndAwait_06()
+        {
+            var src = @"
+class C
+{
+    static async System.Threading.Tasks.Task M1(int[] arr)
+    {
+        arr[^1] += await System.Threading.Tasks.Task.FromResult(124);
+    }
+
+    static async System.Threading.Tasks.Task Main()
+    {
+        var arr = new int[] { 1 };
+        await M1(arr);
+        System.Console.WriteLine(arr[0]);
+    }
+}
+";
+            CompileAndVerifyWithIndexAndRange(src, expectedOutput:
+@"
+125
+").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void PatternIndexArrayAndAwait_07()
+        {
+            var src = @"
+class C
+{
+    static async System.Threading.Tasks.Task M1(int[][] arr)
+    {
+        arr[^1][0] += await System.Threading.Tasks.Task.FromResult(124);
+    }
+
+    static async System.Threading.Tasks.Task Main()
+    {
+        var arr = new[] { new[] { 1 } };
+        await M1(arr);
+        System.Console.WriteLine(arr[0][0]);
+    }
+}
+";
+            CompileAndVerifyWithIndexAndRange(src, expectedOutput:
+@"
+125
+").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void PatternIndexArrayAndAwait_08()
+        {
+            var src = @"
+class C
+{
+    static async System.Threading.Tasks.Task M1((int x, int y)[] arr)
+    {
+        (arr[1..][^1].x, arr[1..][0].y) = (123, await System.Threading.Tasks.Task.FromResult(124));
+    }
+
+    static async System.Threading.Tasks.Task Main()
+    {
+        var arr = new (int x, int y)[5];
+        await M1(arr);
+        System.Console.WriteLine(""Done"");
+    }
+}
+";
+            CompileAndVerifyWithIndexAndRange(src, expectedOutput: "Done").VerifyDiagnostics();
+        }
     }
 }

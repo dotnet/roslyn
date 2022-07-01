@@ -9,6 +9,7 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.CSharp.Shared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)CodeActions\CSharpCodeFixOptionsProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\VirtualChars\CSharpVirtualCharLanguageServiceFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\BaseArgumentListSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\BasePropertyDeclarationSyntaxExtensions.cs" />
@@ -37,7 +38,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\TypeDeclarationSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\TypeSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\UsingDirectiveSyntaxExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Indentation\CSharpIndentationService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Indentation\CSharpIndentationService.Indenter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\CSharpAddImportsService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\CSharpBlockFactsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\CSharpCommandLineParserService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\CSharpFileBannerFactsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\CSharpHeaderFactsService.cs" />
@@ -60,6 +64,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\CSharpSimplificationHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\NullableHelpers\NullableExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SyntaxKindSet.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\NullableHelpers\NullableHelpers.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)CSharpWorkspaceExtensionsResources.resx" GenerateSource="true" Link="CSharpWorkspaceExtensionsResources.resx" />

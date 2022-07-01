@@ -311,11 +311,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
 
                     case BoundKind.Sequence:
-                        // neither the side-effects nor the value of the sequence contains await 
-                        // (otherwise it would be converted to a SpillSequenceBuilder).
                         if (refKind != RefKind.None)
                         {
-                            return expression;
+                            var sequence = (BoundSequence)expression;
+
+                            PromoteAndAddLocals(builder, sequence.Locals);
+                            builder.AddExpressions(sequence.SideEffects);
+                            expression = sequence.Value;
+                            continue;
+                        }
+
+                        goto default;
+
+                    case BoundKind.AssignmentOperator:
+                        var assignment = (BoundAssignmentOperator)expression;
+                        if (assignment.IsRef &&
+                            assignment is not { Left.Kind: BoundKind.Local, Right.Kind: BoundKind.ArrayAccess }) // Optimize for some known to be safe scenarios.
+                        {
+                            var left = Spill(builder, assignment.Left, RefKind.Ref);
+                            var right = Spill(builder, assignment.Right, RefKind.Ref);
+                            expression = assignment.Update(left, right, assignment.IsRef, assignment.Type);
                         }
 
                         goto default;
@@ -482,7 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundSpillSequenceBuilder builder = null;
             var expression = VisitExpression(ref builder, node.Expression);
-            return UpdateStatement(builder, node.Update(expression, node.Cases, node.DefaultLabel, node.EqualityMethod));
+            return UpdateStatement(builder, node.Update(expression, node.Cases, node.DefaultLabel));
         }
 
         public override BoundNode VisitThrowStatement(BoundThrowStatement node)
@@ -512,7 +527,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundSpillSequenceBuilder builder = null;
             var expression = VisitExpression(ref builder, node.ExpressionOpt);
-            return UpdateStatement(builder, node.Update(node.RefKind, expression));
+            return UpdateStatement(builder, node.Update(node.RefKind, expression, @checked: node.Checked));
         }
 
         public override BoundNode VisitYieldReturnStatement(BoundYieldReturnStatement node)
@@ -968,7 +983,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundSpillSequenceBuilder builder = null;
             var argument = VisitExpression(ref builder, node.Argument);
-            return UpdateExpression(builder, node.Update(argument, node.MethodOpt, node.IsExtensionMethod, node.Type));
+            return UpdateExpression(builder, node.Update(argument, node.MethodOpt, node.IsExtensionMethod, node.WasTargetTyped, node.Type));
         }
 
         public override BoundNode VisitFieldAccess(BoundFieldAccess node)
@@ -1019,7 +1034,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return UpdateExpression(leftBuilder, _F.Local(tmp));
             }
 
-            return UpdateExpression(builder, node.Update(left, right, node.LeftPlaceholder, node.LeftConversion, node.OperatorResultKind, node.Type));
+            return UpdateExpression(builder, node.Update(left, right, node.LeftPlaceholder, node.LeftConversion, node.OperatorResultKind, @checked: node.Checked, node.Type));
         }
 
         public override BoundNode VisitLoweredConditionalAccess(BoundLoweredConditionalAccess node)

@@ -10,8 +10,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -27,20 +29,22 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
     {
         protected abstract ImmutableArray<string> FixableDiagnosticIds { get; }
 
+        protected abstract ImmutableArray<AbstractFormattingRule> GetFormatRules(SourceText text);
+
         /// <inheritdoc/>
-        public async Task<Document> AddMissingImportsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+        public async Task<Document> AddMissingImportsAsync(Document document, TextSpan textSpan, AddMissingImportsOptions options, CancellationToken cancellationToken)
         {
-            var analysisResult = await AnalyzeAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
-            return await AddMissingImportsAsync(document, analysisResult, cancellationToken).ConfigureAwait(false);
+            var analysisResult = await AnalyzeAsync(document, textSpan, options, cancellationToken).ConfigureAwait(false);
+            return await AddMissingImportsAsync(document, analysisResult, options.CleanupOptions.FormattingOptions, cancellationToken).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
-        public async Task<Document> AddMissingImportsAsync(Document document, AddMissingImportsAnalysisResult analysisResult, CancellationToken cancellationToken)
+        public async Task<Document> AddMissingImportsAsync(Document document, AddMissingImportsAnalysisResult analysisResult, SyntaxFormattingOptions formattingOptions, CancellationToken cancellationToken)
         {
             if (analysisResult.CanAddMissingImports)
             {
                 // Apply those fixes to the document.
-                var newDocument = await ApplyFixesAsync(document, analysisResult.AddImportFixData, cancellationToken).ConfigureAwait(false);
+                var newDocument = await ApplyFixesAsync(document, analysisResult.AddImportFixData, formattingOptions, cancellationToken).ConfigureAwait(false);
                 return newDocument;
             }
 
@@ -48,7 +52,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
         }
 
         /// <inheritdoc/>
-        public async Task<AddMissingImportsAnalysisResult> AnalyzeAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+        public async Task<AddMissingImportsAnalysisResult> AnalyzeAsync(Document document, TextSpan textSpan, AddMissingImportsOptions options, CancellationToken cancellationToken)
         {
             // Get the diagnostics that indicate a missing import.
             var addImportFeatureService = document.GetRequiredLanguageService<IAddImportFeatureService>();
@@ -59,9 +63,14 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             // Since we are not currently considering NuGet packages, pass an empty array
             var packageSources = ImmutableArray<PackageSource>.Empty;
 
+            var addImportOptions = new AddImportOptions(
+                SearchOptions: new() { SearchReferenceAssemblies = true, SearchNuGetPackages = false },
+                CleanupOptions: options.CleanupOptions,
+                HideAdvancedMembers: options.HideAdvancedMembers);
+
             var unambiguousFixes = await addImportFeatureService.GetUniqueFixesAsync(
                 document, textSpan, FixableDiagnosticIds, symbolSearchService,
-                searchReferenceAssemblies: true, packageSources, cancellationToken).ConfigureAwait(false);
+                addImportOptions, packageSources, cancellationToken).ConfigureAwait(false);
 
             // We do not want to add project or framework references without the user's input, so filter those out.
             var usableFixes = unambiguousFixes.WhereAsArray(fixData => DoesNotAddReference(fixData, document.Project.Id));
@@ -76,7 +85,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
                 && string.IsNullOrEmpty(fixData.AssemblyReferenceAssemblyName);
         }
 
-        private static async Task<Document> ApplyFixesAsync(Document document, ImmutableArray<AddImportFixData> fixes, CancellationToken cancellationToken)
+        private async Task<Document> ApplyFixesAsync(Document document, ImmutableArray<AddImportFixData> fixes, SyntaxFormattingOptions formattingOptions, CancellationToken cancellationToken)
         {
             if (fixes.IsEmpty)
             {
@@ -135,14 +144,11 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             // newlines are generated between each import because the fix is expecting to
             // separate the imports from the rest of the code file. We need to format the
             // imports to remove these extra newlines.
-            return await CleanUpNewLinesAsync(newDocument, insertSpans, cancellationToken).ConfigureAwait(false);
+            return await CleanUpNewLinesAsync(newDocument, insertSpans, formattingOptions, cancellationToken).ConfigureAwait(false);
         }
 
-        private static async Task<Document> CleanUpNewLinesAsync(Document document, IEnumerable<TextSpan> insertSpans, CancellationToken cancellationToken)
+        private async Task<Document> CleanUpNewLinesAsync(Document document, IEnumerable<TextSpan> insertSpans, SyntaxFormattingOptions formattingOptions, CancellationToken cancellationToken)
         {
-            var languageFormatter = document.GetRequiredLanguageService<ISyntaxFormattingService>();
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-
             var newDocument = document;
 
             // Since imports can be added at both the CompilationUnit and the Namespace level,
@@ -150,21 +156,25 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             // to separate the import section from the other content.
             foreach (var insertSpan in insertSpans)
             {
-                newDocument = await CleanUpNewLinesAsync(newDocument, insertSpan, languageFormatter, options, cancellationToken).ConfigureAwait(false);
+                newDocument = await CleanUpNewLinesAsync(newDocument, insertSpan, formattingOptions, cancellationToken).ConfigureAwait(false);
             }
 
             return newDocument;
         }
 
-        private static async Task<Document> CleanUpNewLinesAsync(Document document, TextSpan insertSpan, ISyntaxFormattingService languageFormatter, OptionSet optionSet, CancellationToken cancellationToken)
+        private async Task<Document> CleanUpNewLinesAsync(Document document, TextSpan insertSpan, SyntaxFormattingOptions options, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var optionService = document.Project.Solution.Workspace.Services.GetRequiredService<IOptionService>();
-            var shouldUseFormattingSpanCollapse = optionSet.GetOption(FormattingBehaviorOptions.AllowDisjointSpanMerging);
-            var options = optionSet.AsAnalyzerConfigOptions(optionService, root.Language);
+            var services = document.Project.Solution.Workspace.Services;
 
-            var textChanges = languageFormatter.Format(root, new[] { insertSpan }, shouldUseFormattingSpanCollapse, options, new[] { new CleanUpNewLinesFormatter(text) }, cancellationToken).GetTextChanges(cancellationToken);
+            var textChanges = Formatter.GetFormattedTextChanges(
+                root,
+                new[] { insertSpan },
+                services,
+                options: options,
+                rules: GetFormatRules(text),
+                cancellationToken);
 
             // If there are no changes then, do less work.
             if (textChanges.Count == 0)
@@ -231,7 +241,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             return (projectChanges, textChanges);
         }
 
-        private sealed class CleanUpNewLinesFormatter : AbstractFormattingRule
+        protected sealed class CleanUpNewLinesFormatter : AbstractFormattingRule
         {
             private readonly SourceText _text;
 

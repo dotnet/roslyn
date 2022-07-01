@@ -41,22 +41,18 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseCollectionInitializerDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
             => !diagnostic.Descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.Unnecessary);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(
-                new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics.First(), c)),
-                context.Diagnostics);
+            RegisterCodeFix(context, AnalyzersResources.Collection_initialization_can_be_simplified, nameof(AnalyzersResources.Collection_initialization_can_be_simplified));
             return Task.CompletedTask;
         }
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             // Fix-All for this feature is somewhat complicated.  As Collection-Initializers 
             // could be arbitrarily nested, we have to make sure that any edits we make
@@ -66,7 +62,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             // feature to keep track of all the object creation nodes as we make edits to
             // the tree.  If we didn't do this, then we wouldn't be able to find the 
             // second object-creation-node after we make the edit for the first one.
-            var workspace = document.Project.Solution.Workspace;
+            var services = document.Project.Solution.Workspace.Services;
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var originalRoot = editor.OriginalRoot;
 
@@ -89,13 +85,11 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 var originalObjectCreation = originalObjectCreationNodes.Pop();
                 var objectCreation = currentRoot.GetCurrentNodes(originalObjectCreation).Single();
 
-                var matches = ObjectCreationExpressionAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
+                var matches = UseCollectionInitializerAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
                     semanticModel, syntaxFacts, objectCreation, cancellationToken);
 
                 if (matches == null || matches.Value.Length == 0)
-                {
                     continue;
-                }
 
                 var statement = objectCreation.FirstAncestorOrSelf<TStatementSyntax>();
                 Contract.ThrowIfNull(statement);
@@ -103,13 +97,11 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 var newStatement = GetNewStatement(statement, objectCreation, matches.Value)
                     .WithAdditionalAnnotations(Formatter.Annotation);
 
-                var subEditor = new SyntaxEditor(currentRoot, workspace);
+                var subEditor = new SyntaxEditor(currentRoot, services);
 
                 subEditor.ReplaceNode(statement, newStatement);
                 foreach (var match in matches)
-                {
                     subEditor.RemoveNode(match, SyntaxRemoveOptions.KeepUnbalancedDirectives);
-                }
 
                 document = document.WithSyntaxRoot(subEditor.GetChangedRoot());
                 semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -122,13 +114,5 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         protected abstract TStatementSyntax GetNewStatement(
             TStatementSyntax statement, TObjectCreationExpressionSyntax objectCreation,
             ImmutableArray<TExpressionStatementSyntax> matches);
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Collection_initialization_can_be_simplified, createChangedDocument, nameof(AnalyzersResources.Collection_initialization_can_be_simplified))
-            {
-            }
-        }
     }
 }

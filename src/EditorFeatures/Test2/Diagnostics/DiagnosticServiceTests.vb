@@ -15,6 +15,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.SolutionCrawler
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.UnitTests.Diagnostics
@@ -149,8 +150,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Assert.Equal(workspaceDiagnosticAnalyzer.DiagDescriptor.Id, descriptors(0).Id)
 
                 ' Add an existing workspace analyzer to the project, ensure no duplicate diagnostics.
-                Dim duplicateProjectAnalyzersReference = hostAnalyzers.GetHostAnalyzerReferencesMap().First().Value
-                project = project.WithAnalyzerReferences({duplicateProjectAnalyzersReference})
+                project = project.WithAnalyzerReferences(hostAnalyzers.HostAnalyzerReferences)
 
                 ' Verify duplicate descriptors or diagnostics.
                 descriptorsMap = hostAnalyzers.GetDiagnosticDescriptorsPerReference(diagnosticService.AnalyzerInfoCache, project)
@@ -2146,8 +2146,7 @@ class MyClass
                        </Workspace>
 
             Using workspace = TestWorkspace.CreateWorkspace(test, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution)))
+                workspace.GlobalOptions.SetGlobalOption(New OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp), BackgroundAnalysisScope.FullSolution)
 
                 Dim solution = workspace.CurrentSolution
                 Dim project = solution.Projects.Single()
@@ -2224,16 +2223,14 @@ class C
                 Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
 
                 ' Verify diagnostics for span
-                Dim diagnostics As New PooledObjects.ArrayBuilder(Of DiagnosticData)
-                Await diagnosticService.TryAppendDiagnosticsForSpanAsync(document, span, diagnostics)
-                Dim diagnostic = Assert.Single(diagnostics)
+                Dim t = Await diagnosticService.TryGetDiagnosticsForSpanAsync(document, span, shouldIncludeDiagnostic:=Nothing)
+                Dim diagnostic = Assert.Single(t.diagnostics)
                 Assert.Equal("CS0219", diagnostic.Id)
 
                 ' Verify no diagnostics outside the local decl span
                 span = localDecl.GetLastToken().GetNextToken().GetNextToken().Span
-                diagnostics.Clear()
-                Await diagnosticService.TryAppendDiagnosticsForSpanAsync(document, span, diagnostics)
-                Assert.Empty(diagnostics)
+                t = Await diagnosticService.TryGetDiagnosticsForSpanAsync(document, span, shouldIncludeDiagnostic:=Nothing)
+                Assert.Empty(t.diagnostics)
             End Using
         End Function
 
@@ -2323,13 +2320,29 @@ class MyClass
                 Assert.Equal(analyzer.Descriptor.Id, descriptors.Single().Id)
 
                 ' Try get diagnostics for span
-                Dim diagnostics As New PooledObjects.ArrayBuilder(Of DiagnosticData)
-                Await diagnosticService.TryAppendDiagnosticsForSpanAsync(document, span, diagnostics)
+                Await diagnosticService.TryGetDiagnosticsForSpanAsync(document, span, shouldIncludeDiagnostic:=Nothing)
 
                 ' Verify only span-based analyzer is invoked with TryAppendDiagnosticsForSpanAsync
                 Assert.Equal(isSpanBasedAnalyzer, analyzer.ReceivedOperationCallback)
             End Using
         End Function
+
+        <WpfFact>
+        Public Sub ReanalysisScopeExcludesMissingDocuments()
+            Dim test = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                           </Project>
+                       </Workspace>
+
+            Using workspace = TestWorkspace.CreateWorkspace(test, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
+                Dim solution = workspace.CurrentSolution
+                Dim project = solution.Projects.Single()
+
+                Dim missingDocumentId = DocumentId.CreateNewId(project.Id, "Missing ID")
+                Dim reanalysisScope = New SolutionCrawlerRegistrationService.ReanalyzeScope(documentIds:={missingDocumentId})
+                Assert.Empty(reanalysisScope.GetDocumentIds(solution))
+            End Using
+        End Sub
 
         <DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)>
         Private NotInheritable Class AnalyzerWithCustomDiagnosticCategory
@@ -2354,7 +2367,7 @@ class MyClass
                 Return _category
             End Function
 
-            Public Function OpenFileOnly(options As OptionSet) As Boolean Implements IBuiltInAnalyzer.OpenFileOnly
+            Public Function OpenFileOnly(options As SimplifierOptions) As Boolean Implements IBuiltInAnalyzer.OpenFileOnly
                 Return False
             End Function
 

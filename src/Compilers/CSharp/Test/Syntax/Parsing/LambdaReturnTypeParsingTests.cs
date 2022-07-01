@@ -818,7 +818,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression(source,
                 // (1,25): error CS1003: Syntax error, ':' expected
                 // int.MaxValue? () => null
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":", "").WithLocation(1, 25),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":").WithLocation(1, 25),
                 // (1,25): error CS1733: Expected expression
                 // int.MaxValue? () => null
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 25));
@@ -1167,7 +1167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression(source,
                 // (1,14): error CS1003: Syntax error, ':' expected
                 // T[0]? () => x
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":", "").WithLocation(1, 14),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":").WithLocation(1, 14),
                 // (1,14): error CS1733: Expected expression
                 // T[0]? () => x
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 14));
@@ -1362,7 +1362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "?").WithArguments("?").WithLocation(1, 5),
                 // (1,14): error CS1003: Syntax error, ':' expected
                 // int*? () => x
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":", "").WithLocation(1, 14),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":").WithLocation(1, 14),
                 // (1,14): error CS1733: Expected expression
                 // int*? () => x
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 14));
@@ -1457,82 +1457,40 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void NullableReturnTypeOrConditional_19()
         {
             string source = "delegate*<void>? () => x";
-            UsingExpression(source,
-                // (1,9): error CS1514: { expected
-                // delegate*<void>? () => x
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "*").WithLocation(1, 9),
-                // (1,9): warning CS8848: Operator '*' cannot be used here due to precedence. Use parentheses to disambiguate.
-                // delegate*<void>? () => x
-                Diagnostic(ErrorCode.WRN_PrecedenceInversion, "*").WithArguments("*").WithLocation(1, 9),
-                // (1,10): error CS1525: Invalid expression term '<'
-                // delegate*<void>? () => x
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "<").WithArguments("<").WithLocation(1, 10),
-                // (1,11): error CS1525: Invalid expression term 'void'
-                // delegate*<void>? () => x
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "void").WithArguments("void").WithLocation(1, 11),
-                // (1,16): error CS1525: Invalid expression term '?'
-                // delegate*<void>? () => x
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "?").WithArguments("?").WithLocation(1, 16),
-                // (1,25): error CS1003: Syntax error, ':' expected
-                // delegate*<void>? () => x
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":", "").WithLocation(1, 25),
-                // (1,25): error CS1733: Expected expression
-                // delegate*<void>? () => x
-                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 25));
+            UsingExpression(source);
 
-            N(SyntaxKind.ConditionalExpression);
+            N(SyntaxKind.ParenthesizedLambdaExpression);
             {
-                N(SyntaxKind.GreaterThanExpression);
+                N(SyntaxKind.NullableType);
                 {
-                    N(SyntaxKind.LessThanExpression);
+                    N(SyntaxKind.FunctionPointerType);
                     {
-                        N(SyntaxKind.MultiplyExpression);
+                        N(SyntaxKind.DelegateKeyword);
+                        N(SyntaxKind.AsteriskToken);
+                        N(SyntaxKind.FunctionPointerParameterList);
                         {
-                            N(SyntaxKind.AnonymousMethodExpression);
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.FunctionPointerParameter);
                             {
-                                N(SyntaxKind.DelegateKeyword);
-                                M(SyntaxKind.Block);
+                                N(SyntaxKind.PredefinedType);
                                 {
-                                    M(SyntaxKind.OpenBraceToken);
-                                    M(SyntaxKind.CloseBraceToken);
+                                    N(SyntaxKind.VoidKeyword);
                                 }
                             }
-                            N(SyntaxKind.AsteriskToken);
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
-                        N(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.PredefinedType);
-                        {
-                            N(SyntaxKind.VoidKeyword);
+                            N(SyntaxKind.GreaterThanToken);
                         }
                     }
-                    N(SyntaxKind.GreaterThanToken);
-                    M(SyntaxKind.IdentifierName);
-                    {
-                        M(SyntaxKind.IdentifierToken);
-                    }
+                    N(SyntaxKind.QuestionToken);
                 }
-                N(SyntaxKind.QuestionToken);
-                N(SyntaxKind.ParenthesizedLambdaExpression);
+                N(SyntaxKind.ParameterList);
                 {
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.EqualsGreaterThanToken);
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "x");
-                    }
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
                 }
-                M(SyntaxKind.ColonToken);
-                M(SyntaxKind.IdentifierName);
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.IdentifierName);
                 {
-                    M(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "x");
                 }
             }
             EOF();
@@ -1542,76 +1500,44 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void NullableReturnTypeOrConditional_20()
         {
             string source = "delegate*<void>? () => x : y";
-            UsingExpression(source,
-                // (1,9): error CS1514: { expected
-                // delegate*<void>? () => x : y
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "*").WithLocation(1, 9),
-                // (1,9): warning CS8848: Operator '*' cannot be used here due to precedence. Use parentheses to disambiguate.
-                // delegate*<void>? () => x : y
-                Diagnostic(ErrorCode.WRN_PrecedenceInversion, "*").WithArguments("*").WithLocation(1, 9),
-                // (1,10): error CS1525: Invalid expression term '<'
-                // delegate*<void>? () => x : y
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "<").WithArguments("<").WithLocation(1, 10),
-                // (1,11): error CS1525: Invalid expression term 'void'
-                // delegate*<void>? () => x : y
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "void").WithArguments("void").WithLocation(1, 11),
-                // (1,16): error CS1525: Invalid expression term '?'
-                // delegate*<void>? () => x : y
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "?").WithArguments("?").WithLocation(1, 16));
 
-            N(SyntaxKind.ConditionalExpression);
+            UsingExpression(source,
+                // (1,1): error CS1073: Unexpected token ':'
+                // delegate*<void>? () => x : y
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "delegate*<void>? () => x").WithArguments(":").WithLocation(1, 1));
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
             {
-                N(SyntaxKind.GreaterThanExpression);
+                N(SyntaxKind.NullableType);
                 {
-                    N(SyntaxKind.LessThanExpression);
+                    N(SyntaxKind.FunctionPointerType);
                     {
-                        N(SyntaxKind.MultiplyExpression);
+                        N(SyntaxKind.DelegateKeyword);
+                        N(SyntaxKind.AsteriskToken);
+                        N(SyntaxKind.FunctionPointerParameterList);
                         {
-                            N(SyntaxKind.AnonymousMethodExpression);
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.FunctionPointerParameter);
                             {
-                                N(SyntaxKind.DelegateKeyword);
-                                M(SyntaxKind.Block);
+                                N(SyntaxKind.PredefinedType);
                                 {
-                                    M(SyntaxKind.OpenBraceToken);
-                                    M(SyntaxKind.CloseBraceToken);
+                                    N(SyntaxKind.VoidKeyword);
                                 }
                             }
-                            N(SyntaxKind.AsteriskToken);
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
-                        N(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.PredefinedType);
-                        {
-                            N(SyntaxKind.VoidKeyword);
+                            N(SyntaxKind.GreaterThanToken);
                         }
                     }
-                    N(SyntaxKind.GreaterThanToken);
-                    M(SyntaxKind.IdentifierName);
-                    {
-                        M(SyntaxKind.IdentifierToken);
-                    }
+                    N(SyntaxKind.QuestionToken);
                 }
-                N(SyntaxKind.QuestionToken);
-                N(SyntaxKind.ParenthesizedLambdaExpression);
+                N(SyntaxKind.ParameterList);
                 {
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.EqualsGreaterThanToken);
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "x");
-                    }
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
                 }
-                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.EqualsGreaterThanToken);
                 N(SyntaxKind.IdentifierName);
                 {
-                    N(SyntaxKind.IdentifierToken, "y");
+                    N(SyntaxKind.IdentifierToken, "x");
                 }
             }
             EOF();
@@ -1888,7 +1814,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression(source,
                 // (1,18): error CS1003: Syntax error, ':' expected
                 // b? c? () => x : y
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":", "").WithLocation(1, 18),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":").WithLocation(1, 18),
                 // (1,18): error CS1733: Expected expression
                 // b? c? () => x : y
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 18));
@@ -3805,10 +3731,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression(source,
                 // (1,5): error CS1003: Syntax error, ',' expected
                 // F(A a, B b)
-                Diagnostic(ErrorCode.ERR_SyntaxError, "a").WithArguments(",", "").WithLocation(1, 5),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "a").WithArguments(",").WithLocation(1, 5),
                 // (1,10): error CS1003: Syntax error, ',' expected
                 // F(A a, B b)
-                Diagnostic(ErrorCode.ERR_SyntaxError, "b").WithArguments(",", "").WithLocation(1, 10));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "b").WithArguments(",").WithLocation(1, 10));
 
             N(SyntaxKind.InvocationExpression);
             {
@@ -3863,10 +3789,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression(source,
                 // (1,9): error CS1003: Syntax error, ',' expected
                 // F(ref A a, out B b, in C c)
-                Diagnostic(ErrorCode.ERR_SyntaxError, "a").WithArguments(",", "").WithLocation(1, 9),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "a").WithArguments(",").WithLocation(1, 9),
                 // (1,26): error CS1003: Syntax error, ',' expected
                 // F(ref A a, out B b, in C c)
-                Diagnostic(ErrorCode.ERR_SyntaxError, "c").WithArguments(",", "").WithLocation(1, 26));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "c").WithArguments(",").WithLocation(1, 26));
 
             N(SyntaxKind.InvocationExpression);
             {
@@ -3939,7 +3865,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression(source,
                 // (1,9): error CS1003: Syntax error, ',' expected
                 // F(ref A a,
-                Diagnostic(ErrorCode.ERR_SyntaxError, "a").WithArguments(",", "").WithLocation(1, 9),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "a").WithArguments(",").WithLocation(1, 9),
                 // (1,11): error CS1733: Expected expression
                 // F(ref A a,
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 11),
@@ -4271,7 +4197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression(source,
                 // (1,24): error CS1003: Syntax error, ',' expected
                 // x switch { int () => 0 => 1 }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(1, 24),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(1, 24),
                 // (1,24): error CS8504: Pattern missing
                 // x switch { int () => 0 => 1 }
                 Diagnostic(ErrorCode.ERR_MissingPattern, "=>").WithLocation(1, 24));
@@ -4335,7 +4261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "{").WithArguments("{").WithLocation(1, 20),
                 // (1,20): error CS1003: Syntax error, ',' expected
                 // x switch { T () => { } => 1 }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(1, 20));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(1, 20));
 
             N(SyntaxKind.SwitchExpression);
             {
@@ -4397,10 +4323,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "static").WithArguments("static").WithLocation(1, 12),
                 // (1,12): error CS1003: Syntax error, '=>' expected
                 // x switch { static T? () => { } => 1 }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "static").WithArguments("=>", "static").WithLocation(1, 12),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "static").WithArguments("=>").WithLocation(1, 12),
                 // (1,32): error CS1003: Syntax error, ',' expected
                 // x switch { static T? () => { } => 1 }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(1, 32),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(1, 32),
                 // (1,32): error CS8504: Pattern missing
                 // x switch { static T? () => { } => 1 }
                 Diagnostic(ErrorCode.ERR_MissingPattern, "=>").WithLocation(1, 32));
@@ -4719,7 +4645,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression(source,
                 // (1,10): error CS1003: Syntax error, ',' expected
                 // s[..x () => { }]
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(1, 10));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(1, 10));
 
             N(SyntaxKind.ElementAccessExpression);
             {
@@ -5004,6 +4930,51 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void Async_TopLevelStatement()
+        {
+            string source = "async MyMethod() => null;";
+            UsingTree(source, TestOptions.Regular9);
+            verify();
+
+            UsingTree(source, TestOptions.Regular10);
+            verify();
+
+            void verify()
+            {
+                N(SyntaxKind.CompilationUnit);
+                {
+                    N(SyntaxKind.GlobalStatement);
+                    {
+                        N(SyntaxKind.LocalFunctionStatement);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "async");
+                            }
+                            N(SyntaxKind.IdentifierToken, "MyMethod");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.ArrowExpressionClause);
+                            {
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.NullLiteralExpression);
+                                {
+                                    N(SyntaxKind.NullKeyword);
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                    N(SyntaxKind.EndOfFileToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
         public void Dynamic_01()
         {
             string source = "dynamic () => default";
@@ -5196,7 +5167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 UsingExpression(source, parseOptions,
                     // (1,7): error CS1003: Syntax error, ',' expected
                     // F(var x => x)
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",", "").WithLocation(1, 7));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",").WithLocation(1, 7));
 
                 N(SyntaxKind.InvocationExpression);
                 {

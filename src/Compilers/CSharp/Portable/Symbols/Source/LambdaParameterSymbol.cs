@@ -8,7 +8,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class LambdaParameterSymbol : SourceComplexParameterSymbol
+    internal sealed class LambdaParameterSymbol : SourceComplexParameterSymbolBase
     {
         private readonly SyntaxList<AttributeListSyntax> _attributeLists;
 
@@ -18,20 +18,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
            TypeWithAnnotations parameterType,
            int ordinal,
            RefKind refKind,
+           DeclarationScope scope,
            string name,
            bool isDiscard,
-           bool isNullChecked,
            ImmutableArray<Location> locations)
-           : base(owner, ordinal, parameterType, refKind, name, locations, syntaxRef: null, isParams: false, isExtensionMethodThis: false)
+           : base(owner, ordinal, parameterType, refKind, name, locations, syntaxRef: null, isParams: false, isExtensionMethodThis: false, scope)
         {
             _attributeLists = attributeLists;
             IsDiscard = isDiscard;
-            IsNullChecked = isNullChecked;
         }
 
         public override bool IsDiscard { get; }
-
-        public override bool IsNullChecked { get; }
 
         internal override bool IsMetadataOptional
         {

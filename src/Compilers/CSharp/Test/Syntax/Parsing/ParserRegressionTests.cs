@@ -745,7 +745,7 @@ class A
             ParseAndValidate(source,
                 // (5,13): error CS7000: Unexpected use of an aliased name
                 //         A<B>::C d;
-                Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "::").WithArguments("::").WithLocation(5, 13));
+                Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "::").WithLocation(5, 13));
 
             UsingTree(source);
             N(SyntaxKind.CompilationUnit);

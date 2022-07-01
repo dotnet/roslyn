@@ -27,6 +27,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private LoweredDynamicOperationFactory _dynamicFactory;
         private bool _sawLambdas;
         private int _availableLocalFunctionOrdinal;
+        private readonly int _topLevelMethodOrdinal;
+        private DelegateCacheRewriter? _lazyDelegateCacheRewriter;
         private bool _inExpressionLambda;
 
         private bool _sawAwait;
@@ -57,6 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _dynamicFactory = new LoweredDynamicOperationFactory(factory, containingMethodOrdinal);
             _previousSubmissionFields = previousSubmissionFields;
             _allowOmissionOfConditionalCalls = allowOmissionOfConditionalCalls;
+            _topLevelMethodOrdinal = containingMethodOrdinal;
             _diagnostics = diagnostics;
 
             Debug.Assert(instrumenter != null);
@@ -260,12 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _instrumenter = RemoveDynamicAnalysisInjectors(oldInstrumenter);
                 }
 
-                var visited = (BoundLambda)base.VisitLambda(node)!;
-                if (RewriteNullChecking(visited.Body) is BoundBlock newBody)
-                {
-                    visited = visited.Update(visited.UnboundLambda, visited.Symbol, newBody, visited.Diagnostics, visited.Binder, visited.Type);
-                }
-                return visited;
+                return base.VisitLambda(node)!;
             }
             finally
             {
@@ -284,23 +282,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (_factory.CompilationState.ModuleBuilderOpt is { } moduleBuilder)
             {
                 var typeParameters = localFunction.TypeParameters;
-                if (typeParameters.Any(typeParameter => typeParameter.HasUnmanagedTypeConstraint))
+                if (typeParameters.Any(static typeParameter => typeParameter.HasUnmanagedTypeConstraint))
                 {
                     moduleBuilder.EnsureIsUnmanagedAttributeExists();
                 }
 
-                if (hasReturnTypeOrParameter(localFunction, t => t.ContainsNativeInteger()) ||
-                    typeParameters.Any(t => t.ConstraintTypesNoUseSiteDiagnostics.Any(t => t.ContainsNativeInteger())))
+                if (_compilation.ShouldEmitNativeIntegerAttributes())
                 {
-                    moduleBuilder.EnsureNativeIntegerAttributeExists();
+                    if (hasReturnTypeOrParameter(localFunction, static t => t.ContainsNativeIntegerWrapperType()) ||
+                        typeParameters.Any(static t => t.ConstraintTypesNoUseSiteDiagnostics.Any(static t => t.ContainsNativeIntegerWrapperType())))
+                    {
+                        moduleBuilder.EnsureNativeIntegerAttributeExists();
+                    }
                 }
 
                 if (_factory.CompilationState.Compilation.ShouldEmitNullableAttributes(localFunction))
                 {
                     bool constraintsNeedNullableAttribute = typeParameters.Any(
-                       typeParameter => ((SourceTypeParameterSymbolBase)typeParameter).ConstraintsNeedNullableAttribute());
+                       static typeParameter => ((SourceTypeParameterSymbolBase)typeParameter).ConstraintsNeedNullableAttribute());
 
-                    if (constraintsNeedNullableAttribute || hasReturnTypeOrParameter(localFunction, t => t.NeedsNullableAttribute()))
+                    if (constraintsNeedNullableAttribute || hasReturnTypeOrParameter(localFunction, static t => t.NeedsNullableAttribute()))
                     {
                         moduleBuilder.EnsureNullableAttributeExists();
                     }
@@ -330,13 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _dynamicFactory = new LoweredDynamicOperationFactory(_factory, _dynamicFactory.MethodOrdinal, localFunctionOrdinal);
                 }
 
-                var visited = (BoundLocalFunctionStatement)base.VisitLocalFunctionStatement(node)!;
-
-                if (!localFunction.IsIterator && RewriteNullChecking(visited.Body) is BoundBlock newBody)
-                {
-                    visited = visited.Update(localFunction, newBody, null);
-                }
-                return visited;
+                return base.VisitLocalFunctionStatement(node)!;
             }
             finally
             {
@@ -432,6 +427,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(value.Type is { } && (value.Type.Equals(placeholder.Type, TypeCompareKind.AllIgnoreOptions) || value.HasErrors));
         }
 
+#if DEBUG
         [Conditional("DEBUG")]
         private void AssertNoPlaceholderReplacements()
         {
@@ -440,6 +436,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(_placeholderReplacementMapDoNotUseDirectly.Count == 0);
             }
         }
+#endif
 
         /// <summary>
         /// Sets substitution used by the rewriter for a placeholder node.
@@ -980,7 +977,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void CheckRefReadOnlySymbols(MethodSymbol symbol)
         {
             if (symbol.ReturnsByRefReadonly ||
-                symbol.Parameters.Any(p => p.RefKind == RefKind.In))
+                symbol.Parameters.Any(static p => p.RefKind == RefKind.In))
             {
                 _factory.CompilationState.ModuleBuilderOpt?.EnsureIsReadOnlyAttributeExists();
             }

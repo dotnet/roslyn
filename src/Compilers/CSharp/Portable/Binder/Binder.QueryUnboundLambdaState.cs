@@ -32,9 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override string ParameterName(int index) { return _parameters[index].Name; }
             public override bool ParameterIsDiscard(int index) { return false; }
-            public override bool ParameterIsNullChecked(int index) { return false; }
             public override SyntaxList<AttributeListSyntax> ParameterAttributes(int index) => default;
-            public override bool HasNames { get { return true; } }
             public override bool HasSignature { get { return true; } }
 
             public override bool HasExplicitReturnType(out RefKind refKind, out TypeWithAnnotations returnType)
@@ -49,6 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override bool IsAsync { get { return false; } }
             public override bool IsStatic => false;
             public override RefKind RefKind(int index) { return Microsoft.CodeAnalysis.RefKind.None; }
+            public override DeclarationScope Scope(int index) => DeclarationScope.Unscoped;
             public override MessageID MessageID { get { return MessageID.IDS_FeatureQueryExpression; } } // TODO: what is the correct ID here?
             public override Location ParameterLocation(int index) { return _parameters[index].Locations[0]; }
             public override TypeWithAnnotations ParameterTypeWithAnnotations(int index) { throw new ArgumentException(); } // implicitly typed
@@ -59,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 base.GenerateAnonymousFunctionConversionError(diagnostics, targetType);
             }
 
-            public override Binder ParameterBinder(LambdaSymbol lambdaSymbol, Binder binder)
+            public override Binder GetWithParametersBinder(LambdaSymbol lambdaSymbol, Binder binder)
             {
                 return new WithQueryLambdaParametersBinder(lambdaSymbol, _rangeVariableMap, binder);
             }

@@ -14,6 +14,7 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
@@ -187,6 +188,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
+                if (!this.IsDefinition)
+                {
+                    return OriginalDefinition.DeclaringCompilation;
+                }
+
                 switch (this.Kind)
                 {
                     case SymbolKind.ErrorType:
@@ -199,8 +205,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return null;
                 }
 
-                var sourceModuleSymbol = this.ContainingModule as SourceModuleSymbol;
-                return (object)sourceModuleSymbol == null ? null : sourceModuleSymbol.DeclaringCompilation;
+                switch (this.ContainingModule)
+                {
+                    case SourceModuleSymbol sourceModuleSymbol:
+                        return sourceModuleSymbol.DeclaringCompilation;
+
+                    case PEModuleSymbol:
+                        // A special handling for EE.
+                        return ContainingSymbol?.DeclaringCompilation;
+                }
+
+                return null;
             }
         }
 
@@ -837,6 +852,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+#nullable enable 
         /// <summary>
         /// Fetches the documentation comment for this element with a cancellation token.
         /// </summary>
@@ -845,12 +861,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="cancellationToken">Optionally, allow cancellation of documentation comment retrieval.</param>
         /// <returns>The XML that would be written to the documentation file for the symbol.</returns>
         public virtual string GetDocumentationCommentXml(
-            CultureInfo preferredCulture = null,
+            CultureInfo? preferredCulture = null,
             bool expandIncludes = false,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             return "";
         }
+#nullable disable
 
         private static readonly SymbolDisplayFormat s_debuggerDisplayFormat =
             SymbolDisplayFormat.TestFormat
@@ -922,16 +939,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Return error code that has highest priority while calculating use site error for this symbol. 
+        /// Returns true if the error code is the highest priority while calculating use site error for this symbol. 
         /// Supposed to be ErrorCode, but it causes inconsistent accessibility error.
         /// </summary>
-        protected virtual int HighestPriorityUseSiteError
-        {
-            get
-            {
-                return int.MaxValue;
-            }
-        }
+        protected virtual bool IsHighestPriorityUseSiteErrorCode(int code) => true;
 
         /// <summary>
         /// Indicates that this symbol uses metadata that cannot be supported by the language.
@@ -970,7 +981,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (info.Severity == DiagnosticSeverity.Error && (info.Code == HighestPriorityUseSiteError || HighestPriorityUseSiteError == Int32.MaxValue))
+            if (info.Severity == DiagnosticSeverity.Error && IsHighestPriorityUseSiteErrorCode(info.Code))
             {
                 // this error is final, no other error can override it:
                 result = info;
@@ -1104,7 +1115,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return false;
         }
-
 
         [Flags]
         internal enum AllowedRequiredModifierType
@@ -1367,6 +1377,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NullablePublicOnlyAttribute = 1 << 8,
             NativeIntegerAttribute = 1 << 9,
             CaseSensitiveExtensionAttribute = 1 << 10,
+            RequiredMemberAttribute = 1 << 11,
         }
 
         internal bool ReportExplicitUseOfReservedAttributes(in DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, ReservedAttributes reserved)
@@ -1420,6 +1431,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // ExtensionAttribute should not be set explicitly.
                 diagnostics.Add(ErrorCode.ERR_ExplicitExtension, arguments.AttributeSyntaxOpt.Location);
+            }
+            else if ((reserved & ReservedAttributes.RequiredMemberAttribute) != 0 &&
+                attribute.IsTargetAttribute(this, AttributeDescription.RequiredMemberAttribute))
+            {
+                // Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.
+                diagnostics.Add(ErrorCode.ERR_ExplicitRequiredMember, arguments.AttributeSyntaxOpt.Location);
             }
             else
             {

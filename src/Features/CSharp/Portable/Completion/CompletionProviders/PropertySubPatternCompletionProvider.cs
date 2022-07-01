@@ -83,10 +83,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             foreach (var member in members)
             {
-                const string ColonString = ":";
                 context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
                     displayText: member.Name.EscapeIdentifier(),
-                    displayTextSuffix: ColonString,
+                    displayTextSuffix: "",
                     insertionText: null,
                     symbols: ImmutableArray.Create(member),
                     contextPosition: context.Position,
@@ -204,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     memberAccess = (MemberAccessExpressionSyntax)memberAccess.Parent;
                 }
 
-                if (memberAccess is { Parent: { Parent: SubpatternSyntax { Parent: PropertyPatternClauseSyntax found } } })
+                if (memberAccess is { Parent.Parent: SubpatternSyntax { Parent: PropertyPatternClauseSyntax found } })
                 {
                     propertyPatternClause = found;
                     return true;
