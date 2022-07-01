@@ -51,6 +51,12 @@ namespace Microsoft.CodeAnalysis.Analyzers.MatchFolderAndNamespace
 
         private void AnalyzeNamespaceNode(SyntaxNodeAnalysisContext context)
         {
+            var option = context.GetAnalyzerOptions().PreferNamespaceAndFolderMatchStructure;
+            if (!option.Value)
+            {
+                return;
+            }
+
             // It's ok to not have a rootnamespace property, but if it's there we want to use it correctly
             context.Options.AnalyzerConfigOptionsProvider.GlobalOptions.TryGetValue(MatchFolderAndNamespaceConstants.RootNamespaceOption, out var rootNamespace);
 
