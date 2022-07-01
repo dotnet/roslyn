@@ -2649,8 +2649,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                             continue;
                                         }
 
-                                        // If the associated member declaration (accessor -> property/indexer/event, parameter -> method) has also been deleted skip
-                                        // the delete of the symbol as it will be deleted by the delete of the associated member.
+                                        // If the associated member declaration (parameter/type parameter -> method) has also been deleted skip
+                                        // the delete of the symbol as it will be deleted by the delete of the associated member. We pass the edit kind
+                                        // in here to avoid property/event accessors from being caught up in this, because those deletes we want to process
+                                        // separately, below.
                                         //
                                         // Associated member declarations must be in the same document as the symbol, so we don't need to resolve their symbol.
                                         // In some cases the symbol even can't be resolved unambiguously. Consider e.g. resolving a method with its parameter deleted -
@@ -2673,43 +2675,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                                 continue;
                                             }
 
-                                            if (oldSymbol.GetSymbolModifiers() is { IsVirtual: false, IsAbstract: false, IsOverride: false } &&
-                                                oldSymbol.ContainingType is { TypeKind: TypeKind.Class or TypeKind.Struct } &&
-                                                !oldSymbol.IsExtern)
+                                            if (TryAddMemberDeleteSemanticEdits(semanticEdits, oldSymbol, containingSymbolKey, syntaxMap, cancellationToken))
                                             {
-                                                // Deleting an ordinary method is allowed, and we store the newContainingSymbol in NewSymbol for later use
-                                                // We don't currently allow deleting virtual or abstract methods, because if those are in the middle of
-                                                // an inheritance chain then throwing a missing method exception is not expected
-                                                if (oldSymbol is IMethodSymbol
-                                                    {
-                                                        MethodKind:
-                                                            MethodKind.Ordinary or
-                                                            MethodKind.Constructor or
-                                                            MethodKind.EventAdd or
-                                                            MethodKind.EventRemove or
-                                                            MethodKind.EventRaise or
-                                                            MethodKind.Conversion or
-                                                            MethodKind.UserDefinedOperator or
-                                                            MethodKind.PropertyGet or
-                                                            MethodKind.PropertySet
-                                                    })
-                                                {
-                                                    AddDeleteSemanticEdit(semanticEdits, oldSymbol, containingSymbolKey, syntaxMap, cancellationToken);
-                                                    continue;
-                                                }
-                                                else if (oldSymbol is IPropertySymbol propertySymbol)
-                                                {
-                                                    AddDeleteSemanticEdit(semanticEdits, propertySymbol.GetMethod, containingSymbolKey, syntaxMap, cancellationToken);
-                                                    AddDeleteSemanticEdit(semanticEdits, propertySymbol.SetMethod, containingSymbolKey, syntaxMap, cancellationToken);
-                                                    continue;
-                                                }
-                                                else if (oldSymbol is IEventSymbol eventSymbol)
-                                                {
-                                                    AddDeleteSemanticEdit(semanticEdits, eventSymbol.AddMethod, containingSymbolKey, syntaxMap, cancellationToken);
-                                                    AddDeleteSemanticEdit(semanticEdits, eventSymbol.RemoveMethod, containingSymbolKey, syntaxMap, cancellationToken);
-                                                    AddDeleteSemanticEdit(semanticEdits, eventSymbol.RaiseMethod, containingSymbolKey, syntaxMap, cancellationToken);
-                                                    continue;
-                                                }
+                                                continue;
                                             }
                                         }
 
@@ -3209,6 +3177,61 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     (newSymbol != null && newSymbol.DeclaringSyntaxReferences.Length == 1) ?
                         GetSymbolDeclarationSyntax(newSymbol.DeclaringSyntaxReferences.Single(), cancellationToken) : newNode);
             }
+        }
+
+        private static bool TryAddMemberDeleteSemanticEdits(ArrayBuilder<SemanticEditInfo> semanticEdits, ISymbol oldSymbol, SymbolKey containingSymbolKey, Func<SyntaxNode, SyntaxNode?>? syntaxMap, CancellationToken cancellationToken)
+        {
+            // We don't currently allow deleting virtual or abstract methods, because if those are in the middle of
+            // an inheritance chain then throwing a missing method exception is not expected
+            if (oldSymbol.GetSymbolModifiers() is not { IsVirtual: false, IsAbstract: false, IsOverride: false })
+                return false;
+
+            // Extern methods can't be deleted
+            if (oldSymbol.IsExtern)
+                return false;
+
+            // We don't allow deleting members from interfaces etc. only normal classes and structs
+            if (oldSymbol.ContainingType is not { TypeKind: TypeKind.Class or TypeKind.Struct })
+                return false;
+
+            // Wo store the containing symbol in NewSymbol of the edit for later use.
+            if (oldSymbol is IMethodSymbol
+                {
+                    MethodKind:
+                        MethodKind.Ordinary or
+                        MethodKind.Constructor or
+                        MethodKind.EventAdd or
+                        MethodKind.EventRemove or
+                        MethodKind.EventRaise or
+                        MethodKind.Conversion or
+                        MethodKind.UserDefinedOperator or
+                        MethodKind.PropertyGet or
+                        MethodKind.PropertySet
+                })
+            {
+                AddDeleteSemanticEdit(semanticEdits, oldSymbol, containingSymbolKey, syntaxMap, cancellationToken);
+
+                return true;
+            }
+
+            if (oldSymbol is IPropertySymbol propertySymbol)
+            {
+                AddDeleteSemanticEdit(semanticEdits, propertySymbol.GetMethod, containingSymbolKey, syntaxMap, cancellationToken);
+                AddDeleteSemanticEdit(semanticEdits, propertySymbol.SetMethod, containingSymbolKey, syntaxMap, cancellationToken);
+
+                return true;
+            }
+
+            if (oldSymbol is IEventSymbol eventSymbol)
+            {
+                AddDeleteSemanticEdit(semanticEdits, eventSymbol.AddMethod, containingSymbolKey, syntaxMap, cancellationToken);
+                AddDeleteSemanticEdit(semanticEdits, eventSymbol.RemoveMethod, containingSymbolKey, syntaxMap, cancellationToken);
+                AddDeleteSemanticEdit(semanticEdits, eventSymbol.RaiseMethod, containingSymbolKey, syntaxMap, cancellationToken);
+
+                return true;
+            }
+
+            return false;
         }
 
         private static void AddDeleteSemanticEdit(ArrayBuilder<SemanticEditInfo> semanticEdits, ISymbol? symbol, SymbolKey containingSymbolKey, Func<SyntaxNode, SyntaxNode?>? syntaxMap, CancellationToken cancellationToken)
