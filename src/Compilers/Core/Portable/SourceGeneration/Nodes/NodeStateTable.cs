@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 Debug.Assert(_previous._states[_states.Count].Count == 1);
-                var (chosen, state) = GetModifiedItemAndState(_previous._states[_states.Count].GetItem(0), value, comparer);
+                var (chosen, state, _) = GetModifiedItemAndState(_previous._states[_states.Count].GetItem(0), value, comparer);
                 _states.Add(new TableEntry(chosen, state));
                 RecordStepInfoForLastEntry(elapsedTime, stepInputs, overallInputState);
                 return true;
@@ -289,32 +289,67 @@ namespace Microsoft.CodeAnalysis
                     return true;
                 }
 
-                var modified = new TableEntry.Builder();
+                // We may be able to move the previous entry over wholesale.  So avoid creating an builder and doing any
+                // expensive work there until necessary.  We can only do this if the counts of before/after are the same.
+                // If not, then obviously something changed and we can't reuse the before item.
+
+                var totalBuilderItems = Math.Max(previousEntry.Count, outputs.Length);
+                var builder = previousEntry.Count == outputs.Length ? null : new TableEntry.Builder(capacity: totalBuilderItems);
+
                 var sharedCount = Math.Min(previousEntry.Count, outputs.Length);
 
                 // cached or modified items
-                for (int i = 0; i < sharedCount; i++)
+                for (int i = 0, n = sharedCount; i < n; i++)
                 {
-                    var previous = previousEntry.GetItem(i);
-                    var replacement = outputs[i];
+                    var previousItem = previousEntry.GetItem(i);
+                    var previousState = previousEntry.GetState(i);
+                    var replacementItem = outputs[i];
 
-                    (var chosen, var state) = GetModifiedItemAndState(previous, replacement, comparer);
-                    modified.Add(chosen, state);
+                    var (chosenItem, state, chosePrevious) = GetModifiedItemAndState(previousItem, replacementItem, comparer);
+
+                    if (builder != null)
+                    {
+                        // if we have a builder, then we're keeping track of all entries no matter what.
+                        builder.Add(chosenItem, state);
+                        continue;
+                    }
+
+                    if (!chosePrevious || state != previousState)
+                    {
+                        // We don't have a builder, but we also can't use the previous entry.  Make a builder, copy
+                        // everything prior to this point to it, and then add the latest entry.
+                        builder = new TableEntry.Builder(capacity: totalBuilderItems);
+                        for (int j = 0; j < i; j++)
+                            builder.Add(previousEntry.GetItem(j), previousEntry.GetState(j));
+
+                        builder.Add(chosenItem, state);
+                        continue;
+                    }
+
+                    // otherwise, we don't have a builder and we are still able to use the previous entry.  Keep going
+                    // without constructing anything.
                 }
 
                 // removed
                 for (int i = sharedCount; i < previousEntry.Count; i++)
                 {
-                    modified.Add(previousEntry.GetItem(i), EntryState.Removed);
+                    // We know we must have a builder because we only get into this path when the counts are different
+                    // (and thus we created a builder at the start).
+                    builder!.Add(previousEntry.GetItem(i), EntryState.Removed);
                 }
 
                 // added
                 for (int i = sharedCount; i < outputs.Length; i++)
                 {
-                    modified.Add(outputs[i], EntryState.Added);
+                    // We know we must have a builder because we only get into this path when the counts are different
+                    // (and thus we created a builder at the start).
+                    builder!.Add(outputs[i], EntryState.Added);
                 }
 
-                _states.Add(modified.ToImmutableAndFree());
+                // If we still don't have a builder, then we can reuse the previous table entry entirely.  Otherwise,
+                // construct the new one from the values collected.
+                _states.Add(builder == null ? previousEntry : builder.ToImmutableAndFree());
+
                 RecordStepInfoForLastEntry(elapsedTime, stepInputs, overallInputState);
                 return true;
             }
@@ -412,13 +447,13 @@ namespace Microsoft.CodeAnalysis
                     hasTrackedSteps: TrackIncrementalSteps);
             }
 
-            private static (T chosen, EntryState state) GetModifiedItemAndState(T previous, T replacement, IEqualityComparer<T> comparer)
+            private static (T chosen, EntryState state, bool chosePrevious) GetModifiedItemAndState(T previous, T replacement, IEqualityComparer<T> comparer)
             {
                 // when comparing an item to check if its modified we explicitly cache the *previous* item in the case where its 
                 // considered to be equal. This ensures that subsequent comparisons are stable across future generation passes.
                 return comparer.Equals(previous, replacement)
-                    ? (previous, EntryState.Cached)
-                    : (replacement, EntryState.Modified);
+                    ? (previous, EntryState.Cached, chosePrevious: true)
+                    : (replacement, EntryState.Modified, chosePrevious: false);
             }
         }
 
@@ -559,11 +594,18 @@ namespace Microsoft.CodeAnalysis
 
             public sealed class Builder
             {
-                private readonly ArrayBuilder<T> _items = ArrayBuilder<T>.GetInstance();
+                private readonly ArrayBuilder<T> _items;
 
                 private ArrayBuilder<EntryState>? _states;
-
                 private EntryState? _currentState;
+
+                private readonly int _requestedCapacity;
+
+                public Builder(int capacity)
+                {
+                    _items = ArrayBuilder<T>.GetInstance(capacity);
+                    _requestedCapacity = capacity;
+                }
 
                 public void Add(T item, EntryState state)
                 {
@@ -578,7 +620,13 @@ namespace Microsoft.CodeAnalysis
                     }
                     else if (_currentState != state)
                     {
-                        _states = ArrayBuilder<EntryState>.GetInstance(_items.Count - 1, _currentState.Value);
+                        // Create a builder with the right capacity (so we don't waste scratch space). Copy all the same
+                        // prior values all the way up to the last item we're about to add.
+                        _states = ArrayBuilder<EntryState>.GetInstance(_requestedCapacity);
+                        for (int i = 0, n = _items.Count - 1; i < n; i++)
+                            _states.Add(_currentState.Value);
+
+                        // then finally add the new value at the end.
                         _states.Add(state);
                     }
                 }
@@ -586,7 +634,10 @@ namespace Microsoft.CodeAnalysis
                 public TableEntry ToImmutableAndFree()
                 {
                     Debug.Assert(_currentState.HasValue, "Created a builder with no values?");
-                    int numItems = _items.Count;
+
+                    Debug.Assert(_items.Count == _requestedCapacity);
+                    Debug.Assert(_states == null || _states.Count == _requestedCapacity);
+
                     return new TableEntry(item: default, _items.ToImmutableAndFree(), _states?.ToImmutableAndFree() ?? GetSingleArray(_currentState.Value));
                 }
             }
