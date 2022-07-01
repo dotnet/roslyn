@@ -109,16 +109,20 @@ namespace Microsoft.CodeAnalysis
             if (IsCached)
                 return this;
 
-            var compacted = ArrayBuilder<TableEntry>.GetInstance();
+            var nonRemovedCount = _states.Count(static e => !e.IsRemoved);
+
+            var compacted = ArrayBuilder<TableEntry>.GetInstance(nonRemovedCount);
             foreach (var entry in _states)
             {
                 if (!entry.IsRemoved)
-                {
                     compacted.Add(entry.AsCached());
-                }
             }
+
             // When we're preparing a table for caching between runs, we drop the step information as we cannot guarantee the graph structure while also updating
             // the input states
+
+            // Ensure we are completely full so that ToImmutable translates to a MoveToImmutable
+            Debug.Assert(compacted.Count == nonRemovedCount);
             return new NodeStateTable<T>(compacted.ToImmutableAndFree(), ImmutableArray<IncrementalGeneratorRunStep>.Empty, hasTrackedSteps: false);
         }
 
