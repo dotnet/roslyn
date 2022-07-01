@@ -88,6 +88,9 @@ namespace Microsoft.CodeAnalysis
 
         public ImmutableArray<IncrementalGeneratorRunStep> Steps { get; }
 
+        public int GetTotalEntryItemCount()
+            => _states.Sum(static e => e.Count);
+
         public IEnumerator<NodeStateEntry<T>> GetEnumerator()
         {
             for (int i = 0; i < _states.Length; i++)
@@ -131,8 +134,8 @@ namespace Microsoft.CodeAnalysis
             return (_states[^1].GetItem(0), HasTrackedSteps ? Steps[^1] : null);
         }
 
-        public Builder ToBuilder(string? stepName, bool stepTrackingEnabled, IEqualityComparer<T>? equalityComparer = null)
-            => new(this, stepName, stepTrackingEnabled, equalityComparer);
+        public Builder ToBuilder(string? stepName, bool stepTrackingEnabled, IEqualityComparer<T>? equalityComparer = null, int? tableCapacity = null)
+            => new(this, stepName, stepTrackingEnabled, equalityComparer, tableCapacity);
 
         public NodeStateTable<T> CreateCachedTableWithUpdatedSteps<TInput>(NodeStateTable<TInput> inputTable, string? stepName, IEqualityComparer<T> equalityComparer)
         {
@@ -160,9 +163,23 @@ namespace Microsoft.CodeAnalysis
             [MemberNotNullWhen(true, nameof(_steps))]
             public bool TrackIncrementalSteps => _steps is not null;
 
-            internal Builder(NodeStateTable<T> previous, string? name, bool stepTrackingEnabled, IEqualityComparer<T>? equalityComparer)
+#if DEBUG
+            private readonly int? _requestedTableCapacity;
+#endif
+
+            internal Builder(
+                NodeStateTable<T> previous,
+                string? name,
+                bool stepTrackingEnabled,
+                IEqualityComparer<T>? equalityComparer,
+                int? tableCapacity)
             {
-                _states = ArrayBuilder<TableEntry>.GetInstance(previous.Count);
+#if DEBUG
+                _requestedTableCapacity = tableCapacity;
+#endif
+                // If the caller specified a desired capacity, then use that.  Otherwise, use the previous table's total
+                // entry count as a reasonable approximation for what we will need.
+                _states = ArrayBuilder<TableEntry>.GetInstance(tableCapacity ?? previous.GetTotalEntryItemCount());
                 _previous = previous;
                 _name = name;
                 _equalityComparer = equalityComparer ?? EqualityComparer<T>.Default;
@@ -171,6 +188,8 @@ namespace Microsoft.CodeAnalysis
                     _steps = ArrayBuilder<IncrementalGeneratorRunStep>.GetInstance();
                 }
             }
+
+            public int Count => _states.Count;
 
             public bool TryRemoveEntries(TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs)
             {
@@ -367,13 +386,25 @@ namespace Microsoft.CodeAnalysis
                     return NodeStateTable<T>.Empty;
                 }
 
+#if DEBUG
+                // If the caller requested a specific capacity, then we should have added exactly that amount of items.
+                Debug.Assert(_requestedTableCapacity == null || _requestedTableCapacity == _states.Count);
+#endif
+
                 // if we added the exact same entries as before, then we can directly embed previous' entry array,
                 // avoiding a costly allocation of the same data.
-                var finalStates = _states.Count == _previous.Count && _states.SequenceEqual(_previous._states, (e1, e2) => e1.Matches(e2, _equalityComparer))
-                    ? _previous._states
-                    : _states.ToImmutable();
-
-                _states.Free();
+                ImmutableArray<TableEntry> finalStates;
+                if (_states.Count == _previous.Count && _states.SequenceEqual(_previous._states, (e1, e2) => e1.Matches(e2, _equalityComparer)))
+                {
+                    finalStates = _previous._states;
+                    _states.Free();
+                }
+                else
+                {
+                    // Important to use ToImmutableAndFree so that we will MoveToImmutable when the requested capacity
+                    // equals the count.
+                    finalStates = _states.ToImmutableAndFree();
+                }
 
                 return new NodeStateTable<T>(
                     finalStates,
