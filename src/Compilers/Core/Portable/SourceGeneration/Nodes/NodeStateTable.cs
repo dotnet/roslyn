@@ -289,7 +289,9 @@ namespace Microsoft.CodeAnalysis
                     return true;
                 }
 
-                // See if we can use the previous entry entirely.  If not, compute what the entry must be.
+                // We may be able to move the previous entry over wholesale.  So avoid creating an builder and doing any expensive work there until necessary.
+
+
                 if (CanReusePreviousEntry())
                 {
                     _states.Add(previousEntry);
@@ -599,17 +601,11 @@ namespace Microsoft.CodeAnalysis
                 private ArrayBuilder<EntryState>? _states;
                 private EntryState? _currentState;
 
-#if DEBUG
                 private readonly int _requestedCapacity;
-#endif
 
                 public Builder(int capacity)
                 {
                     _items = ArrayBuilder<T>.GetInstance(capacity);
-
-#if false
-                    _requestedCapacity = capacity;
-#endif
                 }
 
                 public void Add(T item, EntryState state)
@@ -625,8 +621,8 @@ namespace Microsoft.CodeAnalysis
                     }
                     else if (_currentState != state)
                     {
-                        _states = ArrayBuilder<EntryState>.GetInstance(_items.Count - 1, _currentState.Value);
-                        _states.Add(state);
+                        _states = ArrayBuilder<EntryState>.GetInstance(_requestedCapacity, _currentState.Value);
+                        _states[_states.Count - 1] = state;
                     }
                 }
 
@@ -634,9 +630,9 @@ namespace Microsoft.CodeAnalysis
                 {
                     Debug.Assert(_currentState.HasValue, "Created a builder with no values?");
 
-#if DEBUG
                     Debug.Assert(_items.Count == _requestedCapacity);
-#endif
+                    Debug.Assert(_states == null || _states.Count == _requestedCapacity);
+
                     return new TableEntry(item: default, _items.ToImmutableAndFree(), _states?.ToImmutableAndFree() ?? GetSingleArray(_currentState.Value));
                 }
             }
