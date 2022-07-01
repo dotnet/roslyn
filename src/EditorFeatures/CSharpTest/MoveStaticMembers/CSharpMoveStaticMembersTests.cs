@@ -3033,7 +3033,7 @@ namespace TestNs1
 }";
             var selectedDestinationName = "Class1Helpers";
             var newFileName = "Class1Helpers.cs";
-            var selectedMembers = ImmutableArray.Create( "Foo");
+            var selectedMembers = ImmutableArray.Create("Foo");
             var expectedResult1 = @"
 namespace TestNs1
 {
