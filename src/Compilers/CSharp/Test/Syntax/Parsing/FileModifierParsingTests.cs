@@ -2428,13 +2428,15 @@ public class FileModifierParsingTests : ParsingTests
         EOF();
     }
 
-    [Fact]
-    public void TopLevelVariable_01_CSharp10()
+    [Theory]
+    [InlineData(LanguageVersion.CSharp10)]
+    [InlineData(LanguageVersionFacts.CSharpNext)]
+    public void TopLevelVariable_01(LanguageVersion languageVersion)
     {
         UsingNode("""
             file file;
             """,
-            options: TestOptions.Regular10,
+            options: TestOptions.Regular.WithLanguageVersion(languageVersion),
             expectedBindingDiagnostics: new[]
             {
                 // (1,1): error CS0118: 'file' is a variable but is used like a type
@@ -2470,53 +2472,15 @@ public class FileModifierParsingTests : ParsingTests
         EOF();
     }
 
-    [Fact]
-    public void TopLevelVariable_01()
-    {
-        UsingNode("""
-            file file;
-            """,
-            expectedBindingDiagnostics: new[]
-            {
-                // (1,1): error CS0118: 'file' is a variable but is used like a type
-                // file file;
-                Diagnostic(ErrorCode.ERR_BadSKknown, "file").WithArguments("file", "variable", "type").WithLocation(1, 1),
-                // (1,6): warning CS0168: The variable 'file' is declared but never used
-                // file file;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "file").WithArguments("file").WithLocation(1, 6)
-            });
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.LocalDeclarationStatement);
-                {
-                    N(SyntaxKind.VariableDeclaration);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "file");
-                        }
-                        N(SyntaxKind.VariableDeclarator);
-                        {
-                            N(SyntaxKind.IdentifierToken, "file");
-                        }
-                    }
-                    N(SyntaxKind.SemicolonToken);
-                }
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
-    [Fact]
-    public void TopLevelVariable_02()
+    [Theory]
+    [InlineData(LanguageVersion.CSharp10)]
+    [InlineData(LanguageVersionFacts.CSharpNext)]
+    public void TopLevelVariable_02(LanguageVersion languageVersion)
     {
         UsingNode("""
             int file;
             """,
+            options: TestOptions.Regular.WithLanguageVersion(languageVersion),
             expectedBindingDiagnostics: new[]
             {
                 // (1,5): warning CS0168: The variable 'file' is declared but never used
@@ -2548,13 +2512,16 @@ public class FileModifierParsingTests : ParsingTests
         EOF();
     }
 
-    [Fact]
-    public void TopLevelVariable_04()
+    [Theory]
+    [InlineData(LanguageVersion.CSharp10)]
+    [InlineData(LanguageVersionFacts.CSharpNext)]
+    public void TopLevelVariable_03(LanguageVersion languageVersion)
     {
         UsingNode("""
             bool file;
             file = true;
             """,
+            options: TestOptions.Regular.WithLanguageVersion(languageVersion),
             expectedBindingDiagnostics: new[]
             {
                 // (1,6): warning CS0219: The variable 'file' is assigned but its value is never used
