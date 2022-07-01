@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -31,29 +29,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         // All our root declarations.  We split these so we can separate out the unchanging 'older'
         // declarations from the constantly changing 'latest' declaration.
         private readonly ImmutableSetWithInsertionOrder<RootSingleNamespaceDeclaration> _allOlderRootDeclarations;
-        private readonly Lazy<RootSingleNamespaceDeclaration> _latestLazyRootDeclaration;
+        private readonly Lazy<RootSingleNamespaceDeclaration>? _latestLazyRootDeclaration;
 
         // The cache of computed values for the old declarations.
         private readonly Cache _cache;
 
         // The lazily computed total merged declaration.
-        private MergedNamespaceDeclaration _mergedRoot;
+        private MergedNamespaceDeclaration? _mergedRoot;
 
-        private readonly Lazy<ICollection<string>> _typeNames;
-        private readonly Lazy<ICollection<string>> _namespaceNames;
-        private readonly Lazy<ICollection<ReferenceDirective>> _referenceDirectives;
+        private ICollection<string>? _typeNames;
+        private ICollection<string>? _namespaceNames;
+        private ICollection<ReferenceDirective>? _referenceDirectives;
 
         private DeclarationTable(
             ImmutableSetWithInsertionOrder<RootSingleNamespaceDeclaration> allOlderRootDeclarations,
-            Lazy<RootSingleNamespaceDeclaration> latestLazyRootDeclaration,
-            Cache cache)
+            Lazy<RootSingleNamespaceDeclaration>? latestLazyRootDeclaration,
+            Cache? cache)
         {
             _allOlderRootDeclarations = allOlderRootDeclarations;
             _latestLazyRootDeclaration = latestLazyRootDeclaration;
             _cache = cache ?? new Cache(this);
-            _typeNames = new Lazy<ICollection<string>>(GetMergedTypeNames);
-            _namespaceNames = new Lazy<ICollection<string>>(GetMergedNamespaceNames);
-            _referenceDirectives = new Lazy<ICollection<ReferenceDirective>>(GetMergedReferenceDirectives);
         }
 
         public DeclarationTable AddRootDeclaration(Lazy<RootSingleNamespaceDeclaration> lazyRootDeclaration)
@@ -155,9 +150,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             [PerformanceSensitive(
                 "https://github.com/dotnet/roslyn/issues/23582",
                 Constraint = "Avoid " + nameof(SingleNamespaceOrTypeDeclaration.Location) + " since it has a costly allocation on this fast path.")]
-            public int Compare(SingleNamespaceDeclaration x, SingleNamespaceDeclaration y)
+            public int Compare(SingleNamespaceDeclaration? x, SingleNamespaceDeclaration? y)
             {
-                return _compilation.CompareSourceLocations(x.SyntaxReference, y.SyntaxReference);
+                return _compilation.CompareSourceLocations(x!.SyntaxReference, y!.SyntaxReference);
             }
         }
 
@@ -248,7 +243,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return _typeNames.Value;
+                if (_typeNames is null)
+                    Interlocked.CompareExchange(ref _typeNames, GetMergedTypeNames(), comparand: null);
+
+                return _typeNames;
             }
         }
 
@@ -256,7 +254,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return _namespaceNames.Value;
+                if (_namespaceNames is null)
+                    Interlocked.CompareExchange(ref _namespaceNames, GetMergedNamespaceNames(), comparand: null);
+
+                return _namespaceNames;
             }
         }
 
@@ -264,7 +265,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return _referenceDirectives.Value;
+                if (_referenceDirectives is null)
+                    Interlocked.CompareExchange(ref _referenceDirectives, GetMergedReferenceDirectives(), comparand: null);
+
+                return _referenceDirectives;
             }
         }
 
