@@ -252,9 +252,10 @@ namespace N1.N2
             var originalComp = CreateCompilation(src1, assemblyName: "Test");
             var newComp = CreateCompilation(src1, assemblyName: "Test");
 
-            var originalSymbols = GetSourceSymbols(originalComp, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name);
-            var newSymbols = GetSourceSymbols(newComp, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name);
+            var originalSymbols = GetSourceSymbols(originalComp, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name).ToArray();
+            var newSymbols = GetSourceSymbols(newComp, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name).ToArray();
 
+            Assert.Equal(3, originalSymbols.Length);
             ResolveAndVerifySymbolList(newSymbols, originalSymbols, originalComp);
         }
 
@@ -271,9 +272,10 @@ namespace N1.N2
             var originalComp = CreateCompilation(src1, assemblyName: "Test");
             var newComp = CreateCompilation(src1, assemblyName: "Test");
 
-            var originalSymbols = GetSourceSymbols(originalComp, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name);
-            var newSymbols = GetSourceSymbols(newComp, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name);
+            var originalSymbols = GetSourceSymbols(originalComp, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name).ToArray();
+            var newSymbols = GetSourceSymbols(newComp, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name).ToArray();
 
+            Assert.Equal(3, originalSymbols.Length);
             ResolveAndVerifySymbolList(newSymbols, originalSymbols, originalComp);
         }
 
@@ -294,9 +296,10 @@ namespace N1.N2
             var originalComp = CreateCompilation(new[] { SyntaxFactory.ParseSyntaxTree(src1, path: "file1.cs"), SyntaxFactory.ParseSyntaxTree(src1, path: "file2.cs") }, assemblyName: "Test");
             var newComp = CreateCompilation(new[] { SyntaxFactory.ParseSyntaxTree(src1, path: "file1.cs"), SyntaxFactory.ParseSyntaxTree(src1, path: "file2.cs") }, assemblyName: "Test");
 
-            var originalSymbols = GetSourceSymbols(originalComp, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name);
-            var newSymbols = GetSourceSymbols(newComp, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name);
+            var originalSymbols = GetSourceSymbols(originalComp, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name).ToArray();
+            var newSymbols = GetSourceSymbols(newComp, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name).ToArray();
 
+            Assert.Equal(3, originalSymbols.Length);
             ResolveAndVerifySymbolList(newSymbols, originalSymbols, originalComp);
         }
 
@@ -321,9 +324,10 @@ namespace N1.N2
             var originalComp = CreateCompilation(new[] { src1, src2 }, assemblyName: "Test");
             var newComp = CreateCompilation(new[] { src1, src2 }, assemblyName: "Test");
 
-            var originalSymbols = GetSourceSymbols(originalComp, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name);
-            var newSymbols = GetSourceSymbols(newComp, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name);
+            var originalSymbols = GetSourceSymbols(originalComp, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name).ToArray();
+            var newSymbols = GetSourceSymbols(newComp, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name).ToArray();
 
+            Assert.Equal(3, originalSymbols.Length);
             ResolveAndVerifySymbolList(newSymbols, originalSymbols, originalComp);
         }
 
