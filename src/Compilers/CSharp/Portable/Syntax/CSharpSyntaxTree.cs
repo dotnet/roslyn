@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (Options.Kind == SourceCodeKind.Script)
                 {
                     var compilationUnitRoot = GetCompilationUnitRoot();
-                    return compilationUnitRoot.GetReferenceDirectives().Count > 0 || compilationUnitRoot.GetLoadDirectives().Count > 0;
+                    return compilationUnitRoot.HasReferenceOrLoadDirectives();
                 }
 
                 return false;
