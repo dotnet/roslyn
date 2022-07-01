@@ -490,27 +490,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 public bool TryCreateDetailsStringContent(int index, [NotNullWhen(returnValue: true)] out string? content)
                     => TryCreateDetailsStringContent(index, GetItem, out content);
 
-                private static FrameworkElement GetDescriptionTextBlock(DiagnosticData item)
-                {
-                    return new TextBlock()
-                    {
-                        Background = null,
-                        Padding = new Thickness(10, 6, 10, 8),
-                        TextWrapping = TextWrapping.Wrap,
-                        Text = item.Description
-                    };
-                }
-
-                private static FrameworkElement GetOrCreateTextBlock(
-                    [NotNull] ref FrameworkElement[]? caches, int count, int index, DiagnosticData item, Func<DiagnosticData, FrameworkElement> elementCreator)
-                {
-                    caches ??= new FrameworkElement[count];
-
-                    if (caches[index] == null)
-                    {
-                        caches[index] = elementCreator(item);
-                    }
-
                 // unused ones                    
                 public bool TryCreateColumnContent(int index, string columnName, bool singleColumnView, [NotNullWhen(returnValue: true)] out FrameworkElement? content)
                 {
