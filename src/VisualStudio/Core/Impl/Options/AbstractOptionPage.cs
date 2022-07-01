@@ -125,11 +125,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _needsLoadOnNextActivate = true;
         }
 
+        protected override void SearchStringChanged(string searchString)
+        {
+            pageControl.OnSearch(searchString);
+        }
+
         protected override void OnClosed(EventArgs e)
         {
             base.OnClosed(e);
 
-            pageControl?.Close();
+            if (pageControl != null)
+            {
+                // Clear the search because we don't recreate controls
+                pageControl.OnSearch(string.Empty);
+                pageControl.Close();
+            }
         }
     }
 }
