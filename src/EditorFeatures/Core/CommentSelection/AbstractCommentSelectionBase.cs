@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CommentSelection
                 }
 
                 var edits = CollectEdits(document, service, subjectBuffer, selectedSpans, command, cancellationToken);
-                ApplyEdits(document, textView, subjectBuffer, service, title, edits, cancellationToken);
+                ApplyEdits(document, textView, subjectBuffer, title, edits, cancellationToken);
             }
 
             return true;
@@ -123,8 +123,7 @@ namespace Microsoft.CodeAnalysis.CommentSelection
         /// Applies the requested edits and sets the selection.
         /// This operation is not cancellable.
         /// </summary>
-        private void ApplyEdits(Document document, ITextView textView, ITextBuffer subjectBuffer,
-            ICommentSelectionService service, string title, CommentSelectionResult edits, CancellationToken cancellationToken)
+        private void ApplyEdits(Document document, ITextView textView, ITextBuffer subjectBuffer, string title, CommentSelectionResult edits, CancellationToken cancellationToken)
         {
             var workspace = document.Project.Solution.Workspace;
 
