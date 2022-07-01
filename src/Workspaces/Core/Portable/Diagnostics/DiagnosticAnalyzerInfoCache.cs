@@ -144,33 +144,5 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
         }
-
-        /// <summary>
-        /// Return true if the given <paramref name="analyzer"/> is suppressed for the given project.
-        /// NOTE: This API is intended to be used only for performance optimization.
-        /// </summary>
-        public bool IsAnalyzerSuppressed(DiagnosticAnalyzer analyzer, Project project)
-        {
-            var options = project.CompilationOptions;
-            if (options == null || analyzer == FileContentLoadAnalyzer.Instance || analyzer.IsCompilerAnalyzer())
-            {
-                return false;
-            }
-
-            // If user has disabled analyzer execution for this project, we only want to execute required analyzers
-            // that report diagnostics with category "Compiler".
-            if (!project.State.RunAnalyzers &&
-                GetDiagnosticDescriptors(analyzer).All(d => d.Category != DiagnosticCategory.Compiler))
-            {
-                return true;
-            }
-
-            // NOTE: Previously we used to return "CompilationWithAnalyzers.IsDiagnosticAnalyzerSuppressed(options)"
-            //       on this code path, which returns true if analyzer is suppressed through compilation options.
-            //       However, this check is no longer correct as analyzers can be enabled/disabled for individual
-            //       documents through .editorconfig files. So we pessimistically assume analyzer is not suppressed
-            //       and let the core analyzer driver in the compiler layer handle skipping redundant analysis callbacks.
-            return false;
-        }
     }
 }
