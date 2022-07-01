@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -150,15 +151,15 @@ namespace Microsoft.VisualStudio.LanguageServices
             if (textViewFilePath is null)
                 return null;
 
-            var parameterFactory = new DocumentSymbolParams()
+            var parameterFactory = new RoslynDocumentSymbolParams()
             {
+                UseHierarchicalSymbols = true,
                 TextDocument = new TextDocumentIdentifier()
                 {
                     Uri = new Uri(textViewFilePath)
                 }
             };
 
-            // TODO: proper workaround such that context.ClientCapabilities?.TextDocument?.DocumentSymbol?.HierarchicalDocumentSymbolSupport == true
             return await languageServiceBroker.RequestAsync(
                 textBuffer: textBuffer,
                 method: Methods.TextDocumentDocumentSymbolName,
