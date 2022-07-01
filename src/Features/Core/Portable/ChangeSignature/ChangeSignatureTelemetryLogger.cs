@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System;
 using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis.ChangeSignature
@@ -15,9 +14,9 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         private const string Minimum = nameof(Minimum);
         private const string Mean = nameof(Mean);
 
-        private static readonly CountLogAggregator<ActionInfo> s_countLogAggregator = new();
-        private static readonly StatisticLogAggregator<ActionInfo> s_statisticLogAggregator = new();
-        private static readonly HistogramLogAggregator<ActionInfo> s_histogramLogAggregator = new(bucketSize: 1000, maxBucketValue: 30000);
+        private static readonly LogAggregator s_logAggregator = new();
+        private static readonly StatisticLogAggregator s_statisticLogAggregator = new();
+        private static readonly HistogramLogAggregator s_histogramLogAggregator = new(bucketSize: 1000, maxBucketValue: 30000);
 
         internal enum ActionInfo
         {
@@ -63,31 +62,31 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         }
 
         internal static void LogChangeSignatureDialogLaunched() =>
-            s_countLogAggregator.IncreaseCount(ActionInfo.ChangeSignatureDialogLaunched);
+            s_logAggregator.IncreaseCount((int)ActionInfo.ChangeSignatureDialogLaunched);
 
         internal static void LogChangeSignatureDialogCommitted() =>
-            s_countLogAggregator.IncreaseCount(ActionInfo.ChangeSignatureDialogCommitted);
+            s_logAggregator.IncreaseCount((int)ActionInfo.ChangeSignatureDialogCommitted);
 
         internal static void LogAddParameterDialogLaunched() =>
-            s_countLogAggregator.IncreaseCount(ActionInfo.AddParameterDialogLaunched);
+            s_logAggregator.IncreaseCount((int)ActionInfo.AddParameterDialogLaunched);
 
         internal static void LogAddParameterDialogCommitted() =>
-            s_countLogAggregator.IncreaseCount(ActionInfo.AddParameterDialogCommitted);
+            s_logAggregator.IncreaseCount((int)ActionInfo.AddParameterDialogCommitted);
 
         internal static void LogTransformationInformation(int numOriginalParameters, int numParametersAdded, int numParametersRemoved, bool anyParametersReordered)
         {
             LogTransformationCombination(numParametersAdded > 0, numParametersRemoved > 0, anyParametersReordered);
 
-            s_countLogAggregator.IncreaseCountBy(ActionInfo.CommittedSession_OriginalParameterCount, numOriginalParameters);
+            s_logAggregator.IncreaseCountBy((int)ActionInfo.CommittedSession_OriginalParameterCount, numOriginalParameters);
 
             if (numParametersAdded > 0)
             {
-                s_countLogAggregator.IncreaseCountBy(ActionInfo.CommittedSessionWithAdded_NumberAdded, numParametersAdded);
+                s_logAggregator.IncreaseCountBy((int)ActionInfo.CommittedSessionWithAdded_NumberAdded, numParametersAdded);
             }
 
             if (numParametersRemoved > 0)
             {
-                s_countLogAggregator.IncreaseCountBy(ActionInfo.CommittedSessionWithRemoved_NumberRemoved, numParametersRemoved);
+                s_logAggregator.IncreaseCountBy((int)ActionInfo.CommittedSessionWithRemoved_NumberRemoved, numParametersRemoved);
             }
         }
 
@@ -96,103 +95,103 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             // All three transformations
             if (parametersAdded && parametersRemoved && parametersReordered)
             {
-                s_countLogAggregator.IncreaseCount(ActionInfo.CommittedSessionAddedRemovedReordered);
+                s_logAggregator.IncreaseCount((int)ActionInfo.CommittedSessionAddedRemovedReordered);
                 return;
             }
 
             // Two transformations
             if (parametersAdded && parametersRemoved)
             {
-                s_countLogAggregator.IncreaseCount(ActionInfo.CommittedSessionAddedRemovedOnly);
+                s_logAggregator.IncreaseCount((int)ActionInfo.CommittedSessionAddedRemovedOnly);
                 return;
             }
 
             if (parametersAdded && parametersReordered)
             {
-                s_countLogAggregator.IncreaseCount(ActionInfo.CommittedSessionAddedReorderedOnly);
+                s_logAggregator.IncreaseCount((int)ActionInfo.CommittedSessionAddedReorderedOnly);
                 return;
             }
 
             if (parametersRemoved && parametersReordered)
             {
-                s_countLogAggregator.IncreaseCount(ActionInfo.CommittedSessionRemovedReorderedOnly);
+                s_logAggregator.IncreaseCount((int)ActionInfo.CommittedSessionRemovedReorderedOnly);
                 return;
             }
 
             // One transformation
             if (parametersAdded)
             {
-                s_countLogAggregator.IncreaseCount(ActionInfo.CommittedSessionAddedOnly);
+                s_logAggregator.IncreaseCount((int)ActionInfo.CommittedSessionAddedOnly);
                 return;
             }
 
             if (parametersRemoved)
             {
-                s_countLogAggregator.IncreaseCount(ActionInfo.CommittedSessionRemovedOnly);
+                s_logAggregator.IncreaseCount((int)ActionInfo.CommittedSessionRemovedOnly);
                 return;
             }
 
             if (parametersReordered)
             {
-                s_countLogAggregator.IncreaseCount(ActionInfo.CommittedSessionReorderedOnly);
+                s_logAggregator.IncreaseCount((int)ActionInfo.CommittedSessionReorderedOnly);
                 return;
             }
         }
 
-        internal static void LogCommitInformation(int numDeclarationsUpdated, int numCallSitesUpdated, TimeSpan elapsedTime)
+        internal static void LogCommitInformation(int numDeclarationsUpdated, int numCallSitesUpdated, int elapsedMS)
         {
-            s_countLogAggregator.IncreaseCount(ActionInfo.ChangeSignatureCommitCompleted);
+            s_logAggregator.IncreaseCount((int)ActionInfo.ChangeSignatureCommitCompleted);
 
-            s_countLogAggregator.IncreaseCountBy(ActionInfo.CommittedSessionNumberOfDeclarationsUpdated, numDeclarationsUpdated);
-            s_countLogAggregator.IncreaseCountBy(ActionInfo.CommittedSessionNumberOfCallSitesUpdated, numCallSitesUpdated);
+            s_logAggregator.IncreaseCountBy((int)ActionInfo.CommittedSessionNumberOfDeclarationsUpdated, numDeclarationsUpdated);
+            s_logAggregator.IncreaseCountBy((int)ActionInfo.CommittedSessionNumberOfCallSitesUpdated, numCallSitesUpdated);
 
-            s_statisticLogAggregator.AddDataPoint(ActionInfo.CommittedSessionCommitElapsedMS, (int)elapsedTime.TotalMilliseconds);
-            s_histogramLogAggregator.LogTime(ActionInfo.CommittedSessionCommitElapsedMS, elapsedTime);
+            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.CommittedSessionCommitElapsedMS, elapsedMS);
+            s_histogramLogAggregator.IncreaseCount((int)ActionInfo.CommittedSessionCommitElapsedMS, elapsedMS);
         }
 
         internal static void LogAddedParameterTypeBinds()
         {
-            s_countLogAggregator.IncreaseCount(ActionInfo.AddedParameterTypeBinds);
+            s_logAggregator.IncreaseCount((int)ActionInfo.AddedParameterTypeBinds);
         }
 
         internal static void LogAddedParameterRequired()
         {
-            s_countLogAggregator.IncreaseCount(ActionInfo.AddedParameterRequired);
+            s_logAggregator.IncreaseCount((int)ActionInfo.AddedParameterRequired);
         }
 
         internal static void LogAddedParameter_ValueExplicit()
         {
-            s_countLogAggregator.IncreaseCount(ActionInfo.AddedParameterValueExplicit);
+            s_logAggregator.IncreaseCount((int)ActionInfo.AddedParameterValueExplicit);
         }
 
         internal static void LogAddedParameter_ValueExplicitNamed()
         {
-            s_countLogAggregator.IncreaseCount(ActionInfo.AddedParameterValueExplicitNamed);
+            s_logAggregator.IncreaseCount((int)ActionInfo.AddedParameterValueExplicitNamed);
         }
 
         internal static void LogAddedParameter_ValueTODO()
         {
-            s_countLogAggregator.IncreaseCount(ActionInfo.AddedParameterValueTODO);
+            s_logAggregator.IncreaseCount((int)ActionInfo.AddedParameterValueTODO);
         }
 
         internal static void LogAddedParameter_ValueOmitted()
         {
-            s_countLogAggregator.IncreaseCount(ActionInfo.AddedParameterValueOmitted);
+            s_logAggregator.IncreaseCount((int)ActionInfo.AddedParameterValueOmitted);
         }
 
         internal static void ReportTelemetry()
         {
             Logger.Log(FunctionId.ChangeSignature_Data, KeyValueLogMessage.Create(m =>
             {
-                foreach (var kv in s_countLogAggregator)
+                foreach (var kv in s_logAggregator)
                 {
-                    var info = kv.Key.ToString("f");
+                    var info = ((ActionInfo)kv.Key).ToString("f");
                     m[info] = kv.Value.GetCount();
                 }
 
                 foreach (var kv in s_statisticLogAggregator)
                 {
-                    var info = kv.Key.ToString("f");
+                    var info = ((ActionInfo)kv.Key).ToString("f");
                     var statistics = kv.Value.GetStatisticResult();
 
                     m[CreateProperty(info, Maximum)] = statistics.Maximum;
@@ -202,7 +201,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
                 foreach (var kv in s_histogramLogAggregator)
                 {
-                    var info = kv.Key.ToString("f");
+                    var info = ((ActionInfo)kv.Key).ToString("f");
                     m[$"{info}.BucketSize"] = kv.Value.BucketSize;
                     m[$"{info}.MaxBucketValue"] = kv.Value.MaxBucketValue;
                     m[$"{info}.Buckets"] = kv.Value.GetBucketsAsString();

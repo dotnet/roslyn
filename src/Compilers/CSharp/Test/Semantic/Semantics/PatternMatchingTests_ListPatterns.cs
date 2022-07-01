@@ -2848,18 +2848,18 @@ public class C
         } 
     }
 }").VerifyDiagnostics(
-            // (15,35): error CS8352: Cannot use local 'list' in this context because it may expose referenced variables outside of their declaration scope
+            // (15,35): error CS8352: Cannot use variable 'list' in this context because it may expose referenced variables outside of their declaration scope
             //         if (outer is [] list) s = list; // error 1
-            Diagnostic(ErrorCode.ERR_EscapeLocal, "list").WithArguments("list").WithLocation(15, 35),
-            // (22,17): error CS8352: Cannot use local 'element' in this context because it may expose referenced variables outside of their declaration scope
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "list").WithArguments("list").WithLocation(15, 35),
+            // (22,17): error CS8352: Cannot use variable 'element' in this context because it may expose referenced variables outside of their declaration scope
             //             r = element; // error 2
-            Diagnostic(ErrorCode.ERR_EscapeLocal, "element").WithArguments("element").WithLocation(22, 17),
-            // (23,17): error CS8352: Cannot use local 'slice' in this context because it may expose referenced variables outside of their declaration scope
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "element").WithArguments("element").WithLocation(22, 17),
+            // (23,17): error CS8352: Cannot use variable 'slice' in this context because it may expose referenced variables outside of their declaration scope
             //             r = slice; // error 3
-            Diagnostic(ErrorCode.ERR_EscapeLocal, "slice").WithArguments("slice").WithLocation(23, 17),
-            // (24,17): error CS8352: Cannot use local 'list' in this context because it may expose referenced variables outside of their declaration scope
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "slice").WithArguments("slice").WithLocation(23, 17),
+            // (24,17): error CS8352: Cannot use variable 'list' in this context because it may expose referenced variables outside of their declaration scope
             //             r = list; // error 4
-            Diagnostic(ErrorCode.ERR_EscapeLocal, "list").WithArguments("list").WithLocation(24, 17));
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "list").WithArguments("list").WithLocation(24, 17));
     }
 
     [Fact]

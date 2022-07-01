@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.VisualStudio.Text
+Imports Microsoft.VisualStudio.Text.Editor
 Imports Xunit.Abstractions
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indentation
@@ -3004,10 +3005,21 @@ end class"
                 factory.TextSpan = subjectDocument.SelectedSpans.Single()
 
                 Dim indentationLine = projectedDocument.GetTextBuffer().CurrentSnapshot.GetLineFromPosition(projectedDocument.CursorPosition.Value)
-                Dim point = projectedDocument.GetTextView().BufferGraph.MapDownToBuffer(indentationLine.Start, PointTrackingMode.Negative, subjectDocument.GetTextBuffer(), PositionAffinity.Predecessor)
+                Dim textBuffer = subjectDocument.GetTextBuffer()
+                Dim point = projectedDocument.GetTextView().BufferGraph.MapDownToBuffer(indentationLine.Start, PointTrackingMode.Negative, textBuffer, PositionAffinity.Predecessor)
+
+                Dim optionsFactory = workspace.GetService(Of IEditorOptionsFactoryService)
+                Dim editorOptions = optionsFactory.GetOptions(textBuffer)
+                editorOptions.SetOptionValue(DefaultOptions.IndentStyleId, IndentingStyle.Smart)
 
                 TestIndentation(
-                    point.Value, expectedIndentation, projectedDocument.GetTextView(), subjectDocument, workspace.GlobalOptions)
+                    point.Value,
+                    expectedIndentation,
+                    projectedDocument.GetTextView(),
+                    subjectDocument,
+                    workspace.GlobalOptions,
+                    optionsFactory,
+                    workspace.GetService(Of IIndentationManagerService))
             End Using
         End Sub
 

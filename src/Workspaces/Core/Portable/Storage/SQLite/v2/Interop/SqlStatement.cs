@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
         {
             const int OptimizedLengthThreshold = 2048;
 
-            // Attempt to stackalloc utf8 converted small strings to avoid lots of allocs.
+            // Attempt to stackalloc UTF-8 converted small strings to avoid lots of allocs.
             // This code can be removed once we move to a build of sqlitepcl that contains:
             // https://github.com/ericsink/SQLitePCL.raw/pull/401
 
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
             // will certainly have more bytes than this threshold.
             if (value.Length <= OptimizedLengthThreshold)
             {
-                // Now see if the utf8 encoded versions is also within the threshold.  As almost all of our strings are
+                // Now see if the UTF-8 encoded versions is also within the threshold.  As almost all of our strings are
                 // ascii, this will be true for nearly all of them.
                 var utf8ByteCount = Encoding.UTF8.GetByteCount(value);
                 if (utf8ByteCount <= OptimizedLengthThreshold)

@@ -22,10 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.E
             foreach (var container in containers)
             {
                 var folderItem = currentItems.FindFolder(container);
-                if (folderItem == null)
-                {
-                    folderItem = CreateFolder(currentItems, container);
-                }
+                folderItem ??= CreateFolder(currentItems, container);
 
                 currentItems = folderItem.ProjectItems;
             }
