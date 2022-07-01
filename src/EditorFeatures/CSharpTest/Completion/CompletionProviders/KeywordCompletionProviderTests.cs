@@ -706,6 +706,17 @@ $@"class C
         }
 
         [Fact]
+        public async Task SuggestFileAfterReadonly()
+        {
+            // e.g. 'readonly file struct X { }'
+            var markup = $$"""
+                readonly $$
+                """;
+
+            await VerifyItemExistsAsync(markup, "file");
+        }
+
+        [Fact]
         public async Task SuggestFileBeforeFileType()
         {
             var markup = $$"""
@@ -716,6 +727,16 @@ $@"class C
 
             // it might seem like we want to prevent 'file file class',
             // but it's likely the user is declaring a file type above an existing file type here.
+            await VerifyItemExistsAsync(markup, "file");
+        }
+
+        [Fact]
+        public async Task SuggestFileBeforeDelegate()
+        {
+            var markup = $$"""
+                $$ delegate
+                """;
+
             await VerifyItemExistsAsync(markup, "file");
         }
 
