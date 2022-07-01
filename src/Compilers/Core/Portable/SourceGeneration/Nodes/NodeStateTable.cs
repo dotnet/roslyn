@@ -89,12 +89,7 @@ namespace Microsoft.CodeAnalysis
         public ImmutableArray<IncrementalGeneratorRunStep> Steps { get; }
 
         public int GetTotalEntryItemCount()
-        {
-            var count = 0;
-            foreach (var inputEntry in _states)
-                count += inputEntry.Count;
-            return count;
-        }
+            => _states.Sum(static e => e.Count);
 
         public IEnumerator<NodeStateEntry<T>> GetEnumerator()
         {
