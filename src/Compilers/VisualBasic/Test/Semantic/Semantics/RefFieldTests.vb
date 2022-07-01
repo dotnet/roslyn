@@ -184,8 +184,9 @@ BC30656: Field 'Public F As T' is of an unsupported type.
                 }
             AssertEx.Equal(expectedMembers, fieldMembers.Select(Function(f) f.ToTestDisplayString()))
 
-            ' https://github.com/dotnet/roslyn/issues/62121: Not differentiating fields that differ by RefKind or RefCustomModifiers.
-            ' See MemberRefMetadataDecoder.FindFieldBySignature().
+            ' PEFieldSymbol.RefKind is RefKind.None and RefCustomModifiers is empty in all cases,
+            ' including ref fields, so we cannot differentiate fields that differ by RefKind or
+            ' RefCustomModifiers in MemberRefMetadataDecoder.FindFieldBySignature().
             Dim expectedReferences =
                 {
                 "R(Of System.Object).F1 As System.Object",
