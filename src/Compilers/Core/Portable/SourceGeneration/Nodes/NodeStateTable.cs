@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 Debug.Assert(_previous._states[_states.Count].Count == 1);
-                var (chosen, state) = GetModifiedItemAndState(_previous._states[_states.Count].GetItem(0), value, comparer);
+                var (chosen, state, _) = GetModifiedItemAndState(_previous._states[_states.Count].GetItem(0), value, comparer);
                 _states.Add(new TableEntry(chosen, state));
                 RecordStepInfoForLastEntry(elapsedTime, stepInputs, overallInputState);
                 return true;
@@ -289,34 +289,69 @@ namespace Microsoft.CodeAnalysis
                     return true;
                 }
 
-                var modified = new TableEntry.Builder();
-                var sharedCount = Math.Min(previousEntry.Count, outputs.Length);
-
-                // cached or modified items
-                for (int i = 0; i < sharedCount; i++)
+                // See if we can use the previous entry entirely.  If not, compute what the entry must be.
+                if (CanReusePreviousEntry())
                 {
-                    var previous = previousEntry.GetItem(i);
-                    var replacement = outputs[i];
+                    _states.Add(previousEntry);
+                }
+                else
+                {
+                    var modified = new TableEntry.Builder(Math.Max(previousEntry.Count, outputs.Length));
+                    var sharedCount = Math.Min(previousEntry.Count, outputs.Length);
 
-                    (var chosen, var state) = GetModifiedItemAndState(previous, replacement, comparer);
-                    modified.Add(chosen, state);
+                    // cached or modified items
+                    for (int i = 0, n = sharedCount; i < n; i++)
+                    {
+                        var previous = previousEntry.GetItem(i);
+                        var replacement = outputs[i];
+
+                        var (chosen, state, _) = GetModifiedItemAndState(previous, replacement, comparer);
+                        modified.Add(chosen, state);
+                    }
+
+                    // removed
+                    for (int i = sharedCount; i < previousEntry.Count; i++)
+                    {
+                        modified.Add(previousEntry.GetItem(i), EntryState.Removed);
+                    }
+
+                    // added
+                    for (int i = sharedCount; i < outputs.Length; i++)
+                    {
+                        modified.Add(outputs[i], EntryState.Added);
+                    }
+
+                    _states.Add(modified.ToImmutableAndFree());
                 }
 
-                // removed
-                for (int i = sharedCount; i < previousEntry.Count; i++)
-                {
-                    modified.Add(previousEntry.GetItem(i), EntryState.Removed);
-                }
-
-                // added
-                for (int i = sharedCount; i < outputs.Length; i++)
-                {
-                    modified.Add(outputs[i], EntryState.Added);
-                }
-
-                _states.Add(modified.ToImmutableAndFree());
                 RecordStepInfoForLastEntry(elapsedTime, stepInputs, overallInputState);
                 return true;
+
+                bool CanReusePreviousEntry()
+                {
+                    if (previousEntry.Count != outputs.Length)
+                        return false;
+
+                    for (int i = 0, n = previousEntry.Count; i < n; i++)
+                    {
+                        var previousItem = previousEntry.GetItem(i);
+                        var previousState = previousEntry.GetState(i);
+
+                        var currentItem = outputs[i];
+
+                        var (_, chosenState, chosePrevious) = GetModifiedItemAndState(previousItem, currentItem, comparer);
+
+                        // if we didn't chose the previous item, then the item changed, and we definitely can't reuse this.
+                        if (!chosePrevious)
+                            return false;
+
+                        // If the state changed, we definitely can't reuse the previous either.
+                        if (chosenState != previousState)
+                            return false;
+                    }
+
+                    return true;
+                }
             }
 
             public void AddEntry(T value, EntryState state, TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, EntryState overallInputState)
@@ -412,13 +447,13 @@ namespace Microsoft.CodeAnalysis
                     hasTrackedSteps: TrackIncrementalSteps);
             }
 
-            private static (T chosen, EntryState state) GetModifiedItemAndState(T previous, T replacement, IEqualityComparer<T> comparer)
+            private static (T chosen, EntryState state, bool chosePrevious) GetModifiedItemAndState(T previous, T replacement, IEqualityComparer<T> comparer)
             {
                 // when comparing an item to check if its modified we explicitly cache the *previous* item in the case where its 
                 // considered to be equal. This ensures that subsequent comparisons are stable across future generation passes.
                 return comparer.Equals(previous, replacement)
-                    ? (previous, EntryState.Cached)
-                    : (replacement, EntryState.Modified);
+                    ? (previous, EntryState.Cached, chosePrevious: true)
+                    : (replacement, EntryState.Modified, chosePrevious: false);
             }
         }
 
@@ -559,11 +594,23 @@ namespace Microsoft.CodeAnalysis
 
             public sealed class Builder
             {
-                private readonly ArrayBuilder<T> _items = ArrayBuilder<T>.GetInstance();
+                private readonly ArrayBuilder<T> _items;
 
                 private ArrayBuilder<EntryState>? _states;
-
                 private EntryState? _currentState;
+
+#if DEBUG
+                private readonly int _requestedCapacity;
+#endif
+
+                public Builder(int capacity)
+                {
+                    _items = ArrayBuilder<T>.GetInstance(capacity);
+
+#if false
+                    _requestedCapacity = capacity;
+#endif
+                }
 
                 public void Add(T item, EntryState state)
                 {
@@ -586,7 +633,10 @@ namespace Microsoft.CodeAnalysis
                 public TableEntry ToImmutableAndFree()
                 {
                     Debug.Assert(_currentState.HasValue, "Created a builder with no values?");
-                    int numItems = _items.Count;
+
+#if DEBUG
+                    Debug.Assert(_items.Count == _requestedCapacity);
+#endif
                     return new TableEntry(item: default, _items.ToImmutableAndFree(), _states?.ToImmutableAndFree() ?? GetSingleArray(_currentState.Value));
                 }
             }
