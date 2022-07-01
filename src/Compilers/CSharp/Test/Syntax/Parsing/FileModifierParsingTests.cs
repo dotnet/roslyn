@@ -507,7 +507,7 @@ public class FileModifierParsingTests : ParsingTests
             """,
             expectedBindingDiagnostics: new[]
             {
-                // (1,20): error CS9301: File type 'C' cannot use accessibility modifiers.
+                // (1,20): error CS9052: File type 'C' cannot use accessibility modifiers.
                 // public file {{SyntaxFacts.GetText(typeKeyword)}} C { }
                 Diagnostic(ErrorCode.ERR_FileTypeNoExplicitAccessibility, "C").WithArguments("C")
             });
@@ -540,7 +540,7 @@ public class FileModifierParsingTests : ParsingTests
             """,
             expectedBindingDiagnostics: new[]
             {
-                // (1,19): error CS9301: File type 'C' cannot use accessibility modifiers.
+                // (1,19): error CS9052: File type 'C' cannot use accessibility modifiers.
                 // file public {{SyntaxFacts.GetText(typeKeyword)}} C { }
                 Diagnostic(ErrorCode.ERR_FileTypeNoExplicitAccessibility, "C").WithArguments("C")
             });
@@ -696,7 +696,7 @@ public class FileModifierParsingTests : ParsingTests
             """,
             expectedBindingDiagnostics: new[]
             {
-                // (3,16): error CS9303: File type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
+                // (3,16): error CS9054: File type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
                 //     file class C { }
                 Diagnostic(ErrorCode.ERR_FileTypeNested, "C").WithArguments("Outer.C").WithLocation(3, 16)
             });
@@ -1240,7 +1240,7 @@ public class FileModifierParsingTests : ParsingTests
             """,
             expectedBindingDiagnostics: new[]
             {
-                // (1,12): error CS9356: Types and aliases cannot be named 'file'.
+                // (1,12): error CS9056: Types and aliases cannot be named 'file'.
                 // file class file { }
                 Diagnostic(ErrorCode.ERR_FileTypeNameDisallowed, "file").WithLocation(1, 12)
             });
@@ -1444,7 +1444,7 @@ public class FileModifierParsingTests : ParsingTests
             """,
             expectedBindingDiagnostics: new[]
             {
-                // (1,8): error CS9356: Types and aliases cannot be named 'file'.
+                // (1,8): error CS9056: Types and aliases cannot be named 'file'.
                 // record file { }
                 Diagnostic(ErrorCode.ERR_FileTypeNameDisallowed, "file").WithLocation(1, 8)
             });
@@ -2058,7 +2058,7 @@ public class FileModifierParsingTests : ParsingTests
             """,
             expectedBindingDiagnostics: new[]
             {
-                // (3,17): error CS9303: File type 'C.X' must be defined in a top level type; 'C.X' is a nested type.
+                // (3,17): error CS9054: File type 'C.X' must be defined in a top level type; 'C.X' is a nested type.
                 //     file record X();
                 Diagnostic(ErrorCode.ERR_FileTypeNested, "X").WithArguments("C.X").WithLocation(3, 17)
             });
@@ -2156,7 +2156,7 @@ public class FileModifierParsingTests : ParsingTests
             """,
             expectedBindingDiagnostics: new[]
             {
-                // (3,17): error CS9303: File type 'C.X' must be defined in a top level type; 'C.X' is a nested type.
+                // (3,17): error CS9054: File type 'C.X' must be defined in a top level type; 'C.X' is a nested type.
                 //     file record X() { }
                 Diagnostic(ErrorCode.ERR_FileTypeNested, "X").WithArguments("C.X").WithLocation(3, 17)
             });
@@ -2251,7 +2251,7 @@ public class FileModifierParsingTests : ParsingTests
             """,
             expectedBindingDiagnostics: new[]
             {
-                // (3,17): error CS9303: File type 'C.X' must be defined in a top level type; 'C.X' is a nested type.
+                // (3,17): error CS9054: File type 'C.X' must be defined in a top level type; 'C.X' is a nested type.
                 //     file record X;
                 Diagnostic(ErrorCode.ERR_FileTypeNested, "X").WithArguments("C.X").WithLocation(3, 17)
             });
@@ -2599,85 +2599,6 @@ public class FileModifierParsingTests : ParsingTests
                         }
                     }
                     N(SyntaxKind.SemicolonToken);
-                }
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
-    [Fact]
-    public void Variable_01()
-    {
-        UsingNode("""
-            void M()
-            {
-                bool file;
-                file = true;
-            }
-            """,
-            expectedBindingDiagnostics: new[]
-            {
-                // (1,6): warning CS8321: The local function 'M' is declared but never used
-                // void M()
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "M").WithArguments("M").WithLocation(1, 6),
-                // (3,10): warning CS0219: The variable 'file' is assigned but its value is never used
-                //     bool file;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "file").WithArguments("file").WithLocation(3, 10)
-            });
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.LocalFunctionStatement);
-                {
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.VoidKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "M");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.LocalDeclarationStatement);
-                        {
-                            N(SyntaxKind.VariableDeclaration);
-                            {
-                                N(SyntaxKind.PredefinedType);
-                                {
-                                    N(SyntaxKind.BoolKeyword);
-                                }
-                                N(SyntaxKind.VariableDeclarator);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "file");
-                                }
-                            }
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.ExpressionStatement);
-                        {
-                            N(SyntaxKind.SimpleAssignmentExpression);
-                            {
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "file");
-                                }
-                                N(SyntaxKind.EqualsToken);
-                                N(SyntaxKind.TrueLiteralExpression);
-                                {
-                                    N(SyntaxKind.TrueKeyword);
-                                }
-                            }
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
                 }
             }
             N(SyntaxKind.EndOfFileToken);

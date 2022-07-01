@@ -46,13 +46,13 @@ public class FileModifierTests : CSharpTestBase
             // (3,16): error CS8652: The feature 'file types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     file class C { }
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "C").WithArguments("file types").WithLocation(3, 16),
-            // (3,16): error CS9303: File type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
+            // (3,16): error CS9054: File type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
             //     file class C { }
             Diagnostic(ErrorCode.ERR_FileTypeNested, "C").WithArguments("Outer.C").WithLocation(3, 16));
 
         comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (3,16): error CS9303: File type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
+            // (3,16): error CS9054: File type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
             //     file class C { }
             Diagnostic(ErrorCode.ERR_FileTypeNested, "C").WithArguments("Outer.C").WithLocation(3, 16));
     }
@@ -108,13 +108,13 @@ public class FileModifierTests : CSharpTestBase
             // (3,16): error CS8652: The feature 'file types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     file class C { }
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "C").WithArguments("file types").WithLocation(3, 16),
-            // (3,16): error CS9303: File type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
+            // (3,16): error CS9054: File type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
             //     file class C { }
             Diagnostic(ErrorCode.ERR_FileTypeNested, "C").WithArguments("Outer.C").WithLocation(3, 16));
 
         comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (3,16): error CS9303: File type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
+            // (3,16): error CS9054: File type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
             //     file class C { }
             Diagnostic(ErrorCode.ERR_FileTypeNested, "C").WithArguments("Outer.C").WithLocation(3, 16));
     }
@@ -136,7 +136,7 @@ public class FileModifierTests : CSharpTestBase
 
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (8,10): error CS9300: File type 'Outer.C' cannot be used in a member signature in non-file type 'D'.
+            // (8,10): error CS9051: File type 'Outer.C' cannot be used in a member signature in non-file type 'D'.
             //     void M(Outer.C c) { } // 1
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "M").WithArguments("Outer.C", "D").WithLocation(8, 10));
     }
@@ -395,7 +395,7 @@ public class FileModifierTests : CSharpTestBase
 
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (10,12): error CS9300: File type 'E' cannot be used in a member signature in non-file type 'Attr'.
+            // (10,12): error CS9051: File type 'E' cannot be used in a member signature in non-file type 'Attr'.
             //     public Attr(E e) { } // 1
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "Attr").WithArguments("E", "Attr").WithLocation(10, 12));
     }
@@ -1218,10 +1218,10 @@ public class FileModifierTests : CSharpTestBase
 
         var compilation = CreateCompilation(new[] { source1, source2, source3 });
         compilation.VerifyDiagnostics(
-            // (3,16): error CS9303: File type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
+            // (3,16): error CS9054: File type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
             //     file class C
             Diagnostic(ErrorCode.ERR_FileTypeNested, "C").WithArguments("Outer.C").WithLocation(3, 16),
-            // (3,16): error CS9303: File type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
+            // (3,16): error CS9054: File type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
             //     file class C
             Diagnostic(ErrorCode.ERR_FileTypeNested, "C").WithArguments("Outer.C").WithLocation(3, 16));
 
@@ -1441,10 +1441,10 @@ public class FileModifierTests : CSharpTestBase
 
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (7,17): error CS9300: File type 'C' cannot be used in a member signature in non-file type 'D'.
+            // (7,17): error CS9051: File type 'C' cannot be used in a member signature in non-file type 'D'.
             //     public void M1(C c) { } // 1
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "M1").WithArguments("C", "D").WithLocation(7, 17),
-            // (8,18): error CS9300: File type 'C' cannot be used in a member signature in non-file type 'D'.
+            // (8,18): error CS9051: File type 'C' cannot be used in a member signature in non-file type 'D'.
             //     private void M2(C c) { } // 2
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "M2").WithArguments("C", "D").WithLocation(8, 18));
     }
@@ -1466,10 +1466,10 @@ public class FileModifierTests : CSharpTestBase
 
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (7,14): error CS9300: File type 'C' cannot be used in a member signature in non-file type 'D'.
+            // (7,14): error CS9051: File type 'C' cannot be used in a member signature in non-file type 'D'.
             //     public C M1() => new C(); // 1
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "M1").WithArguments("C", "D").WithLocation(7, 14),
-            // (8,15): error CS9300: File type 'C' cannot be used in a member signature in non-file type 'D'.
+            // (8,15): error CS9051: File type 'C' cannot be used in a member signature in non-file type 'D'.
             //     private C M2() => new C(); // 2
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "M2").WithArguments("C", "D").WithLocation(8, 15));
     }
@@ -1494,19 +1494,19 @@ public class FileModifierTests : CSharpTestBase
 
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (8,7): error CS9300: File type 'C' cannot be used in a member signature in non-file type 'E'.
+            // (8,7): error CS9051: File type 'C' cannot be used in a member signature in non-file type 'E'.
             //     C field; // 1
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "field").WithArguments("C", "E").WithLocation(8, 7),
             // (8,7): warning CS0169: The field 'E.field' is never used
             //     C field; // 1
             Diagnostic(ErrorCode.WRN_UnreferencedField, "field").WithArguments("E.field").WithLocation(8, 7),
-            // (9,7): error CS9300: File type 'C' cannot be used in a member signature in non-file type 'E'.
+            // (9,7): error CS9051: File type 'C' cannot be used in a member signature in non-file type 'E'.
             //     C property { get; set; } // 2
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "property").WithArguments("C", "E").WithLocation(9, 7),
-            // (10,12): error CS9300: File type 'C' cannot be used in a member signature in non-file type 'E'.
+            // (10,12): error CS9051: File type 'C' cannot be used in a member signature in non-file type 'E'.
             //     object this[C c] { get => c; set { } } // 3
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "this").WithArguments("C", "E").WithLocation(10, 12),
-            // (11,13): error CS9300: File type 'D' cannot be used in a member signature in non-file type 'E'.
+            // (11,13): error CS9051: File type 'D' cannot be used in a member signature in non-file type 'E'.
             //     event D @event; // 4
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "@event").WithArguments("D", "E").WithLocation(11, 13),
             // (11,13): warning CS0067: The event 'E.event' is never used
@@ -1535,19 +1535,19 @@ public class FileModifierTests : CSharpTestBase
 
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (9,13): error CS9300: File type 'C.Inner' cannot be used in a member signature in non-file type 'E'.
+            // (9,13): error CS9051: File type 'C.Inner' cannot be used in a member signature in non-file type 'E'.
             //     C.Inner field; // 1
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "field").WithArguments("C.Inner", "E").WithLocation(9, 13),
             // (9,13): warning CS0169: The field 'E.field' is never used
             //     C.Inner field; // 1
             Diagnostic(ErrorCode.WRN_UnreferencedField, "field").WithArguments("E.field").WithLocation(9, 13),
-            // (10,13): error CS9300: File type 'C.Inner' cannot be used in a member signature in non-file type 'E'.
+            // (10,13): error CS9051: File type 'C.Inner' cannot be used in a member signature in non-file type 'E'.
             //     C.Inner property { get; set; } // 2
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "property").WithArguments("C.Inner", "E").WithLocation(10, 13),
-            // (11,12): error CS9300: File type 'C.Inner' cannot be used in a member signature in non-file type 'E'.
+            // (11,12): error CS9051: File type 'C.Inner' cannot be used in a member signature in non-file type 'E'.
             //     object this[C.Inner inner] { get => inner; set { } } // 3
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "this").WithArguments("C.Inner", "E").WithLocation(11, 12),
-            // (12,27): error CS9300: File type 'C.InnerDelegate' cannot be used in a member signature in non-file type 'E'.
+            // (12,27): error CS9051: File type 'C.InnerDelegate' cannot be used in a member signature in non-file type 'E'.
             //     event C.InnerDelegate @event; // 4
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "@event").WithArguments("C.InnerDelegate", "E").WithLocation(12, 27),
             // (12,27): warning CS0067: The event 'E.event' is never used
@@ -1592,16 +1592,16 @@ public class FileModifierTests : CSharpTestBase
 
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (24,17): error CS9300: File type 'C.Inner' cannot be used in a member signature in non-file type 'E.Inner'.
+            // (24,17): error CS9051: File type 'C.Inner' cannot be used in a member signature in non-file type 'E.Inner'.
             //         C.Inner field; // 1
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "field").WithArguments("C.Inner", "E.Inner").WithLocation(24, 17),
-            // (25,17): error CS9300: File type 'C.Inner' cannot be used in a member signature in non-file type 'E.Inner'.
+            // (25,17): error CS9051: File type 'C.Inner' cannot be used in a member signature in non-file type 'E.Inner'.
             //         C.Inner property { get; set; } // 2
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "property").WithArguments("C.Inner", "E.Inner").WithLocation(25, 17),
-            // (26,16): error CS9300: File type 'C.Inner' cannot be used in a member signature in non-file type 'E.Inner'.
+            // (26,16): error CS9051: File type 'C.Inner' cannot be used in a member signature in non-file type 'E.Inner'.
             //         object this[C.Inner inner] { get => inner; set { } } // 3
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "this").WithArguments("C.Inner", "E.Inner").WithLocation(26, 16),
-            // (27,31): error CS9300: File type 'C.InnerDelegate' cannot be used in a member signature in non-file type 'E.Inner'.
+            // (27,31): error CS9051: File type 'C.InnerDelegate' cannot be used in a member signature in non-file type 'E.Inner'.
             //         event C.InnerDelegate @event; // 4
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "@event").WithArguments("C.InnerDelegate", "E.Inner").WithLocation(27, 31));
     }
@@ -1620,10 +1620,10 @@ public class FileModifierTests : CSharpTestBase
 
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (5,15): error CS9300: File type 'C' cannot be used in a member signature in non-file type 'Del1'.
+            // (5,15): error CS9051: File type 'C' cannot be used in a member signature in non-file type 'Del1'.
             // delegate void Del1(C c); // 1
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "Del1").WithArguments("C", "Del1").WithLocation(5, 15),
-            // (6,12): error CS9300: File type 'C' cannot be used in a member signature in non-file type 'Del2'.
+            // (6,12): error CS9051: File type 'C' cannot be used in a member signature in non-file type 'Del2'.
             // delegate C Del2(); // 2
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "Del2").WithArguments("C", "Del2").WithLocation(6, 12));
     }
@@ -1645,10 +1645,10 @@ public class FileModifierTests : CSharpTestBase
 
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (7,30): error CS9300: File type 'C' cannot be used in a member signature in non-file type 'D'.
+            // (7,30): error CS9051: File type 'C' cannot be used in a member signature in non-file type 'D'.
             //     public static D operator +(D d, C c) => d; // 1
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "+").WithArguments("C", "D").WithLocation(7, 30),
-            // (8,30): error CS9300: File type 'C' cannot be used in a member signature in non-file type 'D'.
+            // (8,30): error CS9051: File type 'C' cannot be used in a member signature in non-file type 'D'.
             //     public static C operator -(D d1, D d2) => new C(); // 2
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "-").WithArguments("C", "D").WithLocation(8, 30));
     }
@@ -1669,7 +1669,7 @@ public class FileModifierTests : CSharpTestBase
 
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (7,12): error CS9300: File type 'C' cannot be used in a member signature in non-file type 'D'.
+            // (7,12): error CS9051: File type 'C' cannot be used in a member signature in non-file type 'D'.
             //     public D(C c) { } // 1
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "D").WithArguments("C", "D").WithLocation(7, 12));
     }
@@ -1690,13 +1690,13 @@ public class FileModifierTests : CSharpTestBase
 
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (7,14): error CS9300: File type 'C' cannot be used in a member signature in non-file type 'D'.
+            // (7,14): error CS9051: File type 'C' cannot be used in a member signature in non-file type 'D'.
             //     public C M(C c1, C c2) => c1; // 1, 2, 3
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "M").WithArguments("C", "D").WithLocation(7, 14),
-            // (7,14): error CS9300: File type 'C' cannot be used in a member signature in non-file type 'D'.
+            // (7,14): error CS9051: File type 'C' cannot be used in a member signature in non-file type 'D'.
             //     public C M(C c1, C c2) => c1; // 1, 2, 3
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "M").WithArguments("C", "D").WithLocation(7, 14),
-            // (7,14): error CS9300: File type 'C' cannot be used in a member signature in non-file type 'D'.
+            // (7,14): error CS9051: File type 'C' cannot be used in a member signature in non-file type 'D'.
             //     public C M(C c1, C c2) => c1; // 1, 2, 3
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "M").WithArguments("C", "D").WithLocation(7, 14));
     }
@@ -1713,13 +1713,13 @@ public class FileModifierTests : CSharpTestBase
 
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (1,19): error CS9301: File type 'C' cannot use accessibility modifiers.
+            // (1,19): error CS9052: File type 'C' cannot use accessibility modifiers.
             // public file class C { } // 1
             Diagnostic(ErrorCode.ERR_FileTypeNoExplicitAccessibility, "C").WithArguments("C").WithLocation(1, 19),
-            // (2,21): error CS9301: File type 'D' cannot use accessibility modifiers.
+            // (2,21): error CS9052: File type 'D' cannot use accessibility modifiers.
             // file internal class D { } // 2
             Diagnostic(ErrorCode.ERR_FileTypeNoExplicitAccessibility, "D").WithArguments("D").WithLocation(2, 21),
-            // (3,20): error CS9301: File type 'E' cannot use accessibility modifiers.
+            // (3,20): error CS9052: File type 'E' cannot use accessibility modifiers.
             // private file class E { } // 3, 4
             Diagnostic(ErrorCode.ERR_FileTypeNoExplicitAccessibility, "E").WithArguments("E").WithLocation(3, 20),
             // (3,20): error CS1527: Elements defined in a namespace cannot be explicitly declared as private, protected, protected internal, or private protected
@@ -1757,13 +1757,13 @@ public class FileModifierTests : CSharpTestBase
 
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (2,7): error CS9301: File type 'Base' cannot be used as a base type of non-file type 'Derived1'.
+            // (2,7): error CS9053: File type 'Base' cannot be used as a base type of non-file type 'Derived1'.
             // class Derived1 : Base { } // 1
             Diagnostic(ErrorCode.ERR_FileTypeBase, "Derived1").WithArguments("Base", "Derived1").WithLocation(2, 7),
             // (3,14): error CS0060: Inconsistent accessibility: base class 'Base' is less accessible than class 'Derived2'
             // public class Derived2 : Base { } // 2, 3
             Diagnostic(ErrorCode.ERR_BadVisBaseClass, "Derived2").WithArguments("Derived2", "Base").WithLocation(3, 14),
-            // (3,14): error CS9301: File type 'Base' cannot be used as a base type of non-file type 'Derived2'.
+            // (3,14): error CS9053: File type 'Base' cannot be used as a base type of non-file type 'Derived2'.
             // public class Derived2 : Base { } // 2, 3
             Diagnostic(ErrorCode.ERR_FileTypeBase, "Derived2").WithArguments("Base", "Derived2").WithLocation(3, 14));
     }
@@ -1783,7 +1783,7 @@ public class FileModifierTests : CSharpTestBase
 
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (6,11): error CS9301: File type 'Interface' cannot be used as a base type of non-file type 'Derived3'.
+            // (6,11): error CS9053: File type 'Interface' cannot be used as a base type of non-file type 'Derived3'.
             // interface Derived3 : Interface { } // 1
             Diagnostic(ErrorCode.ERR_FileTypeBase, "Derived3").WithArguments("Interface", "Derived3").WithLocation(6, 11));
     }
@@ -1888,7 +1888,7 @@ public class FileModifierTests : CSharpTestBase
 
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (3,19): error CS9302: File type 'I1' cannot be used as a base type of non-file type 'Derived'.
+            // (3,19): error CS9053: File type 'I1' cannot be used as a base type of non-file type 'Derived'.
             // partial interface Derived : I1 { } // 1
             Diagnostic(ErrorCode.ERR_FileTypeBase, "Derived").WithArguments("I1", "Derived").WithLocation(3, 19));
     }
@@ -1927,7 +1927,7 @@ public class FileModifierTests : CSharpTestBase
 
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (7,17): error CS9300: File type 'I' cannot be used in a member signature in non-file type 'C'.
+            // (7,17): error CS9051: File type 'I' cannot be used in a member signature in non-file type 'C'.
             //     public void F(I i) { } // 1
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "F").WithArguments("I", "C").WithLocation(7, 17));
     }
@@ -1948,7 +1948,7 @@ public class FileModifierTests : CSharpTestBase
 
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (7,12): error CS9300: File type 'I' cannot be used in a member signature in non-file type 'C'.
+            // (7,12): error CS9051: File type 'I' cannot be used in a member signature in non-file type 'C'.
             //     void I.F(I i) { }
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "F").WithArguments("I", "C").WithLocation(7, 12));
     }
@@ -2033,19 +2033,19 @@ public class FileModifierTests : CSharpTestBase
                 // (1,28): warning CS0649: Field 'S.X' is never assigned to, and will always have its default value 0
                 // file struct S { public int X; }
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "X").WithArguments("S.X", "0").WithLocation(1, 28),
-                // (5,18): error CS9300: File type 'Container<S>' cannot be used in a member signature in non-file type 'Program'.
+                // (5,18): error CS9051: File type 'Container<S>' cannot be used in a member signature in non-file type 'Program'.
                 //     Container<S> M1() => new Container<S>(); // 1
                 Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "M1").WithArguments("Container<S>", "Program").WithLocation(5, 18),
-                // (6,9): error CS9300: File type 'S[]' cannot be used in a member signature in non-file type 'Program'.
+                // (6,9): error CS9051: File type 'S[]' cannot be used in a member signature in non-file type 'Program'.
                 //     S[] M2() => new S[0]; // 2
                 Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "M2").WithArguments("S[]", "Program").WithLocation(6, 9),
-                // (7,12): error CS9300: File type '(S, S)' cannot be used in a member signature in non-file type 'Program'.
+                // (7,12): error CS9051: File type '(S, S)' cannot be used in a member signature in non-file type 'Program'.
                 //     (S, S) M3() => (new S(), new S()); // 3
                 Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "M3").WithArguments("(S, S)", "Program").WithLocation(7, 12),
-                // (8,8): error CS9300: File type 'S*' cannot be used in a member signature in non-file type 'Program'.
+                // (8,8): error CS9051: File type 'S*' cannot be used in a member signature in non-file type 'Program'.
                 //     S* M4() => null; // 4
                 Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "M4").WithArguments("S*", "Program").WithLocation(8, 8),
-                // (9,24): error CS9300: File type 'delegate*<S, void>' cannot be used in a member signature in non-file type 'Program'.
+                // (9,24): error CS9051: File type 'delegate*<S, void>' cannot be used in a member signature in non-file type 'Program'.
                 //     delegate*<S, void> M5() => null; // 5
                 Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "M5").WithArguments("delegate*<S, void>", "Program").WithLocation(9, 24));
     }
@@ -2069,7 +2069,7 @@ public class FileModifierTests : CSharpTestBase
 
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (10,30): error CS9300: File type 'C' cannot be used in a member signature in non-file type 'E.M<T>(T)'.
+            // (10,30): error CS9051: File type 'C' cannot be used in a member signature in non-file type 'E.M<T>(T)'.
             //     void M<T>(T t) where T : C { } // 1
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "C").WithArguments("C", "E.M<T>(T)").WithLocation(10, 30));
     }
@@ -2089,16 +2089,16 @@ public class FileModifierTests : CSharpTestBase
 
         var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
         comp.VerifyDiagnostics(
-            // (3,8): error CS9300: File type 'C' cannot be used in a member signature in non-file type 'R1'.
+            // (3,8): error CS9051: File type 'C' cannot be used in a member signature in non-file type 'R1'.
             // record R1(C c); // 1
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "R1").WithArguments("C", "R1").WithLocation(3, 8),
-            // (3,8): error CS9300: File type 'C' cannot be used in a member signature in non-file type 'R1'.
+            // (3,8): error CS9051: File type 'C' cannot be used in a member signature in non-file type 'R1'.
             // record R1(C c); // 1
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "R1").WithArguments("C", "R1").WithLocation(3, 8),
-            // (4,15): error CS9300: File type 'C' cannot be used in a member signature in non-file type 'R2'.
+            // (4,15): error CS9051: File type 'C' cannot be used in a member signature in non-file type 'R2'.
             // record struct R2(C c); // 2
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "R2").WithArguments("C", "R2").WithLocation(4, 15),
-            // (4,15): error CS9300: File type 'C' cannot be used in a member signature in non-file type 'R2'.
+            // (4,15): error CS9051: File type 'C' cannot be used in a member signature in non-file type 'R2'.
             // record struct R2(C c); // 2
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "R2").WithArguments("C", "R2").WithLocation(4, 15)
             );
@@ -2230,7 +2230,7 @@ public class FileModifierTests : CSharpTestBase
 
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (5,16): error CS9303: File type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
+            // (5,16): error CS9054: File type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
             //     file class C // 1
             Diagnostic(ErrorCode.ERR_FileTypeNested, "C").WithArguments("Outer.C").WithLocation(5, 16),
             // (15,15): error CS0122: 'Outer.C' is inaccessible due to its protection level
@@ -2271,7 +2271,7 @@ public class FileModifierTests : CSharpTestBase
             // (5,15): error CS0117: 'Outer' does not contain a definition for 'C'
             //         Outer.C.M(); // 1
             Diagnostic(ErrorCode.ERR_NoSuchMember, "C").WithArguments("Outer", "C").WithLocation(5, 15),
-            // (5,16): error CS9303: File type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
+            // (5,16): error CS9054: File type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
             //     file class C
             Diagnostic(ErrorCode.ERR_FileTypeNested, "C").WithArguments("Outer.C").WithLocation(5, 16));
     }
@@ -2368,7 +2368,7 @@ public class FileModifierTests : CSharpTestBase
                 // (1,1): hidden CS8019: Unnecessary using directive.
                 // global using static C;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "global using static C;").WithLocation(1, 1),
-                // (1,21): error CS9304: File type 'C' cannot be used in a 'global using static' directive.
+                // (1,21): error CS9055: File type 'C' cannot be used in a 'global using static' directive.
                 // global using static C;
                 Diagnostic(ErrorCode.ERR_GlobalUsingStaticFileType, "C").WithArguments("C").WithLocation(1, 21),
                 // (5,9): error CS0103: The name 'M' does not exist in the current context
@@ -2407,7 +2407,7 @@ public class FileModifierTests : CSharpTestBase
                 // (1,1): hidden CS8019: Unnecessary using directive.
                 // global using static Container<C>;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "global using static Container<C>;").WithLocation(1, 1),
-                // (1,21): error CS9304: File type 'Container<C>' cannot be used in a 'global using static' directive.
+                // (1,21): error CS9055: File type 'Container<C>' cannot be used in a 'global using static' directive.
                 // global using static Container<C>;
                 Diagnostic(ErrorCode.ERR_GlobalUsingStaticFileType, "Container<C>").WithArguments("Container<C>").WithLocation(1, 21),
                 // (5,9): error CS0103: The name 'M' does not exist in the current context
@@ -2578,7 +2578,7 @@ public class FileModifierTests : CSharpTestBase
         // 'Derived.C' is not actually accessible from 'Program', so we just bind to 'Base.C'.
         var compilation = CreateCompilation(new[] { source, main });
         compilation.VerifyDiagnostics(
-            // (16,20): error CS9303: File type 'Derived.C' must be defined in a top level type; 'Derived.C' is a nested type.
+            // (16,20): error CS9054: File type 'Derived.C' must be defined in a top level type; 'Derived.C' is a nested type.
             //     new file class C
             Diagnostic(ErrorCode.ERR_FileTypeNested, "C").WithArguments("Derived.C").WithLocation(16, 20));
 
@@ -2946,7 +2946,7 @@ public class FileModifierTests : CSharpTestBase
 
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (8,7): error CS9302: File type 'C' cannot be used as a base type of non-file type 'D'.
+            // (8,7): error CS9053: File type 'C' cannot be used as a base type of non-file type 'D'.
             // class D : C1 { } // 1
             Diagnostic(ErrorCode.ERR_FileTypeBase, "D").WithArguments("NS.C", "NS.D").WithLocation(8, 7));
     }
@@ -3000,7 +3000,7 @@ public class FileModifierTests : CSharpTestBase
 
         var comp = CreateSubmission(source1, parseOptions: TestOptions.Script.WithLanguageVersion(LanguageVersion.Preview));
         comp.VerifyDiagnostics(
-            // (5,19): error CS9303: File type 'C1' must be defined in a top level type; 'C1' is a nested type.
+            // (5,19): error CS9054: File type 'C1' must be defined in a top level type; 'C1' is a nested type.
             // static file class C1
             Diagnostic(ErrorCode.ERR_FileTypeNested, "C1").WithArguments("C1").WithLocation(5, 19),
             // (7,24): error CS1109: Extension methods must be defined in a top level static class; C1 is a nested class
@@ -3110,7 +3110,7 @@ public class FileModifierTests : CSharpTestBase
         // from source
         var comp = CreateCompilation(source1);
         comp.VerifyDiagnostics(
-            // (3,16): error CS9303: File type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
+            // (3,16): error CS9054: File type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
             //     file class C { } // 1
             Diagnostic(ErrorCode.ERR_FileTypeNested, "C").WithArguments("Outer.C").WithLocation(3, 16));
         var sourceMember = comp.GetMember<NamedTypeSymbol>("Outer.C");

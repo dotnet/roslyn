@@ -2099,12 +2099,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FixedFieldMustNotBeRef = 9049,
         ERR_RefFieldCannotReferToRefStruct = 9050,
 
-        ERR_FileTypeDisallowedInSignature = 9351,
-        ERR_FileTypeNoExplicitAccessibility = 9352,
-        ERR_FileTypeBase = 9353,
-        ERR_FileTypeNested = 9354,
-        ERR_GlobalUsingStaticFileType = 9355,
-        ERR_FileTypeNameDisallowed = 9356,
+        ERR_FileTypeDisallowedInSignature = 9051,
+        ERR_FileTypeNoExplicitAccessibility = 9052,
+        ERR_FileTypeBase = 9053,
+        ERR_FileTypeNested = 9054,
+        ERR_GlobalUsingStaticFileType = 9055,
+        ERR_FileTypeNameDisallowed = 9056,
 
         #endregion
 
