@@ -104,7 +104,7 @@ public partial struct SyntaxValueProvider
             Debug.Assert(compilationUnit is ICompilationUnitSyntax);
             var globalAliases = Aliases.GetInstance();
 
-            syntaxHelper.AddAliases(compilationUnit, globalAliases, global: true);
+            syntaxHelper.AddAliases(compilationUnit.Green, globalAliases, global: true);
 
             return GlobalAliases.Create(globalAliases.ToImmutableAndFree());
         }
@@ -119,8 +119,11 @@ public partial struct SyntaxValueProvider
         CancellationToken cancellationToken)
     {
         var compilationUnit = syntaxTree.GetRoot(cancellationToken);
-
         Debug.Assert(compilationUnit is ICompilationUnitSyntax);
+
+        // Walk the green node tree first to avoid allocating the entire red tree for files that have no attributes.
+        if (!ContainsAttributeList(compilationUnit.Green, syntaxHelper.AttributeListKind))
+            return ImmutableArray<SyntaxNode>.Empty;
 
         var isCaseSensitive = syntaxHelper.IsCaseSensitive;
         var comparison = isCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
@@ -158,14 +161,14 @@ public partial struct SyntaxValueProvider
 
             if (node is ICompilationUnitSyntax)
             {
-                syntaxHelper.AddAliases(node, localAliases, global: false);
+                syntaxHelper.AddAliases(node.Green, localAliases, global: false);
 
                 recurseChildren(node);
             }
             else if (syntaxHelper.IsAnyNamespaceBlock(node))
             {
                 var localAliasCount = localAliases.Count;
-                syntaxHelper.AddAliases(node, localAliases, global: false);
+                syntaxHelper.AddAliases(node.Green, localAliases, global: false);
 
                 recurseChildren(node);
 
@@ -284,5 +287,22 @@ public partial struct SyntaxValueProvider
             seenNames.Pop();
             return false;
         }
+    }
+
+    private static bool ContainsAttributeList(GreenNode node, int attributeListKind)
+    {
+        if (node.RawKind == attributeListKind)
+            return true;
+
+        foreach (var child in node.ChildNodesAndTokens())
+        {
+            if (node.IsToken)
+                return false;
+
+            if (ContainsAttributeList(child, attributeListKind))
+                return true;
+        }
+
+        return false;
     }
 }
