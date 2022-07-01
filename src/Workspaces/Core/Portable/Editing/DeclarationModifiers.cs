@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Editing
             => new(SetFlag(_modifiers, Modifiers.Required, isRequired));
 
         public DeclarationModifiers WithIsFile(bool isFile)
-            => new(SetFlag(_modifiers, Modifiers.Required, isFile));
+            => new(SetFlag(_modifiers, Modifiers.File, isFile));
 
         private static Modifiers SetFlag(Modifiers existing, Modifiers modifier, bool isSet)
             => isSet ? (existing | modifier) : (existing & ~modifier);
