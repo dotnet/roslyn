@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
                         IsCheckable = true
                     });
 
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var viewModel = new ExtractInterfaceDialogViewModel(
                 syntaxFactsService,
@@ -103,13 +103,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
         }
 
         private static ExtractInterfaceOptionsResult.ExtractLocation GetLocation(NewTypeDestination destination)
-        {
-            switch (destination)
+            => destination switch
             {
-                case NewTypeDestination.CurrentFile: return ExtractInterfaceOptionsResult.ExtractLocation.SameFile;
-                case NewTypeDestination.NewFile: return ExtractInterfaceOptionsResult.ExtractLocation.NewFile;
-                default: throw ExceptionUtilities.UnexpectedValue(destination);
-            }
-        }
+                NewTypeDestination.CurrentFile => ExtractInterfaceOptionsResult.ExtractLocation.SameFile,
+                NewTypeDestination.NewFile => ExtractInterfaceOptionsResult.ExtractLocation.NewFile,
+                _ => throw ExceptionUtilities.UnexpectedValue(destination),
+            };
     }
 }
