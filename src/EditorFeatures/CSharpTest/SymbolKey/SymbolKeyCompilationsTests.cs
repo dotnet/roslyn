@@ -299,7 +299,7 @@ namespace N1.N2
             var originalSymbols = GetSourceSymbols(originalComp, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name).ToArray();
             var newSymbols = GetSourceSymbols(newComp, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name).ToArray();
 
-            Assert.Equal(3, originalSymbols.Length);
+            Assert.Equal(4, originalSymbols.Length);
             ResolveAndVerifySymbolList(newSymbols, originalSymbols, originalComp);
         }
 
@@ -327,7 +327,7 @@ namespace N1.N2
             var originalSymbols = GetSourceSymbols(originalComp, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name).ToArray();
             var newSymbols = GetSourceSymbols(newComp, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name).ToArray();
 
-            Assert.Equal(3, originalSymbols.Length);
+            Assert.Equal(4, originalSymbols.Length);
             ResolveAndVerifySymbolList(newSymbols, originalSymbols, originalComp);
         }
 
