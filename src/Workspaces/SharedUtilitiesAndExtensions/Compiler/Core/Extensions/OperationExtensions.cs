@@ -55,10 +55,12 @@ namespace Microsoft.CodeAnalysis
             }
             else if (operation is IRecursivePatternOperation or IListPatternOperation)
             {
+                Debug.Assert(operation is IRecursivePatternOperation { DeclaredSymbol: not null } || operation is IListPatternOperation { DeclaredSymbol: not null });
                 return ValueUsageInfo.Write;
             }
             else if (operation is IDeclarationPatternOperation)
             {
+                Debug.Assert(operation is IDeclarationPatternOperation { DeclaredSymbol: not null });
                 while (operation.Parent is IBinaryPatternOperation or
                        INegatedPatternOperation or
                        IRelationalPatternOperation)

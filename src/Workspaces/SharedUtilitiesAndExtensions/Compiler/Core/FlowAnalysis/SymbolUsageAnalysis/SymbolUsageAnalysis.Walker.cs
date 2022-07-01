@@ -301,6 +301,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 
             public override void VisitDeclarationPattern(IDeclarationPatternOperation operation)
             {
+                base.VisitDeclarationPattern(operation);
                 if (operation.DeclaredSymbol != null)
                 {
                     OnReferenceFound(operation.DeclaredSymbol, operation);
