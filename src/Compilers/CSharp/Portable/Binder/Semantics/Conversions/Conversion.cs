@@ -917,6 +917,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Type parameter which runtime type will be used to resolve virtual invocation of the <see cref="MethodSymbol" />, if any.
+        /// Null if <see cref="MethodSymbol" /> is resolved statically, or is null.
+        /// </summary>
+        public ITypeSymbol? ConstrainedToType
+        {
+            get
+            {
+                return this.ConstrainedToTypeOpt.GetPublicSymbol();
+            }
+        }
+
+        /// <summary>
         /// Gives an indication of how successful the conversion was.
         /// Viable - found a best built-in or user-defined conversion.
         /// Empty - found no applicable built-in or user-defined conversions.
@@ -1044,8 +1056,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public CommonConversion ToCommonConversion()
         {
             // The MethodSymbol of CommonConversion only refers to UserDefined conversions, not method groups
-            var methodSymbol = IsUserDefined ? MethodSymbol : null;
-            return new CommonConversion(Exists, IsIdentity, IsNumeric, IsReference, IsImplicit, IsNullable, methodSymbol);
+            var (methodSymbol, constrainedToType) = IsUserDefined ? (MethodSymbol, ConstrainedToType) : (null, null);
+            return new CommonConversion(Exists, IsIdentity, IsNumeric, IsReference, IsImplicit, IsNullable, methodSymbol, constrainedToType);
         }
 
         /// <summary>

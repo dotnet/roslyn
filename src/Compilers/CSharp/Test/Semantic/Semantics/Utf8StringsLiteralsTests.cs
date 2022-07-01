@@ -181,9 +181,34 @@ class C
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics(
-                // (6,13): error CS9100: The input string cannot be converted into the equivalent UTF8 byte representation. Unable to translate Unicode character \\uD801 at index 6 to specified code page.
+                // (6,13): error CS9100: The input string cannot be converted into the equivalent UTF-8 byte representation. Unable to translate Unicode character \\uD801 at index 6 to specified code page.
                 //         _ = "hello \uD801\uD802"u8;
-                Diagnostic(ErrorCode.ERR_CannotBeConvertedToUTF8, @"""hello \uD801\uD802""u8").WithArguments(@"Unable to translate Unicode character \\uD801 at index 6 to specified code page.").WithLocation(6, 13)
+                Diagnostic(ErrorCode.ERR_CannotBeConvertedToUtf8, @"""hello \uD801\uD802""u8").WithArguments(@"Unable to translate Unicode character \\uD801 at index 6 to specified code page.").WithLocation(6, 13)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void InvalidContent_03()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        _ = ""\uD83D\uDE00""u8;
+        _ = ""\uD83D""u8 + ""\uDE00""u8;
+    }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (7,13): error CS9026: The input string cannot be converted into the equivalent UTF-8 byte representation. Unable to translate Unicode character \\uD83D at index 0 to specified code page.
+                //         _ = "\uD83D"u8 + "\uDE00"u8;
+                Diagnostic(ErrorCode.ERR_CannotBeConvertedToUtf8, @"""\uD83D""u8").WithArguments(@"Unable to translate Unicode character \\uD83D at index 0 to specified code page.").WithLocation(7, 13),
+                // (7,26): error CS9026: The input string cannot be converted into the equivalent UTF-8 byte representation. Unable to translate Unicode character \\uDE00 at index 0 to specified code page.
+                //         _ = "\uD83D"u8 + "\uDE00"u8;
+                Diagnostic(ErrorCode.ERR_CannotBeConvertedToUtf8, @"""\uDE00""u8").WithArguments(@"Unable to translate Unicode character \\uDE00 at index 0 to specified code page.").WithLocation(7, 26)
                 );
         }
 
@@ -1196,6 +1221,36 @@ class C
                 );
         }
 
+        [Fact]
+        public void ExpressionTree_04()
+        {
+            var source = @"
+using System;
+using System.Linq.Expressions;
+class C
+{
+    static void Main()
+    {
+        Expression<Func<byte[]>> x = () => (""h""u8 + ""ello""u8).ToArray();
+        System.Console.WriteLine(x);
+    }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+
+            comp.VerifyDiagnostics(
+                // (8,45): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'ReadOnlySpan'.
+                //         Expression<Func<byte[]>> x = () => ("h"u8 + "ello"u8).ToArray();
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, @"""h""u8 + ""ello""u8").WithArguments("ReadOnlySpan").WithLocation(8, 45),
+                // (8,45): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'ReadOnlySpan'.
+                //         Expression<Func<byte[]>> x = () => ("h"u8 + "ello"u8).ToArray();
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, @"""h""u8").WithArguments("ReadOnlySpan").WithLocation(8, 45),
+                // (8,53): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'ReadOnlySpan'.
+                //         Expression<Func<byte[]>> x = () => ("h"u8 + "ello"u8).ToArray();
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, @"""ello""u8").WithArguments("ReadOnlySpan").WithLocation(8, 53)
+                );
+        }
+
         [ConditionalFact(typeof(CoreClrOnly))]
         public void OverloadResolution_01()
         {
@@ -1391,7 +1446,7 @@ class C
         [ConditionalTheory(typeof(CoreClrOnly))]
         [InlineData("u8")]
         [InlineData("U8")]
-        public void UTF8StringLiteral_01(string suffix)
+        public void Utf8StringLiteral_01(string suffix)
         {
             var source = @"
 using System;
@@ -1444,7 +1499,7 @@ class C
         [ConditionalTheory(typeof(CoreClrOnly))]
         [InlineData("u8")]
         [InlineData("U8")]
-        public void UTF8StringLiteral_02(string suffix)
+        public void Utf8StringLiteral_02(string suffix)
         {
             var source = @"
 using System;
@@ -1497,7 +1552,7 @@ class C
         [ConditionalTheory(typeof(CoreClrOnly))]
         [InlineData("u8")]
         [InlineData("U8")]
-        public void UTF8StringLiteral_03(string suffix)
+        public void Utf8StringLiteral_03(string suffix)
         {
             var source = @"
 using System;
@@ -1553,7 +1608,7 @@ class C
         [ConditionalTheory(typeof(CoreClrOnly))]
         [InlineData("u8")]
         [InlineData("U8")]
-        public void UTF8StringLiteral_04(string suffix)
+        public void Utf8StringLiteral_04(string suffix)
         {
             var source = @"
 using System;
@@ -1619,7 +1674,7 @@ class C
         [ConditionalTheory(typeof(CoreClrOnly))]
         [InlineData("u8")]
         [InlineData("U8")]
-        public void UTF8StringLiteral_01_InPlaceCtorCall(string suffix)
+        public void Utf8StringLiteral_01_InPlaceCtorCall(string suffix)
         {
             var source = @"
 using System;
@@ -2400,7 +2455,7 @@ class C
 
 
 
-    [UTF8(""3""U8)]
+    [Utf8(""3""U8)]
     static void M03(){}
 
 
@@ -2409,23 +2464,23 @@ class C
 
 
 
-    [UTF8((byte[])""3""U8)]
+    [Utf8((byte[])""3""U8)]
     static void M06(){}
 }
 
-public class UTF8Attribute : System.Attribute
+public class Utf8Attribute : System.Attribute
 {
-    public UTF8Attribute(byte[] x) {}
+    public Utf8Attribute(byte[] x) {}
 }
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
 
             comp.VerifyEmitDiagnostics(
                 // (13,11): error CS1503: Argument 1: cannot convert from 'System.ReadOnlySpan<byte>' to 'byte[]'
-                //     [UTF8("3"U8)]
+                //     [Utf8("3"U8)]
                 Diagnostic(ErrorCode.ERR_BadArgType, @"""3""U8").WithArguments("1", "System.ReadOnlySpan<byte>", "byte[]").WithLocation(13, 11),
                 // (22,11): error CS0030: Cannot convert type 'System.ReadOnlySpan<byte>' to 'byte[]'
-                //     [UTF8((byte[])"3"U8)]
+                //     [Utf8((byte[])"3"U8)]
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, @"(byte[])""3""U8").WithArguments("System.ReadOnlySpan<byte>", "byte[]").WithLocation(22, 11)
                 );
         }
@@ -2445,7 +2500,7 @@ class C
 
 
 
-    [UTF8(""3""U8)]
+    [Utf8(""3""U8)]
     static void M03(){}
 
 
@@ -2454,26 +2509,26 @@ class C
 
 
 
-    [UTF8((Span<byte>)""3""U8)]
+    [Utf8((Span<byte>)""3""U8)]
     static void M06(){}
 }
 
-public class UTF8Attribute : System.Attribute
+public class Utf8Attribute : System.Attribute
 {
-    public UTF8Attribute(Span<byte> x) {}
+    public Utf8Attribute(Span<byte> x) {}
 }
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
 
             comp.VerifyEmitDiagnostics(
                 // (13,11): error CS1503: Argument 1: cannot convert from 'System.ReadOnlySpan<byte>' to 'System.Span<byte>'
-                //     [UTF8("3"U8)]
+                //     [Utf8("3"U8)]
                 Diagnostic(ErrorCode.ERR_BadArgType, @"""3""U8").WithArguments("1", "System.ReadOnlySpan<byte>", "System.Span<byte>").WithLocation(13, 11),
                 // (22,6): error CS0181: Attribute constructor parameter 'x' has type 'Span<byte>', which is not a valid attribute parameter type
-                //     [UTF8((Span<byte>)"3"U8)]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "UTF8").WithArguments("x", "System.Span<byte>").WithLocation(22, 6),
+                //     [Utf8((Span<byte>)"3"U8)]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Utf8").WithArguments("x", "System.Span<byte>").WithLocation(22, 6),
                 // (22,11): error CS0030: Cannot convert type 'System.ReadOnlySpan<byte>' to 'System.Span<byte>'
-                //     [UTF8((Span<byte>)"3"U8)]
+                //     [Utf8((Span<byte>)"3"U8)]
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, @"(Span<byte>)""3""U8").WithArguments("System.ReadOnlySpan<byte>", "System.Span<byte>").WithLocation(22, 11)
                 );
         }
@@ -2493,7 +2548,7 @@ class C
 
 
 
-    [UTF8(""3""U8)]
+    [Utf8(""3""U8)]
     static void M03(){}
 
 
@@ -2502,24 +2557,24 @@ class C
 
 
 
-    [UTF8((ReadOnlySpan<byte>)""3""U8)]
+    [Utf8((ReadOnlySpan<byte>)""3""U8)]
     static void M06(){}
 }
 
-public class UTF8Attribute : System.Attribute
+public class Utf8Attribute : System.Attribute
 {
-    public UTF8Attribute(ReadOnlySpan<byte> x) {}
+    public Utf8Attribute(ReadOnlySpan<byte> x) {}
 }
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
 
             comp.VerifyEmitDiagnostics(
                 // (13,6): error CS0181: Attribute constructor parameter 'x' has type 'ReadOnlySpan<byte>', which is not a valid attribute parameter type
-                //     [UTF8("3"U8)]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "UTF8").WithArguments("x", "System.ReadOnlySpan<byte>").WithLocation(13, 6),
+                //     [Utf8("3"U8)]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Utf8").WithArguments("x", "System.ReadOnlySpan<byte>").WithLocation(13, 6),
                 // (22,6): error CS0181: Attribute constructor parameter 'x' has type 'ReadOnlySpan<byte>', which is not a valid attribute parameter type
-                //     [UTF8((ReadOnlySpan<byte>)"3"U8)]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "UTF8").WithArguments("x", "System.ReadOnlySpan<byte>").WithLocation(22, 6)
+                //     [Utf8((ReadOnlySpan<byte>)"3"U8)]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Utf8").WithArguments("x", "System.ReadOnlySpan<byte>").WithLocation(22, 6)
                 );
         }
 
@@ -3049,14 +3104,17 @@ class C
             Assert.True(model.GetConversion(node).IsIdentity);
         }
 
-        [Fact]
-        public void NullTerminate_01()
+        [Theory]
+        [InlineData(@"""cat""u8")]
+        [InlineData(@"""c""u8 + ""at""u8")]
+        [InlineData(@"""c""u8 + ""a""u8 + ""t""u8")]
+        public void NullTerminate_01(string expression)
         {
             var source = @"
 using System;
 class C
 {
-    static ReadOnlySpan<byte> Test3() => ""cat""u8;
+    static ReadOnlySpan<byte> Test3() => " + expression + @";
 }
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
@@ -3080,14 +3138,17 @@ class C
 ");
         }
 
-        [Fact]
-        public void NullTerminate_02()
+        [Theory]
+        [InlineData(@"""""u8")]
+        [InlineData(@"""""u8 + """"u8")]
+        [InlineData(@"""""u8 + """"u8 + """"u8")]
+        public void NullTerminate_02(string expression)
         {
             var source = @"
 using System;
 class C
 {
-    static ReadOnlySpan<byte> Test3() => """"u8;
+    static ReadOnlySpan<byte> Test3() => " + expression + @";
 }
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
@@ -3483,7 +3544,7 @@ class C
 ", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void PassAround_02()
         {
             var source = @"
@@ -3507,6 +3568,479 @@ class C
                 // (7,26): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
                 //         return ref Test3("cat"u8);
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, @"""cat""u8").WithLocation(7, 26)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UserDefinedConcatenation_01()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        _ = new C() + ReadOnlySpan<byte>.Empty;
+    }
+
+    public static C operator +(C x, ReadOnlySpan<byte> y)
+    {
+        System.Console.WriteLine(""called"");
+        return x;
+    }
+
+    public static implicit operator ReadOnlySpan<byte>(C x) => ReadOnlySpan<byte>.Empty;
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+
+            CompileAndVerify(comp, expectedOutput: @"called", verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UserDefinedConcatenation_02()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        _ = new C() + ""a""u8;
+    }
+
+    public static C operator +(C x, ReadOnlySpan<byte> y)
+    {
+        System.Console.WriteLine(""called"");
+        return x;
+    }
+
+    public static implicit operator ReadOnlySpan<byte>(C x) => ReadOnlySpan<byte>.Empty;
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+
+            CompileAndVerify(comp, expectedOutput: @"called", verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UserDefinedConcatenation_03()
+        {
+            var source = @"
+using System;
+public class C
+{
+    static void Main()
+    {
+        _ = new C() + ReadOnlySpan<byte>.Empty;
+    }
+
+    public static implicit operator ReadOnlySpan<byte>(C x) => ReadOnlySpan<byte>.Empty;
+}
+
+namespace System
+{
+    public readonly ref struct ReadOnlySpan<T>
+    {
+        private readonly T[] arr;
+
+        public ref readonly T this[int i] => ref arr[i];
+        public override int GetHashCode() => 2;
+        public int Length { get; }
+
+        public ReadOnlySpan(T[] arr)
+        {
+            this.arr = arr;
+            this.Length = arr.Length;
+        }
+
+        public static ReadOnlySpan<T> Empty => default;
+
+        public static C operator +(C x, ReadOnlySpan<T> y)
+        {
+            System.Console.WriteLine(""called"");
+            return x;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+
+            CompileAndVerify(comp, expectedOutput: @"called", verify: Verification.Fails).Diagnostics.Where(d => d.Code is not (int)ErrorCode.WRN_SameFullNameThisAggAgg).Verify();
+        }
+
+        [Fact]
+        public void UserDefinedConcatenation_04()
+        {
+            var source = @"
+using System;
+public class C
+{
+    static void Main()
+    {
+        _ = new C() + ""a""u8;
+    }
+
+    public static implicit operator ReadOnlySpan<byte>(C x) => ReadOnlySpan<byte>.Empty;
+}
+
+namespace System
+{
+    public readonly ref struct ReadOnlySpan<T>
+    {
+        private readonly T[] arr;
+
+        public ref readonly T this[int i] => ref arr[i];
+        public override int GetHashCode() => 2;
+        public int Length { get; }
+
+        public ReadOnlySpan(T[] arr, int start, int length)
+        {
+            this.arr = arr;
+            this.Length = arr.Length;
+        }
+
+        public static ReadOnlySpan<T> Empty => default;
+
+        public static C operator +(C x, ReadOnlySpan<T> y)
+        {
+            System.Console.WriteLine(""called"");
+            return x;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+
+            CompileAndVerify(comp, expectedOutput: @"called", verify: Verification.Fails).Diagnostics.Where(d => d.Code is not (int)ErrorCode.WRN_SameFullNameThisAggAgg).Verify();
+        }
+
+        [Fact]
+        public void UserDefinedConcatenation_05()
+        {
+            var source = @"
+using System;
+public class C
+{
+    static void Main()
+    {
+        _ = ReadOnlySpan<byte>.Empty + ReadOnlySpan<byte>.Empty;
+    }
+}
+
+namespace System
+{
+    public readonly ref struct ReadOnlySpan<T>
+    {
+        private readonly T[] arr;
+
+        public ref readonly T this[int i] => ref arr[i];
+        public override int GetHashCode() => 2;
+        public int Length { get; }
+
+        public ReadOnlySpan(T[] arr)
+        {
+            this.arr = arr;
+            this.Length = arr.Length;
+        }
+
+        public static ReadOnlySpan<T> Empty => default;
+
+        public static ReadOnlySpan<T> operator +(ReadOnlySpan<T> x, ReadOnlySpan<T> y)
+        {
+            System.Console.WriteLine(""called"");
+            return x;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+
+            CompileAndVerify(comp, expectedOutput: @"called", verify: Verification.Fails).Diagnostics.Where(d => d.Code is not (int)ErrorCode.WRN_SameFullNameThisAggAgg).Verify();
+        }
+
+        [Fact]
+        public void UserDefinedConcatenation_06()
+        {
+            var source = @"
+public class C
+{
+    static void Main()
+    {
+        _ = ""a""u8 + ""b""u8;
+    }
+}
+
+namespace System
+{
+    public readonly ref struct ReadOnlySpan<T>
+    {
+        private readonly T[] arr;
+
+        public ref readonly T this[int i] => ref arr[i];
+        public override int GetHashCode() => 2;
+        public int Length { get; }
+
+        public ReadOnlySpan(T[] arr, int start, int length)
+        {
+            this.arr = arr;
+            this.Length = arr.Length;
+        }
+
+        public static ReadOnlySpan<T> Empty => default;
+
+        public static ReadOnlySpan<T> operator +(ReadOnlySpan<T> x, ReadOnlySpan<T> y)
+        {
+            System.Console.WriteLine(""called"");
+            return x;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+
+            CompileAndVerify(comp, expectedOutput: @"called", verify: Verification.Fails).Diagnostics.Where(d => d.Code is not (int)ErrorCode.WRN_SameFullNameThisAggAgg).Verify();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [InlineData(@"""12""u8 + ""34""u8")]
+        [InlineData(@"""12""u8 + ""3""u8 + ""4""u8")]
+        [InlineData(@"""12""u8 + (""3""u8 + ""4""u8)")]
+        [InlineData(@"""1""u8 + ""2""u8 + ""3""u8 + ""4""u8")]
+        [InlineData(@"""1""u8 + ""2""u8 + (""3""u8 + ""4""u8)")]
+        [InlineData(@"""1""u8 + (""2""u8 + ""3""u8 + ""4""u8)")]
+        [InlineData(@"""1""u8 + (""2""u8 + (""3""u8 + ""4""u8))")]
+        [InlineData(@"""1""u8 + checked(""2""u8 + unchecked(""3""u8 + ""4""u8))")]
+        public void Concatenation_01(string expression)
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        System.Console.WriteLine();
+        Helpers.Print(Test3());
+    }
+
+    static ReadOnlySpan<byte> Test3() => " + expression + @";
+}
+";
+            var comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: @"
+{ 0x31 0x32 0x33 0x34 }
+", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("C.Test3()", @"
+{
+    // Code size       12 (0xc)
+    .maxstack  2
+    IL_0000:  ldsflda    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=5 <PrivateImplementationDetails>.94E7DD2D7CA2487FF2B04D7CBB490139BB9A2B5CE798348F02CA0A29ABD4EFF1""
+    IL_0005:  ldc.i4.4
+    IL_0006:  newobj     ""System.ReadOnlySpan<byte>..ctor(void*, int)""
+    IL_000b:  ret
+}
+");
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            foreach (var node in tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Where(b => b.IsKind(SyntaxKind.AddExpression)))
+            {
+                var method = (IMethodSymbol)model.GetSymbolInfo(node).Symbol;
+                Assert.Equal("System.ReadOnlySpan<System.Byte> System.ReadOnlySpan<System.Byte>.op_Addition(System.ReadOnlySpan<System.Byte> left, System.ReadOnlySpan<System.Byte> right)", method.ToTestDisplayString());
+                Assert.True(method.IsImplicitlyDeclared);
+                Assert.Equal(MethodKind.BuiltinOperator, method.MethodKind);
+            }
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [InlineData(@"(""1""u8 + ""2""u8 + (""3""u8 + ""4""u8)) + new C()")]
+        [InlineData(@"(""1""u8 + ""2""u8 + (""3""u8 + ""4""u8)) + new C() + new C()")]
+        [InlineData(@"new C() + (""1""u8 + ""2""u8 + (""3""u8 + ""4""u8))")]
+        [InlineData(@"new C() + (""1""u8 + ""2""u8 + (""3""u8 + ""4""u8)) + new C()")]
+        [InlineData(@"new C() + new C() + (""1""u8 + ""2""u8 + (""3""u8 + ""4""u8))")]
+        [InlineData(@"new C() + ((""1""u8 + ""2""u8 + (""3""u8 + ""4""u8)) + new C())")]
+        [InlineData(@"new C() + (new C() + (""1""u8 + ""2""u8 + (""3""u8 + ""4""u8)))")]
+        public void Concatenation_02(string expression)
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        System.Console.WriteLine();
+        _ = " + expression + @";
+    }
+
+    public static C operator +(ReadOnlySpan<byte> x, C y)
+    {
+        Helpers.Print(x);
+        return y;
+    }
+
+    public static C operator +(C x, ReadOnlySpan<byte> y)
+    {
+        Helpers.Print(y);
+        return x;
+    }
+
+    public static C operator +(C x, C y)
+    {
+        return x;
+    }
+}
+";
+            var comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+
+            CompileAndVerify(comp, expectedOutput: @"
+{ 0x31 0x32 0x33 0x34 }
+", verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [Theory]
+        [InlineData(@"ReadOnlySpan<byte>.Empty + ReadOnlySpan<byte>.Empty")]
+        [InlineData(@"""a""u8 + ReadOnlySpan<byte>.Empty")]
+        [InlineData(@"ReadOnlySpan<byte>.Empty + ""b""u8")]
+        public void Concatenation_03(string expression)
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        _ = " + expression + @";
+    }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (7,13): error CS9047: Operator '+' cannot be applied to operands of type 'ReadOnlySpan<byte>' and 'ReadOnlySpan<byte>' that are not UTF-8 byte representations
+                //         _ = ReadOnlySpan<byte>.Empty + ReadOnlySpan<byte>.Empty;
+                Diagnostic(ErrorCode.ERR_BadBinaryReadOnlySpanConcatenation, expression).WithArguments("+", "System.ReadOnlySpan<byte>", "System.ReadOnlySpan<byte>").WithLocation(7, 13)
+                );
+        }
+
+        [Theory]
+        [InlineData(@"ReadOnlySpan<byte>.Empty")]
+        [InlineData(@"""b""u8")]
+        public void Concatenation_04(string expression)
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        var x = ReadOnlySpan<byte>.Empty;
+        var y = ""a""u8;
+
+        x += " + expression + @";
+        y += " + expression + @";
+        ""c""u8 += " + expression + @";
+        x++;
+        y++;
+        ""d""u8++;
+    }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (10,9): error CS0019: Operator '+=' cannot be applied to operands of type 'ReadOnlySpan<byte>' and 'ReadOnlySpan<byte>'
+                //         x += "b"u8;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, @"x += " + expression).WithArguments("+=", "System.ReadOnlySpan<byte>", "System.ReadOnlySpan<byte>").WithLocation(10, 9),
+                // (11,9): error CS0019: Operator '+=' cannot be applied to operands of type 'ReadOnlySpan<byte>' and 'ReadOnlySpan<byte>'
+                //         y += "b"u8;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, @"y += " + expression).WithArguments("+=", "System.ReadOnlySpan<byte>", "System.ReadOnlySpan<byte>").WithLocation(11, 9),
+                // (12,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         "c"u8 += "b"u8;
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, @"""c""u8").WithLocation(12, 9),
+                // (13,9): error CS0023: Operator '++' cannot be applied to operand of type 'ReadOnlySpan<byte>'
+                //         x++;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "x++").WithArguments("++", "System.ReadOnlySpan<byte>").WithLocation(13, 9),
+                // (14,9): error CS0023: Operator '++' cannot be applied to operand of type 'ReadOnlySpan<byte>'
+                //         y++;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "y++").WithArguments("++", "System.ReadOnlySpan<byte>").WithLocation(14, 9),
+                // (15,9): error CS1059: The operand of an increment or decrement operator must be a variable, property or indexer
+                //         "d"u8++;
+                Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, @"""d""u8").WithLocation(15, 9)
+                );
+        }
+
+        [Theory]
+        [InlineData(@"ReadOnlySpan<byte>.Empty - ReadOnlySpan<byte>.Empty")]
+        [InlineData(@"""a""u8 - ReadOnlySpan<byte>.Empty")]
+        [InlineData(@"ReadOnlySpan<byte>.Empty - ""b""u8")]
+        public void Subtraction_01(string expression)
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        _ = " + expression + @";
+    }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (7,13): error CS0019: Operator '-' cannot be applied to operands of type 'ReadOnlySpan<byte>' and 'ReadOnlySpan<byte>'
+                //         _ = ReadOnlySpan<byte>.Empty - ReadOnlySpan<byte>.Empty;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, expression).WithArguments("-", "System.ReadOnlySpan<byte>", "System.ReadOnlySpan<byte>").WithLocation(7, 13)
+                );
+        }
+
+        [Theory]
+        [InlineData(@"new C() + ReadOnlySpan<byte>.Empty")]
+        [InlineData(@"new C() + ""b""u8")]
+        public void Concatenation_05(string expression)
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        _ = " + expression + @";
+    }
+
+    public static implicit operator ReadOnlySpan<byte>(C x) => ReadOnlySpan<byte>.Empty;
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (7,13): error CS0019: Operator '+' cannot be applied to operands of type 'C' and 'ReadOnlySpan<byte>'
+                //         _ = new C() + ReadOnlySpan<byte>.Empty;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, expression).WithArguments("+", "C", "System.ReadOnlySpan<byte>").WithLocation(7, 13)
+                );
+        }
+
+        [Theory]
+        [InlineData(@"ReadOnlySpan<byte>.Empty + new C()")]
+        [InlineData(@"""b""u8 + new C()")]
+        public void Concatenation_06(string expression)
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        _ = " + expression + @";
+    }
+
+    public static implicit operator ReadOnlySpan<byte>(C x) => ReadOnlySpan<byte>.Empty;
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (7,13): error CS0019: Operator '+' cannot be applied to operands of type 'ReadOnlySpan<byte>' and 'C'
+                //         _ = "b"u8 + new C();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, expression).WithArguments("+", "System.ReadOnlySpan<byte>", "C").WithLocation(7, 13)
                 );
         }
     }

@@ -181,11 +181,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SyntaxKind.IdentifierToken:
                 case SyntaxKind.StringLiteralToken:
-                case SyntaxKind.UTF8StringLiteralToken:
+                case SyntaxKind.Utf8StringLiteralToken:
                 case SyntaxKind.SingleLineRawStringLiteralToken:
-                case SyntaxKind.UTF8SingleLineRawStringLiteralToken:
+                case SyntaxKind.Utf8SingleLineRawStringLiteralToken:
                 case SyntaxKind.MultiLineRawStringLiteralToken:
-                case SyntaxKind.UTF8MultiLineRawStringLiteralToken:
+                case SyntaxKind.Utf8MultiLineRawStringLiteralToken:
                 case SyntaxKind.CharacterLiteralToken:
                 case SyntaxKind.NumericLiteralToken:
                 case SyntaxKind.XmlTextLiteralToken:
@@ -543,11 +543,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return token switch
             {
                 SyntaxKind.StringLiteralToken => SyntaxKind.StringLiteralExpression,
-                SyntaxKind.UTF8StringLiteralToken => SyntaxKind.UTF8StringLiteralExpression,
+                SyntaxKind.Utf8StringLiteralToken => SyntaxKind.Utf8StringLiteralExpression,
                 SyntaxKind.SingleLineRawStringLiteralToken => SyntaxKind.StringLiteralExpression,
-                SyntaxKind.UTF8SingleLineRawStringLiteralToken => SyntaxKind.UTF8StringLiteralExpression,
+                SyntaxKind.Utf8SingleLineRawStringLiteralToken => SyntaxKind.Utf8StringLiteralExpression,
                 SyntaxKind.MultiLineRawStringLiteralToken => SyntaxKind.StringLiteralExpression,
-                SyntaxKind.UTF8MultiLineRawStringLiteralToken => SyntaxKind.UTF8StringLiteralExpression,
+                SyntaxKind.Utf8MultiLineRawStringLiteralToken => SyntaxKind.Utf8StringLiteralExpression,
                 SyntaxKind.CharacterLiteralToken => SyntaxKind.CharacterLiteralExpression,
                 SyntaxKind.NumericLiteralToken => SyntaxKind.NumericLiteralExpression,
                 SyntaxKind.NullKeyword => SyntaxKind.NullLiteralExpression,
@@ -1138,7 +1138,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static IEnumerable<SyntaxKind> GetContextualKeywordKinds()
         {
+<<<<<<< HEAD
             for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.FileKeyword; i++)
+||||||| 4518b4087d0
+            for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.RequiredKeyword; i++)
+=======
+            for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.ScopedKeyword; i++)
+>>>>>>> upstream/main
             {
                 yield return (SyntaxKind)i;
             }
@@ -1192,7 +1198,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ManagedKeyword:
                 case SyntaxKind.UnmanagedKeyword:
                 case SyntaxKind.RequiredKeyword:
+<<<<<<< HEAD
                 case SyntaxKind.FileKeyword:
+||||||| 4518b4087d0
+=======
+                case SyntaxKind.ScopedKeyword:
+>>>>>>> upstream/main
                     return true;
                 default:
                     return false;
@@ -1314,8 +1325,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.UnmanagedKeyword;
                 case "required":
                     return SyntaxKind.RequiredKeyword;
+<<<<<<< HEAD
                 case "file":
                     return SyntaxKind.FileKeyword;
+||||||| 4518b4087d0
+=======
+                case "scoped":
+                    return SyntaxKind.ScopedKeyword;
+>>>>>>> upstream/main
                 default:
                     return SyntaxKind.None;
             }
@@ -1757,8 +1774,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "unmanaged";
                 case SyntaxKind.RequiredKeyword:
                     return "required";
+<<<<<<< HEAD
                 case SyntaxKind.FileKeyword:
                     return "file";
+||||||| 4518b4087d0
+=======
+                case SyntaxKind.ScopedKeyword:
+                    return "scoped";
+>>>>>>> upstream/main
                 default:
                     return string.Empty;
             }

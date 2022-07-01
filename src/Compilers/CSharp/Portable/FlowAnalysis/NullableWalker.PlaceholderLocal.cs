@@ -62,6 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal override LocalSymbol WithSynthesizedLocalKindAndSyntax(SynthesizedLocalKind kind, SyntaxNode syntax) => throw ExceptionUtilities.Unreachable;
             internal override uint ValEscapeScope => throw ExceptionUtilities.Unreachable;
             internal override uint RefEscapeScope => throw ExceptionUtilities.Unreachable;
+            internal override DeclarationScope Scope => DeclarationScope.Unscoped;
         }
     }
 }
