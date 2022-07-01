@@ -67,10 +67,7 @@ namespace Microsoft.CodeAnalysis.Host
                             }
                         }
 
-                        if (mref == null)
-                        {
-                            mref = _cache._createReference(path, properties);
-                        }
+                        mref ??= _cache._createReference(path, properties);
 
                         _references[properties] = new WeakReference<MetadataReference>(mref);
                     }

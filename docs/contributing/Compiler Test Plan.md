@@ -93,6 +93,8 @@ This document provides guidance for thinking about language interactions and tes
     - Compound operators (`+=`, `/=`, etc ..) 
     - Assignment exprs
 - Ref return, ref readonly return, ref ternary, ref readonly local, ref local re-assignment, ref foreach
+- Ref fields
+- `scoped` parameters and locals
 - `this = e;` in `struct` .ctor
 - Stackalloc (including initializers)
 - Patterns (constant, declaration, `var`, positional, property and extended property, discard, parenthesized, type, relational, `and`/`or`/`not`, list, slice, constant `string` matching `Span<char>`)

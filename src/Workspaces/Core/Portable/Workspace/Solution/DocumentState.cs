@@ -378,15 +378,12 @@ namespace Microsoft.CodeAnalysis
             }
 
             // If we weren't able to reuse in a smart way, just reparse
-            if (newTreeSource is null)
-            {
-                newTreeSource = CreateLazyFullyParsedTree(
+            newTreeSource ??= CreateLazyFullyParsedTree(
                     TextAndVersionSource,
                     Id.ProjectId,
                     GetSyntaxTreeFilePath(Attributes),
                     options,
                     _languageServices);
-            }
 
             return new DocumentState(
                 LanguageServices,

@@ -440,8 +440,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private TypeWithAnnotations ComputeType(Binder binder, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
         {
-            RefKind refKind;
-            var typeSyntax = GetTypeSyntax(syntax).SkipRef(out refKind);
+            var typeSyntax = GetTypeSyntax(syntax).SkipRef(out _, allowScoped: false, diagnostics);
             var type = binder.BindType(typeSyntax, diagnostics);
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
 

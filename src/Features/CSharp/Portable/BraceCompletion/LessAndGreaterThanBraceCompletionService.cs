@@ -30,8 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
         protected override char OpeningBrace => LessAndGreaterThan.OpenCharacter;
         protected override char ClosingBrace => LessAndGreaterThan.CloseCharacter;
 
-        public override Task<bool> AllowOverTypeAsync(BraceCompletionContext context, CancellationToken cancellationToken)
-            => AllowOverTypeInUserCodeWithValidClosingTokenAsync(context, cancellationToken);
+        public override bool AllowOverType(BraceCompletionContext context, CancellationToken cancellationToken)
+            => AllowOverTypeInUserCodeWithValidClosingToken(context, cancellationToken);
 
         protected override bool IsValidOpeningBraceToken(SyntaxToken token)
             => token.IsKind(SyntaxKind.LessThanToken);
@@ -39,21 +39,20 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
         protected override bool IsValidClosingBraceToken(SyntaxToken token)
             => token.IsKind(SyntaxKind.GreaterThanToken);
 
-        protected override async ValueTask<bool> IsValidOpenBraceTokenAtPositionAsync(Document document, SyntaxToken token, int position, CancellationToken cancellationToken)
+        protected override Task<bool> IsValidOpenBraceTokenAtPositionAsync(Document document, SyntaxToken token, int position, CancellationToken cancellationToken)
         {
             // check what parser thinks about the newly typed "<" and only proceed if parser thinks it is "<" of 
             // type argument or parameter list
-            return token.CheckParent<TypeParameterListSyntax>(n => n.LessThanToken == token) ||
+            if (token.CheckParent<TypeParameterListSyntax>(n => n.LessThanToken == token) ||
                 token.CheckParent<TypeArgumentListSyntax>(n => n.LessThanToken == token) ||
-                token.CheckParent<FunctionPointerParameterListSyntax>(n => n.LessThanToken == token) ||
-                await PossibleTypeArgumentAsync(document, token, cancellationToken).ConfigureAwait(false);
-        }
+                token.CheckParent<FunctionPointerParameterListSyntax>(n => n.LessThanToken == token))
+            {
+                return Task.FromResult(true);
+            }
 
-        private static async ValueTask<bool> PossibleTypeArgumentAsync(Document document, SyntaxToken token, CancellationToken cancellationToken)
-        {
             // type argument can be easily ambiguous with normal < operations
             if (token.Parent is not BinaryExpressionSyntax(SyntaxKind.LessThanExpression) node || node.OperatorToken != token)
-                return false;
+                return Task.FromResult(false);
 
             // type_argument_list only shows up in the following grammar construct:
             //
@@ -63,11 +62,16 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             // So if the prior token is not an identifier, this could not be a type-argument-list.
             var previousToken = token.GetPreviousToken();
             if (previousToken.Parent is not IdentifierNameSyntax identifier)
-                return false;
+                return Task.FromResult(false);
 
-            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(node.SpanStart, cancellationToken).ConfigureAwait(false);
-            var info = semanticModel.GetSymbolInfo(identifier, cancellationToken);
-            return info.CandidateSymbols.Any(static s => s.GetArity() > 0);
+            return IsSemanticTypeArgumentAsync(document, node.SpanStart, identifier, cancellationToken);
+
+            static async Task<bool> IsSemanticTypeArgumentAsync(Document document, int position, IdentifierNameSyntax identifier, CancellationToken cancellationToken)
+            {
+                var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
+                var info = semanticModel.GetSymbolInfo(identifier, cancellationToken);
+                return info.CandidateSymbols.Any(static s => s.GetArity() > 0);
+            }
         }
     }
 }

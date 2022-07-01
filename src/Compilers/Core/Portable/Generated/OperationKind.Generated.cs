@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis
         SlicePattern = 0x7a,
         /// <summary>Indicates an <see cref="IImplicitIndexerReferenceOperation"/>.</summary>
         ImplicitIndexerReference = 0x7b,
-        /// <summary>Indicates an <see cref="IUTF8StringOperation"/>.</summary>
-        UTF8String = 0x7c,
+        /// <summary>Indicates an <see cref="IUtf8StringOperation"/>.</summary>
+        Utf8String = 0x7c,
     }
 }
