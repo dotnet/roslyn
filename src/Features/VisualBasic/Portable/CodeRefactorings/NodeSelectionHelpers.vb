@@ -12,9 +12,9 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings
     Friend Module NodeSelectionHelpers
         Friend Async Function GetSelectedMemberDeclarationAsync(context As CodeRefactoringContext) As Task(Of ImmutableArray(Of SyntaxNode))
-            Dim doc As Document
-            Dim span As TextSpan
-            Dim cancellationToken As CancellationToken
+            Dim doc As Document = Nothing
+            Dim span As TextSpan = Nothing
+            Dim cancellationToken As CancellationToken = Nothing
             context.Deconstruct(doc, span, cancellationToken)
             If span.IsEmpty Then
                 ' MethodBaseSyntax also includes properties
