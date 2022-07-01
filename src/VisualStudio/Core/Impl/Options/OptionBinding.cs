@@ -5,6 +5,8 @@
 #nullable disable
 
 using System.ComponentModel;
+using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
@@ -18,6 +20,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         public OptionBinding(OptionStore optionStore, Option2<T> key)
         {
+            Debug.Assert(key.StorageLocations.OfType<RoamingProfileStorageLocation>().Any());
+
             _optionStore = optionStore;
             _key = key;
 
