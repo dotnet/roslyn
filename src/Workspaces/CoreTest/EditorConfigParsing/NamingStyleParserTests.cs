@@ -883,9 +883,6 @@ dotnet_diagnostic.IDE0035.severity = warning
 # IDE0036: Order modifiers
 dotnet_diagnostic.IDE0036.severity = warning
 
-# IDE0043: Format string contains invalid placeholder
-dotnet_diagnostic.IDE0043.severity = warning
-
 # IDE0044: Make field readonly
 dotnet_diagnostic.IDE0044.severity = warning
 

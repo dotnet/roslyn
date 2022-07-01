@@ -70,8 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityL
 
         private static void ValidateHelpLinkForDiagnostic(string diagnosticId, string helpLinkUri)
         {
-            if (diagnosticId is "IDE0043" // Intentionally undocumented because it's being removed in favor of CA2241
-                    or "IDE1007"
+            if (diagnosticId is "IDE1007"
                     or "RemoveUnnecessaryImportsFixable"
                     or "RE0001"
                     or "JSON001"
@@ -284,9 +283,6 @@ dotnet_diagnostic.IDE0041.severity = %value%
 
 # IDE0042
 dotnet_diagnostic.IDE0042.severity = %value%
-
-# IDE0043
-dotnet_diagnostic.IDE0043.severity = %value%
 
 # IDE0044
 dotnet_diagnostic.IDE0044.severity = %value%
@@ -538,9 +534,6 @@ dotnet_diagnostic.IDE0040.severity = %value%
 
 # IDE0041
 dotnet_diagnostic.IDE0041.severity = %value%
-
-# IDE0043
-dotnet_diagnostic.IDE0043.severity = %value%
 
 # IDE0044
 dotnet_diagnostic.IDE0044.severity = %value%
@@ -887,9 +880,6 @@ dotnet_style_prefer_is_null_check_over_reference_equality_method = true
 # IDE0042, PreferDeconstructedVariableDeclaration
 csharp_style_deconstructed_variable_declaration = true
 
-# IDE0043
-No editorconfig based code style option
-
 # IDE0044, PreferReadonly
 dotnet_style_readonly_field = true
 
@@ -1182,9 +1172,6 @@ dotnet_style_require_accessibility_modifiers = for_non_interface_members
 
 # IDE0041, PreferIsNullCheckOverReferenceEqualityMethod
 dotnet_style_prefer_is_null_check_over_reference_equality_method = true
-
-# IDE0043
-No editorconfig based code style option
 
 # IDE0044, PreferReadonly
 dotnet_style_readonly_field = true
