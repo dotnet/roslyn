@@ -80,12 +80,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 // so the user can know htat in the UI.
                 lock (_projectFlavors)
                 {
-                    if (_cachedProjectName == null)
-                    {
-                        _cachedProjectName = _projectFlavors.Count < 2
+                    _cachedProjectName ??= _projectFlavors.Count < 2
                             ? _rawProjectName
                             : $"{_rawProjectName} ({string.Join(", ", _projectFlavors)})";
-                    }
 
                     return _cachedProjectName;
                 }

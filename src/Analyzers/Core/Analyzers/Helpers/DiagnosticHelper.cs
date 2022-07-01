@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (additionalUnnecessaryLocations.IsEmpty)
             {
-                return Create(descriptor, location, effectiveSeverity, additionalLocations, ImmutableDictionary<string, string?>.Empty, messageArgs);
+                return Create(descriptor, location, effectiveSeverity, additionalLocations, properties, messageArgs);
             }
 
             var tagIndices = ImmutableDictionary<string, IEnumerable<int>>.Empty

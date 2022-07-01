@@ -89,56 +89,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return _supportedChars.Contains(ch);
         }
 
-        public async Task<ImmutableArray<TextChange>> GetFormattingChangesAsync(
+        public Task<ImmutableArray<TextChange>> GetFormattingChangesAsync(
             Document document,
             ITextBuffer textBuffer,
             TextSpan? textSpan,
             CancellationToken cancellationToken)
         {
-            var fallbackOptions = _globalOptions.GetCSharpSyntaxFormattingOptions();
-            var options = _indentationManager.GetInferredFormattingOptions(textBuffer, _editorOptionsFactory, document.Project.LanguageServices, fallbackOptions, explicitFormat: true);
+            var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
+            var options = textBuffer.GetSyntaxFormattingOptions(_editorOptionsFactory, _indentationManager, _globalOptions, parsedDocument.LanguageServices, explicitFormat: true);
 
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var span = textSpan ?? new TextSpan(0, root.FullSpan.Length);
-            var formattingSpan = CommonFormattingHelpers.GetFormattingSpan(root, span);
+            var span = textSpan ?? new TextSpan(0, parsedDocument.Root.FullSpan.Length);
+            var formattingSpan = CommonFormattingHelpers.GetFormattingSpan(parsedDocument.Root, span);
 
-            var services = document.Project.Solution.Workspace.Services;
-            return Formatter.GetFormattedTextChanges(root, SpecializedCollections.SingletonEnumerable(formattingSpan), services, options, cancellationToken).ToImmutableArray();
+            return Task.FromResult(Formatter.GetFormattedTextChanges(parsedDocument.Root, SpecializedCollections.SingletonEnumerable(formattingSpan), parsedDocument.LanguageServices.WorkspaceServices, options, cancellationToken).ToImmutableArray());
         }
 
-        public async Task<ImmutableArray<TextChange>> GetFormattingChangesOnPasteAsync(Document document, ITextBuffer textBuffer, TextSpan textSpan, CancellationToken cancellationToken)
+        public Task<ImmutableArray<TextChange>> GetFormattingChangesOnPasteAsync(Document document, ITextBuffer textBuffer, TextSpan textSpan, CancellationToken cancellationToken)
         {
-            var fallbackOptions = _globalOptions.GetCSharpSyntaxFormattingOptions();
-            var options = _indentationManager.GetInferredFormattingOptions(textBuffer, _editorOptionsFactory, document.Project.LanguageServices, fallbackOptions, explicitFormat: true);
-            var service = document.GetRequiredLanguageService<ISyntaxFormattingService>();
-            var documentSyntax = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-            return service.GetFormattingChangesOnPaste(documentSyntax, textSpan, options, cancellationToken);
+            var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
+            var options = textBuffer.GetSyntaxFormattingOptions(_editorOptionsFactory, _indentationManager, _globalOptions, parsedDocument.LanguageServices, explicitFormat: true);
+            var service = parsedDocument.LanguageServices.GetRequiredService<ISyntaxFormattingService>();
+            return Task.FromResult(service.GetFormattingChangesOnPaste(parsedDocument, textSpan, options, cancellationToken));
         }
 
-        Task<ImmutableArray<TextChange>> IFormattingInteractionService.GetFormattingChangesOnReturnAsync(
-            Document document, int caretPosition, CancellationToken cancellationToken)
+        public Task<ImmutableArray<TextChange>> GetFormattingChangesOnReturnAsync(Document document, int caretPosition, CancellationToken cancellationToken)
             => SpecializedTasks.EmptyImmutableArray<TextChange>();
 
-        public async Task<ImmutableArray<TextChange>> GetFormattingChangesAsync(Document document, ITextBuffer textBuffer, char typedChar, int position, CancellationToken cancellationToken)
+        public Task<ImmutableArray<TextChange>> GetFormattingChangesAsync(Document document, ITextBuffer textBuffer, char typedChar, int position, CancellationToken cancellationToken)
         {
-            var service = document.GetRequiredLanguageService<ISyntaxFormattingService>();
-            var documentSyntax = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+            var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
+            var service = parsedDocument.LanguageServices.GetRequiredService<ISyntaxFormattingService>();
 
-            if (service.ShouldFormatOnTypedCharacter(documentSyntax, typedChar, position, cancellationToken))
+            if (service.ShouldFormatOnTypedCharacter(parsedDocument, typedChar, position, cancellationToken))
             {
-                var fallbackOptions = _globalOptions.GetCSharpSyntaxFormattingOptions();
-                var formattingOptions = _indentationManager.GetInferredFormattingOptions(textBuffer, _editorOptionsFactory, document.Project.LanguageServices, fallbackOptions, explicitFormat: false);
-
-                var indentationOptions = new IndentationOptions(formattingOptions)
-                {
-                    AutoFormattingOptions = _globalOptions.GetAutoFormattingOptions(LanguageNames.CSharp),
-                    IndentStyle = _globalOptions.GetOption(IndentationOptionsStorage.SmartIndent, LanguageNames.CSharp)
-                };
-
-                return service.GetFormattingChangesOnTypedCharacter(documentSyntax, position, indentationOptions, cancellationToken);
+                var indentationOptions = textBuffer.GetIndentationOptions(_editorOptionsFactory, _indentationManager, _globalOptions, parsedDocument.LanguageServices, explicitFormat: false);
+                return Task.FromResult(service.GetFormattingChangesOnTypedCharacter(parsedDocument, position, indentationOptions, cancellationToken));
             }
 
-            return ImmutableArray<TextChange>.Empty;
+            return SpecializedTasks.EmptyImmutableArray<TextChange>();
         }
     }
 }

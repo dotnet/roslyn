@@ -24,12 +24,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         protected override bool CanFind(IMethodSymbol symbol)
-            => symbol.MethodKind switch
-            {
-                MethodKind.Constructor => true,
-                MethodKind.StaticConstructor => true,
-                _ => false,
-            };
+            => symbol.MethodKind is MethodKind.Constructor or MethodKind.StaticConstructor;
 
         protected override Task<ImmutableArray<string>> DetermineGlobalAliasesAsync(IMethodSymbol symbol, Project project, CancellationToken cancellationToken)
         {
@@ -75,6 +70,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return result.ToImmutable();
         }
 
+        private static Task<ImmutableArray<Document>> FindDocumentsWithImplicitObjectCreationExpressionAsync(Project project, IImmutableSet<Document>? documents, CancellationToken cancellationToken)
+            => FindDocumentsWithPredicateAsync(project, documents, static index => index.ContainsImplicitObjectCreation, cancellationToken);
+
         private static async Task AddDocumentsAsync(
             Project project,
             IImmutableSet<Document>? documents,
@@ -92,15 +90,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             result.AddRange(documentsWithAttribute);
         }
 
-        private static bool IsPotentialReference(
-            PredefinedType predefinedType,
-            ISyntaxFactsService syntaxFacts,
-            SyntaxToken token)
-        {
-            return
-                syntaxFacts.TryGetPredefinedType(token, out var actualType) &&
-                predefinedType == actualType;
-        }
+        private static bool IsPotentialReference(PredefinedType predefinedType, ISyntaxFactsService syntaxFacts, SyntaxToken token)
+            => syntaxFacts.TryGetPredefinedType(token, out var actualType) &&
+               predefinedType == actualType;
 
         protected override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol methodSymbol,
@@ -185,9 +177,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             var predefinedType = symbol.ContainingType.SpecialType.ToPredefinedType();
             if (predefinedType == PredefinedType.None)
-            {
-                return new ValueTask<ImmutableArray<FinderLocation>>(ImmutableArray<FinderLocation>.Empty);
-            }
+                return new(ImmutableArray<FinderLocation>.Empty);
 
             return FindReferencesInDocumentAsync(
                 symbol, state,
@@ -204,7 +194,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             return TryGetNameWithoutAttributeSuffix(name, state.SyntaxFacts, out var simpleName)
                 ? FindReferencesInDocumentUsingIdentifierAsync(symbol, simpleName, state, cancellationToken)
-                : new ValueTask<ImmutableArray<FinderLocation>>(ImmutableArray<FinderLocation>.Empty);
+                : new(ImmutableArray<FinderLocation>.Empty);
         }
 
         private Task<ImmutableArray<FinderLocation>> FindReferencesInImplicitObjectCreationExpressionAsync(

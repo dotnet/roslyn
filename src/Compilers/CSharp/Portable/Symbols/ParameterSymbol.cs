@@ -415,6 +415,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract bool HasInterpolatedStringHandlerArgumentError { get; }
 
+        internal abstract DeclarationScope Scope { get; }
+
         protected sealed override bool IsHighestPriorityUseSiteErrorCode(int code) => code is (int)ErrorCode.ERR_UnsupportedCompilerFeature or (int)ErrorCode.ERR_BogusType;
 
         public override bool HasUnsupportedMetadata

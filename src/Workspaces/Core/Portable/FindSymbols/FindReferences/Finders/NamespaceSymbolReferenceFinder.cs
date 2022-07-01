@@ -37,11 +37,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             result.AddRange(!symbol.IsGlobalNamespace
                 ? await FindDocumentsAsync(project, documents, cancellationToken, symbol.Name).ConfigureAwait(false)
-                : await FindDocumentsAsync(project, documents, static async (d, _, c) =>
-                {
-                    var index = await d.GetSyntaxTreeIndexAsync(c).ConfigureAwait(false);
-                    return index.ContainsGlobalKeyword;
-                }, /*unused*/false, cancellationToken).ConfigureAwait(false));
+                : await FindDocumentsWithPredicateAsync(project, documents, static index => index.ContainsGlobalKeyword, cancellationToken).ConfigureAwait(false));
 
             if (globalAliases != null)
             {
@@ -138,12 +134,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 symbol,
                 state,
                 tokens,
-                static (state, token, _, _) =>
+                static (state, token, _) =>
                 {
                     Debug.Assert(state.SyntaxFacts.IsGlobalNamespaceKeyword(token));
                     return true;
                 },
-                /*unused*/false,
                 cancellationToken).ConfigureAwait(false));
         }
     }

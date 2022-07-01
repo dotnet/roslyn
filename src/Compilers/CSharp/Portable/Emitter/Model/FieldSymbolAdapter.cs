@@ -47,6 +47,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        ImmutableArray<Cci.ICustomModifier> Cci.IFieldReference.RefCustomModifiers =>
+            ImmutableArray<Cci.ICustomModifier>.CastUp(AdaptedFieldSymbol.RefCustomModifiers);
+
+        bool Cci.IFieldReference.IsByReference => AdaptedFieldSymbol.RefKind != RefKind.None;
+
         Cci.IFieldDefinition Cci.IFieldReference.GetResolvedField(EmitContext context)
         {
             return ResolvedFieldImpl((PEModuleBuilder)context.Module);
