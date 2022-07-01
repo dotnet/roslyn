@@ -1138,13 +1138,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static IEnumerable<SyntaxKind> GetContextualKeywordKinds()
         {
-<<<<<<< HEAD
             for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.FileKeyword; i++)
-||||||| 4518b4087d0
-            for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.RequiredKeyword; i++)
-=======
-            for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.ScopedKeyword; i++)
->>>>>>> upstream/main
             {
                 yield return (SyntaxKind)i;
             }
@@ -1198,12 +1192,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ManagedKeyword:
                 case SyntaxKind.UnmanagedKeyword:
                 case SyntaxKind.RequiredKeyword:
-<<<<<<< HEAD
-                case SyntaxKind.FileKeyword:
-||||||| 4518b4087d0
-=======
                 case SyntaxKind.ScopedKeyword:
->>>>>>> upstream/main
+                case SyntaxKind.FileKeyword:
                     return true;
                 default:
                     return false;
@@ -1325,14 +1315,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.UnmanagedKeyword;
                 case "required":
                     return SyntaxKind.RequiredKeyword;
-<<<<<<< HEAD
-                case "file":
-                    return SyntaxKind.FileKeyword;
-||||||| 4518b4087d0
-=======
                 case "scoped":
                     return SyntaxKind.ScopedKeyword;
->>>>>>> upstream/main
+                case "file":
+                    return SyntaxKind.FileKeyword;
                 default:
                     return SyntaxKind.None;
             }
@@ -1774,14 +1760,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "unmanaged";
                 case SyntaxKind.RequiredKeyword:
                     return "required";
-<<<<<<< HEAD
-                case SyntaxKind.FileKeyword:
-                    return "file";
-||||||| 4518b4087d0
-=======
                 case SyntaxKind.ScopedKeyword:
                     return "scoped";
->>>>>>> upstream/main
+                case SyntaxKind.FileKeyword:
+                    return "file";
                 default:
                     return string.Empty;
             }

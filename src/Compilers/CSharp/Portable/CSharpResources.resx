@@ -7166,17 +7166,13 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers" xml:space="preserve">
     <value>Required members are not allowed on the top level of a script or submission.</value>
   </data>
-<<<<<<< HEAD
-  <data name="IDS_FeatureFileTypes" xml:space="preserve">
-    <value>file types</value>
-  </data>
-||||||| 4518b4087d0
-=======
   <data name="ERR_BadAbstractEqualityOperatorSignature" xml:space="preserve">
     <value>One of the parameters of an equality, or inequality operator declared in interface '{0}' must be a type parameter on '{0}' constrained to '{0}'</value>
   </data>
   <data name="ERR_BadBinaryReadOnlySpanConcatenation" xml:space="preserve">
     <value>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF-8 byte representations</value>
   </data>
->>>>>>> upstream/main
+  <data name="IDS_FeatureFileTypes" xml:space="preserve">
+    <value>file types</value>
+  </data>
 </root>

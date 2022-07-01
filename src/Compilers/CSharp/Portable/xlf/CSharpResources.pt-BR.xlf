@@ -582,7 +582,6 @@
         <target state="translated">O namespace de escopo de arquivo deve preceder todos os outros membros em um arquivo.</target>
         <note />
       </trans-unit>
-<<<<<<< HEAD
       <trans-unit id="ERR_FileTypeBase">
         <source>File type '{0}' cannot be used as a base type of non-file type '{1}'.</source>
         <target state="new">File type '{0}' cannot be used as a base type of non-file type '{1}'.</target>
@@ -603,14 +602,11 @@
         <target state="new">File type '{0}' cannot use accessibility modifiers.</target>
         <note />
       </trans-unit>
-||||||| 4518b4087d0
-=======
       <trans-unit id="ERR_FixedFieldMustNotBeRef">
         <source>A fixed field must not be a ref field.</source>
         <target state="new">A fixed field must not be a ref field.</target>
         <note />
       </trans-unit>
->>>>>>> upstream/main
       <trans-unit id="ERR_ForEachMissingMemberWrongAsync">
         <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'. Did you mean 'await foreach' rather than 'foreach'?</source>
         <target state="translated">A instrução foreach não pode operar em variáveis do tipo '{0}' porque '{0}' não contém uma definição de extensão ou de instância pública para '{1}'. Você quis dizer 'await foreach' em vez de 'foreach'?</target>
@@ -1258,7 +1254,7 @@
       </trans-unit>
       <trans-unit id="ERR_RefLocalOrParamExpected">
         <source>The left-hand side of a ref assignment must be a ref variable.</source>
-        <target state="new">The left-hand side of a ref assignment must be a ref variable.</target>
+        <target state="needs-review-translation">O lado esquerdo da atribuição ref precisa ser um parâmetro ou local ref.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningPropertiesCannotBeRequired">
@@ -2247,7 +2243,7 @@
                               curinga
 -reference:&lt;alias&gt;=&lt;file&gt;     Metadados de referência do arquivo de assembly
                               especificado usando o alias fornecido (Forma abreviada: -r)
--reference:&lt;file list&gt;        Metadados de referência dos arquivos de assembly 
+-reference:&lt;file list&gt;        Metadados de referência dos arquivos de assembly
                               especificados (Forma abreviada: -r)
 -addmodule:&lt;file list&gt;        Vincular o módulo especificado a este assembly
 -link:&lt;file list&gt;             Inserir os metadados dos arquivos de assembly de
@@ -2275,7 +2271,7 @@
 -debug:{full|pdbonly|portable|embedded}
                               Especificar o tipo de depuração ('full' é o padrão,
                               'portable' é um formato multiplataforma,
-                              'embedded' é um formato multiplataforma inserido no 
+                              'embedded' é um formato multiplataforma inserido no
                               .dll ou no .exe de destino)
 -optimize[+|-]                Habilitar as otimizações (Forma abreviada: -o)
 -deterministic                Produzir um assembly determinístico
@@ -2309,7 +2305,7 @@
 -define:&lt;symbol list&gt;         Definir os símbolos de compilação condicional (Forma
                               abreviada: -d)
 -langversion:?                Exibir os valores permitidos para a versão da linguagem
--langversion:&lt;string&gt;         Especificar a versão da linguagem, como 
+-langversion:&lt;string&gt;         Especificar a versão da linguagem, como
                               `latest` (última versão, incluindo as versões secundárias),
                               `default` (igual a `latest`),
                               `latestmajor` (última versão, excluindo as versões secundárias),
@@ -2326,7 +2322,7 @@
                               da chave de nome forte
 -keyfile:&lt;file&gt;               Especificar a arquivo de chave de nome forte
 -keycontainer:&lt;string&gt;        Especificar o contêiner de chave de nome forte
--highentropyva[+|-]           Habilitar a ASLR de alta entropia 
+-highentropyva[+|-]           Habilitar a ASLR de alta entropia
 
                        – DIVERSOS –
 @&lt;file&gt;                       Ler o arquivo de resposta de mais opções
@@ -6586,7 +6582,7 @@ Se tal classe for usada como uma classe base e se a classe derivada definir um d
       </trans-unit>
       <trans-unit id="ERR_LookupInTypeVariable">
         <source>Cannot do non-virtual member lookup in '{0}' because it is a type parameter</source>
-        <target state="new">Cannot do non-virtual member lookup in '{0}' because it is a type parameter</target>
+        <target state="needs-review-translation">Não é possível fazer pesquisa de membro em "{0}" porque ele é um parâmetro de tipo</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadConstraintType">
@@ -11133,7 +11129,7 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
       </trans-unit>
       <trans-unit id="ERR_RefReturnParameter">
         <source>Cannot return a parameter by reference '{0}' because it is not a ref parameter</source>
-        <target state="new">Cannot return a parameter by reference '{0}' because it is not a ref parameter</target>
+        <target state="needs-review-translation">Não é possível retornar um parâmetro por referência '{0}', pois ele não é um parâmetro ref ou out</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnParameter2">
@@ -11753,7 +11749,7 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
       </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainConversionOrEqualityOperators">
         <source>Conversion, equality, or inequality operators declared in interfaces must be abstract or virtual</source>
-        <target state="new">Conversion, equality, or inequality operators declared in interfaces must be abstract or virtual</target>
+        <target state="needs-review-translation">Operadores de conversão, igualdade ou desigualdade declarados em interfaces devem ser abstratos</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">

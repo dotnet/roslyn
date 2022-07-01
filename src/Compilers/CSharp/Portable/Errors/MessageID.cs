@@ -256,12 +256,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IDS_FeatureRelaxedShiftOperator = MessageBase + 12825,
         IDS_FeatureRequiredMembers = MessageBase + 12826,
-<<<<<<< HEAD
-        IDS_FeatureFileTypes = MessageBase + 12850, // PROTOTYPE(ft): pack ID before merge
-||||||| 4518b4087d0
-=======
         IDS_FeatureRefFields = MessageBase + 12827,
->>>>>>> upstream/main
+        IDS_FeatureFileTypes = MessageBase + 12850, // PROTOTYPE(ft): pack ID before merge
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -385,12 +381,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureUnsignedRightShift: // semantic check for declarations and consumption, parsing check for doc comments
                 case MessageID.IDS_FeatureExtendedNameofScope: // semantic check
                 case MessageID.IDS_FeatureRelaxedShiftOperator: // semantic check
-<<<<<<< HEAD
-                case MessageID.IDS_FeatureFileTypes: // semantic check
-||||||| 4518b4087d0
-=======
                 case MessageID.IDS_FeatureRefFields: // semantic check
->>>>>>> upstream/main
+                case MessageID.IDS_FeatureFileTypes: // semantic check
                     return LanguageVersion.Preview;
 
                 // C# 10.0 features.

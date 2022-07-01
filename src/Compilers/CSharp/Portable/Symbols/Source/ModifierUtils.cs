@@ -319,14 +319,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return SyntaxFacts.GetText(SyntaxKind.RefKeyword);
                 case DeclarationModifiers.Required:
                     return SyntaxFacts.GetText(SyntaxKind.RequiredKeyword);
-<<<<<<< HEAD
-                case DeclarationModifiers.File:
-                    return SyntaxFacts.GetText(SyntaxKind.FileKeyword);
-||||||| 4518b4087d0
-=======
                 case DeclarationModifiers.Scoped:
                     return SyntaxFacts.GetText(SyntaxKind.ScopedKeyword);
->>>>>>> upstream/main
+                case DeclarationModifiers.File:
+                    return SyntaxFacts.GetText(SyntaxKind.FileKeyword);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(modifier);
             }
@@ -376,14 +372,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return DeclarationModifiers.Ref;
                 case SyntaxKind.RequiredKeyword:
                     return DeclarationModifiers.Required;
-<<<<<<< HEAD
-                case SyntaxKind.FileKeyword:
-                    return DeclarationModifiers.File;
-||||||| 4518b4087d0
-=======
                 case SyntaxKind.ScopedKeyword:
                     return DeclarationModifiers.Scoped;
->>>>>>> upstream/main
+                case SyntaxKind.FileKeyword:
+                    return DeclarationModifiers.File;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }

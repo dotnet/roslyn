@@ -1165,14 +1165,10 @@ tryAgain:
                             return DeclarationModifiers.Async;
                         case SyntaxKind.RequiredKeyword:
                             return DeclarationModifiers.Required;
-<<<<<<< HEAD
-                        case SyntaxKind.FileKeyword:
-                            return DeclarationModifiers.File;
-||||||| 4518b4087d0
-=======
                         case SyntaxKind.ScopedKeyword:
                             return DeclarationModifiers.Scoped;
->>>>>>> upstream/main
+                        case SyntaxKind.FileKeyword:
+                            return DeclarationModifiers.File;
                     }
 
                     goto default;
@@ -1265,13 +1261,7 @@ tryAgain:
                         break;
 
                     case DeclarationModifiers.Async:
-<<<<<<< HEAD
                         if (!ShouldContextualKeywordBeTreatedAsModifier(parsingStatementNotDeclaration: false))
-||||||| 4518b4087d0
-                        if (!ShouldAsyncOrRequiredBeTreatedAsModifier(parsingStatementNotDeclaration: false))
-=======
-                        if (!ShouldAsyncOrRequiredOrScopedBeTreatedAsModifier(parsingStatementNotDeclaration: false))
->>>>>>> upstream/main
                         {
                             return;
                         }
@@ -1285,13 +1275,7 @@ tryAgain:
                         // machinery to make a conservative guess as to whether the user meant required to be a keyword, so that they get a good langver
                         // diagnostic and all the machinery to upgrade their project kicks in. The only exception to this rule is top level statements,
                         // where the user could conceivably have a local named required. For these locations, we need to disambiguate as well.
-<<<<<<< HEAD
                         if ((!IsFeatureEnabled(MessageID.IDS_FeatureRequiredMembers) || forTopLevelStatements) && !ShouldContextualKeywordBeTreatedAsModifier(parsingStatementNotDeclaration: false))
-||||||| 4518b4087d0
-                        if ((!IsFeatureEnabled(MessageID.IDS_FeatureRequiredMembers) || forTopLevelStatements) && !ShouldAsyncOrRequiredBeTreatedAsModifier(parsingStatementNotDeclaration: false))
-=======
-                        if ((!IsFeatureEnabled(MessageID.IDS_FeatureRequiredMembers) || forTopLevelStatements) && !ShouldAsyncOrRequiredOrScopedBeTreatedAsModifier(parsingStatementNotDeclaration: false))
->>>>>>> upstream/main
                         {
                             return;
                         }
@@ -1301,7 +1285,7 @@ tryAgain:
                         break;
 
                     case DeclarationModifiers.Scoped:
-                        if (!ShouldAsyncOrRequiredOrScopedBeTreatedAsModifier(parsingStatementNotDeclaration: false))
+                        if (!ShouldContextualKeywordBeTreatedAsModifier(parsingStatementNotDeclaration: false))
                         {
                             return;
                         }
@@ -1336,21 +1320,9 @@ tryAgain:
             }
         }
 
-<<<<<<< HEAD
         private bool ShouldContextualKeywordBeTreatedAsModifier(bool parsingStatementNotDeclaration)
-||||||| 4518b4087d0
-        private bool ShouldAsyncOrRequiredBeTreatedAsModifier(bool parsingStatementNotDeclaration)
-=======
-        private bool ShouldAsyncOrRequiredOrScopedBeTreatedAsModifier(bool parsingStatementNotDeclaration)
->>>>>>> upstream/main
         {
-<<<<<<< HEAD
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.IdentifierToken && GetModifier(this.CurrentToken) != DeclarationModifiers.None);
-||||||| 4518b4087d0
-            Debug.Assert(this.CurrentToken.ContextualKind is SyntaxKind.AsyncKeyword or SyntaxKind.RequiredKeyword);
-=======
-            Debug.Assert(this.CurrentToken.ContextualKind is SyntaxKind.AsyncKeyword or SyntaxKind.RequiredKeyword or SyntaxKind.ScopedKeyword);
->>>>>>> upstream/main
 
             // Adapted from CParser::IsAsyncMethod.
 
@@ -2727,15 +2699,7 @@ parse_member_name:;
         private bool IsMisplacedModifier(SyntaxListBuilder modifiers, SyntaxList<AttributeListSyntax> attributes, TypeSyntax type, out MemberDeclarationSyntax result)
         {
             if (GetModifier(this.CurrentToken) != DeclarationModifiers.None &&
-<<<<<<< HEAD
-                this.CurrentToken.ContextualKind is not (SyntaxKind.PartialKeyword or SyntaxKind.AsyncKeyword or SyntaxKind.RequiredKeyword or SyntaxKind.FileKeyword) &&
-||||||| 4518b4087d0
-                this.CurrentToken.ContextualKind != SyntaxKind.PartialKeyword &&
-                this.CurrentToken.ContextualKind != SyntaxKind.AsyncKeyword &&
-                this.CurrentToken.ContextualKind != SyntaxKind.RequiredKeyword &&
-=======
-                this.CurrentToken.ContextualKind is not (SyntaxKind.PartialKeyword or SyntaxKind.AsyncKeyword or SyntaxKind.RequiredKeyword or SyntaxKind.ScopedKeyword) &&
->>>>>>> upstream/main
+                this.CurrentToken.ContextualKind is not (SyntaxKind.PartialKeyword or SyntaxKind.AsyncKeyword or SyntaxKind.RequiredKeyword or SyntaxKind.ScopedKeyword or SyntaxKind.FileKeyword) &&
                 IsComplete(type))
             {
                 var misplacedModifier = this.CurrentToken;
@@ -8146,19 +8110,13 @@ done:;
             tk = this.CurrentToken.ContextualKind;
 
             if (tk == SyntaxKind.ScopedKeyword &&
-                ShouldAsyncOrRequiredOrScopedBeTreatedAsModifier(parsingStatementNotDeclaration: true))
+                ShouldContextualKeywordBeTreatedAsModifier(parsingStatementNotDeclaration: true))
             {
                 return true;
             }
 
             var isPossibleAttributeOrModifier = (IsAdditionalLocalFunctionModifier(tk) || tk == SyntaxKind.OpenBracketToken)
-<<<<<<< HEAD
                 && (tk != SyntaxKind.AsyncKeyword || ShouldContextualKeywordBeTreatedAsModifier(parsingStatementNotDeclaration: true));
-||||||| 4518b4087d0
-                && (tk != SyntaxKind.AsyncKeyword || ShouldAsyncOrRequiredBeTreatedAsModifier(parsingStatementNotDeclaration: true));
-=======
-                && (tk != SyntaxKind.AsyncKeyword || ShouldAsyncOrRequiredOrScopedBeTreatedAsModifier(parsingStatementNotDeclaration: true));
->>>>>>> upstream/main
             if (isPossibleAttributeOrModifier)
             {
                 return true;
