@@ -3245,9 +3245,22 @@ public class FileModifierTests : CSharpTestBase
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
         var node = tree.GetRoot().DescendantNodes().OfType<ParameterSyntax>().Single();
-        var type = model.GetTypeInfo(node.Type!).Type;
+        var type = (INamedTypeSymbol)model.GetTypeInfo(node.Type!).Type!;
         Assert.Equal("C@<tree 0>", type.ToTestDisplayString());
-        Assert.Equal(tree, type.GetSymbol<NamedTypeSymbol>()!.AssociatedSyntaxTree);
+        Assert.Equal(tree, type.GetSymbol()!.AssociatedSyntaxTree);
+        Assert.True(type.IsFile);
+
+        var referencingMetadataComp = CreateCompilation("", new[] { comp.ToMetadataReference() });
+        type = ((Compilation)referencingMetadataComp).GetTypeByMetadataName("<>F0__C")!;
+        Assert.Equal("C@<tree 0>", type.ToTestDisplayString());
+        Assert.Equal(tree, type.GetSymbol()!.AssociatedSyntaxTree);
+        Assert.True(type.IsFile);
+
+        var referencingImageComp = CreateCompilation("", new[] { comp.EmitToImageReference() });
+        type = ((Compilation)referencingImageComp).GetTypeByMetadataName("<>F0__C")!;
+        Assert.Equal("<>F0__C", type.ToTestDisplayString());
+        Assert.Null(type.GetSymbol()!.AssociatedSyntaxTree);
+        Assert.False(type.IsFile);
     }
 
     [Fact]
@@ -3267,9 +3280,10 @@ public class FileModifierTests : CSharpTestBase
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
         var node = tree.GetRoot().DescendantNodes().OfType<ParameterSyntax>().Single();
-        var type = model.GetTypeInfo(node.Type!).Type;
+        var type = (INamedTypeSymbol)model.GetTypeInfo(node.Type!).Type!;
         Assert.Equal("C", type.ToTestDisplayString());
-        Assert.Null(type.GetSymbol<NamedTypeSymbol>()!.AssociatedSyntaxTree);
+        Assert.Null(type.GetSymbol()!.AssociatedSyntaxTree);
+        Assert.False(type.IsFile);
     }
 
     [Fact]
@@ -3289,8 +3303,9 @@ public class FileModifierTests : CSharpTestBase
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
         var node = tree.GetRoot().DescendantNodes().OfType<ParameterSyntax>().Single();
-        var type = model.GetTypeInfo(node.Type!).Type;
+        var type = (INamedTypeSymbol)model.GetTypeInfo(node.Type!).Type!;
         Assert.Equal("C<System.Int32>@<tree 0>", type.ToTestDisplayString());
-        Assert.Equal(tree, type.GetSymbol<NamedTypeSymbol>()!.AssociatedSyntaxTree);
+        Assert.Equal(tree, type.GetSymbol()!.AssociatedSyntaxTree);
+        Assert.True(type.IsFile);
     }
 }
