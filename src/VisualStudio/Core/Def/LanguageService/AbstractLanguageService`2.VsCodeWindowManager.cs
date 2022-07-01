@@ -239,12 +239,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 var editorAdaptersFactoryService = _languageService.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
 
                 threadingContext.ThrowIfNotOnUIThread();
-                var documentOutlineView = new DocumentOutlineControl(languageServiceBroker, threadingContext, asyncListener, editorAdaptersFactoryService, _codeWindow);
 
                 _documentOutlineViewHost = new ElementHost
                 {
                     Dock = DockStyle.Fill,
-                    Child = documentOutlineView
+                    Child = new DocumentOutlineControl(languageServiceBroker, threadingContext, asyncListener, editorAdaptersFactoryService, _codeWindow)
                 };
 
                 phwnd = _documentOutlineViewHost.Handle;
@@ -257,7 +256,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             int IVsDocOutlineProvider.ReleaseOutline(IntPtr hwnd, IOleCommandTarget pCmdTarget)
             {
+                var threadingContext = _languageService.Package.ComponentModel.GetService<IThreadingContext>();
+                threadingContext.ThrowIfNotOnUIThread();
                 _documentOutlineViewHost?.Dispose();
+                _documentOutlineViewHost = null;
                 return VSConstants.S_OK;
             }
 
