@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedParametersAndValues
             Throw ExceptionUtilities.Unreachable
         End Function
 
-        Protected Overrides Function GetReplacementNodeForCompoundAssignment(originalCompoundAssignment As SyntaxNode, newAssignmentTarget As SyntaxNode, editor As SyntaxEditor, syntaxFacts As ISyntaxFactsService) As SyntaxNode
+        Protected Overrides Function GetReplacementNodeForCompoundAssignment(originalCompoundAssignment As SyntaxNode, newAssignmentTarget As SyntaxNode, generator As SyntaxGenerator, syntaxFacts As ISyntaxFactsService) As SyntaxNode
             ' VB does not support compound assignments.
             Throw ExceptionUtilities.Unreachable
         End Function

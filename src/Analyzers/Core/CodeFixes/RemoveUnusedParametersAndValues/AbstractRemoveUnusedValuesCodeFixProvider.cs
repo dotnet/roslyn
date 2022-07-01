@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         protected abstract SyntaxNode GetReplacementNodeForCompoundAssignment(
             SyntaxNode originalCompoundAssignment,
             SyntaxNode newAssignmentTarget,
-            SyntaxEditor editor,
+            SyntaxGenerator generator,
             ISyntaxFactsService syntaxFacts);
 
         /// <summary>
@@ -115,11 +115,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         /// </summary>
         /// <param name="parent">The original parent of the node rewritten by <see cref="TryUpdateNameForFlaggedNode"/>.</param>
         /// <param name="newNameNode">The rewritten node produced by <see cref="TryUpdateNameForFlaggedNode"/>.</param>
-        /// <param name="editor">The syntax editor for the code fix.</param>
         /// <param name="syntaxFacts">The syntax facts for the current language.</param>
         /// <returns>The replacement node to use in the rewritten syntax tree; otherwise, <see langword="null"/> to only
         /// rewrite the node originally rewritten by <see cref="TryUpdateNameForFlaggedNode"/>.</returns>
-        protected virtual SyntaxNode? TryUpdateParentOfUpdatedNode(SyntaxNode parent, SyntaxNode newNameNode, SyntaxEditor editor, ISyntaxFacts syntaxFacts) => null;
+        protected virtual SyntaxNode? TryUpdateParentOfUpdatedNode(SyntaxNode parent, SyntaxNode newNameNode, ISyntaxFacts syntaxFacts) => null;
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -546,7 +545,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         // Compound assignment is changed to simple assignment.
                         // For example, "x += MethodCall();", where assignment to 'x' is redundant
                         // is replaced with "_ = MethodCall();" or "var unused = MethodCall();"
-                        nodeReplacementMap.Add(node.GetRequiredParent(), GetReplacementNodeForCompoundAssignment(node.GetRequiredParent(), newNameNode, editor, syntaxFacts));
+                        nodeReplacementMap.Add(node.GetRequiredParent(), GetReplacementNodeForCompoundAssignment(node.GetRequiredParent(), newNameNode, editor.Generator, syntaxFacts));
                     }
                     else if (syntaxFacts.IsVarPattern(node))
                     {
@@ -554,7 +553,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     }
                     else
                     {
-                        var newParentNode = TryUpdateParentOfUpdatedNode(node.GetRequiredParent(), newNameNode, editor, syntaxFacts);
+                        var newParentNode = TryUpdateParentOfUpdatedNode(node.GetRequiredParent(), newNameNode, syntaxFacts);
                         if (newParentNode is not null)
                         {
                             nodeReplacementMap.Add(node.GetRequiredParent(), newParentNode);

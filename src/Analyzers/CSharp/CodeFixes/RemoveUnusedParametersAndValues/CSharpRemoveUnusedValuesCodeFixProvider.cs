@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
             }
         }
 
-        protected override SyntaxNode TryUpdateParentOfUpdatedNode(SyntaxNode parent, SyntaxNode newNameNode, SyntaxEditor editor, ISyntaxFacts syntaxFacts)
+        protected override SyntaxNode TryUpdateParentOfUpdatedNode(SyntaxNode parent, SyntaxNode newNameNode, ISyntaxFacts syntaxFacts)
         {
             if (newNameNode.IsKind(SyntaxKind.DiscardDesignation)
                 && parent.IsKind(SyntaxKind.DeclarationPattern, out DeclarationPatternSyntax declarationPattern)
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
         protected override SyntaxNode GetReplacementNodeForCompoundAssignment(
             SyntaxNode originalCompoundAssignment,
             SyntaxNode newAssignmentTarget,
-            SyntaxEditor editor,
+            SyntaxGenerator generator,
             ISyntaxFactsService syntaxFacts)
         {
             // 1. Compound assignment is changed to simple assignment.
@@ -144,14 +144,14 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
                 if (!originalCompoundAssignment.IsKind(SyntaxKind.CoalesceAssignmentExpression))
                 {
                     // Case 1. Simple compound assignment parented by an expression statement.
-                    return editor.Generator.AssignmentStatement(newAssignmentTarget, rightOfAssignment);
+                    return generator.AssignmentStatement(newAssignmentTarget, rightOfAssignment);
                 }
                 else
                 {
                     // Case 2. Null coalescing compound assignment parented by an expression statement.
                     // Remove leading trivia from 'leftOfAssignment' as it should have been moved to 'newAssignmentTarget'.
                     leftOfAssignment = leftOfAssignment.WithoutLeadingTrivia();
-                    return editor.Generator.AssignmentStatement(newAssignmentTarget,
+                    return generator.AssignmentStatement(newAssignmentTarget,
                         SyntaxFactory.BinaryExpression(SyntaxKind.CoalesceExpression, leftOfAssignment, rightOfAssignment));
                 }
             }

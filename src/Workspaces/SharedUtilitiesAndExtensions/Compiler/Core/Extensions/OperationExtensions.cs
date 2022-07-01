@@ -53,6 +53,10 @@ namespace Microsoft.CodeAnalysis
                 // Declaration expression is a definition (write) for the declared local.
                 return ValueUsageInfo.Write;
             }
+            else if (operation is IRecursivePatternOperation or IListPatternOperation)
+            {
+                return ValueUsageInfo.Write;
+            }
             else if (operation is IDeclarationPatternOperation)
             {
                 while (operation.Parent is IBinaryPatternOperation or
