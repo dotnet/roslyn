@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public Cache(DeclarationTable table)
             {
                 this.MergedRoot = new Lazy<MergedNamespaceDeclaration>(
-                    () => MergedNamespaceDeclaration.Create(table._allOlderRootDeclarations.InInsertionOrder.AsImmutable<SingleNamespaceDeclaration>()));
+                    () => MergedNamespaceDeclaration.Create(table._allOlderRootDeclarations.Keys.AsImmutable<SingleNamespaceDeclaration>()));
 
                 this.TypeNames = new Lazy<ISet<string>>(
                     () => GetTypeNames(this.MergedRoot.Value));

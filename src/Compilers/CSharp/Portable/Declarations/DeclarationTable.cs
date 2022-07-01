@@ -6,8 +6,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -24,13 +26,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed partial class DeclarationTable
     {
         public static readonly DeclarationTable Empty = new DeclarationTable(
-            allOlderRootDeclarations: ImmutableSetWithInsertionOrder<RootSingleNamespaceDeclaration>.Empty,
+            allOlderRootDeclarations: ImmutableDictionary<RootSingleNamespaceDeclaration, object>.Empty,
             latestLazyRootDeclaration: null,
             cache: null);
 
         // All our root declarations.  We split these so we can separate out the unchanging 'older'
         // declarations from the constantly changing 'latest' declaration.
-        private readonly ImmutableSetWithInsertionOrder<RootSingleNamespaceDeclaration> _allOlderRootDeclarations;
+        private readonly ImmutableDictionary<RootSingleNamespaceDeclaration, object> _allOlderRootDeclarations;
         private readonly Lazy<RootSingleNamespaceDeclaration> _latestLazyRootDeclaration;
 
         // The cache of computed values for the old declarations.
@@ -44,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly Lazy<ICollection<ReferenceDirective>> _referenceDirectives;
 
         private DeclarationTable(
-            ImmutableSetWithInsertionOrder<RootSingleNamespaceDeclaration> allOlderRootDeclarations,
+            ImmutableDictionary<RootSingleNamespaceDeclaration, object> allOlderRootDeclarations,
             Lazy<RootSingleNamespaceDeclaration> latestLazyRootDeclaration,
             Cache cache)
         {
@@ -69,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // we already had a 'latest' item.  This means we're hearing about a change to a
                 // different tree.  Realize the old latest item, add it to the 'oldest' collection
                 // and don't reuse the cache.
-                return new DeclarationTable(_allOlderRootDeclarations.Add(_latestLazyRootDeclaration.Value), lazyRootDeclaration, cache: null);
+                return new DeclarationTable(_allOlderRootDeclarations.SetItem(_latestLazyRootDeclaration.Value, null), lazyRootDeclaration, cache: null);
             }
         }
 
