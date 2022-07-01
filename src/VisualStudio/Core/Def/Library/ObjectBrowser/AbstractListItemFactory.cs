@@ -618,10 +618,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
                 if (Helpers.IsObjectBrowser(listFlags))
                 {
-                    if (assemblyIdentitySet == null)
-                    {
-                        assemblyIdentitySet = new HashSet<AssemblyIdentity>();
-                    }
+                    assemblyIdentitySet ??= new HashSet<AssemblyIdentity>();
 
                     foreach (var reference in project.MetadataReferences)
                     {

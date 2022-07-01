@@ -95,6 +95,84 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.RemoveUnnecessaryNul
                 """);
         }
 
+        [Fact]
+        public async Task TestUnnecessaryDirectiveWithNamespaceAndDerivedType()
+        {
+            await VerifyCodeFixAsync(
+                NullableContextOptions.Enable,
+                """
+                [|#nullable disable|]
+
+                using System;
+
+                namespace X.Y
+                {
+                    class ProgramException : Exception
+                    {
+                    }
+                }
+                """,
+                """
+
+                using System;
+
+                namespace X.Y
+                {
+                    class ProgramException : Exception
+                    {
+                    }
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestUnnecessaryDirectiveWithNamespaceAndDerivedFromQualifiedBaseType()
+        {
+            await VerifyCodeFixAsync(
+                NullableContextOptions.Enable,
+                """
+                [|#nullable disable|]
+
+                namespace X.Y
+                {
+                    class ProgramException : System.Exception
+                    {
+                    }
+                }
+                """,
+                """
+
+                namespace X.Y
+                {
+                    class ProgramException : System.Exception
+                    {
+                    }
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestUnnecessaryDirectiveWithQualifiedUsingDirectives()
+        {
+            await VerifyCodeFixAsync(
+                NullableContextOptions.Enable,
+                """
+                [|#nullable disable|]
+
+                using System;
+                using System.Runtime.InteropServices;
+                using CustomException = System.Exception;
+                using static System.String;
+                """,
+                """
+
+                using System;
+                using System.Runtime.InteropServices;
+                using CustomException = System.Exception;
+                using static System.String;
+                """);
+        }
+
         [Theory]
         [InlineData("disable")]
         [InlineData("restore")]
