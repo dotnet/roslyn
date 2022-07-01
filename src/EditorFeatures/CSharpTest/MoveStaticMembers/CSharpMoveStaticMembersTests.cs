@@ -3238,8 +3238,8 @@ namespace TestNs1
             public Test(
                 string destinationType,
                 ImmutableArray<string> selection,
-                bool testPreselection = false)
                 string? destinationName,
+                bool testPreselection = false,
                 bool createNew = true)
             {
                 _destinationType = destinationType;

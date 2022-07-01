@@ -2879,7 +2879,7 @@ End Namespace"
             Public Sub New(destinationType As String,
                            members As ImmutableArray(Of String),
                            newFileName As String,
-                           Optional testPreselection As Boolean = False
+                           Optional testPreselection As Boolean = False,
                            Optional newType As Boolean = True)
                 _destinationType = destinationType
                 _members = members

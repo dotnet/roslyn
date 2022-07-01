@@ -3158,7 +3158,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="Pull_selected_members_up" xml:space="preserve">
     <value>Pull selected members up</value>
-  </data
+  </data>
   <data name="Required" xml:space="preserve">
     <value>required</value>
     <comment>Used in the object initializer completion.</comment>
