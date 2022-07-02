@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         protected SyntaxTree UsingTree(string text, params DiagnosticDescription[] expectedErrors)
         {
-            return UsingTree(text, null, expectedErrors);
+            return UsingTree(text, options: null, expectedErrors);
         }
 
         protected SyntaxTree UsingTree(string text, CSharpParseOptions? options, params DiagnosticDescription[] expectedErrors)
