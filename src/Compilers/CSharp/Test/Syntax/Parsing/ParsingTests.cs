@@ -117,11 +117,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingNode(node);
         }
 
-        internal void UsingCompilationRoot(string text, CSharpParseOptions? options, params DiagnosticDescription[] expectedErrors)
-        {
-            UsingTree(text, options, expectedErrors);
-        }
-
         internal void UsingExpression(string text, ParseOptions? options, params DiagnosticDescription[] expectedErrors)
         {
             UsingNode(text, SyntaxFactory.ParseExpression(text, options: options), expectedErrors);
@@ -144,14 +139,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         internal void UsingExpression(string text, params DiagnosticDescription[] expectedErrors)
         {
             UsingExpression(text, options: null, expectedErrors);
-        }
-
-        /// <summary>
-        /// Parses given string and initializes a depth-first preorder enumerator.
-        /// </summary>
-        protected SyntaxTree UsingTree(string text, CSharpParseOptions? options = null)
-        {
-            return UsingTree(text, options, expectedErrors: DiagnosticDescription.None);
         }
 
         protected SyntaxTree UsingTree(string text, params DiagnosticDescription[] expectedErrors)
