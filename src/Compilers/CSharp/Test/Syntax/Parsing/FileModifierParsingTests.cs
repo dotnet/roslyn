@@ -2622,6 +2622,85 @@ public class FileModifierParsingTests : ParsingTests
     }
 
     [Fact]
+    public void Variable_01()
+    {
+        UsingNode("""
+            void M()
+            {
+                bool file;
+                file = true;
+            }
+            """,
+            expectedBindingDiagnostics: new[]
+            {
+                // (1,6): warning CS8321: The local function 'M' is declared but never used
+                // void M()
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "M").WithArguments("M").WithLocation(1, 6),
+                // (3,10): warning CS0219: The variable 'file' is assigned but its value is never used
+                //     bool file;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "file").WithArguments("file").WithLocation(3, 10)
+            });
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.LocalFunctionStatement);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "M");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.LocalDeclarationStatement);
+                        {
+                            N(SyntaxKind.VariableDeclaration);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.BoolKeyword);
+                                }
+                                N(SyntaxKind.VariableDeclarator);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "file");
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.ExpressionStatement);
+                        {
+                            N(SyntaxKind.SimpleAssignmentExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "file");
+                                }
+                                N(SyntaxKind.EqualsToken);
+                                N(SyntaxKind.TrueLiteralExpression);
+                                {
+                                    N(SyntaxKind.TrueKeyword);
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
     public void LambdaReturn()
     {
         UsingNode("""
