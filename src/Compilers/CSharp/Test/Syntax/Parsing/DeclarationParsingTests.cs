@@ -6122,7 +6122,13 @@ public interface I1
     event System.Action I2.
 P10
 }
-");
+",
+                // (5,27): error CS0071: An explicit interface implementation of an event must use event accessor syntax
+                //     event System.Action I2.
+                Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, ".").WithLocation(5, 27),
+                // (7,1): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+                // }
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(7, 1));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.InterfaceDeclaration);
@@ -6192,7 +6198,10 @@ public interface I1
 {
     event System.Action I2.P10
 }
-");
+",
+                // (5,27): error CS0071: An explicit interface implementation of an event must use event accessor syntax
+                //     event System.Action I2.P10
+                Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, ".").WithLocation(5, 27));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.InterfaceDeclaration);
@@ -6256,7 +6265,19 @@ class C
     int A { get { return this.
     public int B;
 }
-");
+",
+                // (4,31): error CS1001: Identifier expected
+                //     int A { get { return this.
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(4, 31),
+                // (4,31): error CS1002: ; expected
+                //     int A { get { return this.
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 31),
+                // (4,31): error CS1513: } expected
+                //     int A { get { return this.
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(4, 31),
+                // (4,31): error CS1513: } expected
+                //     int A { get { return this.
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(4, 31));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -6599,7 +6620,13 @@ class C
         {
             var tree = UsingTree(@"
 class C<T> : where
-");
+",
+                // (2,19): error CS1514: { expected
+                // class C<T> : where
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(2, 19),
+                // (2,19): error CS1513: } expected
+                // class C<T> : where
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(2, 19));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -6639,7 +6666,16 @@ class C<T> : where
         {
             var tree = UsingTree(@"
 class C<T> : where T
-");
+",
+                // (2,20): error CS1003: Syntax error, ',' expected
+                // class C<T> : where T
+                Diagnostic(ErrorCode.ERR_SyntaxError, "T").WithArguments(",").WithLocation(2, 20),
+                // (2,21): error CS1514: { expected
+                // class C<T> : where T
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(2, 21),
+                // (2,21): error CS1513: } expected
+                // class C<T> : where T
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(2, 21));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -6687,7 +6723,19 @@ class C<T> : where T
         {
             var tree = UsingTree(@"
 class C<T> : where T :
-");
+",
+                // (2,14): error CS1031: Type expected
+                // class C<T> : where T :
+                Diagnostic(ErrorCode.ERR_TypeExpected, "where").WithLocation(2, 14),
+                // (2,23): error CS1031: Type expected
+                // class C<T> : where T :
+                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(2, 23),
+                // (2,23): error CS1514: { expected
+                // class C<T> : where T :
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(2, 23),
+                // (2,23): error CS1513: } expected
+                // class C<T> : where T :
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(2, 23));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -6743,7 +6791,16 @@ class C<T> : where T :
         {
             var tree = UsingTree(@"
 class C<T> : where T : X
-");
+",
+                // (2,14): error CS1031: Type expected
+                // class C<T> : where T : X
+                Diagnostic(ErrorCode.ERR_TypeExpected, "where").WithLocation(2, 14),
+                // (2,25): error CS1514: { expected
+                // class C<T> : where T : X
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(2, 25),
+                // (2,25): error CS1513: } expected
+                // class C<T> : where T : X
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(2, 25));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -8136,7 +8193,10 @@ class C<T> where T : struct? {}
 class C
 {
     public void M(string x!!) { }
-}", options: TestOptions.RegularPreview);
+}", options: TestOptions.RegularPreview,
+                // (4,27): error CS8989: The 'parameter null-checking' feature is not supported.
+                //     public void M(string x!!) { }
+                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(4, 27));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -8184,7 +8244,10 @@ class C
 class C
 {
     public C(string x!!) { }
-}", options: TestOptions.RegularPreview);
+}", options: TestOptions.RegularPreview,
+                // (4,22): error CS8989: The 'parameter null-checking' feature is not supported.
+                //     public C(string x!!) { }
+                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(4, 22));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -8232,7 +8295,10 @@ class Box
     {
         return 2;
     }
-}", options: TestOptions.RegularPreview);
+}", options: TestOptions.RegularPreview,
+                // (4,39): error CS8989: The 'parameter null-checking' feature is not supported.
+                //     public static int operator+ (Box b!!, Box c) 
+                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(4, 39));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -8299,7 +8365,16 @@ class Box
         {
             UsingTree(@"
 delegate void Del(int x!!);
-Del d = delegate(int k!!) { /* ... */ };", options: TestOptions.RegularPreview);
+Del d = delegate(int k!!) { /* ... */ };", options: TestOptions.RegularPreview,
+                // (2,24): error CS8989: The 'parameter null-checking' feature is not supported.
+                // delegate void Del(int x!!);
+                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(2, 24),
+                // (3,1): error CS8803: Top-level statements must precede namespace and type declarations.
+                // Del d = delegate(int k!!) { /* ... */ };
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "Del d = delegate(int k!!) { /* ... */ };").WithLocation(3, 1),
+                // (3,23): error CS8989: The 'parameter null-checking' feature is not supported.
+                // Del d = delegate(int k!!) { /* ... */ };
+                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(3, 23));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.DelegateDeclaration);

@@ -39,7 +39,25 @@ class C
     A<,T> a7;
     A<T U,,> a8;
 }
-");
+",
+                // (7,9): error CS1003: Syntax error, ',' expected
+                //     A<T U> a4;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "U").WithArguments(",").WithLocation(7, 9),
+                // (9,9): error CS1031: Type expected
+                //     A<T,> a6;
+                Diagnostic(ErrorCode.ERR_TypeExpected, ">").WithLocation(9, 9),
+                // (10,7): error CS1031: Type expected
+                //     A<,T> a7;
+                Diagnostic(ErrorCode.ERR_TypeExpected, ",").WithLocation(10, 7),
+                // (11,9): error CS1003: Syntax error, ',' expected
+                //     A<T U,,> a8;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "U").WithArguments(",").WithLocation(11, 9),
+                // (11,11): error CS1031: Type expected
+                //     A<T U,,> a8;
+                Diagnostic(ErrorCode.ERR_TypeExpected, ",").WithLocation(11, 11),
+                // (11,12): error CS1031: Type expected
+                //     A<T U,,> a8;
+                Diagnostic(ErrorCode.ERR_TypeExpected, ">").WithLocation(11, 12));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -306,7 +324,31 @@ class C
 }
 
 class M<,> { }
-", options: TestOptions.Regular);
+", options: TestOptions.Regular,
+                // (4,12): error CS1519: Invalid token '(' in class, record, struct, or interface member declaration
+                //     new C<>();
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "(").WithArguments("(").WithLocation(4, 12),
+                // (4,13): error CS8124: Tuple must contain at least two elements.
+                //     new C<>();
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(4, 13),
+                // (4,14): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
+                //     new C<>();
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(4, 14),
+                // (5,14): error CS1519: Invalid token '(' in class, record, struct, or interface member declaration
+                //     new C<, >();
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "(").WithArguments("(").WithLocation(5, 14),
+                // (5,15): error CS8124: Tuple must contain at least two elements.
+                //     new C<, >();
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(5, 15),
+                // (5,16): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
+                //     new C<, >();
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(5, 16),
+                // (12,9): error CS1001: Identifier expected
+                // class M<,> { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ",").WithLocation(12, 9),
+                // (12,10): error CS1001: Identifier expected
+                // class M<,> { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ">").WithLocation(12, 10));
 
             CheckTypeArguments2();
         }
@@ -626,7 +668,37 @@ class C
 }
 
 class M<,> { }
-", TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
+", TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6),
+                // (4,12): error CS1519: Invalid token '(' in class, record, struct, or interface member declaration
+                //     new C<>();
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "(").WithArguments("(").WithLocation(4, 12),
+                // (4,12): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
+                //     new C<>();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7.0").WithLocation(4, 12),
+                // (4,13): error CS8124: Tuple must contain at least two elements.
+                //     new C<>();
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(4, 13),
+                // (4,14): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
+                //     new C<>();
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(4, 14),
+                // (5,14): error CS1519: Invalid token '(' in class, record, struct, or interface member declaration
+                //     new C<, >();
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "(").WithArguments("(").WithLocation(5, 14),
+                // (5,14): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
+                //     new C<, >();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7.0").WithLocation(5, 14),
+                // (5,15): error CS8124: Tuple must contain at least two elements.
+                //     new C<, >();
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(5, 15),
+                // (5,16): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
+                //     new C<, >();
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(5, 16),
+                // (12,9): error CS1001: Identifier expected
+                // class M<,> { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ",").WithLocation(12, 9),
+                // (12,10): error CS1001: Identifier expected
+                // class M<,> { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ">").WithLocation(12, 10));
 
             CheckTypeArguments2();
         }
@@ -646,7 +718,25 @@ class C
     object a1 = new int[,1];
     object a1 = new int[1 1 ,,];
 }
-");
+",
+                // (7,27): error CS1003: Syntax error, ',' expected
+                //     object a1 = new int[1 2];
+                Diagnostic(ErrorCode.ERR_SyntaxError, "2").WithArguments(",").WithLocation(7, 27),
+                // (9,27): error CS0443: Syntax error; value expected
+                //     object a1 = new int[1,];
+                Diagnostic(ErrorCode.ERR_ValueExpected, "").WithLocation(9, 27),
+                // (10,25): error CS0443: Syntax error; value expected
+                //     object a1 = new int[,1];
+                Diagnostic(ErrorCode.ERR_ValueExpected, "").WithLocation(10, 25),
+                // (11,27): error CS1003: Syntax error, ',' expected
+                //     object a1 = new int[1 1 ,,];
+                Diagnostic(ErrorCode.ERR_SyntaxError, "1").WithArguments(",").WithLocation(11, 27),
+                // (11,30): error CS0443: Syntax error; value expected
+                //     object a1 = new int[1 1 ,,];
+                Diagnostic(ErrorCode.ERR_ValueExpected, "").WithLocation(11, 30),
+                // (11,31): error CS0443: Syntax error; value expected
+                //     object a1 = new int[1 1 ,,];
+                Diagnostic(ErrorCode.ERR_ValueExpected, "").WithLocation(11, 31));
 
             N(SyntaxKind.CompilationUnit);
             {
