@@ -1464,6 +1464,54 @@ public class FileModifierParsingTests : ParsingTests
     }
 
     [Fact]
+    public void TypeNamedFile_01()
+    {
+        UsingNode($$"""
+            class file { }
+            """,
+            expectedBindingDiagnostics: new[]
+            {
+                // (1,7): error CS9056: Types and aliases cannot be named 'file'.
+                // class file { }
+                Diagnostic(ErrorCode.ERR_FileTypeNameDisallowed, "file").WithLocation(1, 7)
+            });
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "file");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void TypeNamedFile_02()
+    {
+        UsingNode($$"""
+            class @file { }
+            """);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "@file");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
     public void Errors_01_CSharp10()
     {
         UsingNode($$"""

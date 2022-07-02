@@ -427,3 +427,16 @@ class @required {} // No error
 This was done as `required` is now a member modifier for properties and fields.
 
 You can learn more about this change in the associated [csharplang issue](https://github.com/dotnet/csharplang/issues/3630).
+
+## Types cannot be named `file`
+
+***Introduced in Visual Studio 2022 version 17.4.*** Starting in C# 11, types cannot be named `file`. The compiler will report an error on all such type names. To work around this, the type name and all usages must be escaped with an `@`:
+
+```csharp
+class file {} // Error CS9056
+class @file {} // No error
+```
+
+This was done as `file` is now a modifier for type declarations.
+
+You can learn more about this change in the associated [csharplang issue](https://github.com/dotnet/csharplang/issues/6011).
