@@ -54,6 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             List<CodeStylePreference> preferences = null,
             List<NotificationOptionViewModel> notificationPreferences = null)
         {
+            System.Diagnostics.Debug.Fail("Is this reachable in CI?");
             Info = info;
             Option = option;
             Description = description;
