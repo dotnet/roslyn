@@ -23,6 +23,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         protected abstract AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore);
 
+        internal AbstractOptionPageControl CreateOptionPageForTests(IServiceProvider serviceProvider, OptionStore optionStore)
+        {
+            return CreateOptionPage(serviceProvider, optionStore);
+        }
+
         protected AbstractOptionPageControl pageControl;
 
         private void EnsureOptionPageCreated()

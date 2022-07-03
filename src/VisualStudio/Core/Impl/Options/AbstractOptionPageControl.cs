@@ -24,6 +24,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         private readonly List<BindingExpressionBase> _bindingExpressions = new List<BindingExpressionBase>();
         private readonly List<OptionPageSearchHandler> _searchHandlers = new();
 
+#if DEBUG
+        /// <summary>
+        /// Used for testing only!
+        /// </summary>
+        internal IReadOnlyList<BindingExpressionBase> BindingExpressions => _bindingExpressions.AsReadOnly();
+#endif
+
         protected AbstractOptionPageControl(OptionStore optionStore)
         {
             InitializeStyles();
