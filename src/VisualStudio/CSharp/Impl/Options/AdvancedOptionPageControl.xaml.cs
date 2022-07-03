@@ -54,6 +54,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOptions();
         }
 
+        public AdvancedOptionPageControl(OptionStore optionStore) : base(optionStore)
+        {
+            InitializeComponent();
+
+            BindToOptions();
+        }
+
         private void BindToOptions()
         {
             // Analysis
