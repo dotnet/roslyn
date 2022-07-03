@@ -133,7 +133,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Options
             throw ExceptionUtilities.Unreachable;
         }
 
-        [Fact]
+        [StaFact]
         public void TestOptionsInUIShouldBeInAutomationObject()
         {
 
@@ -241,6 +241,9 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Options
 
             // Above checks that all options are in AutomationObjects.
             // TODO: check that all automation object members are in options.
+
+            // The above verifies options passed to BindToOption.
+            // TODO: AbstractOptionPreviewViewModel
         }
 
         private static ImmutableDictionary<string, object> GetAutomationDictionary(AutomationObject automationObject)

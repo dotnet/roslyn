@@ -260,6 +260,7 @@
     <xunitanalyzersVersion>0.12.0-pre.20</xunitanalyzersVersion>
     <xunitassertVersion>$(xunitVersion)</xunitassertVersion>
     <XunitCombinatorialVersion>1.3.2</XunitCombinatorialVersion>
+    <XUnitStaFactPackageVersion>1.1.11</XUnitStaFactPackageVersion>
     <XUnitXmlTestLoggerVersion>2.1.26</XUnitXmlTestLoggerVersion>
     <xunitextensibilitycoreVersion>$(xunitVersion)</xunitextensibilitycoreVersion>
     <xunitrunnerconsoleVersion>2.4.5</xunitrunnerconsoleVersion>
