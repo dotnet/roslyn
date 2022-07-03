@@ -923,10 +923,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 }
 
                 // If we still have no value, fill in the default
-                if (value is null)
-                {
-                    value = FallbackDefaultLiteral;
-                }
+                value ??= FallbackDefaultLiteral;
 
                 newArguments = newArguments.SetItem(parameter.Name, value);
             }
@@ -1102,7 +1099,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 // Note: URL references are not supported
                 var assemblyElement = reference.Element(assemblyXmlName);
 
-                var assemblyName = assemblyElement != null ? assemblyElement.Value.Trim() : null;
+                var assemblyName = assemblyElement?.Value.Trim();
 
                 if (RoslynString.IsNullOrEmpty(assemblyName))
                 {

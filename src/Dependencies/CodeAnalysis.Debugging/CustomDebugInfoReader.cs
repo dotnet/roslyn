@@ -842,7 +842,7 @@ RETRY:
         }
 
         /// <summary>
-        /// Read UTF8 string with null terminator.
+        /// Read UTF-8 string with null terminator.
         /// </summary>
         private static string ReadUtf8String(ImmutableArray<byte> bytes, ref int offset)
         {

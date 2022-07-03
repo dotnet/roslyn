@@ -168,10 +168,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         private void PrimeLanguageServiceComponentsOnBackground()
         {
             var formatter = this.Workspace.Services.GetLanguageServices(RoslynLanguageName).GetService<ISyntaxFormattingService>();
-            if (formatter != null)
-            {
-                formatter.GetDefaultFormattingRules();
-            }
+            formatter?.GetDefaultFormattingRules();
         }
 
         protected abstract string ContentTypeName { get; }

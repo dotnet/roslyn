@@ -71,7 +71,7 @@ variables:
   - name: Insertion.TitlePrefix
     value: '[Auto Insertion]'
   - name: Insertion.TitleSuffix
-    value: '[Skip-SymbolCheck]'
+    value: ''
 
 stages:
 
@@ -314,7 +314,7 @@ stages:
 
 - stage: insert
   dependsOn:
-  - build
+  - publish_using_darc
   displayName: Insert to VS
 
   jobs:
