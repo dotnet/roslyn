@@ -341,10 +341,7 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
         {
             AssertIsForeground();
 
-            if (_uiShell == null)
-            {
-                _uiShell = _serviceProvider.GetServiceOnMainThread<SVsUIShell, IVsUIShell>();
-            }
+            _uiShell ??= _serviceProvider.GetServiceOnMainThread<SVsUIShell, IVsUIShell>();
 
             ErrorHandler.ThrowOnFailure(_uiShell.PostExecCommand(
                     VSConstants.GUID_VSStandardCommandSet97,

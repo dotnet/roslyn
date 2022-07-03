@@ -60,23 +60,22 @@ namespace Microsoft.CodeAnalysis
     /// <typeparam name="T">The type of the items tracked by this table</typeparam>
     internal sealed class NodeStateTable<T> : IStateTable
     {
-        internal static NodeStateTable<T> Empty { get; } = new NodeStateTable<T>(ImmutableArray<TableEntry>.Empty, ImmutableArray<IncrementalGeneratorRunStep>.Empty, isCompacted: true, hasTrackedSteps: true);
+        internal static NodeStateTable<T> Empty { get; } = new NodeStateTable<T>(ImmutableArray<TableEntry>.Empty, ImmutableArray<IncrementalGeneratorRunStep>.Empty, hasTrackedSteps: true);
 
         private readonly ImmutableArray<TableEntry> _states;
 
 
-        private NodeStateTable(ImmutableArray<TableEntry> states, ImmutableArray<IncrementalGeneratorRunStep> steps, bool isCompacted, bool hasTrackedSteps)
+        private NodeStateTable(ImmutableArray<TableEntry> states, ImmutableArray<IncrementalGeneratorRunStep> steps, bool hasTrackedSteps)
         {
-            Debug.Assert(!isCompacted || states.All(s => s.IsCached));
             Debug.Assert(!hasTrackedSteps || steps.Length == states.Length);
 
             _states = states;
             Steps = steps;
-            IsCached = isCompacted;
+            IsCached = !states.IsEmpty && states.All(s => s.IsCached);
             HasTrackedSteps = hasTrackedSteps;
         }
 
-        public int Count { get => _states.Length; }
+        public int Count => _states.Length;
 
         /// <summary>
         /// Indicates if every entry in this table has a state of <see cref="EntryState.Cached"/>
@@ -88,6 +87,9 @@ namespace Microsoft.CodeAnalysis
         public bool HasTrackedSteps { get; }
 
         public ImmutableArray<IncrementalGeneratorRunStep> Steps { get; }
+
+        public int GetTotalEntryItemCount()
+            => _states.Sum(static e => e.Count);
 
         public IEnumerator<NodeStateEntry<T>> GetEnumerator()
         {
@@ -107,17 +109,21 @@ namespace Microsoft.CodeAnalysis
             if (IsCached)
                 return this;
 
-            var compacted = ArrayBuilder<TableEntry>.GetInstance();
+            var nonRemovedCount = _states.Count(static e => !e.IsRemoved);
+
+            var compacted = ArrayBuilder<TableEntry>.GetInstance(nonRemovedCount);
             foreach (var entry in _states)
             {
                 if (!entry.IsRemoved)
-                {
                     compacted.Add(entry.AsCached());
-                }
             }
+
             // When we're preparing a table for caching between runs, we drop the step information as we cannot guarantee the graph structure while also updating
             // the input states
-            return new NodeStateTable<T>(compacted.ToImmutableAndFree(), ImmutableArray<IncrementalGeneratorRunStep>.Empty, isCompacted: true, hasTrackedSteps: false);
+
+            // Ensure we are completely full so that ToImmutable translates to a MoveToImmutable
+            Debug.Assert(compacted.Count == nonRemovedCount);
+            return new NodeStateTable<T>(compacted.ToImmutableAndFree(), ImmutableArray<IncrementalGeneratorRunStep>.Empty, hasTrackedSteps: false);
         }
 
         IStateTable IStateTable.AsCached() => AsCached();
@@ -128,36 +134,20 @@ namespace Microsoft.CodeAnalysis
             return (_states[^1].GetItem(0), HasTrackedSteps ? Steps[^1] : null);
         }
 
-        public ImmutableArray<NodeStateEntry<T>> Batch()
-        {
-            var sourceBuilder = ArrayBuilder<NodeStateEntry<T>>.GetInstance();
-            foreach (var entry in this)
-            {
-                // If we have tracked steps, then we need to report removed entries to ensure all steps are in the graph.
-                // Otherwise, we can just return non-removed entries to build the next value.
-                if (entry.State != EntryState.Removed || HasTrackedSteps)
-                {
-                    sourceBuilder.Add(entry);
-                }
-            }
-            return sourceBuilder.ToImmutableAndFree();
-        }
+        public Builder ToBuilder(string? stepName, bool stepTrackingEnabled, IEqualityComparer<T>? equalityComparer = null, int? tableCapacity = null)
+            => new(this, stepName, stepTrackingEnabled, equalityComparer, tableCapacity);
 
-        public Builder ToBuilder(string? stepName, bool stepTrackingEnabled)
-        {
-            return new Builder(this, stepName, stepTrackingEnabled);
-        }
-
-        public NodeStateTable<T> CreateCachedTableWithUpdatedSteps<TInput>(NodeStateTable<TInput> inputTable, string? stepName)
+        public NodeStateTable<T> CreateCachedTableWithUpdatedSteps<TInput>(NodeStateTable<TInput> inputTable, string? stepName, IEqualityComparer<T> equalityComparer)
         {
             Debug.Assert(inputTable.HasTrackedSteps && inputTable.IsCached);
-            NodeStateTable<T>.Builder builder = ToBuilder(stepName, stepTrackingEnabled: true);
+            NodeStateTable<T>.Builder builder = ToBuilder(stepName, stepTrackingEnabled: true, equalityComparer);
             foreach (var entry in inputTable)
             {
                 var inputs = ImmutableArray.Create((entry.Step!, entry.OutputIndex));
                 bool usedCachedEntry = builder.TryUseCachedEntries(TimeSpan.Zero, inputs);
                 Debug.Assert(usedCachedEntry);
             }
+
             return builder.ToImmutableAndFree();
         }
 
@@ -167,21 +157,39 @@ namespace Microsoft.CodeAnalysis
             private readonly NodeStateTable<T> _previous;
 
             private readonly string? _name;
+            private readonly IEqualityComparer<T> _equalityComparer;
             private readonly ArrayBuilder<IncrementalGeneratorRunStep>? _steps;
 
             [MemberNotNullWhen(true, nameof(_steps))]
             public bool TrackIncrementalSteps => _steps is not null;
 
-            internal Builder(NodeStateTable<T> previous, string? name, bool stepTrackingEnabled)
+#if DEBUG
+            private readonly int? _requestedTableCapacity;
+#endif
+
+            internal Builder(
+                NodeStateTable<T> previous,
+                string? name,
+                bool stepTrackingEnabled,
+                IEqualityComparer<T>? equalityComparer,
+                int? tableCapacity)
             {
-                _states = ArrayBuilder<TableEntry>.GetInstance();
+#if DEBUG
+                _requestedTableCapacity = tableCapacity;
+#endif
+                // If the caller specified a desired capacity, then use that.  Otherwise, use the previous table's total
+                // entry count as a reasonable approximation for what we will need.
+                _states = ArrayBuilder<TableEntry>.GetInstance(tableCapacity ?? previous.GetTotalEntryItemCount());
                 _previous = previous;
                 _name = name;
+                _equalityComparer = equalityComparer ?? EqualityComparer<T>.Default;
                 if (stepTrackingEnabled)
                 {
                     _steps = ArrayBuilder<IncrementalGeneratorRunStep>.GetInstance();
                 }
             }
+
+            public int Count => _states.Count;
 
             public bool TryRemoveEntries(TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs)
             {
@@ -226,15 +234,15 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            public bool TryUseCachedEntries(TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, out ImmutableArray<T> entries)
+            internal bool TryUseCachedEntries(TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, out TableEntry entry)
             {
                 if (!TryUseCachedEntries(elapsedTime, stepInputs))
                 {
-                    entries = default;
+                    entry = default;
                     return false;
                 }
 
-                entries = _states[^1].ToImmutableArray();
+                entry = _states[^1];
                 return true;
             }
 
@@ -277,6 +285,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         RecordStepInfoForLastEntry(elapsedTime, stepInputs, EntryState.Cached);
                     }
+
                     return true;
                 }
 
@@ -316,10 +325,12 @@ namespace Microsoft.CodeAnalysis
                 RecordStepInfoForLastEntry(elapsedTime, stepInputs, overallInputState);
             }
 
-            public void AddEntries(ImmutableArray<T> values, EntryState state, TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, EntryState overallInputState)
+            public TableEntry AddEntries(ImmutableArray<T> values, EntryState state, TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, EntryState overallInputState)
             {
-                _states.Add(new TableEntry(values, state));
+                var tableEntry = new TableEntry(values, state);
+                _states.Add(tableEntry);
                 RecordStepInfoForLastEntry(elapsedTime, stepInputs, overallInputState);
+                return tableEntry;
             }
 
             private void RecordStepInfoForLastEntry(TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, EntryState overallInputState)
@@ -375,11 +386,29 @@ namespace Microsoft.CodeAnalysis
                     return NodeStateTable<T>.Empty;
                 }
 
-                var hasNonCached = _states.Any(static s => !s.IsCached);
+#if DEBUG
+                // If the caller requested a specific capacity, then we should have added exactly that amount of items.
+                Debug.Assert(_requestedTableCapacity == null || _requestedTableCapacity == _states.Count);
+#endif
+
+                // if we added the exact same entries as before, then we can directly embed previous' entry array,
+                // avoiding a costly allocation of the same data.
+                ImmutableArray<TableEntry> finalStates;
+                if (_states.Count == _previous.Count && _states.SequenceEqual(_previous._states, (e1, e2) => e1.Matches(e2, _equalityComparer)))
+                {
+                    finalStates = _previous._states;
+                    _states.Free();
+                }
+                else
+                {
+                    // Important to use ToImmutableAndFree so that we will MoveToImmutable when the requested capacity
+                    // equals the count.
+                    finalStates = _states.ToImmutableAndFree();
+                }
+
                 return new NodeStateTable<T>(
-                    _states.ToImmutableAndFree(),
+                    finalStates,
                     TrackIncrementalSteps ? _steps.ToImmutableAndFree() : default,
-                    isCompacted: !hasNonCached,
                     hasTrackedSteps: TrackIncrementalSteps);
             }
 
@@ -393,7 +422,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private readonly struct TableEntry
+        internal readonly struct TableEntry
         {
             private static readonly ImmutableArray<EntryState> s_allAddedEntries = ImmutableArray.Create(EntryState.Added);
             private static readonly ImmutableArray<EntryState> s_allCachedEntries = ImmutableArray.Create(EntryState.Cached);
@@ -425,6 +454,23 @@ namespace Microsoft.CodeAnalysis
                 this._states = states;
             }
 
+            public bool Matches(TableEntry entry, IEqualityComparer<T> equalityComparer)
+            {
+                if (!_states.SequenceEqual(entry._states))
+                    return false;
+
+                if (this.Count != entry.Count)
+                    return false;
+
+                for (int i = 0, n = this.Count; i < n; i++)
+                {
+                    if (!equalityComparer.Equals(this.GetItem(i), entry.GetItem(i)))
+                        return false;
+                }
+
+                return true;
+            }
+
             public bool IsCached => this._states == s_allCachedEntries || this._states.All(s => s == EntryState.Cached);
 
             public bool IsRemoved => this._states == s_allRemovedEntries || this._states.All(s => s == EntryState.Removed);
@@ -445,7 +491,7 @@ namespace Microsoft.CodeAnalysis
 
             public TableEntry AsRemoved() => new(_item, _items, s_allRemovedEntries);
 
-            [MemberNotNullWhen(true, new[] { nameof(_item) })]
+            [MemberNotNullWhen(true, nameof(_item))]
             private bool IsSingle => this._items.IsDefault;
 
             private static ImmutableArray<EntryState> GetSingleArray(EntryState state) => state switch
@@ -456,6 +502,29 @@ namespace Microsoft.CodeAnalysis
                 EntryState.Removed => s_allRemovedEntries,
                 _ => throw ExceptionUtilities.Unreachable
             };
+
+            public Enumerator GetEnumerator()
+                => new(this);
+
+            public struct Enumerator
+            {
+                private readonly TableEntry _entry;
+                private int _index = -1;
+
+                public Enumerator(TableEntry tableEntry)
+                {
+                    _entry = tableEntry;
+                }
+
+                public bool MoveNext()
+                {
+                    _index++;
+                    return _index < _entry.Count;
+                }
+
+                public T Current => _entry.GetItem(_index);
+            }
+
 
 #if DEBUG
             public override string ToString()
@@ -474,12 +543,14 @@ namespace Microsoft.CodeAnalysis
                         {
                             sb.Builder.Append(',');
                         }
+
                         sb.Builder.Append(" (");
                         sb.Builder.Append(GetItem(i));
                         sb.Builder.Append(':');
                         sb.Builder.Append(GetState(i));
                         sb.Builder.Append(')');
                     }
+
                     sb.Builder.Append(" }");
                     return sb.ToStringAndFree();
                 }

@@ -5,28 +5,49 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.CodeGen;
 
 internal readonly struct StateMachineStateDebugInfo
 {
     public readonly int SyntaxOffset;
-    public readonly int StateNumber;
+    public readonly StateMachineState StateNumber;
 
-    public StateMachineStateDebugInfo(int syntaxOffset, int stateNumber)
+    public StateMachineStateDebugInfo(int syntaxOffset, StateMachineState stateNumber)
     {
         SyntaxOffset = syntaxOffset;
         StateNumber = stateNumber;
     }
 }
 
+/// <summary>
+/// Debug information maintained for each state machine.
+/// Facilitates mapping of state machine states from a compilation to the previous one (or to a metadata baseline) during EnC.
+/// </summary>
 internal readonly struct StateMachineStatesDebugInfo
 {
     public readonly ImmutableArray<StateMachineStateDebugInfo> States;
-    public readonly int? FirstUnusedIncreasingStateMachineState;
-    public readonly int? FirstUnusedDecreasingStateMachineState;
 
-    public StateMachineStatesDebugInfo(ImmutableArray<StateMachineStateDebugInfo> states, int? firstUnusedIncreasingStateMachineState, int? firstUnusedDecreasingStateMachineState)
+    /// <summary>
+    /// The number of the first state that has not been used in any of the previous versions of the state machine,
+    /// or null if we are not generating EnC delta.
+    /// 
+    /// For 1st generation EnC delta, this is calculated by examining the <see cref="EditAndContinueMethodDebugInformation.StateMachineStates"/> stored in the baseline metadata.
+    /// For subsequent generations, the number is updated to account for newly generated states in that generation.
+    /// </summary>
+    public readonly StateMachineState? FirstUnusedIncreasingStateMachineState;
+
+    /// <summary>
+    /// The number of the first state that has not been used in any of the previous versions of the state machine,
+    /// or null if we are not generating EnC delta, or the state machine has no decreasing states.
+    /// 
+    /// For 1st generation EnC delta, this is calculated by examining the <see cref="EditAndContinueMethodDebugInformation.StateMachineStates"/> stored in the baseline metadata.
+    /// For subsequent generations, the number is updated to account for newly generated states in that generation.
+    /// </summary>
+    public readonly StateMachineState? FirstUnusedDecreasingStateMachineState;
+
+    private StateMachineStatesDebugInfo(ImmutableArray<StateMachineStateDebugInfo> states, StateMachineState? firstUnusedIncreasingStateMachineState, StateMachineState? firstUnusedDecreasingStateMachineState)
     {
         States = states;
         FirstUnusedIncreasingStateMachineState = firstUnusedIncreasingStateMachineState;
@@ -35,7 +56,7 @@ internal readonly struct StateMachineStatesDebugInfo
 
     public static StateMachineStatesDebugInfo Create(VariableSlotAllocator? variableSlotAllocator, ImmutableArray<StateMachineStateDebugInfo> stateInfos)
     {
-        int? firstUnusedIncreasingStateMachineState = null, firstUnusedDecreasingStateMachineState = null;
+        StateMachineState? firstUnusedIncreasingStateMachineState = null, firstUnusedDecreasingStateMachineState = null;
 
         if (variableSlotAllocator != null)
         {
@@ -51,11 +72,11 @@ internal readonly struct StateMachineStatesDebugInfo
                 var maxState = stateInfos.Max(info => info.StateNumber) + 1;
                 var minState = stateInfos.Min(info => info.StateNumber) - 1;
 
-                firstUnusedIncreasingStateMachineState = (firstUnusedIncreasingStateMachineState != null) ? Math.Max(firstUnusedIncreasingStateMachineState.Value, maxState) : maxState;
+                firstUnusedIncreasingStateMachineState = (firstUnusedIncreasingStateMachineState != null) ? (StateMachineState)Math.Max((int)firstUnusedIncreasingStateMachineState.Value, (int)maxState) : maxState;
 
                 if (minState < 0)
                 {
-                    firstUnusedDecreasingStateMachineState = (firstUnusedDecreasingStateMachineState != null) ? Math.Min(firstUnusedDecreasingStateMachineState.Value, minState) : minState;
+                    firstUnusedDecreasingStateMachineState = (firstUnusedDecreasingStateMachineState != null) ? (StateMachineState)Math.Min((int)firstUnusedDecreasingStateMachineState.Value, (int)minState) : minState;
                 }
             }
         }
