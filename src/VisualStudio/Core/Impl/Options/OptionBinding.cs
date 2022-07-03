@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         public OptionBinding(OptionStore optionStore, Option2<T> key)
         {
             Debug.Assert(key.StorageLocations.OfType<RoamingProfileStorageLocation>().Any());
-
+            Debug.Fail("Is this hit?");
             _optionStore = optionStore;
             _key = key;
 
