@@ -26,6 +26,7 @@ using Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -133,7 +134,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Options
             throw ExceptionUtilities.Unreachable;
         }
 
-        [Fact]
+        [WpfFact]
         public void TestOptionsInUIShouldBeInAutomationObject()
         {
 
