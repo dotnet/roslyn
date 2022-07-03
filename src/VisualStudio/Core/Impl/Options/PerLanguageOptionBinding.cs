@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         public PerLanguageOptionBinding(OptionStore optionStore, PerLanguageOption2<T> key, string languageName)
         {
             Debug.Assert(key.StorageLocations.OfType<RoamingProfileStorageLocation>().Any());
-
+            Debug.Fail("Is this hit?");
             _optionStore = optionStore;
             _key = key;
             _languageName = languageName;
