@@ -54,6 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOptions();
         }
 
+        [Obsolete("Used for testing only.")]
         public AdvancedOptionPageControl(OptionStore optionStore) : base(optionStore)
         {
             InitializeComponent();

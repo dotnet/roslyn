@@ -155,7 +155,9 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Options
             var optionStore = new OptionStore(workspace.Options, Enumerable.Empty<IOption>());
             var optionService = workspace.Services.GetRequiredService<ILegacyWorkspaceOptionService>();
             var automationObject = new AutomationObject(workspace);
+#pragma warning disable CS0618 // Type or member is obsolete
             var pageControls = new AbstractOptionPageControl[] { new AdvancedOptionPageControl(optionStore), new IntelliSenseOptionPageControl(optionStore), new FormattingOptionPageControl(optionStore) };
+#pragma warning restore CS0618 // Type or member is obsolete
             var radioButtonGroups = new Dictionary<string, List<RadioButton>>();
             foreach (var pageControl in pageControls)
             {
