@@ -212,8 +212,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Options
                         VerifySingleChangeWhenOptionChangeInUI(automationObject, () => radioButton.IsChecked = true, optionService, optionStore, optionForAssertMessage: radioButton.Name);
                     }
 
-                    var x;
-
                     // TODO: Consider asserting a non-null selectedRadioButton if https://github.com/dotnet/roslyn/issues/62363 is fixed.
 
                     if (selectedRadioButton is not null)
