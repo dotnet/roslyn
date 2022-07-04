@@ -158,9 +158,9 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Options
 #pragma warning disable CS0618 // Type or member is obsolete
             var pageControls = new AbstractOptionPageControl[] { new AdvancedOptionPageControl(optionStore), new IntelliSenseOptionPageControl(optionStore), new FormattingOptionPageControl(optionStore) };
 #pragma warning restore CS0618 // Type or member is obsolete
-            var radioButtonGroups = new Dictionary<string, List<RadioButton>>();
             foreach (var pageControl in pageControls)
             {
+                var radioButtonGroups = new Dictionary<string, List<RadioButton>>();
                 foreach (var bindingExpression in pageControl.BindingExpressions)
                 {
                     var target = bindingExpression.Target;
@@ -190,35 +190,35 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Options
                         continue;
                     }
                 }
-            }
 
-            foreach (var radioButtonGroup in radioButtonGroups)
-            {
-                var groupName = radioButtonGroup.Key;
-                var radioButtons = radioButtonGroup.Value;
-                // There is no point in having a single radio button in a group.
-                Assert.True(radioButtons.Count > 1, $"Expected radio button group '{groupName}' to have more than one radio button. Found {radioButtons.Count}.");
-                var selectedRadioButton = radioButtons.SingleOrDefault(r => r.IsChecked == true);
-                foreach (var radioButton in radioButtons)
+                foreach (var radioButtonGroup in radioButtonGroups)
                 {
-                    // We test selecting every radio button in the group.
-                    // We skip the already selected one till we are sure we tested other radio buttons.
-                    if (radioButton == selectedRadioButton)
+                    var groupName = radioButtonGroup.Key;
+                    var radioButtons = radioButtonGroup.Value;
+                    // There is no point in having a single radio button in a group.
+                    Assert.True(radioButtons.Count > 1, $"Expected radio button group '{groupName}' to have more than one radio button. Found {radioButtons.Count}.");
+                    var selectedRadioButton = radioButtons.SingleOrDefault(r => r.IsChecked == true);
+                    foreach (var radioButton in radioButtons)
                     {
-                        continue;
+                        // We test selecting every radio button in the group.
+                        // We skip the already selected one till we are sure we tested other radio buttons.
+                        if (radioButton == selectedRadioButton)
+                        {
+                            continue;
+                        }
+
+                        Assert.False(radioButton.IsChecked);
+                        VerifySingleChangeWhenOptionChangeInUI(automationObject, () => radioButton.IsChecked = true, optionService, optionStore, optionForAssertMessage: radioButton.Name);
                     }
 
-                    Assert.False(radioButton.IsChecked);
-                    VerifySingleChangeWhenOptionChangeInUI(automationObject, () => radioButton.IsChecked = true, optionService, optionStore, optionForAssertMessage: radioButton.Name);
-                }
+                    // TODO: Consider asserting a non-null selectedRadioButton if https://github.com/dotnet/roslyn/issues/62363 is fixed.
 
-                // TODO: Consider asserting a non-null selectedRadioButton if https://github.com/dotnet/roslyn/issues/62363 is fixed.
-
-                if (selectedRadioButton is not null)
-                {
-                    // Now that we tested other radio buttons in the group, the initially selected radio button is now not selected.
-                    Assert.False(selectedRadioButton.IsChecked);
-                    VerifySingleChangeWhenOptionChangeInUI(automationObject, () => selectedRadioButton.IsChecked = true, optionService, optionStore, optionForAssertMessage: selectedRadioButton.Name);
+                    if (selectedRadioButton is not null)
+                    {
+                        // Now that we tested other radio buttons in the group, the initially selected radio button is now not selected.
+                        Assert.False(selectedRadioButton.IsChecked);
+                        VerifySingleChangeWhenOptionChangeInUI(automationObject, () => selectedRadioButton.IsChecked = true, optionService, optionStore, optionForAssertMessage: selectedRadioButton.Name);
+                    }
                 }
             }
 
