@@ -161,7 +161,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Options
             var radioButtonGroups = new Dictionary<string, List<RadioButton>>();
             foreach (var pageControl in pageControls)
             {
-
                 foreach (var bindingExpression in pageControl.BindingExpressions)
                 {
                     var target = bindingExpression.Target;
