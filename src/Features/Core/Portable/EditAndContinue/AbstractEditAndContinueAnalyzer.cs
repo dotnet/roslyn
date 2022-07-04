@@ -2678,8 +2678,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                                 continue;
                                             }
 
-                                            if (TryAddMemberDeleteSemanticEdits(semanticEdits, oldSymbol, containingSymbolKey, syntaxMap, cancellationToken))
+                                            if (AllowsDeletion(oldSymbol))
                                             {
+                                                AddMemberOrAssociatedMemberSemanticEdits(semanticEdits, SemanticEditKind.Delete, oldSymbol, containingSymbolKey, syntaxMap, partialType: null, cancellationToken);
                                                 continue;
                                             }
                                         }
@@ -3024,7 +3025,33 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             Contract.ThrowIfNull(oldSymbol);
 
                             AnalyzeSymbolUpdate(oldSymbol, newSymbol, edit.NewNode, newCompilation, editScript.Match, capabilities, diagnostics, semanticEdits, syntaxMap, cancellationToken);
-                            if (newSymbol is INamedTypeSymbol or IFieldSymbol or IPropertySymbol or IEventSymbol or IParameterSymbol or ITypeParameterSymbol)
+
+                            if (newSymbol is INamedTypeSymbol or IFieldSymbol or IParameterSymbol or ITypeParameterSymbol)
+                            {
+                                continue;
+                            }
+
+                            // For renames where the symbol allows deletion, we don't create an update edit, we create a delete
+                            // and an add. During emit an empty body will be created for the old name. Sometimes
+                            // when members are moved between documents in partial classes, they can appear as renames, so
+                            // we also check that the old symbol can't be resolved in the new compilation
+                            if (oldSymbol.Name != newSymbol.Name &&
+                                AllowsDeletion(oldSymbol) &&
+                                SymbolKey.Create(oldSymbol, cancellationToken) is { } oldSymbolKey &&
+                                oldSymbolKey.Resolve(newCompilation, ignoreAssemblyKey: true, cancellationToken).Symbol is null)
+                            {
+                                var containingSymbolKey = SymbolKey.Create(oldSymbol.ContainingType, cancellationToken);
+
+                                AddMemberOrAssociatedMemberSemanticEdits(semanticEdits, SemanticEditKind.Delete, oldSymbol, containingSymbolKey, syntaxMap, partialType: null, cancellationToken);
+
+                                AddMemberOrAssociatedMemberSemanticEdits(semanticEdits, SemanticEditKind.Insert, newSymbol, containingSymbolKey: null, syntaxMap,
+                                    partialType: IsPartialEdit(oldSymbol, newSymbol, editScript.Match.OldRoot.SyntaxTree, editScript.Match.NewRoot.SyntaxTree) ? symbolKey : null,
+                                    cancellationToken);
+
+                                continue;
+                            }
+
+                            if (newSymbol is IPropertySymbol or IEventSymbol)
                             {
                                 continue;
                             }
@@ -3182,23 +3209,28 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private static bool TryAddMemberDeleteSemanticEdits(ArrayBuilder<SemanticEditInfo> semanticEdits, ISymbol oldSymbol, SymbolKey containingSymbolKey, Func<SyntaxNode, SyntaxNode?>? syntaxMap, CancellationToken cancellationToken)
+        /// <summary>
+        /// Returns whether or not the specified symbol can be deleted by the user. Normally deletes are a rude edit
+        /// but for some kinds of symbols we allow deletes, and synthesize an update to an empty method body during
+        /// emit.
+        /// </summary>
+        private static bool AllowsDeletion(ISymbol symbol)
         {
             // We don't currently allow deleting virtual or abstract methods, because if those are in the middle of
             // an inheritance chain then throwing a missing method exception is not expected
-            if (oldSymbol.GetSymbolModifiers() is not { IsVirtual: false, IsAbstract: false, IsOverride: false })
+            if (symbol.GetSymbolModifiers() is not { IsVirtual: false, IsAbstract: false, IsOverride: false })
                 return false;
 
             // Extern methods can't be deleted
-            if (oldSymbol.IsExtern)
+            if (symbol.IsExtern)
                 return false;
 
             // We don't allow deleting members from interfaces etc. only normal classes and structs
-            if (oldSymbol.ContainingType is not { TypeKind: TypeKind.Class or TypeKind.Struct })
+            if (symbol.ContainingType is not { TypeKind: TypeKind.Class or TypeKind.Struct })
                 return false;
 
-            // Wo store the containing symbol in NewSymbol of the edit for later use.
-            if (oldSymbol is IMethodSymbol
+            // We store the containing symbol in NewSymbol of the edit for later use.
+            if (symbol is IMethodSymbol
                 {
                     MethodKind:
                         MethodKind.Ordinary or
@@ -3212,38 +3244,45 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         MethodKind.PropertySet
                 })
             {
-                AddDeleteSemanticEdit(semanticEdits, oldSymbol, containingSymbolKey, syntaxMap, cancellationToken);
-
                 return true;
             }
 
-            if (oldSymbol is IPropertySymbol propertySymbol)
-            {
-                AddDeleteSemanticEdit(semanticEdits, propertySymbol.GetMethod, containingSymbolKey, syntaxMap, cancellationToken);
-                AddDeleteSemanticEdit(semanticEdits, propertySymbol.SetMethod, containingSymbolKey, syntaxMap, cancellationToken);
-
-                return true;
-            }
-
-            if (oldSymbol is IEventSymbol eventSymbol)
-            {
-                AddDeleteSemanticEdit(semanticEdits, eventSymbol.AddMethod, containingSymbolKey, syntaxMap, cancellationToken);
-                AddDeleteSemanticEdit(semanticEdits, eventSymbol.RemoveMethod, containingSymbolKey, syntaxMap, cancellationToken);
-                AddDeleteSemanticEdit(semanticEdits, eventSymbol.RaiseMethod, containingSymbolKey, syntaxMap, cancellationToken);
-
-                return true;
-            }
-
-            return false;
+            return symbol is IPropertySymbol or IEventSymbol;
         }
 
-        private static void AddDeleteSemanticEdit(ArrayBuilder<SemanticEditInfo> semanticEdits, ISymbol? symbol, SymbolKey containingSymbolKey, Func<SyntaxNode, SyntaxNode?>? syntaxMap, CancellationToken cancellationToken)
+        /// <summary>
+        /// Add semantic edits for the specified symbol, or the associated members of the specified symbol,
+        /// for example, edits for each accessor if a property symbol is passed in.
+        /// </summary>
+        private static void AddMemberOrAssociatedMemberSemanticEdits(ArrayBuilder<SemanticEditInfo> semanticEdits, SemanticEditKind editKind, ISymbol symbol, SymbolKey? containingSymbolKey, Func<SyntaxNode, SyntaxNode?>? syntaxMap, SymbolKey? partialType, CancellationToken cancellationToken)
         {
-            if (symbol is null)
-                return;
+            Debug.Assert(symbol is IMethodSymbol or IPropertySymbol or IEventSymbol);
 
-            var symbolKey = SymbolKey.Create(symbol, cancellationToken);
-            semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Delete, symbolKey, syntaxMap, syntaxMapTree: null, partialType: null, deletedSymbolContainer: containingSymbolKey));
+            // We store the containing symbol in NewSymbol of the edit for later use.
+            if (symbol is IMethodSymbol)
+            {
+                AddEdit(semanticEdits, editKind, symbol, containingSymbolKey, syntaxMap, partialType, cancellationToken);
+            }
+            else if (symbol is IPropertySymbol propertySymbol)
+            {
+                AddEdit(semanticEdits, editKind, propertySymbol.GetMethod, containingSymbolKey, syntaxMap, partialType, cancellationToken);
+                AddEdit(semanticEdits, editKind, propertySymbol.SetMethod, containingSymbolKey, syntaxMap, partialType, cancellationToken);
+            }
+            else if (symbol is IEventSymbol eventSymbol)
+            {
+                AddEdit(semanticEdits, editKind, eventSymbol.AddMethod, containingSymbolKey, syntaxMap, partialType, cancellationToken);
+                AddEdit(semanticEdits, editKind, eventSymbol.RemoveMethod, containingSymbolKey, syntaxMap, partialType, cancellationToken);
+                AddEdit(semanticEdits, editKind, eventSymbol.RaiseMethod, containingSymbolKey, syntaxMap, partialType, cancellationToken);
+            }
+
+            static void AddEdit(ArrayBuilder<SemanticEditInfo> semanticEdits, SemanticEditKind editKind, ISymbol? symbol, SymbolKey? containingSymbolKey, Func<SyntaxNode, SyntaxNode?>? syntaxMap, SymbolKey? partialType, CancellationToken cancellationToken)
+            {
+                if (symbol is null)
+                    return;
+
+                var symbolKey = SymbolKey.Create(symbol, cancellationToken);
+                semanticEdits.Add(new SemanticEditInfo(editKind, symbolKey, syntaxMap, syntaxMapTree: null, partialType, deletedSymbolContainer: containingSymbolKey));
+            }
         }
 
         private ImmutableArray<(ISymbol? oldSymbol, ISymbol? newSymbol, EditKind editKind)> GetNamespaceSymbolEdits(
@@ -3402,13 +3441,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         rudeEdit = RudeEditKind.RenamingNotSupportedByRuntime;
                     }
                 }
-                else
-                {
-                    rudeEdit = RudeEditKind.Renamed;
-                }
-
-                // specialize rude edit for accessors and conversion operators:
-                if (oldSymbol is IMethodSymbol oldMethod && newSymbol is IMethodSymbol newMethod)
+                else if (oldSymbol is IMethodSymbol oldMethod && newSymbol is IMethodSymbol newMethod)
                 {
                     if (oldMethod.AssociatedSymbol != null && newMethod.AssociatedSymbol != null)
                     {
@@ -3426,6 +3459,43 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     {
                         rudeEdit = RudeEditKind.ModifiersUpdate;
                     }
+                    else if (oldMethod.MethodKind == MethodKind.ExplicitInterfaceImplementation || newMethod.MethodKind == MethodKind.ExplicitInterfaceImplementation)
+                    {
+                        // Can't change from explicit to implicit interface implementation, or one interface to another
+                        rudeEdit = RudeEditKind.Renamed;
+                    }
+                    else if (!AllowsDeletion(oldSymbol))
+                    {
+                        rudeEdit = RudeEditKind.Renamed;
+                    }
+                }
+                else if (oldSymbol is IPropertySymbol oldProperty && newSymbol is IPropertySymbol newProperty)
+                {
+                    if (!oldProperty.ExplicitInterfaceImplementations.IsEmpty || !newProperty.ExplicitInterfaceImplementations.IsEmpty)
+                    {
+                        // Can't change from explicit to implicit interface implementation, or one interface to another
+                        rudeEdit = RudeEditKind.Renamed;
+                    }
+                    else if (!AllowsDeletion(oldSymbol))
+                    {
+                        rudeEdit = RudeEditKind.Renamed;
+                    }
+                }
+                else if (oldSymbol is IEventSymbol oldEvent && newSymbol is IEventSymbol newEvent)
+                {
+                    if (!oldEvent.ExplicitInterfaceImplementations.IsEmpty || !newEvent.ExplicitInterfaceImplementations.IsEmpty)
+                    {
+                        // Can't change from explicit to implicit interface implementation, or one interface to another
+                        rudeEdit = RudeEditKind.Renamed;
+                    }
+                    else if (!AllowsDeletion(oldSymbol))
+                    {
+                        rudeEdit = RudeEditKind.Renamed;
+                    }
+                }
+                else
+                {
+                    rudeEdit = RudeEditKind.Renamed;
                 }
             }
 
@@ -3610,8 +3680,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             if (rudeEdit != RudeEditKind.None)
             {
-                // so we'll just use the last global statement in the file
-
                 ReportUpdateRudeEdit(diagnostics, rudeEdit, oldSymbol, newSymbol, newNode, newCompilation, cancellationToken);
             }
         }
