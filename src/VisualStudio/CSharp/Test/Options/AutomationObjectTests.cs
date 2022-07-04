@@ -151,12 +151,12 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Options
         [WpfFact]
         public void TestOptionsInUIShouldBeInAutomationObject()
         {
-
             using var workspace = TestWorkspace.CreateCSharp("");
             var optionStore = new OptionStore(workspace.Options, Enumerable.Empty<IOption>());
             var optionService = workspace.Services.GetRequiredService<ILegacyWorkspaceOptionService>();
             var automationObject = new AutomationObject(workspace);
             var pageControls = new AbstractOptionPageControl[] { new AdvancedOptionPageControl(optionStore), new IntelliSenseOptionPageControl(optionStore), new FormattingOptionPageControl(optionStore) };
+            var radioButtonGroups = new Dictionary<string, List<RadioButton>>();
             foreach (var pageControl in pageControls)
             {
 
@@ -169,38 +169,82 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Options
 
                     if (target is CheckBox checkBox)
                     {
-                        checkBox.IsChecked = !checkBox.IsChecked;
+                        VerifySingleChangeWhenOptionChangeInUI(automationObject, () => checkBox.IsChecked = !checkBox.IsChecked, optionService, optionStore, optionForAssertMessage);
                     }
                     else if (target is ComboBox comboBox)
                     {
-                        comboBox.SelectedIndex = comboBox.SelectedIndex == 0 ? 1 : 0;
+                        VerifySingleChangeWhenOptionChangeInUI(automationObject, () => comboBox.SelectedIndex = comboBox.SelectedIndex == 0 ? 1 : 0, optionService, optionStore, optionForAssertMessage);
                     }
-                    else if (target is RadioButton)
+                    else if (target is RadioButton radioButton)
                     {
-                        // skip for now. TODO later..
+                        if (radioButtonGroups.TryGetValue(radioButton.GroupName, out var list))
+                        {
+                            list.Add(radioButton);
+                        }
+                        else
+                        {
+                            radioButtonGroups.Add(radioButton.GroupName, new List<RadioButton> { radioButton });
+                        }
+
+                        continue;
+                    }
+                }
+            }
+
+            foreach (var radioButtonGroup in radioButtonGroups)
+            {
+                var groupName = radioButtonGroup.Key;
+                var radioButtons = radioButtonGroup.Value;
+                // There is no point in having a single radio button in a group.
+                Assert.True(radioButtons.Count > 1, $"Expected radio button group '{groupName}' to have more than one radio button. Found {radioButtons.Count}.");
+                var selectedRadioButton = radioButtons.SingleOrDefault(r => r.IsChecked == true);
+                foreach (var radioButton in radioButtons)
+                {
+                    // We test selecting every radio button in the group.
+                    // We skip the already selected one till we are sure we tested other radio buttons.
+                    if (radioButton == selectedRadioButton)
+                    {
                         continue;
                     }
 
-                    //advancedOptions.SaveSettingsToStorage();
-                    // Following simulates the SaveSettingsToStorage call.
-                    // Save the changes that were accumulated in the option store.
-                    var oldOptions = new SolutionOptionSet(optionService);
-                    var newOptions = (SolutionOptionSet)optionStore.GetOptions();
+                    Assert.False(radioButton.IsChecked);
+                    VerifySingleChangeWhenOptionChangeInUI(automationObject, () => radioButton.IsChecked = true, optionService, optionStore, optionForAssertMessage: radioButton.Name);
+                }
 
-                    // Must log the option change before setting the new option values via s_optionService,
-                    // otherwise oldOptions and newOptions would be identical and nothing will be logged.
-                    OptionLogger.Log(oldOptions, newOptions);
-                    optionService.SetOptions(newOptions, newOptions.GetChangedOptions());
+                // TODO: Consider asserting a non-null selectedRadioButton if https://github.com/dotnet/roslyn/issues/62363 is fixed.
 
-                    var automationValuesAfterChange = GetAutomationDictionary(automationObject);
-
-                    Assert.Equal(automationValuesBeforeChange.Count, automationValuesAfterChange.Count);
-                    AssertExactlyOneChange(automationValuesBeforeChange, automationValuesAfterChange, optionForAssertMessage);
+                if (selectedRadioButton is not null)
+                {
+                    // Now that we tested other radio buttons in the group, the initially selected radio button is now not selected.
+                    Assert.False(selectedRadioButton.IsChecked);
+                    VerifySingleChangeWhenOptionChangeInUI(automationObject, () => selectedRadioButton.IsChecked = true, optionService, optionStore, optionForAssertMessage: selectedRadioButton.Name);
                 }
             }
 
             // Above checks that all options are in AutomationObjects.
             // TODO: check that all automation object members are in options.
+        }
+
+        private static void VerifySingleChangeWhenOptionChangeInUI(AutomationObject automationObject, Action changeUIControl, ILegacyWorkspaceOptionService optionService, OptionStore optionStore, string optionForAssertMessage)
+        {
+            var automationValuesBeforeChange = GetAutomationDictionary(automationObject);
+
+            changeUIControl();
+
+            // Following simulates the SaveSettingsToStorage call.
+            // Save the changes that were accumulated in the option store.
+            var oldOptions = new SolutionOptionSet(optionService);
+            var newOptions = (SolutionOptionSet)optionStore.GetOptions();
+
+            // Must log the option change before setting the new option values via s_optionService,
+            // otherwise oldOptions and newOptions would be identical and nothing will be logged.
+            OptionLogger.Log(oldOptions, newOptions);
+            optionService.SetOptions(newOptions, newOptions.GetChangedOptions());
+
+            var automationValuesAfterChange = GetAutomationDictionary(automationObject);
+
+            Assert.Equal(automationValuesBeforeChange.Count, automationValuesAfterChange.Count);
+            AssertExactlyOneChange(automationValuesBeforeChange, automationValuesAfterChange, optionForAssertMessage);
         }
 
         private static ImmutableDictionary<string, object> GetAutomationDictionary(AutomationObject automationObject)
@@ -224,7 +268,12 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Options
                 {
                     if (seenChange)
                     {
-                        Assert.False(true, $"Two values ('{key}' and '{changedKey}') have changed in automation object after changing '{optionForAssertMessage}'!");
+                        if (key != "ShowSnippets" && changedKey != "ShowSnippets" && // TODO: Remove this condition and always assert if we can remove the obsolete properties in automation object.
+                            key != "EnterKeyBehavior" && changedKey != "EnterKeyBehavior" // TODO: EnterKeyBehavior is a real duplicate of InsertNewlineOnEnterWithWholeWord
+                            )
+                        {
+                            Assert.False(true, $"Two values ('{key}' and '{changedKey}') have changed in automation object after changing '{optionForAssertMessage}'!");
+                        }
                     }
 
                     changedKey = key;

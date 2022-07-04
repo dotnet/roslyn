@@ -13,5 +13,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             get { return GetBooleanOption(InlineDiagnosticsOptions.EnableInlineDiagnostics); }
             set { SetBooleanOption(InlineDiagnosticsOptions.EnableInlineDiagnostics, value); }
         }
+
+        public int InlineDiagnosticsLocation
+        {
+            get { return (int)GetOption(InlineDiagnosticsOptions.Location); }
+            set { SetOption(InlineDiagnosticsOptions.Location, (InlineDiagnosticsLocations)value); }
+        }
     }
 }
