@@ -77,14 +77,29 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Options
             }
         }
 
+        /// <summary>
+        /// We test automation object by reading every property, then
+        /// set it using a new value, then read it again and observe the new value is read.
+        /// This method gets a new value for a property, given the property name and the current value.
+        /// </summary>
         private static object GetNewValue(object value, string propertyName)
         {
+            // The whole purpose of this method is to get a valid *new* value for the given property.
+            // The general approach taken here is as follows:
+            // 1. If the current value is an integer, then we use 0 for the new value, except when the old value is 0 itself, we use 1.
+            // 2. If we have a string, then the common case is the property encoding a code-style option as xml, in which case we have a DiagnosticSeverity XML attribute that we can change
+
+            // There are exceptions to the above, those are special cased here.
+            // If a new option is added and failed the `TestEnsureProperStorageLocation` because it cannot get a good new value, this method can be modified accordingly to get a new value for that option.
+
+            // For Style_RemoveUnnecessarySuppressionExclusions, it's not a CodeStyleOption<T>, so it's encoded as a regular string.
             if (propertyName == "Style_RemoveUnnecessarySuppressionExclusions")
             {
                 Assert.IsType<string>(value);
                 return value is "" ? "all" : "";
             }
 
+            // For Style_NamingPreferences, it's encoded in a special XML format. We use the below string as our new value.
             if (propertyName == "Style_NamingPreferences")
             {
                 Assert.IsType<string>(value);
@@ -110,7 +125,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Options
                     </NamingPreferencesInfo>
                     """;
             }
-
 
             if (value is int i)
             {
@@ -150,61 +164,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Options
                 {
                     var target = bindingExpression.Target;
                     var optionForAssertMessage = ((FrameworkElement)target).Name;
-                    if (optionForAssertMessage is
-                        // Advanced page
-                        "Run_background_code_analysis_for" or
-                        "Show_compiler_errors_and_warnings_for" or
-                        "DisplayDiagnosticsInline" or
-                        "Run_code_analysis_in_separate_process" or
-                        "Enable_file_logging_for_diagnostics" or
-                        "Rename_asynchronously_exerimental" or
-                        "ComputeQuickActionsAsynchronouslyExperimental" or
-                        "Show_outlining_for_declaration_level_constructs" or
-                        "Show_outlining_for_code_level_constructs" or
-                        "Show_outlining_for_comments_and_preprocessor_regions" or
-                        "Collapse_regions_when_collapsing_to_definitions" or
-                        "Show_guides_for_declaration_level_constructs" or
-                        "Show_guides_for_code_level_constructs" or
-                        "InsertSlashSlashAtTheStartOfNewLinesWhenWritingSingleLineComments" or
-                        "ShowRemarksInQuickInfo" or
-                        "Split_string_literals_on_enter" or
-                        "Report_invalid_placeholders_in_string_dot_format_calls" or
-                        "Underline_reassigned_variables" or
-                        "Enable_all_features_in_opened_files_from_source_generators" or
-                        "Colorize_regular_expressions" or
-                        "Report_invalid_regular_expressions" or
-                        "Highlight_related_regular_expression_components_under_cursor" or
-                        "Show_completion_list" or
-                        "Colorize_JSON_strings" or
-                        "Report_invalid_JSON_strings" or
-                        "Highlight_related_JSON_components_under_cursor" or
-                        "Editor_color_scheme" or
-                        "DisplayAllHintsWhilePressingAltF1" or
-                        "ColorHints" or
-                        "DisplayInlineParameterNameHints" or
-                        "ShowHintsForLiterals" or
-                        "ShowHintsForNewExpressions" or
-                        "ShowHintsForEverythingElse" or
-                        "ShowHintsForIndexers" or
-                        "SuppressHintsWhenParameterNameMatchesTheMethodsIntent" or
-                        "SuppressHintsWhenParameterNamesDifferOnlyBySuffix" or
-                        "SuppressHintsWhenParameterNamesMatchArgumentNames" or
-                        "DisplayInlineTypeHints" or
-                        "ShowHintsForVariablesWithInferredTypes" or
-                        "ShowHintsForLambdaParameterTypes" or
-                        "ShowHintsForImplicitObjectCreation" or
-                        "ShowInheritanceMargin" or
-                        "InheritanceMarginCombinedWithIndicatorMargin" or
-                        "IncludeGlobalImports" or
-                        "AutomaticallyOpenStackTraceExplorer" or
-                        // IntelliSense page
-                        "Show_name_suggestions" or
-                        // formatting page
-                        "FormatOnReturnCheckBox")
-                    {
-                        // The above options are not persisted via automation object. These should be fixed.
-                        continue;
-                    }
 
                     var automationValuesBeforeChange = GetAutomationDictionary(automationObject);
 

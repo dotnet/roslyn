@@ -61,5 +61,17 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             get { return GetBooleanOption(CompletionViewOptions.EnableArgumentCompletionSnippets); }
             set { SetBooleanOption(CompletionViewOptions.EnableArgumentCompletionSnippets, value); }
         }
+
+        public int ProvideRegexCompletions
+        {
+            get { return GetBooleanOption(CompletionOptionsStorage.ProvideRegexCompletions); }
+            set { SetBooleanOption(CompletionOptionsStorage.ProvideRegexCompletions, value); }
+        }
+
+        public int ShowNameSuggestions
+        {
+            get { return GetBooleanOption(CompletionOptionsStorage.ShowNameSuggestions); }
+            set { SetBooleanOption(CompletionOptionsStorage.ShowNameSuggestions, value); }
+        }
     }
 }
