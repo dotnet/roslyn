@@ -156,6 +156,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Options
             var optionService = workspace.Services.GetRequiredService<ILegacyWorkspaceOptionService>();
             var automationObject = new AutomationObject(workspace);
 #pragma warning disable CS0618 // Type or member is obsolete
+            // TODO: OptionPreviewControl, GridOptionPreviewControl, NamingStyleOptionPageControl.
             var pageControls = new AbstractOptionPageControl[] { new AdvancedOptionPageControl(optionStore), new IntelliSenseOptionPageControl(optionStore), new FormattingOptionPageControl(optionStore) };
 #pragma warning restore CS0618 // Type or member is obsolete
             foreach (var pageControl in pageControls)
@@ -210,6 +211,8 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Options
                         Assert.False(radioButton.IsChecked);
                         VerifySingleChangeWhenOptionChangeInUI(automationObject, () => radioButton.IsChecked = true, optionService, optionStore, optionForAssertMessage: radioButton.Name);
                     }
+
+                    var x;
 
                     // TODO: Consider asserting a non-null selectedRadioButton if https://github.com/dotnet/roslyn/issues/62363 is fixed.
 
