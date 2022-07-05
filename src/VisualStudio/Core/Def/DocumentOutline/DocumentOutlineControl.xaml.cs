@@ -136,8 +136,11 @@ namespace Microsoft.VisualStudio.LanguageServices
                 return VSConstants.E_FAIL;
 
             _trackedTextViews.Add(textView, wpfTextView);
+
             wpfTextView.Caret.PositionChanged += Caret_PositionChanged;
-            wpfTextView.TextBuffer.Changed += TextBuffer_Changed;
+            if (_trackedTextViews.Count == 1)
+                wpfTextView.TextBuffer.Changed += TextBuffer_Changed;
+
             return VSConstants.S_OK;
         }
 
