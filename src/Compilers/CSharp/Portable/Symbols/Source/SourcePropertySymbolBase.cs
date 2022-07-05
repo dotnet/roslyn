@@ -1015,7 +1015,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Note: we delayed nullable-related checks that could pull on NonNullTypes
                 if (explicitlyImplementedProperty is object)
                 {
-                    TypeSymbol.CheckNullableReferenceTypeMismatchOnImplementingMember(this.ContainingType, this, explicitlyImplementedProperty, isExplicit: true, diagnostics);
+                    TypeSymbol.CheckNullableReferenceTypeAndScopedMismatchOnImplementingMember(this.ContainingType, this, explicitlyImplementedProperty, isExplicit: true, diagnostics);
                 }
             }
 
@@ -1033,6 +1033,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             ParameterHelpers.EnsureNativeIntegerAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
 
+            ParameterHelpers.EnsureLifetimeAnnotationAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
+
             if (compilation.ShouldEmitNullableAttributes(this) &&
                 this.TypeWithAnnotations.NeedsNullableAttribute())
             {
@@ -1044,11 +1046,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CheckAccessibility(Location location, BindingDiagnosticBag diagnostics, bool isExplicitInterfaceImplementation)
         {
-            var info = ModifierUtils.CheckAccessibility(_modifiers, this, isExplicitInterfaceImplementation);
-            if (info != null)
-            {
-                diagnostics.Add(new CSDiagnostic(info, location));
-            }
+            ModifierUtils.CheckAccessibility(_modifiers, this, isExplicitInterfaceImplementation, diagnostics, location);
         }
 
         private void CheckModifiers(bool isExplicitInterfaceImplementation, Location location, bool isIndexer, BindingDiagnosticBag diagnostics)

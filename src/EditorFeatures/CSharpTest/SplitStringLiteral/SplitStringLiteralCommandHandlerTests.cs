@@ -49,21 +49,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         {
             using var workspace = TestWorkspace.CreateCSharp(inputMarkup);
 
-            // TODO: set SmartIndent to textView.Options (https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1412138)
-            workspace.GlobalOptions.SetGlobalOption(new OptionKey(IndentationOptionsStorage.SmartIndent, LanguageNames.CSharp), indentStyle);
-
             if (useTabs && expectedOutputMarkup != null)
             {
                 Assert.Contains("\t", expectedOutputMarkup);
             }
 
+            var editorOptionsFactory = workspace.GetService<IEditorOptionsFactoryService>();
+
             var document = workspace.Documents.Single();
             var view = document.GetTextView();
+            var textBuffer = view.TextBuffer;
+            var options = editorOptionsFactory.GetOptions(textBuffer);
 
-            view.Options.SetOptionValue(DefaultOptions.ConvertTabsToSpacesOptionId, !useTabs);
-            view.Options.SetOptionValue(DefaultOptions.TabSizeOptionId, 4);
+            options.SetOptionValue(DefaultOptions.ConvertTabsToSpacesOptionId, !useTabs);
+            options.SetOptionValue(DefaultOptions.TabSizeOptionId, 4);
+            options.SetOptionValue(DefaultOptions.IndentStyleId, indentStyle.ToEditorIndentStyle());
 
-            var originalSnapshot = view.TextBuffer.CurrentSnapshot;
+            // Remove once https://github.com/dotnet/roslyn/issues/62204 is fixed:
+            workspace.GlobalOptions.SetGlobalOption(new OptionKey(IndentationOptionsStorage.SmartIndent, document.Project.Language), indentStyle);
+
+            var originalSnapshot = textBuffer.CurrentSnapshot;
             var originalSelections = document.SelectedSpans;
 
             var snapshotSpans = new List<SnapshotSpan>();
@@ -77,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             var undoHistoryRegistry = workspace.GetService<ITextUndoHistoryRegistry>();
             var commandHandler = workspace.ExportProvider.GetCommandHandler<SplitStringLiteralCommandHandler>(nameof(SplitStringLiteralCommandHandler));
 
-            if (!commandHandler.ExecuteCommand(new ReturnKeyCommandArgs(view, view.TextBuffer), TestCommandExecutionContext.Create()))
+            if (!commandHandler.ExecuteCommand(new ReturnKeyCommandArgs(view, textBuffer), TestCommandExecutionContext.Create()))
             {
                 callback();
             }
@@ -87,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
                 MarkupTestFile.GetSpans(expectedOutputMarkup,
                     out var expectedOutput, out ImmutableArray<TextSpan> expectedSpans);
 
-                Assert.Equal(expectedOutput, view.TextBuffer.CurrentSnapshot.AsText().ToString());
+                Assert.Equal(expectedOutput, textBuffer.CurrentSnapshot.AsText().ToString());
                 Assert.Equal(expectedSpans.First().Start, view.Caret.Position.BufferPosition.Position);
 
                 if (verifyUndo)
@@ -150,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
-        public void TestMissingBeforeUTF8String()
+        public void TestMissingBeforeUtf8String()
         {
             TestNotHandled(
 @"class C
@@ -280,7 +285,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
-        public void TestMissingAfterUTF8String_1()
+        public void TestMissingAfterUtf8String_1()
         {
             TestNotHandled(
 @"class C
@@ -293,7 +298,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
-        public void TestMissingAfterUTF8String_2()
+        public void TestMissingAfterUtf8String_2()
         {
             TestNotHandled(
 @"class C
@@ -306,7 +311,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
-        public void TestMissingAfterUTF8String_3()
+        public void TestMissingAfterUtf8String_3()
         {
             TestNotHandled(
 @"class C
@@ -319,7 +324,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
-        public void TestMissingAfterUTF8String_4()
+        public void TestMissingAfterUtf8String_4()
         {
             TestNotHandled(
 @"class C
@@ -332,7 +337,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
-        public void TestMissingAfterUTF8String_5()
+        public void TestMissingAfterUtf8String_5()
         {
             TestNotHandled(
 @"class C
@@ -358,7 +363,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
-        public void TestMissingInUTF8VerbatimString()
+        public void TestMissingInUtf8VerbatimString()
         {
             TestNotHandled(
 @"class C
@@ -542,7 +547,7 @@ $""[||]"";
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
-        public void TestUTF8String_1()
+        public void TestUtf8String_1()
         {
             TestHandled(
 @"class C
@@ -563,7 +568,7 @@ $""[||]"";
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
-        public void TestUTF8String_2()
+        public void TestUtf8String_2()
         {
             TestHandled(
 @"class C
@@ -1081,7 +1086,7 @@ world
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
-        public void TestMissingInRawUTF8StringLiteral()
+        public void TestMissingInRawUtf8StringLiteral()
         {
             TestNotHandled(
 @"class C

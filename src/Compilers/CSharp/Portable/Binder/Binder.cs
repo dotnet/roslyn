@@ -156,6 +156,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        // https://github.com/dotnet/roslyn/issues/62131: Enable updated escape rules if
+        // System.Runtime.CompilerServices.RuntimeFeature.ByRefFields exists.
+        internal bool UseUpdatedEscapeRules => Compilation.IsFeatureEnabled(MessageID.IDS_FeatureRefFields) /*||
+            Compilation.Assembly.RuntimeSupportsByRefFields*/;
+
         /// <summary>
         /// Some nodes have special binders for their contents (like Blocks)
         /// </summary>

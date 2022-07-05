@@ -24,10 +24,7 @@ namespace Microsoft.CodeAnalysis.Navigation
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            if (_singleton == null)
-            {
-                _singleton = new DefaultDocumentNavigationService();
-            }
+            _singleton ??= new DefaultDocumentNavigationService();
 
             return _singleton;
         }

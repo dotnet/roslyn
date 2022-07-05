@@ -110,7 +110,6 @@ namespace Microsoft.CodeAnalysis.Remote
         /// the same <paramref name="solutionChecksum"/>.
         /// </para>
         /// </summary>
-
         public ValueTask<(Solution solution, T result)> RunWithSolutionAsync<T>(
             AssetProvider assetProvider,
             Checksum solutionChecksum,
@@ -285,13 +284,13 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             try
             {
-                var updater = new SolutionCreator(Services.HostServices, assetProvider, currentSolution, cancellationToken);
+                var updater = new SolutionCreator(Services.HostServices, assetProvider, currentSolution);
 
                 // check whether solution is update to the given base solution
-                if (await updater.IsIncrementalUpdateAsync(solutionChecksum).ConfigureAwait(false))
+                if (await updater.IsIncrementalUpdateAsync(solutionChecksum, cancellationToken).ConfigureAwait(false))
                 {
                     // create updated solution off the baseSolution
-                    return await updater.CreateSolutionAsync(solutionChecksum).ConfigureAwait(false);
+                    return await updater.CreateSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
                 }
 
                 // we need new solution. bulk sync all asset for the solution first.
@@ -338,19 +337,19 @@ namespace Microsoft.CodeAnalysis.Remote
                 // if either solution id or file path changed, then we consider it as new solution. Otherwise,
                 // update the current solution in place.
 
-                var oldSolution = this.CurrentSolution;
+                var oldSolution = CurrentSolution;
                 var addingSolution = oldSolution.Id != newSolution.Id || oldSolution.FilePath != newSolution.FilePath;
                 if (addingSolution)
                 {
                     // We're not doing an update, we're moving to a new solution entirely.  Clear out the old one. This
                     // is necessary so that we clear out any open document information this workspace is tracking. Note:
                     // this seems suspect as the remote workspace should not be tracking any open document state.
-                    this.ClearSolutionData();
+                    ClearSolutionData();
                 }
 
                 newSolution = SetCurrentSolution(newSolution);
-                SetOptions(newSolution.Options);
-                _ = this.RaiseWorkspaceChangedEventAsync(
+
+                _ = RaiseWorkspaceChangedEventAsync(
                     addingSolution ? WorkspaceChangeKind.SolutionAdded : WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
 
                 return (newSolution, updated: true);
@@ -388,17 +387,19 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
+#pragma warning disable CA1200 // Avoid using cref tags with a prefix
         /// <summary>
-        /// This type behaves similar to <see cref="AsyncLazy{T}"/> (with <c>T</c> being <see cref="Solution"/>), except
-        /// for the following unique characteristics:
+        /// This type behaves similar to <see cref="T:Roslyn.Utilities.AsyncLazy{T}"/> (with <c>T</c> being <see
+        /// cref="Solution"/>), except for the following unique characteristics:
         ///
         /// <list type="bullet">
         /// <item><description>This type will start the asynchronous computation in the constructor instead of waiting
-        /// for the first call to <see cref="AsyncLazy{T}.GetValueAsync(CancellationToken)"/>.</description></item>
+        /// for the first call to <see cref="M:Roslyn.Utilities.AsyncLazy{T}.GetValueAsync(CancellationToken)"/>.</description></item>
         /// <item><description>This type can be disposed asynchronously to cancel the inner operation and wait for the
-        /// inner operation to complete cancellation processing (similar to
-        /// <see cref="TaskContinuationOptions.LazyCancellation"/>). Since <see cref="AsyncLazy{T}"/> does not directly
-        /// expose the inner computation, it does not support lazy cancellation scenarios.</description></item>
+        /// inner operation to complete cancellation processing (similar to <see
+        /// cref="TaskContinuationOptions.LazyCancellation"/>). Since <see cref="T:Roslyn.Utilities.AsyncLazy{T}"/> does
+        /// not directly expose the inner computation, it does not support lazy cancellation
+        /// scenarios.</description></item>
         /// </list>
         /// </summary>
         private sealed class LazySolution : IAsyncDisposable, IDisposable
@@ -435,5 +436,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 await _task.NoThrowAwaitable(false);
             }
         }
+#pragma warning restore CA1200 // Avoid using cref tags with a prefix
     }
 }

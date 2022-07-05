@@ -402,10 +402,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             // Force the shell to refresh the QueryStatus for all the command since default behavior is it only does query
             // when focus on error list has changed, not individual items.
-            if (_shellService != null)
-            {
-                _shellService.UpdateCommandUI(0);
-            }
+            _shellService?.UpdateCommandUI(0);
         }
     }
 }

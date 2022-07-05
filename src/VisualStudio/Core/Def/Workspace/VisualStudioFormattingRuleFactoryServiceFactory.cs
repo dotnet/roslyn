@@ -22,119 +22,99 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
-    [ExportWorkspaceServiceFactory(typeof(IHostDependentFormattingRuleFactoryService), ServiceLayer.Host), Shared]
-    internal sealed class VisualStudioFormattingRuleFactoryServiceFactory : IWorkspaceServiceFactory
+    [ExportWorkspaceService(typeof(IHostDependentFormattingRuleFactoryService), ServiceLayer.Host), Shared]
+    internal sealed class VisualStudioFormattingRuleFactoryService : IHostDependentFormattingRuleFactoryService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioFormattingRuleFactoryServiceFactory()
+        public VisualStudioFormattingRuleFactoryService()
         {
         }
+        public bool ShouldUseBaseIndentation(DocumentId documentId)
+            => IsContainedDocument(documentId);
 
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            => new Factory();
+        public bool ShouldNotFormatOrCommitOnPaste(DocumentId documentId)
+            => IsContainedDocument(documentId);
 
-        private sealed class Factory : IHostDependentFormattingRuleFactoryService
+        private static bool IsContainedDocument(DocumentId documentId)
+            => ContainedDocument.TryGetContainedDocument(documentId) != null;
+
+        public AbstractFormattingRule CreateRule(ParsedDocument document, int position)
         {
-            public bool ShouldUseBaseIndentation(Document document)
-                => IsContainedDocument(document);
-
-            public bool ShouldNotFormatOrCommitOnPaste(Document document)
-                => IsContainedDocument(document);
-
-            private static bool IsContainedDocument(Document document)
+            var containedDocument = ContainedDocument.TryGetContainedDocument(document.Id);
+            if (containedDocument == null)
             {
-                var visualStudioWorkspace = document.Project.Solution.Workspace as VisualStudioWorkspaceImpl;
-                return visualStudioWorkspace?.TryGetContainedDocument(document.Id) != null;
+                return NoOpFormattingRule.Instance;
             }
 
-            public AbstractFormattingRule CreateRule(Document document, int position)
+            var textContainer = document.Text.Container;
+            if (textContainer.TryGetTextBuffer() is not IProjectionBuffer)
             {
-                if (document.Project.Solution.Workspace is not VisualStudioWorkspaceImpl visualStudioWorkspace)
+                return NoOpFormattingRule.Instance;
+            }
+
+            using var pooledObject = SharedPools.Default<List<TextSpan>>().GetPooledObject();
+            var spans = pooledObject.Object;
+
+            var root = document.Root;
+            var text = document.Text;
+
+            spans.AddRange(containedDocument.GetEditorVisibleSpans());
+
+            for (var i = 0; i < spans.Count; i++)
+            {
+                var visibleSpan = spans[i];
+                if (visibleSpan.IntersectsWith(position) || visibleSpan.End == position)
                 {
-                    return NoOpFormattingRule.Instance;
+                    return containedDocument.GetBaseIndentationRule(root, text, spans, i);
                 }
+            }
 
-                var containedDocument = visualStudioWorkspace.TryGetContainedDocument(document.Id);
-                if (containedDocument == null)
-                {
-                    return NoOpFormattingRule.Instance;
-                }
+            // in razor (especially in @helper tag), it is possible for us to be asked for next line of visible span
+            var line = text.Lines.GetLineFromPosition(position);
+            if (line.LineNumber > 0)
+            {
+                line = text.Lines[line.LineNumber - 1];
 
-                var textContainer = document.GetTextSynchronously(CancellationToken.None).Container;
-                if (textContainer.TryGetTextBuffer() is not IProjectionBuffer)
-                {
-                    return NoOpFormattingRule.Instance;
-                }
-
-                using var pooledObject = SharedPools.Default<List<TextSpan>>().GetPooledObject();
-                var spans = pooledObject.Object;
-
-                var root = document.GetSyntaxRootSynchronously(CancellationToken.None);
-                var text = root.SyntaxTree.GetText(CancellationToken.None);
-
-                spans.AddRange(containedDocument.GetEditorVisibleSpans());
-
+                // find one that intersects with previous line
                 for (var i = 0; i < spans.Count; i++)
                 {
                     var visibleSpan = spans[i];
-                    if (visibleSpan.IntersectsWith(position) || visibleSpan.End == position)
+                    if (visibleSpan.IntersectsWith(line.Span))
                     {
                         return containedDocument.GetBaseIndentationRule(root, text, spans, i);
                     }
                 }
-
-                // in razor (especially in @helper tag), it is possible for us to be asked for next line of visible span
-                var line = text.Lines.GetLineFromPosition(position);
-                if (line.LineNumber > 0)
-                {
-                    line = text.Lines[line.LineNumber - 1];
-
-                    // find one that intersects with previous line
-                    for (var i = 0; i < spans.Count; i++)
-                    {
-                        var visibleSpan = spans[i];
-                        if (visibleSpan.IntersectsWith(line.Span))
-                        {
-                            return containedDocument.GetBaseIndentationRule(root, text, spans, i);
-                        }
-                    }
-                }
-
-                FatalError.ReportAndCatch(
-                    new InvalidOperationException($"Can't find an intersection. Visible spans count: {spans.Count}"));
-
-                return NoOpFormattingRule.Instance;
             }
 
-            public IEnumerable<TextChange> FilterFormattedChanges(Document document, TextSpan span, IList<TextChange> changes)
+            FatalError.ReportAndCatch(
+                new InvalidOperationException($"Can't find an intersection. Visible spans count: {spans.Count}"));
+
+            return NoOpFormattingRule.Instance;
+        }
+
+        public IEnumerable<TextChange> FilterFormattedChanges(DocumentId documentId, TextSpan span, IList<TextChange> changes)
+        {
+            var containedDocument = ContainedDocument.TryGetContainedDocument(documentId);
+            if (containedDocument == null)
             {
-                if (document.Project.Solution.Workspace is not VisualStudioWorkspaceImpl visualStudioWorkspace)
-                {
-                    return changes;
-                }
-
-                var containedDocument = visualStudioWorkspace.TryGetContainedDocument(document.Id);
-                if (containedDocument == null)
-                {
-                    return changes;
-                }
-
-                // in case of a Venus, when format document command is issued, Venus will call format API with each script block spans.
-                // in that case, we need to make sure formatter doesn't overstep other script blocks content. in actual format selection case,
-                // we need to format more than given selection otherwise, we will not adjust indentation of first token of the given selection.
-                foreach (var visibleSpan in containedDocument.GetEditorVisibleSpans())
-                {
-                    if (visibleSpan != span)
-                    {
-                        continue;
-                    }
-
-                    return changes.Where(c => span.IntersectsWith(c.Span));
-                }
-
                 return changes;
             }
+
+            // in case of a Venus, when format document command is issued, Venus will call format API with each script block spans.
+            // in that case, we need to make sure formatter doesn't overstep other script blocks content. in actual format selection case,
+            // we need to format more than given selection otherwise, we will not adjust indentation of first token of the given selection.
+            foreach (var visibleSpan in containedDocument.GetEditorVisibleSpans())
+            {
+                if (visibleSpan != span)
+                {
+                    continue;
+                }
+
+                return changes.Where(c => span.IntersectsWith(c.Span));
+            }
+
+            return changes;
         }
     }
 }

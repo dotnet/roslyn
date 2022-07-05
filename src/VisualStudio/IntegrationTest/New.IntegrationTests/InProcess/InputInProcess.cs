@@ -2,14 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using Microsoft.VisualStudio.Extensibility.Testing;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Interop;
 using Microsoft.VisualStudio.Threading;
-using Roslyn.Utilities;
+using WindowsInput;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.InProcess
@@ -17,102 +20,106 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
     [TestService]
     internal partial class InputInProcess
     {
-        private SendKeysImpl? _lazySendKeys;
-        private SendKeysToNavigateToImpl? _lazySendKeysToNavigateTo;
-        private SendKeysWithoutActivateImpl? _lazySendKeysWithoutActivate;
-
-        private SendKeysImpl SendKeys => _lazySendKeys ?? throw ExceptionUtilities.Unreachable;
-        private SendKeysToNavigateToImpl SendKeysToNavigateTo => _lazySendKeysToNavigateTo ?? throw ExceptionUtilities.Unreachable;
-        private SendKeysWithoutActivateImpl SendKeysWithoutActivate => _lazySendKeysWithoutActivate ?? throw ExceptionUtilities.Unreachable;
-
-        protected override async Task InitializeCoreAsync()
+        internal Task SendAsync(params InputKey[] keys)
         {
-            await base.InitializeCoreAsync();
-            _lazySendKeys = new SendKeysImpl(TestServices);
-            _lazySendKeysToNavigateTo = new SendKeysToNavigateToImpl(TestServices);
-            _lazySendKeysWithoutActivate = new SendKeysWithoutActivateImpl(TestServices);
+            return SendAsync(
+                simulator =>
+                {
+                    foreach (var key in keys)
+                    {
+                        key.Apply(simulator);
+                    }
+                });
         }
 
-        internal async Task SendAsync(params object[] keys)
+        internal async Task SendAsync(Action<IInputSimulator> callback)
         {
             // AbstractSendKeys runs synchronously, so switch to a background thread before the call
             await TaskScheduler.Default;
 
-            SendKeys.Send(keys);
+            TestServices.JoinableTaskFactory.Run(async () =>
+            {
+                await TestServices.Editor.ActivateAsync(CancellationToken.None);
+            });
+
+            callback(new InputSimulator());
+
+            TestServices.JoinableTaskFactory.Run(async () =>
+            {
+                await WaitForApplicationIdleAsync(CancellationToken.None);
+            });
         }
 
-        internal async Task SendWithoutActivateAsync(params object[] keys)
+        internal Task SendWithoutActivateAsync(params InputKey[] keys)
+        {
+            return SendWithoutActivateAsync(
+                simulator =>
+                {
+                    foreach (var key in keys)
+                    {
+                        key.Apply(simulator);
+                    }
+                });
+        }
+
+        internal async Task SendWithoutActivateAsync(Action<IInputSimulator> callback)
         {
             // AbstractSendKeys runs synchronously, so switch to a background thread before the call
             await TaskScheduler.Default;
 
-            SendKeysWithoutActivate.Send(keys);
+            callback(new InputSimulator());
+
+            TestServices.JoinableTaskFactory.Run(async () =>
+            {
+                await WaitForApplicationIdleAsync(CancellationToken.None);
+            });
         }
 
-        internal async Task SendToNavigateToAsync(params object[] keys)
+        internal Task SendToNavigateToAsync(params InputKey[] keys)
+        {
+            return SendToNavigateToAsync(
+                simulator =>
+                {
+                    foreach (var key in keys)
+                    {
+                        key.Apply(simulator);
+                    }
+                });
+        }
+
+        internal async Task SendToNavigateToAsync(Action<IInputSimulator> callback)
         {
             // AbstractSendKeys runs synchronously, so switch to a background thread before the call
             await TaskScheduler.Default;
 
-            SendKeysToNavigateTo.Send(keys);
+            // Take no direct action regarding activation, but assert the correct item already has focus
+            TestServices.JoinableTaskFactory.Run(async () =>
+            {
+                await TestServices.JoinableTaskFactory.SwitchToMainThreadAsync();
+                var searchBox = Assert.IsAssignableFrom<TextBox>(Keyboard.FocusedElement);
+                Assert.Equal("PART_SearchBox", searchBox.Name);
+            });
+
+            callback(new InputSimulator());
+
+            TestServices.JoinableTaskFactory.Run(async () =>
+            {
+                await WaitForApplicationIdleAsync(CancellationToken.None);
+            });
         }
 
-        private class SendKeysImpl : AbstractSendKeys
+        internal async Task MoveMouseAsync(Point point)
         {
-            public SendKeysImpl(TestServices testServices)
-            {
-                TestServices = testServices;
-            }
+            var horizontalResolution = NativeMethods.GetSystemMetrics(NativeMethods.SM_CXSCREEN);
+            var verticalResolution = NativeMethods.GetSystemMetrics(NativeMethods.SM_CYSCREEN);
+            var virtualPoint = new ScaleTransform(65535.0 / horizontalResolution, 65535.0 / verticalResolution).Transform(point);
 
-            public TestServices TestServices { get; }
+            await SendAsync(simulator => simulator.Mouse.MoveMouseTo(virtualPoint.X, virtualPoint.Y));
 
-            protected override void ActivateMainWindow()
-            {
-                TestServices.JoinableTaskFactory.Run(async () =>
-                {
-                    await TestServices.Editor.ActivateAsync(CancellationToken.None);
-                });
-            }
-
-            protected override void WaitForApplicationIdle(CancellationToken cancellationToken)
-            {
-                TestServices.JoinableTaskFactory.Run(async () =>
-                {
-                    await WaitForApplicationIdleAsync(cancellationToken);
-                });
-            }
-        }
-
-        private class SendKeysWithoutActivateImpl : SendKeysImpl
-        {
-            public SendKeysWithoutActivateImpl(TestServices testServices)
-                : base(testServices)
-            {
-            }
-
-            protected override void ActivateMainWindow()
-            {
-                // Take no direct action
-            }
-        }
-
-        private class SendKeysToNavigateToImpl : SendKeysImpl
-        {
-            public SendKeysToNavigateToImpl(TestServices testServices)
-                : base(testServices)
-            {
-            }
-
-            protected override void ActivateMainWindow()
-            {
-                // Take no direct action, but assert the correct item already has focus
-                TestServices.JoinableTaskFactory.Run(async () =>
-                {
-                    await TestServices.JoinableTaskFactory.SwitchToMainThreadAsync();
-                    var searchBox = Assert.IsAssignableFrom<TextBox>(Keyboard.FocusedElement);
-                    Assert.Equal("PART_SearchBox", searchBox.Name);
-                });
-            }
+            // ⚠ The call to GetCursorPos is required for correct behavior.
+            var actualPoint = NativeMethods.GetCursorPos();
+            Assert.True(Math.Abs(actualPoint.X - point.X) <= 1, $"Expected '{Math.Abs(actualPoint.X - point.X)}' <= '1'. Move to '({point.X}, {point.Y})' produced '({actualPoint.X}, {actualPoint.Y})'.");
+            Assert.True(Math.Abs(actualPoint.Y - point.Y) <= 1, $"Expected '{Math.Abs(actualPoint.Y - point.Y)}' <= '1'. Move to '({point.X}, {point.Y})' produced '({actualPoint.X}, {actualPoint.Y})'.");
         }
     }
 }

@@ -7623,12 +7623,12 @@ public class MyAttribute : System.Attribute
 
             comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics(
-                // (13,20): error CS0119: 'TParameter' is a type parameter, which is not valid in the given context
+                // (13,20): error CS0704: Cannot do non-virtual member lookup in 'TParameter' because it is a type parameter
                 //         [My(nameof(TParameter.Constant))] // 1
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "TParameter").WithArguments("TParameter", "type parameter").WithLocation(13, 20),
-                // (17,16): error CS0119: 'TParameter' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "TParameter").WithArguments("TParameter").WithLocation(13, 20),
+                // (17,16): error CS0704: Cannot do non-virtual member lookup in 'TParameter' because it is a type parameter
                 //     [My(nameof(TParameter.Constant))] // 2
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "TParameter").WithArguments("TParameter", "type parameter").WithLocation(17, 16)
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "TParameter").WithArguments("TParameter").WithLocation(17, 16)
                 );
 
             VerifyTParameter(comp, 0, "void local<TParameter>()");
@@ -8473,9 +8473,9 @@ public class MyAttribute : System.Attribute
 ", targetFramework: TargetFramework.NetCoreApp);
 
             comp.VerifyDiagnostics(
-                // (2,5): error CS0119: 'TParameter' is a type parameter, which is not valid in the given context
+                // (2,5): error CS0704: Cannot do non-virtual member lookup in 'TParameter' because it is a type parameter
                 // [My(TParameter.Constant)]
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "TParameter").WithArguments("TParameter", "type parameter").WithLocation(2, 5)
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "TParameter").WithArguments("TParameter").WithLocation(2, 5)
                 );
 
             VerifyTParameter(comp, 0, "C<TParameter>");
@@ -8563,9 +8563,9 @@ public class MyAttribute : System.Attribute
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (2,12): error CS0119: 'TParameter' is a type parameter, which is not valid in the given context
+                // (2,12): error CS0704: Cannot do non-virtual member lookup in 'TParameter' because it is a type parameter
                 // [My(nameof(TParameter.Constant))]
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "TParameter").WithArguments("TParameter", "type parameter").WithLocation(2, 12)
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "TParameter").WithArguments("TParameter").WithLocation(2, 12)
                 );
             VerifyTParameter(comp, 0, "R<TParameter>");
         }
@@ -8643,9 +8643,9 @@ public interface I
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (2,5): error CS0119: 'TParameter' is a type parameter, which is not valid in the given context
+                // (2,5): error CS0704: Cannot do non-virtual member lookup in 'TParameter' because it is a type parameter
                 // [My(TParameter.Constant)]
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "TParameter").WithArguments("TParameter", "type parameter").WithLocation(2, 5)
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "TParameter").WithArguments("TParameter").WithLocation(2, 5)
                 );
             VerifyTParameter(comp, 0, "R<TParameter>");
         }
@@ -9748,6 +9748,40 @@ public class MyAttribute : System.Attribute
                 );
         }
 
+        [Fact, WorkItem(1556927, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1556927")]
+        public void ParameterScope_ValueLocalNotInPropertyOrAccessorAttributeNameOf_UnknownAccessor()
+        {
+            var source = @"
+class C
+{
+    int Property4 { [My(nameof(value))] unknown => throw null; }
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name) { }
+}
+";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
+            comp.VerifyDiagnostics(
+                // (4,9): error CS0548: 'C.Property4': property or indexer must have at least one accessor
+                //     int Property4 { [My(nameof(value))] unknown => throw null; }
+                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "Property4").WithArguments("C.Property4").WithLocation(4, 9),
+                // (4,41): error CS1014: A get or set accessor expected
+                //     int Property4 { [My(nameof(value))] unknown => throw null; }
+                Diagnostic(ErrorCode.ERR_GetOrSetExpected, "unknown").WithLocation(4, 41)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>()
+                .Where(i => i.Identifier.ValueText == "value")
+                .Where(i => i.Ancestors().Any(a => a.IsKind(SyntaxKind.Attribute)))
+                .Single();
+
+            Assert.Null(model.GetSymbolInfo(node).Symbol);
+        }
+
         [Fact]
         public void ParameterScope_InParameterAttributeNameOf_Constructor()
         {
@@ -10428,6 +10462,33 @@ public class MyAttribute : System.Attribute
 }
 ");
             comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(1556927, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1556927")]
+        public void LambdaOutsideMemberModel()
+        {
+            var text = @"
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+
+int P
+{
+    badAccessorName
+    {
+        M([My(nameof(P))] env => env);
+";
+            var comp = CreateCompilation(text);
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>()
+                .Where(i => i.Identifier.ValueText == "P")
+                .Where(i => i.Ancestors().Any(a => a.IsKind(SyntaxKind.Attribute)))
+                .Single();
+
+            Assert.Null(model.GetSymbolInfo(node).Symbol);
         }
     }
 }

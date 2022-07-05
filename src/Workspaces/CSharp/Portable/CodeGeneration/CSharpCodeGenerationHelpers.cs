@@ -178,10 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 CSharpDeclarationComparer.WithNamesInstance,
                 after, before);
 
-            if (availableIndices != null)
-            {
-                availableIndices.Insert(index, true);
-            }
+            availableIndices?.Insert(index, true);
 
             if (index != 0 && declarationList[index - 1].ContainsDiagnostics && AreBracesMissing(declarationList[index - 1]))
             {

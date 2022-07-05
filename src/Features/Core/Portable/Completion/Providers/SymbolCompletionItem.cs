@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    internal static partial class SymbolCompletionItem
+    internal static class SymbolCompletionItem
     {
         private const string InsertionTextProperty = "InsertionText";
 
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             if (symbols.Count > 1)
             {
-                return string.Join("|", symbols.Select(s => EncodeSymbol(s)));
+                return string.Join("|", symbols.Select(EncodeSymbol));
             }
             else if (symbols.Count == 1)
             {

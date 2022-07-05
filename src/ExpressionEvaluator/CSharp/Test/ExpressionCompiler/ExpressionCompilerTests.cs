@@ -1841,7 +1841,7 @@ class C
         }
 
         [Fact]
-        public void EvaluateUTF8StringLiteral_01()
+        public void EvaluateUtf8StringLiteral_01()
         {
             var source =
 @"class C
@@ -7263,6 +7263,38 @@ class C
                 resultProperties: out var resultProperties,
                 error: out var error);
             Assert.Equal("error CS0103: The name 'field' does not exist in the current context", error);
+        }
+
+        [Fact]
+        public void RefField()
+        {
+            var source =
+@"ref struct S<T>
+{
+    public ref T F;
+    public S(ref T t) { F = ref t; }
+}
+class Program
+{
+    static void Main()
+    {
+        int i = 1;
+        var s = new S<int>(ref i);
+    }
+}";
+            Evaluate(source, OutputKind.ConsoleApplication, "Program.Main", "s.F = 2").GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size       10 (0xa)
+  .maxstack  3
+  .locals init (int V_0, //i
+                S<int> V_1) //s
+  IL_0000:  ldloc.1
+  IL_0001:  ldfld      ""ref int S<int>.F""
+  IL_0006:  ldc.i4.2
+  IL_0007:  dup
+  IL_0008:  stind.i4
+  IL_0009:  ret
+}");
         }
     }
 }

@@ -51,6 +51,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)OrderModifiers\OrderModifiersTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveConfusingSuppression\RemoveConfusingSuppressionTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveRedundantEquality\RemoveRedundantEqualityTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryNullableDirective\CSharpRemoveRedundantNullableDirectiveTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryNullableDirective\CSharpRemoveUnnecessaryNullableDirectiveTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyLinqExpression\CSharpSimplifyLinqExpressionFixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyLinqExpression\CSharpSimplifyLinqExpressionTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UnsealClass\UnsealClassTests.cs" />
@@ -122,7 +124,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseSystemHashCode\UseSystemHashCodeTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseThrowExpression\UseThrowExpressionTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseThrowExpression\UseThrowExpressionTests_FixAllTests.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)UseUTF8StringLiteral\UseUTF8StringLiteralTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseUtf8StringLiteral\UseUtf8StringLiteralTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseVarTestExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ValidateFormatString\ValidateFormatStringTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NewLines\EmbeddedStatementPlacement\EmbeddedStatementPlacementTests.cs" />

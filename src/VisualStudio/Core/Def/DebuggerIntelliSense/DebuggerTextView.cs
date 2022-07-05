@@ -306,10 +306,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         {
             get
             {
-                if (_multiSelectionBroker == null)
-                {
-                    _multiSelectionBroker = _innerTextView.GetMultiSelectionBroker();
-                }
+                _multiSelectionBroker ??= _innerTextView.GetMultiSelectionBroker();
 
                 return _multiSelectionBroker;
             }

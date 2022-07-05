@@ -427,6 +427,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(value.Type is { } && (value.Type.Equals(placeholder.Type, TypeCompareKind.AllIgnoreOptions) || value.HasErrors));
         }
 
+#if DEBUG
         [Conditional("DEBUG")]
         private void AssertNoPlaceholderReplacements()
         {
@@ -435,6 +436,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(_placeholderReplacementMapDoNotUseDirectly.Count == 0);
             }
         }
+#endif
 
         /// <summary>
         /// Sets substitution used by the rewriter for a placeholder node.

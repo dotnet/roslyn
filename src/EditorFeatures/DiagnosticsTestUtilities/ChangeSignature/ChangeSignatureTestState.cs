@@ -100,10 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 
         public void Dispose()
         {
-            if (Workspace != null)
-            {
-                Workspace.Dispose();
-            }
+            Workspace?.Dispose();
         }
     }
 }

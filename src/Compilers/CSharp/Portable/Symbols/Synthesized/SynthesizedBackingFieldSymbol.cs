@@ -47,6 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isEarlyConstructed)
         {
             Debug.Assert(!string.IsNullOrEmpty(name));
+            Debug.Assert(property.RefKind is RefKind.None or RefKind.Ref or RefKind.RefReadOnly);
 
             _name = name;
 
@@ -89,6 +90,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<Location> Locations
             => _property.Locations;
+
+        public override RefKind RefKind => _property.RefKind;
+
+        public override ImmutableArray<CustomModifier> RefCustomModifiers => _property.RefCustomModifiers;
 
         internal override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
             => _property.TypeWithAnnotations;

@@ -2564,15 +2564,15 @@ class B<T, U> where T : A
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (10,27): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                // (10,9): error CS0704: Cannot do non-virtual member lookup in 'U' because it is a type parameter
                 //         U.ReferenceEquals(T.F, null);
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter"),
-                // (10,9): error CS0119: 'U' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "U").WithArguments("U").WithLocation(10, 9),
+                // (10,27): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         U.ReferenceEquals(T.F, null);
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "U").WithArguments("U", "type parameter"),
-                // (11,9): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(10, 27),
+                // (11,9): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         T.M();
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter"),
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(11, 9),
                 // (3,28): warning CS0649: Field 'A.F' is never assigned to, and will always have its default value null
                 //     internal static object F;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("A.F", "null")
@@ -11747,30 +11747,30 @@ class D<T> where T : A
     }
 }";
             CreateCompilation(text).VerifyDiagnostics(
-                // (9,15): error CS0704: Cannot do member lookup in 'T' because it is a type parameter class E : T.B { }
+                // (9,15): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter class E : T.B { }
                 Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T.B").WithArguments("T"),
-                // (10,30): error CS0704: Cannot do member lookup in 'T' because it is a type parameter
+                // (10,30): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //     interface I<U> where U : T.B { }
                 Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T.B").WithArguments("T"),
-                // (11,6): error CS0704: Cannot do member lookup in 'T' because it is a type parameter
+                // (11,6): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //     [T.B]
                 Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T.B").WithArguments("T"),
-                // (14,9): error CS0704: Cannot do member lookup in 'T' because it is a type parameter
+                // (14,9): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         T.C<object> b1 = new T.C<object>();
                 Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T.C<object>").WithArguments("T"),
-                // (14,30): error CS0704: Cannot do member lookup in 'T' because it is a type parameter
+                // (14,30): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         T.C<object> b1 = new T.C<object>();
                 Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T.C<object>").WithArguments("T"),
                 // (15,9): error CS0307: The type parameter 'T' cannot be used with type arguments
                 //         T<U>.B b2 = null;
                 Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "T<U>").WithArguments("T", "type parameter"),
-                // (16,22): error CS0704: Cannot do member lookup in 'T' because it is a type parameter
+                // (16,22): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         b1 = default(T.B);
                 Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T.B").WithArguments("T"),
-                // (17,27): error CS0704: Cannot do member lookup in 'T' because it is a type parameter
+                // (17,27): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         object o = typeof(T.C<A>);
                 Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T.C<A>").WithArguments("T"),
-                // (18,18): error CS0704: Cannot do member lookup in 'T' because it is a type parameter
+                // (18,18): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         o = o as T.B;
                 Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T.B").WithArguments("T")
                 );
