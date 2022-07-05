@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis;
@@ -105,44 +106,44 @@ namespace Microsoft.VisualStudio.LanguageServices
                     asyncListener,
                     threadingContext.DisposalToken);
 
-            codeWindow.GetPrimaryView(out var pTextViewPrimary);
-            StartTrackingView(pTextViewPrimary, out var textViewPrimary);
+            // Primary text view is expected to exist on window initialization.
+            if (ErrorHandler.Failed(codeWindow.GetPrimaryView(out var primaryTextView)))
+                Debug.Fail("GetPrimaryView failed during DocumentOutlineControl initialization.");
 
-            // Primary text view should always exist on window initialization unless an error is thrown.
-            if (textViewPrimary is null)
-                return;
+            if (ErrorHandler.Failed(StartTrackingView(primaryTextView)))
+                Debug.Fail("StartTrackingView failed during DocumentOutlineControl initialization.");
 
-            codeWindow.GetSecondaryView(out var pTextViewSecondary);
-            if (pTextViewSecondary is not null)
-                StartTrackingView(pTextViewSecondary, out var _);
+            if (ErrorHandler.Succeeded(codeWindow.GetSecondaryView(out var secondaryTextView)))
+            {
+                if (ErrorHandler.Failed(StartTrackingView(secondaryTextView)))
+                    Debug.Fail("StartTrackingView failed during DocumentOutlineControl initialization.");
+            }
 
             StartComputeModelTask();
         }
 
         int IVsCodeWindowEvents.OnNewView(IVsTextView pView)
         {
-            StartTrackingView(pView, out var _);
+            StartTrackingView(pView);
             return VSConstants.S_OK;
         }
 
-        private void StartTrackingView(IVsTextView pTextView, out IWpfTextView? wpfTextView)
+        private int StartTrackingView(IVsTextView textView)
         {
             ThreadingContext.ThrowIfNotOnUIThread();
-            wpfTextView = null;
-            if (pTextView != null)
-            {
-                wpfTextView = EditorAdaptersFactoryService.GetWpfTextView(pTextView);
-                if (wpfTextView != null)
-                {
-                    _trackedTextViews.Add(pTextView, wpfTextView);
-                    wpfTextView.Caret.PositionChanged += Caret_PositionChanged;
-                    wpfTextView.TextBuffer.Changed += TextBuffer_Changed;
-                }
-            }
+            var wpfTextView = EditorAdaptersFactoryService.GetWpfTextView(textView);
+            if (wpfTextView is null)
+                return VSConstants.E_FAIL;
+
+            _trackedTextViews.Add(textView, wpfTextView);
+            wpfTextView.Caret.PositionChanged += Caret_PositionChanged;
+            wpfTextView.TextBuffer.Changed += TextBuffer_Changed;
+            return VSConstants.S_OK;
         }
 
         int IVsCodeWindowEvents.OnCloseView(IVsTextView pView)
         {
+            ThreadingContext.ThrowIfNotOnUIThread();
             if (_trackedTextViews.TryGetValue(pView, out var view))
             {
                 view.Caret.PositionChanged -= Caret_PositionChanged;
