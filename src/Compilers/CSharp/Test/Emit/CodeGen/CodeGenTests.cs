@@ -17125,7 +17125,7 @@ partial class C
         System.Console.WriteLine(""in called"");
     }
 }
-static class Program
+static class Programverify: Verification.Skipped
 {
     static void Main()
     {
@@ -17226,6 +17226,121 @@ System.Threading.Tasks.Task`1[System.Object]
 Success
 True
 ", verify: Verification.FailsILVerify).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(61011, "https://github.com/dotnet/roslyn/issues/61011")]
+        public void Issue61011_TFMHasMember()
+        {
+            var source = """
+using System;
+
+class Program {
+    public static void Main(string[] args) {
+        int[] arr = new int[] {1, 2, 3, 4};
+        foreach (var i in arr) {
+            Console.Write($"{i}");
+        }
+    }
+}
+""";
+            var expect = @"
+{
+  // Code size       59 (0x3b)
+  .maxstack  3
+  .locals init (int[] V_0,
+                int V_1,
+                int V_2) //i
+  IL_0000:  ldc.i4.4
+  IL_0001:  ldc.i4.0
+  IL_0002:  call       ""int[] System.GC.AllocateUninitializedArray<int>(int, bool)""
+  IL_0007:  dup
+  IL_0008:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=16 <PrivateImplementationDetails>.CF97ADEEDB59E05BFD73A2B4C2A8885708C4F4F70C84C64B27120E72AB733B72""
+  IL_000d:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_0012:  stloc.0
+  IL_0013:  ldc.i4.0
+  IL_0014:  stloc.1
+  IL_0015:  br.s       IL_0034
+  IL_0017:  ldloc.0
+  IL_0018:  ldloc.1
+  IL_0019:  ldelem.i4
+  IL_001a:  stloc.2
+  IL_001b:  ldstr      ""{0}""
+  IL_0020:  ldloc.2
+  IL_0021:  box        ""int""
+  IL_0026:  call       ""string string.Format(string, object)""
+  IL_002b:  call       ""void System.Console.Write(string)""
+  IL_0030:  ldloc.1
+  IL_0031:  ldc.i4.1
+  IL_0032:  add
+  IL_0033:  stloc.1
+  IL_0034:  ldloc.1
+  IL_0035:  ldloc.0
+  IL_0036:  ldlen
+  IL_0037:  conv.i4
+  IL_0038:  blt.s      IL_0017
+  IL_003a:  ret
+}
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net50, expectedOutput: "1234")
+               .VerifyIL("Program.Main(string[])", expect);
+        }
+
+        [Fact]
+        [WorkItem(61011, "https://github.com/dotnet/roslyn/issues/61011")]
+        public void Issue61011_TFMDoesNotHaveMember()
+        {
+            var source = """
+using System;
+
+class Program {
+    public static void Main(string[] args) {
+        int[] arr = new int[] {1, 2, 3, 4};
+        foreach (var i in arr) {
+            Console.Write($"{i}");
+        }
+    }
+}
+""";
+            var expect = @"
+{
+  // Code size       58 (0x3a)
+  .maxstack  3
+  .locals init (int[] V_0,
+                int V_1,
+                int V_2) //i
+  IL_0000:  ldc.i4.4
+  IL_0001:  newarr     ""int""
+  IL_0006:  dup
+  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=16 <PrivateImplementationDetails>.CF97ADEEDB59E05BFD73A2B4C2A8885708C4F4F70C84C64B27120E72AB733B72""
+  IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_0011:  stloc.0
+  IL_0012:  ldc.i4.0
+  IL_0013:  stloc.1
+  IL_0014:  br.s       IL_0033
+  IL_0016:  ldloc.0
+  IL_0017:  ldloc.1
+  IL_0018:  ldelem.i4
+  IL_0019:  stloc.2
+  IL_001a:  ldstr      ""{0}""
+  IL_001f:  ldloc.2
+  IL_0020:  box        ""int""
+  IL_0025:  call       ""string string.Format(string, object)""
+  IL_002a:  call       ""void System.Console.Write(string)""
+  IL_002f:  ldloc.1
+  IL_0030:  ldc.i4.1
+  IL_0031:  add
+  IL_0032:  stloc.1
+  IL_0033:  ldloc.1
+  IL_0034:  ldloc.0
+  IL_0035:  ldlen
+  IL_0036:  conv.i4
+  IL_0037:  blt.s      IL_0016
+  IL_0039:  ret
+}
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.NetStandard20, expectedOutput: "1234")
+               .VerifyIL("Program.Main(string[])", expect);
         }
     }
 }

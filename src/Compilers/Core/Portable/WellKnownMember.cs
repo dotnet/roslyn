@@ -532,6 +532,8 @@ namespace Microsoft.CodeAnalysis
 
         System_MissingMethodException__ctor,
 
+        System_GC__AllocateUninitializedArray_T,
+
         Count
 
         // Remember to update the AllWellKnownTypeMembers tests when making changes here
