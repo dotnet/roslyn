@@ -12,15 +12,14 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings
     Friend Module NodeSelectionHelpers
         Friend Async Function GetSelectedMemberDeclarationAsync(context As CodeRefactoringContext) As Task(Of ImmutableArray(Of SyntaxNode))
-            Dim doc As Document = Nothing
-            Dim span As TextSpan = Nothing
-            Dim cancellationToken As CancellationToken = Nothing
-            context.Deconstruct(doc, span, cancellationToken)
+            Dim document As Document = context.Document
+            Dim span As TextSpan = context.Span
+            Dim cancellationToken As CancellationToken = context.CancellationToken
             If span.IsEmpty Then
                 ' MethodBaseSyntax also includes properties
                 Dim methodMember = Await context.TryGetRelevantNodeAsync(Of MethodBaseSyntax)().ConfigureAwait(False)
                 If methodMember IsNot Nothing Then
-                    Return ImmutableArray.Create(DirectCast(methodMember, SyntaxNode))
+                    Return ImmutableArray.Create(Of SyntaxNode)(methodMember)
                 End If
                 ' Gets field variable declarations (not including the keywords like Public/Shared, etc), which are not methods
                 Dim fieldDeclaration = Await context.TryGetRelevantNodeAsync(Of FieldDeclarationSyntax).ConfigureAwait(False)
@@ -31,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings
                     If modifiedIdentifier Is Nothing Then
                         Return ImmutableArray(Of SyntaxNode).Empty
                     Else
-                        Return ImmutableArray.Create(DirectCast(modifiedIdentifier, SyntaxNode))
+                        Return ImmutableArray.Create(Of SyntaxNode)(modifiedIdentifier)
                     End If
                 Else
                     ' Field declarations can contain multiple variables (each of which are a "member")
@@ -42,8 +41,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings
                 ' Note: even though this method handles the empty span case, we don't use it because it doesn't correctly
                 ' pick up on keywords before the declaration, such as "public static int".
                 ' We could potentially use it for every case if that behavior changes
-                Dim tree = Await doc.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
-                Return Await VisualBasicSelectedMembers.Instance.GetSelectedMembersAsync(tree, span, True, cancellationToken).ConfigureAwait(False)
+                Dim tree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
+                Return Await VisualBasicSelectedMembers.Instance.GetSelectedMembersAsync(tree, span, allowPartialSelection:=True, cancellationToken).ConfigureAwait(False)
             End If
         End Function
     End Module

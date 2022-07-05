@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PullMemberUp;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MoveStaticMembers
 {
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             }
 
             var selectedMemberNodes = await GetSelectedNodesAsync(context).ConfigureAwait(false);
-            if (selectedMemberNodes == null)
+            if (selectedMemberNodes.IsEmpty)
             {
                 return;
             }
@@ -41,27 +42,29 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             }
 
             var memberNodeSymbolPairs = selectedMemberNodes
-                .Select(m => (node: m, symbol: semanticModel.GetDeclaredSymbol(m, cancellationToken)))
+                .SelectAsArray(m => (node: m, symbol: semanticModel.GetRequiredDeclaredSymbol(m, cancellationToken)))
                 // Use same logic as pull members up for determining if a selected member
                 // is valid to be moved into a base
-                .Where(pair => pair.symbol != null && MemberAndDestinationValidator.IsMemberValid(pair.symbol) && pair.symbol.IsStatic)
-                .AsImmutable();
+                .WhereAsArray(pair => MemberAndDestinationValidator.IsMemberValid(pair.symbol) && pair.symbol.IsStatic);
 
-            var selectedMembers = memberNodeSymbolPairs.SelectAsArray(pair => pair.symbol!);
-
-            if (selectedMembers.IsEmpty)
+            if (memberNodeSymbolPairs.IsEmpty)
             {
                 return;
             }
 
+            var selectedMembers = memberNodeSymbolPairs.SelectAsArray(pair => pair.symbol);
+
             var containingType = selectedMembers.First().ContainingType;
-            if (containingType == null || selectedMembers.Any(static (m, containingType) => m.ContainingType != containingType, containingType))
+            Contract.ThrowIfNull(containingType);
+            if (selectedMembers.Any(m => m.ContainingType != containingType))
             {
                 return;
             }
 
             // we want to use a span which covers all the selected viable member nodes, so that more specific nodes have priority
-            var memberSpan = new SyntaxList<SyntaxNode>(memberNodeSymbolPairs.Select(pair => pair.node)).FullSpan;
+            var memberSpan = TextSpan.FromBounds(
+                memberNodeSymbolPairs.First().node.FullSpan.Start,
+                memberNodeSymbolPairs.Last().node.FullSpan.End);
 
             var action = new MoveStaticMembersWithDialogCodeAction(document, service, containingType, context.Options, selectedMembers);
 

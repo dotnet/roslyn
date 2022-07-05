@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings
     {
         internal static async Task<ImmutableArray<SyntaxNode>> GetSelectedDeclarationsOrVariablesAsync(CodeRefactoringContext context)
         {
-            var (doc, span, cancellationToken) = context;
+            var (document, span, cancellationToken) = context;
             if (span.IsEmpty)
             {
                 // if the span is empty then we are only selecting one "member" (which could include a field which declared multiple actual members)
@@ -32,23 +32,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings
                 {
                     // could not find a member, we may be directly on a variable declaration
                     var varDeclarator = await context.TryGetRelevantNodeAsync<VariableDeclaratorSyntax>().ConfigureAwait(false);
-                    if (varDeclarator == null)
-                    {
-                        return ImmutableArray<SyntaxNode>.Empty;
-                    }
-                    else
-                    {
-
-                        return ImmutableArray.Create(varDeclarator as SyntaxNode);
-                    }
+                    return varDeclarator == null
+                        ? ImmutableArray<SyntaxNode>.Empty
+                        : ImmutableArray.Create<SyntaxNode>(varDeclarator);
                 }
                 else
                 {
                     return memberDeclaration switch
                     {
-                        FieldDeclarationSyntax fieldDeclaration => fieldDeclaration.Declaration.Variables.Cast<SyntaxNode>().AsImmutable(),
-                        EventFieldDeclarationSyntax eventFieldDeclaration => eventFieldDeclaration.Declaration.Variables.Cast<SyntaxNode>().AsImmutable(),
-                        _ => ImmutableArray.Create(memberDeclaration as SyntaxNode),
+                        FieldDeclarationSyntax fieldDeclaration => fieldDeclaration.Declaration.Variables.AsImmutable<SyntaxNode>(),
+                        EventFieldDeclarationSyntax eventFieldDeclaration => eventFieldDeclaration.Declaration.Variables.AsImmutable<SyntaxNode>(),
+                        _ => ImmutableArray.Create<SyntaxNode>(memberDeclaration),
                     };
                 }
             }
@@ -58,8 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings
                 // Note: even though this method handles the empty span case, we don't use it because it doesn't correctly
                 // pick up on keywords before the declaration, such as "public static int".
                 // We could potentially use it for every case if that behavior changes
-                var tree = await doc.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                return await CSharpSelectedMembers.Instance.GetSelectedMembersAsync(tree, span, true, cancellationToken).ConfigureAwait(false);
+                var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                return await CSharpSelectedMembers.Instance.GetSelectedMembersAsync(tree, span, allowPartialSelection: true, cancellationToken).ConfigureAwait(false);
             }
         }
     }

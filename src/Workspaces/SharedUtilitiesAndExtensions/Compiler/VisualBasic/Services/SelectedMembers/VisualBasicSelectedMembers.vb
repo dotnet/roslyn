@@ -24,13 +24,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return containingType.Members
         End Function
 
-        Protected Overrides Function GetDeclaratorsAndIdentifiers(member As StatementSyntax) As IEnumerable(Of (identifier As SyntaxToken, declaration As SyntaxNode))
+        Protected Overrides Function GetDeclaratorsAndIdentifiers(member As StatementSyntax) As ImmutableArray(Of (declarator As SyntaxNode, identifier As SyntaxToken))
             If TypeOf member Is FieldDeclarationSyntax Then
                 Return DirectCast(member, FieldDeclarationSyntax).Declarators.
                     SelectMany(Function(decl) decl.Names.
-                        Select(Function(name) (identifier:=name.Identifier, declaration:=DirectCast(name, SyntaxNode))))
+                        Select(Function(name) (declarator:=DirectCast(name, SyntaxNode), identifier:=name.Identifier))).
+                    AsImmutable()
             Else
-                Return ImmutableArray.Create((identifier:=member.GetNameToken(), declaration:=DirectCast(member, SyntaxNode)))
+                Return ImmutableArray.Create((declaration:=DirectCast(member, SyntaxNode), identifier:=member.GetNameToken()))
             End If
         End Function
     End Class

@@ -48,25 +48,27 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var memberNodeSymbolPairs = selectedMemberNodes
-                .Select(m => (node: m, symbol: semanticModel.GetDeclaredSymbol(m, cancellationToken)))
-                .Where(pair => pair.symbol != null && MemberAndDestinationValidator.IsMemberValid(pair.symbol))
-                .AsImmutable();
+                .SelectAsArray(m => (node: m, symbol: semanticModel.GetRequiredDeclaredSymbol(m, cancellationToken)))
+                .WhereAsArray(pair => MemberAndDestinationValidator.IsMemberValid(pair.symbol));
 
-            var selectedMembers = memberNodeSymbolPairs.SelectAsArray(pair => pair.symbol!);
-
-            if (selectedMembers.IsEmpty)
+            if (memberNodeSymbolPairs.IsEmpty)
             {
                 return;
             }
 
+            var selectedMembers = memberNodeSymbolPairs.SelectAsArray(pair => pair.symbol);
+
             var containingType = selectedMembers.First().ContainingType;
-            if (containingType == null || selectedMembers.Any(static (m, containingType) => m.ContainingType != containingType, containingType))
+            Contract.ThrowIfNull(containingType);
+            if (selectedMembers.Any(m => m.ContainingType != containingType))
             {
                 return;
             }
 
             // we want to use a span which covers all the selected viable member nodes, so that more specific nodes have priority
-            var memberSpan = new SyntaxList<SyntaxNode>(memberNodeSymbolPairs.Select(pair => pair.node)).FullSpan;
+            var memberSpan = TextSpan.FromBounds(
+                memberNodeSymbolPairs.First().node.FullSpan.Start,
+                memberNodeSymbolPairs.Last().node.FullSpan.End);
 
             var allDestinations = FindAllValidDestinations(
                 selectedMembers,
@@ -79,12 +81,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             }
 
             var allActions = allDestinations.Select(destination => MembersPuller.TryComputeCodeAction(document, selectedMembers, destination, context.Options))
-                .WhereNotNull().Concat(new PullMemberUpWithDialogCodeAction(document, selectedMembers, _service, context.Options))
+                .WhereNotNull()
+                .Concat(new PullMemberUpWithDialogCodeAction(document, selectedMembers, _service, context.Options))
                 .ToImmutableArray();
 
-            var title = selectedMembers.IsSingle() ?
-                string.Format(FeaturesResources.Pull_0_up, selectedMembers.Single().ToNameDisplayString()) :
-                FeaturesResources.Pull_selected_members_up;
+            var title = selectedMembers.IsSingle()
+                ? string.Format(FeaturesResources.Pull_0_up, selectedMembers.Single().ToNameDisplayString())
+                : FeaturesResources.Pull_selected_members_up;
 
             var nestedCodeAction = CodeActionWithNestedActions.Create(
                 title,

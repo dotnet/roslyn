@@ -67,29 +67,27 @@ namespace Microsoft.CodeAnalysis.ExtractClass
             var (document, span, cancellationToken) = context;
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var memberNodeSymbolPairs = selectedMemberNodes
-                .Select(m => (node: m, symbol: semanticModel.GetDeclaredSymbol(m, cancellationToken)))
+                .SelectAsArray(m => (node: m, symbol: semanticModel.GetRequiredDeclaredSymbol(m, cancellationToken)))
                 // Use same logic as pull members up for determining if a selected member
                 // is valid to be moved into a base
-                .Where(pair => pair.symbol != null && MemberAndDestinationValidator.IsMemberValid(pair.symbol))
-                .AsImmutable();
+                .WhereAsArray(pair => MemberAndDestinationValidator.IsMemberValid(pair.symbol));
 
-            var selectedMembers = memberNodeSymbolPairs.SelectAsArray(pair => pair.symbol!);
-
-            if (selectedMembers.IsEmpty)
+            if (memberNodeSymbolPairs.IsEmpty)
             {
                 return null;
             }
+
+            var selectedMembers = memberNodeSymbolPairs.SelectAsArray(pair => pair.symbol);
 
             var containingType = selectedMembers.First().ContainingType;
-            if (containingType == null || selectedMembers.Any(m => m.ContainingType != containingType))
-            {
-                return null;
-            }
+            Contract.ThrowIfNull(containingType);
 
             // Treat the entire nodes' span as the span of interest here.  That way if the user's location is closer to
             // a refactoring with a narrower span (for example, a span just on the name/parameters of a member, then it
             // will take precedence over us).
-            var memberSpan = new SyntaxList<SyntaxNode>(memberNodeSymbolPairs.Select(pair => pair.node)).FullSpan;
+            var memberSpan = TextSpan.FromBounds(
+                memberNodeSymbolPairs.First().node.FullSpan.Start,
+                memberNodeSymbolPairs.Last().node.FullSpan.End);
 
             // Can't extract to a new type if there's already a base. Maybe
             // in the future we could inject a new type inbetween base and

@@ -54,14 +54,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractClass
             var notificationService = document.Project.Solution.Workspace.Services.GetRequiredService<INotificationService>();
 
             var membersInType = selectedType.GetMembers().
-               WhereAsArray(member => MemberAndDestinationValidator.IsMemberValid(member));
+               WhereAsArray(MemberAndDestinationValidator.IsMemberValid);
 
             var memberViewModels = membersInType
                 .SelectAsArray(member =>
                     new PullMemberUpSymbolViewModel(member, _glyphService)
                     {
                         // The member(s) user selected will be checked at the beginning.
-                        IsChecked = selectedMembers.Any(static (selectedMember, member) => SymbolEquivalenceComparer.Instance.Equals(selectedMember, member), member),
+                        IsChecked = selectedMembers.Any(SymbolEquivalenceComparer.Instance.Equals, member),
                         MakeAbstract = false,
                         IsMakeAbstractCheckable = !member.IsKind(SymbolKind.Field) && !member.IsAbstract,
                         IsCheckable = true

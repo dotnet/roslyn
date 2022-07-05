@@ -107,7 +107,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
                     new SymbolViewModel<ISymbol>(member, glyphService)
                     {
                         // The member(s) user selected will be checked at the beginning.
-                        IsChecked = selectedNodeSymbols.Any(static (selected, member) => SymbolEquivalenceComparer.Instance.Equals(selected, member), member),
+                        IsChecked = selectedNodeSymbols.Any(SymbolEquivalenceComparer.Instance.Equals, member),
                     });
 
             using var cancellationTokenSource = new CancellationTokenSource();

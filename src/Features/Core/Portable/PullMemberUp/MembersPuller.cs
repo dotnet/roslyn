@@ -44,15 +44,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 selectedMembers.SelectAsArray(m => (member: m, makeAbstract: false)));
 
             if (result.PullUpOperationNeedsToDoExtraChanges ||
-                selectedMembers.Any(
-                    static (m, destination) => IsSelectedMemberDeclarationAlreadyInDestination(m, destination), destination))
+                selectedMembers.Any(IsSelectedMemberDeclarationAlreadyInDestination, destination))
             {
                 return null;
             }
 
-            var title = selectedMembers.IsSingle() ?
-                string.Format(FeaturesResources.Pull_0_up_to_1, selectedMembers.Single().Name, result.Destination.Name) :
-                string.Format(FeaturesResources.Pull_selected_members_up_to_0, result.Destination.Name);
+            var title = selectedMembers.IsSingle()
+                ? string.Format(FeaturesResources.Pull_0_up_to_1, selectedMembers.Single().Name, result.Destination.Name)
+                : string.Format(FeaturesResources.Pull_selected_members_up_to_0, result.Destination.Name);
 
             return SolutionChangeAction.Create(
                 title,

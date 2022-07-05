@@ -10,6 +10,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 {
@@ -26,15 +27,15 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         {
         }
 
-        protected override IEnumerable<(SyntaxToken identifier, SyntaxNode declaration)> GetDeclaratorsAndIdentifiers(MemberDeclarationSyntax member)
+        protected override ImmutableArray<(SyntaxNode declarator, SyntaxToken identifier)> GetDeclaratorsAndIdentifiers(MemberDeclarationSyntax member)
         {
             return member switch
             {
-                FieldDeclarationSyntax fieldDeclaration => fieldDeclaration.Declaration.Variables.Select(
-                    v => (identifier: v.Identifier, declaration: v as SyntaxNode)),
-                EventFieldDeclarationSyntax eventFieldDeclaration => eventFieldDeclaration.Declaration.Variables.Select(
-                    v => (identifier: v.Identifier, declaration: v as SyntaxNode)),
-                _ => ImmutableArray.Create((identifier: member.GetNameToken(), declaration: member as SyntaxNode)),
+                FieldDeclarationSyntax fieldDeclaration => fieldDeclaration.Declaration.Variables.SelectAsArray(
+                    v => (declaration: (SyntaxNode)v, identifier: v.Identifier)),
+                EventFieldDeclarationSyntax eventFieldDeclaration => eventFieldDeclaration.Declaration.Variables.SelectAsArray(
+                    v => (declaration: (SyntaxNode)v, identifier: v.Identifier)),
+                _ => ImmutableArray.Create((declaration: (SyntaxNode)member, identifier: member.GetNameToken())),
             };
         }
 

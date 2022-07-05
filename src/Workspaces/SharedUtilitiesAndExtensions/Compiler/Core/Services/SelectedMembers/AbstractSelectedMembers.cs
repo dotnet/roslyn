@@ -29,15 +29,15 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         where TVariableSyntax : SyntaxNode
     {
         protected abstract SyntaxList<TMemberDeclarationSyntax> GetMembers(TTypeDeclarationSyntax containingType);
-        protected abstract IEnumerable<(SyntaxToken identifier, SyntaxNode declaration)> GetDeclaratorsAndIdentifiers(TMemberDeclarationSyntax member);
+        protected abstract ImmutableArray<(SyntaxNode declarator, SyntaxToken identifier)> GetDeclaratorsAndIdentifiers(TMemberDeclarationSyntax member);
 
-        public async Task<ImmutableArray<SyntaxNode>> GetSelectedFieldsAndPropertiesAsync(
+        public Task<ImmutableArray<SyntaxNode>> GetSelectedFieldsAndPropertiesAsync(
             SyntaxTree tree, TextSpan textSpan, bool allowPartialSelection, CancellationToken cancellationToken)
-                => await GetSelectedMembersAsync(tree, textSpan, allowPartialSelection, IsFieldOrProperty, cancellationToken).ConfigureAwait(false);
+                => GetSelectedMembersAsync(tree, textSpan, allowPartialSelection, IsFieldOrProperty, cancellationToken);
 
-        public async Task<ImmutableArray<SyntaxNode>> GetSelectedMembersAsync(
+        public Task<ImmutableArray<SyntaxNode>> GetSelectedMembersAsync(
             SyntaxTree tree, TextSpan textSpan, bool allowPartialSelection, CancellationToken cancellationToken)
-                => await GetSelectedMembersAsync(tree, textSpan, allowPartialSelection, m => true, cancellationToken).ConfigureAwait(false);
+                => GetSelectedMembersAsync(tree, textSpan, allowPartialSelection, static _ => true, cancellationToken);
 
         private async Task<ImmutableArray<SyntaxNode>> GetSelectedMembersAsync(
             SyntaxTree tree, TextSpan textSpan, bool allowPartialSelection,
@@ -85,18 +85,18 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             if (fieldIndex < 0)
                 return ImmutableArray<SyntaxNode>.Empty;
 
-            var selectedMembers = ArrayBuilder<SyntaxNode>.GetInstance();
+            using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var selectedMembers);
             for (var i = fieldIndex; i < members.Count; i++)
             {
                 var member = members[i];
                 AddSelectedMemberDeclarations(member, membersToKeep);
             }
 
-            return selectedMembers.ToImmutableAndFree();
+            return selectedMembers.ToImmutable();
 
             void AddAllMembers(TMemberDeclarationSyntax member)
             {
-                selectedMembers.AddRange(GetDeclaratorsAndIdentifiers(member).Select(pair => pair.declaration));
+                selectedMembers.AddRange(GetDeclaratorsAndIdentifiers(member).Select(pair => pair.declarator));
             }
 
             // local functions
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     }
                     else
                     {
-                        foreach (var (id, decl) in GetDeclaratorsAndIdentifiers(member))
+                        foreach (var (decl, id) in GetDeclaratorsAndIdentifiers(member))
                         {
                             if (id.FullSpan.IntersectsWith(position))
                             {
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     if (!allowPartialSelection)
                         return;
 
-                    foreach (var (id, decl) in GetDeclaratorsAndIdentifiers(member))
+                    foreach (var (decl, id) in GetDeclaratorsAndIdentifiers(member))
                     {
                         if (textSpan.OverlapsWith(id.Span))
                         {
