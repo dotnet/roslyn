@@ -183,11 +183,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private IEnumerable<uint> GetInitializedRunningDocumentTableCookies()
         {
-            foreach (var cookie in _runningDocumentTable.GetRunningDocuments())
+            // Some methods we need here only exist in IVsRunningDocumentTable and not the IVsRunningDocumentTable4 that we
+            // hold onto as a field
+            var runningDocumentTable = (IVsRunningDocumentTable)_runningDocumentTable;
+            ErrorHandler.ThrowOnFailure(runningDocumentTable.GetRunningDocumentsEnum(out var enumRunningDocuments));
+            var cookies = new uint[16];
+
+            while (ErrorHandler.Succeeded(enumRunningDocuments.Next((uint)cookies.Length, cookies, out var cookiesFetched))
+                   && cookiesFetched > 0)
             {
-                if (_runningDocumentTable.IsDocumentInitialized(cookie))
+                for (var cookieIndex = 0; cookieIndex < cookiesFetched; cookieIndex++)
                 {
-                    yield return cookie;
+                    var cookie = cookies[cookieIndex];
+
+                    if (_runningDocumentTable.IsDocumentInitialized(cookie))
+                    {
+                        yield return cookie;
+                    }
                 }
             }
         }
