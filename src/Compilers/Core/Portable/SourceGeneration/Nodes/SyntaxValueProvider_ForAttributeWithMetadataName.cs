@@ -85,19 +85,6 @@ public partial struct SyntaxValueProvider
 
         var nodesWithAttributesMatchingSimpleName = this.ForAttributeWithSimpleName(metadataName.UnmangledTypeName, predicate);
 
-        //var collectedNodes = nodesWithAttributesMatchingSimpleName
-        //    .Collect()
-        //    .WithComparer(ImmutableArrayValueComparer<SyntaxNode>.Instance)
-        //    .WithTrackingName("collectedNodes_ForAttributeWithMetadataName");
-
-        // Group all the nodes by syntax tree, so we can process a whole syntax tree at a time.  This will let us make
-        // the required semantic model for it once, instead of potentially many times (in the rare, but possible case of
-        // a single file with a ton of matching nodes in it).
-        //var groupedNodes = collectedNodes.SelectMany(
-        //    static (array, cancellationToken) =>
-        //        array.GroupBy(static n => n.SyntaxTree)
-        //             .Select(static g => new SyntaxNodeGrouping<SyntaxNode>(g))).WithTrackingName("groupedNodes_ForAttributeWithMetadataName");
-
         var compilationAndGroupedNodesProvider = nodesWithAttributesMatchingSimpleName
             .Combine(_context.CompilationProvider)
             .WithTrackingName("compilationAndGroupedNodes_ForAttributeWithMetadataName");

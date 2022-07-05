@@ -39,6 +39,10 @@ public partial struct SyntaxValueProvider
     /// <c>context.SyntaxProvider.CreateSyntaxProviderForAttribute(nameof(CLSCompliantAttribute), (node, c) => node is ClassDeclarationSyntax)</c>
     /// will find the <c>C</c> class.
     /// </summary>
+    /// <remarks>
+    /// Note: a 'Values'-provider of arrays are returned.  Each array provides all the matching nodes from a single <see
+    /// cref="SyntaxTree"/>.
+    /// </remarks>
     internal IncrementalValuesProvider<ImmutableArray<SyntaxNode>> ForAttributeWithSimpleName(
         string simpleName,
         Func<SyntaxNode, CancellationToken, bool> predicate)
@@ -85,7 +89,7 @@ public partial struct SyntaxValueProvider
 
         // Filter down to the trees that contain attributes in them.  in general, this will normally be smaller than the
         // number of total trees, allowing us to hold onto a much smaller number of nodes.
-        var rootsWithAttribute = syntaxTreesProvider.Where(
+        var treesContainingAttribute = syntaxTreesProvider.Where(
             (t, c) =>
             {
                 // Walk the green node tree first to avoid allocating the entire red tree for files that have no attributes.
@@ -93,12 +97,13 @@ public partial struct SyntaxValueProvider
                 return ContainsAttributeList(root.Green, syntaxHelper.AttributeListKind);
             });
 
-        var rootsWithAttributeAndGlobalAliasesProvider = rootsWithAttribute.Combine(allUpGlobalAliasesProvider)
+        var rootsWithAttributeAndGlobalAliasesProvider = treesContainingAttribute.Combine(allUpGlobalAliasesProvider)
             .WithTrackingName("compilationUnitAndGlobalAliases_ForAttribute");
 
         return rootsWithAttributeAndGlobalAliasesProvider.Select(
             (tuple, c) => GetMatchingNodes(syntaxHelper, tuple.Right, tuple.Left, simpleName, predicate, c))
-            .WithTrackingName("result_ForAttribute");
+            .WithComparer(ImmutableArrayValueComparer<SyntaxNode>.Instance)
+            .WithTrackingName("result_ForAttributeInternal");
 
         static GlobalAliases getGlobalAliasesInCompilationUnit(
             ISyntaxHelper syntaxHelper,
