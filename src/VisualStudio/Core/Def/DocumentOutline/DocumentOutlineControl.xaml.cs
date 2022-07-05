@@ -124,6 +124,7 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         int IVsCodeWindowEvents.OnNewView(IVsTextView pView)
         {
+            ThreadingContext.ThrowIfNotOnUIThread();
             StartTrackingView(pView);
             return VSConstants.S_OK;
         }
@@ -131,6 +132,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         private int StartTrackingView(IVsTextView textView)
         {
             ThreadingContext.ThrowIfNotOnUIThread();
+
             var wpfTextView = EditorAdaptersFactoryService.GetWpfTextView(textView);
             if (wpfTextView is null)
                 return VSConstants.E_FAIL;
@@ -147,10 +149,12 @@ namespace Microsoft.VisualStudio.LanguageServices
         int IVsCodeWindowEvents.OnCloseView(IVsTextView pView)
         {
             ThreadingContext.ThrowIfNotOnUIThread();
+
             if (_trackedTextViews.TryGetValue(pView, out var view))
             {
                 view.Caret.PositionChanged -= Caret_PositionChanged;
-                view.TextBuffer.Changed -= TextBuffer_Changed;
+                if (_trackedTextViews.Count == 1)
+                    view.TextBuffer.Changed -= TextBuffer_Changed;
 
                 _trackedTextViews.Remove(pView);
             }
