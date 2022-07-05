@@ -39,7 +39,7 @@
       </trans-unit>
       <trans-unit id="Fix_constraint">
         <source>Fix constraint</source>
-        <target state="new">Fix constraint</target>
+        <target state="translated">修正限制式</target>
         <note />
       </trans-unit>
       <trans-unit id="Declare_as_nullable">
@@ -54,7 +54,7 @@
       </trans-unit>
       <trans-unit id="Fix_record_declaration">
         <source>Fix record declaration</source>
-        <target state="new">Fix record declaration</target>
+        <target state="translated">修正記錄宣告</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_return_type">
