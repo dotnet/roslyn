@@ -1251,7 +1251,7 @@ tryAgain:
                         }
 
                     case DeclarationModifiers.File:
-                        if (!IsFeatureEnabled(MessageID.IDS_FeatureFileTypes) && !ShouldContextualKeywordBeTreatedAsModifier(parsingStatementNotDeclaration: false))
+                        if ((!IsFeatureEnabled(MessageID.IDS_FeatureFileTypes) || forTopLevelStatements) && !ShouldContextualKeywordBeTreatedAsModifier(parsingStatementNotDeclaration: false))
                         {
                             return;
                         }

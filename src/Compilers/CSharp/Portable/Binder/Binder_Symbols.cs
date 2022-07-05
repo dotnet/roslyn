@@ -1819,7 +1819,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (best.IsFromFile && !secondBest.IsFromFile)
                         {
                             // a lookup of a file type is "better" than a lookup of a non-file type; no need to further diagnose
-                            // PROTOTYPE(ft): some "single symbol" diagnostics are missed here for similar reasons
+                            // https://github.com/dotnet/roslyn/issues/62331
+                            // some "single symbol" diagnostics are missed here for similar reasons
                             // that make us miss diagnostics when reporting WRN_SameFullNameThisAggAgg.
                             // 
                             return first;

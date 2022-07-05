@@ -192,7 +192,6 @@ public class FileModifierParsingTests : ParsingTests
         EOF();
     }
 
-    // PROTOTYPE(ft): is it fine that records parse as a single declaration here, but not other type kinds?
     [Theory]
     [InlineData(SyntaxKind.RecordKeyword)]
     public void FileModifier_04(SyntaxKind typeKeyword)
@@ -239,7 +238,6 @@ public class FileModifierParsingTests : ParsingTests
         EOF();
     }
 
-    // PROTOTYPE(ft): is it fine that records parse here, but not other type kinds?
     [Fact]
     public void FileModifier_06()
     {
@@ -332,22 +330,53 @@ public class FileModifierParsingTests : ParsingTests
         UsingNode($$"""
             file partial ref struct C { }
             """,
-            // (1,14): error CS1585: Member modifier 'ref' must precede the member type and name
-            // file partial ref struct C { }
-            Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(1, 14));
+            expectedParsingDiagnostics: new[]
+            {
+                // (1,14): error CS1003: Syntax error, ',' expected
+                // file partial ref struct C { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",").WithLocation(1, 14),
+                // (1,18): error CS1002: ; expected
+                // file partial ref struct C { }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 18)
+            },
+            expectedBindingDiagnostics: new[]
+            {
+                // (1,1): error CS0246: The type or namespace name 'file' could not be found (are you missing a using directive or an assembly reference?)
+                // file partial ref struct C { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "file").WithArguments("file").WithLocation(1, 1),
+                // (1,6): warning CS0168: The variable 'partial' is declared but never used
+                // file partial ref struct C { }
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "partial").WithArguments("partial").WithLocation(1, 6),
+                // (1,14): error CS1003: Syntax error, ',' expected
+                // file partial ref struct C { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",").WithLocation(1, 14),
+                // (1,18): error CS1002: ; expected
+                // file partial ref struct C { }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 18)
+            });
+
         N(SyntaxKind.CompilationUnit);
         {
-            N(SyntaxKind.IncompleteMember);
+            N(SyntaxKind.GlobalStatement);
             {
-                N(SyntaxKind.FileKeyword);
-                N(SyntaxKind.IdentifierName);
+                N(SyntaxKind.LocalDeclarationStatement);
                 {
-                    N(SyntaxKind.IdentifierToken, "partial");
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "file");
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "partial");
+                        }
+                    }
+                    M(SyntaxKind.SemicolonToken);
                 }
             }
             N(SyntaxKind.StructDeclaration);
             {
-                N(SyntaxKind.RefKeyword);
                 N(SyntaxKind.StructKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
@@ -478,7 +507,7 @@ public class FileModifierParsingTests : ParsingTests
             """,
             expectedBindingDiagnostics: new[]
             {
-                // (1,20): error CS9301: File type 'C' cannot use accessibility modifiers.
+                // (1,20): error CS9052: File type 'C' cannot use accessibility modifiers.
                 // public file {{SyntaxFacts.GetText(typeKeyword)}} C { }
                 Diagnostic(ErrorCode.ERR_FileTypeNoExplicitAccessibility, "C").WithArguments("C")
             });
@@ -511,7 +540,7 @@ public class FileModifierParsingTests : ParsingTests
             """,
             expectedBindingDiagnostics: new[]
             {
-                // (1,19): error CS9301: File type 'C' cannot use accessibility modifiers.
+                // (1,19): error CS9052: File type 'C' cannot use accessibility modifiers.
                 // file public {{SyntaxFacts.GetText(typeKeyword)}} C { }
                 Diagnostic(ErrorCode.ERR_FileTypeNoExplicitAccessibility, "C").WithArguments("C")
             });
@@ -667,7 +696,7 @@ public class FileModifierParsingTests : ParsingTests
             """,
             expectedBindingDiagnostics: new[]
             {
-                // (3,16): error CS9303: File type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
+                // (3,16): error CS9054: File type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
                 //     file class C { }
                 Diagnostic(ErrorCode.ERR_FileTypeNested, "C").WithArguments("Outer.C").WithLocation(3, 16)
             });
@@ -1211,9 +1240,9 @@ public class FileModifierParsingTests : ParsingTests
             """,
             expectedBindingDiagnostics: new[]
             {
-                // (1,12): warning CS8981: The type name 'file' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // (1,12): error CS9056: Types and aliases cannot be named 'file'.
                 // file class file { }
-                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "file").WithArguments("file").WithLocation(1, 12)
+                Diagnostic(ErrorCode.ERR_FileTypeNameDisallowed, "file").WithLocation(1, 12)
             });
 
         N(SyntaxKind.CompilationUnit);
@@ -1366,7 +1395,6 @@ public class FileModifierParsingTests : ParsingTests
         EOF();
     }
 
-    // PROTOTYPE(ft): confirm with LDM whether this breaking change is acceptable (compared to CSharp10 version above).
     [Fact]
     public void MemberNamedFile_07()
     {
@@ -1407,6 +1435,7 @@ public class FileModifierParsingTests : ParsingTests
         }
         EOF();
     }
+
     [Fact]
     public void MemberNamedFile_08()
     {
@@ -1415,9 +1444,9 @@ public class FileModifierParsingTests : ParsingTests
             """,
             expectedBindingDiagnostics: new[]
             {
-                // (1,8): warning CS8981: The type name 'file' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // (1,8): error CS9056: Types and aliases cannot be named 'file'.
                 // record file { }
-                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "file").WithArguments("file").WithLocation(1, 8)
+                Diagnostic(ErrorCode.ERR_FileTypeNameDisallowed, "file").WithLocation(1, 8)
             });
 
         N(SyntaxKind.CompilationUnit);
@@ -1426,6 +1455,85 @@ public class FileModifierParsingTests : ParsingTests
             {
                 N(SyntaxKind.RecordKeyword);
                 N(SyntaxKind.IdentifierToken, "file");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void TypeNamedFile_01()
+    {
+        UsingNode($$"""
+            class file { }
+            """,
+            expectedBindingDiagnostics: new[]
+            {
+                // (1,7): error CS9056: Types and aliases cannot be named 'file'.
+                // class file { }
+                Diagnostic(ErrorCode.ERR_FileTypeNameDisallowed, "file").WithLocation(1, 7)
+            });
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "file");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void TypeNamedFile_01_CSharp10()
+    {
+        UsingNode($$"""
+            class file { }
+            """,
+            options: TestOptions.Regular10,
+            expectedBindingDiagnostics: new[]
+            {
+                // (1,7): warning CS8981: The type name 'file' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // class file { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "file").WithArguments("file").WithLocation(1, 7)
+            });
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "file");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Theory]
+    [InlineData(LanguageVersion.CSharp10)]
+    [InlineData(LanguageVersionFacts.CSharpNext)]
+    public void TypeNamedFile_02(LanguageVersion languageVersion)
+    {
+        UsingNode($$"""
+            class @file { }
+            """,
+            options: TestOptions.Regular.WithLanguageVersion(languageVersion));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "@file");
                 N(SyntaxKind.OpenBraceToken);
                 N(SyntaxKind.CloseBraceToken);
             }
@@ -1473,7 +1581,10 @@ public class FileModifierParsingTests : ParsingTests
         {
             N(SyntaxKind.IncompleteMember);
             {
-                N(SyntaxKind.FileKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "file");
+                }
             }
             N(SyntaxKind.EndOfFileToken);
         }
@@ -1521,32 +1632,26 @@ public class FileModifierParsingTests : ParsingTests
         UsingNode($$"""
             file;
             """,
-            expectedParsingDiagnostics: new[]
-            {
-                // (1,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
-                // file;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "file").WithLocation(1, 1)
-            },
             expectedBindingDiagnostics: new[]
             {
-                // (1,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // (1,1): error CS0103: The name 'file' does not exist in the current context
                 // file;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "file").WithLocation(1, 1),
-                // (1,5): error CS8937: At least one top-level statement must be non-empty.
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "file").WithArguments("file").WithLocation(1, 1),
+                // (1,1): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 // file;
-                Diagnostic(ErrorCode.ERR_SimpleProgramIsEmpty, ";").WithLocation(1, 5)
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "file").WithLocation(1, 1)
             });
 
         N(SyntaxKind.CompilationUnit);
         {
-            N(SyntaxKind.IncompleteMember);
-            {
-                N(SyntaxKind.FileKeyword);
-            }
             N(SyntaxKind.GlobalStatement);
             {
-                N(SyntaxKind.EmptyStatement);
+                N(SyntaxKind.ExpressionStatement);
                 {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "file");
+                    }
                     N(SyntaxKind.SemicolonToken);
                 }
             }
@@ -1607,18 +1712,33 @@ public class FileModifierParsingTests : ParsingTests
         UsingNode($$"""
             file namespace NS;
             """,
+            expectedParsingDiagnostics: new[]
+            {
+                // (1,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // file namespace NS;
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "file").WithLocation(1, 1)
+            },
             expectedBindingDiagnostics: new[]
             {
-                // (1,1): error CS1671: A namespace declaration cannot have modifiers or attributes
+                // (1,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 // file namespace NS;
-                Diagnostic(ErrorCode.ERR_BadModifiersOnNamespace, "file").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "file").WithLocation(1, 1),
+                // (1,16): error CS8956: File-scoped namespace must precede all other members in a file.
+                // file namespace NS;
+                Diagnostic(ErrorCode.ERR_FileScopedNamespaceNotBeforeAllMembers, "NS").WithLocation(1, 16)
             });
 
         N(SyntaxKind.CompilationUnit);
         {
+            N(SyntaxKind.IncompleteMember);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "file");
+                }
+            }
             N(SyntaxKind.FileScopedNamespaceDeclaration);
             {
-                N(SyntaxKind.FileKeyword);
                 N(SyntaxKind.NamespaceKeyword);
                 N(SyntaxKind.IdentifierName);
                 {
@@ -1675,18 +1795,24 @@ public class FileModifierParsingTests : ParsingTests
         UsingNode($$"""
             file namespace NS { }
             """,
-            expectedBindingDiagnostics: new[]
+            expectedParsingDiagnostics: new[]
             {
-                // (1,1): error CS1671: A namespace declaration cannot have modifiers or attributes
+                // (1,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 // file namespace NS { }
-                Diagnostic(ErrorCode.ERR_BadModifiersOnNamespace, "file").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "file").WithLocation(1, 1)
             });
 
         N(SyntaxKind.CompilationUnit);
         {
+            N(SyntaxKind.IncompleteMember);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "file");
+                }
+            }
             N(SyntaxKind.NamespaceDeclaration);
             {
-                N(SyntaxKind.FileKeyword);
                 N(SyntaxKind.NamespaceKeyword);
                 N(SyntaxKind.IdentifierName);
                 {
@@ -1704,7 +1830,7 @@ public class FileModifierParsingTests : ParsingTests
     public void File_Repeated()
     {
         const int FileModifiersCount = 100000;
-        var manyFileModifiers = string.Join(" ", Enumerable.Repeat<string>("file", FileModifiersCount));
+        var manyFileModifiers = string.Join(" ", Enumerable.Repeat("file", FileModifiersCount));
         UsingNode(manyFileModifiers,
             expectedParsingDiagnostics: new[]
             {
@@ -1715,9 +1841,13 @@ public class FileModifierParsingTests : ParsingTests
         {
             N(SyntaxKind.IncompleteMember);
             {
-                for (var i = 0; i < FileModifiersCount; i++)
+                for (var i = 0; i < FileModifiersCount - 1; i++)
                 {
                     N(SyntaxKind.FileKeyword);
+                }
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "file");
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -2007,7 +2137,7 @@ public class FileModifierParsingTests : ParsingTests
             """,
             expectedBindingDiagnostics: new[]
             {
-                // (3,17): error CS9303: File type 'C.X' must be defined in a top level type; 'C.X' is a nested type.
+                // (3,17): error CS9054: File type 'C.X' must be defined in a top level type; 'C.X' is a nested type.
                 //     file record X();
                 Diagnostic(ErrorCode.ERR_FileTypeNested, "X").WithArguments("C.X").WithLocation(3, 17)
             });
@@ -2105,7 +2235,7 @@ public class FileModifierParsingTests : ParsingTests
             """,
             expectedBindingDiagnostics: new[]
             {
-                // (3,17): error CS9303: File type 'C.X' must be defined in a top level type; 'C.X' is a nested type.
+                // (3,17): error CS9054: File type 'C.X' must be defined in a top level type; 'C.X' is a nested type.
                 //     file record X() { }
                 Diagnostic(ErrorCode.ERR_FileTypeNested, "X").WithArguments("C.X").WithLocation(3, 17)
             });
@@ -2200,7 +2330,7 @@ public class FileModifierParsingTests : ParsingTests
             """,
             expectedBindingDiagnostics: new[]
             {
-                // (3,17): error CS9303: File type 'C.X' must be defined in a top level type; 'C.X' is a nested type.
+                // (3,17): error CS9054: File type 'C.X' must be defined in a top level type; 'C.X' is a nested type.
                 //     file record X;
                 Diagnostic(ErrorCode.ERR_FileTypeNested, "X").WithArguments("C.X").WithLocation(3, 17)
             });
@@ -2377,14 +2507,15 @@ public class FileModifierParsingTests : ParsingTests
         EOF();
     }
 
-    // PROTOTYPE(ft): confirm whether this breaking change is acceptable
-    [Fact]
-    public void TopLevelVariable_01_CSharp10()
+    [Theory]
+    [InlineData(LanguageVersion.CSharp10)]
+    [InlineData(LanguageVersionFacts.CSharpNext)]
+    public void TopLevelVariable_01(LanguageVersion languageVersion)
     {
         UsingNode("""
             file file;
             """,
-            options: TestOptions.Regular10,
+            options: TestOptions.Regular.WithLanguageVersion(languageVersion),
             expectedBindingDiagnostics: new[]
             {
                 // (1,1): error CS0118: 'file' is a variable but is used like a type
@@ -2420,52 +2551,15 @@ public class FileModifierParsingTests : ParsingTests
         EOF();
     }
 
-    [Fact]
-    public void TopLevelVariable_01()
-    {
-        UsingNode("""
-            file file;
-            """,
-            expectedParsingDiagnostics: new[]
-            {
-                // (1,6): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
-                // file file;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "file").WithLocation(1, 6)
-            },
-            expectedBindingDiagnostics: new[]
-            {
-                // (1,6): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
-                // file file;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "file").WithLocation(1, 6),
-                // (1,10): error CS8937: At least one top-level statement must be non-empty.
-                // file file;
-                Diagnostic(ErrorCode.ERR_SimpleProgramIsEmpty, ";").WithLocation(1, 10)
-            });
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.IncompleteMember);
-            {
-                N(SyntaxKind.FileKeyword);
-                N(SyntaxKind.FileKeyword);
-            }
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.EmptyStatement);
-                {
-                    N(SyntaxKind.SemicolonToken);
-                }
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
-    [Fact]
-    public void TopLevelVariable_02()
+    [Theory]
+    [InlineData(LanguageVersion.CSharp10)]
+    [InlineData(LanguageVersionFacts.CSharpNext)]
+    public void TopLevelVariable_02(LanguageVersion languageVersion)
     {
         UsingNode("""
             int file;
             """,
+            options: TestOptions.Regular.WithLanguageVersion(languageVersion),
             expectedBindingDiagnostics: new[]
             {
                 // (1,5): warning CS0168: The variable 'file' is declared but never used
@@ -2497,36 +2591,23 @@ public class FileModifierParsingTests : ParsingTests
         EOF();
     }
 
-    [Fact]
-    public void TopLevelVariable_04()
+    [Theory]
+    [InlineData(LanguageVersion.CSharp10)]
+    [InlineData(LanguageVersionFacts.CSharpNext)]
+    public void TopLevelVariable_03(LanguageVersion languageVersion)
     {
-        // PROTOTYPE(ft): this should parse and compile without errors
-        // we will share a common solution with 'required' and 'scoped' here.
         UsingNode("""
             bool file;
             file = true;
             """,
-            expectedParsingDiagnostics: new[]
-            {
-                // (2,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
-                // file = true;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "file").WithLocation(2, 1),
-                // (2,6): error CS1525: Invalid expression term '='
-                // file = true;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(2, 6)
-            },
+            options: TestOptions.Regular.WithLanguageVersion(languageVersion),
             expectedBindingDiagnostics: new[]
             {
-                // (1,6): warning CS0168: The variable 'file' is declared but never used
+                // (1,6): warning CS0219: The variable 'file' is assigned but its value is never used
                 // bool file;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "file").WithArguments("file").WithLocation(1, 6),
-                // (2,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
-                // file = true;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "file").WithLocation(2, 1),
-                // (2,6): error CS1525: Invalid expression term '='
-                // file = true;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(2, 6)
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "file").WithArguments("file").WithLocation(1, 6)
             });
+
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.GlobalStatement);
@@ -2547,19 +2628,15 @@ public class FileModifierParsingTests : ParsingTests
                     N(SyntaxKind.SemicolonToken);
                 }
             }
-            N(SyntaxKind.IncompleteMember);
-            {
-                N(SyntaxKind.FileKeyword);
-            }
             N(SyntaxKind.GlobalStatement);
             {
                 N(SyntaxKind.ExpressionStatement);
                 {
                     N(SyntaxKind.SimpleAssignmentExpression);
                     {
-                        M(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.IdentifierName);
                         {
-                            M(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "file");
                         }
                         N(SyntaxKind.EqualsToken);
                         N(SyntaxKind.TrueLiteralExpression);
@@ -2568,6 +2645,85 @@ public class FileModifierParsingTests : ParsingTests
                         }
                     }
                     N(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void Variable_01()
+    {
+        UsingNode("""
+            void M()
+            {
+                bool file;
+                file = true;
+            }
+            """,
+            expectedBindingDiagnostics: new[]
+            {
+                // (1,6): warning CS8321: The local function 'M' is declared but never used
+                // void M()
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "M").WithArguments("M").WithLocation(1, 6),
+                // (3,10): warning CS0219: The variable 'file' is assigned but its value is never used
+                //     bool file;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "file").WithArguments("file").WithLocation(3, 10)
+            });
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.LocalFunctionStatement);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "M");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.LocalDeclarationStatement);
+                        {
+                            N(SyntaxKind.VariableDeclaration);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.BoolKeyword);
+                                }
+                                N(SyntaxKind.VariableDeclarator);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "file");
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.ExpressionStatement);
+                        {
+                            N(SyntaxKind.SimpleAssignmentExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "file");
+                                }
+                                N(SyntaxKind.EqualsToken);
+                                N(SyntaxKind.TrueLiteralExpression);
+                                {
+                                    N(SyntaxKind.TrueKeyword);
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
                 }
             }
             N(SyntaxKind.EndOfFileToken);

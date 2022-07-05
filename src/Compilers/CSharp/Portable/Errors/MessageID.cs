@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureRelaxedShiftOperator = MessageBase + 12825,
         IDS_FeatureRequiredMembers = MessageBase + 12826,
         IDS_FeatureRefFields = MessageBase + 12827,
-        IDS_FeatureFileTypes = MessageBase + 12850, // PROTOTYPE(ft): pack ID before merge
+        IDS_FeatureFileTypes = MessageBase + 12828,
     }
 
     // Message IDs may refer to strings that need to be localized.

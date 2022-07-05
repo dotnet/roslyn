@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var substitutedSourceMethod = method.SubstitutedSourceMethod;
             _parameterOffset = substitutedSourceMethod.IsStatic ? 0 : 1;
             _targetParameters = method.Parameters;
-            // PROTOTYPE(ft): add tests and adjust implementation to allow EE to access file types
+            // https://github.com/dotnet/roslyn/issues/62334: add tests and adjust implementation to allow EE to access file types
             _sourceBinder = new InMethodBinder(substitutedSourceMethod, new BuckStopsHereBinder(next.Compilation, associatedSyntaxTree: null));
         }
 

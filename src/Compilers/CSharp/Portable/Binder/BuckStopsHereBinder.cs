@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// In speculative scenarios, the syntax tree from the original compilation used as the speculation context.
         /// This is <see langword="null"/> in some scenarios, such as the binder used for <see cref="CSharpCompilation.Conversions" />
         /// or the binder used to bind usings in <see cref="CSharpCompilation.UsingsFromOptionsAndDiagnostics"/>.
-        /// PROTOTYPE(ft): what about in EE scenarios?
+        /// https://github.com/dotnet/roslyn/issues/62332: what about in EE scenarios?
         /// </summary>
         internal readonly SyntaxTree? AssociatedSyntaxTree;
 

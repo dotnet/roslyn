@@ -34,8 +34,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var diagnostics = new DiagnosticBag();
-                // PROTOTYPE(ft): should usings from compilation options be allowed to bring file types into scope?
-                // it doesn't seem to work for non-file types within the compilaton, so can probably do the same for file types.
                 var usingsBinder = new InContainerBinder(compilation.GlobalNamespace, new BuckStopsHereBinder(compilation, associatedSyntaxTree: null));
                 var boundUsings = ArrayBuilder<NamespaceOrTypeAndUsingDirective>.GetInstance();
                 var uniqueUsings = PooledHashSet<NamespaceOrTypeSymbol>.GetInstance();
