@@ -7265,6 +7265,7 @@ class C
             Assert.Equal("error CS0103: The name 'field' does not exist in the current context", error);
         }
 
+        [Fact]
         public void RefField()
         {
             var source =
