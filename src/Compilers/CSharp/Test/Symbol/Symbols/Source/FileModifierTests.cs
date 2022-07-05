@@ -2595,6 +2595,8 @@ public class FileModifierTests : CSharpTestBase
     public void SemanticModel_01()
     {
         var source = """
+            namespace NS;
+
             file class C
             {
                 public static void M() { }
@@ -2618,20 +2620,45 @@ public class FileModifierTests : CSharpTestBase
         var model = compilation.GetSemanticModel(tree, ignoreAccessibility: false);
 
         var info = model.GetSymbolInfo(((ExpressionStatementSyntax)body.Statements.First()).Expression);
-        Assert.Equal(compilation.GetMember("C.M").GetPublicSymbol(), info.Symbol);
+        Assert.Equal("void NS.C@<tree 0>.M()", info.Symbol.ToTestDisplayString());
 
-        var classC = compilation.GetMember("C").GetPublicSymbol();
+        var classC = compilation.GetMember("NS.C").GetPublicSymbol();
+        Assert.Equal("NS.C@<tree 0>", classC.ToTestDisplayString());
+
+        // lookup with no container
         var symbols = model.LookupSymbols(body.OpenBraceToken.EndPosition, name: "C");
         Assert.Equal(new[] { classC }, symbols);
 
         symbols = model.LookupSymbols(body.OpenBraceToken.EndPosition);
         Assert.Contains(classC, symbols);
+
+        // lookup with a correct container
+        var nsSymbol = compilation.GetMember<NamespaceSymbol>("NS").GetPublicSymbol();
+        Assert.Equal("NS", nsSymbol.ToTestDisplayString());
+
+        symbols = model.LookupSymbols(body.OpenBraceToken.EndPosition, container: nsSymbol, name: "C");
+        Assert.Equal(new[] { classC }, symbols);
+
+        symbols = model.LookupSymbols(body.OpenBraceToken.EndPosition, container: nsSymbol);
+        Assert.Contains(classC, symbols);
+
+        // lookup with an incorrect container
+        nsSymbol = compilation.GetMember<NamespaceSymbol>("System").GetPublicSymbol();
+        Assert.Equal("System", nsSymbol.ToTestDisplayString());
+
+        symbols = model.LookupSymbols(body.OpenBraceToken.EndPosition, container: nsSymbol, name: "C");
+        Assert.Empty(symbols);
+
+        symbols = model.LookupSymbols(body.OpenBraceToken.EndPosition, container: nsSymbol);
+        Assert.DoesNotContain(classC, symbols);
     }
 
     [Fact]
     public void SemanticModel_02()
     {
         var source = """
+            namespace NS;
+
             file class C
             {
                 public static void M() { }
@@ -2639,6 +2666,8 @@ public class FileModifierTests : CSharpTestBase
             """;
 
         var main = """
+            namespace NS;
+
             class Program
             {
                 public void M()
@@ -2650,9 +2679,9 @@ public class FileModifierTests : CSharpTestBase
 
         var compilation = CreateCompilation(new[] { source, main });
         compilation.VerifyDiagnostics(
-            // (5,9): error CS0103: The name 'C' does not exist in the current context
-            //         C.M();
-            Diagnostic(ErrorCode.ERR_NameNotInContext, "C").WithArguments("C").WithLocation(5, 9)
+            // (7,9): error CS0103: The name 'C' does not exist in the current context
+            //         C.M(); // 1
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "C").WithArguments("C").WithLocation(7, 9)
             );
 
         var tree = compilation.SyntaxTrees[1];
@@ -2665,11 +2694,35 @@ public class FileModifierTests : CSharpTestBase
         Assert.Empty(info.CandidateSymbols);
         Assert.Equal(CandidateReason.None, info.CandidateReason);
 
+        var classC = compilation.GetMember("NS.C").GetPublicSymbol();
+        Assert.Equal("NS.C@<tree 0>", classC.ToTestDisplayString());
+
+        // lookup with no container
         var symbols = model.LookupSymbols(body.OpenBraceToken.EndPosition, name: "C");
         Assert.Empty(symbols);
 
         symbols = model.LookupSymbols(body.OpenBraceToken.EndPosition);
-        Assert.DoesNotContain(compilation.GetMember("C").GetPublicSymbol(), symbols);
+        Assert.DoesNotContain(classC, symbols);
+
+        // lookup with a correct container (still don't find the symbol due to lookup occurring in other file)
+        var nsSymbol = compilation.GetMember<NamespaceSymbol>("NS").GetPublicSymbol();
+        Assert.Equal("NS", nsSymbol.ToTestDisplayString());
+
+        symbols = model.LookupSymbols(body.OpenBraceToken.EndPosition, container: nsSymbol, name: "C");
+        Assert.Empty(symbols);
+
+        symbols = model.LookupSymbols(body.OpenBraceToken.EndPosition, container: nsSymbol);
+        Assert.DoesNotContain(classC, symbols);
+
+        // lookup with an incorrect container
+        nsSymbol = compilation.GetMember<NamespaceSymbol>("System").GetPublicSymbol();
+        Assert.Equal("System", nsSymbol.ToTestDisplayString());
+
+        symbols = model.LookupSymbols(body.OpenBraceToken.EndPosition, container: nsSymbol, name: "C");
+        Assert.Empty(symbols);
+
+        symbols = model.LookupSymbols(body.OpenBraceToken.EndPosition, container: nsSymbol);
+        Assert.DoesNotContain(classC, symbols);
     }
 
     [Fact]
