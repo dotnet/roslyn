@@ -530,7 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public bool Is(TypeParameterSymbol other)
         {
-            return NullableAnnotation.IsOblivious() && ((object)DefaultType == other) &&
+            return !NullableAnnotation.IsAnnotated() && ((object)DefaultType == other) &&
                    CustomModifiers.IsEmpty;
         }
 
