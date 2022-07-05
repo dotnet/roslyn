@@ -60,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         private readonly AsyncBatchingWorkQueue<DocumentSymbolItem> _jumpToContentQueue;
 
         /// <summary>
-        /// Keeps track of the current primary and secondary text views.
+        /// Keeps track of the current primary and secondary text views. Should only be accessed by the UI thread.
         /// </summary>
         private readonly Dictionary<IVsTextView, ITextView> _trackedTextViews = new();
 
