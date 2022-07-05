@@ -2664,6 +2664,7 @@ End Namespace"
             Dim expectedText2 = "Namespace TestNs
     Class Class1Helpers
         Public Shared Foo As Integer = 0
+
         Public Shared Function DoSomething() As Integer
             Return 4
         End Function
@@ -2704,6 +2705,7 @@ End Namespace"
             Dim expectedText2 = "Namespace TestNs
     Class Class1Helpers
         Public Shared Foo As Integer = 0
+
         Public Shared ReadOnly Property Prop As Integer
             Get
                 Return 4
