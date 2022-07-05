@@ -24,27 +24,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
     internal static class DocumentOutlineHelper
     {
         /// <summary>
-        /// The text snapshot from when the document symbol request was made.
-        /// </summary>
-        private static ITextSnapshot? LspSnapshot { get; set; }
-
-        /// <summary>
-        /// The text snapshot from the last active text view.
-        /// </summary>
-        private static ITextSnapshot? CurrentSnapshot { get; set; }
-
-        /// <summary>
-        /// Is true when LspSnapshot and CurrentSnapshot have been initialized.
-        /// </summary>
-        [MemberNotNullWhen(true, nameof(LspSnapshot), nameof(CurrentSnapshot))]
-        private static bool IsSnapshotInitialized { get; set; }
-
-        /// <summary>
-        /// The caret position of the last active text view.
-        /// </summary>
-        private static int CaretPosition { get; set; }
-
-        /// <summary>
         /// Given an array of all Document Symbols in a document, returns an array containing the 
         /// top-level Document Symbols and their nested children.
         /// </summary>
@@ -63,61 +42,52 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             return GroupDocumentSymbolTrees(allSymbols)
                 .Select(group => CreateDocumentSymbolTree(group))
                 .ToArray();
-        }
 
-        /// <summary>
-        /// Groups a flat array of Document Symbols into arrays containing the symbols of each tree.
-        /// </summary>
-        /// <remarks>
-        /// The first symbol in an array is always the parent (determines the group's position range).
-        /// </remarks>
-        private static ImmutableArray<ImmutableArray<DocumentSymbol>> GroupDocumentSymbolTrees(ImmutableArray<DocumentSymbol> allSymbols)
-        {
-            var documentSymbolGroups = ArrayBuilder<ImmutableArray<DocumentSymbol>>.GetInstance();
-            if (allSymbols.Length == 0)
+            // Groups a flat array of Document Symbols into arrays containing the symbols of each tree.
+            // The first symbol in an array is always the parent (determines the group's position range).
+            static ImmutableArray<ImmutableArray<DocumentSymbol>> GroupDocumentSymbolTrees(ImmutableArray<DocumentSymbol> allSymbols)
             {
+                var documentSymbolGroups = ArrayBuilder<ImmutableArray<DocumentSymbol>>.GetInstance();
+                if (allSymbols.Length == 0)
+                {
+                    return documentSymbolGroups.ToImmutableAndFree();
+                }
+
+                var currentGroup = ArrayBuilder<DocumentSymbol>.GetInstance(1, allSymbols.First());
+                var currentRange = allSymbols.First().Range;
+                for (var i = 1; i < allSymbols.Length; i++)
+                {
+                    var symbol = allSymbols[i];
+                    // If the symbol's range is in the parent symbol's range
+                    if (symbol.Range.Start.Line > currentRange.Start.Line && symbol.Range.End.Line < currentRange.End.Line)
+                    {
+                        currentGroup.Add(symbol);
+                    }
+                    else
+                    {
+                        // Push existing group
+                        documentSymbolGroups.Add(currentGroup.ToImmutableAndFree());
+                        // Create new group with this symbol as the parent
+                        currentGroup = ArrayBuilder<DocumentSymbol>.GetInstance(1, symbol);
+                        currentRange = symbol.Range;
+                    }
+                }
+
+                documentSymbolGroups.Add(currentGroup.ToImmutableAndFree());
                 return documentSymbolGroups.ToImmutableAndFree();
             }
 
-            var currentGroup = ArrayBuilder<DocumentSymbol>.GetInstance(1, allSymbols.First());
-            var currentRange = allSymbols.First().Range;
-            for (var i = 1; i < allSymbols.Length; i++)
+            // Given a flat array containing a Document Symbol and its descendants, returns the Document Symbol
+            // with its descendants recursively nested. The first Document Symbol in the array is considered the root node.
+            static DocumentSymbol CreateDocumentSymbolTree(ImmutableArray<DocumentSymbol> documentSymbols)
             {
-                var symbol = allSymbols[i];
-                // If the symbol's range is in the parent symbol's range
-                if (symbol.Range.Start.Line > currentRange.Start.Line && symbol.Range.End.Line < currentRange.End.Line)
-                {
-                    currentGroup.Add(symbol);
-                }
-                else
-                {
-                    // Push existing group
-                    documentSymbolGroups.Add(currentGroup.ToImmutableAndFree());
-                    // Create new group with this symbol as the parent
-                    currentGroup = ArrayBuilder<DocumentSymbol>.GetInstance(1, symbol);
-                    currentRange = symbol.Range;
-                }
+                var node = documentSymbols.First();
+                var childDocumentSymbols = documentSymbols.RemoveAt(0);
+                node.Children = GroupDocumentSymbolTrees(childDocumentSymbols)
+                    .Select(group => CreateDocumentSymbolTree(group))
+                    .ToArray();
+                return node;
             }
-
-            documentSymbolGroups.Add(currentGroup.ToImmutableAndFree());
-            return documentSymbolGroups.ToImmutableAndFree();
-        }
-
-        /// <summary>
-        /// Given a flat array containing a Document Symbol and its descendants, returns the Document Symbol
-        /// with its descendants recursively nested.
-        /// </summary>
-        /// /// <remarks>
-        /// The first Document Symbol in the array is considered the root node.
-        /// </remarks>
-        private static DocumentSymbol CreateDocumentSymbolTree(ImmutableArray<DocumentSymbol> documentSymbols)
-        {
-            var node = documentSymbols.First();
-            var childDocumentSymbols = documentSymbols.RemoveAt(0);
-            node.Children = GroupDocumentSymbolTrees(childDocumentSymbols)
-                .Select(group => CreateDocumentSymbolTree(group))
-                .ToArray();
-            return node;
         }
 
         /// <summary>
@@ -179,36 +149,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         }
 
         /// <summary>
-        /// Compares the order of two DocumentSymbolViewModels using their positions in the latest editor snapshot.
-        /// </summary>
-        /// <remarks>
-        /// The parameter oldSnapshot refers to the snapshot used when the LSP document symbol request was made
-        /// to obtain the symbol and currentSnapshot refers to the latest snapshot in the editor. These parameters
-        /// are required to obtain the latest DocumentSymbolItem range positions in the new snapshot.
-        /// </remarks>
-        public static int CompareSymbolOrder(DocumentSymbolItem x, DocumentSymbolItem y, ITextSnapshot oldSnapshot, ITextSnapshot currentSnapshot)
-        {
-            var xStartPosition = oldSnapshot.GetLineFromLineNumber(x.StartPosition.Line).Start.Position + x.StartPosition.Character;
-            var yStartPosition = oldSnapshot.GetLineFromLineNumber(y.StartPosition.Line).Start.Position + y.StartPosition.Character;
-
-            var xCurrentStartPosition = new SnapshotPoint(currentSnapshot, xStartPosition).Position;
-            var yCurrentStartPosition = new SnapshotPoint(currentSnapshot, yStartPosition).Position;
-
-            return xCurrentStartPosition - yCurrentStartPosition;
-        }
-
-        /// <summary>
-        /// Compares the type (SymbolKind) of two DocumentSymbolViewModels.
-        /// </summary>
-        public static int CompareSymbolType(DocumentSymbolItem x, DocumentSymbolItem y)
-        {
-            if (x.SymbolKind == y.SymbolKind)
-                return x.Name.CompareTo(y.Name);
-
-            return x.SymbolKind - y.SymbolKind;
-        }
-
-        /// <summary>
         /// Sorts and returns an immutable array of DocumentSymbolViewModels based on a SortOption.
         /// </summary>
         /// <remarks>
@@ -255,6 +195,27 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             }
 
             return sortedDocumentSymbolModels;
+
+            // Compares the order of two DocumentSymbolViewModels using their positions in the latest editor snapshot.
+            static int CompareSymbolOrder(DocumentSymbolItem x, DocumentSymbolItem y, ITextSnapshot oldSnapshot, ITextSnapshot currentSnapshot)
+            {
+                var xStartPosition = oldSnapshot.GetLineFromLineNumber(x.StartPosition.Line).Start.Position + x.StartPosition.Character;
+                var yStartPosition = oldSnapshot.GetLineFromLineNumber(y.StartPosition.Line).Start.Position + y.StartPosition.Character;
+
+                var xCurrentStartPosition = new SnapshotPoint(currentSnapshot, xStartPosition).Position;
+                var yCurrentStartPosition = new SnapshotPoint(currentSnapshot, yStartPosition).Position;
+
+                return xCurrentStartPosition - yCurrentStartPosition;
+            }
+
+            // Compares the type (SymbolKind) of two DocumentSymbolViewModels.
+            static int CompareSymbolType(DocumentSymbolItem x, DocumentSymbolItem y)
+            {
+                if (x.SymbolKind == y.SymbolKind)
+                    return x.Name.CompareTo(y.Name);
+
+                return x.SymbolKind - y.SymbolKind;
+            }
         }
 
         /// <summary>
@@ -272,23 +233,21 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             }
 
             return documentSymbols.ToImmutableAndFree();
-        }
 
-        /// <summary>
-        /// Returns true if the name of one of the tree nodes results in a pattern match.
-        /// </summary>
-        public static bool SearchNodeTree(DocumentSymbolItem tree, PatternMatcher patternMatcher)
-        {
-            if (patternMatcher.Matches(tree.Name))
-                return true;
-
-            foreach (var childItem in tree.Children)
+            // Returns true if the name of one of the tree nodes results in a pattern match.
+            static bool SearchNodeTree(DocumentSymbolItem tree, PatternMatcher patternMatcher)
             {
-                if (SearchNodeTree(childItem, patternMatcher))
+                if (patternMatcher.Matches(tree.Name))
                     return true;
-            }
 
-            return false;
+                foreach (var childItem in tree.Children)
+                {
+                    if (SearchNodeTree(childItem, patternMatcher))
+                        return true;
+                }
+
+                return false;
+            }
         }
 
         /// <summary>
@@ -305,11 +264,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             ITextSnapshot lspSnapshot,
             int caretPosition)
         {
-            LspSnapshot = lspSnapshot;
-            CurrentSnapshot = currentSnapshot;
-            CaretPosition = caretPosition;
-            IsSnapshotInitialized = true;
-
             UnselectAll(symbolTreeItemsSource);
             var selectedNode = GetNodeSelectedByCaret(symbolTreeItemsSource);
             if (selectedNode is not null)
@@ -323,44 +277,35 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                     UnselectAll(documentSymbolModel.Children);
                 }
             }
-        }
 
-        /// <summary>
-        /// Sets the IsSelected field of a DocumentSymbolItem or one of its descendants to true.
-        /// </summary>
-        /// <remarks>
-        /// Assumes the caret position is in range of the given DocumentSymbolItem.
-        /// </remarks>
-        public static void SelectNode(DocumentSymbolItem symbol)
-        {
-            var selectedChildSymbol = GetNodeSelectedByCaret(symbol.Children);
-            if (selectedChildSymbol is not null)
-                SelectNode(selectedChildSymbol);
-            else
-                symbol.IsSelected = true;
-        }
-
-        /// <summary>
-        /// Returns a DocumentSymbolItem if the current caret position is in its range and null otherwise.
-        /// </summary>
-        public static DocumentSymbolItem? GetNodeSelectedByCaret(ImmutableArray<DocumentSymbolItem> symbolTreeItemsSource)
-        {
-            if (IsSnapshotInitialized)
+            // Returns a DocumentSymbolItem if the current caret position is in its range and null otherwise.
+            DocumentSymbolItem? GetNodeSelectedByCaret(ImmutableArray<DocumentSymbolItem> symbolTreeItemsSource)
             {
                 foreach (var symbol in symbolTreeItemsSource)
                 {
-                    var oldStartPosition = LspSnapshot.GetLineFromLineNumber(symbol.StartPosition.Line).Start.Position + symbol.StartPosition.Character;
-                    var oldEndPosition = LspSnapshot.GetLineFromLineNumber(symbol.EndPosition.Line).Start.Position + symbol.EndPosition.Character;
+                    var oldStartPosition = lspSnapshot.GetLineFromLineNumber(symbol.StartPosition.Line).Start.Position + symbol.StartPosition.Character;
+                    var oldEndPosition = lspSnapshot.GetLineFromLineNumber(symbol.EndPosition.Line).Start.Position + symbol.EndPosition.Character;
 
-                    var currentStartPosition = new SnapshotPoint(CurrentSnapshot, oldStartPosition).Position;
-                    var currentEndPosition = new SnapshotPoint(CurrentSnapshot, oldEndPosition).Position;
+                    var currentStartPosition = new SnapshotPoint(currentSnapshot, oldStartPosition).Position;
+                    var currentEndPosition = new SnapshotPoint(currentSnapshot, oldEndPosition).Position;
 
-                    if (currentStartPosition <= CaretPosition && CaretPosition <= currentEndPosition)
+                    if (currentStartPosition <= caretPosition && caretPosition <= currentEndPosition)
                         return symbol;
                 }
+
+                return null;
             }
 
-            return null;
+            // Sets the IsSelected field of a DocumentSymbolItem or one of its descendants to true.
+            // Assumes the caret position is in range of the given DocumentSymbolItem.
+            void SelectNode(DocumentSymbolItem symbol)
+            {
+                var selectedChildSymbol = GetNodeSelectedByCaret(symbol.Children);
+                if (selectedChildSymbol is not null)
+                    SelectNode(selectedChildSymbol);
+                else
+                    symbol.IsSelected = true;
+            }
         }
     }
 }
