@@ -35,6 +35,7 @@ using Roslyn.Utilities;
 using Xunit;
 using CS = Microsoft.CodeAnalysis.CSharp;
 using static Microsoft.CodeAnalysis.UnitTests.SolutionTestHelpers;
+using Microsoft.CodeAnalysis.Indentation;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -1942,7 +1943,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // stop observing it and let GC reclaim it
             if (PlatformInformation.IsWindows || PlatformInformation.IsRunningOnMono)
             {
-                Assert.IsType<TemporaryStorageServiceFactory.TemporaryStorageService>(workspace.Services.GetService<ITemporaryStorageService>());
+                Assert.IsType<TemporaryStorageService>(workspace.Services.GetService<ITemporaryStorageService>());
                 observedText.AssertReleased();
             }
             else
@@ -3265,16 +3266,16 @@ class C
                     projectReferences: new[] { new ProjectReference(dependsOnVbNormalProject.Id) }));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestOptionChangesForLanguagesNotInSolution()
         {
             // Create an empty solution with no projects.
             using var workspace = CreateWorkspace();
             var s0 = workspace.CurrentSolution;
-            var optionService = workspace.Services.GetRequiredService<IOptionService>();
+            var optionService = workspace.Services.GetRequiredService<ILegacyWorkspaceOptionService>();
 
             // Apply an option change to a C# option.
-            var option = GenerationOptions.PlaceSystemNamespaceFirst;
+            var option = FormattingOptions.UseTabs;
             var defaultValue = option.DefaultValue;
             var changedValue = !defaultValue;
             var options = s0.Options.WithChangedOption(option, LanguageNames.CSharp, changedValue);

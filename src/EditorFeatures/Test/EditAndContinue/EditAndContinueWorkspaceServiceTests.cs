@@ -1736,15 +1736,23 @@ class C { int Y => 2; }
         {
             using var _ = CreateWorkspace(out var solution, out var service);
 
+            var pathA = Path.Combine(TempRoot.Root, "A.cs");
+            var pathB = Path.Combine(TempRoot.Root, "B.cs");
+            var pathC = Path.Combine(TempRoot.Root, "C.cs");
+            var pathD = Path.Combine(TempRoot.Root, "D.cs");
+            var pathX = Path.Combine(TempRoot.Root, "X");
+            var pathY = Path.Combine(TempRoot.Root, "Y");
+            var pathCommon = Path.Combine(TempRoot.Root, "Common.cs");
+
             solution = solution.
                 AddProject("A", "A", "C#").
-                AddDocument("A.cs", "class Program { void Main() { System.Console.WriteLine(1); } }", filePath: "A.cs").Project.Solution.
+                AddDocument("A.cs", "class Program { void Main() { System.Console.WriteLine(1); } }", filePath: pathA).Project.Solution.
                 AddProject("B", "B", "C#").
-                AddDocument("Common.cs", "class Common {}", filePath: "Common.cs").Project.
-                AddDocument("B.cs", "class B {}", filePath: "B.cs").Project.Solution.
+                AddDocument("Common.cs", "class Common {}", filePath: pathCommon).Project.
+                AddDocument("B.cs", "class B {}", filePath: pathB).Project.Solution.
                 AddProject("C", "C", "C#").
-                AddDocument("Common.cs", "class Common {}", filePath: "Common.cs").Project.
-                AddDocument("C.cs", "class C {}", filePath: "C.cs").Project.Solution;
+                AddDocument("Common.cs", "class Common {}", filePath: pathCommon).Project.
+                AddDocument("C.cs", "class C {}", filePath: pathC).Project.Solution;
 
             var debuggingSession = await StartDebuggingSessionAsync(service, solution);
             EnterBreakState(debuggingSession);
@@ -1757,9 +1765,9 @@ class C { int Y => 2; }
 
             Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
 
-            Assert.False(await EditSession.HasChangesAsync(oldSolution, solution, sourceFilePath: "Common.cs", CancellationToken.None));
-            Assert.False(await EditSession.HasChangesAsync(oldSolution, solution, sourceFilePath: "B.cs", CancellationToken.None));
-            Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, sourceFilePath: "C.cs", CancellationToken.None));
+            Assert.False(await EditSession.HasChangesAsync(oldSolution, solution, sourceFilePath: pathCommon, CancellationToken.None));
+            Assert.False(await EditSession.HasChangesAsync(oldSolution, solution, sourceFilePath: pathB, CancellationToken.None));
+            Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, sourceFilePath: pathC, CancellationToken.None));
             Assert.False(await EditSession.HasChangesAsync(oldSolution, solution, sourceFilePath: "NonexistentFile.cs", CancellationToken.None));
 
             // All projects must have no errors.
@@ -1771,10 +1779,10 @@ class C { int Y => 2; }
             oldSolution = solution;
             projectC = solution.GetProjectsByName("C").Single();
             var documentDId = DocumentId.CreateNewId(projectC.Id);
-            solution = solution.AddDocument(documentDId, "D", "class D {}", filePath: "D.cs");
+            solution = solution.AddDocument(documentDId, "D", "class D {}", filePath: pathD);
 
             Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
-            Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, sourceFilePath: "D.cs", CancellationToken.None));
+            Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, sourceFilePath: pathD, CancellationToken.None));
 
             // remove a document:
 
@@ -1782,14 +1790,14 @@ class C { int Y => 2; }
             solution = solution.RemoveDocument(documentDId);
 
             Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
-            Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, sourceFilePath: "D.cs", CancellationToken.None));
+            Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, sourceFilePath: pathD, CancellationToken.None));
 
             // add an additional document:
 
             oldSolution = solution;
             projectC = solution.GetProjectsByName("C").Single();
             var documentXId = DocumentId.CreateNewId(projectC.Id);
-            solution = solution.AddAdditionalDocument(documentXId, "X", "xxx", filePath: "X");
+            solution = solution.AddAdditionalDocument(documentXId, "X", "xxx", filePath: pathX);
 
             Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
 
@@ -1801,7 +1809,7 @@ class C { int Y => 2; }
             oldSolution = solution;
             projectC = solution.GetProjectsByName("C").Single();
             var documentYId = DocumentId.CreateNewId(projectC.Id);
-            solution = solution.AddAnalyzerConfigDocument(documentYId, "Y", SourceText.From("yyy"), filePath: "Y");
+            solution = solution.AddAnalyzerConfigDocument(documentYId, "Y", SourceText.From("yyy"), filePath: pathY);
 
             Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
 
@@ -3081,7 +3089,10 @@ class C { int Y => 1; }
             (solution, var documentA) = AddDefaultTestProject(solution, source1);
             var projectA = documentA.Project;
 
-            var projectB = solution.AddProject("B", "A", "C#").AddMetadataReferences(projectA.MetadataReferences).AddDocument("DocB", source1, filePath: "DocB.cs").Project;
+            var projectB = solution.AddProject("B", "A", "C#").
+                AddMetadataReferences(projectA.MetadataReferences).
+                AddDocument("DocB", source1, filePath: Path.Combine(TempRoot.Root, "DocB.cs")).Project;
+
             solution = projectB.Solution;
 
             _mockCompilationOutputsProvider = project =>
@@ -3448,7 +3459,7 @@ class C { int Y => 1; }
             using var _ = CreateWorkspace(out var solution, out var service, new[] { typeof(DummyLanguageService) });
 
             var project = solution.AddProject("dummy_proj", "dummy_proj", designTimeOnly ? LanguageNames.CSharp : DummyLanguageService.LanguageName);
-            var filePath = withPath ? Path.Combine(TempRoot.Root, "test") : null;
+            var filePath = withPath ? Path.Combine(TempRoot.Root, "test.cs") : null;
 
             var documentInfo = DocumentInfo.Create(
                 DocumentId.CreateNewId(project.Id, "test"),

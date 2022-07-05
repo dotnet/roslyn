@@ -18,8 +18,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// </summary>
     internal static class Utilities
     {
-        private const string MSBuildRoslynFolderName = "Roslyn";
-
         /// <summary>
         /// Copied from msbuild. ItemSpecs are normalized using this method.
         /// </summary>

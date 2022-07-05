@@ -147,7 +147,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 // We only care about the line, so just tag the start.
                 context.AddTag(new TagSpan<InheritanceMarginTag>(
                     new SnapshotSpan(snapshot, line.Start, length: 0),
-                    new InheritanceMarginTag(document.Project.Solution.Workspace, lineNumber, membersOnTheLineArray)));
+                    new InheritanceMarginTag(lineNumber, membersOnTheLineArray)));
             }
         }
     }

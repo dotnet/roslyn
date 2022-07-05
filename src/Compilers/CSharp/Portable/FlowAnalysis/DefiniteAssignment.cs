@@ -896,7 +896,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return !init.Constructor.IsImplicitlyDeclared || init.InitializerExpressionOpt != null;
                 case BoundKind.TupleLiteral:
                 case BoundKind.ConvertedTupleLiteral:
-                case BoundKind.UTF8String:
+                case BoundKind.Utf8String:
                     return false;
                 default:
                     return true;

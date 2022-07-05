@@ -657,8 +657,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             // Remove all our adornments and restore all buffer texts to their initial state.
             DismissUIAndRollbackEdits();
 
-            _triggerView.Caret.PositionChanged += LogPositionChanged;
-
             // We're about to perform the final commit action.  No need to do any of our BG work to find-refs or compute conflicts.
             _cancellationTokenSource.Cancel();
             _conflictResolutionTaskCancellationSource.Cancel();
@@ -678,8 +676,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             // Log how long the full rename took.
             _inlineRenameSessionDurationLogBlock.Dispose();
-
-            _triggerView.Caret.PositionChanged -= LogPositionChanged;
 
             return;
 
@@ -709,17 +705,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
 
                 RenameService.ActiveSession = null;
-            }
-
-            void LogPositionChanged(object sender, CaretPositionChangedEventArgs e)
-            {
-                try
-                {
-                    throw new InvalidOperationException("Caret position changed during application of rename");
-                }
-                catch (InvalidOperationException ex) when (FatalError.ReportAndCatch(ex))
-                {
-                }
             }
         }
 

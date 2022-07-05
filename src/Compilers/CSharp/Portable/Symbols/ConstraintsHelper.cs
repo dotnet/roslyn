@@ -985,6 +985,13 @@ hasRelatedInterfaces:
                                                                            ignoreTypeConstraintsDependentOnTypeParametersOpt);
             bool hasError = false;
 
+            if (typeArgument.Type is NamedTypeSymbol { IsInterface: true } iface && SelfOrBaseHasStaticAbstractMember(iface, ref useSiteInfo, out Symbol member))
+            {
+                diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter,
+                    new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, iface, member))));
+                hasError = true;
+            }
+
             foreach (var constraintType in constraintTypes)
             {
                 CheckConstraintType(containingSymbol, in args, typeParameter, typeArgument, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt, ref useSiteInfo, constraintType, ref hasError);
@@ -1078,20 +1085,7 @@ hasRelatedInterfaces:
             ErrorCode errorCode;
             if (typeArgument.Type.IsReferenceType)
             {
-                // When constraint has static abstract members this needs to be further restricted so that generic argument cannot itself be an interface.
-                if (typeArgument.Type.IsInterfaceType() && constraintType.Type.IsInterfaceType() &&
-                    args.Conversions.WithNullability(false).HasIdentityOrImplicitReferenceConversion(typeArgument.Type, constraintType.Type, ref useSiteInfo))
-                {
-#if DEBUG
-                    var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                    Debug.Assert(SelfOrBaseHasStaticAbstractMember(constraintType, ref discardedUseSiteInfo));
-#endif
-                    errorCode = ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers;
-                }
-                else
-                {
-                    errorCode = ErrorCode.ERR_GenericConstraintNotSatisfiedRefType;
-                }
+                errorCode = ErrorCode.ERR_GenericConstraintNotSatisfiedRefType;
             }
             else if (typeArgument.IsNullableType())
             {
@@ -1261,13 +1255,6 @@ hasRelatedInterfaces:
 
             if (conversions.HasIdentityOrImplicitReferenceConversion(typeArgument.Type, constraintType.Type, ref useSiteInfo))
             {
-                // When constraint has static abstract members this needs to be further restricted so that generic argument cannot itself be an interface.
-                if (typeArgument.Type.IsInterfaceType() && constraintType.Type.IsInterfaceType() &&
-                    SelfOrBaseHasStaticAbstractMember(constraintType, ref useSiteInfo))
-                {
-                    return false;
-                }
-
                 return true;
             }
 
@@ -1305,29 +1292,34 @@ hasRelatedInterfaces:
             return false;
         }
 
-        private static bool SelfOrBaseHasStaticAbstractMember(TypeWithAnnotations constraintType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private static bool SelfOrBaseHasStaticAbstractMember(NamedTypeSymbol iface, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, out Symbol memberWithoutImplementation)
         {
-            Debug.Assert(constraintType.Type.IsInterfaceType());
+            Debug.Assert(iface.IsInterfaceType());
 
-            Func<Symbol, bool> predicate = static m => m.IsStatic && (m.IsAbstract || m.IsVirtual);
-            var definition = (NamedTypeSymbol)constraintType.Type.OriginalDefinition;
-
-            if (definition.GetMembersUnordered().Any(predicate))
+            foreach (Symbol m in iface.GetMembers())
             {
-                return true;
-            }
-
-            foreach (var baseInterface in definition.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Keys)
-            {
-                var baseDefinition = baseInterface.OriginalDefinition;
-                if (baseDefinition.GetMembersUnordered().Any(predicate))
+                if (m.IsStatic && m.IsImplementableInterfaceMember() && iface.FindImplementationForInterfaceMember(m) is null)
                 {
+                    memberWithoutImplementation = m;
                     return true;
                 }
-
-                baseDefinition.AddUseSiteInfo(ref useSiteInfo);
             }
 
+            foreach (var baseInterface in iface.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Keys)
+            {
+                foreach (Symbol m in baseInterface.GetMembers())
+                {
+                    if (m.IsStatic && m.IsImplementableInterfaceMember() && iface.FindImplementationForInterfaceMember(m) is null)
+                    {
+                        memberWithoutImplementation = m;
+                        return true;
+                    }
+                }
+
+                baseInterface.OriginalDefinition.AddUseSiteInfo(ref useSiteInfo);
+            }
+
+            memberWithoutImplementation = null;
             return false;
         }
 

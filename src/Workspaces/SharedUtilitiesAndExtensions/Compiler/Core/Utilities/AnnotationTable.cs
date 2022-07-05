@@ -186,7 +186,7 @@ namespace Roslyn.Utilities
             => node.GetAnnotatedTrivia(_annotationKind);
 
         public IEnumerable<SyntaxNodeOrToken> GetAnnotatedNodesAndTokens<TSpecificAnnotation>(SyntaxNode node) where TSpecificAnnotation : TAnnotation
-            => node.GetAnnotatedNodesAndTokens(_annotationKind).Where(nt => this.HasAnnotations<TSpecificAnnotation>(nt));
+            => node.GetAnnotatedNodesAndTokens(_annotationKind).Where(this.HasAnnotations<TSpecificAnnotation>);
 
         public IEnumerable<SyntaxNode> GetAnnotatedNodes<TSpecificAnnotation>(SyntaxNode node) where TSpecificAnnotation : TAnnotation
             => node.GetAnnotatedNodesAndTokens(_annotationKind).Where(nt => nt.IsNode && this.HasAnnotations<TSpecificAnnotation>(nt)).Select(nt => nt.AsNode()!);
@@ -195,6 +195,6 @@ namespace Roslyn.Utilities
             => node.GetAnnotatedNodesAndTokens(_annotationKind).Where(nt => nt.IsToken && this.HasAnnotations<TSpecificAnnotation>(nt)).Select(nt => nt.AsToken());
 
         public IEnumerable<SyntaxTrivia> GetAnnotatedTrivia<TSpecificAnnotation>(SyntaxNode node) where TSpecificAnnotation : TAnnotation
-            => node.GetAnnotatedTrivia(_annotationKind).Where(tr => this.HasAnnotations<TSpecificAnnotation>(tr));
+            => node.GetAnnotatedTrivia(_annotationKind).Where(this.HasAnnotations<TSpecificAnnotation>);
     }
 }

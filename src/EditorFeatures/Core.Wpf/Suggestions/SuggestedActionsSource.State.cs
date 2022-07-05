@@ -41,16 +41,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 void IDisposable.Dispose()
                 {
-                    if (Owner != null)
-                    {
-                        var updateSource = (IDiagnosticUpdateSource)Owner._diagnosticService;
-                        updateSource.DiagnosticsUpdated -= _source.OnDiagnosticsUpdated;
-                    }
-
                     if (Workspace != null)
                     {
                         Workspace.Services.GetRequiredService<IWorkspaceStatusService>().StatusChanged -= _source.OnWorkspaceStatusChanged;
                         Workspace.DocumentActiveContextChanged -= _source.OnActiveContextChanged;
+                        Workspace.WorkspaceChanged -= _source.OnWorkspaceChanged;
                     }
 
                     if (Registration != null)

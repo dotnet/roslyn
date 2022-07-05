@@ -1768,11 +1768,8 @@ End Class
             var method_root = method.DeclaringSyntaxReferences[0].GetSyntax();
 
             var invocation = method_root.DescendantNodes().OfType<TInvocation>().FirstOrDefault();
-            if (invocation == null)
-            {
-                // vb method root is statement, but we need block to find body with invocation
-                invocation = method_root.Parent.DescendantNodes().OfType<TInvocation>().First();
-            }
+            // vb method root is statement, but we need block to find body with invocation
+            invocation ??= method_root.Parent.DescendantNodes().OfType<TInvocation>().First();
 
             var model = compilation.GetSemanticModel(invocation.SyntaxTree);
             var info = model.GetSymbolInfo(invocation);

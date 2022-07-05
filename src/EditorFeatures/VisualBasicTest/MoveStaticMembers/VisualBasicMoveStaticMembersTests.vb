@@ -42,6 +42,35 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        <WorkItem(62283, "https://github.com/dotnet/roslyn/issues/62283")>
+        Public Async Function TestMoveField_MultipleDeclarators() As Task
+            Dim initialMarkup = "
+Class Program
+
+    Public Shared G[||]oo As Integer, Bar As Integer
+
+End Class
+"
+            Dim newTypeName = "Class1Helpers"
+            Dim newFileName = "Class1Helpers.vb"
+            Dim selection = ImmutableArray.Create("Goo")
+            Dim expectedText1 = "
+Class Program
+
+    Public Shared Bar As Integer
+
+End Class
+"
+            Dim expectedText2 = "Class Class1Helpers
+
+    Public Shared Goo As Integer
+End Class
+"
+
+            Await TestMovementNewFileAsync(initialMarkup, expectedText1, expectedText2, newFileName, selection, newTypeName)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
         Public Async Function TestMoveProperty() As Task
             Dim initialMarkup = "
 Namespace TestNs

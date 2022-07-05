@@ -41,6 +41,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
         protected internal const string FormatDocumentFixId = nameof(FormatDocumentFixId);
         protected internal const string RemoveUnusedImportsFixId = nameof(RemoveUnusedImportsFixId);
         protected internal const string SortImportsFixId = nameof(SortImportsFixId);
+        protected internal const string ApplyThirdPartyFixersId = nameof(ApplyThirdPartyFixersId);
+        protected internal const string ApplyAllAnalyzerFixersId = nameof(ApplyAllAnalyzerFixersId);
 
         private readonly IThreadingContext _threadingContext;
         private readonly VisualStudioWorkspaceImpl _workspace;
@@ -328,29 +330,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
 
             var codeCleanupService = document.GetRequiredLanguageService<ICodeCleanupService>();
 
-            var allDiagnostics = codeCleanupService.GetAllDiagnostics();
-
-            var enabedDiagnosticSets = ArrayBuilder<DiagnosticSet>.GetInstance();
-
-            foreach (var diagnostic in allDiagnostics.Diagnostics)
+            var enabledDiagnostics = codeCleanupService.GetAllDiagnostics();
+            if (!enabledFixIds.IsFixIdEnabled(ApplyAllAnalyzerFixersId))
             {
-                foreach (var diagnosticId in diagnostic.DiagnosticIds)
+                var enabledDiagnosticSets = ArrayBuilder<DiagnosticSet>.GetInstance();
+
+                foreach (var diagnostic in enabledDiagnostics.Diagnostics)
                 {
-                    if (enabledFixIds.IsFixIdEnabled(diagnosticId))
+                    foreach (var diagnosticId in diagnostic.DiagnosticIds)
                     {
-                        enabedDiagnosticSets.Add(diagnostic);
-                        break;
+                        if (enabledFixIds.IsFixIdEnabled(diagnosticId))
+                        {
+                            enabledDiagnosticSets.Add(diagnostic);
+                            break;
+                        }
                     }
                 }
-            }
 
-            var isFormatDocumentEnabled = enabledFixIds.IsFixIdEnabled(FormatDocumentFixId);
-            var isRemoveUnusedUsingsEnabled = enabledFixIds.IsFixIdEnabled(RemoveUnusedImportsFixId);
-            var isSortUsingsEnabled = enabledFixIds.IsFixIdEnabled(SortImportsFixId);
-            var enabledDiagnostics = new EnabledDiagnosticOptions(
-                isFormatDocumentEnabled,
-                enabedDiagnosticSets.ToImmutableArray(),
-                new OrganizeUsingsSet(isRemoveUnusedUsingsEnabled, isSortUsingsEnabled));
+                var isFormatDocumentEnabled = enabledFixIds.IsFixIdEnabled(FormatDocumentFixId);
+                var isRemoveUnusedUsingsEnabled = enabledFixIds.IsFixIdEnabled(RemoveUnusedImportsFixId);
+                var isSortUsingsEnabled = enabledFixIds.IsFixIdEnabled(SortImportsFixId);
+                var isApplyThirdPartyFixersEnabled = enabledFixIds.IsFixIdEnabled(ApplyThirdPartyFixersId);
+                enabledDiagnostics = new EnabledDiagnosticOptions(
+                    isFormatDocumentEnabled,
+                    isApplyThirdPartyFixersEnabled,
+                    enabledDiagnosticSets.ToImmutableArray(),
+                    new OrganizeUsingsSet(isRemoveUnusedUsingsEnabled, isSortUsingsEnabled));
+            }
 
             return await codeCleanupService.CleanupAsync(
                 document, enabledDiagnostics, progressTracker, ideOptions.CreateProvider(), cancellationToken).ConfigureAwait(false);
