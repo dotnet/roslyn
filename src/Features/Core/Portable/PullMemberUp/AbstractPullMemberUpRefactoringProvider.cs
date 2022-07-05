@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 
             var containingType = selectedMembers.First().ContainingType;
             Contract.ThrowIfNull(containingType);
-            if (selectedMembers.Any(m => m.ContainingType != containingType))
+            if (selectedMembers.Any(m => !m.ContainingType.Equals(containingType)))
             {
                 return;
             }
