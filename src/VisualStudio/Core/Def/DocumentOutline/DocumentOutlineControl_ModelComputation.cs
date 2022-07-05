@@ -46,12 +46,12 @@ namespace Microsoft.VisualStudio.LanguageServices
             if (activeTextView is null)
                 return null;
 
-            var filePath = GetFilePath(activeTextView);
-            if (filePath is null)
-                return null;
-
             var lspSnapshot = activeTextView.TextSnapshot;
             var textBuffer = activeTextView.TextBuffer;
+
+            var filePath = GetFilePath();
+            if (filePath is null)
+                return null;
 
             // Ensure we switch to the threadpool before calling DocumentSymbolsRequestAsync.  It ensures
             // that fetching and processing the document model is not done on the UI thread.
@@ -66,7 +66,8 @@ namespace Microsoft.VisualStudio.LanguageServices
 
             async Task<DocumentSymbolModel?> ComputeModelAsync()
             {
-                var response = await DocumentOutlineHelper.DocumentSymbolsRequestAsync(textBuffer, LanguageServiceBroker, filePath, cancellationToken).ConfigureAwait(false);
+                var response = await DocumentOutlineHelper.DocumentSymbolsRequestAsync(
+                    textBuffer, LanguageServiceBroker, filePath, cancellationToken).ConfigureAwait(false);
 
                 if (response is null)
                     return null;
@@ -80,11 +81,10 @@ namespace Microsoft.VisualStudio.LanguageServices
                 return new DocumentSymbolModel(documentSymbolItems, lspSnapshot);
             }
 
-            string? GetFilePath(IWpfTextView textView)
+            string? GetFilePath()
             {
                 ThreadingContext.ThrowIfNotOnUIThread();
-                if (textView.TextBuffer.Properties.TryGetProperty(typeof(IVsTextBuffer), out IVsTextBuffer bufferAdapter) &&
-                    bufferAdapter is IPersistFileFormat persistFileFormat &&
+                if (EditorAdaptersFactoryService.GetBufferAdapter(textBuffer) is IPersistFileFormat persistFileFormat &&
                     ErrorHandler.Succeeded(persistFileFormat.GetCurFile(out var filePath, out _)))
                 {
                     return filePath;
@@ -173,7 +173,8 @@ namespace Microsoft.VisualStudio.LanguageServices
             if (!caretPoint.HasValue)
                 return;
 
-            DocumentOutlineHelper.SelectDocumentNode(model.DocumentSymbolItems, activeTextView.TextSnapshot, model.LspSnapshot, caretPoint.Value.Position);
+            DocumentOutlineHelper.SelectDocumentNode(
+                model.DocumentSymbolItems, activeTextView.TextSnapshot, model.LspSnapshot, caretPoint.Value.Position);
         }
 
         /// <summary>
