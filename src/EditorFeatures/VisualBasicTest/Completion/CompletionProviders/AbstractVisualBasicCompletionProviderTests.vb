@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             Return TestWorkspace.CreateVisualBasic(fileContents, exportProvider:=ExportProvider)
         End Function
 
-        Friend Overrides Function GetCompletionService(project As Project) As CompletionServiceWithProviders
+        Friend Overrides Function GetCompletionService(project As Project) As CompletionService
             Return Assert.IsType(Of VisualBasicCompletionService)(MyBase.GetCompletionService(project))
         End Function
 

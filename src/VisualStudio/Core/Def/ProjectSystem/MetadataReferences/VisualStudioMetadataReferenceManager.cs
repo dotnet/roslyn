@@ -268,11 +268,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private ModuleMetadata CreateModuleMetadata(FileKey moduleFileKey, List<TemporaryStorageService.TemporaryStreamStorage>? storages)
         {
             var metadata = TryCreateModuleMetadataFromMetadataImporter(moduleFileKey);
-            if (metadata == null)
-            {
-                // getting metadata didn't work out through importer. fallback to shadow copy one
-                metadata = CreateModuleMetadataFromTemporaryStorage(moduleFileKey, storages);
-            }
+            // getting metadata didn't work out through importer. fallback to shadow copy one
+            metadata ??= CreateModuleMetadataFromTemporaryStorage(moduleFileKey, storages);
 
             return metadata;
         }

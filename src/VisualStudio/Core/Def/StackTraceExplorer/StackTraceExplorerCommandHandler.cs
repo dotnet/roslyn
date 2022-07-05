@@ -88,10 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             var serviceProvider = (IServiceProvider)_package;
             var vsShell = serviceProvider.GetService(typeof(SVsShell)) as IVsShell;
 
-            if (vsShell is not null)
-            {
-                vsShell.AdviseBroadcastMessages(this, out _vsShellBroadcastCookie);
-            }
+            vsShell?.AdviseBroadcastMessages(this, out _vsShellBroadcastCookie);
         }
 
         private void UnadviseBroadcastMessages()

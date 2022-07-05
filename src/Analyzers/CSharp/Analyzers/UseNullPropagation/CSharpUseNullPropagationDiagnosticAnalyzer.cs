@@ -19,13 +19,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNullPropagation
         AbstractUseNullPropagationDiagnosticAnalyzer<
             SyntaxKind,
             ExpressionSyntax,
+            StatementSyntax,
             ConditionalExpressionSyntax,
             BinaryExpressionSyntax,
             InvocationExpressionSyntax,
-            MemberAccessExpressionSyntax,
             ConditionalAccessExpressionSyntax,
-            ElementAccessExpressionSyntax>
+            ElementAccessExpressionSyntax,
+            IfStatementSyntax,
+            ExpressionStatementSyntax>
     {
+        protected override SyntaxKind IfStatementSyntaxKind => SyntaxKind.IfStatement;
+
         protected override bool ShouldAnalyze(Compilation compilation)
             => compilation.LanguageVersion() >= LanguageVersion.CSharp6;
 
@@ -36,29 +40,66 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNullPropagation
             => node.IsInExpressionTree(semanticModel, expressionTypeOpt, cancellationToken);
 
         protected override bool TryAnalyzePatternCondition(
-            ISyntaxFacts syntaxFacts, SyntaxNode conditionNode,
-            [NotNullWhen(true)] out SyntaxNode? conditionPartToCheck, out bool isEquals)
+            ISyntaxFacts syntaxFacts, ExpressionSyntax conditionNode,
+            [NotNullWhen(true)] out ExpressionSyntax? conditionPartToCheck, out bool isEquals)
         {
             conditionPartToCheck = null;
             isEquals = true;
 
             if (conditionNode is not IsPatternExpressionSyntax patternExpression)
-            {
                 return false;
+
+            var pattern = patternExpression.Pattern;
+            if (pattern is UnaryPatternSyntax(SyntaxKind.NotPattern) notPattern)
+            {
+                isEquals = false;
+                pattern = notPattern.Pattern;
             }
 
-            if (patternExpression.Pattern is not ConstantPatternSyntax constantPattern)
-            {
+            if (pattern is not ConstantPatternSyntax constantPattern)
                 return false;
-            }
 
             if (!syntaxFacts.IsNullLiteralExpression(constantPattern.Expression))
-            {
                 return false;
-            }
 
             conditionPartToCheck = patternExpression.Expression;
             return true;
+        }
+
+        protected override bool TryGetPartsOfIfStatement(
+            IfStatementSyntax ifStatement,
+            [NotNullWhen(true)] out ExpressionSyntax? condition,
+            [NotNullWhen(true)] out StatementSyntax? trueStatement)
+        {
+            // has to be of the form:
+            //
+            //   if (...)
+            //      statement
+            //
+            // or
+            //
+            //   if (...)
+            //   {
+            //       statement
+            //   }
+
+            condition = ifStatement.Condition;
+
+            trueStatement = null;
+            if (ifStatement.Else == null)
+            {
+                if (ifStatement.Statement is BlockSyntax block)
+                {
+                    if (block.Statements.Count == 1)
+                        trueStatement = block.Statements[0];
+                }
+                else
+                {
+                    trueStatement = ifStatement.Statement;
+                }
+            }
+
+            return trueStatement != null;
         }
     }
 }

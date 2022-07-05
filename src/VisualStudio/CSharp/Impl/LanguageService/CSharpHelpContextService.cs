@@ -133,11 +133,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 return true;
             }
 
-            if (token.IsKind(SyntaxKind.UTF8StringLiteralToken) ||
-                token.IsKind(SyntaxKind.UTF8SingleLineRawStringLiteralToken) ||
-                token.IsKind(SyntaxKind.UTF8MultiLineRawStringLiteralToken))
+            if (token.IsKind(SyntaxKind.Utf8StringLiteralToken) ||
+                token.IsKind(SyntaxKind.Utf8SingleLineRawStringLiteralToken) ||
+                token.IsKind(SyntaxKind.Utf8MultiLineRawStringLiteralToken))
             {
-                text = Keyword("UTF8StringLiteral");
+                text = Keyword("Utf8StringLiteral");
                 return true;
             }
 

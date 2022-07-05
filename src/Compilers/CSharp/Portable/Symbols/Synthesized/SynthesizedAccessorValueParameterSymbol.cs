@@ -2,10 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -18,13 +15,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// This parameter has no source location/syntax, but may have attributes.
     /// Attributes with 'param' target specifier on the accessor must be applied to the this parameter.
     /// </summary>
-    internal sealed class SynthesizedAccessorValueParameterSymbol : SourceComplexParameterSymbol
+    internal sealed class SynthesizedAccessorValueParameterSymbol : SourceComplexParameterSymbolBase
     {
         public SynthesizedAccessorValueParameterSymbol(SourceMemberMethodSymbol accessor, TypeWithAnnotations paramType, int ordinal)
             : base(accessor, ordinal, paramType, RefKind.None, ParameterSymbol.ValueParameterName, accessor.Locations,
                    syntaxRef: null,
                    isParams: false,
-                   isExtensionMethodThis: false)
+                   isExtensionMethodThis: false,
+                   scope: DeclarationScope.Unscoped)
         {
         }
 
