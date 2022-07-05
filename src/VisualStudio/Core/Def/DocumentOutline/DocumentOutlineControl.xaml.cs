@@ -88,23 +88,23 @@ namespace Microsoft.VisualStudio.LanguageServices
                 threadingContext.DisposalToken);
 
             _updateUIQueue = new AsyncBatchingWorkQueue<bool, DocumentSymbolModel?>(
-                    DelayTimeSpan.NearImmediate,
-                    UpdateUIAsync,
-                    EqualityComparer<bool>.Default,
-                    asyncListener,
-                    threadingContext.DisposalToken);
+                DelayTimeSpan.NearImmediate,
+                UpdateUIAsync,
+                EqualityComparer<bool>.Default,
+                asyncListener,
+                threadingContext.DisposalToken);
 
             _highlightNodeQueue = new AsyncBatchingWorkQueue(
-                    DelayTimeSpan.NearImmediate,
-                    HightlightNodeAsync,
-                    asyncListener,
-                    threadingContext.DisposalToken);
+                DelayTimeSpan.NearImmediate,
+                HightlightNodeAsync,
+                asyncListener,
+                threadingContext.DisposalToken);
 
             _jumpToContentQueue = new AsyncBatchingWorkQueue<DocumentSymbolItem>(
-                    DelayTimeSpan.NearImmediate,
-                    JumpToContentAsync,
-                    asyncListener,
-                    threadingContext.DisposalToken);
+                DelayTimeSpan.NearImmediate,
+                JumpToContentAsync,
+                asyncListener,
+                threadingContext.DisposalToken);
 
             // Primary text view is expected to exist on window initialization.
             if (ErrorHandler.Failed(codeWindow.GetPrimaryView(out var primaryTextView)))
