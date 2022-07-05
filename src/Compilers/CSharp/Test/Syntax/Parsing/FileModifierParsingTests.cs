@@ -1491,11 +1491,42 @@ public class FileModifierParsingTests : ParsingTests
     }
 
     [Fact]
-    public void TypeNamedFile_02()
+    public void TypeNamedFile_01_CSharp10()
+    {
+        UsingNode($$"""
+            class file { }
+            """,
+            options: TestOptions.Regular10,
+            expectedBindingDiagnostics: new[]
+            {
+                // (1,7): warning CS8981: The type name 'file' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // class file { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "file").WithArguments("file").WithLocation(1, 7)
+            });
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "file");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Theory]
+    [InlineData(LanguageVersion.CSharp10)]
+    [InlineData(LanguageVersionFacts.CSharpNext)]
+    public void TypeNamedFile_02(LanguageVersion languageVersion)
     {
         UsingNode($$"""
             class @file { }
-            """);
+            """,
+            options: TestOptions.Regular.WithLanguageVersion(languageVersion));
 
         N(SyntaxKind.CompilationUnit);
         {
