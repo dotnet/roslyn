@@ -36,6 +36,12 @@ namespace BuildBoss
                 {
                     foreach (var doubleWrite in doubleWrites)
                     {
+                        // Issue https://github.com/dotnet/roslyn/issues/62372
+                        if (Path.GetFileName(doubleWrite.Key) == "Microsoft.VisualStudio.Text.Internal.dll")
+                        {
+                            continue;
+                        }
+
                         textWriter.WriteLine($"Multiple writes to {doubleWrite.Key}");
                         foreach (var source in doubleWrite.Value)
                         {
