@@ -2483,7 +2483,7 @@ End Namespace
 
         ' There seems to be some whitespace formatting errors when we select multiple members in the following tests
         ' Mostly, when we "split" a variable, a newline should be added but isn't
-        <ConditionalFact(AlwaysSkip:="https://github.com/dotnet/roslyn/issues/62283"), Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
         Public Async Function TestSelectMultipleFieldDeclarations() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -2510,7 +2510,7 @@ End Namespace
             Await TestMovementNewFileWithSelectionAsync(initialMarkup, expectedText1, expectedText2, newFileName, selection, newTypeName)
         End Function
 
-        <ConditionalFact(AlwaysSkip:="https://github.com/dotnet/roslyn/issues/62283"), Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
         Public Async Function TestSelectOneOfMultipleFieldDeclarations() As Task
             Dim initialMarkup = "
 Namespace TestNs
