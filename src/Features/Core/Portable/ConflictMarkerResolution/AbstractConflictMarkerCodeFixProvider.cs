@@ -56,18 +56,19 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             var position = context.Span.Start;
-            if (!ShouldFix(root, text, position, out var startLine, out var middleLine, out var endLine))
+            if (!ShouldFix(root, text, position, out var startLine, out var firstMiddleLine, out var secondMiddleLine, out var endLine))
                 return;
 
-            RegisterCodeFixes(context, startLine, middleLine, endLine);
+            RegisterCodeFixes(context, startLine, firstMiddleLine, secondMiddleLine, endLine);
         }
 
         private bool ShouldFix(
             SyntaxNode root, SourceText text, int position,
-            out TextLine startLine, out TextLine middleLine, out TextLine endLine)
+            out TextLine startLine, out TextLine firstMiddleLine, out TextLine secondMiddleLine, out TextLine endLine)
         {
             startLine = default;
-            middleLine = default;
+            firstMiddleLine = default;
+            secondMiddleLine = default;
             endLine = default;
 
             var lines = text.Lines;
@@ -78,27 +79,40 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
                 return false;
             }
 
-            if (!TryGetConflictLines(text, position, out startLine, out middleLine, out endLine))
+            if (!TryGetConflictLines(text, position, out startLine, out firstMiddleLine, out secondMiddleLine, out endLine))
                 return false;
 
             var startTrivia = root.FindTrivia(startLine.Start);
-            var middleTrivia = root.FindTrivia(middleLine.Start);
+            var firstMiddleTrivia = root.FindTrivia(firstMiddleLine.Start);
+            var secondMiddleTrivia = root.FindTrivia(secondMiddleLine.Start);
 
-            if (position == middleLine.Start)
+            if (position == firstMiddleLine.Start)
             {
-                // we were on the ======= lines.  We only want to report here if there was no
+                // we were on the ||||||| lines.  We only want to report here if there was no
                 // conflict trivia on the <<<<<<< line (since we would have already reported the
                 // issue there.
                 if (startTrivia.RawKind == _syntaxKinds.ConflictMarkerTrivia)
                     return false;
             }
+            else if (position == secondMiddleLine.Start)
+            {
+                // we were on the ======= lines.  We only want to report here if there was no
+                // conflict trivia on the ||||||| or  <<<<<<< line (since we would have already reported the
+                // issue there.
+                if (startTrivia.RawKind == _syntaxKinds.ConflictMarkerTrivia ||
+                    (firstMiddleLine != secondMiddleLine && firstMiddleTrivia.RawKind == _syntaxKinds.ConflictMarkerTrivia))
+                {
+                    return false;
+                }
+            }
             else if (position == endLine.Start)
             {
                 // we were on the >>>>>>> lines.  We only want to report here if there was no
-                // conflict trivia on the ======= or <<<<<<< line (since we would have already reported the
+                // conflict trivia on the ||||||| or ======= or <<<<<<< line (since we would have already reported the
                 // issue there.
                 if (startTrivia.RawKind == _syntaxKinds.ConflictMarkerTrivia ||
-                    middleTrivia.RawKind == _syntaxKinds.ConflictMarkerTrivia)
+                    (firstMiddleLine != secondMiddleLine && firstMiddleTrivia.RawKind == _syntaxKinds.ConflictMarkerTrivia) ||
+                    secondMiddleTrivia.RawKind == _syntaxKinds.ConflictMarkerTrivia)
                 {
                     return false;
                 }
@@ -109,27 +123,66 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
 
         private static bool TryGetConflictLines(
             SourceText text, int position,
-            out TextLine startLine, out TextLine middleLine, out TextLine endLine)
+            out TextLine startLine, out TextLine firstMiddleLine, out TextLine secondMiddleLine, out TextLine endLine)
         {
             startLine = default;
-            middleLine = default;
+            firstMiddleLine = default;
+            secondMiddleLine = default;
             endLine = default;
 
             var lines = text.Lines;
+            bool foundBarLine;
+            bool success;
             switch (text[position])
             {
                 case '<':
                     startLine = lines.GetLineFromPosition(position);
-                    return TryFindLineForwards(startLine, '=', out middleLine) &&
-                           TryFindLineForwards(middleLine, '>', out endLine);
+                    foundBarLine = TryFindLineForwards(startLine, '|', out firstMiddleLine);
+
+                    success = TryFindLineForwards(foundBarLine ? firstMiddleLine : startLine, '=', out secondMiddleLine) &&
+                              TryFindLineForwards(secondMiddleLine, '>', out endLine);
+
+                    if (success && !foundBarLine)
+                    {
+                        firstMiddleLine = secondMiddleLine;
+                    }
+
+                    return success;
+                case '|':
+                    firstMiddleLine = lines.GetLineFromPosition(position);
+                    return TryFindLineBackwards(firstMiddleLine, '<', out startLine) &&
+                           TryFindLineForwards(firstMiddleLine, '=', out secondMiddleLine) &&
+                           TryFindLineForwards(secondMiddleLine, '>', out endLine);
                 case '=':
-                    middleLine = lines.GetLineFromPosition(position);
-                    return TryFindLineBackwards(middleLine, '<', out startLine) &&
-                           TryFindLineForwards(middleLine, '>', out endLine);
+                    secondMiddleLine = lines.GetLineFromPosition(position);
+                    foundBarLine = TryFindLineBackwards(secondMiddleLine, '|', out firstMiddleLine);
+
+                    success = TryFindLineBackwards(foundBarLine ? firstMiddleLine : secondMiddleLine, '<', out startLine) &&
+                              TryFindLineForwards(secondMiddleLine, '>', out endLine);
+
+                    if (success && !foundBarLine)
+                    {
+                        firstMiddleLine = secondMiddleLine;
+                    }
+
+                    return success;
                 case '>':
                     endLine = lines.GetLineFromPosition(position);
-                    return TryFindLineBackwards(endLine, '=', out middleLine) &&
-                           TryFindLineBackwards(middleLine, '<', out startLine);
+                    if (!TryFindLineBackwards(endLine, '=', out secondMiddleLine))
+                    {
+                        return false;
+                    }
+
+                    foundBarLine = TryFindLineBackwards(secondMiddleLine, '|', out firstMiddleLine);
+
+                    success = TryFindLineBackwards(secondMiddleLine, '<', out startLine);
+
+                    if (success && !foundBarLine)
+                    {
+                        firstMiddleLine = secondMiddleLine;
+                    }
+
+                    return success;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(text[position]);
             }
@@ -193,7 +246,7 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
         }
 
         private static void RegisterCodeFixes(
-            CodeFixContext context, TextLine startLine, TextLine middleLine, TextLine endLine)
+            CodeFixContext context, TextLine startLine, TextLine firstMiddleLine, TextLine secondMiddleLine, TextLine endLine)
         {
             var document = context.Document;
 
@@ -208,35 +261,36 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
                 : string.Format(FeaturesResources.Take_0, bottomText);
 
             var startPos = startLine.Start;
-            var equalsPos = middleLine.Start;
+            var firstMiddlePos = firstMiddleLine.Start;
+            var secondMiddlePos = secondMiddleLine.Start;
             var endPos = endLine.Start;
 
             context.RegisterCodeFix(
                 CodeAction.Create(takeTopText,
-                    c => TakeTopAsync(document, startPos, equalsPos, endPos, c),
+                    c => TakeTopAsync(document, startPos, firstMiddlePos, secondMiddlePos, endPos, c),
                     TakeTopEquivalenceKey),
                 context.Diagnostics);
             context.RegisterCodeFix(
                 CodeAction.Create(takeBottomText,
-                    c => TakeBottomAsync(document, startPos, equalsPos, endPos, c),
+                    c => TakeBottomAsync(document, startPos, firstMiddlePos, secondMiddlePos, endPos, c),
                     TakeBottomEquivalenceKey),
                 context.Diagnostics);
             context.RegisterCodeFix(
                 CodeAction.Create(FeaturesResources.Take_both,
-                    c => TakeBothAsync(document, startPos, equalsPos, endPos, c),
+                    c => TakeBothAsync(document, startPos, firstMiddlePos, secondMiddlePos, endPos, c),
                     TakeBothEquivalenceKey),
                 context.Diagnostics);
         }
 
         private static async Task<Document> AddEditsAsync(
-            Document document, int startPos, int equalsPos, int endPos,
-            Action<SourceText, ArrayBuilder<TextChange>, int, int, int> addEdits,
+            Document document, int startPos, int firstMiddlePos, int secondMiddlePos, int endPos,
+            Action<SourceText, ArrayBuilder<TextChange>, int, int, int, int> addEdits,
             CancellationToken cancellationToken)
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             using var _ = ArrayBuilder<TextChange>.GetInstance(out var edits);
-            addEdits(text, edits, startPos, equalsPos, endPos);
+            addEdits(text, edits, startPos, firstMiddlePos, secondMiddlePos, endPos);
 
             var finalText = text.WithChanges(edits);
             return document.WithText(finalText);
@@ -244,23 +298,23 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
 
         private static void AddTopEdits(
             SourceText text, ArrayBuilder<TextChange> edits,
-            int startPos, int equalsPos, int endPos)
+            int startPos, int firstMiddlePos, int secondMiddlePos, int endPos)
         {
             // Delete the line containing <<<<<<<
             var startEnd = GetEndIncludingLineBreak(text, startPos);
             edits.Add(new TextChange(TextSpan.FromBounds(startPos, startEnd), ""));
 
-            // Remove the chunk of text (inclusive) from ======= through >>>>>>>
+            // Remove the chunk of text (inclusive) from ||||||| or ======= through >>>>>>>
             var bottomEnd = GetEndIncludingLineBreak(text, endPos);
-            edits.Add(new TextChange(TextSpan.FromBounds(equalsPos, bottomEnd), ""));
+            edits.Add(new TextChange(TextSpan.FromBounds(firstMiddlePos, bottomEnd), ""));
         }
 
         private static void AddBottomEdits(
             SourceText text, ArrayBuilder<TextChange> edits,
-            int startPos, int equalsPos, int endPos)
+            int startPos, int firstMiddlePos, int secondMiddlePos, int endPos)
         {
             // Remove the chunk of text (inclusive) from <<<<<<< through =======
-            var equalsEnd = GetEndIncludingLineBreak(text, equalsPos);
+            var equalsEnd = GetEndIncludingLineBreak(text, secondMiddlePos);
             edits.Add(new TextChange(TextSpan.FromBounds(startPos, equalsEnd), ""));
 
             // Delete the line containing >>>>>>> 
@@ -270,29 +324,38 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
 
         private static void AddBothEdits(
             SourceText text, ArrayBuilder<TextChange> edits,
-            int startPos, int equalsPos, int endPos)
+            int startPos, int firstMiddlePos, int secondMiddlePos, int endPos)
         {
             // Delete the line containing <<<<<<<
             var startEnd = GetEndIncludingLineBreak(text, startPos);
             edits.Add(new TextChange(TextSpan.FromBounds(startPos, startEnd), ""));
 
-            // Delete the line containing =======
-            var equalsEnd = GetEndIncludingLineBreak(text, equalsPos);
-            edits.Add(new TextChange(TextSpan.FromBounds(equalsPos, equalsEnd), ""));
+            if (firstMiddlePos == secondMiddlePos)
+            {
+                // Delete the line containing =======
+                var equalsEnd = GetEndIncludingLineBreak(text, secondMiddlePos);
+                edits.Add(new TextChange(TextSpan.FromBounds(secondMiddlePos, equalsEnd), ""));
+            }
+            else
+            {
+                // Remove the chunk of text (inclusive) from ||||||| through =======
+                var equalsEnd = GetEndIncludingLineBreak(text, secondMiddlePos);
+                edits.Add(new TextChange(TextSpan.FromBounds(firstMiddlePos, equalsEnd), ""));
+            }
 
             // Delete the line containing >>>>>>>
             var bottomEnd = GetEndIncludingLineBreak(text, endPos);
             edits.Add(new TextChange(TextSpan.FromBounds(endPos, bottomEnd), ""));
         }
 
-        private static Task<Document> TakeTopAsync(Document document, int startPos, int equalsPos, int endPos, CancellationToken cancellationToken)
-            => AddEditsAsync(document, startPos, equalsPos, endPos, AddTopEdits, cancellationToken);
+        private static Task<Document> TakeTopAsync(Document document, int startPos, int firstMiddlePos, int secondMiddlePos, int endPos, CancellationToken cancellationToken)
+            => AddEditsAsync(document, startPos, firstMiddlePos, secondMiddlePos, endPos, AddTopEdits, cancellationToken);
 
-        private static Task<Document> TakeBottomAsync(Document document, int startPos, int equalsPos, int endPos, CancellationToken cancellationToken)
-            => AddEditsAsync(document, startPos, equalsPos, endPos, AddBottomEdits, cancellationToken);
+        private static Task<Document> TakeBottomAsync(Document document, int startPos, int firstMiddlePos, int secondMiddlePos, int endPos, CancellationToken cancellationToken)
+            => AddEditsAsync(document, startPos, firstMiddlePos, secondMiddlePos, endPos, AddBottomEdits, cancellationToken);
 
-        private static Task<Document> TakeBothAsync(Document document, int startPos, int equalsPos, int endPos, CancellationToken cancellationToken)
-            => AddEditsAsync(document, startPos, equalsPos, endPos, AddBothEdits, cancellationToken);
+        private static Task<Document> TakeBothAsync(Document document, int startPos, int firstMiddlePos, int secondMiddlePos, int endPos, CancellationToken cancellationToken)
+            => AddEditsAsync(document, startPos, firstMiddlePos, secondMiddlePos, endPos, AddBothEdits, cancellationToken);
 
         private static int GetEndIncludingLineBreak(SourceText text, int position)
             => text.Lines.GetLineFromPosition(position).SpanIncludingLineBreak.End;
@@ -322,25 +385,26 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
             foreach (var diagnostic in diagnostics)
             {
                 var position = diagnostic.Location.SourceSpan.Start;
-                if (!ShouldFix(root, text, position, out var startLine, out var middleLine, out var endLine))
+                if (!ShouldFix(root, text, position, out var startLine, out var firstMiddleLine, out var secondMiddleLine, out var endLine))
                     continue;
 
                 var startPos = startLine.Start;
-                var equalsPos = middleLine.Start;
+                var firstMiddlePos = firstMiddleLine.Start;
+                var secondMiddlePos = secondMiddleLine.Start;
                 var endPos = endLine.Start;
 
                 switch (equivalenceKey)
                 {
                     case TakeTopEquivalenceKey:
-                        AddTopEdits(text, edits, startPos, equalsPos, endPos);
+                        AddTopEdits(text, edits, startPos, firstMiddlePos, secondMiddlePos, endPos);
                         continue;
 
                     case TakeBottomEquivalenceKey:
-                        AddBottomEdits(text, edits, startPos, equalsPos, endPos);
+                        AddBottomEdits(text, edits, startPos, firstMiddlePos, secondMiddlePos, endPos);
                         continue;
 
                     case TakeBothEquivalenceKey:
-                        AddBothEdits(text, edits, startPos, equalsPos, endPos);
+                        AddBothEdits(text, edits, startPos, firstMiddlePos, secondMiddlePos, endPos);
                         continue;
 
                     default:

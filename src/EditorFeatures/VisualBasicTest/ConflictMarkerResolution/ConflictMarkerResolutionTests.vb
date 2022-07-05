@@ -289,5 +289,6 @@ end namespace"
                 .CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeBothEquivalenceKey
             }.RunAsync()
         End Function
+        ' TODO2 test in VB too
     End Class
 End Namespace
