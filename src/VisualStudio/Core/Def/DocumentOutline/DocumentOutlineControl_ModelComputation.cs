@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.DocumentOutline;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -16,6 +17,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices
 {
@@ -70,6 +72,9 @@ namespace Microsoft.VisualStudio.LanguageServices
                     return null;
 
                 var responseBody = response.ToObject<DocumentSymbol[]>();
+                if (responseBody.IsNullOrEmpty())
+                    return null;
+
                 var documentSymbols = DocumentOutlineHelper.GetNestedDocumentSymbols(responseBody);
                 var documentSymbolItems = DocumentOutlineHelper.GetDocumentSymbolModels(documentSymbols);
                 return new DocumentSymbolModel(documentSymbolItems, lspSnapshot);
