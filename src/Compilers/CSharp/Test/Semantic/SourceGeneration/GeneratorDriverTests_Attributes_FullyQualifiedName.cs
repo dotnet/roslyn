@@ -22,7 +22,7 @@ internal static class IncrementalGeneratorInitializationContextExtensions
     {
         return context.SyntaxProvider.ForAttributeWithSimpleName(
             simpleName,
-            (node, _) => node is T).Select((node, _) => (T)node);
+            (node, _) => node is T).SelectMany((nodes, _) => nodes.Cast<T>());
     }
 
     public static IncrementalValuesProvider<T> ForAttributeWithMetadataName<T>(
