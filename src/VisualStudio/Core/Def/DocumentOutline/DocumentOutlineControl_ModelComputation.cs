@@ -190,7 +190,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         /// </summary>
         private async ValueTask JumpToContentAsync(ImmutableSegmentedList<DocumentSymbolItem> symbolList, CancellationToken cancellationToken)
         {
-            if (symbolList.IsEmpty)
+            if (symbolList.IsDefault || symbolList.IsEmpty)
                 return;
 
             var model = await _computeModelQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
