@@ -27,11 +27,13 @@ namespace Microsoft.VisualStudio.LanguageServices
     /// </summary>
     internal partial class DocumentOutlineControl : UserControl, IVsCodeWindowEvents
     {
-        public IVsEditorAdaptersFactoryService EditorAdaptersFactoryService { get; }
-        public IVsCodeWindow CodeWindow { get; }
+        private ILanguageServiceBrokerShim LanguageServiceBroker { get; }
 
         private IThreadingContext ThreadingContext { get; }
-        private ILanguageServiceBrokerShim LanguageServiceBroker { get; }
+
+        public IVsEditorAdaptersFactoryService EditorAdaptersFactoryService { get; }
+
+        public IVsCodeWindow CodeWindow { get; }
 
         /// <summary>
         /// The type of sorting applied to the document model.
@@ -73,8 +75,8 @@ namespace Microsoft.VisualStudio.LanguageServices
         {
             InitializeComponent();
 
-            ThreadingContext = threadingContext;
             LanguageServiceBroker = languageServiceBroker;
+            ThreadingContext = threadingContext;
             EditorAdaptersFactoryService = editorAdaptersFactoryService;
             CodeWindow = codeWindow;
             ComEventSink.Advise<IVsCodeWindowEvents>(codeWindow, this);
@@ -165,7 +167,9 @@ namespace Microsoft.VisualStudio.LanguageServices
         private void TextBuffer_Changed(object sender, TextContentChangedEventArgs e)
             => StartComputeModelTask();
 
-        // On caret position change, highlight the corresponding symbol node
+        /// <summary>
+        /// On caret position change in a text view, highlight the corresponding symbol node in the window.
+        /// </summary>
         private void Caret_PositionChanged(object sender, CaretPositionChangedEventArgs e)
         {
             if (!e.NewPosition.Equals(e.OldPosition))
@@ -205,7 +209,9 @@ namespace Microsoft.VisualStudio.LanguageServices
             StartUpdateUITask();
         }
 
-        // When symbol node clicked, select the corresponding code
+        /// <summary>
+        /// When a symbol node in the window is clicked, move the caret to its position in the latest active text view.
+        /// </summary>
         private void JumpToContent(object sender, EventArgs e)
         {
             if (sender is StackPanel panel && panel.DataContext is DocumentSymbolItem symbol)

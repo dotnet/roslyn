@@ -186,7 +186,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         }
 
         /// <summary>
-        /// Selects code in the editor based on the current caret position.
+        /// Given a DocumentSymbolItem, moves the caret to its position in the latest active text view.
         /// </summary>
         private async ValueTask JumpToContentAsync(ImmutableSegmentedList<DocumentSymbolItem> symbolList, CancellationToken cancellationToken)
         {
