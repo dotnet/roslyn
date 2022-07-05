@@ -82,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices
 
             _computeModelQueue = new AsyncBatchingWorkQueue<bool, DocumentSymbolModel?>(
                 DelayTimeSpan.Short,
-                ComputeModelAndUpdateUIAsync,
+                ComputeModelAsync,
                 EqualityComparer<bool>.Default,
                 asyncListener,
                 threadingContext.DisposalToken);

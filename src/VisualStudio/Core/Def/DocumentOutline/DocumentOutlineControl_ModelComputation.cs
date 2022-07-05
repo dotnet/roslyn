@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         /// <summary>
         /// Fetches and processes the current document model.
         /// </summary>
-        private async ValueTask<DocumentSymbolModel?> ComputeModelAndUpdateUIAsync(ImmutableSegmentedList<bool> unused, CancellationToken cancellationToken)
+        private async ValueTask<DocumentSymbolModel?> ComputeModelAsync(ImmutableSegmentedList<bool> unused, CancellationToken cancellationToken)
         {
             // Jump to the UI thread to get the currently active text view.
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
