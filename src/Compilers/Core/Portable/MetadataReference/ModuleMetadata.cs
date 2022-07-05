@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     Action? onDispose = options.HasFlag(PEStreamOptions.LeaveOpen)
                         ? null
-                        : () => unmanagedMemoryStream.Dispose();
+                        : unmanagedMemoryStream.Dispose;
 
                     return CreateFromImage(
                         unmanagedMemoryStream.PositionPointer,
