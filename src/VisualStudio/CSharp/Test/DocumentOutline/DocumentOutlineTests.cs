@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices;
+using Microsoft.VisualStudio.LanguageServices.DocumentOutline;
 using Roslyn.Utilities;
 using Xunit;
 using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
@@ -71,7 +72,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
                 CheckSortedByName(sortedByName[i].Children);
             }
 
-            static void CheckSortedByName(ImmutableArray<DocumentSymbolViewModel> sortedByName)
+            static void CheckSortedByName(ImmutableArray<DocumentSymbolItem> sortedByName)
             {
                 for (var i = 0; i < sortedByName.Length - 1; i++)
                 {
@@ -88,7 +89,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
                 CheckSortedByType(sortedByType[i].Children);
             }
 
-            static void CheckSortedByType(ImmutableArray<DocumentSymbolViewModel> sortedByType)
+            static void CheckSortedByType(ImmutableArray<DocumentSymbolItem> sortedByType)
             {
                 for (var i = 0; i < sortedByType.Length - 1; i++)
                 {

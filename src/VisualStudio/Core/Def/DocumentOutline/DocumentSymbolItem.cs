@@ -8,19 +8,20 @@ using System.Runtime.CompilerServices;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices
 {
     using SymbolKind = LanguageServer.Protocol.SymbolKind;
 
-    internal class DocumentSymbolViewModel : INotifyPropertyChanged
+    internal class DocumentSymbolItem : INotifyPropertyChanged
     {
         private bool _isSelected;
         private bool _isExpanded;
 
         public string Name { get; }
 
-        public ImmutableArray<DocumentSymbolViewModel> Children { get; set; }
+        public ImmutableArray<DocumentSymbolItem> Children { get; set; }
 
         public Position StartPosition { get; }
         public Position EndPosition { get; }
@@ -53,10 +54,10 @@ namespace Microsoft.VisualStudio.LanguageServices
             }
         }
 
-        public DocumentSymbolViewModel(DocumentSymbol documentSymbol)
+        public DocumentSymbolItem(DocumentSymbol documentSymbol)
         {
             this.Name = documentSymbol.Name;
-            this.Children = ImmutableArray<DocumentSymbolViewModel>.Empty;
+            this.Children = ImmutableArray<DocumentSymbolItem>.Empty;
             this.SymbolKind = documentSymbol.Kind;
             this.ImageMoniker = GetImageMoniker(documentSymbol.Kind);
             this.IsExpanded = true;
