@@ -164,6 +164,11 @@
         <target state="translated">Ein SuppressionDescriptor muss eine ID aufweisen, die weder NULL noch eine leere Zeichenfolge noch eine Zeichenfolge ist, die nur Leerzeichen enthält.</target>
         <note />
       </trans-unit>
+      <trans-unit id="SyntaxTreeNotFound">
+        <source>SyntaxTree is not part of the compilation</source>
+        <target state="new">SyntaxTree is not part of the compilation</target>
+        <note />
+      </trans-unit>
       <trans-unit id="TupleElementNullableAnnotationCountMismatch">
         <source>If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple.</source>
         <target state="translated">Wenn Nullable-Anmerkungen für Tupelelemente angegeben werden, muss die Anzahl von Anmerkungen der Kardinalität des Tupels entsprechen.</target>

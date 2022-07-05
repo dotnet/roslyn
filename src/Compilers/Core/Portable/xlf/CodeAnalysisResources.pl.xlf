@@ -164,6 +164,11 @@
         <target state="translated">Interfejs DiagnosticDescriptor musi mieć identyfikator, który nie ma wartości null, nie jest ciągiem pustym ani nie jest ciągiem zawierającym tylko białe znaki.</target>
         <note />
       </trans-unit>
+      <trans-unit id="SyntaxTreeNotFound">
+        <source>SyntaxTree is not part of the compilation</source>
+        <target state="new">SyntaxTree is not part of the compilation</target>
+        <note />
+      </trans-unit>
       <trans-unit id="TupleElementNullableAnnotationCountMismatch">
         <source>If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple.</source>
         <target state="translated">Jeśli określono adnotacje elementów krotki z możliwością ustawiania wartości null, liczba adnotacji musi zgadzać się z kardynalnością krotki.</target>

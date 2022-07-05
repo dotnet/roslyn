@@ -890,7 +890,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             => GetOrCreateSemanticModel(tree, AnalyzerExecutor.Compilation);
 
         private SemanticModel GetOrCreateSemanticModel(SyntaxTree tree, Compilation compilation)
-            => SemanticModelProvider.GetSemanticModel(tree, compilation);
+        {
+            if (!compilation.ContainsSyntaxTree(tree))
+            {
+                throw new ArgumentException(CodeAnalysisResources.SyntaxTreeNotFound, nameof(tree));
+            }
+
+            return SemanticModelProvider.GetSemanticModel(tree, compilation);
+        }
 
         public void ApplyProgrammaticSuppressions(DiagnosticBag reportedDiagnostics, Compilation compilation)
         {
@@ -1796,7 +1803,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // might want to ask the compiler for all the diagnostics in the source file, for example
             // to get information about unnecessary usings.
 
-            var semanticModel = SemanticModelProvider.GetSemanticModel(completedEvent.CompilationUnit, completedEvent.Compilation);
+            var semanticModel = GetOrCreateSemanticModel(completedEvent.CompilationUnit, completedEvent.Compilation);
             if (!analysisScope.ShouldAnalyze(semanticModel.SyntaxTree))
             {
                 return true;
@@ -2508,6 +2515,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return success;
         }
 
+        private SemanticModel GetOrCreateSemanticModel(SyntaxTree tree, Compilation compilation)
+        {
+            if (!compilation.ContainsSyntaxTree(tree))
+            {
+                throw new ArgumentException(CodeAnalysisResources.SyntaxTreeNotFound, nameof(tree));
+            }
+
+            return SemanticModelProvider.GetSemanticModel(tree, compilation);
+        }
+
         private void ClearCachedAnalysisDataIfAnalyzed(SyntaxReference declaration, ISymbol symbol, int declarationIndex, AnalysisState analysisState)
         {
             Debug.Assert(analysisState != null);
@@ -2576,7 +2593,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var symbol = symbolEvent.Symbol;
 
             var semanticModel = symbolEvent.SemanticModelWithCachedBoundNodes ??
-                SemanticModelProvider.GetSemanticModel(decl.SyntaxTree, symbolEvent.Compilation);
+                GetOrCreateSemanticModel(decl.SyntaxTree, symbolEvent.Compilation);
 
             var cacheAnalysisData = analysisScope.Analyzers.Length < Analyzers.Length &&
                 (!analysisScope.FilterSpanOpt.HasValue || analysisScope.FilterSpanOpt.Value.Length >= decl.SyntaxTree.GetRoot(cancellationToken).Span.Length);

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -11,6 +12,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public CompilationUnitCompletedEvent(Compilation compilation, SyntaxTree compilationUnit, TextSpan? filterSpan = null)
             : base(compilation)
         {
+            if (!compilation.ContainsSyntaxTree(compilationUnit))
+            {
+                throw new ArgumentException(CodeAnalysisResources.SyntaxTreeNotFound, nameof(compilationUnit));
+            }
+
             this.CompilationUnit = compilationUnit;
             this.FilterSpan = filterSpan;
         }

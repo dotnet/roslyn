@@ -164,6 +164,11 @@
         <target state="translated">Un elemento SuppressionDescriptor debe tener un id. que no sea NULL, una cadena vacía ni una cadena que solo contenga un espacio en blanco.</target>
         <note />
       </trans-unit>
+      <trans-unit id="SyntaxTreeNotFound">
+        <source>SyntaxTree is not part of the compilation</source>
+        <target state="new">SyntaxTree is not part of the compilation</target>
+        <note />
+      </trans-unit>
       <trans-unit id="TupleElementNullableAnnotationCountMismatch">
         <source>If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple.</source>
         <target state="translated">Si se especifican las anotaciones que aceptan valores NULL de los elementos de tupla, el número de anotaciones debe coincidir con la cardinalidad de la tupla.</target>
