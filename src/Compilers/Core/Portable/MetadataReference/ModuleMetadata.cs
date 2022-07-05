@@ -29,8 +29,8 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Whether or not to call _onDispose when this is disposed.  The reason that this is controlled by a flag is
         /// that if we make a copy of this modulemetadata, we still want to keep the Action alive in it (as it may be
-        /// keeping alive underlying object this metadata needs).  However, the copy of the metadata should not call
-        /// the action as only the IsImageOwner metadata is responsible for that.
+        /// keeping alive underlying object this metadata needs).  However, the copy of the metadata should not call the
+        /// action as only the <see cref="Metadata.IsImageOwner"/> metadata is responsible for that.
         /// </summary>
         private readonly bool _callOnDispose;
 
