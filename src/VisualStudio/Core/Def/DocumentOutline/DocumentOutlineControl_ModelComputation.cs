@@ -73,7 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                     return null;
 
                 var responseBody = response.ToObject<DocumentSymbol[]>();
-                if (responseBody.IsNullOrEmpty())
+                if (responseBody is null)
                     return null;
 
                 var documentSymbols = DocumentOutlineHelper.GetNestedDocumentSymbols(responseBody);
