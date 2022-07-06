@@ -267,13 +267,13 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             {
                 foreach (var symbol in documentSymbolItems)
                 {
-                    var oldStartPosition = model.LspSnapshot.GetLineFromLineNumber(symbol.StartPosition.Line).Start.Position + symbol.StartPosition.Character;
-                    var oldEndPosition = model.LspSnapshot.GetLineFromLineNumber(symbol.EndPosition.Line).Start.Position + symbol.EndPosition.Character;
+                    var originalStartPosition = model.LspSnapshot.GetLineFromLineNumber(symbol.StartPosition.Line).Start.Position + symbol.StartPosition.Character;
+                    var originalEndPosition = model.LspSnapshot.GetLineFromLineNumber(symbol.EndPosition.Line).Start.Position + symbol.EndPosition.Character;
 
-                    var currentStartPosition = new SnapshotPoint(currentSnapshot, oldStartPosition).Position;
-                    var currentEndPosition = new SnapshotPoint(currentSnapshot, oldEndPosition).Position;
+                    var originalSpan = new SnapshotSpan(model.LspSnapshot, Span.FromBounds(originalStartPosition, originalEndPosition));
+                    var currentSpan = originalSpan.TranslateTo(currentSnapshot, SpanTrackingMode.EdgeExclusive);
 
-                    if (currentStartPosition <= caretPosition && caretPosition <= currentEndPosition)
+                    if (currentSpan.IntersectsWith(caretPosition))
                         return symbol;
                 }
 
