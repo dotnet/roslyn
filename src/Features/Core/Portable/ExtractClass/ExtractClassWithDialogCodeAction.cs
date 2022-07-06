@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.ExtractClass
     internal class ExtractClassWithDialogCodeAction : CodeActionWithOptions
     {
         private readonly Document _document;
-        private readonly ISymbol? _selectedMember;
+        private readonly ImmutableArray<ISymbol> _selectedMembers;
         private readonly INamedTypeSymbol _selectedType;
         private readonly SyntaxNode _selectedTypeDeclarationNode;
         private readonly CleanCodeGenerationOptionsProvider _fallbackOptions;
@@ -43,26 +43,26 @@ namespace Microsoft.CodeAnalysis.ExtractClass
             INamedTypeSymbol selectedType,
             SyntaxNode selectedTypeDeclarationNode,
             CleanCodeGenerationOptionsProvider fallbackOptions,
-            ISymbol? selectedMember)
+            ImmutableArray<ISymbol> selectedMembers)
         {
             _document = document;
             _service = service;
             _selectedType = selectedType;
             _selectedTypeDeclarationNode = selectedTypeDeclarationNode;
             _fallbackOptions = fallbackOptions;
-            _selectedMember = selectedMember;
+            _selectedMembers = selectedMembers;
             Span = span;
 
             // If the user brought up the lightbulb on a class itself, it's more likely that they want to extract a base
             // class.  on a member however, we deprioritize this as there are likely more member-specific operations
             // they'd prefer to invoke instead.
-            Priority = selectedMember is null ? CodeActionPriority.Medium : CodeActionPriority.Low;
+            Priority = selectedMembers.IsEmpty ? CodeActionPriority.Medium : CodeActionPriority.Low;
         }
 
         public override object? GetOptions(CancellationToken cancellationToken)
         {
             var extractClassService = _service ?? _document.Project.Solution.Workspace.Services.GetRequiredService<IExtractClassOptionsService>();
-            return extractClassService.GetExtractClassOptionsAsync(_document, _selectedType, _selectedMember, cancellationToken)
+            return extractClassService.GetExtractClassOptionsAsync(_document, _selectedType, _selectedMembers, cancellationToken)
                 .WaitAndGetResult_CanCallOnBackground(cancellationToken);
         }
 
