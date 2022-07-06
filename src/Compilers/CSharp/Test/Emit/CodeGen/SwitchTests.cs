@@ -9913,162 +9913,156 @@ class C
                 expectedOutput: expectedOutput);
             compVerifier.VerifyIL("C.M", @"
     {
-      // Code size      499 (0x1f3)
+      // Code size      478 (0x1de)
       .maxstack  2
       .locals init (int V_0)
       IL_0000:  ldarg.0
-      IL_0001:  ldc.r8     13.1
-      IL_000a:  blt.un     IL_00fb
-      IL_000f:  ldarg.0
-      IL_0010:  ldc.r8     21.1
-      IL_0019:  blt.un.s   IL_008b
+      IL_0001:  ldc.r8     27.1
+      IL_000a:  blt.un.s   IL_002f
+      IL_000c:  ldarg.0
+      IL_000d:  ldc.r8     29.1
+      IL_0016:  blt        IL_017e
       IL_001b:  ldarg.0
-      IL_001c:  ldc.r8     27.1
-      IL_0025:  blt.un.s   IL_004a
-      IL_0027:  ldarg.0
-      IL_0028:  ldc.r8     29.1
-      IL_0031:  blt        IL_0193
-      IL_0036:  ldarg.0
-      IL_0037:  ldc.r8     29.1
-      IL_0040:  beq        IL_01b3
-      IL_0045:  br         IL_01ef
-      IL_004a:  ldarg.0
-      IL_004b:  ldc.r8     23.1
-      IL_0054:  blt        IL_01a9
-      IL_0059:  ldarg.0
-      IL_005a:  ldc.r8     25.1
-      IL_0063:  blt        IL_01d3
-      IL_0068:  ldarg.0
-      IL_0069:  ldc.r8     25.1
-      IL_0072:  beq        IL_01e1
-      IL_0077:  ldarg.0
-      IL_0078:  ldc.r8     26.1
-      IL_0081:  beq        IL_0198
-      IL_0086:  br         IL_01ef
-      IL_008b:  ldarg.0
-      IL_008c:  ldc.r8     16.1
-      IL_0095:  blt.un.s   IL_00d8
-      IL_0097:  ldarg.0
-      IL_0098:  ldc.r8     18.1
-      IL_00a1:  blt        IL_01ce
-      IL_00a6:  ldarg.0
-      IL_00a7:  ldc.r8     18.1
-      IL_00b0:  beq        IL_01d8
-      IL_00b5:  ldarg.0
-      IL_00b6:  ldc.r8     19.1
-      IL_00bf:  beq        IL_01ae
-      IL_00c4:  ldarg.0
-      IL_00c5:  ldc.r8     20.1
-      IL_00ce:  beq        IL_01e6
-      IL_00d3:  br         IL_01ef
-      IL_00d8:  ldarg.0
-      IL_00d9:  ldc.r8     15.1
-      IL_00e2:  blt        IL_01b8
-      IL_00e7:  ldarg.0
-      IL_00e8:  ldc.r8     15.1
-      IL_00f1:  beq        IL_01c1
-      IL_00f6:  br         IL_01ef
-      IL_00fb:  ldarg.0
-      IL_00fc:  ldc.r8     7.1
-      IL_0105:  blt.un.s   IL_015f
-      IL_0107:  ldarg.0
-      IL_0108:  ldc.r8     9.1
-      IL_0111:  blt        IL_01dd
-      IL_0116:  ldarg.0
-      IL_0117:  ldc.r8     10.1
-      IL_0120:  bgt.un.s   IL_0142
-      IL_0122:  ldarg.0
-      IL_0123:  ldc.r8     9.1
-      IL_012c:  beq.s      IL_019d
-      IL_012e:  ldarg.0
-      IL_012f:  ldc.r8     10.1
-      IL_0138:  beq        IL_01bd
-      IL_013d:  br         IL_01ef
-      IL_0142:  ldarg.0
-      IL_0143:  ldc.r8     11.1
-      IL_014c:  beq.s      IL_01c6
-      IL_014e:  ldarg.0
-      IL_014f:  ldc.r8     12.1
-      IL_0158:  beq.s      IL_01a5
-      IL_015a:  br         IL_01ef
-      IL_015f:  ldarg.0
-      IL_0160:  ldc.r8     4.1
-      IL_0169:  bge.un.s   IL_0179
-      IL_016b:  ldarg.0
-      IL_016c:  ldc.r8     2.1
-      IL_0175:  bge.s      IL_01a1
-      IL_0177:  br.s       IL_01ef
-      IL_0179:  ldarg.0
-      IL_017a:  ldc.r8     5.1
-      IL_0183:  bge.s      IL_01eb
-      IL_0185:  ldarg.0
-      IL_0186:  ldc.r8     4.1
-      IL_018f:  beq.s      IL_01ca
-      IL_0191:  br.s       IL_01ef
-      IL_0193:  ldc.i4.s   19
-      IL_0195:  stloc.0
-      IL_0196:  br.s       IL_01f1
-      IL_0198:  ldc.i4.s   18
-      IL_019a:  stloc.0
-      IL_019b:  br.s       IL_01f1
-      IL_019d:  ldc.i4.5
-      IL_019e:  stloc.0
-      IL_019f:  br.s       IL_01f1
-      IL_01a1:  ldc.i4.1
-      IL_01a2:  stloc.0
-      IL_01a3:  br.s       IL_01f1
-      IL_01a5:  ldc.i4.8
-      IL_01a6:  stloc.0
-      IL_01a7:  br.s       IL_01f1
-      IL_01a9:  ldc.i4.s   15
-      IL_01ab:  stloc.0
-      IL_01ac:  br.s       IL_01f1
-      IL_01ae:  ldc.i4.s   13
-      IL_01b0:  stloc.0
-      IL_01b1:  br.s       IL_01f1
-      IL_01b3:  ldc.i4.s   20
-      IL_01b5:  stloc.0
-      IL_01b6:  br.s       IL_01f1
-      IL_01b8:  ldc.i4.s   9
-      IL_01ba:  stloc.0
-      IL_01bb:  br.s       IL_01f1
-      IL_01bd:  ldc.i4.6
-      IL_01be:  stloc.0
-      IL_01bf:  br.s       IL_01f1
-      IL_01c1:  ldc.i4.s   10
-      IL_01c3:  stloc.0
-      IL_01c4:  br.s       IL_01f1
-      IL_01c6:  ldc.i4.7
-      IL_01c7:  stloc.0
-      IL_01c8:  br.s       IL_01f1
-      IL_01ca:  ldc.i4.2
-      IL_01cb:  stloc.0
-      IL_01cc:  br.s       IL_01f1
-      IL_01ce:  ldc.i4.s   11
-      IL_01d0:  stloc.0
-      IL_01d1:  br.s       IL_01f1
-      IL_01d3:  ldc.i4.s   16
-      IL_01d5:  stloc.0
-      IL_01d6:  br.s       IL_01f1
-      IL_01d8:  ldc.i4.s   12
-      IL_01da:  stloc.0
-      IL_01db:  br.s       IL_01f1
-      IL_01dd:  ldc.i4.4
-      IL_01de:  stloc.0
-      IL_01df:  br.s       IL_01f1
-      IL_01e1:  ldc.i4.s   17
-      IL_01e3:  stloc.0
-      IL_01e4:  br.s       IL_01f1
-      IL_01e6:  ldc.i4.s   14
-      IL_01e8:  stloc.0
-      IL_01e9:  br.s       IL_01f1
-      IL_01eb:  ldc.i4.3
-      IL_01ec:  stloc.0
-      IL_01ed:  br.s       IL_01f1
-      IL_01ef:  ldc.i4.0
-      IL_01f0:  stloc.0
-      IL_01f1:  ldloc.0
-      IL_01f2:  ret
+      IL_001c:  ldc.r8     29.1
+      IL_0025:  beq        IL_019e
+      IL_002a:  br         IL_01da
+      IL_002f:  ldarg.0
+      IL_0030:  ldc.r8     26.1
+      IL_0039:  beq        IL_0183
+      IL_003e:  ldarg.0
+      IL_003f:  ldc.r8     9.1
+      IL_0048:  beq        IL_0188
+      IL_004d:  ldarg.0
+      IL_004e:  ldc.r8     2.1
+      IL_0057:  blt.un     IL_01da
+      IL_005c:  ldarg.0
+      IL_005d:  ldc.r8     4.1
+      IL_0066:  blt        IL_018c
+      IL_006b:  ldarg.0
+      IL_006c:  ldc.r8     12.1
+      IL_0075:  beq        IL_0190
+      IL_007a:  ldarg.0
+      IL_007b:  ldc.r8     21.1
+      IL_0084:  blt.un.s   IL_00b8
+      IL_0086:  ldarg.0
+      IL_0087:  ldc.r8     23.1
+      IL_0090:  blt        IL_0194
+      IL_0095:  ldarg.0
+      IL_0096:  ldc.r8     25.1
+      IL_009f:  blt        IL_01be
+      IL_00a4:  ldarg.0
+      IL_00a5:  ldc.r8     25.1
+      IL_00ae:  beq        IL_01cc
+      IL_00b3:  br         IL_01da
+      IL_00b8:  ldarg.0
+      IL_00b9:  ldc.r8     19.1
+      IL_00c2:  beq        IL_0199
+      IL_00c7:  ldarg.0
+      IL_00c8:  ldc.r8     13.1
+      IL_00d1:  blt.un.s   IL_0132
+      IL_00d3:  ldarg.0
+      IL_00d4:  ldc.r8     15.1
+      IL_00dd:  blt        IL_01a3
+      IL_00e2:  ldarg.0
+      IL_00e3:  ldc.r8     15.1
+      IL_00ec:  beq        IL_01ac
+      IL_00f1:  ldarg.0
+      IL_00f2:  ldc.r8     16.1
+      IL_00fb:  blt.un     IL_01da
+      IL_0100:  ldarg.0
+      IL_0101:  ldc.r8     18.1
+      IL_010a:  blt        IL_01b9
+      IL_010f:  ldarg.0
+      IL_0110:  ldc.r8     18.1
+      IL_0119:  beq        IL_01c3
+      IL_011e:  ldarg.0
+      IL_011f:  ldc.r8     20.1
+      IL_0128:  beq        IL_01d1
+      IL_012d:  br         IL_01da
+      IL_0132:  ldarg.0
+      IL_0133:  ldc.r8     10.1
+      IL_013c:  beq.s      IL_01a8
+      IL_013e:  ldarg.0
+      IL_013f:  ldc.r8     11.1
+      IL_0148:  beq.s      IL_01b1
+      IL_014a:  ldarg.0
+      IL_014b:  ldc.r8     4.1
+      IL_0154:  beq.s      IL_01b5
+      IL_0156:  ldarg.0
+      IL_0157:  ldc.r8     7.1
+      IL_0160:  blt.un.s   IL_0170
+      IL_0162:  ldarg.0
+      IL_0163:  ldc.r8     9.1
+      IL_016c:  blt.s      IL_01c8
+      IL_016e:  br.s       IL_01da
+      IL_0170:  ldarg.0
+      IL_0171:  ldc.r8     5.1
+      IL_017a:  bge.s      IL_01d6
+      IL_017c:  br.s       IL_01da
+      IL_017e:  ldc.i4.s   19
+      IL_0180:  stloc.0
+      IL_0181:  br.s       IL_01dc
+      IL_0183:  ldc.i4.s   18
+      IL_0185:  stloc.0
+      IL_0186:  br.s       IL_01dc
+      IL_0188:  ldc.i4.5
+      IL_0189:  stloc.0
+      IL_018a:  br.s       IL_01dc
+      IL_018c:  ldc.i4.1
+      IL_018d:  stloc.0
+      IL_018e:  br.s       IL_01dc
+      IL_0190:  ldc.i4.8
+      IL_0191:  stloc.0
+      IL_0192:  br.s       IL_01dc
+      IL_0194:  ldc.i4.s   15
+      IL_0196:  stloc.0
+      IL_0197:  br.s       IL_01dc
+      IL_0199:  ldc.i4.s   13
+      IL_019b:  stloc.0
+      IL_019c:  br.s       IL_01dc
+      IL_019e:  ldc.i4.s   20
+      IL_01a0:  stloc.0
+      IL_01a1:  br.s       IL_01dc
+      IL_01a3:  ldc.i4.s   9
+      IL_01a5:  stloc.0
+      IL_01a6:  br.s       IL_01dc
+      IL_01a8:  ldc.i4.6
+      IL_01a9:  stloc.0
+      IL_01aa:  br.s       IL_01dc
+      IL_01ac:  ldc.i4.s   10
+      IL_01ae:  stloc.0
+      IL_01af:  br.s       IL_01dc
+      IL_01b1:  ldc.i4.7
+      IL_01b2:  stloc.0
+      IL_01b3:  br.s       IL_01dc
+      IL_01b5:  ldc.i4.2
+      IL_01b6:  stloc.0
+      IL_01b7:  br.s       IL_01dc
+      IL_01b9:  ldc.i4.s   11
+      IL_01bb:  stloc.0
+      IL_01bc:  br.s       IL_01dc
+      IL_01be:  ldc.i4.s   16
+      IL_01c0:  stloc.0
+      IL_01c1:  br.s       IL_01dc
+      IL_01c3:  ldc.i4.s   12
+      IL_01c5:  stloc.0
+      IL_01c6:  br.s       IL_01dc
+      IL_01c8:  ldc.i4.4
+      IL_01c9:  stloc.0
+      IL_01ca:  br.s       IL_01dc
+      IL_01cc:  ldc.i4.s   17
+      IL_01ce:  stloc.0
+      IL_01cf:  br.s       IL_01dc
+      IL_01d1:  ldc.i4.s   14
+      IL_01d3:  stloc.0
+      IL_01d4:  br.s       IL_01dc
+      IL_01d6:  ldc.i4.3
+      IL_01d7:  stloc.0
+      IL_01d8:  br.s       IL_01dc
+      IL_01da:  ldc.i4.0
+      IL_01db:  stloc.0
+      IL_01dc:  ldloc.0
+      IL_01dd:  ret
     }
 "
             );
@@ -10177,162 +10171,156 @@ class C
                 expectedOutput: expectedOutput);
             compVerifier.VerifyIL("C.M", @"
     {
-      // Code size      388 (0x184)
+      // Code size      374 (0x176)
       .maxstack  2
       .locals init (int V_0)
       IL_0000:  ldarg.0
-      IL_0001:  ldc.r4     13.1
-      IL_0006:  blt.un     IL_00bb
-      IL_000b:  ldarg.0
-      IL_000c:  ldc.r4     21.1
-      IL_0011:  blt.un.s   IL_0067
+      IL_0001:  ldc.r4     27.1
+      IL_0006:  blt.un.s   IL_0023
+      IL_0008:  ldarg.0
+      IL_0009:  ldc.r4     29.1
+      IL_000e:  blt        IL_0116
       IL_0013:  ldarg.0
-      IL_0014:  ldc.r4     27.1
-      IL_0019:  blt.un.s   IL_0036
-      IL_001b:  ldarg.0
-      IL_001c:  ldc.r4     29.1
-      IL_0021:  blt        IL_0124
-      IL_0026:  ldarg.0
-      IL_0027:  ldc.r4     29.1
-      IL_002c:  beq        IL_0144
-      IL_0031:  br         IL_0180
-      IL_0036:  ldarg.0
-      IL_0037:  ldc.r4     23.1
-      IL_003c:  blt        IL_013a
-      IL_0041:  ldarg.0
-      IL_0042:  ldc.r4     25.1
-      IL_0047:  blt        IL_0164
-      IL_004c:  ldarg.0
-      IL_004d:  ldc.r4     25.1
-      IL_0052:  beq        IL_0172
-      IL_0057:  ldarg.0
-      IL_0058:  ldc.r4     26.1
-      IL_005d:  beq        IL_0129
-      IL_0062:  br         IL_0180
-      IL_0067:  ldarg.0
-      IL_0068:  ldc.r4     16.1
-      IL_006d:  blt.un.s   IL_00a0
-      IL_006f:  ldarg.0
-      IL_0070:  ldc.r4     18.1
-      IL_0075:  blt        IL_015f
-      IL_007a:  ldarg.0
-      IL_007b:  ldc.r4     18.1
-      IL_0080:  beq        IL_0169
-      IL_0085:  ldarg.0
-      IL_0086:  ldc.r4     19.1
-      IL_008b:  beq        IL_013f
-      IL_0090:  ldarg.0
-      IL_0091:  ldc.r4     20.1
-      IL_0096:  beq        IL_0177
-      IL_009b:  br         IL_0180
-      IL_00a0:  ldarg.0
-      IL_00a1:  ldc.r4     15.1
-      IL_00a6:  blt        IL_0149
-      IL_00ab:  ldarg.0
-      IL_00ac:  ldc.r4     15.1
-      IL_00b1:  beq        IL_0152
-      IL_00b6:  br         IL_0180
-      IL_00bb:  ldarg.0
-      IL_00bc:  ldc.r4     7.1
-      IL_00c1:  blt.un.s   IL_0100
-      IL_00c3:  ldarg.0
-      IL_00c4:  ldc.r4     9.1
-      IL_00c9:  blt        IL_016e
-      IL_00ce:  ldarg.0
-      IL_00cf:  ldc.r4     10.1
-      IL_00d4:  bgt.un.s   IL_00eb
-      IL_00d6:  ldarg.0
-      IL_00d7:  ldc.r4     9.1
-      IL_00dc:  beq.s      IL_012e
-      IL_00de:  ldarg.0
-      IL_00df:  ldc.r4     10.1
-      IL_00e4:  beq.s      IL_014e
-      IL_00e6:  br         IL_0180
-      IL_00eb:  ldarg.0
-      IL_00ec:  ldc.r4     11.1
-      IL_00f1:  beq.s      IL_0157
-      IL_00f3:  ldarg.0
-      IL_00f4:  ldc.r4     12.1
-      IL_00f9:  beq.s      IL_0136
-      IL_00fb:  br         IL_0180
-      IL_0100:  ldarg.0
-      IL_0101:  ldc.r4     4.1
-      IL_0106:  bge.un.s   IL_0112
-      IL_0108:  ldarg.0
-      IL_0109:  ldc.r4     2.1
-      IL_010e:  bge.s      IL_0132
-      IL_0110:  br.s       IL_0180
-      IL_0112:  ldarg.0
-      IL_0113:  ldc.r4     5.1
-      IL_0118:  bge.s      IL_017c
-      IL_011a:  ldarg.0
-      IL_011b:  ldc.r4     4.1
-      IL_0120:  beq.s      IL_015b
-      IL_0122:  br.s       IL_0180
-      IL_0124:  ldc.i4.s   19
-      IL_0126:  stloc.0
-      IL_0127:  br.s       IL_0182
-      IL_0129:  ldc.i4.s   18
-      IL_012b:  stloc.0
-      IL_012c:  br.s       IL_0182
-      IL_012e:  ldc.i4.5
-      IL_012f:  stloc.0
-      IL_0130:  br.s       IL_0182
-      IL_0132:  ldc.i4.1
+      IL_0014:  ldc.r4     29.1
+      IL_0019:  beq        IL_0136
+      IL_001e:  br         IL_0172
+      IL_0023:  ldarg.0
+      IL_0024:  ldc.r4     26.1
+      IL_0029:  beq        IL_011b
+      IL_002e:  ldarg.0
+      IL_002f:  ldc.r4     9.1
+      IL_0034:  beq        IL_0120
+      IL_0039:  ldarg.0
+      IL_003a:  ldc.r4     2.1
+      IL_003f:  blt.un     IL_0172
+      IL_0044:  ldarg.0
+      IL_0045:  ldc.r4     4.1
+      IL_004a:  blt        IL_0124
+      IL_004f:  ldarg.0
+      IL_0050:  ldc.r4     12.1
+      IL_0055:  beq        IL_0128
+      IL_005a:  ldarg.0
+      IL_005b:  ldc.r4     21.1
+      IL_0060:  blt.un.s   IL_0088
+      IL_0062:  ldarg.0
+      IL_0063:  ldc.r4     23.1
+      IL_0068:  blt        IL_012c
+      IL_006d:  ldarg.0
+      IL_006e:  ldc.r4     25.1
+      IL_0073:  blt        IL_0156
+      IL_0078:  ldarg.0
+      IL_0079:  ldc.r4     25.1
+      IL_007e:  beq        IL_0164
+      IL_0083:  br         IL_0172
+      IL_0088:  ldarg.0
+      IL_0089:  ldc.r4     19.1
+      IL_008e:  beq        IL_0131
+      IL_0093:  ldarg.0
+      IL_0094:  ldc.r4     13.1
+      IL_0099:  blt.un.s   IL_00e2
+      IL_009b:  ldarg.0
+      IL_009c:  ldc.r4     15.1
+      IL_00a1:  blt        IL_013b
+      IL_00a6:  ldarg.0
+      IL_00a7:  ldc.r4     15.1
+      IL_00ac:  beq        IL_0144
+      IL_00b1:  ldarg.0
+      IL_00b2:  ldc.r4     16.1
+      IL_00b7:  blt.un     IL_0172
+      IL_00bc:  ldarg.0
+      IL_00bd:  ldc.r4     18.1
+      IL_00c2:  blt        IL_0151
+      IL_00c7:  ldarg.0
+      IL_00c8:  ldc.r4     18.1
+      IL_00cd:  beq        IL_015b
+      IL_00d2:  ldarg.0
+      IL_00d3:  ldc.r4     20.1
+      IL_00d8:  beq        IL_0169
+      IL_00dd:  br         IL_0172
+      IL_00e2:  ldarg.0
+      IL_00e3:  ldc.r4     10.1
+      IL_00e8:  beq.s      IL_0140
+      IL_00ea:  ldarg.0
+      IL_00eb:  ldc.r4     11.1
+      IL_00f0:  beq.s      IL_0149
+      IL_00f2:  ldarg.0
+      IL_00f3:  ldc.r4     4.1
+      IL_00f8:  beq.s      IL_014d
+      IL_00fa:  ldarg.0
+      IL_00fb:  ldc.r4     7.1
+      IL_0100:  blt.un.s   IL_010c
+      IL_0102:  ldarg.0
+      IL_0103:  ldc.r4     9.1
+      IL_0108:  blt.s      IL_0160
+      IL_010a:  br.s       IL_0172
+      IL_010c:  ldarg.0
+      IL_010d:  ldc.r4     5.1
+      IL_0112:  bge.s      IL_016e
+      IL_0114:  br.s       IL_0172
+      IL_0116:  ldc.i4.s   19
+      IL_0118:  stloc.0
+      IL_0119:  br.s       IL_0174
+      IL_011b:  ldc.i4.s   18
+      IL_011d:  stloc.0
+      IL_011e:  br.s       IL_0174
+      IL_0120:  ldc.i4.5
+      IL_0121:  stloc.0
+      IL_0122:  br.s       IL_0174
+      IL_0124:  ldc.i4.1
+      IL_0125:  stloc.0
+      IL_0126:  br.s       IL_0174
+      IL_0128:  ldc.i4.8
+      IL_0129:  stloc.0
+      IL_012a:  br.s       IL_0174
+      IL_012c:  ldc.i4.s   15
+      IL_012e:  stloc.0
+      IL_012f:  br.s       IL_0174
+      IL_0131:  ldc.i4.s   13
       IL_0133:  stloc.0
-      IL_0134:  br.s       IL_0182
-      IL_0136:  ldc.i4.8
-      IL_0137:  stloc.0
-      IL_0138:  br.s       IL_0182
-      IL_013a:  ldc.i4.s   15
-      IL_013c:  stloc.0
-      IL_013d:  br.s       IL_0182
-      IL_013f:  ldc.i4.s   13
+      IL_0134:  br.s       IL_0174
+      IL_0136:  ldc.i4.s   20
+      IL_0138:  stloc.0
+      IL_0139:  br.s       IL_0174
+      IL_013b:  ldc.i4.s   9
+      IL_013d:  stloc.0
+      IL_013e:  br.s       IL_0174
+      IL_0140:  ldc.i4.6
       IL_0141:  stloc.0
-      IL_0142:  br.s       IL_0182
-      IL_0144:  ldc.i4.s   20
+      IL_0142:  br.s       IL_0174
+      IL_0144:  ldc.i4.s   10
       IL_0146:  stloc.0
-      IL_0147:  br.s       IL_0182
-      IL_0149:  ldc.i4.s   9
-      IL_014b:  stloc.0
-      IL_014c:  br.s       IL_0182
-      IL_014e:  ldc.i4.6
-      IL_014f:  stloc.0
-      IL_0150:  br.s       IL_0182
-      IL_0152:  ldc.i4.s   10
-      IL_0154:  stloc.0
-      IL_0155:  br.s       IL_0182
-      IL_0157:  ldc.i4.7
+      IL_0147:  br.s       IL_0174
+      IL_0149:  ldc.i4.7
+      IL_014a:  stloc.0
+      IL_014b:  br.s       IL_0174
+      IL_014d:  ldc.i4.2
+      IL_014e:  stloc.0
+      IL_014f:  br.s       IL_0174
+      IL_0151:  ldc.i4.s   11
+      IL_0153:  stloc.0
+      IL_0154:  br.s       IL_0174
+      IL_0156:  ldc.i4.s   16
       IL_0158:  stloc.0
-      IL_0159:  br.s       IL_0182
-      IL_015b:  ldc.i4.2
-      IL_015c:  stloc.0
-      IL_015d:  br.s       IL_0182
-      IL_015f:  ldc.i4.s   11
+      IL_0159:  br.s       IL_0174
+      IL_015b:  ldc.i4.s   12
+      IL_015d:  stloc.0
+      IL_015e:  br.s       IL_0174
+      IL_0160:  ldc.i4.4
       IL_0161:  stloc.0
-      IL_0162:  br.s       IL_0182
-      IL_0164:  ldc.i4.s   16
+      IL_0162:  br.s       IL_0174
+      IL_0164:  ldc.i4.s   17
       IL_0166:  stloc.0
-      IL_0167:  br.s       IL_0182
-      IL_0169:  ldc.i4.s   12
+      IL_0167:  br.s       IL_0174
+      IL_0169:  ldc.i4.s   14
       IL_016b:  stloc.0
-      IL_016c:  br.s       IL_0182
-      IL_016e:  ldc.i4.4
+      IL_016c:  br.s       IL_0174
+      IL_016e:  ldc.i4.3
       IL_016f:  stloc.0
-      IL_0170:  br.s       IL_0182
-      IL_0172:  ldc.i4.s   17
-      IL_0174:  stloc.0
-      IL_0175:  br.s       IL_0182
-      IL_0177:  ldc.i4.s   14
-      IL_0179:  stloc.0
-      IL_017a:  br.s       IL_0182
-      IL_017c:  ldc.i4.3
-      IL_017d:  stloc.0
-      IL_017e:  br.s       IL_0182
-      IL_0180:  ldc.i4.0
-      IL_0181:  stloc.0
-      IL_0182:  ldloc.0
-      IL_0183:  ret
+      IL_0170:  br.s       IL_0174
+      IL_0172:  ldc.i4.0
+      IL_0173:  stloc.0
+      IL_0174:  ldloc.0
+      IL_0175:  ret
     }
 "
             );
