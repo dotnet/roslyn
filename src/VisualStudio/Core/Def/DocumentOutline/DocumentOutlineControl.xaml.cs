@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         public IVsCodeWindow CodeWindow { get; }
 
         /// <summary>
-        /// The type of sorting applied to the document model.
+        /// The type of sorting to be applied to the DocumentSymbolItems in the UI.
         /// </summary>
         private SortOption SortOption { get; set; }
 
@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         private readonly AsyncBatchingWorkQueue<bool, DocumentSymbolModel?> _computeModelQueue;
 
         /// <summary>
-        /// Queue to batch up work to do to update the current document model and UI.
+        /// Queue to batch up work to do to update the UI.
         /// </summary>
         private readonly AsyncBatchingWorkQueue<bool, DocumentSymbolModel?> _updateUIQueue;
 
