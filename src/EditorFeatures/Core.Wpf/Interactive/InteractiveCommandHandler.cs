@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Interactive
 {
@@ -25,16 +26,16 @@ namespace Microsoft.CodeAnalysis.Interactive
         ICommandHandler<CopyToInteractiveCommandArgs>
     {
         private readonly IContentTypeRegistryService _contentTypeRegistryService;
-        private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
+        private readonly EditorOptionsService _editorOptionsService;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
 
         protected InteractiveCommandHandler(
             IContentTypeRegistryService contentTypeRegistryService,
-            IEditorOptionsFactoryService editorOptionsFactoryService,
+            EditorOptionsService editorOptionsService,
             IEditorOperationsFactoryService editorOperationsFactoryService)
         {
             _contentTypeRegistryService = contentTypeRegistryService;
-            _editorOptionsFactoryService = editorOptionsFactoryService;
+            _editorOptionsService = editorOptionsService;
             _editorOperationsFactoryService = editorOperationsFactoryService;
         }
 
@@ -48,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
         private string GetSelectedText(EditorCommandArgs args, CancellationToken cancellationToken)
         {
-            var editorOptions = _editorOptionsFactoryService.GetOptions(args.SubjectBuffer);
+            var editorOptions = _editorOptionsService.Factory.GetOptions(args.SubjectBuffer);
             return SendToInteractiveSubmissionProvider.GetSelectedText(editorOptions, args, cancellationToken);
         }
 
@@ -113,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 var lastLine = buffer.CurrentSnapshot.GetLineFromLineNumber(buffer.CurrentSnapshot.LineCount - 1);
                 if (lastLine.Extent.Length > 0)
                 {
-                    var editorOptions = _editorOptionsFactoryService.GetOptions(args.SubjectBuffer);
+                    var editorOptions = _editorOptionsService.Factory.GetOptions(args.SubjectBuffer);
                     text = editorOptions.GetNewLineCharacter() + text;
                 }
 
