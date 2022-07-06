@@ -179,12 +179,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var roslynTrigger = Helpers.GetRoslynTrigger(trigger, triggerLocation);
 
             // The completion service decides that user may want a completion.
-            if (completionService.ShouldTriggerCompletion(document.Project, document.Project.LanguageServices, sourceText, triggerLocation.Position, roslynTrigger, options, document.Project.Solution.Options))
-            {
-                return true;
-            }
-
-            return false;
+            return completionService.ShouldTriggerCompletion(
+                document.Project, document.Project.LanguageServices, sourceText, triggerLocation.Position, roslynTrigger, options, document.Project.Solution.Options, _roles);
         }
 
         private bool TryInvokeSnippetCompletion(
@@ -266,11 +262,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 // contemplate such action thus typing slower before commit and/or spending more time examining the list, which give us some opportunities
                 // to still provide those items later before they are truly required.     
 
-                var options = _globalOptions.GetCompletionOptions(document.Project.Language) with { UpdateImportCompletionCacheInBackground = true };
-                var sessionData = CompletionSessionData.GetOrCreateSessionData(session);
+                var showCompletionItemFilters = _globalOptions.GetOption(CompletionViewOptions.ShowCompletionItemFilters, document.Project.Language);
+                var options = _globalOptions.GetCompletionOptions(document.Project.Language) with
+                {
+                    UpdateImportCompletionCacheInBackground = true,
+                    TargetTypedCompletionFilter = showCompletionItemFilters // Compute targeted types if filter is enabled
+                };
 
-                // For telemetry reporting purpose
-                sessionData.TargetTypeFilterExperimentEnabled = options.TargetTypedCompletionFilter;
+                var sessionData = CompletionSessionData.GetOrCreateSessionData(session);
 
                 if (!options.ShouldShowItemsFromUnimportNamspaces())
                 {

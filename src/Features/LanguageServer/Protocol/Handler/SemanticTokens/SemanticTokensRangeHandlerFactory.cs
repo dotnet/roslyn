@@ -33,7 +33,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         {
             var clientCapabilities = lspServices.GetRequiredService<IClientCapabilitiesProvider>().GetClientCapabilities();
             var notificationManager = lspServices.GetRequiredService<ILanguageServerNotificationManager>();
-            return new SemanticTokensRangeHandler(_globalOptions, _asyncListenerProvider, _lspWorkspaceRegistrationService, notificationManager, clientCapabilities);
+            var lspWorkspaceManager = lspServices.GetRequiredService<LspWorkspaceManager>();
+            return new SemanticTokensRangeHandler(_globalOptions, _asyncListenerProvider, _lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager, clientCapabilities);
         }
     }
 }

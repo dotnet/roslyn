@@ -202,7 +202,8 @@ namespace Microsoft.CodeAnalysis
                     SymbolDisplayCompilerInternalOptions.IncludeScriptType |
                     SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames |
                     SymbolDisplayCompilerInternalOptions.FlagMissingMetadataTypes |
-                    SymbolDisplayCompilerInternalOptions.IncludeCustomModifiers);
+                    SymbolDisplayCompilerInternalOptions.IncludeCustomModifiers |
+                    SymbolDisplayCompilerInternalOptions.IncludeContainingFileForFileTypes);
 
         /// <summary>
         /// A verbose format for displaying symbols (useful for testing).
@@ -757,6 +758,12 @@ namespace Microsoft.CodeAnalysis
         {
             return this.WithLocalOptions(this.LocalOptions & ~options);
         }
+
+        /// <summary>
+        /// Creates a copy of the SymbolDisplayFormat but with added set of <seealso cref="SymbolDisplayCompilerInternalOptions"/>.
+        /// </summary>
+        internal SymbolDisplayFormat AddCompilerInternalOptions(SymbolDisplayCompilerInternalOptions options)
+            => WithCompilerInternalOptions(this.CompilerInternalOptions | options);
 
         /// <summary>
         /// Creates a copy of the SymbolDisplayFormat but with replaced set of <seealso cref="SymbolDisplayCompilerInternalOptions"/>.

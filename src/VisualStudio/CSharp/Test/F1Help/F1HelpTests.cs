@@ -945,7 +945,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public async Task TestUTF8String()
+        public async Task TestUtf8String()
         {
             await TestAsync(
 @"using System;
@@ -956,7 +956,7 @@ class Program
     {
         var x = ""Hel[||]lo""u8;
     }
-}", "UTF8StringLiteral_CSharpKeyword");
+}", "Utf8StringLiteral_CSharpKeyword");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
@@ -975,7 +975,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public async Task TestUTF8RawString()
+        public async Task TestUtf8RawString()
         {
             await TestAsync(
 @"using System;
@@ -986,7 +986,7 @@ class Program
     {
         var x = """"""Hel[||]lo""""""u8;
     }
-}", "UTF8StringLiteral_CSharpKeyword");
+}", "Utf8StringLiteral_CSharpKeyword");
         }
 
         [WorkItem(46986, "https://github.com/dotnet/roslyn/issues/46986")]
