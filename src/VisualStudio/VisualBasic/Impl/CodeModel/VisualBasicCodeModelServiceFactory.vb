@@ -18,29 +18,26 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
     Partial Friend Class VisualBasicCodeModelServiceFactory
         Implements ILanguageServiceFactory
 
-        Private ReadOnly _editorOptionsFactoryService As IEditorOptionsFactoryService
+        Private ReadOnly _editorOptionsService As EditorOptionsService
         Private ReadOnly _refactorNotifyServices As IEnumerable(Of IRefactorNotifyService)
         Private ReadOnly _commitBufferManagerFactory As CommitBufferManagerFactory
         Private ReadOnly _threadingContext As IThreadingContext
-        Private ReadOnly _globalOptions As IGlobalOptionService
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Public Sub New(editorOptionsFactoryService As IEditorOptionsFactoryService,
+        Public Sub New(editorOptionsService As EditorOptionsService,
                        <ImportMany> refactorNotifyServices As IEnumerable(Of IRefactorNotifyService),
                        commitBufferManagerFactory As CommitBufferManagerFactory,
-                       threadingContext As IThreadingContext,
-                       globalOptions As IGlobalOptionService)
+                       threadingContext As IThreadingContext)
 
-            _editorOptionsFactoryService = editorOptionsFactoryService
+            _editorOptionsService = editorOptionsService
             _refactorNotifyServices = refactorNotifyServices
             _commitBufferManagerFactory = commitBufferManagerFactory
             _threadingContext = threadingContext
-            _globalOptions = globalOptions
         End Sub
 
         Public Function CreateLanguageService(provider As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
-            Return New VisualBasicCodeModelService(provider, _editorOptionsFactoryService, _refactorNotifyServices, _commitBufferManagerFactory, _globalOptions, _threadingContext)
+            Return New VisualBasicCodeModelService(provider, _editorOptionsService, _refactorNotifyServices, _commitBufferManagerFactory, _threadingContext)
         End Function
     End Class
 End Namespace

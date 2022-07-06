@@ -68,6 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 new ExternKeywordRecommender(),
                 new FalseKeywordRecommender(),
                 new FieldKeywordRecommender(),
+                new FileKeywordRecommender(),
                 new FinallyKeywordRecommender(),
                 new FixedKeywordRecommender(),
                 new FloatKeywordRecommender(),
