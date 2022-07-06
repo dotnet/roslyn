@@ -103,7 +103,6 @@ public partial struct SyntaxValueProvider
         return rootsWithAttributeAndGlobalAliasesProvider.Select(
             (tuple, c) => (tuple.Left, GetMatchingNodes(syntaxHelper, tuple.Right, tuple.Left, simpleName, predicate, c)))
             .Where(tuple => tuple.Item2.Length > 0)
-            .WithComparer(GroupingEqualityComparer.Instance)
             .WithTrackingName("result_ForAttributeInternal");
 
         static GlobalAliases getGlobalAliasesInCompilationUnit(
@@ -309,27 +308,5 @@ public partial struct SyntaxValueProvider
         }
 
         return false;
-    }
-
-    /// <summary>
-    /// Note: we do something very sneaky here.  Specifically, as long as we have the same <see cref="SyntaxTree"/> from
-    /// before, then we know we must have the same nodes as before (since the nodes are entirely determined from the
-    /// text+options which is exactly what the syntax tree represents).  Similarly, if the syntax tree changes, we will
-    /// always get different nodes (since they point back at the syntax tree).  So we can just use the syntax tree
-    /// itself to determine value semantics here.
-    /// </summary>
-    private sealed class GroupingEqualityComparer : IEqualityComparer<(SyntaxTree tree, ImmutableArray<SyntaxNode> matches)>
-    {
-        public static readonly GroupingEqualityComparer Instance = new();
-
-        private GroupingEqualityComparer()
-        {
-        }
-
-        bool IEqualityComparer<(SyntaxTree tree, ImmutableArray<SyntaxNode> matches)>.Equals((SyntaxTree tree, ImmutableArray<SyntaxNode> matches) x, (SyntaxTree tree, ImmutableArray<SyntaxNode> matches) y)
-            => x.tree == y.tree;
-
-        int IEqualityComparer<(SyntaxTree tree, ImmutableArray<SyntaxNode> matches)>.GetHashCode((SyntaxTree tree, ImmutableArray<SyntaxNode> matches) obj)
-            => obj.tree.GetHashCode();
     }
 }
