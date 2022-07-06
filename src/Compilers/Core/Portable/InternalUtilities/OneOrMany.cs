@@ -19,7 +19,7 @@ namespace Roslyn.Utilities
     /// </remarks>
     internal readonly struct OneOrMany<T>
     {
-        public static readonly OneOrMany<T> Empty = new(ImmutableArray<T>.Empty);
+        public static readonly OneOrMany<T> Empty = new OneOrMany<T>(ImmutableArray<T>.Empty);
 
         private readonly T? _one;
         private readonly ImmutableArray<T> _many;
@@ -208,6 +208,6 @@ namespace Roslyn.Utilities
             => new OneOrMany<T>(one);
 
         public static OneOrMany<T> Create<T>(ImmutableArray<T> many)
-            => new OneOrMany<T>(many);
+            => many.IsEmpty ? OneOrMany<T>.Empty : new OneOrMany<T>(many);
     }
 }
