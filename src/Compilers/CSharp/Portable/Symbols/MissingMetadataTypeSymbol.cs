@@ -47,6 +47,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return mangleName;
             }
         }
+
+        internal override SyntaxTree? AssociatedSyntaxTree => null;
+
         /// <summary>
         /// Get the arity of the missing type.
         /// </summary>
