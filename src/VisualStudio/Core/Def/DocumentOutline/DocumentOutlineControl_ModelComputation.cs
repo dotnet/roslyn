@@ -23,6 +23,16 @@ namespace Microsoft.VisualStudio.LanguageServices
 {
     internal partial class DocumentOutlineControl
     {
+        private IWpfTextView? GetLastActiveIWpfTextView()
+        {
+            ThreadingContext.ThrowIfNotOnUIThread();
+
+            if (ErrorHandler.Failed(CodeWindow.GetLastActiveView(out var textView)))
+                return null;
+
+            return EditorAdaptersFactoryService.GetWpfTextView(textView);
+        }
+
         /// <summary>
         /// Starts a new task to get the current document model.
         /// </summary>
@@ -40,9 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             // Jump to the UI thread to get the currently active text view.
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            CodeWindow.GetLastActiveView(out var textView);
-            var activeTextView = EditorAdaptersFactoryService.GetWpfTextView(textView);
-
+            var activeTextView = GetLastActiveIWpfTextView();
             if (activeTextView is null)
                 return null;
 
@@ -117,9 +125,7 @@ namespace Microsoft.VisualStudio.LanguageServices
 
             var searchQuery = searchBox.Text;
 
-            CodeWindow.GetLastActiveView(out var textView);
-            var activeTextView = EditorAdaptersFactoryService.GetWpfTextView(textView);
-
+            var activeTextView = GetLastActiveIWpfTextView();
             if (activeTextView is null)
                 return null;
 
@@ -162,8 +168,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             // Switch to the UI thread to get the current caret point, latest active text view, and currently selected tree node.
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            CodeWindow.GetLastActiveView(out var textView);
-            var activeTextView = EditorAdaptersFactoryService.GetWpfTextView(textView);
+            var activeTextView = GetLastActiveIWpfTextView();
             if (activeTextView is null)
                 return;
 
@@ -200,8 +205,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             // Switch to the UI thread to update the latest active text view.
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            CodeWindow.GetLastActiveView(out var textView);
-            var activeTextView = EditorAdaptersFactoryService.GetWpfTextView(textView);
+            var activeTextView = GetLastActiveIWpfTextView();
             if (activeTextView is null)
                 return;
 
