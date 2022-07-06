@@ -2289,9 +2289,7 @@ public class C
         {
             var fileClass = (ClassDeclarationSyntax)SyntaxFactory.ParseMemberDeclaration("file class C { }");
             var fileAbstractClass = Generator.WithModifiers(fileClass, Generator.GetModifiers(fileClass).WithIsAbstract(true));
-            // bad output. It will be fixed in a later commit.
-            // This commit just demonstrates the *current* behavior (test is passing currently, while it shouldn't).
-            VerifySyntax<ClassDeclarationSyntax>(fileAbstractClass, @"abstract class C
+            VerifySyntax<ClassDeclarationSyntax>(fileAbstractClass, @"file abstract class C
 {
 }");
         }
@@ -2313,9 +2311,7 @@ public class C
         {
             var abstractClass = (ClassDeclarationSyntax)SyntaxFactory.ParseMemberDeclaration("abstract class C { }");
             var fileAbstractClass = Generator.WithModifiers(abstractClass, Generator.GetModifiers(abstractClass).WithIsFile(true));
-            // bad output. It will be fixed in a later commit.
-            // This commit just demonstrates the *current* behavior (test is passing currently, while it shouldn't).
-            VerifySyntax<ClassDeclarationSyntax>(fileAbstractClass, @"abstract class C
+            VerifySyntax<ClassDeclarationSyntax>(fileAbstractClass, @"file abstract class C
 {
 }");
         }
@@ -2327,7 +2323,8 @@ public class C
             var filePublicClass = Generator.WithModifiers(publicClass, Generator.GetModifiers(publicClass).WithIsFile(true));
             // bad output. It will be fixed in a later commit.
             // This commit just demonstrates the *current* behavior (test is passing currently, while it shouldn't).
-            VerifySyntax<ClassDeclarationSyntax>(filePublicClass, @"public class C
+            // note, behavior changed here in this commit since we supported file, but the most correct behavior is to eliminate public completely.
+            VerifySyntax<ClassDeclarationSyntax>(filePublicClass, @"public file class C
 {
 }");
         }

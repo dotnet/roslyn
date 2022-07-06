@@ -1628,6 +1628,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     break;
             }
 
+            if (modifiers.IsFile)
+                list.Add(SyntaxFactory.Token(SyntaxKind.FileKeyword));
+
             if (modifiers.IsAbstract)
                 list.Add(SyntaxFactory.Token(SyntaxKind.AbstractKeyword));
 
