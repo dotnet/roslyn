@@ -3037,8 +3037,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             // we also check that the old symbol can't be resolved in the new compilation
                             if (oldSymbol.Name != newSymbol.Name &&
                                 AllowsDeletion(oldSymbol) &&
-                                SymbolKey.Create(oldSymbol, cancellationToken) is { } oldSymbolKey &&
-                                oldSymbolKey.Resolve(newCompilation, ignoreAssemblyKey: true, cancellationToken).Symbol is null)
+                                SymbolKey.Create(oldSymbol, cancellationToken).Resolve(newCompilation, ignoreAssemblyKey: true, cancellationToken).Symbol is null)
                             {
                                 var containingSymbolKey = SymbolKey.Create(oldSymbol.ContainingType, cancellationToken);
 
@@ -3261,21 +3260,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // We store the containing symbol in NewSymbol of the edit for later use.
             if (symbol is IMethodSymbol)
             {
-                AddEdit(semanticEdits, editKind, symbol, containingSymbolKey, syntaxMap, partialType, cancellationToken);
+                AddEdit(symbol);
             }
             else if (symbol is IPropertySymbol propertySymbol)
             {
-                AddEdit(semanticEdits, editKind, propertySymbol.GetMethod, containingSymbolKey, syntaxMap, partialType, cancellationToken);
-                AddEdit(semanticEdits, editKind, propertySymbol.SetMethod, containingSymbolKey, syntaxMap, partialType, cancellationToken);
+                AddEdit(propertySymbol.GetMethod);
+                AddEdit(propertySymbol.SetMethod);
             }
             else if (symbol is IEventSymbol eventSymbol)
             {
-                AddEdit(semanticEdits, editKind, eventSymbol.AddMethod, containingSymbolKey, syntaxMap, partialType, cancellationToken);
-                AddEdit(semanticEdits, editKind, eventSymbol.RemoveMethod, containingSymbolKey, syntaxMap, partialType, cancellationToken);
-                AddEdit(semanticEdits, editKind, eventSymbol.RaiseMethod, containingSymbolKey, syntaxMap, partialType, cancellationToken);
+                AddEdit(eventSymbol.AddMethod);
+                AddEdit(eventSymbol.RemoveMethod);
+                AddEdit(eventSymbol.RaiseMethod);
             }
 
-            static void AddEdit(ArrayBuilder<SemanticEditInfo> semanticEdits, SemanticEditKind editKind, ISymbol? symbol, SymbolKey? containingSymbolKey, Func<SyntaxNode, SyntaxNode?>? syntaxMap, SymbolKey? partialType, CancellationToken cancellationToken)
+            void AddEdit(ISymbol? symbol)
             {
                 if (symbol is null)
                     return;
