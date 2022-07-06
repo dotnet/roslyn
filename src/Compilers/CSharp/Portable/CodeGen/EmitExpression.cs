@@ -2012,7 +2012,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 if (!used && ConstructorNotSideEffecting(constructor))
                 {
                     // ctor has no side-effects, so we will just evaluate the arguments
-
                     foreach (var arg in expression.Arguments)
                     {
                         EmitExpression(arg, used: false);

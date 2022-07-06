@@ -17362,8 +17362,77 @@ public class Program {
     }
 }
 """;
-            CompileAndVerify(source, targetFramework: TargetFramework.Net50, expectedOutput: "3 5 7");
-            CompileAndVerify(source, targetFramework: TargetFramework.NetStandard20, expectedOutput: "3 5 7");
+            var expectILNet50 = @"
+{
+  // Code size       74 (0x4a)
+  .maxstack  6
+  .locals init (int[,] V_0) //m
+  IL_0000:  ldc.i4.3
+  IL_0001:  ldc.i4.3
+  IL_0002:  newobj     ""int[*,*]..ctor""
+  IL_0007:  dup
+  IL_0008:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=36 <PrivateImplementationDetails>.E3D25E7590EDD76206831801F67D1EE231D8B90A2BB4BFE31A152BE21D2F536C""
+  IL_000d:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_0012:  stloc.0
+  IL_0013:  ldstr      ""{0} {1} {2}""
+  IL_0018:  ldloc.0
+  IL_0019:  ldc.i4.0
+  IL_001a:  ldc.i4.2
+  IL_001b:  call       ""int[*,*].Get""
+  IL_0020:  box        ""int""
+  IL_0025:  ldloc.0
+  IL_0026:  ldc.i4.1
+  IL_0027:  ldc.i4.1
+  IL_0028:  call       ""int[*,*].Get""
+  IL_002d:  box        ""int""
+  IL_0032:  ldloc.0
+  IL_0033:  ldc.i4.2
+  IL_0034:  ldc.i4.0
+  IL_0035:  call       ""int[*,*].Get""
+  IL_003a:  box        ""int""
+  IL_003f:  call       ""string string.Format(string, object, object, object)""
+  IL_0044:  call       ""void System.Console.WriteLine(string)""
+  IL_0049:  ret
+}
+";
+            var expectILNetStandard20 = @"
+{
+  // Code size       74 (0x4a)
+  .maxstack  6
+  .locals init (int[,] V_0) //m
+  IL_0000:  ldc.i4.3
+  IL_0001:  ldc.i4.3
+  IL_0002:  newobj     ""int[*,*]..ctor""
+  IL_0007:  dup
+  IL_0008:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=36 <PrivateImplementationDetails>.E3D25E7590EDD76206831801F67D1EE231D8B90A2BB4BFE31A152BE21D2F536C""
+  IL_000d:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_0012:  stloc.0
+  IL_0013:  ldstr      ""{0} {1} {2}""
+  IL_0018:  ldloc.0
+  IL_0019:  ldc.i4.0
+  IL_001a:  ldc.i4.2
+  IL_001b:  call       ""int[*,*].Get""
+  IL_0020:  box        ""int""
+  IL_0025:  ldloc.0
+  IL_0026:  ldc.i4.1
+  IL_0027:  ldc.i4.1
+  IL_0028:  call       ""int[*,*].Get""
+  IL_002d:  box        ""int""
+  IL_0032:  ldloc.0
+  IL_0033:  ldc.i4.2
+  IL_0034:  ldc.i4.0
+  IL_0035:  call       ""int[*,*].Get""
+  IL_003a:  box        ""int""
+  IL_003f:  call       ""string string.Format(string, object, object, object)""
+  IL_0044:  call       ""void System.Console.WriteLine(string)""
+  IL_0049:  ret
+}
+";
+
+            CompileAndVerify(source, targetFramework: TargetFramework.Net50, expectedOutput: "3 5 7")
+                .VerifyIL("Program.Main(string[])", expectILNet50);
+            CompileAndVerify(source, targetFramework: TargetFramework.NetStandard20, expectedOutput: "3 5 7")
+                .VerifyIL("Program.Main(string[])", expectILNetStandard20);
         }
 
         [Fact]
@@ -17391,8 +17460,292 @@ public class Program {
     }
 }
 """;
-            CompileAndVerify(source, targetFramework: TargetFramework.Net50, expectedOutput: "abcdefghijk");
-            CompileAndVerify(source, targetFramework: TargetFramework.NetStandard20, expectedOutput: "abcdefghijk");
+            var expectILNet50 = @"
+{
+  // Code size      220 (0xdc)
+  .maxstack  10
+  .locals init (string V_0, //s
+                char[][][] V_1,
+                int V_2,
+                char[][] V_3,
+                int V_4,
+                char[] V_5,
+                int V_6,
+                char V_7) //c
+  IL_0000:  ldc.i4.2
+  IL_0001:  ldc.i4.0
+  IL_0002:  call       ""char[][][] System.GC.AllocateUninitializedArray<char[][]>(int, bool)""
+  IL_0007:  dup
+  IL_0008:  ldc.i4.0
+  IL_0009:  ldc.i4.2
+  IL_000a:  ldc.i4.0
+  IL_000b:  call       ""char[][] System.GC.AllocateUninitializedArray<char[]>(int, bool)""
+  IL_0010:  dup
+  IL_0011:  ldc.i4.0
+  IL_0012:  ldc.i4.3
+  IL_0013:  ldc.i4.0
+  IL_0014:  call       ""char[] System.GC.AllocateUninitializedArray<char>(int, bool)""
+  IL_0019:  dup
+  IL_001a:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=6 <PrivateImplementationDetails>.13E228567E8249FCE53337F25D7970DE3BD68AB2653424C7B8F9FD05E33CAEDF""
+  IL_001f:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_0024:  stelem.ref
+  IL_0025:  dup
+  IL_0026:  ldc.i4.1
+  IL_0027:  ldc.i4.2
+  IL_0028:  ldc.i4.0
+  IL_0029:  call       ""char[] System.GC.AllocateUninitializedArray<char>(int, bool)""
+  IL_002e:  dup
+  IL_002f:  ldc.i4.0
+  IL_0030:  ldc.i4.s   100
+  IL_0032:  stelem.i2
+  IL_0033:  dup
+  IL_0034:  ldc.i4.1
+  IL_0035:  ldc.i4.s   101
+  IL_0037:  stelem.i2
+  IL_0038:  stelem.ref
+  IL_0039:  stelem.ref
+  IL_003a:  dup
+  IL_003b:  ldc.i4.1
+  IL_003c:  ldc.i4.3
+  IL_003d:  ldc.i4.0
+  IL_003e:  call       ""char[][] System.GC.AllocateUninitializedArray<char[]>(int, bool)""
+  IL_0043:  dup
+  IL_0044:  ldc.i4.0
+  IL_0045:  ldc.i4.1
+  IL_0046:  ldc.i4.0
+  IL_0047:  call       ""char[] System.GC.AllocateUninitializedArray<char>(int, bool)""
+  IL_004c:  dup
+  IL_004d:  ldc.i4.0
+  IL_004e:  ldc.i4.s   102
+  IL_0050:  stelem.i2
+  IL_0051:  stelem.ref
+  IL_0052:  dup
+  IL_0053:  ldc.i4.1
+  IL_0054:  ldc.i4.2
+  IL_0055:  ldc.i4.0
+  IL_0056:  call       ""char[] System.GC.AllocateUninitializedArray<char>(int, bool)""
+  IL_005b:  dup
+  IL_005c:  ldc.i4.0
+  IL_005d:  ldc.i4.s   103
+  IL_005f:  stelem.i2
+  IL_0060:  dup
+  IL_0061:  ldc.i4.1
+  IL_0062:  ldc.i4.s   104
+  IL_0064:  stelem.i2
+  IL_0065:  stelem.ref
+  IL_0066:  dup
+  IL_0067:  ldc.i4.2
+  IL_0068:  ldc.i4.3
+  IL_0069:  ldc.i4.0
+  IL_006a:  call       ""char[] System.GC.AllocateUninitializedArray<char>(int, bool)""
+  IL_006f:  dup
+  IL_0070:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=6 <PrivateImplementationDetails>.99E43808F0CC9DF6F2A31F9E6DC0EC210FE0B8CCC6C89D0DF97D48B28BAAC039""
+  IL_0075:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_007a:  stelem.ref
+  IL_007b:  stelem.ref
+  IL_007c:  ldstr      """"
+  IL_0081:  stloc.0
+  IL_0082:  stloc.1
+  IL_0083:  ldc.i4.0
+  IL_0084:  stloc.2
+  IL_0085:  br.s       IL_00cf
+  IL_0087:  ldloc.1
+  IL_0088:  ldloc.2
+  IL_0089:  ldelem.ref
+  IL_008a:  stloc.3
+  IL_008b:  ldc.i4.0
+  IL_008c:  stloc.s    V_4
+  IL_008e:  br.s       IL_00c4
+  IL_0090:  ldloc.3
+  IL_0091:  ldloc.s    V_4
+  IL_0093:  ldelem.ref
+  IL_0094:  stloc.s    V_5
+  IL_0096:  ldc.i4.0
+  IL_0097:  stloc.s    V_6
+  IL_0099:  br.s       IL_00b6
+  IL_009b:  ldloc.s    V_5
+  IL_009d:  ldloc.s    V_6
+  IL_009f:  ldelem.u2
+  IL_00a0:  stloc.s    V_7
+  IL_00a2:  ldloc.0
+  IL_00a3:  ldloca.s   V_7
+  IL_00a5:  call       ""string char.ToString()""
+  IL_00aa:  call       ""string string.Concat(string, string)""
+  IL_00af:  stloc.0
+  IL_00b0:  ldloc.s    V_6
+  IL_00b2:  ldc.i4.1
+  IL_00b3:  add
+  IL_00b4:  stloc.s    V_6
+  IL_00b6:  ldloc.s    V_6
+  IL_00b8:  ldloc.s    V_5
+  IL_00ba:  ldlen
+  IL_00bb:  conv.i4
+  IL_00bc:  blt.s      IL_009b
+  IL_00be:  ldloc.s    V_4
+  IL_00c0:  ldc.i4.1
+  IL_00c1:  add
+  IL_00c2:  stloc.s    V_4
+  IL_00c4:  ldloc.s    V_4
+  IL_00c6:  ldloc.3
+  IL_00c7:  ldlen
+  IL_00c8:  conv.i4
+  IL_00c9:  blt.s      IL_0090
+  IL_00cb:  ldloc.2
+  IL_00cc:  ldc.i4.1
+  IL_00cd:  add
+  IL_00ce:  stloc.2
+  IL_00cf:  ldloc.2
+  IL_00d0:  ldloc.1
+  IL_00d1:  ldlen
+  IL_00d2:  conv.i4
+  IL_00d3:  blt.s      IL_0087
+  IL_00d5:  ldloc.0
+  IL_00d6:  call       ""void System.Console.WriteLine(string)""
+  IL_00db:  ret
+}
+";
+            var expectILNetStandard20 = @"
+{
+  // Code size      212 (0xd4)
+  .maxstack  10
+  .locals init (string V_0, //s
+                char[][][] V_1,
+                int V_2,
+                char[][] V_3,
+                int V_4,
+                char[] V_5,
+                int V_6,
+                char V_7) //c
+  IL_0000:  ldc.i4.2
+  IL_0001:  newarr     ""char[][]""
+  IL_0006:  dup
+  IL_0007:  ldc.i4.0
+  IL_0008:  ldc.i4.2
+  IL_0009:  newarr     ""char[]""
+  IL_000e:  dup
+  IL_000f:  ldc.i4.0
+  IL_0010:  ldc.i4.3
+  IL_0011:  newarr     ""char""
+  IL_0016:  dup
+  IL_0017:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=6 <PrivateImplementationDetails>.13E228567E8249FCE53337F25D7970DE3BD68AB2653424C7B8F9FD05E33CAEDF""
+  IL_001c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_0021:  stelem.ref
+  IL_0022:  dup
+  IL_0023:  ldc.i4.1
+  IL_0024:  ldc.i4.2
+  IL_0025:  newarr     ""char""
+  IL_002a:  dup
+  IL_002b:  ldc.i4.0
+  IL_002c:  ldc.i4.s   100
+  IL_002e:  stelem.i2
+  IL_002f:  dup
+  IL_0030:  ldc.i4.1
+  IL_0031:  ldc.i4.s   101
+  IL_0033:  stelem.i2
+  IL_0034:  stelem.ref
+  IL_0035:  stelem.ref
+  IL_0036:  dup
+  IL_0037:  ldc.i4.1
+  IL_0038:  ldc.i4.3
+  IL_0039:  newarr     ""char[]""
+  IL_003e:  dup
+  IL_003f:  ldc.i4.0
+  IL_0040:  ldc.i4.1
+  IL_0041:  newarr     ""char""
+  IL_0046:  dup
+  IL_0047:  ldc.i4.0
+  IL_0048:  ldc.i4.s   102
+  IL_004a:  stelem.i2
+  IL_004b:  stelem.ref
+  IL_004c:  dup
+  IL_004d:  ldc.i4.1
+  IL_004e:  ldc.i4.2
+  IL_004f:  newarr     ""char""
+  IL_0054:  dup
+  IL_0055:  ldc.i4.0
+  IL_0056:  ldc.i4.s   103
+  IL_0058:  stelem.i2
+  IL_0059:  dup
+  IL_005a:  ldc.i4.1
+  IL_005b:  ldc.i4.s   104
+  IL_005d:  stelem.i2
+  IL_005e:  stelem.ref
+  IL_005f:  dup
+  IL_0060:  ldc.i4.2
+  IL_0061:  ldc.i4.3
+  IL_0062:  newarr     ""char""
+  IL_0067:  dup
+  IL_0068:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=6 <PrivateImplementationDetails>.99E43808F0CC9DF6F2A31F9E6DC0EC210FE0B8CCC6C89D0DF97D48B28BAAC039""
+  IL_006d:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_0072:  stelem.ref
+  IL_0073:  stelem.ref
+  IL_0074:  ldstr      """"
+  IL_0079:  stloc.0
+  IL_007a:  stloc.1
+  IL_007b:  ldc.i4.0
+  IL_007c:  stloc.2
+  IL_007d:  br.s       IL_00c7
+  IL_007f:  ldloc.1
+  IL_0080:  ldloc.2
+  IL_0081:  ldelem.ref
+  IL_0082:  stloc.3
+  IL_0083:  ldc.i4.0
+  IL_0084:  stloc.s    V_4
+  IL_0086:  br.s       IL_00bc
+  IL_0088:  ldloc.3
+  IL_0089:  ldloc.s    V_4
+  IL_008b:  ldelem.ref
+  IL_008c:  stloc.s    V_5
+  IL_008e:  ldc.i4.0
+  IL_008f:  stloc.s    V_6
+  IL_0091:  br.s       IL_00ae
+  IL_0093:  ldloc.s    V_5
+  IL_0095:  ldloc.s    V_6
+  IL_0097:  ldelem.u2
+  IL_0098:  stloc.s    V_7
+  IL_009a:  ldloc.0
+  IL_009b:  ldloca.s   V_7
+  IL_009d:  call       ""string char.ToString()""
+  IL_00a2:  call       ""string string.Concat(string, string)""
+  IL_00a7:  stloc.0
+  IL_00a8:  ldloc.s    V_6
+  IL_00aa:  ldc.i4.1
+  IL_00ab:  add
+  IL_00ac:  stloc.s    V_6
+  IL_00ae:  ldloc.s    V_6
+  IL_00b0:  ldloc.s    V_5
+  IL_00b2:  ldlen
+  IL_00b3:  conv.i4
+  IL_00b4:  blt.s      IL_0093
+  IL_00b6:  ldloc.s    V_4
+  IL_00b8:  ldc.i4.1
+  IL_00b9:  add
+  IL_00ba:  stloc.s    V_4
+  IL_00bc:  ldloc.s    V_4
+  IL_00be:  ldloc.3
+  IL_00bf:  ldlen
+  IL_00c0:  conv.i4
+  IL_00c1:  blt.s      IL_0088
+  IL_00c3:  ldloc.2
+  IL_00c4:  ldc.i4.1
+  IL_00c5:  add
+  IL_00c6:  stloc.2
+  IL_00c7:  ldloc.2
+  IL_00c8:  ldloc.1
+  IL_00c9:  ldlen
+  IL_00ca:  conv.i4
+  IL_00cb:  blt.s      IL_007f
+  IL_00cd:  ldloc.0
+  IL_00ce:  call       ""void System.Console.WriteLine(string)""
+  IL_00d3:  ret
+}
+";
+
+            CompileAndVerify(source, targetFramework: TargetFramework.Net50, expectedOutput: "abcdefghijk")
+                .VerifyIL("Program.Main(string[])", expectILNet50);
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetStandard20, expectedOutput: "abcdefghijk")
+                .VerifyIL("Program.Main(string[])", expectILNetStandard20);
         }
     }
 }
