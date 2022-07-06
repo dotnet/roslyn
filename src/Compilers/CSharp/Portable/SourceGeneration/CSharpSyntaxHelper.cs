@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override bool ContainsGlobalAliases(SyntaxNode root, CancellationToken cancellationToken)
         {
-            // Walk down the green tree to avoid allocations of red nodes unnecessary.
+            // Walk down the green tree to avoid unnecessary allocations of red nodes.
             var compilationUnit = (Syntax.InternalSyntax.CompilationUnitSyntax)root.Green;
 
             return usingsContainGlobalAliases(compilationUnit.Usings) ||
