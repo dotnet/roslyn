@@ -64,7 +64,6 @@ namespace Microsoft.CodeAnalysis
 
         private readonly ImmutableArray<TableEntry> _states;
 
-
         private NodeStateTable(ImmutableArray<TableEntry> states, ImmutableArray<IncrementalGeneratorRunStep> steps, bool hasTrackedSteps)
         {
             Debug.Assert(!hasTrackedSteps || steps.Length == states.Length);
@@ -470,7 +469,7 @@ namespace Microsoft.CodeAnalysis
             private TableEntry(T? item, ImmutableArray<T> items, ImmutableArray<EntryState> states)
             {
                 Debug.Assert(!states.IsDefault);
-                Debug.Assert(states.Length == 1 || states.Distinct().Count() > 1);
+                Debug.Assert(states.Length == 1 || states.Distinct().Length > 1);
 
                 this._item = item;
                 this._items = items;

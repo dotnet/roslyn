@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -751,6 +753,79 @@ using A = XAttribute;
         var runResult = driver.GetRunResult().Results[0];
 
         Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttribute"));
+    }
+
+    private static readonly Dictionary<string, int> PreferredOrder = new Dictionary<string, int>()
+    {
+        { "Compilation", 0 },
+        { "CompilationOptions", 1 },
+        { "compilationUnit_ForAttribute", 2 },
+        { "individualFileGlobalAliases_ForAttribute", 3 },
+        { "collectedGlobalAliases_ForAttribute", 4 },
+        { "allUpGlobalAliases_ForAttribute", 5 },
+        { "compilationGlobalAliases_ForAttribute", 6 },
+        { "allUpIncludingCompilationGlobalAliases_ForAttribute", 7 },
+        { "treesContainingAttribute_ForAttribute", 8 },
+        { "compilationUnitAndGlobalAliases_ForAttribute", 9 },
+        { "result_ForAttribute", 10 },
+        { "SourceOutput", 11 },
+        //{ "individualFileGlobalAliases_ForAttribute", 0 },
+        //{ "individualFileGlobalAliases_ForAttribute", 0 },
+        //{ "individualFileGlobalAliases_ForAttribute", 0 },
+    };
+
+    private static string Dump(GeneratorRunResult runResult)
+    {
+        var result = new StringBuilder();
+
+        foreach (var trackedStep in runResult.TrackedSteps.OrderBy(s => PreferredOrder[s.Key]))
+        {
+            var steps = trackedStep.Value;
+            if (steps.IsEmpty)
+            {
+                result.AppendLine($@"        Assert.Empty(runResult.TrackedSteps[""{trackedStep.Key}""]);");
+            }
+            else
+            {
+                result.AppendLine($@"        Assert.Collection(runResult.TrackedSteps[""{trackedStep.Key}""],");
+
+                for (var i = 0; i < steps.Length; i++)
+                {
+                    if (i > 0)
+                        result.AppendLine(",");
+
+                    var step = steps[i];
+                    var outputs = step.Outputs;
+
+                    if (outputs.IsEmpty)
+                    {
+                        result.Append($@"            step => Assert.Empty(step.Outputs)");
+                    }
+                    else
+                    {
+                        result.AppendLine($@"            step => Assert.Collection(step.Outputs,");
+
+                        for (var j = 0; j < outputs.Length; j++)
+                        {
+                            if (j > 0)
+                                result.AppendLine(",");
+
+                            var output = outputs[j];
+                            result.Append($@"                o => Assert.Equal(IncrementalStepRunReason.{output.Reason}, o.Reason)");
+                        }
+
+                        result.Append(")");
+                    }
+                }
+
+                result.AppendLine(");");
+            }
+        }
+
+        // Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
+           // step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
+
+        return result.ToString();
     }
 
     [Fact]

@@ -95,13 +95,14 @@ public partial struct SyntaxValueProvider : IEqualityComparer<(SyntaxTree tree, 
                 // Walk the green node tree first to avoid allocating the entire red tree for files that have no attributes.
                 var root = t.GetRoot(c);
                 return ContainsAttributeList(root.Green, syntaxHelper.AttributeListKind);
-            });
+            }).WithTrackingName("treesContainingAttribute_ForAttribute");
 
         var rootsWithAttributeAndGlobalAliasesProvider = treesContainingAttribute.Combine(allUpGlobalAliasesProvider)
             .WithTrackingName("compilationUnitAndGlobalAliases_ForAttribute");
 
         return rootsWithAttributeAndGlobalAliasesProvider.Select(
             (tuple, c) => (tuple.Left, GetMatchingNodes(syntaxHelper, tuple.Right, tuple.Left, simpleName, predicate, c)))
+            .Where(tuple => tuple.Item2.Length > 0)
             .WithComparer(this)
             .WithTrackingName("result_ForAttributeInternal");
 
