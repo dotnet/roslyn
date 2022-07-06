@@ -104,22 +104,22 @@ public partial struct SyntaxValueProvider
 
                     var semanticModel = compilation.GetSemanticModel(tree);
 
-                    foreach (var match in matches)
+                    foreach (var targetNode in matches)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
                         var targetSymbol =
-                            match is ICompilationUnitSyntax compilationUnit ? semanticModel.Compilation.Assembly :
-                            syntaxHelper.IsLambdaExpression(match) ? semanticModel.GetSymbolInfo(match, cancellationToken).Symbol :
-                            semanticModel.GetDeclaredSymbol(match, cancellationToken);
+                            targetNode is ICompilationUnitSyntax compilationUnit ? semanticModel.Compilation.Assembly :
+                            syntaxHelper.IsLambdaExpression(targetNode) ? semanticModel.GetSymbolInfo(targetNode, cancellationToken).Symbol :
+                            semanticModel.GetDeclaredSymbol(targetNode, cancellationToken);
                         if (targetSymbol is null)
                             continue;
 
-                        var attributes = getMatchingAttributes(match, targetSymbol, fullyQualifiedMetadataName);
+                        var attributes = getMatchingAttributes(targetNode, targetSymbol, fullyQualifiedMetadataName);
                         if (attributes.Length > 0)
                         {
                             result.Add(transform(
-                                new GeneratorAttributeSyntaxContext(match, targetSymbol, semanticModel, attributes),
+                                new GeneratorAttributeSyntaxContext(targetNode, targetSymbol, semanticModel, attributes),
                                 cancellationToken));
                         }
                     }
