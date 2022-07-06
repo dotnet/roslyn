@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            public bool TryRemoveEntries(TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, out ImmutableArray<T> entries)
+            public bool TryRemoveEntries(TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, out OneOrMany<T> entries)
             {
                 if (!TryRemoveEntries(elapsedTime, stepInputs))
                 {
@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis
                     return false;
                 }
 
-                entries = _states[^1].ToImmutableArray();
+                entries = _states[^1].Items;
                 return true;
             }
 
@@ -475,7 +475,7 @@ namespace Microsoft.CodeAnalysis
 
             public EntryState GetState(int index) => _states.Length == 1 ? _states[0] : _states[index];
 
-            public ImmutableArray<T> ToImmutableArray() => _items.ToImmutable();
+            public OneOrMany<T> Items => _items;
 
             public TableEntry AsCached() => new(_items, s_allCachedEntries);
 

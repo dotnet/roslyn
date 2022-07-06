@@ -205,9 +205,9 @@ namespace Roslyn.Utilities
     internal static class OneOrMany
     {
         public static OneOrMany<T> Create<T>(T one)
-            => new(one);
+            => new OneOrMany<T>(one);
 
         public static OneOrMany<T> Create<T>(ImmutableArray<T> many)
-            => new(many);
+            => new OneOrMany<T>(many);
     }
 }
