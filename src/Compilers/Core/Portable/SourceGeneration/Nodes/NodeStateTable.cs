@@ -574,15 +574,18 @@ namespace Microsoft.CodeAnalysis
                 {
                     Debug.Assert(_currentState.HasValue, "Created a builder with no values?");
                     Debug.Assert(_items.Count >= 1, "Created a builder with no values?");
+
+                    var states = _states?.ToImmutableAndFree() ?? GetSingleArray(_currentState.Value);
+
                     if (_items.Count == 1)
                     {
                         var item = _items[0];
                         _items.Free();
-                        return new TableEntry(OneOrMany.Create(item), _states?.ToImmutableAndFree() ?? GetSingleArray(_currentState.Value));
+                        return new TableEntry(OneOrMany.Create(item), states);
                     }
                     else
                     {
-                        return new TableEntry(OneOrMany.Create(_items.ToImmutableAndFree()), _states?.ToImmutableAndFree() ?? GetSingleArray(_currentState.Value));
+                        return new TableEntry(OneOrMany.Create(_items.ToImmutableAndFree()), states);
                     }
                 }
             }
