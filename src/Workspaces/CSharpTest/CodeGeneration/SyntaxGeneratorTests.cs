@@ -2285,6 +2285,22 @@ public class C
         }
 
         [Fact]
+        public void TestAddPublicToStaticConstructor()
+        {
+            var ctor = Generator.ConstructorDeclaration("C", parameters: null, accessibility: Accessibility.NotApplicable, modifiers: DeclarationModifiers.Static);
+            VerifySyntax<ConstructorDeclarationSyntax>(ctor, @"static C()
+{
+}");
+
+            var publicCtor = Generator.WithAccessibility(ctor, Accessibility.Public);
+            // Yes, it's correct that static constructors cannot have accessibility, but why not static is "replaced" with public?
+            // The same issue exists for file types that cannot have accessibility. Should attempting to make them public do "nothing"?
+            VerifySyntax<ConstructorDeclarationSyntax>(publicCtor, @"static C()
+{
+}");
+        }
+
+        [Fact]
         public void TestAddAbstractToFileClass()
         {
             var fileClass = (ClassDeclarationSyntax)SyntaxFactory.ParseMemberDeclaration("file class C { }");
@@ -2301,6 +2317,8 @@ public class C
             var filePublicClass = Generator.WithAccessibility(fileClass, Accessibility.Public);
             // bad output. It will be fixed in a later commit.
             // This commit just demonstrates the *current* behavior (test is passing currently, while it shouldn't).
+            // What 's the expected behavior is unclear given an existing behavior for static constructors demonstrated in this commit (the new test is passing)
+            // The current behavior might be correct if we'll follow the static constructors behavior.
             VerifySyntax<ClassDeclarationSyntax>(filePublicClass, @"file class C
 {
 }");
@@ -2324,6 +2342,7 @@ public class C
             // bad output. It will be fixed in a later commit.
             // This commit just demonstrates the *current* behavior (test is passing currently, while it shouldn't).
             // note, behavior changed here in this commit since we supported file, but the most correct behavior is to eliminate public completely.
+            // note 2, the correct behavior here is actually not very clear given the constructor case and the opposite case of this.
             VerifySyntax<ClassDeclarationSyntax>(filePublicClass, @"public file class C
 {
 }");
