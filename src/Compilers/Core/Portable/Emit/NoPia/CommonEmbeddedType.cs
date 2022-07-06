@@ -675,6 +675,16 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 }
             }
 
+#nullable enable
+            string? Cci.INamedTypeReference.AssociatedFileIdentifier
+            {
+                get
+                {
+                    return UnderlyingNamedType.AssociatedFileIdentifier;
+                }
+            }
+#nullable disable
+
             string Cci.INamedEntity.Name
             {
                 get

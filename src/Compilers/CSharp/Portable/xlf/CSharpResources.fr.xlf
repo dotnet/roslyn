@@ -582,6 +582,31 @@
         <target state="translated">Un espace de noms de portée de fichier doit précéder tous les autres membres d’un fichier.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FileTypeBase">
+        <source>File type '{0}' cannot be used as a base type of non-file type '{1}'.</source>
+        <target state="new">File type '{0}' cannot be used as a base type of non-file type '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileTypeDisallowedInSignature">
+        <source>File type '{0}' cannot be used in a member signature in non-file type '{1}'.</source>
+        <target state="new">File type '{0}' cannot be used in a member signature in non-file type '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileTypeNameDisallowed">
+        <source>Types and aliases cannot be named 'file'.</source>
+        <target state="new">Types and aliases cannot be named 'file'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileTypeNested">
+        <source>File type '{0}' must be defined in a top level type; '{0}' is a nested type.</source>
+        <target state="new">File type '{0}' must be defined in a top level type; '{0}' is a nested type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileTypeNoExplicitAccessibility">
+        <source>File type '{0}' cannot use accessibility modifiers.</source>
+        <target state="new">File type '{0}' cannot use accessibility modifiers.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FixedFieldMustNotBeRef">
         <source>A fixed field must not be a ref field.</source>
         <target state="translated">Un champ fixe ne doit pas être un champ ref.</target>
@@ -625,6 +650,11 @@
       <trans-unit id="ERR_GlobalUsingOutOfOrder">
         <source>A global using directive must precede all non-global using directives.</source>
         <target state="translated">Une directive using globale doit précéder toutes les directives using non globales.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_GlobalUsingStaticFileType">
+        <source>File type '{0}' cannot be used in a 'global using static' directive.</source>
+        <target state="new">File type '{0}' cannot be used in a 'global using static' directive.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
@@ -1602,6 +1632,11 @@
         <target state="translated">espace de noms inclus dans l'étendue de fichier</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureFileTypes">
+        <source>file types</source>
+        <target state="new">file types</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureGenericAttributes">
         <source>generic attributes</source>
         <target state="translated">attributs génériques</target>
@@ -2250,7 +2285,7 @@
 -instrument:TestCoverage      Produire un assembly instrumenté pour collecter
                               les informations de couverture
 -sourcelink:&lt;fichier&gt;         Informations du lien source à incorporer dans le fichier PDB.
- 
+
                        - ERREURS ET AVERTISSEMENTS -
 -warnaserror[+|-]             Signaler tous les avertissements comme des erreurs
 -warnaserror[+|-]:&lt;avertiss.&gt; Signaler des avertissements spécifiques comme des erreurs

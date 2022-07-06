@@ -29,12 +29,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.BraceCompletion
             Return IsValidOpeningBraceToken(token) AndAlso token.Span.End - 1 = position
         End Function
 
-        Public Overrides Function AllowOverTypeAsync(context As BraceCompletionContext, cancellationToken As CancellationToken) As Task(Of Boolean)
-            Return AllowOverTypeWithValidClosingTokenAsync(context, cancellationToken)
+        Public Overrides Function AllowOverType(context As BraceCompletionContext, cancellationToken As CancellationToken) As Boolean
+            Return AllowOverTypeWithValidClosingToken(context)
         End Function
 
-        Public Overrides Async Function CanProvideBraceCompletionAsync(brace As Char, openingPosition As Integer, document As Document, cancellationToken As CancellationToken) As Task(Of Boolean)
-            Return OpeningBrace = brace And Await IsPositionInInterpolatedStringContextAsync(document, openingPosition, cancellationToken).ConfigureAwait(False)
+        Public Overrides Function CanProvideBraceCompletion(brace As Char, openingPosition As Integer, document As ParsedDocument, cancellationToken As CancellationToken) As Boolean
+            Return OpeningBrace = brace And IsPositionInInterpolatedStringContext(document, openingPosition)
         End Function
 
         Protected Overrides Function IsValidOpeningBraceToken(token As SyntaxToken) As Boolean
@@ -45,15 +45,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.BraceCompletion
             Return token.IsKind(SyntaxKind.DoubleQuoteToken)
         End Function
 
-        Public Shared Async Function IsPositionInInterpolatedStringContextAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of Boolean)
+        Public Shared Function IsPositionInInterpolatedStringContext(document As ParsedDocument, position As Integer) As Boolean
             If position = 0 Then
                 Return False
             End If
 
-            Dim text = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
-
             ' Position can be in an interpolated string if the preceding character is a $
-            Return text(position - 1) = "$"c
+            Return document.Text(position - 1) = "$"c
         End Function
     End Class
 End Namespace

@@ -68,10 +68,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Input
             var commandTarget = commandSource.CommandTarget;
             if (command is RoutedCommand routedCommand)
             {
-                if (commandTarget is null)
-                {
-                    commandTarget = commandSource as IInputElement;
-                }
+                commandTarget ??= commandSource as IInputElement;
 
                 if (routedCommand.CanExecute(commandParameter, commandTarget))
                 {

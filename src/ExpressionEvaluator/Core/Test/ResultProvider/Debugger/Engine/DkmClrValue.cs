@@ -229,7 +229,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
 
             var rawValue = RawValue;
             Debug.Assert(rawValue != null || this.Type.GetLmrType().IsVoid(), "In our mock system, this should only happen for void.");
-            return rawValue == null ? null : rawValue.ToString();
+            return rawValue?.ToString();
         }
 
         /// <remarks>
