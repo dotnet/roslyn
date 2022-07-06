@@ -252,11 +252,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureUtf8StringLiterals = MessageBase + 12822,
 
         IDS_FeatureUnsignedRightShift = MessageBase + 12823,
+        
         IDS_FeatureRelaxedShiftOperator = MessageBase + 12824,
         IDS_FeatureRequiredMembers = MessageBase + 12825,
         IDS_FeatureRefFields = MessageBase + 12826,
         IDS_FeatureFileTypes = MessageBase + 12827,
-        IDS_FeatureExtendedNameofScope = MessageBase + 12828,
     }
 
     // Message IDs may refer to strings that need to be localized.
