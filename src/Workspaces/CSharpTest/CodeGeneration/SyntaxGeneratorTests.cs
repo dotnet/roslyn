@@ -2287,7 +2287,7 @@ public class C
         [Fact]
         public void TestAddPublicToStaticConstructor()
         {
-            var ctor = Generator.ConstructorDeclaration("C", parameters: null, accessibility: Accessibility.NotApplicable, modifiers: DeclarationModifiers.Static);
+            var ctor = Generator.ConstructorDeclaration("C", modifiers: DeclarationModifiers.Static);
             VerifySyntax<ConstructorDeclarationSyntax>(ctor, @"static C()
 {
 }");
@@ -2296,6 +2296,20 @@ public class C
             // Yes, it's correct that static constructors cannot have accessibility, but why not static is "replaced" with public?
             // The same issue exists for file types that cannot have accessibility. Should attempting to make them public do "nothing"?
             VerifySyntax<ConstructorDeclarationSyntax>(publicCtor, @"static C()
+{
+}");
+        }
+
+        [Fact]
+        public void TestAddStaticToPublicConstructor()
+        {
+            var ctor = Generator.ConstructorDeclaration("C", accessibility: Accessibility.Public);
+            VerifySyntax<ConstructorDeclarationSyntax>(ctor, @"public C()
+{
+}");
+
+            var staticCtor = Generator.WithModifiers(ctor, DeclarationModifiers.Static);
+            VerifySyntax<ConstructorDeclarationSyntax>(staticCtor, @"public static C()
 {
 }");
         }
