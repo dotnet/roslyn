@@ -2347,10 +2347,6 @@ public class C
         {
             var publicClass = (ClassDeclarationSyntax)SyntaxFactory.ParseMemberDeclaration("public class C { }");
             var filePublicClass = Generator.WithModifiers(publicClass, Generator.GetModifiers(publicClass).WithIsFile(true));
-            // bad output. It will be fixed in a later commit.
-            // This commit just demonstrates the *current* behavior (test is passing currently, while it shouldn't).
-            // note, behavior changed here in this commit since we supported file, but the most correct behavior is to eliminate public completely.
-            // note 2, the correct behavior here is actually not very clear given the constructor case and the opposite case of this.
             VerifySyntax<ClassDeclarationSyntax>(filePublicClass, @"file class C
 {
 }");
