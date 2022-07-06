@@ -121,7 +121,23 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                         .AddReferences(dllReference);
 
                     var key = SymbolKey.Create(symbolToFind, cancellationToken);
-                    var newSymbol = key.Resolve(tmpCompilation, ignoreAssemblyKey: true, cancellationToken).Symbol;
+                    var resolution = key.Resolve(tmpCompilation, ignoreAssemblyKey: true, cancellationToken);
+                    var newSymbol = resolution.Symbol;
+                    if (newSymbol is null && resolution.CandidateReason == CandidateReason.Ambiguous)
+                    {
+                        // If we followed a type forward then there will be an ambiguous resolution between the implementation
+                        // and any references that type forwarded to get to it, so we need to find the symbol from the correct
+                        // assembly.
+                        foreach (var candidateSymbol in resolution.CandidateSymbols)
+                        {
+                            if (tmpCompilation.GetMetadataReference(candidateSymbol.ContainingAssembly)?.Equals(dllReference) == true)
+                            {
+                                newSymbol = candidateSymbol;
+                                break;
+                            }
+                        }
+                    }
+
                     if (newSymbol is null)
                     {
                         _logger?.Log(FeaturesResources.Could_not_find_implementation_of_symbol_0, symbolToFind.MetadataName);
