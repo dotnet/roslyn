@@ -32,7 +32,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
                     throw new ArgumentNullException(nameof(ViewModel));
                 }
 
-                _viewModel?.Dispose();
                 _viewModel = value;
                 _root.SetChild(new ValueTrackingTree(_viewModel));
             }

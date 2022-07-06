@@ -41,8 +41,6 @@ namespace Microsoft.VisualStudio.LanguageServices
             }
         }
 
-        public event EventHandler? SolutionClosed;
-
         public void Dispose()
         {
             foreach (var globalOperation in _operations.Values)
@@ -62,10 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             => ContextChanged(e.Activated, SolutionOpening);
 
         private void SolutionClosingContextChanged(object? sender, UIContextChangedEventArgs e)
-        {
-            ContextChanged(e.Activated, SolutionClosing);
-            SolutionClosed?.Invoke(this, EventArgs.Empty);
-        }
+            => ContextChanged(e.Activated, SolutionClosing);
 
         private void ContextChanged(bool active, string operation)
         {
