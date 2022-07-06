@@ -2285,6 +2285,54 @@ public class C
         }
 
         [Fact]
+        public void TestAddAbstractToFileClass()
+        {
+            var fileClass = (ClassDeclarationSyntax)SyntaxFactory.ParseMemberDeclaration("file class C { }");
+            var fileAbstractClass = Generator.WithModifiers(fileClass, Generator.GetModifiers(fileClass).WithIsAbstract(true));
+            // bad output. It will be fixed in a later commit.
+            // This commit just demonstrates the *current* behavior (test is passing currently, while it shouldn't).
+            VerifySyntax<ClassDeclarationSyntax>(fileAbstractClass, @"abstract class C
+{
+}");
+        }
+
+        [Fact]
+        public void TestAddPublicToFileClass()
+        {
+            var fileClass = (ClassDeclarationSyntax)SyntaxFactory.ParseMemberDeclaration("file class C { }");
+            var filePublicClass = Generator.WithAccessibility(fileClass, Accessibility.Public);
+            // bad output. It will be fixed in a later commit.
+            // This commit just demonstrates the *current* behavior (test is passing currently, while it shouldn't).
+            VerifySyntax<ClassDeclarationSyntax>(filePublicClass, @"file class C
+{
+}");
+        }
+
+        [Fact]
+        public void TestAddFileModifierToAbstractClass()
+        {
+            var abstractClass = (ClassDeclarationSyntax)SyntaxFactory.ParseMemberDeclaration("abstract class C { }");
+            var fileAbstractClass = Generator.WithModifiers(abstractClass, Generator.GetModifiers(abstractClass).WithIsFile(true));
+            // bad output. It will be fixed in a later commit.
+            // This commit just demonstrates the *current* behavior (test is passing currently, while it shouldn't).
+            VerifySyntax<ClassDeclarationSyntax>(fileAbstractClass, @"abstract class C
+{
+}");
+        }
+
+        [Fact]
+        public void TestAddFileModifierToPublicClass()
+        {
+            var publicClass = (ClassDeclarationSyntax)SyntaxFactory.ParseMemberDeclaration("public class C { }");
+            var filePublicClass = Generator.WithModifiers(publicClass, Generator.GetModifiers(publicClass).WithIsFile(true));
+            // bad output. It will be fixed in a later commit.
+            // This commit just demonstrates the *current* behavior (test is passing currently, while it shouldn't).
+            VerifySyntax<ClassDeclarationSyntax>(filePublicClass, @"public class C
+{
+}");
+        }
+
+        [Fact]
         public void TestGetType()
         {
             Assert.Equal("t", Generator.GetType(Generator.MethodDeclaration("m", returnType: Generator.IdentifierName("t"))).ToString());
