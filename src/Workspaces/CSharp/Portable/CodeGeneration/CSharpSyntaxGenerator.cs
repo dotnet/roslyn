@@ -1591,6 +1591,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 {
                     var tokens = GetModifierTokens(d);
                     GetAccessibilityAndModifiers(tokens, out var accessibility, out var tmp, out _);
+                    if (accessibility != Accessibility.NotApplicable)
+                    {
+                        if (modifiers.IsFile ||
+                            (modifiers.IsStatic && declaration.IsKind(SyntaxKind.ConstructorDeclaration)))
+                        {
+                            // We remove the accessibility if the modifiers don't allow it.
+                            accessibility = Accessibility.NotApplicable;
+                        }
+                    }
                     var newTokens = Merge(tokens, AsModifierList(accessibility, modifiers));
                     return SetModifierTokens(d, newTokens);
                 });

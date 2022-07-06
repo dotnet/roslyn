@@ -2307,7 +2307,7 @@ public class C
 }");
 
             var staticCtor = Generator.WithModifiers(ctor, DeclarationModifiers.Static);
-            VerifySyntax<ConstructorDeclarationSyntax>(staticCtor, @"public static C()
+            VerifySyntax<ConstructorDeclarationSyntax>(staticCtor, @"static C()
 {
 }");
         }
@@ -2351,7 +2351,7 @@ public class C
             // This commit just demonstrates the *current* behavior (test is passing currently, while it shouldn't).
             // note, behavior changed here in this commit since we supported file, but the most correct behavior is to eliminate public completely.
             // note 2, the correct behavior here is actually not very clear given the constructor case and the opposite case of this.
-            VerifySyntax<ClassDeclarationSyntax>(filePublicClass, @"public file class C
+            VerifySyntax<ClassDeclarationSyntax>(filePublicClass, @"file class C
 {
 }");
         }
