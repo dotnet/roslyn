@@ -40,6 +40,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
+#nullable enable
+        string? Cci.INamedTypeReference.AssociatedFileIdentifier
+        {
+            get
+            {
+                return UnderlyingNamedType.AssociatedFileIdentifier();
+            }
+        }
+#nullable disable
+
         string Cci.INamedEntity.Name
         {
             get

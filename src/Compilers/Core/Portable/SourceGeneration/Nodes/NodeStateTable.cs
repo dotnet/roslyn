@@ -282,8 +282,9 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // We may be able to move the previous entry over wholesale.  So avoid creating an builder and doing any
-                // expensive work there until necessary.  We can only do this if the counts of before/after are the same.
-                // If not, then obviously something changed and we can't reuse the before item.
+                // expensive work there until necessary (e.g. we detected either a different item or a different state).
+                // We can only do this if the counts of before/after are the same. If not, then obviously something
+                // changed and we can't reuse the before item.
 
                 var totalBuilderItems = Math.Max(previousEntry.Count, outputs.Length);
                 var builder = previousEntry.Count == outputs.Length ? null : new TableEntry.Builder(capacity: totalBuilderItems);
@@ -291,7 +292,7 @@ namespace Microsoft.CodeAnalysis
                 var sharedCount = Math.Min(previousEntry.Count, outputs.Length);
 
                 // cached or modified items
-                for (int i = 0, n = sharedCount; i < n; i++)
+                for (int i = 0; i < sharedCount; i++)
                 {
                     var previousItem = previousEntry.GetItem(i);
                     var previousState = previousEntry.GetState(i);
