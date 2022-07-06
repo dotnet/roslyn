@@ -162,6 +162,10 @@ namespace Microsoft.CodeAnalysis
             [MemberNotNullWhen(true, nameof(_steps))]
             public bool TrackIncrementalSteps => _steps is not null;
 
+#if DEBUG
+            private readonly int? _requestedTableCapacity;
+#endif
+
             internal Builder(
                 NodeStateTable<T> previous,
                 string? name,
@@ -169,6 +173,9 @@ namespace Microsoft.CodeAnalysis
                 IEqualityComparer<T>? equalityComparer,
                 int? tableCapacity)
             {
+#if DEBUG
+                _requestedTableCapacity = tableCapacity;
+#endif
                 // If the caller specified a desired capacity, then use that.  Otherwise, use the previous table's total
                 // entry count as a reasonable approximation for what we will need.
                 _states = ArrayBuilder<TableEntry>.GetInstance(tableCapacity ?? previous.GetTotalEntryItemCount());
@@ -413,6 +420,13 @@ namespace Microsoft.CodeAnalysis
                     _states.Free();
                     return NodeStateTable<T>.Empty;
                 }
+
+#if DEBUG
+                // If the caller requested a specific capacity, then we should have added either that amount, or some
+                // amount less than that.  It's possible to have added less as a Where clause will mean some amount of
+                // states are filtered out.
+                Debug.Assert(_requestedTableCapacity == null || _states.Count <= _requestedTableCapacity);
+#endif
 
                 // if we added the exact same entries as before, then we can directly embed previous' entry array,
                 // avoiding a costly allocation of the same data.
