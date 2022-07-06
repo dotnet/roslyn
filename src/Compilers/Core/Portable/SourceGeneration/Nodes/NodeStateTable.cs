@@ -64,7 +64,6 @@ namespace Microsoft.CodeAnalysis
 
         private readonly ImmutableArray<TableEntry> _states;
 
-
         private NodeStateTable(ImmutableArray<TableEntry> states, ImmutableArray<IncrementalGeneratorRunStep> steps, bool hasTrackedSteps)
         {
             Debug.Assert(!hasTrackedSteps || steps.Length == states.Length);
@@ -256,7 +255,7 @@ namespace Microsoft.CodeAnalysis
 
                 Debug.Assert(_previous._states[_states.Count].Count == 1);
                 var (chosen, state) = GetModifiedItemAndState(_previous._states[_states.Count].GetItem(0), value, comparer);
-                _states.Add(new TableEntry(chosen, state));
+                _states.Add(new TableEntry(OneOrMany.Create(chosen), state));
                 RecordStepInfoForLastEntry(elapsedTime, stepInputs, overallInputState);
                 return true;
             }
@@ -321,13 +320,13 @@ namespace Microsoft.CodeAnalysis
 
             public void AddEntry(T value, EntryState state, TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, EntryState overallInputState)
             {
-                _states.Add(new TableEntry(value, state));
+                _states.Add(new TableEntry(OneOrMany.Create(value), state));
                 RecordStepInfoForLastEntry(elapsedTime, stepInputs, overallInputState);
             }
 
             public TableEntry AddEntries(ImmutableArray<T> values, EntryState state, TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, EntryState overallInputState)
             {
-                var tableEntry = new TableEntry(values, state);
+                var tableEntry = new TableEntry(OneOrMany.Create(values), state);
                 _states.Add(tableEntry);
                 RecordStepInfoForLastEntry(elapsedTime, stepInputs, overallInputState);
                 return tableEntry;
@@ -429,29 +428,24 @@ namespace Microsoft.CodeAnalysis
             private static readonly ImmutableArray<EntryState> s_allModifiedEntries = ImmutableArray.Create(EntryState.Modified);
             private static readonly ImmutableArray<EntryState> s_allRemovedEntries = ImmutableArray.Create(EntryState.Removed);
 
-            private readonly ImmutableArray<T> _items;
-            private readonly T? _item;
+            private readonly OneOrMany<T> _items;
 
             /// <summary>
-            /// Represents the corresponding state of each item in <see cref="_items"/>,
-            /// or contains a single state when <see cref="_item"/> is populated or when every state of <see cref="_items"/> has the same value.
+            /// Represents the corresponding state of each item in <see cref="_items"/>, or contains a single state when
+            /// <see cref="_items"/> is populated or when every state of <see cref="_items"/> has the same value.
             /// </summary>
             private readonly ImmutableArray<EntryState> _states;
 
-            public TableEntry(T item, EntryState state)
-                : this(item, default, GetSingleArray(state)) { }
+            public TableEntry(OneOrMany<T> items, EntryState state)
+                : this(items, GetSingleArray(state)) { }
 
-            public TableEntry(ImmutableArray<T> items, EntryState state)
-                : this(default, items, GetSingleArray(state)) { }
-
-            private TableEntry(T? item, ImmutableArray<T> items, ImmutableArray<EntryState> states)
+            private TableEntry(OneOrMany<T> items, ImmutableArray<EntryState> states)
             {
                 Debug.Assert(!states.IsDefault);
-                Debug.Assert(states.Length == 1 || states.Distinct().Count() > 1);
+                Debug.Assert(states.Length == 1 || states.Distinct().Length > 1);
 
-                this._item = item;
-                this._items = items;
-                this._states = states;
+                _items = items;
+                _states = states;
             }
 
             public bool Matches(TableEntry entry, IEqualityComparer<T> equalityComparer)
@@ -475,24 +469,17 @@ namespace Microsoft.CodeAnalysis
 
             public bool IsRemoved => this._states == s_allRemovedEntries || this._states.All(s => s == EntryState.Removed);
 
-            public int Count => IsSingle ? 1 : _items.Length;
+            public int Count => _items.Count;
 
-            public T GetItem(int index)
-            {
-                Debug.Assert(!IsSingle || index == 0);
-                return IsSingle ? _item : _items[index];
-            }
+            public T GetItem(int index) => _items[index];
 
             public EntryState GetState(int index) => _states.Length == 1 ? _states[0] : _states[index];
 
-            public ImmutableArray<T> ToImmutableArray() => IsSingle ? ImmutableArray.Create(_item) : _items;
+            public ImmutableArray<T> ToImmutableArray() => _items.ToImmutable();
 
-            public TableEntry AsCached() => new(_item, _items, s_allCachedEntries);
+            public TableEntry AsCached() => new(_items, s_allCachedEntries);
 
-            public TableEntry AsRemoved() => new(_item, _items, s_allRemovedEntries);
-
-            [MemberNotNullWhen(true, nameof(_item))]
-            private bool IsSingle => this._items.IsDefault;
+            public TableEntry AsRemoved() => new(_items, s_allRemovedEntries);
 
             private static ImmutableArray<EntryState> GetSingleArray(EntryState state) => state switch
             {
@@ -586,8 +573,17 @@ namespace Microsoft.CodeAnalysis
                 public TableEntry ToImmutableAndFree()
                 {
                     Debug.Assert(_currentState.HasValue, "Created a builder with no values?");
-                    int numItems = _items.Count;
-                    return new TableEntry(item: default, _items.ToImmutableAndFree(), _states?.ToImmutableAndFree() ?? GetSingleArray(_currentState.Value));
+                    Debug.Assert(_items.Count >= 1, "Created a builder with no values?");
+                    if (_items.Count == 1)
+                    {
+                        var item = _items[0];
+                        _items.Free();
+                        return new TableEntry(OneOrMany.Create(item), _states?.ToImmutableAndFree() ?? GetSingleArray(_currentState.Value));
+                    }
+                    else
+                    {
+                        return new TableEntry(OneOrMany.Create(_items.ToImmutableAndFree()), _states?.ToImmutableAndFree() ?? GetSingleArray(_currentState.Value));
+                    }
                 }
             }
         }
