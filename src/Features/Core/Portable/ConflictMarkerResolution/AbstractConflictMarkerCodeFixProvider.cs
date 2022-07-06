@@ -17,6 +17,19 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
 {
+    /// <summary>
+    /// This code fixer helps remove version conflict markers in code by offering the choice
+    /// of which version to keep and which version to discard.
+    ///
+    /// Conflict markers come in two flavors, diff3 and diff formats.
+    ///
+    /// diff3 has a start marker, followed by a first middle markers and a second middle marker, and terminate with an end marker.
+    ///   The disabled text between the first and second middle markers is the baseline for the three-way diff.
+    ///   The fixer always discards this baseline text.
+    ///
+    /// diff has a start marker, followed by a middle marker, and terminates with an end marker.
+    ///   We treat the middle marker as both the first and second middle markers (degenerate case with no baseline).
+    /// </summary>
     internal abstract partial class AbstractResolveConflictMarkerCodeFixProvider : CodeFixProvider
     {
         internal const string TakeTopEquivalenceKey = nameof(TakeTopEquivalenceKey);
@@ -88,34 +101,36 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
 
             if (position == firstMiddleLine.Start)
             {
-                // we were on the ||||||| lines.  We only want to report here if there was no
-                // conflict trivia on the <<<<<<< line (since we would have already reported the
-                // issue there.
+                // We were on the ||||||| line.
+                // We don't want to report here if there was conflict trivia on the <<<<<<< line  (since we would have already reported the issue there).
                 if (startTrivia.RawKind == _syntaxKinds.ConflictMarkerTrivia)
                     return false;
             }
             else if (position == secondMiddleLine.Start)
             {
-                // we were on the ======= lines.  We only want to report here if there was no
-                // conflict trivia on the ||||||| or  <<<<<<< line (since we would have already reported the
-                // issue there.
-                if (startTrivia.RawKind == _syntaxKinds.ConflictMarkerTrivia ||
-                    (firstMiddleLine != secondMiddleLine && firstMiddleTrivia.RawKind == _syntaxKinds.ConflictMarkerTrivia))
-                {
+                // We were on the ======= line.
+                // We don't want to report here if there was conflict trivia on the <<<<<<< line  (since we would have already reported the issue there).
+                if (startTrivia.RawKind == _syntaxKinds.ConflictMarkerTrivia)
                     return false;
-                }
+
+                // We don't want to report here if there was conflict trivia on the ||||||| line  (since we would have already reported the issue there).
+                if (firstMiddleLine != secondMiddleLine && firstMiddleTrivia.RawKind == _syntaxKinds.ConflictMarkerTrivia)
+                    return false;
             }
             else if (position == endLine.Start)
             {
-                // we were on the >>>>>>> lines.  We only want to report here if there was no
-                // conflict trivia on the ||||||| or ======= or <<<<<<< line (since we would have already reported the
-                // issue there.
-                if (startTrivia.RawKind == _syntaxKinds.ConflictMarkerTrivia ||
-                    (firstMiddleLine != secondMiddleLine && firstMiddleTrivia.RawKind == _syntaxKinds.ConflictMarkerTrivia) ||
-                    secondMiddleTrivia.RawKind == _syntaxKinds.ConflictMarkerTrivia)
-                {
+                // We were on the >>>>>>> line.
+                // We don't want to report here if there was conflict trivia on the <<<<<<< line  (since we would have already reported the issue there).
+                if (startTrivia.RawKind == _syntaxKinds.ConflictMarkerTrivia)
                     return false;
-                }
+
+                // We don't want to report here if there was conflict trivia on the ||||||| line  (since we would have already reported the issue there).
+                if (firstMiddleLine != secondMiddleLine && firstMiddleTrivia.RawKind == _syntaxKinds.ConflictMarkerTrivia)
+                    return false;
+
+                // We don't want to report here if there was conflict trivia on the ======= line  (since we would have already reported the issue there).
+                if (secondMiddleTrivia.RawKind == _syntaxKinds.ConflictMarkerTrivia)
+                    return false;
             }
 
             return true;
@@ -132,22 +147,19 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
 
             var lines = text.Lines;
             bool foundBarLine;
-            bool success;
             switch (text[position])
             {
                 case '<':
                     startLine = lines.GetLineFromPosition(position);
                     foundBarLine = TryFindLineForwards(startLine, '|', out firstMiddleLine);
 
-                    success = TryFindLineForwards(foundBarLine ? firstMiddleLine : startLine, '=', out secondMiddleLine) &&
-                              TryFindLineForwards(secondMiddleLine, '>', out endLine);
-
-                    if (success && !foundBarLine)
+                    if (!TryFindLineForwards(foundBarLine ? firstMiddleLine : startLine, '=', out secondMiddleLine) ||
+                        !TryFindLineForwards(secondMiddleLine, '>', out endLine))
                     {
-                        firstMiddleLine = secondMiddleLine;
+                        return false;
                     }
 
-                    return success;
+                    break;
                 case '|':
                     firstMiddleLine = lines.GetLineFromPosition(position);
                     return TryFindLineBackwards(firstMiddleLine, '<', out startLine) &&
@@ -157,15 +169,13 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
                     secondMiddleLine = lines.GetLineFromPosition(position);
                     foundBarLine = TryFindLineBackwards(secondMiddleLine, '|', out firstMiddleLine);
 
-                    success = TryFindLineBackwards(foundBarLine ? firstMiddleLine : secondMiddleLine, '<', out startLine) &&
-                              TryFindLineForwards(secondMiddleLine, '>', out endLine);
-
-                    if (success && !foundBarLine)
+                    if (!TryFindLineBackwards(foundBarLine ? firstMiddleLine : secondMiddleLine, '<', out startLine) ||
+                        !TryFindLineForwards(secondMiddleLine, '>', out endLine))
                     {
-                        firstMiddleLine = secondMiddleLine;
+                        return false;
                     }
 
-                    return success;
+                    break;
                 case '>':
                     endLine = lines.GetLineFromPosition(position);
                     if (!TryFindLineBackwards(endLine, '=', out secondMiddleLine))
@@ -175,17 +185,18 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
 
                     foundBarLine = TryFindLineBackwards(secondMiddleLine, '|', out firstMiddleLine);
 
-                    success = TryFindLineBackwards(secondMiddleLine, '<', out startLine);
+                    if (!TryFindLineBackwards(foundBarLine ? firstMiddleLine : secondMiddleLine, '<', out startLine))
+                        return false;
 
-                    if (success && !foundBarLine)
-                    {
-                        firstMiddleLine = secondMiddleLine;
-                    }
-
-                    return success;
+                    break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(text[position]);
             }
+
+            if (!foundBarLine)
+                firstMiddleLine = secondMiddleLine;
+
+            return true;
         }
 
         private static bool TryFindLineForwards(TextLine startLine, char ch, out TextLine foundLine)
@@ -317,7 +328,7 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
             var equalsEnd = GetEndIncludingLineBreak(text, secondMiddlePos);
             edits.Add(new TextChange(TextSpan.FromBounds(startPos, equalsEnd), ""));
 
-            // Delete the line containing >>>>>>> 
+            // Delete the line containing >>>>>>>
             var bottomEnd = GetEndIncludingLineBreak(text, endPos);
             edits.Add(new TextChange(TextSpan.FromBounds(endPos, bottomEnd), ""));
         }
