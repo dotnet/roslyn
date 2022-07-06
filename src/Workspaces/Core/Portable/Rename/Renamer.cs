@@ -104,7 +104,6 @@ namespace Microsoft.CodeAnalysis.Rename
             return RenameDocumentAsync(document ?? throw new ArgumentNullException(nameof(document)), options, CodeActionOptions.DefaultProvider, newDocumentName, newDocumentFolders, cancellationToken);
         }
 
-
         internal static async Task<RenameDocumentActionSet> RenameDocumentAsync(
             Document document,
             DocumentRenameOptions options,

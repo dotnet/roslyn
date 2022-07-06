@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Rename
         /// point at some existing symbol. Normally this would be a conflict, but this can be used to override that
         /// behavior.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A conflict resolution containing the new solution.</returns>
+        /// <returns>A conflict resolution containing the new solution or an error message.</returns>
         public Task<IConflictResolution> ResolveConflictsAsync(string replacementText, ImmutableHashSet<ISymbol>? nonConflictSymbols = null, CancellationToken cancellationToken = default)
             => ConflictResolver.ResolveConflictsAsync(this, replacementText, nonConflictSymbols, cancellationToken);
 

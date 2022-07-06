@@ -10,6 +10,9 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Rename
 {
+    /// <summary>
+    /// Represent the result of rename engine. It could either be a succesful <see cref="ConflictResolution"/> or failed <see cref="FailedConflictResolution"/>
+    /// </summary>
     internal interface IConflictResolution
     {
         public Task<SerializableConflictResolution> DehydrateAsync(CancellationToken cancellationToken);

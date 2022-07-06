@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             AddRelatedLocation(location);
         }
 
-        public IConflictResolution ToConflictResolution()
+        public ConflictResolution ToConflictResolution()
         {
             var documentIds = _renamedSpansTracker.DocumentIds.Concat(
                 this.RelatedLocations.Select(l => l.DocumentId)).Distinct().ToImmutableArray();

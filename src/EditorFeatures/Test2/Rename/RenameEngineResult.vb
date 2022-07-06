@@ -90,6 +90,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
                 If expectFailure Then
                     Assert.True(TypeOf result Is FailedConflictResolution)
+                    Return engineResult
                 End If
 
                 Dim successfulResult = DirectCast(result, ConflictResolution)
