@@ -93,18 +93,17 @@ public partial struct SyntaxValueProvider
         var syntaxHelper = _context.SyntaxHelper;
         var finalProvider = compilationAndGroupedNodesProvider.SelectMany((tuple, cancellationToken) =>
         {
-            var ((tree, matches), compilation) = tuple;
+            var ((syntaxTree, syntaxNodes), compilation) = tuple;
+            Debug.Assert(syntaxNodes.All(n => n.SyntaxTree == syntaxTree));
 
             var result = ArrayBuilder<T>.GetInstance();
             try
             {
-                if (!matches.IsEmpty)
+                if (!syntaxNodes.IsEmpty)
                 {
-                    Debug.Assert(matches.All(n => n.SyntaxTree == tree));
+                    var semanticModel = compilation.GetSemanticModel(syntaxTree);
 
-                    var semanticModel = compilation.GetSemanticModel(tree);
-
-                    foreach (var targetNode in matches)
+                    foreach (var targetNode in syntaxNodes)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
