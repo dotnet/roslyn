@@ -159,7 +159,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             if (model is null)
                 return;
 
-            // Switch to the UI thread to get the current caret point and latest active text view then the update view.
+            // Switch to the UI thread to get the current caret point, latest active text view, and currently selected tree node.
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             CodeWindow.GetLastActiveView(out var textView);
@@ -171,8 +171,10 @@ namespace Microsoft.VisualStudio.LanguageServices
             if (!caretPoint.HasValue)
                 return;
 
+            var selectedDocumentSymbolItem = (DocumentSymbolItem?)symbolTree.SelectedItem;
+
             DocumentOutlineHelper.SelectDocumentNode(
-                model.DocumentSymbolItems, activeTextView.TextSnapshot, model.LspSnapshot, caretPoint.Value.Position);
+                ThreadingContext, model, selectedDocumentSymbolItem, activeTextView.TextSnapshot, caretPoint.Value.Position);
         }
 
         /// <summary>

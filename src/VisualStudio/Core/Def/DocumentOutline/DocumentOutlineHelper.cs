@@ -5,10 +5,11 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -232,38 +233,42 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// <summary>
         /// Selects the Document Symbol node that is currently selected by the caret in the editor.
         /// </summary>
-        /// <remarks>
-        /// The parameter lspSnapshot refers to the snapshot used when the LSP document symbol request was made
-        /// to obtain the symbol and currentSnapshot refers to the latest snapshot in the editor. These parameters
-        /// are required to obtain the latest DocumentSymbolItem range positions in the new snapshot.
-        /// </remarks>
         public static void SelectDocumentNode(
-            ImmutableArray<DocumentSymbolItem> symbolTreeItemsSource,
+            IThreadingContext threadingContext,
+            DocumentSymbolModel model,
+            DocumentSymbolItem? selectedDocumentSymbolItem,
             ITextSnapshot currentSnapshot,
-            ITextSnapshot lspSnapshot,
             int caretPosition)
         {
-            UnselectAll(symbolTreeItemsSource);
-            var selectedNode = GetNodeSelectedByCaret(symbolTreeItemsSource);
-            if (selectedNode is not null)
-                SelectNode(selectedNode);
+            threadingContext.ThrowIfNotOnUIThread();
 
-            static void UnselectAll(ImmutableArray<DocumentSymbolItem> documentSymbolModels)
+            if (selectedDocumentSymbolItem is not null)
+                selectedDocumentSymbolItem.IsSelected = false;
+
+            SelectNode(model.DocumentSymbolItems, null);
+
+            // Sets the IsSelected field of a DocumentSymbolItem or one of its descendants to true.
+            void SelectNode(ImmutableArray<DocumentSymbolItem> documentSymbolItems, DocumentSymbolItem? parent)
             {
-                foreach (var documentSymbolModel in documentSymbolModels)
-                {
-                    documentSymbolModel.IsSelected = false;
-                    UnselectAll(documentSymbolModel.Children);
-                }
+                var selectedSymbol = GetNodeSelectedByCaret(documentSymbolItems);
+                if (selectedSymbol is null)
+                    return;
+
+                if (parent is not null)
+                    parent.IsSelected = false;
+
+                selectedSymbol.IsSelected = true;
+
+                SelectNode(selectedSymbol.Children, selectedSymbol);
             }
 
             // Returns a DocumentSymbolItem if the current caret position is in its range and null otherwise.
-            DocumentSymbolItem? GetNodeSelectedByCaret(ImmutableArray<DocumentSymbolItem> symbolTreeItemsSource)
+            DocumentSymbolItem? GetNodeSelectedByCaret(ImmutableArray<DocumentSymbolItem> documentSymbolItems)
             {
-                foreach (var symbol in symbolTreeItemsSource)
+                foreach (var symbol in documentSymbolItems)
                 {
-                    var oldStartPosition = lspSnapshot.GetLineFromLineNumber(symbol.StartPosition.Line).Start.Position + symbol.StartPosition.Character;
-                    var oldEndPosition = lspSnapshot.GetLineFromLineNumber(symbol.EndPosition.Line).Start.Position + symbol.EndPosition.Character;
+                    var oldStartPosition = model.LspSnapshot.GetLineFromLineNumber(symbol.StartPosition.Line).Start.Position + symbol.StartPosition.Character;
+                    var oldEndPosition = model.LspSnapshot.GetLineFromLineNumber(symbol.EndPosition.Line).Start.Position + symbol.EndPosition.Character;
 
                     var currentStartPosition = new SnapshotPoint(currentSnapshot, oldStartPosition).Position;
                     var currentEndPosition = new SnapshotPoint(currentSnapshot, oldEndPosition).Position;
@@ -273,17 +278,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 }
 
                 return null;
-            }
-
-            // Sets the IsSelected field of a DocumentSymbolItem or one of its descendants to true.
-            // Assumes the caret position is in range of the given DocumentSymbolItem.
-            void SelectNode(DocumentSymbolItem symbol)
-            {
-                var selectedChildSymbol = GetNodeSelectedByCaret(symbol.Children);
-                if (selectedChildSymbol is not null)
-                    SelectNode(selectedChildSymbol);
-                else
-                    symbol.IsSelected = true;
             }
         }
     }
