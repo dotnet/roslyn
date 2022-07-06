@@ -52,8 +52,43 @@ class C
                 new[] { edits },
                 new[]
                 {
-                    DocumentResults(active,
-                    new[] { SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.Goo"), deletedSymbolContainerProvider: c => c.GetMember("C")) })
+                    DocumentResults(
+                        active,
+                        diagnostics: new[] { Diagnostic(RudeEditKind.Delete, "class C", DeletedSymbolDisplay(FeaturesResources.method, "Goo(int a)")) })
+                });
+        }
+
+        [Fact]
+        public void Method_Rename_Leaf1()
+        {
+            var src1 = @"
+class C
+{
+    static void Goo(int a)
+    {
+        <AS:0>Console.WriteLine(a);</AS:0>
+    }
+}";
+            var src2 = @"
+class C
+{
+    static void Boo(int a)
+    {
+        <AS:0>Console.WriteLine(a);</AS:0>
+    }
+}
+";
+
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            EditAndContinueValidation.VerifySemantics(
+                new[] { edits },
+                new[]
+                {
+                    DocumentResults(
+                        active,
+                        diagnostics: new[] {Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "static void Boo(int a)", FeaturesResources.method) })
                 });
         }
 

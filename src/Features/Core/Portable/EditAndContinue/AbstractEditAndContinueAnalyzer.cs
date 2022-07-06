@@ -2678,7 +2678,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                                 continue;
                                             }
 
-                                            if (AllowsDeletion(oldSymbol))
+                                            if (!hasActiveStatement && AllowsDeletion(oldSymbol))
                                             {
                                                 AddMemberOrAssociatedMemberSemanticEdits(semanticEdits, SemanticEditKind.Delete, oldSymbol, containingSymbolKey, syntaxMap, partialType: null, cancellationToken);
                                                 continue;
@@ -3039,13 +3039,23 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                 AllowsDeletion(oldSymbol) &&
                                 SymbolKey.Create(oldSymbol, cancellationToken).Resolve(newCompilation, ignoreAssemblyKey: true, cancellationToken).Symbol is null)
                             {
-                                var containingSymbolKey = SymbolKey.Create(oldSymbol.ContainingType, cancellationToken);
+                                Contract.ThrowIfNull(oldDeclaration);
+                                var activeStatementIndices = GetOverlappingActiveStatements(oldDeclaration, oldActiveStatements);
+                                if (activeStatementIndices.Any())
+                                {
+                                    Contract.ThrowIfNull(newDeclaration);
+                                    AddRudeUpdateAroundActiveStatement(diagnostics, newDeclaration);
+                                }
+                                else
+                                {
+                                    var containingSymbolKey = SymbolKey.Create(oldSymbol.ContainingType, cancellationToken);
 
-                                AddMemberOrAssociatedMemberSemanticEdits(semanticEdits, SemanticEditKind.Delete, oldSymbol, containingSymbolKey, syntaxMap, partialType: null, cancellationToken);
+                                    AddMemberOrAssociatedMemberSemanticEdits(semanticEdits, SemanticEditKind.Delete, oldSymbol, containingSymbolKey, syntaxMap, partialType: null, cancellationToken);
 
-                                AddMemberOrAssociatedMemberSemanticEdits(semanticEdits, SemanticEditKind.Insert, newSymbol, containingSymbolKey: null, syntaxMap,
-                                    partialType: IsPartialEdit(oldSymbol, newSymbol, editScript.Match.OldRoot.SyntaxTree, editScript.Match.NewRoot.SyntaxTree) ? symbolKey : null,
-                                    cancellationToken);
+                                    AddMemberOrAssociatedMemberSemanticEdits(semanticEdits, SemanticEditKind.Insert, newSymbol, containingSymbolKey: null, syntaxMap,
+                                        partialType: IsPartialEdit(oldSymbol, newSymbol, editScript.Match.OldRoot.SyntaxTree, editScript.Match.NewRoot.SyntaxTree) ? symbolKey : null,
+                                        cancellationToken);
+                                }
 
                                 continue;
                             }
