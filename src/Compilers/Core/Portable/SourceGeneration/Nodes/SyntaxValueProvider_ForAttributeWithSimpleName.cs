@@ -54,8 +54,14 @@ public partial struct SyntaxValueProvider
             .WithTrackingName("compilationUnit_ForAttribute");
 
         // Create a provider that provides (and updates) the global aliases for any particular file when it is edited.
-        var individualFileGlobalAliasesProvider = syntaxTreesProvider.Select(
-            (s, c) => getGlobalAliasesInCompilationUnit(syntaxHelper, s.GetRoot(c))).WithTrackingName("individualFileGlobalAliases_ForAttribute");
+        var individualFileGlobalAliasesProvider = syntaxTreesProvider
+            .Where((tree, cancellationToken) =>
+            {
+                var root = tree.GetRoot(cancellationToken);
+                return syntaxHelper.ContainsGlobalAliases(root, cancellationToken);
+            })
+            .Select((tree, cancellationToken) => getGlobalAliasesInCompilationUnit(syntaxHelper, tree.GetRoot(cancellationToken)))
+            .WithTrackingName("individualFileGlobalAliases_ForAttribute");
 
         // Create an aggregated view of all global aliases across all files.  This should only update when an individual
         // file changes its global aliases or a file is added / removed from the compilation
@@ -86,6 +92,14 @@ public partial struct SyntaxValueProvider
         // Combine the two providers so that we reanalyze every file if the global aliases change, or we reanalyze a
         // particular file when it's compilation unit changes.
         var syntaxTreeAndGlobalAliasesProvider = syntaxTreesProvider
+            .Where((tree, cancellationToken) =>
+            {
+                // Walk the green node tree first to avoid allocating the entire red tree for files that have no attributes.
+                //
+                // Don't bother looking in trees that don't even have attributes in them.
+                var root = tree.GetRoot(cancellationToken);
+                return ContainsAttributeList(root.Green, syntaxHelper.AttributeListKind);
+            })
             .Combine(allUpGlobalAliasesProvider)
             .WithTrackingName("compilationUnitAndGlobalAliases_ForAttribute");
 
@@ -122,8 +136,7 @@ public partial struct SyntaxValueProvider
         Debug.Assert(compilationUnit is ICompilationUnitSyntax);
 
         // Walk the green node tree first to avoid allocating the entire red tree for files that have no attributes.
-        if (!ContainsAttributeList(compilationUnit.Green, syntaxHelper.AttributeListKind))
-            return ImmutableArray<SyntaxNode>.Empty;
+        Debug.Assert(ContainsAttributeList(compilationUnit.Green, syntaxHelper.AttributeListKind));
 
         var isCaseSensitive = syntaxHelper.IsCaseSensitive;
         var comparison = isCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;

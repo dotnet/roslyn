@@ -7,6 +7,8 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -111,6 +113,49 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // C# doesn't have global aliases at the compilation level.
             return;
+        }
+
+        public override bool ContainsGlobalAliases(SyntaxNode root, CancellationToken cancellationToken)
+        {
+            // Walk down the green tree to avoid allocations of red nodes unnecessary.
+            var compilationUnit = (Syntax.InternalSyntax.CompilationUnitSyntax)root.Green;
+
+            return usingsContainGlobalAliases(compilationUnit.Usings) ||
+                   membersContainGlobalAliases(compilationUnit.Members);
+
+            bool usingsContainGlobalAliases(CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.UsingDirectiveSyntax> usings)
+            {
+                foreach (var directive in usings)
+                {
+                    if (directive.GlobalKeyword != null &&
+                        directive.Alias != null)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            bool membersContainGlobalAliases(CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax> members)
+            {
+                foreach (var member in members)
+                {
+                    if (member is Syntax.InternalSyntax.BaseNamespaceDeclarationSyntax baseNamespace &&
+                        namespaceContainsGlobalAliases(baseNamespace))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            bool namespaceContainsGlobalAliases(Syntax.InternalSyntax.BaseNamespaceDeclarationSyntax baseNamespace)
+            {
+                return usingsContainGlobalAliases(baseNamespace.Usings) ||
+                       membersContainGlobalAliases(baseNamespace.Members);
+            }
         }
     }
 }

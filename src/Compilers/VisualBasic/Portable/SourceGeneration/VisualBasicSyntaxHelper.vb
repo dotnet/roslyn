@@ -4,6 +4,7 @@
 
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.SourceGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -132,5 +133,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 aliases.Add((importsClause.Alias.Identifier.ValueText, GetUnqualifiedIdentifierOfName(importsClause.Name).ValueText))
             End If
         End Sub
+
+        Public Overrides Function ContainsGlobalAliases(root As SyntaxNode, cancellationToken As CancellationToken) As Boolean
+            ' VB does not have global aliases
+            Return False
+        End Function
     End Class
 End Namespace

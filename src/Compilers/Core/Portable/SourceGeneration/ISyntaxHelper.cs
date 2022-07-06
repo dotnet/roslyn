@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.SourceGeneration
@@ -36,6 +37,8 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         /// </summary>
         void AddAliases(GreenNode node, ArrayBuilder<(string aliasName, string symbolName)> aliases, bool global);
         void AddAliases(CompilationOptions options, ArrayBuilder<(string aliasName, string symbolName)> aliases);
+
+        bool ContainsGlobalAliases(SyntaxNode root, CancellationToken cancellationToken);
     }
 
     internal abstract class AbstractSyntaxHelper : ISyntaxHelper
@@ -60,5 +63,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
         public abstract void AddAliases(GreenNode node, ArrayBuilder<(string aliasName, string symbolName)> aliases, bool global);
         public abstract void AddAliases(CompilationOptions options, ArrayBuilder<(string aliasName, string symbolName)> aliases);
+
+        public abstract bool ContainsGlobalAliases(SyntaxNode root, CancellationToken cancellationToken);
     }
 }
