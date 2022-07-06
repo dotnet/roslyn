@@ -516,7 +516,7 @@ namespace Microsoft.CodeAnalysis
 #if DEBUG
             public override string ToString()
             {
-                if (IsSingle)
+                if (this.Count == 1)
                 {
                     return $"{GetItem(0)}: {GetState(0)}";
                 }
