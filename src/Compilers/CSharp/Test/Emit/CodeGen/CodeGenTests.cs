@@ -17125,8 +17125,8 @@ partial class C
         System.Console.WriteLine(""in called"");
     }
 }
-static class Programverify: Verification.Skipped
-{
+
+static class Program {
     static void Main()
     {
         new C().Call();
@@ -17341,6 +17341,58 @@ class Program {
 ";
             CompileAndVerify(source, targetFramework: TargetFramework.NetStandard20, expectedOutput: "1234")
                .VerifyIL("Program.Main(string[])", expect);
+        }
+
+
+        [Fact]
+        [WorkItem(61011, "https://github.com/dotnet/roslyn/issues/61011")]
+        public void Issue61011_2()
+        {
+            var source = """
+using System;
+public class Program {
+    public static void Main(string[] args) {
+        int[,] m = new int[3, 3]
+        {
+            {1, 2, 3},
+            {4, 5, 6},
+            {7, 8, 9}
+        };
+        Console.WriteLine($"{m[0, 2]} {m[1, 1]} {m[2, 0]}");
+    }
+}
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net50, expectedOutput: "3 5 7");
+            CompileAndVerify(source, targetFramework: TargetFramework.NetStandard20, expectedOutput: "3 5 7");
+        }
+
+        [Fact]
+        [WorkItem(61011, "https://github.com/dotnet/roslyn/issues/61011")]
+        public void Issue61011_3()
+        {
+            var source = """
+using System;
+public class Program {
+    public static void Main(string[] args) {
+        var jagged = new[] {
+           new[] {new[] {'a', 'b', 'c'}, new[]{'d', 'e'}},
+           new[] {new[] {'f'}, new[]{'g', 'h'}, new[]{'i', 'j', 'k'}},
+        };
+       
+       string s = "";
+       foreach (var arr0 in jagged) {
+           foreach (var arr1 in arr0) {
+               foreach (var c in arr1) {
+                   s += c;
+               }
+           }
+       }
+       Console.WriteLine(s);
+    }
+}
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net50, expectedOutput: "abcdefghijk");
+            CompileAndVerify(source, targetFramework: TargetFramework.NetStandard20, expectedOutput: "abcdefghijk");
         }
     }
 }

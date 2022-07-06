@@ -1956,6 +1956,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
+                EmitArrayIndices(expression.Bounds);
                 _builder.EmitArrayCreation(_module.Translate(arrayType), expression.Syntax, _diagnostics);
             }
 
