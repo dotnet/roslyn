@@ -71,9 +71,6 @@ namespace Roslyn.Utilities
         public bool IsEmpty
             => Count == 0;
 
-        public ImmutableArray<T> ToImmutable()
-            => HasOne ? ImmutableArray.Create(_one) : _many;
-
         public OneOrMany<T> Add(T one)
         {
             var builder = ArrayBuilder<T>.GetInstance(this.Count + 1);
