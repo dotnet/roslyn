@@ -123,8 +123,6 @@ namespace Microsoft.VisualStudio.LanguageServices
             if (activeTextView is null)
                 return null;
 
-            var currentSnapshot = activeTextView.TextSnapshot;
-
             // Switch to the threadpool to filter and sort the DocumentSymbolItems.
             await TaskScheduler.Default;
 
@@ -133,7 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             if (!string.IsNullOrWhiteSpace(searchQuery))
                 updatedDocumentSymbolItems = DocumentOutlineHelper.Search(updatedDocumentSymbolItems, searchQuery);
 
-            updatedDocumentSymbolItems = DocumentOutlineHelper.Sort(updatedDocumentSymbolItems, SortOption, model.LspSnapshot, currentSnapshot);
+            updatedDocumentSymbolItems = DocumentOutlineHelper.Sort(updatedDocumentSymbolItems, SortOption);
 
             // Switch to the UI thread to update the view.
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);

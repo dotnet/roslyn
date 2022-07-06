@@ -151,18 +151,9 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// <summary>
         /// Sorts and returns an immutable array of DocumentSymbolViewModels based on a SortOption.
         /// </summary>
-        /// <remarks>
-        /// The parameter oldSnapshot refers to the snapshot used when the LSP document symbol request was made to 
-        /// obtain the symbol and currentSnapshot refers to the latest snapshot in the editor. These parameters are
-        /// required to obtain the latest DocumentSymbolItem range positions in the new snapshot (to sort by order).
-        /// </remarks>
-        public static ImmutableArray<DocumentSymbolItem> Sort(
-            ImmutableArray<DocumentSymbolItem> documentSymbolModels,
-            SortOption sortOption,
-            ITextSnapshot? oldSnapshot,
-            ITextSnapshot? currentSnapshot)
+        public static ImmutableArray<DocumentSymbolItem> Sort(ImmutableArray<DocumentSymbolItem> documentSymbolItems, SortOption sortOption)
         {
-            // We want to log which sort option is used
+            // Log which sort option was used
             Logger.Log(sortOption switch
             {
                 SortOption.Name => FunctionId.DocumentOutline_SortByName,
@@ -171,50 +162,38 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 _ => throw new NotImplementedException(),
             });
 
-            // Sort the top-level DocumentSymbolViewModels
-            var sortedDocumentSymbolModels = sortOption switch
+            return SortDocumentSymbolItems(documentSymbolItems, sortOption);
+
+            static ImmutableArray<DocumentSymbolItem> SortDocumentSymbolItems(ImmutableArray<DocumentSymbolItem> documentSymbolModels, SortOption sortOption)
             {
-                SortOption.Name => documentSymbolModels.Sort((x, y) => x.Name.CompareTo(y.Name)),
-                SortOption.Order => documentSymbolModels.Sort((x, y) =>
+                // Sort the top-level DocumentSymbolViewModels
+                var sortedDocumentSymbolModels = sortOption switch
                 {
-                    if (oldSnapshot is null)
-                        throw new ArgumentNullException(nameof(oldSnapshot));
-                    else if (currentSnapshot is null)
-                        throw new ArgumentNullException(nameof(currentSnapshot));
+                    SortOption.Name => documentSymbolModels.Sort((x, y) => x.Name.CompareTo(y.Name)),
+                    SortOption.Order => documentSymbolModels.Sort((x, y) =>
+                    {
+                        if (x.StartPosition.Line == y.StartPosition.Line)
+                            return x.StartPosition.Character - y.StartPosition.Character;
 
-                    return CompareSymbolOrder(x, y, oldSnapshot, currentSnapshot);
-                }),
-                SortOption.Type => documentSymbolModels.Sort(CompareSymbolType),
-                _ => throw new NotImplementedException()
-            };
+                        return x.StartPosition.Line - y.StartPosition.Line;
+                    }),
+                    SortOption.Type => documentSymbolModels.Sort((x, y) =>
+                    {
+                        if (x.SymbolKind == y.SymbolKind)
+                            return x.Name.CompareTo(y.Name);
 
-            // Recursively sort descendant DocumentSymbolViewModels
-            foreach (var documentSymbolModel in sortedDocumentSymbolModels)
-            {
-                documentSymbolModel.Children = Sort(documentSymbolModel.Children, sortOption, oldSnapshot, currentSnapshot);
-            }
+                        return x.SymbolKind - y.SymbolKind;
+                    }),
+                    _ => throw new NotImplementedException()
+                };
 
-            return sortedDocumentSymbolModels;
+                // Recursively sort descendant DocumentSymbolViewModels
+                foreach (var documentSymbolModel in sortedDocumentSymbolModels)
+                {
+                    documentSymbolModel.Children = SortDocumentSymbolItems(documentSymbolModel.Children, sortOption);
+                }
 
-            // Compares the order of two DocumentSymbolViewModels using their positions in the latest editor snapshot.
-            static int CompareSymbolOrder(DocumentSymbolItem x, DocumentSymbolItem y, ITextSnapshot oldSnapshot, ITextSnapshot currentSnapshot)
-            {
-                var xStartPosition = oldSnapshot.GetLineFromLineNumber(x.StartPosition.Line).Start.Position + x.StartPosition.Character;
-                var yStartPosition = oldSnapshot.GetLineFromLineNumber(y.StartPosition.Line).Start.Position + y.StartPosition.Character;
-
-                var xCurrentStartPosition = new SnapshotPoint(currentSnapshot, xStartPosition).Position;
-                var yCurrentStartPosition = new SnapshotPoint(currentSnapshot, yStartPosition).Position;
-
-                return xCurrentStartPosition - yCurrentStartPosition;
-            }
-
-            // Compares the type (SymbolKind) of two DocumentSymbolViewModels.
-            static int CompareSymbolType(DocumentSymbolItem x, DocumentSymbolItem y)
-            {
-                if (x.SymbolKind == y.SymbolKind)
-                    return x.Name.CompareTo(y.Name);
-
-                return x.SymbolKind - y.SymbolKind;
+                return sortedDocumentSymbolModels;
             }
         }
 
