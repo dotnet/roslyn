@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis
                 var sharedCount = Math.Min(previousEntry.Count, outputs.Length);
 
                 // cached or modified items
-                for (int i = 0, n = sharedCount; i < n; i++)
+                for (int i = 0; i < sharedCount; i++)
                 {
                     var previousItem = previousEntry.GetItem(i);
                     var previousState = previousEntry.GetState(i);
