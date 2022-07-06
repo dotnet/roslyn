@@ -3785,7 +3785,6 @@ namespace Microsoft.CodeAnalysis
                 "get_OffsetToStringData",                   // System_Runtime_CompilerServices_RuntimeHelpers__get_OffsetToStringData
                 "GetSubArray",                              // System_Runtime_CompilerServices_RuntimeHelpers__GetSubArray_T
                 "EnsureSufficientExecutionStack",           // System_Runtime_CompilerServices_RuntimeHelpers__EnsureSufficientExecutionStack
-
                 "Capture",                                  // System_Runtime_ExceptionServices_ExceptionDispatchInfo__Capture
                 "Throw",                                    // System_Runtime_ExceptionServices_ExceptionDispatchInfo__Throw
                 ".ctor",                                    // System_Security_UnverifiableCodeAttribute__ctor
@@ -3824,7 +3823,6 @@ namespace Microsoft.CodeAnalysis
                 "ToLong",                                   // Microsoft_VisualBasic_CompilerServices_Conversions__ToLongString
                 "ToULong",                                  // Microsoft_VisualBasic_CompilerServices_Conversions__ToULongString
                 "ToSingle",                                 // Microsoft_VisualBasic_CompilerServices_Conversions__ToSingleString
-
                 "ToDouble",                                 // Microsoft_VisualBasic_CompilerServices_Conversions__ToDoubleString
                 "ToDecimal",                                // Microsoft_VisualBasic_CompilerServices_Conversions__ToDecimalString
                 "ToDate",                                   // Microsoft_VisualBasic_CompilerServices_Conversions__ToDateString
@@ -3844,7 +3842,6 @@ namespace Microsoft.CodeAnalysis
                 "ToString",                                 // Microsoft_VisualBasic_CompilerServices_Conversions__ToStringObject
                 "ToBoolean",                                // Microsoft_VisualBasic_CompilerServices_Conversions__ToBooleanObject
                 "ToSByte",                                  // Microsoft_VisualBasic_CompilerServices_Conversions__ToSByteObject
-
                 "ToByte",                                   // Microsoft_VisualBasic_CompilerServices_Conversions__ToByteObject
                 "ToShort",                                  // Microsoft_VisualBasic_CompilerServices_Conversions__ToShortObject
                 "ToUShort",                                 // Microsoft_VisualBasic_CompilerServices_Conversions__ToUShortObject
