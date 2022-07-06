@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis;
 
 using Aliases = ArrayBuilder<(string aliasName, string symbolName)>;
 
-public partial struct SyntaxValueProvider
+public partial struct SyntaxValueProvider : IEqualityComparer<(SyntaxTree tree, ImmutableArray<SyntaxNode> matches)>
 {
     private static readonly ObjectPool<Stack<string>> s_stackPool = new(static () => new());
 
@@ -43,7 +43,7 @@ public partial struct SyntaxValueProvider
     /// Note: a 'Values'-provider of arrays are returned.  Each array provides all the matching nodes from a single <see
     /// cref="SyntaxTree"/>.
     /// </remarks>
-    internal IncrementalValuesProvider<ImmutableArray<SyntaxNode>> ForAttributeWithSimpleName(
+    internal IncrementalValuesProvider<(SyntaxTree tree, ImmutableArray<SyntaxNode> matches)> ForAttributeWithSimpleName(
         string simpleName,
         Func<SyntaxNode, CancellationToken, bool> predicate)
     {
@@ -101,8 +101,8 @@ public partial struct SyntaxValueProvider
             .WithTrackingName("compilationUnitAndGlobalAliases_ForAttribute");
 
         return rootsWithAttributeAndGlobalAliasesProvider.Select(
-            (tuple, c) => GetMatchingNodes(syntaxHelper, tuple.Right, tuple.Left, simpleName, predicate, c))
-            .WithComparer(ImmutableArrayValueComparer<SyntaxNode>.Instance)
+            (tuple, c) => (tuple.Left, GetMatchingNodes(syntaxHelper, tuple.Right, tuple.Left, simpleName, predicate, c)))
+            .WithComparer(this)
             .WithTrackingName("result_ForAttributeInternal");
 
         static GlobalAliases getGlobalAliasesInCompilationUnit(
@@ -309,4 +309,19 @@ public partial struct SyntaxValueProvider
 
         return false;
     }
+
+    bool IEqualityComparer<(SyntaxTree tree, ImmutableArray<SyntaxNode> matches)>.Equals(
+        (SyntaxTree tree, ImmutableArray<SyntaxNode> matches) x,
+        (SyntaxTree tree, ImmutableArray<SyntaxNode> matches) y)
+    {
+        // Note: we do something very sneaky here.  Specifically, as long as we have the same SyntaxTree from before,
+        // then we know we must have the same nodes as before (since the nodes are entirely determined from the
+        // text+options which is exactly what the syntax tree represents).  Similarly, if the syntax tree changes, we
+        // will always get different nodes (since they point back at the syntax tree).  So we can just use the syntax
+        // tree itself to determine equality semantics here.
+        return x.tree == y.tree;
+    }
+
+    int IEqualityComparer<(SyntaxTree tree, ImmutableArray<SyntaxNode> matches)>.GetHashCode((SyntaxTree tree, ImmutableArray<SyntaxNode> matches) obj)
+        => obj.tree.GetHashCode();
 }

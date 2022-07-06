@@ -18,17 +18,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Semantic.UnitTests.SourceGeneration
 
             Return context.SyntaxProvider.ForAttributeWithSimpleName(
             simpleName,
-            Function(node, c) TypeOf node Is T).SelectMany(Function(nodes, c) nodes.Cast(Of T)).WithTrackingName("result_ForAttribute")
+            Function(node, c) TypeOf node Is T).SelectMany(Function(tuple, c) tuple.matches.Cast(Of T)).WithTrackingName("result_ForAttribute")
         End Function
 
         <Extension>
-        Public Function ForAttributeWithMetadataName(Of t As SyntaxNode)(
-           context As IncrementalGeneratorInitializationContext, fullyQualifiedMetadataName As String) As IncrementalValuesProvider(Of t)
+        Public Function ForAttributeWithMetadataName(Of T As SyntaxNode)(
+           context As IncrementalGeneratorInitializationContext, fullyQualifiedMetadataName As String) As IncrementalValuesProvider(Of T)
 
             Return context.SyntaxProvider.ForAttributeWithMetadataName(
                 fullyQualifiedMetadataName,
-                Function(node, c) TypeOf node Is t,
-                Function(ctx, c) DirectCast(ctx.TargetNode, t))
+                Function(node, c) TypeOf node Is T,
+                Function(ctx, c) DirectCast(ctx.TargetNode, T))
         End Function
     End Module
 

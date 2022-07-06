@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
+
 public readonly struct GeneratorAttributeSyntaxContext
 {
     /// <summary>
@@ -92,34 +93,33 @@ public partial struct SyntaxValueProvider
         var syntaxHelper = _context.SyntaxHelper;
         var finalProvider = compilationAndGroupedNodesProvider.SelectMany((tuple, cancellationToken) =>
         {
-            var (targetNodes, compilation) = tuple;
+            var ((tree, matches), compilation) = tuple;
 
             var result = ArrayBuilder<T>.GetInstance();
             try
             {
-                if (!targetNodes.IsEmpty)
+                if (!matches.IsEmpty)
                 {
-                    Debug.Assert(targetNodes.All(n => n.SyntaxTree == targetNodes[0].SyntaxTree));
+                    Debug.Assert(matches.All(n => n.SyntaxTree == tree));
 
-                    var syntaxTree = targetNodes[0].SyntaxTree;
-                    var semanticModel = compilation.GetSemanticModel(syntaxTree);
+                    var semanticModel = compilation.GetSemanticModel(tree);
 
-                    foreach (var targetNode in targetNodes)
+                    foreach (var match in matches)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
                         var targetSymbol =
-                            targetNode is ICompilationUnitSyntax compilationUnit ? semanticModel.Compilation.Assembly :
-                            syntaxHelper.IsLambdaExpression(targetNode) ? semanticModel.GetSymbolInfo(targetNode, cancellationToken).Symbol :
-                            semanticModel.GetDeclaredSymbol(targetNode, cancellationToken);
+                            match is ICompilationUnitSyntax compilationUnit ? semanticModel.Compilation.Assembly :
+                            syntaxHelper.IsLambdaExpression(match) ? semanticModel.GetSymbolInfo(match, cancellationToken).Symbol :
+                            semanticModel.GetDeclaredSymbol(match, cancellationToken);
                         if (targetSymbol is null)
                             continue;
 
-                        var attributes = getMatchingAttributes(targetNode, targetSymbol, fullyQualifiedMetadataName);
+                        var attributes = getMatchingAttributes(match, targetSymbol, fullyQualifiedMetadataName);
                         if (attributes.Length > 0)
                         {
                             result.Add(transform(
-                                new GeneratorAttributeSyntaxContext(targetNode, targetSymbol, semanticModel, attributes),
+                                new GeneratorAttributeSyntaxContext(match, targetSymbol, semanticModel, attributes),
                                 cancellationToken));
                         }
                     }
