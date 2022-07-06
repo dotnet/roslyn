@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
@@ -2072,6 +2073,28 @@ public class FileModifierTests : CSharpTestBase
             // (10,30): error CS9051: File type 'C' cannot be used in a member signature in non-file type 'E.M<T>(T)'.
             //     void M<T>(T t) where T : C { } // 1
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "C").WithArguments("C", "E.M<T>(T)").WithLocation(10, 30));
+    }
+
+    [Fact, WorkItem(62435, "https://github.com/dotnet/roslyn/issues/62435")]
+    public void Constraints_02()
+    {
+        var source = """
+            file class C { }
+
+            file class D<T> where T : C // ok
+            {
+            }
+
+            class E<T> where T : C // 1
+            {
+            }
+            """;
+
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics(
+            // (7,22): error CS9051: File type 'C' cannot be used in a member signature in non-file type 'E<T>'.
+            // class E<T> where T : C // 1
+            Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "C").WithArguments("C", "E<T>").WithLocation(7, 22));
     }
 
     [Fact]

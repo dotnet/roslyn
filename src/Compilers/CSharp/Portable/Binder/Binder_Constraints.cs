@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(ErrorCode.ERR_BadVisBound, location, containingSymbol, constraintType.Type);
             }
 
-            if (constraintType.Type.IsFileTypeOrUsesFileTypes() && !containingSymbol.ContainingType.IsFileTypeOrUsesFileTypes())
+            if (constraintType.Type.IsFileTypeOrUsesFileTypes() && !(containingSymbol as TypeSymbol ?? containingSymbol.ContainingType).IsFileTypeOrUsesFileTypes())
             {
                 diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, location, constraintType.Type, containingSymbol);
             }
