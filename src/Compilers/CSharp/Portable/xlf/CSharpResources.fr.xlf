@@ -582,6 +582,31 @@
         <target state="translated">Un espace de noms de portée de fichier doit précéder tous les autres membres d’un fichier.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FileTypeBase">
+        <source>File type '{0}' cannot be used as a base type of non-file type '{1}'.</source>
+        <target state="new">File type '{0}' cannot be used as a base type of non-file type '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileTypeDisallowedInSignature">
+        <source>File type '{0}' cannot be used in a member signature in non-file type '{1}'.</source>
+        <target state="new">File type '{0}' cannot be used in a member signature in non-file type '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileTypeNameDisallowed">
+        <source>Types and aliases cannot be named 'file'.</source>
+        <target state="new">Types and aliases cannot be named 'file'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileTypeNested">
+        <source>File type '{0}' must be defined in a top level type; '{0}' is a nested type.</source>
+        <target state="new">File type '{0}' must be defined in a top level type; '{0}' is a nested type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileTypeNoExplicitAccessibility">
+        <source>File type '{0}' cannot use accessibility modifiers.</source>
+        <target state="new">File type '{0}' cannot use accessibility modifiers.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FixedFieldMustNotBeRef">
         <source>A fixed field must not be a ref field.</source>
         <target state="new">A fixed field must not be a ref field.</target>
@@ -625,6 +650,11 @@
       <trans-unit id="ERR_GlobalUsingOutOfOrder">
         <source>A global using directive must precede all non-global using directives.</source>
         <target state="translated">Une directive using globale doit précéder toutes les directives using non globales.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_GlobalUsingStaticFileType">
+        <source>File type '{0}' cannot be used in a 'global using static' directive.</source>
+        <target state="new">File type '{0}' cannot be used in a 'global using static' directive.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
@@ -1229,7 +1259,7 @@
       </trans-unit>
       <trans-unit id="ERR_RefLocalOrParamExpected">
         <source>The left-hand side of a ref assignment must be a ref variable.</source>
-        <target state="new">The left-hand side of a ref assignment must be a ref variable.</target>
+        <target state="needs-review-translation">La partie gauche d'une assignation par référence doit être une variable locale ou un paramètre ref.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningPropertiesCannotBeRequired">
@@ -1600,6 +1630,11 @@
       <trans-unit id="IDS_FeatureFileScopedNamespace">
         <source>file-scoped namespace</source>
         <target state="translated">espace de noms inclus dans l'étendue de fichier</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureFileTypes">
+        <source>file types</source>
+        <target state="new">file types</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureGenericAttributes">
@@ -2250,7 +2285,7 @@
 -instrument:TestCoverage      Produire un assembly instrumenté pour collecter
                               les informations de couverture
 -sourcelink:&lt;fichier&gt;         Informations du lien source à incorporer dans le fichier PDB.
- 
+
                        - ERREURS ET AVERTISSEMENTS -
 -warnaserror[+|-]             Signaler tous les avertissements comme des erreurs
 -warnaserror[+|-]:&lt;avertiss.&gt; Signaler des avertissements spécifiques comme des erreurs
@@ -6552,7 +6587,7 @@ Si une telle classe est utilisée en tant que classe de base et si la classe dé
       </trans-unit>
       <trans-unit id="ERR_LookupInTypeVariable">
         <source>Cannot do non-virtual member lookup in '{0}' because it is a type parameter</source>
-        <target state="new">Cannot do non-virtual member lookup in '{0}' because it is a type parameter</target>
+        <target state="needs-review-translation">Impossible de rechercher un membre dans '{0}', car il s'agit d'un paramètre de type</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadConstraintType">
@@ -11099,7 +11134,7 @@ Pour supprimer l'avertissement, vous pouvez utiliser la commande /reference (dé
       </trans-unit>
       <trans-unit id="ERR_RefReturnParameter">
         <source>Cannot return a parameter by reference '{0}' because it is not a ref parameter</source>
-        <target state="new">Cannot return a parameter by reference '{0}' because it is not a ref parameter</target>
+        <target state="needs-review-translation">Impossible de retourner un paramètre '{0}' par référence, car il ne s'agit pas d'un paramètre ref ou out</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnParameter2">
@@ -11719,7 +11754,7 @@ Pour supprimer l'avertissement, vous pouvez utiliser la commande /reference (dé
       </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainConversionOrEqualityOperators">
         <source>Conversion, equality, or inequality operators declared in interfaces must be abstract or virtual</source>
-        <target state="new">Conversion, equality, or inequality operators declared in interfaces must be abstract or virtual</target>
+        <target state="needs-review-translation">Les opérateurs de conversion, d’égalité ou d’inégalité déclarés dans les interfaces doivent être abstract</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">

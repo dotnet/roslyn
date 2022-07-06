@@ -582,6 +582,31 @@
         <target state="translated">Obor názvů pro celý soubor musí předcházet všem ostatním členům v souboru.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FileTypeBase">
+        <source>File type '{0}' cannot be used as a base type of non-file type '{1}'.</source>
+        <target state="new">File type '{0}' cannot be used as a base type of non-file type '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileTypeDisallowedInSignature">
+        <source>File type '{0}' cannot be used in a member signature in non-file type '{1}'.</source>
+        <target state="new">File type '{0}' cannot be used in a member signature in non-file type '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileTypeNameDisallowed">
+        <source>Types and aliases cannot be named 'file'.</source>
+        <target state="new">Types and aliases cannot be named 'file'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileTypeNested">
+        <source>File type '{0}' must be defined in a top level type; '{0}' is a nested type.</source>
+        <target state="new">File type '{0}' must be defined in a top level type; '{0}' is a nested type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileTypeNoExplicitAccessibility">
+        <source>File type '{0}' cannot use accessibility modifiers.</source>
+        <target state="new">File type '{0}' cannot use accessibility modifiers.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FixedFieldMustNotBeRef">
         <source>A fixed field must not be a ref field.</source>
         <target state="new">A fixed field must not be a ref field.</target>
@@ -625,6 +650,11 @@
       <trans-unit id="ERR_GlobalUsingOutOfOrder">
         <source>A global using directive must precede all non-global using directives.</source>
         <target state="translated">Globální direktiva using musí předcházet všem direktivám using, které nejsou globální. </target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_GlobalUsingStaticFileType">
+        <source>File type '{0}' cannot be used in a 'global using static' directive.</source>
+        <target state="new">File type '{0}' cannot be used in a 'global using static' directive.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
@@ -1229,7 +1259,7 @@
       </trans-unit>
       <trans-unit id="ERR_RefLocalOrParamExpected">
         <source>The left-hand side of a ref assignment must be a ref variable.</source>
-        <target state="new">The left-hand side of a ref assignment must be a ref variable.</target>
+        <target state="needs-review-translation">Levá strana přiřazení odkazu musí být lokální proměnná nebo parametr odkazu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningPropertiesCannotBeRequired">
@@ -1602,6 +1632,11 @@
         <target state="translated">obor názvů pro celý soubor</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureFileTypes">
+        <source>file types</source>
+        <target state="new">file types</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureGenericAttributes">
         <source>generic attributes</source>
         <target state="translated">obecné atributy</target>
@@ -1719,7 +1754,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureSpanCharConstantPattern">
         <source>pattern matching ReadOnly/Span&lt;char&gt; on constant string</source>
-        <target state="translated">vzor odpovídající ReadOnly/Span&lt;char&gt; na konstantním řetězci</target>
+        <target state="new">pattern matching ReadOnly/Span&lt;char&gt; on constant string</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
@@ -2250,7 +2285,7 @@
 -instrument:TestCoverage      Vytvoří sestavení instrumentované ke shromažďování
                               informací o pokrytí.
 -sourcelink:&lt;file&gt;            Informace o zdrojovém odkazu vkládané do souboru PDB..
- 
+
                        - CHYBY A UPOZORNĚNÍ -
 -warnaserror[+|-]             Hlásí všechna upozornění jako chyby.
 -warnaserror[+|-]:&lt;warn list&gt; Hlásí zadaná upozornění jako chyby.
@@ -6552,7 +6587,7 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       </trans-unit>
       <trans-unit id="ERR_LookupInTypeVariable">
         <source>Cannot do non-virtual member lookup in '{0}' because it is a type parameter</source>
-        <target state="new">Cannot do non-virtual member lookup in '{0}' because it is a type parameter</target>
+        <target state="needs-review-translation">Nejde vyhledávat člena v {0}, protože se jedná o parametr typu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadConstraintType">
@@ -11099,7 +11134,7 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
       </trans-unit>
       <trans-unit id="ERR_RefReturnParameter">
         <source>Cannot return a parameter by reference '{0}' because it is not a ref parameter</source>
-        <target state="new">Cannot return a parameter by reference '{0}' because it is not a ref parameter</target>
+        <target state="needs-review-translation">Parametr nejde vrátit pomocí odkazu {0}, protože nejde o parametr Ref nebo Out.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnParameter2">
@@ -11719,7 +11754,7 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
       </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainConversionOrEqualityOperators">
         <source>Conversion, equality, or inequality operators declared in interfaces must be abstract or virtual</source>
-        <target state="new">Conversion, equality, or inequality operators declared in interfaces must be abstract or virtual</target>
+        <target state="needs-review-translation">Operátory převodu, rovnosti nebo nerovnosti deklarované v rozhraních musí být abstraktní.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
