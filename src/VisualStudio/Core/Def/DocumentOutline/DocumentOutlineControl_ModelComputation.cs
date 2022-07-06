@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,7 +13,6 @@ using Microsoft.VisualStudio.LanguageServices.DocumentOutline;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
@@ -193,9 +190,9 @@ namespace Microsoft.VisualStudio.LanguageServices
         /// <summary>
         /// Given a DocumentSymbolItem, moves the caret to its position in the latest active text view.
         /// </summary>
-        private async ValueTask JumpToContentAsync(ImmutableSegmentedList<DocumentSymbolItem> symbolList, CancellationToken cancellationToken)
+        private async ValueTask JumpToContentAsync(ImmutableSegmentedList<DocumentSymbolItem> symbol, CancellationToken cancellationToken)
         {
-            if (symbolList.IsDefault || symbolList.IsEmpty)
+            if (symbol.IsDefault || symbol.IsEmpty)
                 return;
 
             var model = await _computeModelQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
@@ -209,24 +206,29 @@ namespace Microsoft.VisualStudio.LanguageServices
             if (activeTextView is null)
                 return;
 
-            // Avoids highlighting the node after moving the caret ourselves 
-            // (The node is already highlighted on user click)
+            // When the user clicks on a symbol node in the window, we want to move the cursor to that line in the editor. If we don't
+            // unsubscribe from Caret_PositionChanged first, we will call StartHightlightNodeTask() once we move the cursor ourselves.
+            // This is not ideal because we would be doing extra work to highlight a node that's already highlighted.
             activeTextView.Caret.PositionChanged -= Caret_PositionChanged;
 
-            // Get the position of the start of the line the symbol is on
-            var position = model.LspSnapshot.GetLineFromLineNumber(symbolList.First().StartPosition.Line).Start.Position;
+            try
+            {
+                // Get the original position of the start of the line of the symbol.
+                var originalPosition = model.LspSnapshot.GetLineFromLineNumber(symbol.First().StartPosition.Line).Start.Position;
 
-            // Gets a point for this position with respect to the updated snapshot
-            var currentSnapshot = activeTextView.TextSnapshot;
-            var snapshotPoint = new SnapshotPoint(currentSnapshot, position);
+                // Map this position to a span in the current textview.
+                var originalSpan = new SnapshotSpan(model.LspSnapshot, Span.FromBounds(originalPosition, originalPosition));
+                var currentSpan = originalSpan.TranslateTo(activeTextView.TextSnapshot, SpanTrackingMode.EdgeExclusive);
 
-            // Sets the selection to this point
-            var snapshotSpan = new SnapshotSpan(snapshotPoint, snapshotPoint);
-            activeTextView.SetSelection(snapshotSpan);
-            activeTextView.ViewScroller.EnsureSpanVisible(snapshotSpan);
-
-            // We want to continue highlighting nodes when the user moves the caret
-            activeTextView.Caret.PositionChanged += Caret_PositionChanged;
+                // Set the active text view selection to this span.
+                activeTextView.SetSelection(currentSpan);
+                activeTextView.ViewScroller.EnsureSpanVisible(currentSpan);
+            }
+            finally
+            {
+                // Resubscribe to Caret_PositionChanged again so that when the user clicks somewhere else, we can highlight that node.
+                activeTextView.Caret.PositionChanged += Caret_PositionChanged;
+            }
         }
     }
 }
