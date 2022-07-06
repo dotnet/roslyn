@@ -164,11 +164,6 @@
         <target state="translated">SuppressionDescriptor türünün kimliği, null veya boş bir dize ya da yalnızca boşluk içeren bir dize olmamalıdır.</target>
         <note />
       </trans-unit>
-      <trans-unit id="SyntaxTreeNotFound">
-        <source>SyntaxTree is not part of the compilation</source>
-        <target state="new">SyntaxTree is not part of the compilation</target>
-        <note />
-      </trans-unit>
       <trans-unit id="TupleElementNullableAnnotationCountMismatch">
         <source>If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple.</source>
         <target state="translated">Demet öğelerine yönelik boş değer atanabilir ek açıklamalar belirtildiyse, ek açıklamaların sayısı demetin kardinalitesiyle eşleşmelidir.</target>

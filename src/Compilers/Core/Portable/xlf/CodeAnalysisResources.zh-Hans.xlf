@@ -164,11 +164,6 @@
         <target state="translated">A SuppressionDescriptor 必须具有一个 ID，且该 ID 不为 null、不是空字符串且不是仅包含空格的字符串。</target>
         <note />
       </trans-unit>
-      <trans-unit id="SyntaxTreeNotFound">
-        <source>SyntaxTree is not part of the compilation</source>
-        <target state="new">SyntaxTree is not part of the compilation</target>
-        <note />
-      </trans-unit>
       <trans-unit id="TupleElementNullableAnnotationCountMismatch">
         <source>If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple.</source>
         <target state="translated">如果已指定元组元素可以为 null 的注释，则注释的数量必须与元组基数相匹配。</target>

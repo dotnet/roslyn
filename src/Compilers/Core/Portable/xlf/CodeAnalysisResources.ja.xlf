@@ -164,11 +164,6 @@
         <target state="translated">SuppressionDescriptor では、null でも、空の文字列でも、空白のみの文字列でもない ID が必要です。</target>
         <note />
       </trans-unit>
-      <trans-unit id="SyntaxTreeNotFound">
-        <source>SyntaxTree is not part of the compilation</source>
-        <target state="new">SyntaxTree is not part of the compilation</target>
-        <note />
-      </trans-unit>
       <trans-unit id="TupleElementNullableAnnotationCountMismatch">
         <source>If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple.</source>
         <target state="translated">タプル要素の Null 許容の注釈を指定する場合、注釈の数はタプルの基数と一致する必要があります。</target>

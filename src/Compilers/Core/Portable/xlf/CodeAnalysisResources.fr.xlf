@@ -164,11 +164,6 @@
         <target state="translated">SuppressionDescriptor doit avoir un ID qui n'est ni une valeur null, ni une chaîne vide, ni une chaîne contenant uniquement des espaces blancs.</target>
         <note />
       </trans-unit>
-      <trans-unit id="SyntaxTreeNotFound">
-        <source>SyntaxTree is not part of the compilation</source>
-        <target state="new">SyntaxTree is not part of the compilation</target>
-        <note />
-      </trans-unit>
       <trans-unit id="TupleElementNullableAnnotationCountMismatch">
         <source>If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple.</source>
         <target state="translated">Si des annotations de type Nullable pour des éléments de tuples sont spécifiées, le nombre d'annotations doit correspondre à la cardinalité du tuple.</target>

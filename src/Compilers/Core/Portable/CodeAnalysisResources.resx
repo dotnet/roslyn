@@ -728,7 +728,4 @@
   <data name="EncCannotResumeSuspendedIteratorMethod" xml:space="preserve">
     <value>Edit and Continue can't resume suspended iterator since the corresponding yield return statement has been deleted</value>
   </data>
-  <data name="SyntaxTreeNotFound" xml:space="preserve">
-    <value>SyntaxTree is not part of the compilation</value>
-  </data>
 </root>

@@ -891,10 +891,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private SemanticModel GetOrCreateSemanticModel(SyntaxTree tree, Compilation compilation)
         {
-            if (!compilation.ContainsSyntaxTree(tree))
-            {
-                throw new ArgumentException(CodeAnalysisResources.SyntaxTreeNotFound, nameof(tree));
-            }
+            Debug.Assert(compilation.ContainsSyntaxTree(tree));
 
             return SemanticModelProvider.GetSemanticModel(tree, compilation);
         }
@@ -2517,11 +2514,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private SemanticModel GetOrCreateSemanticModel(SyntaxTree tree, Compilation compilation)
         {
-            if (!compilation.ContainsSyntaxTree(tree))
-            {
-                throw new ArgumentException(CodeAnalysisResources.SyntaxTreeNotFound, nameof(tree));
-            }
-
+            Debug.Assert(compilation.ContainsSyntaxTree(tree));
             return SemanticModelProvider.GetSemanticModel(tree, compilation);
         }
 

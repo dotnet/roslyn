@@ -164,11 +164,6 @@
         <target state="translated">SuppressionDescriptor musí mít ID, které není null, prázdný řetězec ani řetězec obsahující jenom prázdné znaky.</target>
         <note />
       </trans-unit>
-      <trans-unit id="SyntaxTreeNotFound">
-        <source>SyntaxTree is not part of the compilation</source>
-        <target state="new">SyntaxTree is not part of the compilation</target>
-        <note />
-      </trans-unit>
       <trans-unit id="TupleElementNullableAnnotationCountMismatch">
         <source>If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple.</source>
         <target state="translated">Pokud jsou zadané anotace prvků řazené kolekce členů s možnou hodnotou null, musí se počet anotací shodovat s kardinalitou této řazené kolekce členů.</target>
