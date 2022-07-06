@@ -316,9 +316,8 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             var resolution = await initialLocations.Filter(filter).ResolveConflictsAsync(
                 finalName, nonConflictSymbols: null, cancellationToken).ConfigureAwait(false);
 
-            Contract.ThrowIfTrue(resolution.ErrorMessage != null);
-
-            return resolution.NewSolution;
+            Contract.ThrowIfTrue(resolution is FailedConflictResolution);
+            return ((ConflictResolution)resolution).NewSolution;
         }
 
         private static bool IntersectsWithAny(Location location, ISet<Location> constructorLocations)

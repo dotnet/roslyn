@@ -113,6 +113,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     replacementText,
                     nonConflictSymbols,
                     cancellationToken).ConfigureAwait(false);
+
                 return await result.DehydrateAsync(cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }

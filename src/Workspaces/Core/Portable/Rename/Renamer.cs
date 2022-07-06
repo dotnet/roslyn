@@ -56,10 +56,12 @@ namespace Microsoft.CodeAnalysis.Rename
 
             // This is a public entry-point.  So if rename failed to resolve conflicts, we report that back to caller as
             // an exception.
-            if (resolution.ErrorMessage != null)
-                throw new ArgumentException(resolution.ErrorMessage);
-
-            return resolution.NewSolution;
+            return resolution switch
+            {
+                ConflictResolution conflictResolution => conflictResolution.NewSolution,
+                FailedConflictResolution failedConflictResolution => throw new ArgumentException(failedConflictResolution.ErrorMessage),
+                _ => throw ExceptionUtilities.Unreachable,
+            };
         }
 
         [Obsolete("Use overload taking RenameOptions")]
@@ -101,6 +103,7 @@ namespace Microsoft.CodeAnalysis.Rename
         {
             return RenameDocumentAsync(document ?? throw new ArgumentNullException(nameof(document)), options, CodeActionOptions.DefaultProvider, newDocumentName, newDocumentFolders, cancellationToken);
         }
+
 
         internal static async Task<RenameDocumentActionSet> RenameDocumentAsync(
             Document document,
@@ -144,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Rename
         internal static Task<RenameLocations> FindRenameLocationsAsync(Solution solution, ISymbol symbol, SymbolRenameOptions options, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
             => RenameLocations.FindLocationsAsync(symbol, solution, options, fallbackOptions, cancellationToken);
 
-        internal static async Task<ConflictResolution> RenameSymbolAsync(
+        internal static async Task<IConflictResolution> RenameSymbolAsync(
             Solution solution,
             ISymbol symbol,
             string newName,
@@ -194,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 nonConflictSymbols, cancellationToken).ConfigureAwait(false);
         }
 
-        private static async Task<ConflictResolution> RenameSymbolInCurrentProcessAsync(
+        private static async Task<IConflictResolution> RenameSymbolInCurrentProcessAsync(
             Solution solution,
             ISymbol symbol,
             string newName,

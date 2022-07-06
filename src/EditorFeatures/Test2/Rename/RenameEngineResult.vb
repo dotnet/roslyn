@@ -89,13 +89,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 Dim result = GetConflictResolution(renameTo, workspace.CurrentSolution, symbol, renameOptions, host)
 
                 If expectFailure Then
-                    Assert.NotNull(result.ErrorMessage)
-                    Return engineResult
-                Else
-                    Assert.Null(result.ErrorMessage)
+                    Assert.True(TypeOf result Is FailedConflictResolution)
                 End If
 
-                engineResult = New RenameEngineResult(workspace, result, renameTo)
+                Dim successfulResult = DirectCast(result, ConflictResolution)
+                engineResult = New RenameEngineResult(workspace, successfulResult, renameTo)
                 engineResult.AssertUnlabeledSpansRenamedAndHaveNoConflicts()
                 success = True
             Finally
@@ -117,7 +115,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 solution As Solution,
                 symbol As ISymbol,
                 renameOptions As SymbolRenameOptions,
-                host As RenameTestHost) As ConflictResolution
+                host As RenameTestHost) As IConflictResolution
 
             If host = RenameTestHost.OutOfProcess_SplitCall Then
                 ' This tests that each portion of rename can properly marshal to/from the OOP process. It validates
