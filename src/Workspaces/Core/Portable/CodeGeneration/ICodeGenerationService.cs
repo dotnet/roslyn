@@ -103,26 +103,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         TDeclarationNode RemoveAttribute<TDeclarationNode>(TDeclarationNode destination, AttributeData attributeToRemove, CodeGenerationContextInfo info, CancellationToken cancellationToken) where TDeclarationNode : SyntaxNode;
 
         /// <summary>
-        /// Update the modifiers list for the given declaration node.
-        /// </summary>
-        TDeclarationNode UpdateDeclarationModifiers<TDeclarationNode>(TDeclarationNode declaration, IEnumerable<SyntaxToken> newModifiers, CodeGenerationContextInfo info, CancellationToken cancellationToken) where TDeclarationNode : SyntaxNode;
-
-        /// <summary>
-        /// Update the accessibility modifiers for the given declaration node, retaining the trivia of the existing modifiers.
-        /// </summary>
-        TDeclarationNode UpdateDeclarationAccessibility<TDeclarationNode>(TDeclarationNode declaration, Accessibility newAccessibility, CodeGenerationContextInfo info, CancellationToken cancellationToken) where TDeclarationNode : SyntaxNode;
-
-        /// <summary>
-        /// Update the type for the given declaration node.
-        /// </summary>
-        TDeclarationNode UpdateDeclarationType<TDeclarationNode>(TDeclarationNode declaration, ITypeSymbol newType, CodeGenerationContextInfo info, CancellationToken cancellationToken) where TDeclarationNode : SyntaxNode;
-
-        /// <summary>
-        /// Replace the existing members with the given newMembers for the given declaration node.
-        /// </summary>
-        TDeclarationNode UpdateDeclarationMembers<TDeclarationNode>(TDeclarationNode declaration, IList<ISymbol> newMembers, CodeGenerationContextInfo info, CancellationToken cancellationToken) where TDeclarationNode : SyntaxNode;
-
-        /// <summary>
         /// Adds the statements to destination.
         /// </summary>
         TDeclarationNode AddStatements<TDeclarationNode>(TDeclarationNode destination, IEnumerable<SyntaxNode> statements, CodeGenerationContextInfo info, CancellationToken cancellationToken) where TDeclarationNode : SyntaxNode;

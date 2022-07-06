@@ -580,58 +580,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             testContext.Result = testContext.Document.WithSyntaxRoot(testContext.SemanticModel.SyntaxTree.GetRoot().ReplaceNode(declarationNode, newNode));
         }
 
-        internal static async Task TestUpdateDeclarationAsync<T>(
-            string initial,
-            string expected,
-            Accessibility? accessibility = null,
-            IEnumerable<SyntaxToken> modifiers = null,
-            Func<SemanticModel, ITypeSymbol> getType = null,
-            ImmutableArray<Func<SemanticModel, ISymbol>> getNewMembers = default,
-            bool? declareNewMembersAtTop = null,
-            string retainedMembersKey = "RetainedMember") where T : SyntaxNode
-        {
-            using var testContext = await TestContext.CreateAsync(initial, expected);
-            var declarationNode = testContext.GetDestinationNode().FirstAncestorOrSelf<T>();
-            var updatedDeclarationNode = declarationNode;
-
-            var codeGenerator = testContext.Document.GetRequiredLanguageService<ICodeGenerationService>();
-            var options = await testContext.Document.GetCodeGenerationOptionsAsync(testContext.Workspace.GlobalOptions, CancellationToken.None);
-            var info = options.GetInfo(new CodeGenerationContext(reuseSyntax: true), testContext.Document.Project);
-            if (accessibility.HasValue)
-            {
-                updatedDeclarationNode = codeGenerator.UpdateDeclarationAccessibility(declarationNode, accessibility.Value, info, CancellationToken.None);
-            }
-            else if (modifiers != null)
-            {
-                updatedDeclarationNode = codeGenerator.UpdateDeclarationModifiers(declarationNode, modifiers, info, CancellationToken.None);
-            }
-            else if (getType != null)
-            {
-                updatedDeclarationNode = codeGenerator.UpdateDeclarationType(declarationNode, getType(testContext.SemanticModel), info, CancellationToken.None);
-            }
-            else if (getNewMembers != null)
-            {
-                var retainedMembers = testContext.GetAnnotatedDeclaredSymbols(retainedMembersKey, testContext.SemanticModel);
-                var newMembersToAdd = GetSymbols(getNewMembers, testContext);
-                var allMembers = new List<ISymbol>();
-                if (declareNewMembersAtTop.HasValue && declareNewMembersAtTop.Value)
-                {
-                    allMembers.AddRange(newMembersToAdd);
-                    allMembers.AddRange(retainedMembers);
-                }
-                else
-                {
-                    allMembers.AddRange(retainedMembers);
-                    allMembers.AddRange(newMembersToAdd);
-                }
-
-                updatedDeclarationNode = codeGenerator.UpdateDeclarationMembers(declarationNode, allMembers, info, CancellationToken.None);
-            }
-
-            updatedDeclarationNode = updatedDeclarationNode.WithAdditionalAnnotations(Formatter.Annotation);
-            testContext.Result = testContext.Document.WithSyntaxRoot(testContext.SemanticModel.SyntaxTree.GetRoot().ReplaceNode(declarationNode, updatedDeclarationNode));
-        }
-
         internal static async Task TestGenerateFromSourceSymbolAsync(
             string symbolSource,
             string initial,
