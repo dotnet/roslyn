@@ -5835,15 +5835,7 @@ class A                                                               \
             Assert.Equal(nameGuid, assemblyName.Name);
             Assert.Equal("0.0.0.0", assemblyName.Version.ToString());
             Assert.Equal(string.Empty, assemblyName.CultureName);
-
-            if (RuntimeUtilities.IsCoreClrRuntime && !RuntimeUtilities.IsCoreClr6Runtime)
-            {
-                Assert.Null(assemblyName.GetPublicKeyToken());
-            }
-            else
-            {
-                Assert.Equal(Array.Empty<byte>(), assemblyName.GetPublicKeyToken());
-            }
+            Assert.Equal(Array.Empty<byte>(), assemblyName.GetPublicKeyToken());
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/55727")]
