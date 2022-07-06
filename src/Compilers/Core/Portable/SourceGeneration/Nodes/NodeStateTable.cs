@@ -523,7 +523,7 @@ namespace Microsoft.CodeAnalysis
                 else
                 {
                     var sb = PooledStringBuilder.GetInstance();
-                    sb.Builder.Append("{");
+                    sb.Builder.Append('{');
                     for (int i = 0; i < Count; i++)
                     {
                         if (i > 0)
@@ -559,7 +559,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         _currentState = state;
                     }
-                    else if (_states is object)
+                    else if (_states is not null)
                     {
                         _states.Add(state);
                     }
