@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Semantic.UnitTests.SourceGeneration
 
             Return context.SyntaxProvider.ForAttributeWithSimpleName(
             simpleName,
-            Function(node, c) TypeOf node Is T).SelectMany(Function(tuple, c) tuple.matches.Cast(Of T)).WithTrackingName("result_ForAttribute")
+            Function(node, c) TypeOf node Is T).SelectMany(Function(tuple, c) tuple.matches.Cast(Of T))
         End Function
 
         <Extension>
