@@ -44,7 +44,6 @@ See the [history of C# language features](https://github.com/dotnet/csharplang/b
 
 See the [.NET SDK, MSBuild, and Visual Studio versioning](https://docs.microsoft.com/en-us/dotnet/core/porting/versioning-sdk-msbuild-vs#lifecycle) docs page for details of SDK versioning. 
 
-
 ## Other packages
 
 A few other packages are relevant or related to Roslyn, but are not produced from the Roslyn repo.
