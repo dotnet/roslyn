@@ -7,8 +7,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.VisualStudio.IntegrationTests;
+using WindowsInput.Native;
 using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
@@ -39,7 +39,7 @@ class FirstClass
 ", cancellationToken: HangMitigatingCancellationToken);
 
             await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd12CmdID.NavigateTo, HangMitigatingCancellationToken);
-            await TestServices.Input.SendToNavigateToAsync("FirstMethod", VirtualKey.Enter);
+            await TestServices.Input.SendToNavigateToAsync("FirstMethod", VirtualKeyCode.RETURN);
             await TestServices.Workarounds.WaitForNavigationAsync(HangMitigatingCancellationToken);
             Assert.Equal($"test1.cs", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
             Assert.Equal("FirstMethod", await TestServices.Editor.GetSelectedTextAsync(HangMitigatingCancellationToken));
@@ -50,7 +50,7 @@ class FirstClass
             await TestServices.SolutionExplorer.AddFileAsync(vbProject, "vbfile.vb", open: true, cancellationToken: HangMitigatingCancellationToken);
 
             await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd12CmdID.NavigateTo, HangMitigatingCancellationToken);
-            await TestServices.Input.SendToNavigateToAsync("FirstClass", VirtualKey.Enter);
+            await TestServices.Input.SendToNavigateToAsync("FirstClass", VirtualKeyCode.RETURN);
             await TestServices.Workarounds.WaitForNavigationAsync(HangMitigatingCancellationToken);
             Assert.Equal($"test1.cs", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
             Assert.Equal("FirstClass", await TestServices.Editor.GetSelectedTextAsync(HangMitigatingCancellationToken));

@@ -34,7 +34,7 @@ End Class");
             Assert.Equal("Class System.String\r\nRepresents text as a sequence of UTF-16 code units.To browse the .NET Framework source code for this type, see the Reference Source.", VisualStudio.Editor.GetQuickInfo());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/62280"), Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void International()
         {
             SetUpEditor(@"

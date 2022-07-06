@@ -122,6 +122,11 @@
         <target state="translated">バイナリ演算子のパラメーターの 1 つは、それを含む型であるか、それに制約された型パラメーターである必要があります。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadAbstractEqualityOperatorSignature">
+        <source>One of the parameters of an equality, or inequality operator declared in interface '{0}' must be a type parameter on '{0}' constrained to '{0}'</source>
+        <target state="new">One of the parameters of an equality, or inequality operator declared in interface '{0}' must be a type parameter on '{0}' constrained to '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadAbstractIncDecRetType">
         <source>The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.</source>
         <target state="translated">++ または -- 演算子の戻り値の型は、パラメーター型と一致するか、パラメーター型から派生しているか、またはパラメーター型が異なる型パラメーターでない限りそれに制約された含んでいる型の型パラメーターである必要があります。</target>
@@ -145,6 +150,11 @@
       <trans-unit id="ERR_BadAbstractUnaryOperatorSignature">
         <source>The parameter of a unary operator must be the containing type, or its type parameter constrained to it.</source>
         <target state="translated">単項演算子のパラメーターは、それを含む型であるか、それに制約された型パラメーターである必要があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadBinaryReadOnlySpanConcatenation">
+        <source>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF-8 byte representations</source>
+        <target state="new">Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF-8 byte representations</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadCallerArgumentExpressionParamWithoutDefaultValue">
@@ -222,9 +232,9 @@
         <target state="translated">AsyncMethodBuilder 属性は、明示的な戻り値の型のない匿名メソッドでは許可されていません。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_CannotBeConvertedToUTF8">
+      <trans-unit id="ERR_CannotBeConvertedToUtf8">
         <source>The input string cannot be converted into the equivalent UTF-8 byte representation. {0}</source>
-        <target state="translated">入力文字列を同等の UTF-8 バイト表現に変換できません。{0}</target>
+        <target state="new">The input string cannot be converted into the equivalent UTF-8 byte representation. {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotBeMadeNullable">
@@ -437,6 +447,11 @@
         <target state="translated">レコードの等値コントラクト プロパティ '{0}' には get アクセサーが必要です。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_EscapeVariable">
+        <source>Cannot use variable '{0}' in this context because it may expose referenced variables outside of their declaration scope</source>
+        <target state="new">Cannot use variable '{0}' in this context because it may expose referenced variables outside of their declaration scope</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExplicitImplementationOfOperatorsMustBeStatic">
         <source>Explicit implementation of a user-defined operator '{0}' must be declared static</source>
         <target state="translated">ユーザー定義演算子 '{0}' の明示的な実装は静的として宣言する必要があります</target>
@@ -507,9 +522,9 @@
         <target state="translated">式ツリーにタプルの == または != 演算子を含めることはできません</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExpressionTreeContainsUTF8StringLiterals">
+      <trans-unit id="ERR_ExpressionTreeContainsUtf8StringLiterals">
         <source>An expression tree may not contain UTF-8 string conversion or literal.</source>
-        <target state="translated">式ツリーに UTF-8 文字列変換またはリテラルを含めることはできません。</target>
+        <target state="new">An expression tree may not contain UTF-8 string conversion or literal.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsWithExpression">
@@ -567,6 +582,36 @@
         <target state="translated">ファイルスコープの名前空間は、ファイル内の他のすべてのメンバーの前に指定する必要があります。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FileTypeBase">
+        <source>File type '{0}' cannot be used as a base type of non-file type '{1}'.</source>
+        <target state="new">File type '{0}' cannot be used as a base type of non-file type '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileTypeDisallowedInSignature">
+        <source>File type '{0}' cannot be used in a member signature in non-file type '{1}'.</source>
+        <target state="new">File type '{0}' cannot be used in a member signature in non-file type '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileTypeNameDisallowed">
+        <source>Types and aliases cannot be named 'file'.</source>
+        <target state="new">Types and aliases cannot be named 'file'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileTypeNested">
+        <source>File type '{0}' must be defined in a top level type; '{0}' is a nested type.</source>
+        <target state="new">File type '{0}' must be defined in a top level type; '{0}' is a nested type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileTypeNoExplicitAccessibility">
+        <source>File type '{0}' cannot use accessibility modifiers.</source>
+        <target state="new">File type '{0}' cannot use accessibility modifiers.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FixedFieldMustNotBeRef">
+        <source>A fixed field must not be a ref field.</source>
+        <target state="new">A fixed field must not be a ref field.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ForEachMissingMemberWrongAsync">
         <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'. Did you mean 'await foreach' rather than 'foreach'?</source>
         <target state="translated">'{0}' は '{1}' のパブリック インスタンスまたは拡張機能の定義を含んでいないため、型 '{0}' の変数に対して foreach ステートメントを使用することはできません。'foreach' ではなく 'await foreach' ですか?</target>
@@ -605,6 +650,11 @@
       <trans-unit id="ERR_GlobalUsingOutOfOrder">
         <source>A global using directive must precede all non-global using directives.</source>
         <target state="translated">グローバル using ディレクティブは、すべての非グローバル using ディレクティブの前に指定する必要があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_GlobalUsingStaticFileType">
+        <source>File type '{0}' cannot be used in a 'global using static' directive.</source>
+        <target state="new">File type '{0}' cannot be used in a 'global using static' directive.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
@@ -1202,9 +1252,14 @@
         <target state="translated">'{1}' を '{0}' に ref 割り当てすることはできません。'{1}' のエスケープ スコープが '{0}' より狭いためです。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RefFieldCannotReferToRefStruct">
+        <source>A ref field cannot refer to a ref struct.</source>
+        <target state="new">A ref field cannot refer to a ref struct.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefLocalOrParamExpected">
-        <source>The left-hand side of a ref assignment must be a ref local or parameter.</source>
-        <target state="translated">ref 代入の左辺は、ref ローカルまたはパラメーターにする必要があります。</target>
+        <source>The left-hand side of a ref assignment must be a ref variable.</source>
+        <target state="needs-review-translation">ref 代入の左辺は、ref ローカルまたはパラメーターにする必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningPropertiesCannotBeRequired">
@@ -1285,6 +1340,26 @@
       <trans-unit id="ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv">
         <source>The target runtime doesn't support extensible or runtime-environment default calling conventions.</source>
         <target state="translated">ターゲット ランタイムは、拡張可能またはランタイム環境の既定の呼び出し規則をサポートしていません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ScopedMismatchInParameterOfOverrideOrImplementation">
+        <source>The 'scoped' modifier of parameter '{0}' doesn't match overridden or implemented member.</source>
+        <target state="new">The 'scoped' modifier of parameter '{0}' doesn't match overridden or implemented member.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ScopedMismatchInParameterOfPartial">
+        <source>The 'scoped' modifier of parameter '{0}' doesn't match partial method declaration.</source>
+        <target state="new">The 'scoped' modifier of parameter '{0}' doesn't match partial method declaration.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ScopedMismatchInParameterOfTarget">
+        <source>The 'scoped' modifier of parameter '{0}' doesn't match target '{1}'.</source>
+        <target state="new">The 'scoped' modifier of parameter '{0}' doesn't match target '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ScopedRefAndRefStructOnly">
+        <source>The 'scoped' modifier can be used for refs and ref struct values only.</source>
+        <target state="new">The 'scoped' modifier can be used for refs and ref struct values only.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers">
@@ -1557,6 +1632,11 @@
         <target state="translated">ファイルスコープの名前空間</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureFileTypes">
+        <source>file types</source>
+        <target state="new">file types</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureGenericAttributes">
         <source>generic attributes</source>
         <target state="translated">汎用属性</target>
@@ -1622,6 +1702,11 @@
         <target state="translated">レコード構造体</target>
         <note>'record structs' is not localizable.</note>
       </trans-unit>
+      <trans-unit id="IDS_FeatureRefFields">
+        <source>ref fields</source>
+        <target state="new">ref fields</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureRelaxedShiftOperator">
         <source>relaxed shift operator</source>
         <target state="translated">緩和されたシフト演算子</target>
@@ -1642,14 +1727,14 @@
         <target state="translated">構造体フィールド初期化子</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureUTF8StringLiterals">
-        <source>UTF-8 string literals</source>
-        <target state="translated">UTF-8 文字列リテラル</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_FeatureUnsignedRightShift">
         <source>unsigned right shift</source>
         <target state="translated">符号なし右シフト</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUtf8StringLiterals">
+        <source>UTF-8 string literals</source>
+        <target state="new">UTF-8 string literals</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureWithOnAnonymousTypes">
@@ -6501,8 +6586,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_LookupInTypeVariable">
-        <source>Cannot do member lookup in '{0}' because it is a type parameter</source>
-        <target state="translated">型パラメーターであるため、'{0}' でメンバーの照合を行えません</target>
+        <source>Cannot do non-virtual member lookup in '{0}' because it is a type parameter</source>
+        <target state="needs-review-translation">型パラメーターであるため、'{0}' でメンバーの照合を行えません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadConstraintType">
@@ -11048,8 +11133,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnParameter">
-        <source>Cannot return a parameter by reference '{0}' because it is not a ref or out parameter</source>
-        <target state="translated">ref パラメーターでも out パラメーターでもないため、パラメーターを参照 '{0}' 渡しで返すことはできません</target>
+        <source>Cannot return a parameter by reference '{0}' because it is not a ref parameter</source>
+        <target state="needs-review-translation">ref パラメーターでも out パラメーターでもないため、パラメーターを参照 '{0}' 渡しで返すことはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnParameter2">
@@ -11075,11 +11160,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="ERR_EscapeOther">
         <source>Expression cannot be used in this context because it may indirectly expose variables outside of their declaration scope</source>
         <target state="translated">間接的に変数が宣言のスコープ外に公開される可能性があるため、このコンテキストで式は使用できません</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_EscapeLocal">
-        <source>Cannot use local '{0}' in this context because it may expose referenced variables outside of their declaration scope</source>
-        <target state="translated">参照される変数が宣言のスコープ外に公開される可能性があるため、このコンテキストでローカル '{0}' を使用することはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EscapeCall">
@@ -11673,8 +11753,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainConversionOrEqualityOperators">
-        <source>Conversion, equality, or inequality operators declared in interfaces must be abstract</source>
-        <target state="translated">インターフェイスで宣言された変換演算子、等値演算子、または非等値演算子は抽象的である必要があります</target>
+        <source>Conversion, equality, or inequality operators declared in interfaces must be abstract or virtual</source>
+        <target state="needs-review-translation">インターフェイスで宣言された変換演算子、等値演算子、または非等値演算子は抽象的である必要があります</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">

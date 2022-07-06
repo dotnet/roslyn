@@ -145,6 +145,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override SyntaxTree? AssociatedSyntaxTree => null;
+
         public override Symbol? ContainingSymbol
         {
             get

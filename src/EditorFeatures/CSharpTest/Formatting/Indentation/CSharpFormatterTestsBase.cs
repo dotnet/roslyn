@@ -72,20 +72,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         private static async Task TokenFormatWorkerAsync(TestWorkspace workspace, ITextBuffer buffer, int indentationLine, char ch, bool useTabs)
         {
             var document = buffer.CurrentSnapshot.GetRelatedDocumentsWithChanges().First();
-            var root = (CompilationUnitSyntax)await document.GetSyntaxRootAsync();
+            var documentSyntax = await ParsedDocument.CreateAsync(document, CancellationToken.None);
 
-            var line = root.GetText().Lines[indentationLine];
+            var line = documentSyntax.Text.Lines[indentationLine];
 
             var index = line.ToString().LastIndexOf(ch);
             Assert.InRange(index, 0, int.MaxValue);
 
             // get token
             var position = line.Start + index;
-            var token = root.FindToken(position);
+            var token = documentSyntax.Root.FindToken(position);
 
             var formattingRuleProvider = workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
 
-            var rules = ImmutableArray.Create(formattingRuleProvider.CreateRule(document, position)).AddRange(Formatter.GetDefaultFormattingRules(document));
+            var rules = ImmutableArray.Create(formattingRuleProvider.CreateRule(documentSyntax, position)).AddRange(Formatter.GetDefaultFormattingRules(document));
 
             var options = new IndentationOptions(
                 new CSharpSyntaxFormattingOptions
@@ -96,8 +96,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
                     }
                 });
 
-            var formatter = new CSharpSmartTokenFormatter(options, rules, root);
-            var changes = await formatter.FormatTokenAsync(token, CancellationToken.None);
+            var formatter = new CSharpSmartTokenFormatter(options, rules, (CompilationUnitSyntax)documentSyntax.Root, documentSyntax.Text);
+            var changes = formatter.FormatToken(token, CancellationToken.None);
 
             ApplyChanges(buffer, changes);
         }

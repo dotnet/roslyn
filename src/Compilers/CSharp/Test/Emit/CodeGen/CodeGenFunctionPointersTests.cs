@@ -11242,9 +11242,9 @@ unsafe
                 // (10,16): error CS8347: Cannot use a result of 'delegate*<Span<int>, Span<int>>' in this context because it may expose variables referenced by parameter '0' outside of their declaration scope
                 //         return ptr(s);
                 Diagnostic(ErrorCode.ERR_EscapeCall, "ptr(s)").WithArguments("delegate*<System.Span<int>, System.Span<int>>", "0").WithLocation(10, 16),
-                // (10,20): error CS8352: Cannot use local 's' in this context because it may expose referenced variables outside of their declaration scope
+                // (10,20): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
                 //         return ptr(s);
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "s").WithArguments("s").WithLocation(10, 20)
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(10, 20)
             );
         }
 

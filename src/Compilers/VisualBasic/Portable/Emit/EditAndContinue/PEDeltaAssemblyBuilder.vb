@@ -58,7 +58,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     sourceContext:=context,
                     otherAssembly:=previousAssembly,
                     otherContext:=previousContext,
-                    otherSynthesizedMembersOpt:=previousGeneration.SynthesizedMembers)
+                    otherSynthesizedMembersOpt:=previousGeneration.SynthesizedMembers,
+                    otherDeletedMembersOpt:=previousGeneration.DeletedMembers)
             End If
 
             _previousDefinitions = New VisualBasicDefinitionMap(edits, metadataDecoder, matchToMetadata, matchToPrevious)

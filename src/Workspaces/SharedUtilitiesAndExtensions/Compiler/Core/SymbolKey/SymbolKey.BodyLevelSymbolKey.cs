@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var cancellationToken = reader.CancellationToken;
 
-                var name = reader.ReadString()!;
+                var name = reader.ReadRequiredString();
                 var kind = (SymbolKind)reader.ReadInteger();
 #pragma warning disable IDE0007 // Use implicit type
                 PooledArrayBuilder<Location> locations = reader.ReadLocationArray(out var locationsFailureReason)!;

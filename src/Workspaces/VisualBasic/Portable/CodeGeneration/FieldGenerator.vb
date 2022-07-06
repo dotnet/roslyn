@@ -70,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                                                         options As CodeGenerationContextInfo) As FieldDeclarationSyntax
             Dim reusableSyntax = GetReuseableSyntaxNodeForSymbol(Of FieldDeclarationSyntax)(field, options)
             If reusableSyntax IsNot Nothing Then
-                return reusableSyntax
+                Return EnsureLastElasticTrivia(reusableSyntax)
             End If
 
             Dim initializerNode = TryCast(CodeGenerationFieldInfo.GetInitializer(field), ExpressionSyntax)

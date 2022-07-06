@@ -26,14 +26,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<" + propertyName + ">k__BackingField";
         }
 
-        internal static string MakeIteratorFinallyMethodName(int finalizeState)
+        internal static string MakeIteratorFinallyMethodName(StateMachineState finalizeState)
         {
-            Debug.Assert(finalizeState < -2);
+            Debug.Assert((int)finalizeState < -2);
 
             // It is important that the name is only derived from the finalizeState, so that when 
             // editing method during EnC the Finally methods corresponding to matching states have matching names.
             Debug.Assert((char)GeneratedNameKind.IteratorFinallyMethod == 'm');
-            return "<>m__Finally" + StringExtensions.GetNumeral(-(finalizeState + 2));
+            return "<>m__Finally" + StringExtensions.GetNumeral(-((int)finalizeState + 2));
         }
 
         internal static string MakeStaticLambdaDisplayClassName(int methodOrdinal, int generation)
@@ -493,6 +493,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static string LambdaCopyParameterName(int ordinal)
         {
             return "<p" + StringExtensions.GetNumeral(ordinal) + ">";
+        }
+
+        internal static string MakeFileIdentifier(string filePath, int ordinal)
+        {
+            var pooledBuilder = PooledStringBuilder.GetInstance();
+            var sb = pooledBuilder.Builder;
+            sb.Append('<');
+            AppendFileName(filePath, sb);
+            sb.Append('>');
+            sb.Append((char)GeneratedNameKind.FileType);
+            sb.Append(ordinal);
+            sb.Append("__");
+            return pooledBuilder.ToStringAndFree();
+        }
+
+        internal static void AppendFileName(string? filePath, StringBuilder sb)
+        {
+            var fileName = FileNameUtilities.GetFileName(filePath, includeExtension: false);
+            if (fileName is null)
+            {
+                return;
+            }
+
+            foreach (var ch in fileName)
+            {
+                sb.Append(ch switch
+                {
+                    >= 'a' and <= 'z' => ch,
+                    >= 'A' and <= 'Z' => ch,
+                    >= '0' and <= '9' => ch,
+                    _ => '_'
+                });
+            }
         }
     }
 }

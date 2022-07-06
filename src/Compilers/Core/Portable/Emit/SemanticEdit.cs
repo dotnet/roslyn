@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis.Emit
         public ISymbol? OldSymbol { get; }
 
         /// <summary>
-        /// The symbol from the later compilation,
-        /// or null if the edit represents a deletion.
+        /// The symbol from the later compilation, or the symbol of the containing type
+        /// from the later compilation if the edit represents a deletion.
         /// </summary>
         public ISymbol? NewSymbol { get; }
 
