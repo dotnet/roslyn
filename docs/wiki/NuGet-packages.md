@@ -42,7 +42,7 @@ Below are the versions of the language available in the NuGet packages. Remember
 
 See the [history of C# language features](https://github.com/dotnet/csharplang/blob/main/Language-Version-History.md) for more details.
 
-See the [.NET SDK, MSBuild, and Visual Studio versioning](https://docs.microsoft.com/en-us/dotnet/core/porting/versioning-sdk-msbuild-vs#lifecycle) docs page for details of SDK versioning. 
+See the [.NET SDK, MSBuild, and Visual Studio versioning](https://docs.microsoft.com/dotnet/core/porting/versioning-sdk-msbuild-vs#lifecycle) docs page for details of SDK versioning. 
 
 ## Other packages
 
