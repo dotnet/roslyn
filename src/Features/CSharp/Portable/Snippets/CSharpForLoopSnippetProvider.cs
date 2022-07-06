@@ -8,6 +8,7 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -34,9 +35,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
         {
         }
 
-        protected override SyntaxNode CreateForLoopStatementSyntax(SyntaxGenerator generator)
+        protected override async Task<SyntaxNode> CreateForLoopStatementSyntaxAsync(Document document, CancellationToken cancellationToken)
         {
-            var forLoopSyntax = SyntaxFactory.ForStatement(SyntaxFactory.VariableDeclaration(), 
+            var generator = SyntaxGenerator.GetGenerator(document);
+            var options = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var varBuiltInType = false;
+
+            if (options != null)
+            {
+                varBuiltInType = options.GetOption(CSharpCodeStyleOptions.VarForBuiltInTypes).Value;
+            }
+
+            var variableDeclarationSyntax = SyntaxFactory.VariableDeclaration(generator.ExpressionStatement(generator.))
+            var forLoopSyntax = SyntaxFactory.ForStatement(variableDeclarationSyntax,  
         }
     }
 }

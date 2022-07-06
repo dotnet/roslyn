@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Snippets
         public override string SnippetIdentifier => "for";
 
         public override string SnippetDisplayName => FeaturesResources.Write_to_the_console;
-        protected abstract SyntaxNode CreateForLoopStatementSyntax(SyntaxGenerator generator);
+        protected abstract Task<SyntaxNode> CreateForLoopStatementSyntaxAsync(Document document, CancellationToken cancellationToken);
 
         protected override async Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken)
         {
@@ -41,15 +41,10 @@ namespace Microsoft.CodeAnalysis.Snippets
             return ImmutableArray.Create(snippetTextChange);
         }
 
+
         private async Task<TextChange> GenerateSnippetTextChangeAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            var options = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-            if (options != null)
-            {
-                options.
-            }
-            var generator = SyntaxGenerator.GetGenerator(document);
-            var forLoopSyntax = CreateForLoopStatementSyntax(generator);
+            var forLoopSyntax = await CreateForLoopStatementSyntaxAsync(document, cancellationToken).ConfigureAwait(false);
             return new TextChange(TextSpan.FromBounds(position, position), forLoopSyntax.ToFullString());
         }
 
@@ -59,20 +54,7 @@ namespace Microsoft.CodeAnalysis.Snippets
         /// </summary>
         protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget)
         {
-            var invocationExpression = caretTarget.DescendantNodes().Where(syntaxFacts.IsInvocationExpression).FirstOrDefault();
-            if (invocationExpression is null)
-            {
-                return caretTarget.Span.End;
-            }
-
-            var argumentListNode = syntaxFacts.GetArgumentListOfInvocationExpression(invocationExpression);
-            if (argumentListNode is null)
-            {
-                return caretTarget.Span.End;
-            }
-
-            syntaxFacts.GetPartsOfArgumentList(argumentListNode, out var openParenToken, out _, out _);
-            return openParenToken.Span.End;
+            return 0;
         }
 
         protected override async Task<SyntaxNode> AnnotateNodesToReformatAsync(Document document,
@@ -86,9 +68,7 @@ namespace Microsoft.CodeAnalysis.Snippets
                 return root;
             }
 
-            var consoleSymbol = await GetSymbolFromMetaDataNameAsync(document, cancellationToken).ConfigureAwait(false);
-
-            var reformatSnippetNode = snippetExpressionNode.WithAdditionalAnnotations(findSnippetAnnotation, cursorAnnotation, Simplifier.Annotation, SymbolAnnotation.Create(consoleSymbol!), Formatter.Annotation);
+            var reformatSnippetNode = snippetExpressionNode.WithAdditionalAnnotations(findSnippetAnnotation, cursorAnnotation, Simplifier.Annotation, Formatter.Annotation);
             return root.ReplaceNode(snippetExpressionNode, reformatSnippetNode);
         }
 
@@ -97,50 +77,24 @@ namespace Microsoft.CodeAnalysis.Snippets
             return ImmutableArray<SnippetPlaceholder>.Empty;
         }
 
-        private static SyntaxToken? GetOpenParenToken(SyntaxNode node, ISyntaxFacts syntaxFacts)
-        {
-            var invocationExpression = node.DescendantNodes().Where(syntaxFacts.IsInvocationExpression).FirstOrDefault();
-            if (invocationExpression is null)
-            {
-                return null;
-            }
-
-            var argumentListNode = syntaxFacts.GetArgumentListOfInvocationExpression(invocationExpression);
-            if (argumentListNode is null)
-            {
-                return null;
-            }
-
-            syntaxFacts.GetPartsOfArgumentList(argumentListNode, out var openParenToken, out _, out _);
-
-            return openParenToken;
-        }
-
         protected override SyntaxNode? FindAddedSnippetSyntaxNode(SyntaxNode root, int position, ISyntaxFacts syntaxFacts)
         {
             var closestNode = root.FindNode(TextSpan.FromBounds(position, position));
-            var nearestExpressionStatement = closestNode.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsExpressionStatement);
-            if (nearestExpressionStatement is null)
+            var nearestStatement = closestNode.DescendantNodesAndSelf(syntaxFacts.IsForStatement).FirstOrDefault();
+            if (nearestStatement is null)
             {
                 return null;
             }
 
             // Checking to see if that expression statement that we found is
             // starting at the same position as the position we inserted
-            // the Console WriteLine expression statement.
-            if (nearestExpressionStatement.SpanStart != position)
+            // the for statement.
+            if (nearestStatement.SpanStart != position)
             {
                 return null;
             }
 
-            return nearestExpressionStatement;
-        }
-
-        private static async Task<INamedTypeSymbol?> GetSymbolFromMetaDataNameAsync(Document document, CancellationToken cancellationToken)
-        {
-            var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var symbol = compilation.GetBestTypeByMetadataName(typeof(Console).FullName!);
-            return symbol;
+            return nearestStatement;
         }
     }
 }
