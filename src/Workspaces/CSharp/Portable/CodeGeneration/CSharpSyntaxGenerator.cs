@@ -1447,23 +1447,26 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             DeclarationModifiers.Partial |
             DeclarationModifiers.Sealed |
             DeclarationModifiers.Static |
-            DeclarationModifiers.Unsafe;
+            DeclarationModifiers.Unsafe |
+            DeclarationModifiers.File;
 
         private static readonly DeclarationModifiers s_recordModifiers =
             DeclarationModifiers.Abstract |
             DeclarationModifiers.New |
             DeclarationModifiers.Partial |
             DeclarationModifiers.Sealed |
-            DeclarationModifiers.Unsafe;
+            DeclarationModifiers.Unsafe |
+            DeclarationModifiers.File;
 
         private static readonly DeclarationModifiers s_structModifiers =
             DeclarationModifiers.New |
             DeclarationModifiers.Partial |
             DeclarationModifiers.ReadOnly |
             DeclarationModifiers.Ref |
-            DeclarationModifiers.Unsafe;
+            DeclarationModifiers.Unsafe |
+            DeclarationModifiers.File;
 
-        private static readonly DeclarationModifiers s_interfaceModifiers = DeclarationModifiers.New | DeclarationModifiers.Partial | DeclarationModifiers.Unsafe;
+        private static readonly DeclarationModifiers s_interfaceModifiers = DeclarationModifiers.New | DeclarationModifiers.Partial | DeclarationModifiers.Unsafe | DeclarationModifiers.File;
         private static readonly DeclarationModifiers s_accessorModifiers = DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Virtual;
 
         private static readonly DeclarationModifiers s_localFunctionModifiers =
@@ -1486,10 +1489,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     return s_classModifiers;
 
                 case SyntaxKind.EnumDeclaration:
-                    return DeclarationModifiers.New;
+                    return DeclarationModifiers.New | DeclarationModifiers.File;
 
                 case SyntaxKind.DelegateDeclaration:
-                    return DeclarationModifiers.New | DeclarationModifiers.Unsafe;
+                    return DeclarationModifiers.New | DeclarationModifiers.Unsafe | DeclarationModifiers.File;
 
                 case SyntaxKind.InterfaceDeclaration:
                     return s_interfaceModifiers;

@@ -46,6 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.SetReturnsVoid(_lazyReturnType.IsVoidType());
 
             this.CheckEffectiveAccessibility(_lazyReturnType, _lazyParameters, diagnostics);
+            this.CheckFileTypeUsage(_lazyReturnType, _lazyParameters, diagnostics);
 
             var location = locations[0];
             // Checks taken from MemberDefiner::defineMethod
