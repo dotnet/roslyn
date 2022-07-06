@@ -596,6 +596,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public bool MangleName => false;
 
+        public string? AssociatedFileIdentifier => null;
+
         public virtual ushort Alignment => 0;
 
         public virtual Cci.ITypeReference GetBaseClass(EmitContext context)
