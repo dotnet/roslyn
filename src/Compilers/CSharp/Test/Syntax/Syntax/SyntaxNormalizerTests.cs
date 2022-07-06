@@ -4,13 +4,9 @@
 
 #nullable disable
 
-using System.Text;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
+using System;
 using Roslyn.Test.Utilities;
 using Xunit;
-using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -73,6 +69,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
   2 => ""two"",
   3 => ""three"",
   { } => "">= 4""
+};".NormalizeLineEndings()
+            );
+        }
+
+        [Fact]
+        public void TestNormalizeSwitchExpressionRawStrings()
+        {
+            TestNormalizeStatement(
+                @"var x = (int)1 switch { 1 => """"""one"""""", 2 => """"""two"""""", 3 => """"""three"""""", {} => """""">= 4"""""" };",
+                @"var x = (int)1 switch
+{
+  1 => """"""one"""""",
+  2 => """"""two"""""",
+  3 => """"""three"""""",
+  { } => """""">= 4""""""
 };".NormalizeLineEndings()
             );
         }
@@ -152,12 +163,46 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestNormalizeStatement(a, b);
         }
 
+        [Fact]
+        public void TestNormalizeListPattern()
+        {
+            var text = "_ = this is[ 1,2,.. var rest ];";
+            var expected = @"_ = this is [1, 2, ..var rest];";
+            TestNormalizeStatement(text, expected);
+        }
+
+        [Fact]
+        public void TestNormalizeListPattern_TrailingComma()
+        {
+            var text = "_ = this is[ 1,2, 3,];";
+            var expected = @"_ = this is [1, 2, 3, ];";
+            TestNormalizeStatement(text, expected);
+        }
+
+        [Fact]
+        public void TestNormalizeListPattern_EmptyList()
+        {
+            var text = "_ = this is[];";
+            var expected = @"_ = this is [];";
+            TestNormalizeStatement(text, expected);
+        }
+
         [Fact, WorkItem(50742, "https://github.com/dotnet/roslyn/issues/50742")]
         public void TestLineBreakInterpolations()
         {
             TestNormalizeExpression(
                 @"$""Printed: {                    new Printer() { TextToPrint = ""Hello world!"" }.PrintedText }""",
                 @"$""Printed: {new Printer(){TextToPrint = ""Hello world!""}.PrintedText}"""
+            );
+        }
+
+        [Fact]
+        public void TestLineBreakRawInterpolations()
+        {
+            TestNormalizeExpression(
+                @"$""""""Printed: {                    new Printer() { TextToPrint = ""Hello world!"" }.PrintedText }""""""",
+                @"$""""""Printed: {new Printer()
+{TextToPrint = ""Hello world!""}.PrintedText}""""""".Replace("\r\n", "\n").Replace("\n", "\r\n")
             );
         }
 
@@ -176,6 +221,26 @@ breaks
 breaks
 {new[]{1, 2, 3}[2]}
             "");"
+            );
+        }
+
+        [Fact]
+        public void TestRawStringInterpolationWithLineBreaks()
+        {
+            TestNormalizeStatement(@"Console.WriteLine($""""""
+            Test with line
+            breaks
+            {
+                            new[]{
+                 1, 2, 3
+              }[2]
+            }
+            """""");",
+            @"Console.WriteLine($""""""
+            Test with line
+            breaks
+            {new[]{1, 2, 3}[2]}
+            """""");"
             );
         }
 
@@ -332,6 +397,35 @@ breaks
 
             // Generics
             TestNormalizeStatement("Func<string, int> f = blah;", "Func<string, int> f = blah;");
+        }
+
+        [Theory]
+        [InlineData("[ return:A ]void Local( [ B ]object o){}", "[return: A]\r\nvoid Local([B] object o)\r\n{\r\n}")]
+        [InlineData("[A,B][C]T Local<T>()=>default;", "[A, B]\r\n[C]\r\nT Local<T>() => default;")]
+        public void TestLocalFunctionAttributes(string text, string expected)
+        {
+            TestNormalizeStatement(text, expected);
+        }
+
+        [Theory]
+        [InlineData("( [ A ]x)=>x", "([A] x) => x")]
+        [InlineData("[return:A]([B]object o)=>{}", "[return: A]\r\n([B] object o) =>\r\n{\r\n}")]
+        [InlineData("[ A ,B ] [C]()=>x", "[A, B]\r\n[C]\r\n() => x")]
+        [InlineData("[A]B()=>{ }", "[A]\r\nB() =>\r\n{\r\n}")]
+        [WorkItem(59653, "https://github.com/dotnet/roslyn/issues/59653")]
+        public void TestLambdaAttributes(string text, string expected)
+        {
+            TestNormalizeExpression(text, expected);
+        }
+
+        [Theory]
+        [InlineData("int( x )=>x", "int (x) => x")]
+        [InlineData("A( B b )=>{}", "A(B b) =>\r\n{\r\n}")]
+        [InlineData("static\r\nasync\r\nA<int>()=>x", "static async A<int>() => x")]
+        [WorkItem(59653, "https://github.com/dotnet/roslyn/issues/59653")]
+        public void TestLambdaReturnType(string text, string expected)
+        {
+            TestNormalizeExpression(text, expected);
         }
 
         [Theory]
@@ -572,6 +666,29 @@ breaks
         }
 
         [Fact]
+        public void TestSpacingOnRawInterpolatedString()
+        {
+            TestNormalizeExpression("$\"\"\"{3:C}\"\"\"", "$\"\"\"{3:C}\"\"\"");
+            TestNormalizeExpression("$\"\"\"{3: C}\"\"\"", "$\"\"\"{3: C}\"\"\"");
+            TestNormalizeExpression("$\"\"\"{3:C }\"\"\"", "$\"\"\"{3:C }\"\"\"");
+            TestNormalizeExpression("$\"\"\"{3: C }\"\"\"", "$\"\"\"{3: C }\"\"\"");
+
+            TestNormalizeExpression("$\"\"\"{ 3:C}\"\"\"", "$\"\"\"{3:C}\"\"\"");
+            TestNormalizeExpression("$\"\"\"{ 3: C}\"\"\"", "$\"\"\"{3: C}\"\"\"");
+            TestNormalizeExpression("$\"\"\"{ 3:C }\"\"\"", "$\"\"\"{3:C }\"\"\"");
+            TestNormalizeExpression("$\"\"\"{ 3: C }\"\"\"", "$\"\"\"{3: C }\"\"\"");
+            TestNormalizeExpression("$\"\"\"{3 :C}\"\"\"", "$\"\"\"{3:C}\"\"\"");
+            TestNormalizeExpression("$\"\"\"{3 : C}\"\"\"", "$\"\"\"{3: C}\"\"\"");
+            TestNormalizeExpression("$\"\"\"{3 :C }\"\"\"", "$\"\"\"{3:C }\"\"\"");
+            TestNormalizeExpression("$\"\"\"{3 : C }\"\"\"", "$\"\"\"{3: C }\"\"\"");
+
+            TestNormalizeExpression("$\"\"\"{ 3 :C}\"\"\"", "$\"\"\"{3:C}\"\"\"");
+            TestNormalizeExpression("$\"\"\"{ 3 : C}\"\"\"", "$\"\"\"{3: C}\"\"\"");
+            TestNormalizeExpression("$\"\"\"{ 3 :C }\"\"\"", "$\"\"\"{3:C }\"\"\"");
+            TestNormalizeExpression("$\"\"\"{ 3 : C }\"\"\"", "$\"\"\"{3: C }\"\"\"");
+        }
+
+        [Fact]
         [WorkItem(23618, "https://github.com/dotnet/roslyn/issues/23618")]
         public void TestSpacingOnMethodConstraint()
         {
@@ -609,6 +726,12 @@ breaks
         public void TestNormalizeInterpolatedString()
         {
             TestNormalizeExpression(@"$""Message is {a}""", @"$""Message is {a}""");
+        }
+
+        [Fact]
+        public void TestNormalizeRawInterpolatedString()
+        {
+            TestNormalizeExpression(@"$""""""Message is {a}""""""", @"$""""""Message is {a}""""""");
         }
 
         [WorkItem(528584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528584")]
@@ -726,6 +849,29 @@ namespace goo
 ");
             // Note: without all the escaping, it looks like this '#line 1 @"""a\b"""' (i.e. the string literal has a value of '"a\b"').
             // Note: the literal was formatted as a C# string literal, not as a directive string literal.
+        }
+
+        [Fact]
+        public void TestNormalizeLineSpanDirectiveNode()
+        {
+            TestNormalize(
+                SyntaxFactory.LineSpanDirectiveTrivia(
+                    SyntaxFactory.Token(SyntaxKind.HashToken),
+                    SyntaxFactory.Token(SyntaxKind.LineKeyword),
+                    SyntaxFactory.LineDirectivePosition(SyntaxFactory.Literal(1), SyntaxFactory.Literal(2)),
+                    SyntaxFactory.Token(SyntaxKind.MinusToken),
+                    SyntaxFactory.LineDirectivePosition(SyntaxFactory.Literal(3), SyntaxFactory.Literal(4)),
+                    SyntaxFactory.Literal(5),
+                    SyntaxFactory.Literal("a.txt"),
+                    SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken),
+                    isActive: true),
+                "#line (1, 2) - (3, 4) 5 \"a.txt\"\r\n");
+        }
+
+        [Fact]
+        public void TestNormalizeLineSpanDirectiveTrivia()
+        {
+            TestNormalizeTrivia("  #  line( 1,2 )-(3,4)5\"a.txt\"", "#line (1, 2) - (3, 4) 5 \"a.txt\"\r\n");
         }
 
         [WorkItem(538115, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538115")]

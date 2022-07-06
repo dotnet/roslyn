@@ -4,7 +4,9 @@
 
 #nullable disable
 
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -493,12 +495,14 @@ new S2().Value: 1
             verifier.VerifyMissing("S0..ctor()");
             verifier.VerifyIL("S0..ctor(object)",
 @"{
-  // Code size       12 (0xc)
+  // Code size       19 (0x13)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  call       ""int Program.One()""
-  IL_0006:  stfld      ""int S0.Value""
-  IL_000b:  ret
+  IL_0001:  initobj    ""S0""
+  IL_0007:  ldarg.0
+  IL_0008:  call       ""int Program.One()""
+  IL_000d:  stfld      ""int S0.Value""
+  IL_0012:  ret
 }");
             verifier.VerifyIL("S1..ctor()",
 @"{
@@ -596,15 +600,17 @@ new S2().Value: 2
             verifier.VerifyMissing("S0..ctor()");
             verifier.VerifyIL("S0..ctor(object)",
 @"{
-  // Code size       23 (0x17)
+  // Code size       30 (0x1e)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  call       ""int Program.One()""
-  IL_0006:  stfld      ""int S0.Value""
-  IL_000b:  ldarg.0
-  IL_000c:  call       ""int Program.Two()""
-  IL_0011:  stfld      ""int S0.Value""
-  IL_0016:  ret
+  IL_0001:  initobj    ""S0""
+  IL_0007:  ldarg.0
+  IL_0008:  call       ""int Program.One()""
+  IL_000d:  stfld      ""int S0.Value""
+  IL_0012:  ldarg.0
+  IL_0013:  call       ""int Program.Two()""
+  IL_0018:  stfld      ""int S0.Value""
+  IL_001d:  ret
 }");
             verifier.VerifyIL("S1..ctor()",
 @"{
@@ -713,15 +719,17 @@ new S2().Value: 2
             verifier.VerifyMissing("S0..ctor()");
             verifier.VerifyIL("S0..ctor(object)",
 @"{
-  // Code size       19 (0x13)
+  // Code size       26 (0x1a)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.0
-  IL_0002:  stfld      ""int S0.Value""
+  IL_0001:  initobj    ""S0""
   IL_0007:  ldarg.0
-  IL_0008:  call       ""int Program.Two()""
-  IL_000d:  stfld      ""int S0.Value""
-  IL_0012:  ret
+  IL_0008:  ldc.i4.0
+  IL_0009:  stfld      ""int S0.Value""
+  IL_000e:  ldarg.0
+  IL_000f:  call       ""int Program.Two()""
+  IL_0014:  stfld      ""int S0.Value""
+  IL_0019:  ret
 }");
             verifier.VerifyIL("S1..ctor()",
 @"{
@@ -833,6 +841,847 @@ new S1((object)1).Value: 2
   IL_0001:  initobj    ""S1""
   IL_0007:  ret
 }");
+        }
+
+        private static CSharpParseOptions GetParseOptions(LanguageVersion? languageVersion)
+        {
+            return languageVersion is null ?
+                null :
+                TestOptions.Regular.WithLanguageVersion(languageVersion.Value);
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(null)]
+        public void DefaultThisInitializer_01(LanguageVersion? languageVersion)
+        {
+            var source =
+@"using System;
+struct S
+{
+    int x;
+    int y;
+    public S(int y) : this()
+    {
+    }
+    public override string ToString() => (x, y).ToString();
+}
+record struct R
+{
+    int x;
+    int y;
+    public R(int y) : this()
+    {
+    }
+    public override string ToString() => (x, y).ToString();
+}
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(new S(2));
+        Console.WriteLine(new S());
+        Console.WriteLine(new R(2));
+        Console.WriteLine(new R());
+    }
+}";
+
+            var verifier = CompileAndVerify(source, parseOptions: GetParseOptions(languageVersion), expectedOutput:
+@"(0, 0)
+(0, 0)
+(0, 0)
+(0, 0)
+");
+            verifier.VerifyIL("S..ctor(int)",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  initobj    ""S""
+  IL_0007:  ret
+}");
+            verifier.VerifyIL("R..ctor(int)",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  initobj    ""R""
+  IL_0007:  ret
+}");
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(null)]
+        public void DefaultThisInitializer_02(LanguageVersion? languageVersion)
+        {
+            var source =
+@"using System;
+struct S
+{
+    int x;
+    int y;
+    public S(int y) : this()
+    {
+        this.y = y;
+    }
+    public override string ToString() => (x, y).ToString();
+}
+record struct R
+{
+    int x;
+    int y;
+    public R(int y) : this()
+    {
+        this.y = y;
+    }
+    public override string ToString() => (x, y).ToString();
+}
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(new S(2));
+        Console.WriteLine(new S());
+        Console.WriteLine(new R(2));
+        Console.WriteLine(new R());
+    }
+}";
+
+            var verifier = CompileAndVerify(source, parseOptions: GetParseOptions(languageVersion), expectedOutput:
+@"(0, 2)
+(0, 0)
+(0, 2)
+(0, 0)
+");
+            verifier.VerifyIL("S..ctor(int)",
+@"{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  initobj    ""S""
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.1
+  IL_0009:  stfld      ""int S.y""
+  IL_000e:  ret
+}");
+            verifier.VerifyIL("R..ctor(int)",
+@"{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  initobj    ""R""
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.1
+  IL_0009:  stfld      ""int R.y""
+  IL_000e:  ret
+}");
+        }
+
+        [WorkItem(58790, "https://github.com/dotnet/roslyn/issues/58790")]
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(null)]
+        public void DefaultThisInitializer_03(LanguageVersion? languageVersion)
+        {
+            var source =
+@"using System;
+struct S
+{
+    int x = 1;
+    int y;
+    public S(int y) : this()
+    {
+    }
+    public override string ToString() => (x, y).ToString();
+}
+record struct R
+{
+    int x = 1;
+    int y;
+    public R(int y) : this()
+    {
+    }
+    public override string ToString() => (x, y).ToString();
+}
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(new S(2));
+        Console.WriteLine(new S());
+        Console.WriteLine(new R(2));
+        Console.WriteLine(new R());
+    }
+}";
+
+            var verifier = CompileAndVerify(source, parseOptions: GetParseOptions(languageVersion), expectedOutput:
+@"(1, 0)
+(0, 0)
+(1, 0)
+(0, 0)
+");
+            verifier.VerifyIL("S..ctor(int)",
+@"{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  initobj    ""S""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  stfld      ""int S.x""
+  IL_000e:  ret
+}");
+            verifier.VerifyIL("R..ctor(int)",
+@"{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  initobj    ""R""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  stfld      ""int R.x""
+  IL_000e:  ret
+}");
+
+            var comp = (CSharpCompilation)verifier.Compilation;
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var syntax = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().First();
+            var operation = model.GetOperation(syntax);
+            var actualText = OperationTreeVerifier.GetOperationTree(comp, operation);
+            OperationTreeVerifier.Verify(
+@"IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null) (Syntax: 'public S(in ... }')
+  Initializer:
+    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: ': this()')
+      Expression:
+        IInvocationOperation ( S..ctor()) (OperationKind.Invocation, Type: System.Void) (Syntax: ': this()')
+          Instance Receiver:
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: S, IsImplicit) (Syntax: ': this()')
+          Arguments(0)
+  BlockBody:
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+  ExpressionBody:
+    null
+",
+                actualText);
+        }
+
+        [WorkItem(58790, "https://github.com/dotnet/roslyn/issues/58790")]
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(null)]
+        public void DefaultThisInitializer_04(LanguageVersion? languageVersion)
+        {
+            var source =
+@"using System;
+struct S
+{
+    int x = 1;
+    int y = 2;
+    public S(int y) : this()
+    {
+    }
+    public override string ToString() => (x, y).ToString();
+}
+record struct R
+{
+    int x = 1;
+    int y = 2;
+    public R(int y) : this()
+    {
+    }
+    public override string ToString() => (x, y).ToString();
+}
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(new S(2));
+        Console.WriteLine(new S());
+        Console.WriteLine(new R(2));
+        Console.WriteLine(new R());
+    }
+}";
+
+            var verifier = CompileAndVerify(source, parseOptions: GetParseOptions(languageVersion), expectedOutput:
+@"(1, 2)
+(0, 0)
+(1, 2)
+(0, 0)
+");
+            verifier.VerifyIL("S..ctor(int)",
+@"{
+  // Code size       22 (0x16)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  initobj    ""S""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  stfld      ""int S.x""
+  IL_000e:  ldarg.0
+  IL_000f:  ldc.i4.2
+  IL_0010:  stfld      ""int S.y""
+  IL_0015:  ret
+}");
+            verifier.VerifyIL("R..ctor(int)",
+@"{
+  // Code size       22 (0x16)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  initobj    ""R""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  stfld      ""int R.x""
+  IL_000e:  ldarg.0
+  IL_000f:  ldc.i4.2
+  IL_0010:  stfld      ""int R.y""
+  IL_0015:  ret
+}");
+
+            var comp = (CSharpCompilation)verifier.Compilation;
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var syntax = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().First();
+            var operation = model.GetOperation(syntax);
+            var actualText = OperationTreeVerifier.GetOperationTree(comp, operation);
+            OperationTreeVerifier.Verify(
+@"IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null) (Syntax: 'public S(in ... }')
+  Initializer:
+    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: ': this()')
+      Expression:
+        IInvocationOperation ( S..ctor()) (OperationKind.Invocation, Type: System.Void) (Syntax: ': this()')
+          Instance Receiver:
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: S, IsImplicit) (Syntax: ': this()')
+          Arguments(0)
+  BlockBody:
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+  ExpressionBody:
+    null
+",
+                actualText);
+        }
+
+        [WorkItem(58790, "https://github.com/dotnet/roslyn/issues/58790")]
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(null)]
+        public void DefaultThisInitializer_05(LanguageVersion? languageVersion)
+        {
+            var source =
+@"using System;
+struct S
+{
+    int x = 1;
+    int y;
+    public S(int y) : this()
+    {
+        this.y = y;
+    }
+    public override string ToString() => (x, y).ToString();
+}
+record struct R
+{
+    int x = 1;
+    int y;
+    public R(int y) : this()
+    {
+        this.y = y;
+    }
+    public override string ToString() => (x, y).ToString();
+}
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(new S(2));
+        Console.WriteLine(new S());
+        Console.WriteLine(new R(2));
+        Console.WriteLine(new R());
+    }
+}";
+
+            var verifier = CompileAndVerify(source, parseOptions: GetParseOptions(languageVersion), expectedOutput:
+@"(1, 2)
+(0, 0)
+(1, 2)
+(0, 0)
+");
+            verifier.VerifyIL("S..ctor(int)",
+@"{
+  // Code size       22 (0x16)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  initobj    ""S""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  stfld      ""int S.x""
+  IL_000e:  ldarg.0
+  IL_000f:  ldarg.1
+  IL_0010:  stfld      ""int S.y""
+  IL_0015:  ret
+}");
+            verifier.VerifyIL("R..ctor(int)",
+@"{
+  // Code size       22 (0x16)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  initobj    ""R""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  stfld      ""int R.x""
+  IL_000e:  ldarg.0
+  IL_000f:  ldarg.1
+  IL_0010:  stfld      ""int R.y""
+  IL_0015:  ret
+}");
+
+            var comp = (CSharpCompilation)verifier.Compilation;
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var syntax = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().First();
+            var operation = model.GetOperation(syntax);
+            var actualText = OperationTreeVerifier.GetOperationTree(comp, operation);
+            OperationTreeVerifier.Verify(
+@"IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null) (Syntax: 'public S(in ... }')
+  Initializer:
+    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: ': this()')
+      Expression:
+        IInvocationOperation ( S..ctor()) (OperationKind.Invocation, Type: System.Void) (Syntax: ': this()')
+          Instance Receiver:
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: S, IsImplicit) (Syntax: ': this()')
+          Arguments(0)
+  BlockBody:
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'this.y = y;')
+        Expression:
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'this.y = y')
+            Left:
+              IFieldReferenceOperation: System.Int32 S.y (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'this.y')
+                Instance Receiver:
+                  IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: S) (Syntax: 'this')
+            Right:
+              IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'y')
+  ExpressionBody:
+    null
+",
+                actualText);
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(null)]
+        public void DefaultThisInitializer_06(LanguageVersion? languageVersion)
+        {
+            var source =
+@"#pragma warning disable 169
+#pragma warning disable 414
+struct S1
+{
+    int x;
+    int y;
+    public S1(int y) : this()
+    {
+    }
+    public S1() { }
+}
+struct S2
+{
+    int x;
+    int y;
+    public S2(int y) : this()
+    {
+        this.y = y;
+    }
+    public S2() { }
+}
+struct S3
+{
+    int x;
+    int y;
+    public S3(int y) : this()
+    {
+    }
+    public S3()
+    {
+        this.y = -3;
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: GetParseOptions(languageVersion));
+            comp.VerifyDiagnostics(
+                // (10,12): error CS0171: Field 'S1.y' must be fully assigned before control is returned to the caller
+                //     public S1() { }
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "S1").WithArguments("S1.y").WithLocation(10, 12),
+                // (10,12): error CS0171: Field 'S1.x' must be fully assigned before control is returned to the caller
+                //     public S1() { }
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "S1").WithArguments("S1.x").WithLocation(10, 12),
+                // (20,12): error CS0171: Field 'S2.y' must be fully assigned before control is returned to the caller
+                //     public S2() { }
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "S2").WithArguments("S2.y").WithLocation(20, 12),
+                // (20,12): error CS0171: Field 'S2.x' must be fully assigned before control is returned to the caller
+                //     public S2() { }
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "S2").WithArguments("S2.x").WithLocation(20, 12),
+                // (29,12): error CS0171: Field 'S3.x' must be fully assigned before control is returned to the caller
+                //     public S3()
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "S3").WithArguments("S3.x").WithLocation(29, 12));
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(null)]
+        public void DefaultThisInitializer_07(LanguageVersion? languageVersion)
+        {
+            var source =
+@"#pragma warning disable 169
+#pragma warning disable 414
+struct S1
+{
+    int x = 1;
+    int y;
+    public S1(int y) : this()
+    {
+    }
+    public S1() { }
+}
+struct S2
+{
+    int x = 2;
+    int y;
+    public S2(int y) : this()
+    {
+        this.y = y;
+    }
+    public S2() { }
+}
+struct S3
+{
+    int x = 3;
+    int y;
+    public S3(int y) : this()
+    {
+    }
+    public S3()
+    {
+        this.y = -3;
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: GetParseOptions(languageVersion));
+            comp.VerifyDiagnostics(
+                // (10,12): error CS0171: Field 'S1.y' must be fully assigned before control is returned to the caller
+                //     public S1() { }
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "S1").WithArguments("S1.y").WithLocation(10, 12),
+                // (20,12): error CS0171: Field 'S2.y' must be fully assigned before control is returned to the caller
+                //     public S2() { }
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "S2").WithArguments("S2.y").WithLocation(20, 12));
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(null)]
+        public void DefaultThisInitializer_08(LanguageVersion? languageVersion)
+        {
+            var source =
+@"struct S1
+{
+    int x1 = y1 + 1;
+    int y1;
+    public S1(int y)
+    {
+        this.y1 = y;
+    }
+}
+record struct R1
+{
+    int x1 = y1 + 1;
+    int y1;
+    public R1(int y)
+    {
+        this.y1 = y;
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: GetParseOptions(languageVersion));
+            comp.VerifyDiagnostics(
+                // (3,14): error CS0236: A field initializer cannot reference the non-static field, method, or property 'S1.y1'
+                //     int x1 = y1 + 1;
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "y1").WithArguments("S1.y1").WithLocation(3, 14),
+                // (3,14): error CS0170: Use of possibly unassigned field 'y1'
+                //     int x1 = y1 + 1;
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "y1").WithArguments("y1").WithLocation(3, 14),
+                // (12,14): error CS0236: A field initializer cannot reference the non-static field, method, or property 'R1.y1'
+                //     int x1 = y1 + 1;
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "y1").WithArguments("R1.y1").WithLocation(12, 14),
+                // (12,14): error CS0170: Use of possibly unassigned field 'y1'
+                //     int x1 = y1 + 1;
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "y1").WithArguments("y1").WithLocation(12, 14));
+        }
+
+        [WorkItem(58790, "https://github.com/dotnet/roslyn/issues/58790")]
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(null)]
+        public void DefaultThisInitializer_09(LanguageVersion? languageVersion)
+        {
+            var source =
+@"struct S2
+{
+    int x2 = y2 + 1;
+    int y2;
+    public S2(int y) : this()
+    {
+        this.y2 = y;
+    }
+}
+record struct R2
+{
+    int x2 = y2 + 1;
+    int y2;
+    public R2(int y) : this()
+    {
+        this.y2 = y;
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: GetParseOptions(languageVersion));
+            comp.VerifyDiagnostics(
+                // (3,14): error CS0236: A field initializer cannot reference the non-static field, method, or property 'S2.y2'
+                //     int x2 = y2 + 1;
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "y2").WithArguments("S2.y2").WithLocation(3, 14),
+                // (12,14): error CS0236: A field initializer cannot reference the non-static field, method, or property 'R2.y2'
+                //     int x2 = y2 + 1;
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "y2").WithArguments("R2.y2").WithLocation(12, 14));
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(null)]
+        public void DefaultThisInitializer_10(LanguageVersion? languageVersion)
+        {
+            var source =
+@"struct S3
+{
+    int x3 = y3 + 1;
+    int y3;
+    public S3(int y)
+    {
+        this = default;
+        this.y3 = y;
+    }
+}
+record struct R3
+{
+    int x3 = y3 + 1;
+    int y3;
+    public R3(int y)
+    {
+        this = default;
+        this.y3 = y;
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: GetParseOptions(languageVersion));
+            comp.VerifyDiagnostics(
+                // (3,14): error CS0236: A field initializer cannot reference the non-static field, method, or property 'S3.y3'
+                //     int x3 = y3 + 1;
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "y3").WithArguments("S3.y3").WithLocation(3, 14),
+                // (3,14): error CS0170: Use of possibly unassigned field 'y3'
+                //     int x3 = y3 + 1;
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "y3").WithArguments("y3").WithLocation(3, 14),
+                // (13,14): error CS0236: A field initializer cannot reference the non-static field, method, or property 'R3.y3'
+                //     int x3 = y3 + 1;
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "y3").WithArguments("R3.y3").WithLocation(13, 14),
+                // (13,14): error CS0170: Use of possibly unassigned field 'y3'
+                //     int x3 = y3 + 1;
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "y3").WithArguments("y3").WithLocation(13, 14));
+        }
+
+        [WorkItem(58790, "https://github.com/dotnet/roslyn/issues/58790")]
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(null)]
+        public void DefaultThisInitializer_11(LanguageVersion? languageVersion)
+        {
+            var source =
+@"#pragma warning disable 169
+#pragma warning disable 414
+struct S
+{
+    int x1;
+    int y1 = 1;
+    public S(int unused) { }
+    public S(string unused) : this() { }
+}
+record struct R
+{
+    int x2;
+    int y2 = -1;
+    public R(int unused) { }
+    public R(string unused) : this() { }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: GetParseOptions(languageVersion));
+            comp.VerifyDiagnostics(
+                // (7,12): error CS0171: Field 'S.x1' must be fully assigned before control is returned to the caller
+                //     public S(int unused) { }
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "S").WithArguments("S.x1").WithLocation(7, 12),
+                // (14,12): error CS0171: Field 'R.x2' must be fully assigned before control is returned to the caller
+                //     public R(int unused) { }
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "R").WithArguments("R.x2").WithLocation(14, 12));
+        }
+
+        [WorkItem(58790, "https://github.com/dotnet/roslyn/issues/58790")]
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(null)]
+        public void DefaultThisInitializer_12(LanguageVersion? languageVersion)
+        {
+            var source =
+@"using System;
+struct S
+{
+    int x1;
+    int y1 = 1;
+    public S(int unused) { x1 = 2; }
+    public S(string unused) : this() { x1 = 3; }
+    public override string ToString() => (x1, y1).ToString();
+}
+record struct R
+{
+    int x2;
+    int y2 = -1;
+    public R(int unused) { x2 = -2; }
+    public R(string unused) : this() { x2 = -3; }
+    public override string ToString() => (x2, y2).ToString();
+}
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(new S(0));
+        Console.WriteLine(new S(string.Empty));
+        Console.WriteLine(new R(0));
+        Console.WriteLine(new R(string.Empty));
+    }
+}";
+
+            var verifier = CompileAndVerify(source, parseOptions: GetParseOptions(languageVersion), expectedOutput:
+@"(2, 1)
+(3, 1)
+(-2, -1)
+(-3, -1)
+");
+            verifier.VerifyIL("S..ctor(int)",
+@"{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  stfld      ""int S.y1""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.2
+  IL_0009:  stfld      ""int S.x1""
+  IL_000e:  ret
+}");
+            verifier.VerifyIL("S..ctor(string)",
+@"{
+  // Code size       22 (0x16)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  initobj    ""S""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  stfld      ""int S.y1""
+  IL_000e:  ldarg.0
+  IL_000f:  ldc.i4.3
+  IL_0010:  stfld      ""int S.x1""
+  IL_0015:  ret
+}");
+            verifier.VerifyIL("R..ctor(int)",
+@"{
+  // Code size       16 (0x10)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.m1
+  IL_0002:  stfld      ""int R.y2""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.s   -2
+  IL_000a:  stfld      ""int R.x2""
+  IL_000f:  ret
+}");
+            verifier.VerifyIL("R..ctor(string)",
+@"{
+  // Code size       23 (0x17)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  initobj    ""R""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.m1
+  IL_0009:  stfld      ""int R.y2""
+  IL_000e:  ldarg.0
+  IL_000f:  ldc.i4.s   -3
+  IL_0011:  stfld      ""int R.x2""
+  IL_0016:  ret
+}");
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(null)]
+        public void DefaultThisInitializer_13(LanguageVersion? languageVersion)
+        {
+            var source =
+@"#pragma warning disable 169
+struct S
+{
+    int x1;
+    int y1;
+    public S() : this() { }
+}
+record struct R
+{
+    int x2;
+    int y2;
+    public R() : this() { }
+}";
+            var comp = CreateCompilation(source, parseOptions: GetParseOptions(languageVersion));
+            comp.VerifyDiagnostics(
+                // (6,18): error CS0516: Constructor 'S.S()' cannot call itself
+                //     public S() : this() { }
+                Diagnostic(ErrorCode.ERR_RecursiveConstructorCall, "this").WithArguments("S.S()").WithLocation(6, 18),
+                // (12,18): error CS0516: Constructor 'R.R()' cannot call itself
+                //     public R() : this() { }
+                Diagnostic(ErrorCode.ERR_RecursiveConstructorCall, "this").WithArguments("R.R()").WithLocation(12, 18));
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(null)]
+        public void DefaultThisInitializer_14(LanguageVersion? languageVersion)
+        {
+            var source =
+@"#pragma warning disable 169
+struct S
+{
+    int x1;
+    int y1 = 1;
+    public S() : this() { }
+}
+record struct R
+{
+    int x2;
+    int y2 = 2;
+    public R() : this() { }
+}";
+            var comp = CreateCompilation(source, parseOptions: GetParseOptions(languageVersion));
+            comp.VerifyDiagnostics(
+                // (6,18): error CS0516: Constructor 'S.S()' cannot call itself
+                //     public S() : this() { }
+                Diagnostic(ErrorCode.ERR_RecursiveConstructorCall, "this").WithArguments("S.S()").WithLocation(6, 18),
+                // (12,18): error CS0516: Constructor 'R.R()' cannot call itself
+                //     public R() : this() { }
+                Diagnostic(ErrorCode.ERR_RecursiveConstructorCall, "this").WithArguments("R.R()").WithLocation(12, 18));
         }
 
         [Fact]
@@ -1211,50 +2060,65 @@ class Program
         }
 
         [Fact]
-        public void FieldInitializers_04()
+        public void FieldInitializers_04A()
         {
             var source =
 @"#pragma warning disable 649
 using System;
 struct S1<T> { internal int X = 1; }
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(new S1<object>().X);
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,8): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+                // struct S1<T> { internal int X = 1; }
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S1").WithLocation(3, 8));
+        }
+
+        [Fact]
+        public void FieldInitializers_04B()
+        {
+            var source =
+@"#pragma warning disable 649
+using System;
 struct S2<T> { internal int X = 2; public S2() { } }
 struct S3<T> { internal int X = 3; public S3(int _) { } }
 class Program
 {
     static void Main()
     {
-        Console.WriteLine(new S1<object>().X);
         Console.WriteLine(new S2<object>().X);
         Console.WriteLine(new S3<object>().X);
     }
 }";
 
             var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
-@"1
-2
+@"2
 0");
             verifier.VerifyIL("Program.Main",
 @"{
-  // Code size       50 (0x32)
+  // Code size       35 (0x23)
   .maxstack  1
   .locals init (S3<object> V_0)
-  IL_0000:  newobj     ""S1<object>..ctor()""
-  IL_0005:  ldfld      ""int S1<object>.X""
+  IL_0000:  newobj     ""S2<object>..ctor()""
+  IL_0005:  ldfld      ""int S2<object>.X""
   IL_000a:  call       ""void System.Console.WriteLine(int)""
-  IL_000f:  newobj     ""S2<object>..ctor()""
-  IL_0014:  ldfld      ""int S2<object>.X""
-  IL_0019:  call       ""void System.Console.WriteLine(int)""
-  IL_001e:  ldloca.s   V_0
-  IL_0020:  initobj    ""S3<object>""
-  IL_0026:  ldloc.0
-  IL_0027:  ldfld      ""int S3<object>.X""
-  IL_002c:  call       ""void System.Console.WriteLine(int)""
-  IL_0031:  ret
+  IL_000f:  ldloca.s   V_0
+  IL_0011:  initobj    ""S3<object>""
+  IL_0017:  ldloc.0
+  IL_0018:  ldfld      ""int S3<object>.X""
+  IL_001d:  call       ""void System.Console.WriteLine(int)""
+  IL_0022:  ret
 }");
         }
 
         [Fact]
-        public void FieldInitializers_05()
+        public void FieldInitializers_05A()
         {
             var source =
 @"#pragma warning disable 649
@@ -1262,6 +2126,29 @@ using System;
 class A<T>
 {
     internal struct S1 { internal int X { get; } = 1; }
+}
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(new A<object>.S1().X);
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,21): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+                //     internal struct S1 { internal int X { get; } = 1; }
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S1").WithLocation(5, 21));
+        }
+
+        [Fact]
+        public void FieldInitializers_05B()
+        {
+            var source =
+@"#pragma warning disable 649
+using System;
+class A<T>
+{
     internal struct S2 { internal int X { get; init; } = 2; public S2() { } }
     internal struct S3 { internal int X { get; set; } = 3; public S3(int _) { } }
 }
@@ -1269,48 +2156,31 @@ class Program
 {
     static void Main()
     {
-        Console.WriteLine(new A<object>.S1().X);
         Console.WriteLine(new A<object>.S2().X);
         Console.WriteLine(new A<object>.S3().X);
     }
 }";
 
             var verifier = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, options: TestOptions.ReleaseExe, verify: Verification.Skipped, expectedOutput:
-@"1
-2
+@"2
 0");
             verifier.VerifyIL("Program.Main",
 @"{
-  // Code size       56 (0x38)
+  // Code size       38 (0x26)
   .maxstack  2
-  .locals init (A<object>.S1 V_0,
-                A<object>.S2 V_1,
-                A<object>.S3 V_2)
-  IL_0000:  newobj     ""A<object>.S1..ctor()""
+  .locals init (A<object>.S2 V_0,
+                A<object>.S3 V_1)
+  IL_0000:  newobj     ""A<object>.S2..ctor()""
   IL_0005:  stloc.0
   IL_0006:  ldloca.s   V_0
-  IL_0008:  call       ""readonly int A<object>.S1.X.get""
+  IL_0008:  call       ""readonly int A<object>.S2.X.get""
   IL_000d:  call       ""void System.Console.WriteLine(int)""
-  IL_0012:  newobj     ""A<object>.S2..ctor()""
-  IL_0017:  stloc.1
-  IL_0018:  ldloca.s   V_1
-  IL_001a:  call       ""readonly int A<object>.S2.X.get""
-  IL_001f:  call       ""void System.Console.WriteLine(int)""
-  IL_0024:  ldloca.s   V_2
-  IL_0026:  dup
-  IL_0027:  initobj    ""A<object>.S3""
-  IL_002d:  call       ""readonly int A<object>.S3.X.get""
-  IL_0032:  call       ""void System.Console.WriteLine(int)""
-  IL_0037:  ret
-}");
-            verifier.VerifyIL("A<T>.S1..ctor()",
-@"{
-  // Code size        8 (0x8)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.1
-  IL_0002:  stfld      ""int A<T>.S1.<X>k__BackingField""
-  IL_0007:  ret
+  IL_0012:  ldloca.s   V_1
+  IL_0014:  dup
+  IL_0015:  initobj    ""A<object>.S3""
+  IL_001b:  call       ""readonly int A<object>.S3.X.get""
+  IL_0020:  call       ""void System.Console.WriteLine(int)""
+  IL_0025:  ret
 }");
             verifier.VerifyIL("A<T>.S2..ctor()",
 @"{
@@ -1364,9 +2234,9 @@ struct S4
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (2,8): error CS0171: Field 'S1.Y' must be fully assigned before control is returned to the caller
+                // (2,8): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
                 // struct S1
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "S1").WithArguments("S1.Y").WithLocation(2, 8),
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S1").WithLocation(2, 8),
                 // (4,21): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     internal object X = null;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "X").WithArguments("struct field initializers", "10.0").WithLocation(4, 21),
@@ -1397,9 +2267,9 @@ struct S4
 
             var expectedDiagnostics = new[]
             {
-                // (2,8): error CS0171: Field 'S1.Y' must be fully assigned before control is returned to the caller
+                // (2,8): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
                 // struct S1
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "S1").WithArguments("S1.Y").WithLocation(2, 8),
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S1").WithLocation(2, 8),
                 // (11,12): error CS0171: Field 'S2.Y' must be fully assigned before control is returned to the caller
                 //     public S2() { }
                 Diagnostic(ErrorCode.ERR_UnassignedThis, "S2").WithArguments("S2.Y").WithLocation(11, 12),
@@ -1447,9 +2317,9 @@ struct S4
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (2,8): error CS0843: Auto-implemented property 'S1.Y' must be fully assigned before control is returned to the caller.
+                // (2,8): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
                 // struct S1
-                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S1").WithArguments("S1.Y").WithLocation(2, 8),
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S1").WithLocation(2, 8),
                 // (4,21): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     internal object X { get; } = null;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "X").WithArguments("struct field initializers", "10.0").WithLocation(4, 21),
@@ -1480,9 +2350,9 @@ struct S4
 
             var expectedDiagnostics = new[]
             {
-                // (2,8): error CS0843: Auto-implemented property 'S1.Y' must be fully assigned before control is returned to the caller.
+                // (2,8): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
                 // struct S1
-                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S1").WithArguments("S1.Y").WithLocation(2, 8),
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S1").WithLocation(2, 8),
                 // (11,12): error CS0843: Auto-implemented property 'S2.Y' must be fully assigned before control is returned to the caller.
                 //     public S2() { }
                 Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S2").WithArguments("S2.Y").WithLocation(11, 12),
@@ -1531,9 +2401,9 @@ record struct S4
 
             var expectedDiagnostics = new[]
             {
-                // (2,15): error CS0171: Field 'S1.Y' must be fully assigned before control is returned to the caller
+                // (2,15): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
                 // record struct S1
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "S1").WithArguments("S1.Y").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S1").WithLocation(2, 15),
                 // (11,12): error CS0843: Auto-implemented property 'S2.Y' must be fully assigned before control is returned to the caller.
                 //     public S2() { }
                 Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S2").WithArguments("S2.Y").WithLocation(11, 12),
@@ -1760,9 +2630,9 @@ record struct S
 
             var expectedDiagnostics = new[]
             {
-                // (10,15): error CS0843: Auto-implemented property 'S.P1' must be fully assigned before control is returned to the caller.
+                // (10,15): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
                 // record struct S
-                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S").WithArguments("S.P1").WithLocation(10, 15)
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S").WithLocation(10, 15)
             };
 
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular10);
@@ -1772,8 +2642,113 @@ record struct S
             comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
+        /// <summary>
+        /// Should still report binding errors in field initializers
+        /// even if there is no explicit constructor.
+        /// </summary>
         [Fact]
-        public void ExpressionTrees()
+        public void FieldInitializers_14()
+        {
+            var source =
+@"struct S
+{
+    private object F = Unknown();
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (1,8): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+                // struct S
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S").WithLocation(1, 8),
+                // (3,20): warning CS0169: The field 'S.F' is never used
+                //     private object F = Unknown();
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "F").WithArguments("S.F").WithLocation(3, 20),
+                // (3,24): error CS0103: The name 'Unknown' does not exist in the current context
+                //     private object F = Unknown();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Unknown").WithArguments("Unknown").WithLocation(3, 24));
+        }
+
+        [Fact]
+        public void FieldInitializers_15()
+        {
+            var source =
+@"struct S0
+{
+    static S0() { }
+    public int F = 1;
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (1,8): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+                // struct S0
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S0").WithLocation(1, 8),
+                // (4,16): warning CS0649: Field 'S0.F' is never assigned to, and will always have its default value 0
+                //     public int F = 1;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("S0.F", "0").WithLocation(4, 16));
+        }
+
+        [Fact]
+        public void FieldInitializers_16()
+        {
+            var source =
+@"using System;
+struct S1
+{
+    static S1() { }
+    public S1() { }
+    public int F = 1;
+}
+struct S2
+{
+    static S2() { }
+    public S2(object o) { }
+    public int F = 2;
+}
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(new S1().F);
+        Console.WriteLine(new S2().F);
+    }
+}";
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, verify: Verification.Skipped, expectedOutput:
+@"1
+0");
+        }
+
+        [Fact]
+        public void ExpressionTrees_01()
+        {
+            var source =
+@"#pragma warning disable 649
+using System;
+using System.Linq.Expressions;
+struct S1
+{
+    int X = 1;
+    public override string ToString() => X.ToString();
+}
+class Program
+{
+    static void Main()
+    {
+        Report(() => new S1());
+    }
+    static void Report<T>(Expression<Func<T>> e)
+    {
+        var t = e.Compile().Invoke();
+        Console.WriteLine(t);
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,8): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+                // struct S1
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S1").WithLocation(4, 8));
+        }
+
+        [Fact]
+        public void ExpressionTrees_02()
         {
             var source =
 @"#pragma warning disable 649
@@ -1782,11 +2757,6 @@ using System.Linq.Expressions;
 struct S0
 {
     int X;
-    public override string ToString() => X.ToString();
-}
-struct S1
-{
-    int X = 1;
     public override string ToString() => X.ToString();
 }
 struct S2
@@ -1800,7 +2770,6 @@ class Program
     static void Main()
     {
         Report(() => new S0());
-        Report(() => new S1());
         Report(() => new S2());
     }
     static void Report<T>(Expression<Func<T>> e)
@@ -1812,11 +2781,10 @@ class Program
 
             var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
 @"0
-1
 2");
             verifier.VerifyIL("Program.Main",
 @"{
-  // Code size      111 (0x6f)
+  // Code size       71 (0x47)
   .maxstack  2
   IL_0000:  ldtoken    ""S0""
   IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
@@ -1824,23 +2792,15 @@ class Program
   IL_000f:  call       ""System.Linq.Expressions.ParameterExpression[] System.Array.Empty<System.Linq.Expressions.ParameterExpression>()""
   IL_0014:  call       ""System.Linq.Expressions.Expression<System.Func<S0>> System.Linq.Expressions.Expression.Lambda<System.Func<S0>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
   IL_0019:  call       ""void Program.Report<S0>(System.Linq.Expressions.Expression<System.Func<S0>>)""
-  IL_001e:  ldtoken    ""S1..ctor()""
+  IL_001e:  ldtoken    ""S2..ctor()""
   IL_0023:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
   IL_0028:  castclass  ""System.Reflection.ConstructorInfo""
   IL_002d:  call       ""System.Linq.Expressions.Expression[] System.Array.Empty<System.Linq.Expressions.Expression>()""
   IL_0032:  call       ""System.Linq.Expressions.NewExpression System.Linq.Expressions.Expression.New(System.Reflection.ConstructorInfo, System.Collections.Generic.IEnumerable<System.Linq.Expressions.Expression>)""
   IL_0037:  call       ""System.Linq.Expressions.ParameterExpression[] System.Array.Empty<System.Linq.Expressions.ParameterExpression>()""
-  IL_003c:  call       ""System.Linq.Expressions.Expression<System.Func<S1>> System.Linq.Expressions.Expression.Lambda<System.Func<S1>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
-  IL_0041:  call       ""void Program.Report<S1>(System.Linq.Expressions.Expression<System.Func<S1>>)""
-  IL_0046:  ldtoken    ""S2..ctor()""
-  IL_004b:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
-  IL_0050:  castclass  ""System.Reflection.ConstructorInfo""
-  IL_0055:  call       ""System.Linq.Expressions.Expression[] System.Array.Empty<System.Linq.Expressions.Expression>()""
-  IL_005a:  call       ""System.Linq.Expressions.NewExpression System.Linq.Expressions.Expression.New(System.Reflection.ConstructorInfo, System.Collections.Generic.IEnumerable<System.Linq.Expressions.Expression>)""
-  IL_005f:  call       ""System.Linq.Expressions.ParameterExpression[] System.Array.Empty<System.Linq.Expressions.ParameterExpression>()""
-  IL_0064:  call       ""System.Linq.Expressions.Expression<System.Func<S2>> System.Linq.Expressions.Expression.Lambda<System.Func<S2>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
-  IL_0069:  call       ""void Program.Report<S2>(System.Linq.Expressions.Expression<System.Func<S2>>)""
-  IL_006e:  ret
+  IL_003c:  call       ""System.Linq.Expressions.Expression<System.Func<S2>> System.Linq.Expressions.Expression.Lambda<System.Func<S2>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+  IL_0041:  call       ""void Program.Report<S2>(System.Linq.Expressions.Expression<System.Func<S2>>)""
+  IL_0046:  ret
 }");
         }
 
@@ -1848,11 +2808,7 @@ class Program
         public void Retargeting_01()
         {
             var sourceA =
-@"public struct S1
-{
-    public int X = 1;
-}
-public struct S2
+@"public struct S2
 {
     public int X = 2;
     public S2() { }
@@ -1865,7 +2821,7 @@ public struct S3
             var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Mscorlib40);
             var refA = comp.ToMetadataReference();
 
-            var typeA = comp.GetMember<FieldSymbol>("S1.X").Type;
+            var typeA = comp.GetMember<FieldSymbol>("S2.X").Type;
             var corLibA = comp.Assembly.CorLibrary;
             Assert.Equal(corLibA, typeA.ContainingAssembly);
 
@@ -1875,21 +2831,19 @@ class Program
 {
     static void Main()
     {
-        Console.WriteLine(new S1().X);
         Console.WriteLine(new S2().X);
         Console.WriteLine(new S3().X);
     }
 }";
             comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Mscorlib45);
             CompileAndVerify(comp, expectedOutput:
-@"1
-2
+@"2
 0");
 
             var corLibB = comp.Assembly.CorLibrary;
             Assert.NotEqual(corLibA, corLibB);
 
-            var field = comp.GetMember<FieldSymbol>("S1.X");
+            var field = comp.GetMember<FieldSymbol>("S2.X");
             Assert.IsType<Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting.RetargetingFieldSymbol>(field);
             var typeB = (NamedTypeSymbol)field.Type;
             Assert.Equal(corLibB, typeB.ContainingAssembly);
@@ -1953,6 +2907,25 @@ struct S0
 {
     object F0 = Utils.GetValue();
 }
+static class Utils
+{
+    internal static object? GetValue() => null;
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (2,8): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+                // struct S0
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S0").WithLocation(2, 8),
+                // (4,12): warning CS0169: The field 'S0.F0' is never used
+                //     object F0 = Utils.GetValue();
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "F0").WithArguments("S0.F0").WithLocation(4, 12));
+        }
+
+        [Fact]
+        public void NullableAnalysis_03()
+        {
+            var source =
+@"#nullable enable
 struct S1
 {
     object F1 = Utils.GetValue();
@@ -1971,17 +2944,14 @@ static class Utils
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (4,17): warning CS8601: Possible null reference assignment.
-                //     object F0 = Utils.GetValue();
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "Utils.GetValue()").WithLocation(4, 17),
-                // (8,17): warning CS8601: Possible null reference assignment.
                 //     object F1 = Utils.GetValue();
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "Utils.GetValue()").WithLocation(8, 17),
-                // (13,17): warning CS8601: Possible null reference assignment.
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "Utils.GetValue()").WithLocation(4, 17),
+                // (9,17): warning CS8601: Possible null reference assignment.
                 //     object F2 = Utils.GetValue();
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "Utils.GetValue()").WithLocation(13, 17),
-                // (14,24): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "Utils.GetValue()").WithLocation(9, 17),
+                // (10,24): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //     public S2() : this(null) { }
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(14, 24));
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 24));
         }
 
         [Fact]
@@ -2026,9 +2996,9 @@ unsafe struct S5
                 // (20,12): error CS0171: Field 'S3.X' must be fully assigned before control is returned to the caller
                 //     public S3() { }
                 Diagnostic(ErrorCode.ERR_UnassignedThis, "S3").WithArguments("S3.X").WithLocation(20, 12),
-                // (24,9): warning CS0414: The field 'S4.X' is assigned but its value is never used
-                //     int X = 4;
-                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "X").WithArguments("S4.X").WithLocation(24, 9),
+                // (22,15): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+                // unsafe struct S4
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S4").WithLocation(22, 15),
                 // (29,9): warning CS0414: The field 'S5.X' is assigned but its value is never used
                 //     int X;
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "X").WithArguments("S5.X").WithLocation(29, 9));
@@ -2052,6 +3022,14 @@ class Program
     static void G2(S2 s = new()) { }
     static void G3(S3 s = new()) { }
     static void G4(S4 s = new()) { }
+    static void G5(S1? s = new()) { }
+    static void G6(S1? s = new S1()) { }
+    static void G7(decimal s = new(1)) { }
+    static void G8(decimal s = new decimal(1)) { }
+    static void G9(decimal? s = new(1)) { }
+    static void G10(decimal? s = new decimal(1)) { }
+    static void G11(decimal s = (decimal)1) { }
+    static void G12(decimal? s = (decimal)2) { }
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
@@ -2072,7 +3050,26 @@ class Program
                 Diagnostic(ErrorCode.ERR_BadAccess, "new()").WithArguments("S4.S4()").WithLocation(14, 27),
                 // (14,27): error CS1736: Default parameter value for 's' must be a compile-time constant
                 //     static void G4(S4 s = new()) { }
-                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new()").WithArguments("s").WithLocation(14, 27));
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new()").WithArguments("s").WithLocation(14, 27),
+                // (15,24): error CS1770: A value of type 'S1' cannot be used as default parameter for nullable parameter 's' because 'S1' is not a simple type
+                //     static void G5(S1? s = new()) { }
+                Diagnostic(ErrorCode.ERR_NoConversionForNubDefaultParam, "s").WithArguments("S1", "s").WithLocation(15, 24),
+                // (16,24): error CS1770: A value of type 'S1' cannot be used as default parameter for nullable parameter 's' because 'S1' is not a simple type
+                //     static void G6(S1? s = new S1()) { }
+                Diagnostic(ErrorCode.ERR_NoConversionForNubDefaultParam, "s").WithArguments("S1", "s").WithLocation(16, 24),
+                // (17,32): error CS1736: Default parameter value for 's' must be a compile-time constant
+                //     static void G7(decimal s = new(1)) { }
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new(1)").WithArguments("s").WithLocation(17, 32),
+                // (18,32): error CS1736: Default parameter value for 's' must be a compile-time constant
+                //     static void G8(decimal s = new decimal(1)) { }
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new decimal(1)").WithArguments("s").WithLocation(18, 32),
+                // (19,33): error CS1736: Default parameter value for 's' must be a compile-time constant
+                //     static void G9(decimal? s = new(1)) { }
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new(1)").WithArguments("s").WithLocation(19, 33),
+                // (20,34): error CS1736: Default parameter value for 's' must be a compile-time constant
+                //     static void G10(decimal? s = new decimal(1)) { }
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new decimal(1)").WithArguments("s").WithLocation(20, 34)
+                );
         }
 
         [Fact]
@@ -2104,12 +3101,69 @@ class Program
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (20,27): error CS1736: Default parameter value for 's' must be a compile-time constant
-                //     static void G1(S1 s = new()) { }
-                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new()").WithArguments("s").WithLocation(20, 27),
+                // (1,8): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+                // struct S1
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S1").WithLocation(1, 8),
+                // (3,12): warning CS0169: The field 'S1.X' is never used
+                //     object X = 1;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "X").WithArguments("S1.X").WithLocation(3, 12),
                 // (21,27): error CS1736: Default parameter value for 's' must be a compile-time constant
                 //     static void G2(S2 s = new()) { }
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new()").WithArguments("s").WithLocation(21, 27));
+        }
+
+        [Fact]
+        public void ParameterDefaultValues_03()
+        {
+            var source =
+@"public struct S1 { }
+public class Program
+{
+    public static void G1(S1 s = new()) { }
+    public static void G2(S1 s = new S1()) { }
+}";
+            var comp = CreateCompilation(source);
+            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+
+            void validate(ModuleSymbol m)
+            {
+                var g1 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.G1");
+                Assert.True(g1.Parameters[0].HasExplicitDefaultValue);
+                Assert.Null(g1.Parameters[0].ExplicitDefaultValue);
+                Assert.True(g1.Parameters[0].ExplicitDefaultConstantValue.IsNull);
+
+                var g2 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.G2");
+                Assert.True(g2.Parameters[0].HasExplicitDefaultValue);
+                Assert.Null(g2.Parameters[0].ExplicitDefaultValue);
+                Assert.True(g2.Parameters[0].ExplicitDefaultConstantValue.IsNull);
+            }
+        }
+
+        [Fact]
+        public void ParameterDefaultValues_04()
+        {
+            var source =
+@"
+public class Program
+{
+    public static void G1(bool? s = new()) { }
+    public static void G2(bool? s = new bool()) { }
+}";
+            var comp = CreateCompilation(source);
+            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+
+            void validate(ModuleSymbol m)
+            {
+                var g1 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.G1");
+                Assert.True(g1.Parameters[0].HasExplicitDefaultValue);
+                Assert.False((bool)g1.Parameters[0].ExplicitDefaultValue);
+                Assert.False(g1.Parameters[0].ExplicitDefaultConstantValue.IsNull);
+
+                var g2 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.G2");
+                Assert.True(g2.Parameters[0].HasExplicitDefaultValue);
+                Assert.False((bool)g2.Parameters[0].ExplicitDefaultValue);
+                Assert.False(g2.Parameters[0].ExplicitDefaultConstantValue.BooleanValue);
+            }
         }
 
         [Fact]
@@ -2138,6 +3192,12 @@ class Program
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                // (4,8): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+                // struct S1
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S1").WithLocation(4, 8),
+                // (6,12): warning CS0169: The field 'S1.X' is never used
+                //     object X = 1;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "X").WithArguments("S1.X").WithLocation(6, 12),
                 // (14,23): error CS0133: The expression being assigned to 'Program.d0' must be constant
                 //     const object d0 = default(S0);
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, "default(S0)").WithArguments("Program.d0").WithLocation(14, 23),
@@ -2171,7 +3231,6 @@ public interface I
 {
     S0 F0();
     S1 F1();
-    S2 F2();
 }
 public struct S0
 {
@@ -2179,10 +3238,6 @@ public struct S0
 public struct S1
 {
     public S1() { }
-}
-public struct S2
-{
-    object F = 2;
 }";
             var comp = CreateCompilationWithMscorlib40(sourceA);
             var refA = comp.EmitToImageReference(embedInteropTypes: true);
@@ -2194,17 +3249,211 @@ public struct S2
     {
         var s0 = i.F0();
         var s1 = i.F1();
-        var s2 = i.F2();
     }
 }";
             comp = CreateCompilationWithMscorlib40(sourceB, references: new[] { refA });
             comp.VerifyEmitDiagnostics(
                 // (6,18): error CS1757: Embedded interop struct 'S1' can contain only public instance fields.
                 //         var s1 = i.F1();
-                Diagnostic(ErrorCode.ERR_InteropStructContainsMethods, "i.F1()").WithArguments("S1").WithLocation(6, 18),
-                // (7,18): error CS1757: Embedded interop struct 'S2' can contain only public instance fields.
-                //         var s2 = i.F2();
-                Diagnostic(ErrorCode.ERR_InteropStructContainsMethods, "i.F2()").WithArguments("S2").WithLocation(7, 18));
+                Diagnostic(ErrorCode.ERR_InteropStructContainsMethods, "i.F1()").WithArguments("S1").WithLocation(6, 18));
+        }
+
+        [WorkItem(60568, "https://github.com/dotnet/roslyn/issues/60568")]
+        [Fact]
+        public void FieldInitializer_EscapeAnalysis_01()
+        {
+            var source =
+@"using System;
+
+ref struct Example
+{
+    public Span<byte> Field = stackalloc byte[512];
+    public Span<byte> Property { get; } = stackalloc byte[512];
+    public Example() {}
+}";
+            var comp = CreateCompilationWithSpan(source);
+            comp.VerifyDiagnostics(
+                // (5,31): error CS8353: A result of a stackalloc expression of type 'Span<byte>' cannot be used in this context because it may be exposed outside of the containing method
+                //     public Span<byte> Field = stackalloc byte[512];
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc byte[512]").WithArguments("System.Span<byte>").WithLocation(5, 31),
+                // (6,43): error CS8353: A result of a stackalloc expression of type 'Span<byte>' cannot be used in this context because it may be exposed outside of the containing method
+                //     public Span<byte> Property { get; } = stackalloc byte[512];
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc byte[512]").WithArguments("System.Span<byte>").WithLocation(6, 43));
+        }
+
+        [WorkItem(60568, "https://github.com/dotnet/roslyn/issues/60568")]
+        [ConditionalFact(typeof(CoreClrOnly))] // For conversion from Span<T> to ReadOnlySpan<T>.
+        public void FieldInitializer_EscapeAnalysis_02()
+        {
+            var source =
+@"using System;
+
+ref struct Example
+{
+    public ReadOnlySpan<int> Field = stackalloc int[512];
+    public ReadOnlySpan<int> Property { get; } = stackalloc int[512];
+    public Example() {}
+}";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (5,38): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
+                //     public ReadOnlySpan<int> Field = stackalloc int[512];
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[512]").WithArguments("System.Span<int>").WithLocation(5, 38),
+                // (6,50): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
+                //     public ReadOnlySpan<int> Property { get; } = stackalloc int[512];
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[512]").WithArguments("System.Span<int>").WithLocation(6, 50));
+        }
+
+        [WorkItem(60568, "https://github.com/dotnet/roslyn/issues/60568")]
+        [Fact]
+        public void FieldInitializer_EscapeAnalysis_03()
+        {
+            var source =
+@"using System;
+ref struct Example
+{
+    public Span<byte> Field;
+}
+ref struct E2
+{
+    public Span<byte> Field = new Example { Field = stackalloc byte[512] }.Field;
+    public Span<byte> Property { get; } = new Example { Field = stackalloc byte[512] }.Field;
+    public E2() { }
+}";
+            var comp = CreateCompilationWithSpan(source);
+            comp.VerifyDiagnostics(
+                // (8,45): error CS8353: A result of a stackalloc expression of type 'Span<byte>' cannot be used in this context because it may be exposed outside of the containing method
+                //     public Span<byte> Field = new Example { Field = stackalloc byte[512] }.Field;
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "Field = stackalloc byte[512]").WithArguments("System.Span<byte>").WithLocation(8, 45),
+                // (9,57): error CS8353: A result of a stackalloc expression of type 'Span<byte>' cannot be used in this context because it may be exposed outside of the containing method
+                //     public Span<byte> Property { get; } = new Example { Field = stackalloc byte[512] }.Field;
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "Field = stackalloc byte[512]").WithArguments("System.Span<byte>").WithLocation(9, 57));
+        }
+
+        [Fact]
+        public void FieldInitializer_EscapeAnalysis_04()
+        {
+            var source =
+@"using System;
+delegate Span<T> D<T>();
+ref struct Example
+{
+    public Span<byte> Field = F(() => stackalloc byte[512]);
+    public Span<byte> Property { get; } = F(() => stackalloc byte[512]);
+    public Example() {}
+    static Span<T> F<T>(D<T> d) => d();
+}";
+            var comp = CreateCompilationWithSpan(source);
+            comp.VerifyDiagnostics(
+                // (5,31): error CS0188: The 'this' object cannot be used before all of its fields have been assigned
+                //     public Span<byte> Field = F(() => stackalloc byte[512]);
+                Diagnostic(ErrorCode.ERR_UseDefViolationThis, "F").WithArguments("this").WithLocation(5, 31),
+                // (5,39): error CS8353: A result of a stackalloc expression of type 'Span<byte>' cannot be used in this context because it may be exposed outside of the containing method
+                //     public Span<byte> Field = F(() => stackalloc byte[512]);
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc byte[512]").WithArguments("System.Span<byte>").WithLocation(5, 39),
+                // (6,51): error CS8353: A result of a stackalloc expression of type 'Span<byte>' cannot be used in this context because it may be exposed outside of the containing method
+                //     public Span<byte> Property { get; } = F(() => stackalloc byte[512]);
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc byte[512]").WithArguments("System.Span<byte>").WithLocation(6, 51));
+        }
+
+        [WorkItem(60568, "https://github.com/dotnet/roslyn/issues/60568")]
+        [ConditionalFact(typeof(CoreClrOnly))] // For conversion from Span<T> to ReadOnlySpan<T>.
+        public void FieldInitializer_EscapeAnalysis_05()
+        {
+            var source =
+@"using System;
+struct Example
+{
+    public Span<byte> Field = stackalloc byte[512];
+    public ReadOnlySpan<int> Property { get; } = stackalloc int[512];
+    public Example() {}
+}";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (4,12): error CS8345: Field or auto-implemented property cannot be of type 'Span<byte>' unless it is an instance member of a ref struct.
+                //     public Span<byte> Field = stackalloc byte[512];
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Span<byte>").WithArguments("System.Span<byte>").WithLocation(4, 12),
+                // (4,31): error CS8353: A result of a stackalloc expression of type 'Span<byte>' cannot be used in this context because it may be exposed outside of the containing method
+                //     public Span<byte> Field = stackalloc byte[512];
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc byte[512]").WithArguments("System.Span<byte>").WithLocation(4, 31),
+                // (5,12): error CS8345: Field or auto-implemented property cannot be of type 'ReadOnlySpan<int>' unless it is an instance member of a ref struct.
+                //     public ReadOnlySpan<int> Property { get; } = stackalloc int[512];
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "ReadOnlySpan<int>").WithArguments("System.ReadOnlySpan<int>").WithLocation(5, 12),
+                // (5,50): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
+                //     public ReadOnlySpan<int> Property { get; } = stackalloc int[512];
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[512]").WithArguments("System.Span<int>").WithLocation(5, 50));
+        }
+
+        [WorkItem(60568, "https://github.com/dotnet/roslyn/issues/60568")]
+        [ConditionalFact(typeof(CoreClrOnly))] // For conversion from Span<T> to ReadOnlySpan<T>.
+        public void FieldInitializer_EscapeAnalysis_06()
+        {
+            var source =
+@"using System;
+record struct Example()
+{
+    public Span<byte> Field = stackalloc byte[512];
+    public ReadOnlySpan<int> Property { get; } = stackalloc int[512];
+}";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (4,12): error CS8345: Field or auto-implemented property cannot be of type 'Span<byte>' unless it is an instance member of a ref struct.
+                //     public Span<byte> Field = stackalloc byte[512];
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Span<byte>").WithArguments("System.Span<byte>").WithLocation(4, 12),
+                // (4,31): error CS8353: A result of a stackalloc expression of type 'Span<byte>' cannot be used in this context because it may be exposed outside of the containing method
+                //     public Span<byte> Field = stackalloc byte[512];
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc byte[512]").WithArguments("System.Span<byte>").WithLocation(4, 31),
+                // (5,12): error CS8345: Field or auto-implemented property cannot be of type 'ReadOnlySpan<int>' unless it is an instance member of a ref struct.
+                //     public ReadOnlySpan<int> Property { get; } = stackalloc int[512];
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "ReadOnlySpan<int>").WithArguments("System.ReadOnlySpan<int>").WithLocation(5, 12),
+                // (5,50): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
+                //     public ReadOnlySpan<int> Property { get; } = stackalloc int[512];
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[512]").WithArguments("System.Span<int>").WithLocation(5, 50));
+        }
+
+        [WorkItem(60568, "https://github.com/dotnet/roslyn/issues/60568")]
+        [ConditionalFact(typeof(CoreClrOnly))] // For conversion from Span<T> to ReadOnlySpan<T>.
+        public void FieldInitializer_EscapeAnalysis_07()
+        {
+            var source =
+@"using System;
+class Example
+{
+    public Span<byte> Field = stackalloc byte[512];
+    public ReadOnlySpan<int> Property { get; } = stackalloc int[512];
+}";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (4,12): error CS8345: Field or auto-implemented property cannot be of type 'Span<byte>' unless it is an instance member of a ref struct.
+                //     public Span<byte> Field = stackalloc byte[512];
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Span<byte>").WithArguments("System.Span<byte>").WithLocation(4, 12),
+                // (4,31): error CS8353: A result of a stackalloc expression of type 'Span<byte>' cannot be used in this context because it may be exposed outside of the containing method
+                //     public Span<byte> Field = stackalloc byte[512];
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc byte[512]").WithArguments("System.Span<byte>").WithLocation(4, 31),
+                // (5,12): error CS8345: Field or auto-implemented property cannot be of type 'ReadOnlySpan<int>' unless it is an instance member of a ref struct.
+                //     public ReadOnlySpan<int> Property { get; } = stackalloc int[512];
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "ReadOnlySpan<int>").WithArguments("System.ReadOnlySpan<int>").WithLocation(5, 12),
+                // (5,50): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
+                //     public ReadOnlySpan<int> Property { get; } = stackalloc int[512];
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[512]").WithArguments("System.Span<int>").WithLocation(5, 50));
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))] // For conversion from Span<T> to ReadOnlySpan<T>.
+        public void FieldInitializer_EscapeAnalysis_Script()
+        {
+            var source =
+@"using System;
+Span<byte> s = stackalloc byte[512];
+ReadOnlySpan<int> r = stackalloc int[512];
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Script, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (2,1): error CS8345: Field or auto-implemented property cannot be of type 'Span<byte>' unless it is an instance member of a ref struct.
+                // Span<byte> s = stackalloc byte[512];
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Span<byte>").WithArguments("System.Span<byte>").WithLocation(2, 1),
+                // (3,1): error CS8345: Field or auto-implemented property cannot be of type 'ReadOnlySpan<int>' unless it is an instance member of a ref struct.
+                // ReadOnlySpan<int> r = stackalloc int[512];
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "ReadOnlySpan<int>").WithArguments("System.ReadOnlySpan<int>").WithLocation(3, 1));
         }
     }
 }

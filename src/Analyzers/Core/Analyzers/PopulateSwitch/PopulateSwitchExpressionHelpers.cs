@@ -70,17 +70,27 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         }
 
         public static bool HasDefaultCase(ISwitchExpressionOperation operation)
-            => operation.Arms.Any(a => IsDefault(a));
+            => operation.Arms.Any(IsDefault);
 
         public static bool IsDefault(ISwitchExpressionArmOperation arm)
-        {
-            if (arm.Pattern.Kind == OperationKind.DiscardPattern)
-                return true;
+            => IsDefault(arm.Pattern);
 
-            if (arm.Pattern is IDeclarationPatternOperation declarationPattern)
-                return declarationPattern.MatchesNull;
-
-            return false;
-        }
+        private static bool IsDefault(IPatternOperation pattern)
+            => pattern switch
+            {
+                // _ => ...
+                IDiscardPatternOperation => true,
+                // var v => ...
+                IDeclarationPatternOperation declarationPattern => declarationPattern.MatchesNull,
+                IBinaryPatternOperation binaryPattern => binaryPattern.OperatorKind switch
+                {
+                    // x or _ => ...
+                    BinaryOperatorKind.Or => IsDefault(binaryPattern.LeftPattern) || IsDefault(binaryPattern.RightPattern),
+                    // _ and var x => ...
+                    BinaryOperatorKind.And => IsDefault(binaryPattern.LeftPattern) && IsDefault(binaryPattern.RightPattern),
+                    _ => false,
+                },
+                _ => false
+            };
     }
 }

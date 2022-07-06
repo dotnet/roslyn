@@ -6,6 +6,7 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.ConvertIfToSwitch;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -30,11 +31,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
 
         public override Analyzer CreateAnalyzer(ISyntaxFacts syntaxFacts, ParseOptions options)
         {
-            var version = ((CSharpParseOptions)options).LanguageVersion;
+            var version = options.LanguageVersion();
             var features =
                 (version >= LanguageVersion.CSharp7 ? Feature.SourcePattern | Feature.IsTypePattern | Feature.CaseGuard : 0) |
                 (version >= LanguageVersion.CSharp8 ? Feature.SwitchExpression : 0) |
-                (version.IsCSharp9OrAbove() ? Feature.RelationalPattern | Feature.OrPattern | Feature.AndPattern | Feature.TypePattern : 0);
+                (version >= LanguageVersion.CSharp9 ? Feature.RelationalPattern | Feature.OrPattern | Feature.AndPattern | Feature.TypePattern : 0);
             return new CSharpAnalyzer(syntaxFacts, features);
         }
     }

@@ -24,9 +24,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             Verify = new Verifier(this, _instance);
         }
 
-        public int ErrorListErrorCount
-            => _inProc.ErrorListErrorCount;
-
         public void ShowErrorList()
         {
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.SolutionCrawler);
@@ -35,9 +32,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.ErrorList);
             _inProc.ShowErrorList();
         }
-
-        public void WaitForNoErrorsInErrorList(TimeSpan timeout)
-            => _inProc.WaitForNoErrorsInErrorList(timeout);
 
         public int GetErrorListErrorCount()
             => _inProc.GetErrorCount();

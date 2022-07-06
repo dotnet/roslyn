@@ -8,6 +8,16 @@
     <RootNamespace>Microsoft.CodeAnalysis.LanguageServer.UnitTests</RootNamespace>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
+  <ItemGroup>
+    <None Include="InlineCompletions\TestSnippets.snippet">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup Label="Package References">
+    <PackageReference Include="BenchmarkDotNet" Version="$(BenchmarkDotNetVersion)" />
+    <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="$(BenchmarkDotNetDiagnosticsWindowsVersion)" />
+  </ItemGroup>
 
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
@@ -37,5 +47,8 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="IdeBenchmarks" />
   </ItemGroup>
 </Project>

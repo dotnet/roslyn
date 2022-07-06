@@ -50,12 +50,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return _rules
         End Function
 
+        Public Overrides Function GetFormattingOptions(options As AnalyzerConfigOptions) As SyntaxFormattingOptions
+            Return VisualBasicSyntaxFormattingOptions.Create(options)
+        End Function
+
         Protected Overrides Function CreateAggregatedFormattingResult(node As SyntaxNode, results As IList(Of AbstractFormattingResult), Optional formattingSpans As SimpleIntervalTree(Of TextSpan, TextSpanIntervalIntrospector) = Nothing) As IFormattingResult
             Return New AggregatedFormattingResult(node, results, formattingSpans)
         End Function
 
-        Protected Overrides Function Format(root As SyntaxNode, options As AnalyzerConfigOptions, formattingRules As IEnumerable(Of AbstractFormattingRule), token1 As SyntaxToken, token2 As SyntaxToken, cancellationToken As CancellationToken) As AbstractFormattingResult
-            Return New VisualBasicFormatEngine(root, options, formattingRules, token1, token2).Format(cancellationToken)
+        Protected Overrides Function Format(root As SyntaxNode, options As SyntaxFormattingOptions, formattingRules As IEnumerable(Of AbstractFormattingRule), startToken As SyntaxToken, endToken As SyntaxToken, cancellationToken As CancellationToken) As AbstractFormattingResult
+            Return New VisualBasicFormatEngine(root, options, formattingRules, startToken, endToken).Format(cancellationToken)
         End Function
     End Class
 End Namespace

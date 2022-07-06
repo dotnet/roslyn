@@ -40,9 +40,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 Dim completionService = New TestCompletionService(workspace)
 
                 Dim list = Await completionService.GetCompletionsAsync(
-                    document, caretPosition:=0, trigger:=CompletionTrigger.Invoke)
+                    document, caretPosition:=0, CompletionOptions.Default, OptionValueSet.Empty, CompletionTrigger.Invoke)
 
-                Assert.NotNull(list)
                 Assert.NotEmpty(list.Items)
                 Assert.True(list.Items.Length = 2, "Completion List does not contain exactly two items.")
                 Assert.Equal(String.Format(CompletionItemExclusive, 2), list.Items.First.DisplayText)
@@ -62,6 +61,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     Return "NoCompilation"
                 End Get
             End Property
+
+            Friend Overrides Function GetRules(options As CompletionOptions) As CompletionRules
+                Return CompletionRules.Default
+            End Function
         End Class
 
         Private MustInherit Class TestCompletionProviderWithMockExclusivity

@@ -89,7 +89,7 @@ class Program
         {
             string alias = @"using var = var;";
             string text = @"
-class var { }
+class @var { }
  
 class B
 {
@@ -136,7 +136,7 @@ class C
 
 class D
 {
-    class var
+    class @var
     {
         public static implicit operator var(int x) { return null; }
     }

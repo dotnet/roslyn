@@ -127,14 +127,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                     }));
         }
 
-        private static Dictionary<string, string?> TrimDictionary(IReadOnlyDictionary<string, string?> allRawConventions)
+        internal static Dictionary<string, T> TrimDictionary<T>(IReadOnlyDictionary<string, T> allRawConventions)
         {
             // Keys have been lowercased, but values have not. Because values here reference key
             // names we need any comparisons to ignore case.
             // For example, to make a naming style called "Pascal_Case_style" match up correctly
             // with the key "dotnet_naming_style.pascal_case_style.capitalization", we have to
             // ignore casing for that lookup.
-            var trimmedDictionary = new Dictionary<string, string?>(allRawConventions.Count, AnalyzerConfigOptions.KeyComparer);
+            var trimmedDictionary = new Dictionary<string, T>(allRawConventions.Count, AnalyzerConfigOptions.KeyComparer);
             foreach (var item in allRawConventions)
             {
                 var key = item.Key.Trim();
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             return trimmedDictionary;
         }
 
-        private static IEnumerable<string> GetRuleTitles(IReadOnlyDictionary<string, string?> allRawConventions)
+        public static IEnumerable<string> GetRuleTitles<T>(IReadOnlyDictionary<string, T> allRawConventions)
             => (from kvp in allRawConventions
                 where kvp.Key.Trim().StartsWith("dotnet_naming_rule.", StringComparison.Ordinal)
                 let nameSplit = kvp.Key.Split('.')

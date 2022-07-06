@@ -116,6 +116,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 solution.Workspace.Services, SolutionKey.ToSolutionKey(solution), reference, checksum, database, metadata, cancellationToken).ConfigureAwait(false);
         }
 
+        public static Task<SymbolTreeInfo> TryGetCachedInfoForMetadataReferenceIgnoreChecksumAsync(PortableExecutableReference reference, CancellationToken cancellationToken)
+        {
+            var metadataId = GetMetadataIdNoThrow(reference);
+            if (metadataId != null && s_metadataIdToInfo.TryGetValue(metadataId, out var infoTask))
+                return infoTask.GetValueAsync(cancellationToken);
+
+            return SpecializedTasks.Null<SymbolTreeInfo>();
+        }
+
         private static async Task<SymbolTreeInfo> GetInfoForMetadataReferenceSlowAsync(
             HostWorkspaceServices services,
             SolutionKey solutionKey,

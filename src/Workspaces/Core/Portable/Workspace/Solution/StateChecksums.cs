@@ -48,36 +48,13 @@ namespace Microsoft.CodeAnalysis.Serialization
 
             // verify input
             if (searchingChecksumsLeft.Remove(Checksum))
-            {
                 result[Checksum] = this;
-            }
 
             if (searchingChecksumsLeft.Remove(Attributes))
-            {
                 result[Attributes] = state.SolutionAttributes;
-            }
 
-            // The Options field could be referring to the full solution-options, or it could be referring to a
-            // partially computed options for a project-subset.  Check for both cases.
             if (searchingChecksumsLeft.Remove(Options))
-            {
-                if (state.TryGetStateChecksums(out var stateChecksums) && stateChecksums.Options == Options)
-                {
-                    result[Options] = state.Options;
-                }
-                else
-                {
-                    foreach (var projectId in state.ProjectIds)
-                    {
-                        if (state.TryGetStateChecksums(projectId, out var tuple) &&
-                            tuple.checksums.Options == Options)
-                        {
-                            result[Options] = tuple.options;
-                            break;
-                        }
-                    }
-                }
-            }
+                result[Options] = state.Options;
 
             if (searchingChecksumsLeft.Remove(FrozenSourceGeneratedDocumentIdentity))
             {

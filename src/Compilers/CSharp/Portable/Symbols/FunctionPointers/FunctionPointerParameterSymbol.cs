@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using Roslyn.Utilities;
 
@@ -15,6 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public FunctionPointerParameterSymbol(TypeWithAnnotations typeWithAnnotations, RefKind refKind, int ordinal, FunctionPointerMethodSymbol containingSymbol, ImmutableArray<CustomModifier> refCustomModifiers)
         {
+            Debug.Assert(typeWithAnnotations.HasType);
             TypeWithAnnotations = typeWithAnnotations;
             RefKind = refKind;
             Ordinal = ordinal;
@@ -66,6 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override bool IsDiscard => false;
         public override bool IsParams => false;
         public override bool IsImplicitlyDeclared => true;
+        public override bool IsNullChecked => false;
         internal override MarshalPseudoCustomAttributeData? MarshallingInformation => null;
         internal override bool IsMetadataOptional => false;
         internal override bool IsMetadataIn => RefKind == RefKind.In;

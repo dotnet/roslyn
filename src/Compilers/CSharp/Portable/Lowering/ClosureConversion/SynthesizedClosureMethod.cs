@@ -41,6 +41,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     : MakeName(topLevelMethod.Name, topLevelMethodId, closureKind, lambdaId),
                    MakeDeclarationModifiers(closureKind, originalMethod))
         {
+            Debug.Assert(containingType.DeclaringCompilation is not null);
+
             TopLevelMethod = topLevelMethod;
             ClosureKind = closureKind;
             LambdaId = lambdaId;

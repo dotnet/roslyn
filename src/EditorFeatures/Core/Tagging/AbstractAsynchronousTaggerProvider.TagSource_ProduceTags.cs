@@ -12,9 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -225,8 +223,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                     // Create a context to store pass the information along and collect the results.
                     var context = new TaggerContext<TTag>(
-                        oldState, spansToTag, caretPosition, textChangeRange, oldTagTrees, cancellationToken);
-                    await ProduceTagsAsync(context).ConfigureAwait(false);
+                        oldState, spansToTag, caretPosition, textChangeRange, oldTagTrees);
+                    await ProduceTagsAsync(context, cancellationToken).ConfigureAwait(false);
 
                     cancellationToken.ThrowIfCancellationRequested();
 
@@ -299,8 +297,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 var spansTagged = context._spansTagged;
 
                 var spansToInvalidateByBuffer = spansTagged.ToLookup(
-                    keySelector: span => span.SnapshotSpan.Snapshot.TextBuffer,
-                    elementSelector: span => span.SnapshotSpan);
+                    keySelector: span => span.Snapshot.TextBuffer,
+                    elementSelector: span => span);
 
                 // Walk through each relevant buffer and decide what the interval tree should be
                 // for that buffer.  In general this will work by keeping around old tags that
@@ -371,19 +369,19 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private bool ShouldSkipTagProduction()
             {
-                var options = _dataSource.Options ?? SpecializedCollections.EmptyEnumerable<Option2<bool>>();
-                var perLanguageOptions = _dataSource.PerLanguageOptions ?? SpecializedCollections.EmptyEnumerable<PerLanguageOption2<bool>>();
+                if (_dataSource.Options.Any(option => !_dataSource.GlobalOptions.GetOption(option)))
+                    return true;
 
-                return options.Any(option => !_subjectBuffer.GetFeatureOnOffOption(option)) ||
-                       perLanguageOptions.Any(option => !_subjectBuffer.GetFeatureOnOffOption(option));
+                var languageName = _subjectBuffer.GetLanguageName();
+                return _dataSource.PerLanguageOptions.Any(option => languageName == null || !_dataSource.GlobalOptions.GetOption(option, languageName));
             }
 
-            private Task ProduceTagsAsync(TaggerContext<TTag> context)
+            private Task ProduceTagsAsync(TaggerContext<TTag> context, CancellationToken cancellationToken)
             {
                 // If the feature is disabled, then just produce no tags.
                 return ShouldSkipTagProduction()
                     ? Task.CompletedTask
-                    : _dataSource.ProduceTagsAsync(context);
+                    : _dataSource.ProduceTagsAsync(context, cancellationToken);
             }
 
             private static Dictionary<ITextBuffer, DiffResult> ProcessNewTagTrees(

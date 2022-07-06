@@ -5,8 +5,10 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.ConvertToInterpolatedString;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedString
@@ -127,8 +129,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
 }");
         }
 
+        [WorkItem(52243, "https://github.com/dotnet/roslyn/issues/52243")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
-        public async Task TestMissingOnRegularStringWithBracesAssignedToConst()
+        public async Task TestMissingOnRegularStringWithBracesAssignedToConstBeforeCSharp10()
         {
             await TestMissingInRegularAndScriptAsync(
 @"public class C
@@ -137,7 +140,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
     {
         const string v = [||]""string {"";
     }
-}");
+}", new(new CSharpParseOptions(LanguageVersion.CSharp9)));
+        }
+
+        [WorkItem(52243, "https://github.com/dotnet/roslyn/issues/52243")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestOnRegularStringWithBracesAssignedToConstForCSharp10AndNewer()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class C
+{
+    void M()
+    {
+        const string v = [||]""string {"";
+    }
+}",
+@"public class C
+{
+    void M()
+    {
+        const string v = $""string {{"";
+    }
+}", parseOptions: new CSharpParseOptions(LanguageVersion.CSharp10));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
@@ -153,8 +177,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
 }");
         }
 
+        [WorkItem(52243, "https://github.com/dotnet/roslyn/issues/52243")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
-        public async Task TestMissingOnAttributeStringParameterWithBraces()
+        public async Task TestMissingOnAttributeStringParameterWithBracesBeforeCSharp10()
         {
             await TestMissingInRegularAndScriptAsync(
 @"[System.Diagnostics.DebuggerDisplay([||]""FirstName={FirstName}, LastName={LastName}"")]
@@ -162,7 +187,26 @@ public class C
 {
     public string FirstName { get; set; }
     public string LastName { get; set; }
-}");
+}", new(new CSharpParseOptions(LanguageVersion.CSharp9)));
+        }
+
+        [WorkItem(52243, "https://github.com/dotnet/roslyn/issues/52243")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestOnAttributeStringParameterWithBracesForCSharp10AndNewer()
+        {
+            await TestInRegularAndScriptAsync(
+@"[System.Diagnostics.DebuggerDisplay([||]""FirstName={FirstName}, LastName={LastName}"")]
+public class C
+{
+    public string FirstName { get; set; }
+    public string LastName { get; set; }
+}",
+@"[System.Diagnostics.DebuggerDisplay($""FirstName={{FirstName}}, LastName={{LastName}}"")]
+public class C
+{
+    public string FirstName { get; set; }
+    public string LastName { get; set; }
+}", parseOptions: new CSharpParseOptions(LanguageVersion.CSharp10));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]

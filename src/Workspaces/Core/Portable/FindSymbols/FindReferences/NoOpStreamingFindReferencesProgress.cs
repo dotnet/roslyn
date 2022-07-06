@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private class NoOpProgressTracker : IStreamingProgressTracker
         {
             public ValueTask AddItemsAsync(int count, CancellationToken cancellationToken) => default;
-            public ValueTask ItemCompletedAsync(CancellationToken cancellationToken) => default;
+            public ValueTask ItemsCompletedAsync(int count, CancellationToken cancellationToken) => default;
         }
     }
 }

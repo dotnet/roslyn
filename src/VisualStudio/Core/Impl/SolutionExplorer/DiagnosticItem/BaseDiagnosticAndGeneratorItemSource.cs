@@ -118,7 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 {
                     var selectedDiagnostic = g.OrderBy(d => d, s_comparer).First();
                     var effectiveSeverity = selectedDiagnostic.GetEffectiveSeverity(options, analyzerConfigOptions);
-                    return new DiagnosticItem(projectId, AnalyzerReference, selectedDiagnostic, effectiveSeverity, language, CommandHandler);
+                    return new DiagnosticItem(projectId, AnalyzerReference, selectedDiagnostic, effectiveSeverity, CommandHandler);
                 }));
 
             collection.AddRange(

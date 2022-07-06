@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -360,6 +358,26 @@ class Program
                 expectDiagnostic);
         }
 
+        [WorkItem(57770, "https://github.com/dotnet/roslyn/issues/57770")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        public async Task FireForIfWithoutBracesTopLevel(int bracesPreference, bool expectDiagnostic)
+        {
+            await TestAsync(
+@"
+[|if|] (true) return;
+",
+@"
+if (true)
+{
+    return;
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
+        }
+
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         [InlineData((int)PreferBracesPreference.None, false)]
         [InlineData((int)PreferBracesPreference.WhenMultiline, true)]
@@ -448,9 +466,10 @@ class Program
 {
     static void Main()
     {
-{}
         else
+        {
             return;
+        }
     }
 }",
                 (PreferBracesPreference)bracesPreference,

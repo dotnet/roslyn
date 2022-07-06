@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -18,8 +19,12 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
 {
     internal partial class GenerateOverridesCodeRefactoringProvider
     {
-        private class GenerateOverridesWithDialogCodeAction : CodeActionWithOptions
+        private sealed class GenerateOverridesWithDialogCodeAction : CodeActionWithOptions
         {
+            public static readonly Option2<bool> s_globalOption = new(
+                "GenerateOverridesOptions", "SelectAll", defaultValue: true,
+                storageLocation: new RoamingProfileStorageLocation($"TextEditor.Specific.GenerateOverridesOptions.SelectAll"));
+
             private readonly GenerateOverridesCodeRefactoringProvider _service;
             private readonly Document _document;
             private readonly INamedTypeSymbol _containingType;
@@ -44,11 +49,14 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
 
             public override object GetOptions(CancellationToken cancellationToken)
             {
-                var service = _service._pickMembersService_forTestingPurposes ?? _document.Project.Solution.Workspace.Services.GetRequiredService<IPickMembersService>();
-                return service.PickMembers(
+                var services = _document.Project.Solution.Workspace.Services;
+                var pickMembersService = _service._pickMembersService_forTestingPurposes ?? services.GetRequiredService<IPickMembersService>();
+                var globalOptionService = services.GetService<ILegacyGlobalOptionsWorkspaceService>();
+
+                return pickMembersService.PickMembers(
                     FeaturesResources.Pick_members_to_override,
                     _viableMembers,
-                    selectAll: _document.Project.Solution.Options.GetOption(GenerateOverridesOptions.SelectAll));
+                    selectAll: globalOptionService?.GlobalOptions.GetOption(s_globalOption) ?? s_globalOption.DefaultValue);
             }
 
             protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
@@ -76,10 +84,9 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
                     _document.Project.Solution,
                     _containingType,
                     members,
-                    new CodeGenerationOptions(
+                    new CodeGenerationContext(
                         afterThisLocation: afterThisLocation,
-                        contextLocation: syntaxTree.GetLocation(_textSpan),
-                        options: await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false)),
+                        contextLocation: syntaxTree.GetLocation(_textSpan)),
                     cancellationToken).ConfigureAwait(false);
 
                 return new CodeActionOperation[]
@@ -98,7 +105,7 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
                     cancellationToken: cancellationToken);
             }
 
-            private class ChangeOptionValueOperation : CodeActionOperation
+            private sealed class ChangeOptionValueOperation : CodeActionOperation
             {
                 private readonly bool _selectedAll;
 
@@ -107,12 +114,8 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
 
                 public override void Apply(Workspace workspace, CancellationToken cancellationToken)
                 {
-                    if (workspace.Options.GetOption(GenerateOverridesOptions.SelectAll) == _selectedAll)
-                        return;
-
-                    workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
-                        workspace.CurrentSolution.Options.WithChangedOption(
-                            GenerateOverridesOptions.SelectAll, _selectedAll)));
+                    var service = workspace.Services.GetService<ILegacyGlobalOptionsWorkspaceService>();
+                    service?.GlobalOptions.SetGlobalOption(new OptionKey(s_globalOption), _selectedAll);
                 }
             }
         }

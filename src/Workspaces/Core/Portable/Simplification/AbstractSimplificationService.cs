@@ -30,14 +30,17 @@ namespace Microsoft.CodeAnalysis.Simplification
         where TStatementSyntax : SyntaxNode
         where TCrefSyntax : SyntaxNode
     {
-        private ImmutableArray<AbstractReducer> _reducers;
+        protected static readonly Func<SyntaxNode, bool> s_containsAnnotations = n => n.ContainsAnnotations;
+        protected static readonly Func<SyntaxNodeOrToken, bool> s_hasSimplifierAnnotation = n => n.HasAnnotation(Simplifier.Annotation);
+
+        private readonly ImmutableArray<AbstractReducer> _reducers;
 
         protected AbstractSimplificationService(ImmutableArray<AbstractReducer> reducers)
             => _reducers = reducers;
 
         protected abstract ImmutableArray<NodeOrTokenToReduce> GetNodesAndTokensToReduce(SyntaxNode root, Func<SyntaxNodeOrToken, bool> isNodeOrTokenOutsideSimplifySpans);
         protected abstract SemanticModel GetSpeculativeSemanticModel(ref SyntaxNode nodeToSpeculate, SemanticModel originalSemanticModel, SyntaxNode originalNode);
-        protected abstract bool CanNodeBeSimplifiedWithoutSpeculation(SyntaxNode node);
+        protected abstract bool NodeRequiresNonSpeculativeSemanticModel(SyntaxNode node);
 
         protected virtual SyntaxNode TransformReducedNode(SyntaxNode reducedNode, SyntaxNode originalNode)
             => reducedNode;
@@ -168,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Simplification
             return document;
         }
 
-        private Task ReduceAsync(
+        private async Task ReduceAsync(
             Document document,
             SyntaxNode root,
             ImmutableArray<NodeOrTokenToReduce> nodesAndTokensToReduce,
@@ -179,6 +182,9 @@ namespace Microsoft.CodeAnalysis.Simplification
             ConcurrentDictionary<SyntaxToken, SyntaxToken> reducedTokensMap,
             CancellationToken cancellationToken)
         {
+            // Debug flag to help processing things serially instead of parallel.
+            var executeSerially = Debugger.IsAttached;
+
             Contract.ThrowIfFalse(nodesAndTokensToReduce.Any());
 
             // Reduce each node or token in the given list by running it through each reducer.
@@ -233,7 +239,7 @@ namespace Microsoft.CodeAnalysis.Simplification
                                 if (isNode)
                                 {
                                     var currentNode = currentNodeOrToken.AsNode();
-                                    if (this.CanNodeBeSimplifiedWithoutSpeculation(nodeOrToken.AsNode()))
+                                    if (this.NodeRequiresNonSpeculativeSemanticModel(nodeOrToken.AsNode()))
                                     {
                                         // Since this node cannot be speculated, we are replacing the Document with the changes and get a new SemanticModel
                                         var marker = new SyntaxAnnotation();
@@ -271,9 +277,12 @@ namespace Microsoft.CodeAnalysis.Simplification
                         }
                     }
                 }, cancellationToken);
+
+                if (executeSerially)
+                    await simplifyTasks[i].ConfigureAwait(false);
             }
 
-            return Task.WhenAll(simplifyTasks);
+            await Task.WhenAll(simplifyTasks).ConfigureAwait(false);
         }
 
         // find any namespace imports / using directives marked for simplification in the specified spans
@@ -321,21 +330,5 @@ namespace Microsoft.CodeAnalysis.Simplification
         }
 
         protected abstract void GetUnusedNamespaceImports(SemanticModel model, HashSet<SyntaxNode> namespaceImports, CancellationToken cancellationToken);
-    }
-
-    internal struct NodeOrTokenToReduce
-    {
-        public readonly SyntaxNodeOrToken NodeOrToken;
-        public readonly bool SimplifyAllDescendants;
-        public readonly SyntaxNodeOrToken OriginalNodeOrToken;
-        public readonly bool CanBeSpeculated;
-
-        public NodeOrTokenToReduce(SyntaxNodeOrToken nodeOrToken, bool simplifyAllDescendants, SyntaxNodeOrToken originalNodeOrToken, bool canBeSpeculated = true)
-        {
-            this.NodeOrToken = nodeOrToken;
-            this.SimplifyAllDescendants = simplifyAllDescendants;
-            this.OriginalNodeOrToken = originalNodeOrToken;
-            this.CanBeSpeculated = canBeSpeculated;
-        }
     }
 }

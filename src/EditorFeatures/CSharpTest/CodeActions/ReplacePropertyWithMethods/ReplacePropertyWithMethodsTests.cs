@@ -16,6 +16,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceProp
 {
     public class ReplacePropertyWithMethodsTests : AbstractCSharpCodeActionTest
     {
+        private OptionsCollection PreferExpressionBodiedMethods =>
+            new(GetLanguage()) { { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement } };
+
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new ReplacePropertyWithMethodsCodeRefactoringProvider();
 
@@ -1975,7 +1978,56 @@ class C
 }");
         }
 
-        private OptionsCollection PreferExpressionBodiedMethods =>
-            new OptionsCollection(GetLanguage()) { { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement } };
+        [WorkItem(57376, "https://github.com/dotnet/roslyn/issues/57376")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestInLinkedFile()
+        {
+            await TestInRegularAndScriptAsync(
+@"<Workspace>
+    <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj' Name='CSProj.1'>
+        <Document FilePath='C.cs'>
+class C
+{
+    int [||]Prop
+    {
+        set
+        {
+            var v = value;
+        }
+    }
+
+    void M()
+    {
+        this.Prop = 1;
+    }
+}
+        </Document>
+    </Project>
+    <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj' Name='CSProj.2'>
+        <Document IsLinkFile='true' LinkProjectName='CSProj.1' LinkFilePath='C.cs'/>
+    </Project>
+</Workspace>",
+@"<Workspace>
+    <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj' Name='CSProj.1'>
+        <Document FilePath='C.cs'>
+class C
+{
+    private void SetProp(int value)
+    {
+        var v = value;
+    }
+
+    void M()
+    {
+        this.SetProp(1);
+    }
+}
+        </Document>
+    </Project>
+    <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj' Name='CSProj.2'>
+        <Document IsLinkFile='true' LinkProjectName='CSProj.1' LinkFilePath='C.cs'/>
+    </Project>
+</Workspace>");
+        }
     }
 }

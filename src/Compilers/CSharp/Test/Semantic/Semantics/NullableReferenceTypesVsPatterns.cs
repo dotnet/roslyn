@@ -2621,5 +2621,240 @@ class B { public static implicit operator C(B b) => new C(); }
 
             comp.VerifyDiagnostics();
         }
+
+        [Fact, WorkItem(51904, "https://github.com/dotnet/roslyn/issues/51904")]
+        public void TupleSwitchWithSuppression()
+        {
+            // When an input value is suppressed, it will get a dedicated
+            // slot during DAG analysis, instead of re-using the slot we might
+            // get from the expression
+
+            var comp = CreateCompilation(@"
+#nullable enable
+
+public class C
+{
+    public string M1(C? a)
+        => a! switch
+        {
+            C => a.ToString() // 1
+        };
+
+    public string M11(C? a)
+        => a! switch
+        {
+            null => string.Empty,
+            C => a.ToString() // 2
+        };
+
+    public string M111(C? a)
+        => a! switch
+        {
+            null => string.Empty,
+            _ => a.ToString() // 3
+        };
+
+    public string M2(C? a)
+        => (1, a!) switch
+        {
+            (_, C) => a.ToString() // 4
+        };
+
+    public string M22(C? a)
+        => (1, a!) switch
+        {
+            (_, null) => string.Empty,
+            (_, C) => a.ToString() // 5
+        };
+
+    public string M222(C? a)
+        => (1, a!) switch
+        {
+            (_, null) => string.Empty,
+            (_, _) => a.ToString() // 6
+        };
+
+    public int M2222(C? a)
+        => (1, a!) switch
+        {
+            (_, null) => 0,
+            (_, _) => 1
+        };
+
+    public string M3(C? a)
+        => (1, a)! switch // 7
+        {
+            (_, C) => a.ToString()
+        };
+
+    public string M4(C? a)
+        => (1, (1, a!)) switch
+        {
+            (_, (_, C)) => a.ToString() // 8
+        };
+
+    public string M5(C? a)
+        => (1, (1, a)!) switch  // 9
+        {
+            (_, (_, C)) => a.ToString() // 10
+        };
+
+    public string M6(C? a)
+        => (1, (1, a))! switch  // 11
+        {
+            (_, (_, C)) => a.ToString() // 12
+        };
+}
+");
+
+            comp.VerifyDiagnostics(
+                // (9,18): warning CS8602: Dereference of a possibly null reference.
+                //             C => a.ToString() // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a").WithLocation(9, 18),
+                // (16,18): warning CS8602: Dereference of a possibly null reference.
+                //             C => a.ToString() // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a").WithLocation(16, 18),
+                // (23,18): warning CS8602: Dereference of a possibly null reference.
+                //             _ => a.ToString() // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a").WithLocation(23, 18),
+                // (29,23): warning CS8602: Dereference of a possibly null reference.
+                //             (_, C) => a.ToString() // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a").WithLocation(29, 23),
+                // (36,23): warning CS8602: Dereference of a possibly null reference.
+                //             (_, C) => a.ToString() // 5
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a").WithLocation(36, 23),
+                // (43,23): warning CS8602: Dereference of a possibly null reference.
+                //             (_, _) => a.ToString() // 6
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a").WithLocation(43, 23),
+                // (54,20): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '(_, null)' is not covered.
+                //         => (1, a)! switch // 7
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("(_, null)").WithLocation(54, 20),
+                // (62,28): warning CS8602: Dereference of a possibly null reference.
+                //             (_, (_, C)) => a.ToString() // 8
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a").WithLocation(62, 28),
+                // (66,25): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '(_, (_, null))' is not covered.
+                //         => (1, (1, a)!) switch  // 9
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("(_, (_, null))").WithLocation(66, 25),
+                // (68,28): warning CS8602: Dereference of a possibly null reference.
+                //             (_, (_, C)) => a.ToString() // 10
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a").WithLocation(68, 28),
+                // (72,25): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '(_, (_, null))' is not covered.
+                //         => (1, (1, a))! switch  // 11
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("(_, (_, null))").WithLocation(72, 25),
+                // (74,28): warning CS8602: Dereference of a possibly null reference.
+                //             (_, (_, C)) => a.ToString() // 12
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a").WithLocation(74, 28)
+                );
+        }
+
+        [Fact, WorkItem(59804, "https://github.com/dotnet/roslyn/issues/59804")]
+        public void NestedTypeUsedInPropertyPattern()
+        {
+            var source = @"
+public class Class1
+{
+    public class Inner1
+    {
+    }
+}
+
+public class Class2
+{
+    public bool Test()
+    {
+        Class1 test = null;
+        test switch { { Inner1: """" } => """" };
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,17): error CS0161: 'Class2.Test()': not all code paths return a value
+                //     public bool Test()
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "Test").WithArguments("Class2.Test()").WithLocation(11, 17),
+                // (14,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //         test switch { { Inner1: "" } => "" };
+                Diagnostic(ErrorCode.ERR_IllegalStatement, @"test switch { { Inner1: """" } => """" }").WithLocation(14, 9),
+                // (14,25): error CS0572: 'Inner1': cannot reference a type through an expression; try 'Class1.Inner1' instead
+                //         test switch { { Inner1: "" } => "" };
+                Diagnostic(ErrorCode.ERR_BadTypeReference, "Inner1").WithArguments("Inner1", "Class1.Inner1").WithLocation(14, 25),
+                // (14,25): error CS0154: The property or indexer 'Inner1' cannot be used in this context because it lacks the get accessor
+                //         test switch { { Inner1: "" } => "" };
+                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "Inner1").WithArguments("Inner1").WithLocation(14, 25)
+                );
+        }
+
+        [Fact, WorkItem(59804, "https://github.com/dotnet/roslyn/issues/59804")]
+        public void NestedTypeUsedInPropertyPattern_ExtendedProperty()
+        {
+            var source = @"
+public class Class1
+{
+    public Class1 Next { get; set; }
+
+    public class Inner1
+    {
+    }
+}
+
+public class Class2
+{
+    public bool Test()
+    {
+        Class1 test = null;
+        test switch { { Next.Inner1: """" } => """" };
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (13,17): error CS0161: 'Class2.Test()': not all code paths return a value
+                //     public bool Test()
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "Test").WithArguments("Class2.Test()").WithLocation(13, 17),
+                // (16,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //         test switch { { Next.Inner1: "" } => "" };
+                Diagnostic(ErrorCode.ERR_IllegalStatement, @"test switch { { Next.Inner1: """" } => """" }").WithLocation(16, 9),
+                // (16,30): error CS0572: 'Inner1': cannot reference a type through an expression; try 'Class1.Inner1' instead
+                //         test switch { { Next.Inner1: "" } => "" };
+                Diagnostic(ErrorCode.ERR_BadTypeReference, "Inner1").WithArguments("Inner1", "Class1.Inner1").WithLocation(16, 30),
+                // (16,30): error CS0154: The property or indexer 'Inner1' cannot be used in this context because it lacks the get accessor
+                //         test switch { { Next.Inner1: "" } => "" };
+                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "Inner1").WithArguments("Inner1").WithLocation(16, 30)
+                );
+        }
+
+        [Fact, WorkItem(59804, "https://github.com/dotnet/roslyn/issues/59804")]
+        public void MethodUsedInPropertyPattern()
+        {
+            var source = @"
+public class Class1
+{
+    public void Method()
+    {
+    }
+}
+
+public class Class2
+{
+    public bool Test()
+    {
+        Class1 test = null;
+        test switch { { Method: """" } => """" };
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,17): error CS0161: 'Class2.Test()': not all code paths return a value
+                //     public bool Test()
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "Test").WithArguments("Class2.Test()").WithLocation(11, 17),
+                // (14,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //         test switch { { Method: "" } => "" };
+                Diagnostic(ErrorCode.ERR_IllegalStatement, @"test switch { { Method: """" } => """" }").WithLocation(14, 9),
+                // (14,25): error CS0154: The property or indexer 'Method' cannot be used in this context because it lacks the get accessor
+                //         test switch { { Method: "" } => "" };
+                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "Method").WithArguments("Method").WithLocation(14, 25)
+                );
+        }
     }
 }

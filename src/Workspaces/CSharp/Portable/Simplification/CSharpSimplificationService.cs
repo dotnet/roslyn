@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         protected override ImmutableArray<NodeOrTokenToReduce> GetNodesAndTokensToReduce(SyntaxNode root, Func<SyntaxNodeOrToken, bool> isNodeOrTokenOutsideSimplifySpans)
             => NodesAndTokensToReduceComputer.Compute(root, isNodeOrTokenOutsideSimplifySpans);
 
-        protected override bool CanNodeBeSimplifiedWithoutSpeculation(SyntaxNode node)
+        protected override bool NodeRequiresNonSpeculativeSemanticModel(SyntaxNode node)
             => false;
 
         private const string s_CS8019_UnusedUsingDirective = "CS8019";

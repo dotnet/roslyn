@@ -1436,13 +1436,20 @@ symIsHidden:;
                     {
                         return false;
                     }
-                    foreach (ImmutableArray<byte> key in keys)
+
+                    ImmutableArray<byte> publicKey = this.Compilation.Assembly.PublicKey;
+
+                    if (!publicKey.IsDefault)
                     {
-                        if (key.SequenceEqual(this.Compilation.Assembly.Identity.PublicKey))
+                        foreach (ImmutableArray<byte> key in keys)
                         {
-                            return false;
+                            if (key.SequenceEqual(publicKey))
+                            {
+                                return false;
+                            }
                         }
                     }
+
                     return true;
                 }
                 return false;
@@ -1585,6 +1592,14 @@ symIsHidden:;
         {
             bool failedThroughTypeCheck;
             return IsAccessible(symbol, accessThroughType, out failedThroughTypeCheck, ref useSiteInfo, basesBeingResolved);
+        }
+
+        internal bool IsAccessible(Symbol symbol, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
+        {
+            var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+            var result = IsAccessible(symbol, ref useSiteInfo);
+            diagnostics.Add(syntax, useSiteInfo);
+            return result;
         }
 
         /// <summary>

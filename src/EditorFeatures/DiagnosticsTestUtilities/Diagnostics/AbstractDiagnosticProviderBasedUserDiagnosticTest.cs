@@ -111,19 +111,30 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26717")]
+        [Fact]
         public void TestSupportedDiagnosticsMessageHelpLinkUri()
         {
             using (var workspace = new AdhocWorkspace())
             {
                 var diagnosticAnalyzer = CreateDiagnosticProviderAndFixer(workspace).Item1;
                 if (diagnosticAnalyzer == null)
-                {
                     return;
-                }
 
                 foreach (var descriptor in diagnosticAnalyzer.SupportedDiagnostics)
                 {
+                    // These don't come up in UI.
+                    if (descriptor.DefaultSeverity == DiagnosticSeverity.Hidden && descriptor.CustomTags.Contains(WellKnownDiagnosticTags.NotConfigurable))
+                        continue;
+
+                    if (descriptor.Id is "RE0001" or "JSON001" or "JSON002") // Currently not documented. https://github.com/dotnet/roslyn/issues/48530
+                        continue;
+
+                    if (descriptor.Id == "IDE0043") // Intentionally undocumented. It will be removed in favor of CA2241
+                        continue;
+
+                    if (descriptor.Id == "IDE1007")
+                        continue;
+
                     Assert.NotEqual("", descriptor.HelpLinkUri ?? "");
                 }
             }
@@ -166,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var ids = new HashSet<string>(fixer.FixableDiagnosticIds);
             var dxs = diagnostics.Where(d => ids.Contains(d.Id)).ToList();
             var (resultDiagnostics, codeActions, actionToInvoke) = await GetDiagnosticAndFixesAsync(
-                dxs, fixer, testDriver, document, span, annotation, parameters.index);
+                dxs, fixer, testDriver, document, span, parameters.codeActionOptions, annotation, parameters.index);
 
             // If we are also testing non-fixable diagnostics,
             // then the result diagnostics need to include all diagnostics,
@@ -181,13 +192,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         private protected async Task TestDiagnosticInfoAsync(
             string initialMarkup,
-            OptionsCollection options,
             string diagnosticId,
             DiagnosticSeverity diagnosticSeverity,
+            IdeAnalyzerOptions? ideAnalyzerOptions = null,
+            OptionsCollection options = null,
             LocalizableString diagnosticMessage = null)
         {
-            await TestDiagnosticInfoAsync(initialMarkup, null, null, options, diagnosticId, diagnosticSeverity, diagnosticMessage);
-            await TestDiagnosticInfoAsync(initialMarkup, GetScriptOptions(), null, options, diagnosticId, diagnosticSeverity, diagnosticMessage);
+            await TestDiagnosticInfoAsync(initialMarkup, parseOptions: null, compilationOptions: null, options, ideAnalyzerOptions, diagnosticId, diagnosticSeverity, diagnosticMessage);
+            await TestDiagnosticInfoAsync(initialMarkup, GetScriptOptions(), compilationOptions: null, options, ideAnalyzerOptions, diagnosticId, diagnosticSeverity, diagnosticMessage);
         }
 
         private protected async Task TestDiagnosticInfoAsync(
@@ -195,16 +207,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             ParseOptions parseOptions,
             CompilationOptions compilationOptions,
             OptionsCollection options,
+            IdeAnalyzerOptions? ideAnalyzerOptions,
             string diagnosticId,
             DiagnosticSeverity diagnosticSeverity,
             LocalizableString diagnosticMessage = null)
         {
-            var testOptions = new TestParameters(parseOptions, compilationOptions, options);
+            var testOptions = new TestParameters(parseOptions, compilationOptions, options: options, ideAnalyzerOptions: ideAnalyzerOptions);
             using (var workspace = CreateWorkspaceFromOptions(initialMarkup, testOptions))
             {
                 var diagnostics = (await GetDiagnosticsAsync(workspace, testOptions)).ToImmutableArray();
                 diagnostics = diagnostics.WhereAsArray(d => d.Id == diagnosticId);
-                Assert.Equal(1, diagnostics.Count());
+                Assert.Equal(1, diagnostics.Length);
 
                 var hostDocument = workspace.Documents.Single(d => d.SelectedSpans.Any());
                 var expected = hostDocument.SelectedSpans.Single();

@@ -7,6 +7,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
@@ -12788,6 +12789,42 @@ class C
   <methods />
 </symbols>
 ");
+        }
+
+        [Fact]
+        public void CompilerInfo_WindowsPdb()
+        {
+            var compilerAssembly = typeof(Compilation).Assembly;
+            var fileVersion = Version.Parse(compilerAssembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version);
+            var versionString = compilerAssembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
+
+            var source = "class C { void F() {} }";
+
+            var c = CreateCompilation(
+                new[] { Parse(source, "a.cs") },
+                options: TestOptions.DebugDll);
+
+            c.VerifyPdb($@"
+<symbols>
+  <files>
+    <file id=""1"" name=""a.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""CB-D0-82-32-17-65-3C-22-44-D1-38-EA-BC-88-09-CF-A1-35-1D-09"" />
+  </files>
+  <methods>
+    <method containingType=""C"" name=""F"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""1"" startColumn=""20"" endLine=""1"" endColumn=""21"" document=""1"" />
+        <entry offset=""0x1"" startLine=""1"" startColumn=""21"" endLine=""1"" endColumn=""22"" document=""1"" />
+      </sequencePoints>
+    </method>
+  </methods>
+  <compilerInfo version=""{fileVersion}"" name=""C# - {versionString}"" />
+</symbols>
+", options: PdbValidationOptions.IncludeModuleDebugInfo, format: DebugInformationFormat.Pdb);
         }
     }
 }

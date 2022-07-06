@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     SyntaxFactory.TypeArgumentList(SyntaxFactory.SeparatedList(typeArguments)));
             }
 
-            private static QualifiedNameSyntax CreateSystemObject()
+            public static QualifiedNameSyntax CreateSystemObject()
             {
                 return SyntaxFactory.QualifiedName(
                     SyntaxFactory.AliasQualifiedName(

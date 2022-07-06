@@ -13,28 +13,18 @@ namespace Roslyn.Test.Utilities
 {
     internal sealed class GenerateFileForEachAdditionalFileWithContentsCommented : IIncrementalGenerator
     {
-        /// <remarks>
-        /// This should only be updated with Interlocked APIs.
-        /// </remarks>
-        private int _additionalFilesConvertedCount;
-
-        /// <summary>
-        /// The number of additional files we converted to a source file. This can be used to assert incrementality.
-        /// </summary>
-        public int AdditionalFilesConvertedCount => _additionalFilesConvertedCount;
+        public const string StepName = "AdditionalTextsAsComments";
 
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
-            context.RegisterSourceOutput(context.AdditionalTextsProvider, (context, additionalText) =>
+            context.RegisterSourceOutput(context.AdditionalTextsProvider.Select((t, ct) => t).WithTrackingName(StepName), (context, additionalText) =>
                 context.AddSource(
                     GetGeneratedFileName(additionalText.Path),
                     GenerateSourceForAdditionalFile(additionalText, context.CancellationToken)));
         }
 
-        private SourceText GenerateSourceForAdditionalFile(AdditionalText file, CancellationToken cancellationToken)
+        private static SourceText GenerateSourceForAdditionalFile(AdditionalText file, CancellationToken cancellationToken)
         {
-            Interlocked.Increment(ref _additionalFilesConvertedCount);
-
             // We're going to "comment" out the contents of the file when generating this
             var sourceText = file.GetText(cancellationToken);
             Contract.ThrowIfNull(sourceText, "Failed to fetch the text of an additional file.");

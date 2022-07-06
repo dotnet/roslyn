@@ -40,7 +40,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ConstantValue IValueSet.Sample => ConstantValue.Create(_hasTrue ? true : _hasFalse ? false : throw new ArgumentException());
 
-
             public bool Any(BinaryOperatorKind relation, bool value)
             {
                 switch (relation, value)

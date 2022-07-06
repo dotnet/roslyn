@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
+Imports Microsoft.CodeAnalysis.MetadataAsSource
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     Partial Public Class AutomationObject
@@ -80,19 +81,19 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public Property NavigateToDecompiledSources As Boolean
             Get
-                Return GetBooleanOption(FeatureOnOffOptions.NavigateToDecompiledSources)
+                Return GetBooleanOption(MetadataAsSourceOptionsStorage.NavigateToDecompiledSources)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(FeatureOnOffOptions.NavigateToDecompiledSources, value)
+                SetBooleanOption(MetadataAsSourceOptionsStorage.NavigateToDecompiledSources, value)
             End Set
         End Property
 
-        Public Property UseEnhancedColorsForManagedLanguages As Integer
+        Public Property AlwaysUseDefaultSymbolServers As Boolean
             Get
-                Return GetOption(FeatureOnOffOptions.UseEnhancedColors)
+                Return GetBooleanOption(MetadataAsSourceOptionsStorage.AlwaysUseDefaultSymbolServers)
             End Get
-            Set(value As Integer)
-                SetOption(FeatureOnOffOptions.UseEnhancedColors, value)
+            Set(value As Boolean)
+                SetBooleanOption(MetadataAsSourceOptionsStorage.AlwaysUseDefaultSymbolServers, value)
             End Set
         End Property
 

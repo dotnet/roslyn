@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -38,6 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
+        internal override string Language => LanguageNames.CSharp;
+
         protected override async Task<bool> IsExclusiveAsync(Document document, int position, CancellationToken cancellationToken)
         {
             // We're exclusive if this context could only be an object initializer and not also a
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // initializer. Since we don't know which the user will use, we'll be non-exclusive, so
             // the other providers can help the user write the collection initializer, if they want
             // to.
-            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
             if (tree.IsInNonUserCode(position, cancellationToken))
             {
@@ -100,12 +100,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return true;
         }
 
-        public override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, CompletionOptions options)
             => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options) || text[characterPosition] == ' ';
 
         public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters.Add(' ');
 
-        protected override Tuple<ITypeSymbol, Location> GetInitializedType(
+        protected override Tuple<ITypeSymbol, Location>? GetInitializedType(
             Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
             var tree = semanticModel.SyntaxTree;
@@ -143,9 +143,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return Tuple.Create(type, token.GetLocation());
         }
 
-        private static ITypeSymbol GetInitializedType(SyntaxToken token, Document document, SemanticModel semanticModel, CancellationToken cancellationToken)
+        private static ITypeSymbol? GetInitializedType(SyntaxToken token, Document document, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
-            var parent = token.Parent.Parent;
+            var parent = token.Parent?.Parent;
 
             // new() { $$
             // new Goo { $$
@@ -158,13 +158,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             if (parent.IsKind(SyntaxKind.SimpleAssignmentExpression))
             {
                 // Use the type inferrer to get the type being initialized.
-                var typeInferenceService = document.GetLanguageService<ITypeInferenceService>();
-                var parentInitializer = token.GetAncestor<InitializerExpressionSyntax>();
+                var typeInferenceService = document.GetRequiredLanguageService<ITypeInferenceService>();
+                var parentInitializer = token.GetAncestor<InitializerExpressionSyntax>()!;
                 return typeInferenceService.InferType(semanticModel, parentInitializer, objectAsDefault: false, cancellationToken: cancellationToken);
             }
 
             // expr with { $$
-            if (parent.IsKind(SyntaxKind.WithExpression, out WithExpressionSyntax withExpression))
+            if (parent.IsKind(SyntaxKind.WithExpression, out WithExpressionSyntax? withExpression))
             {
                 return semanticModel.GetTypeInfo(withExpression.Expression, cancellationToken).Type;
             }

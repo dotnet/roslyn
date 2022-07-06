@@ -281,6 +281,27 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public static bool IsRegularOrDocumentationComment(this ISyntaxFacts syntaxFacts, SyntaxTrivia trivia)
             => syntaxFacts.IsRegularComment(trivia) || syntaxFacts.IsDocumentationComment(trivia);
 
+        [return: NotNullIfNotNull("node")]
+        public static SyntaxNode? WalkDownParentheses(this ISyntaxFacts syntaxFacts, SyntaxNode? node)
+        {
+            while (syntaxFacts.IsParenthesizedExpression(node))
+            {
+                syntaxFacts.GetPartsOfParenthesizedExpression(node, out _, out var child, out _);
+                node = child;
+            }
+
+            return node;
+        }
+
+        [return: NotNullIfNotNull("node")]
+        public static SyntaxNode? WalkUpParentheses(this ISyntaxFacts syntaxFacts, SyntaxNode? node)
+        {
+            while (syntaxFacts.IsParenthesizedExpression(node?.Parent))
+                node = node.Parent;
+
+            return node;
+        }
+
         public static void GetPartsOfAssignmentStatement(
             this ISyntaxFacts syntaxFacts, SyntaxNode statement,
             out SyntaxNode left, out SyntaxNode right)
@@ -513,9 +534,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             return imports;
         }
 
-        public static SyntaxNode? GetInitializerOfObjectCreationExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+        public static SyntaxNode? GetInitializerOfBaseObjectCreationExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
         {
-            syntaxFacts.GetPartsOfObjectCreationExpression(node, out _, out _, out var initializer);
+            syntaxFacts.GetPartsOfBaseObjectCreationExpression(node, out _, out var initializer);
             return initializer;
         }
 
@@ -726,6 +747,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         #region expressions
 
+        public static bool IsArrayCreationExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == syntaxFacts.SyntaxKinds.ArrayCreationExpression;
+
         public static bool IsAwaitExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.AwaitExpression;
 
@@ -735,8 +759,14 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public static bool IsConditionalAccessExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.ConditionalAccessExpression;
 
+        public static bool IsImplicitArrayCreationExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == syntaxFacts.SyntaxKinds.ImplicitArrayCreationExpression;
+
         public static bool IsImplicitObjectCreationExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node != null && node.RawKind == syntaxFacts.SyntaxKinds.ImplicitObjectCreationExpression;
+
+        public static bool IsIndexExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == syntaxFacts.SyntaxKinds.IndexExpression;
 
         public static bool IsInterpolatedStringExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.InterpolatedStringExpression;
@@ -767,6 +797,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         public static bool IsQueryExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.QueryExpression;
+
+        public static bool IsRangeExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == syntaxFacts.SyntaxKinds.RangeExpression;
 
         public static bool IsSimpleMemberAccessExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.SimpleMemberAccessExpression;

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         private static readonly ConcurrentDictionary<(Type type, string name), Type?> s_typeImplementingMethod = new();
 
         private readonly ImmutableArray<AbstractFormattingRule> _formattingRules;
-        private readonly AnalyzerConfigOptions _options;
+        private readonly SyntaxFormattingOptions _options;
 
         private readonly ImmutableArray<AbstractFormattingRule> _addSuppressOperationsRules;
         private readonly ImmutableArray<AbstractFormattingRule> _addAnchorIndentationOperationsRules;
@@ -28,10 +28,9 @@ namespace Microsoft.CodeAnalysis.Formatting
         private readonly ImmutableArray<AbstractFormattingRule> _getAdjustNewLinesOperationRules;
         private readonly ImmutableArray<AbstractFormattingRule> _getAdjustSpacesOperationRules;
 
-        public ChainedFormattingRules(IEnumerable<AbstractFormattingRule> formattingRules, AnalyzerConfigOptions options)
+        public ChainedFormattingRules(IEnumerable<AbstractFormattingRule> formattingRules, SyntaxFormattingOptions options)
         {
             Contract.ThrowIfNull(formattingRules);
-            Contract.ThrowIfNull(options);
 
             _formattingRules = formattingRules.Select(rule => rule.WithOptions(options)).ToImmutableArray();
             _options = options;

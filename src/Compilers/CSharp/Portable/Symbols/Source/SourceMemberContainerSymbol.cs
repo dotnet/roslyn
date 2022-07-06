@@ -434,33 +434,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (this.Name == SyntaxFacts.GetText(SyntaxKind.RecordKeyword))
-            {
-                foreach (var syntaxRef in SyntaxReferences)
-                {
-                    SyntaxToken? identifier = syntaxRef.GetSyntax() switch
-                    {
-                        BaseTypeDeclarationSyntax typeDecl => typeDecl.Identifier,
-                        DelegateDeclarationSyntax delegateDecl => delegateDecl.Identifier,
-                        _ => null
-                    };
-
-                    ReportTypeNamedRecord(identifier?.Text, this.DeclaringCompilation, diagnostics.DiagnosticBag, identifier?.GetLocation() ?? Location.None);
-                }
-            }
-
             return result;
         }
 
-        internal static void ReportTypeNamedRecord(string? name, CSharpCompilation compilation, DiagnosticBag? diagnostics, Location location)
+        internal static bool IsReservedTypeName(string? name)
         {
-            if (diagnostics is object && name == SyntaxFacts.GetText(SyntaxKind.RecordKeyword) &&
-                compilation.LanguageVersion >= MessageID.IDS_FeatureRecords.RequiredVersion())
-            {
-                diagnostics.Add(ErrorCode.WRN_RecordNamedDisallowed, location, name);
-            }
+            return name is { Length: > 0 } && name.All(c => c >= 'a' && c <= 'z');
         }
 
+        internal static void ReportReservedTypeName(string? name, CSharpCompilation compilation, DiagnosticBag? diagnostics, Location location)
+        {
+            if (diagnostics is null)
+            {
+                return;
+            }
+
+            if (name == SyntaxFacts.GetText(SyntaxKind.RecordKeyword) && compilation.LanguageVersion >= MessageID.IDS_FeatureRecords.RequiredVersion())
+            {
+                diagnostics.Add(ErrorCode.WRN_RecordNamedDisallowed, location);
+            }
+            else if (IsReservedTypeName(name))
+            {
+                diagnostics.Add(ErrorCode.WRN_LowerCaseTypeName, location, name);
+            }
+        }
         #endregion
 
         #region Completion
@@ -1652,6 +1649,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // so the checking of all interfaces here involves some redundancy.
                 Binder.ReportMissingTupleElementNamesAttributesIfNeeded(compilation, location, diagnostics);
             }
+
+            if (IsReservedTypeName(Name))
+            {
+                foreach (var syntaxRef in SyntaxReferences)
+                {
+                    SyntaxToken? identifier = syntaxRef.GetSyntax() switch
+                    {
+                        BaseTypeDeclarationSyntax typeDecl => typeDecl.Identifier,
+                        DelegateDeclarationSyntax delegateDecl => delegateDecl.Identifier,
+                        _ => null
+                    };
+
+                    ReportReservedTypeName(identifier?.Text, this.DeclaringCompilation, diagnostics.DiagnosticBag, identifier?.GetLocation() ?? Location.None);
+                }
+            }
+
+            return;
 
             bool hasBaseTypeOrInterface(Func<NamedTypeSymbol, bool> predicate)
             {
@@ -3510,13 +3524,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
+            bool hasInitializers = false;
             foreach (var initializers in builder.InstanceInitializers)
             {
                 foreach (FieldOrPropertyInitializer initializer in initializers)
                 {
+                    hasInitializers = true;
                     var symbol = initializer.FieldOpt.AssociatedSymbol ?? initializer.FieldOpt;
                     MessageID.IDS_FeatureStructFieldInitializers.CheckFeatureAvailability(diagnostics, symbol.DeclaringCompilation, symbol.Locations[0]);
                 }
+            }
+
+            if (hasInitializers && !builder.NonTypeMembers.Any(member => member is MethodSymbol { MethodKind: MethodKind.Constructor }))
+            {
+                diagnostics.Add(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, Locations[0]);
             }
         }
 
@@ -4744,8 +4765,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return this; }
         }
-
-        internal sealed override bool HasFieldInitializers() => InstanceInitializers.Length > 0;
 
         internal class SynthesizedExplicitImplementations
         {

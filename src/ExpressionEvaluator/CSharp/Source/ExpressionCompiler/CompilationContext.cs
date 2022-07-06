@@ -1613,6 +1613,8 @@ REPARSE:
             MethodSymbol candidateSubstitutedSourceMethod,
             bool sourceMethodMustBeInstance)
         {
+            Debug.Assert(candidateSubstitutedSourceMethod.DeclaringCompilation is not null);
+
             var candidateSubstitutedSourceType = candidateSubstitutedSourceMethod.ContainingType;
 
             string? desiredMethodName;
@@ -1646,9 +1648,12 @@ REPARSE:
                 {
                     if (IsViableSourceMethod(candidateMethod, desiredMethodName, desiredTypeParameters, sourceMethodMustBeInstance))
                     {
+                        MethodSymbol sourceMethod = new EECompilationContextMethod(candidateSubstitutedSourceMethod.DeclaringCompilation!, candidateMethod.OriginalDefinition);
+                        sourceMethod = sourceMethod.AsMember(substitutedSourceType);
+
                         return desiredTypeParameters.Length == 0
-                            ? candidateMethod
-                            : candidateMethod.Construct(candidateSubstitutedSourceType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics);
+                            ? sourceMethod
+                            : sourceMethod.Construct(candidateSubstitutedSourceType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics);
                     }
                 }
 
