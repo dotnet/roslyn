@@ -558,11 +558,11 @@ class Program
   IL_000e:  unbox.any  ""double""
   IL_0013:  stloc.1
   IL_0014:  ldloc.1
-  IL_0015:  ldc.r8     3.14
-  IL_001e:  beq.s      IL_0055
-  IL_0020:  ldloc.1
-  IL_0021:  call       ""bool double.IsNaN(double)""
-  IL_0026:  brtrue.s   IL_004b
+  IL_0015:  call       ""bool double.IsNaN(double)""
+  IL_001a:  brtrue.s   IL_004b
+  IL_001c:  ldloc.1
+  IL_001d:  ldc.r8     3.14
+  IL_0026:  beq.s      IL_0055
   IL_0028:  br.s       IL_005f
   IL_002a:  ldloc.0
   IL_002b:  isinst     ""float""
@@ -571,11 +571,11 @@ class Program
   IL_0033:  unbox.any  ""float""
   IL_0038:  stloc.2
   IL_0039:  ldloc.2
-  IL_003a:  ldc.r4     3.14
-  IL_003f:  beq.s      IL_005a
+  IL_003a:  call       ""bool float.IsNaN(float)""
+  IL_003f:  brtrue.s   IL_0050
   IL_0041:  ldloc.2
-  IL_0042:  call       ""bool float.IsNaN(float)""
-  IL_0047:  brtrue.s   IL_0050
+  IL_0042:  ldc.r4     3.14
+  IL_0047:  beq.s      IL_005a
   IL_0049:  br.s       IL_005f
   IL_004b:  ldc.i4.1
   IL_004c:  stloc.s    V_4

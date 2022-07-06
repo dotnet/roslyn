@@ -535,6 +535,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return false;
                         if (!t1.Input.Equals(t2.Input))
                             return false;
+
+                        if (t1.Input.Type.SpecialType is SpecialType.System_Double or SpecialType.System_Single)
+                        {
+                            // The optimization (using balanced switch dispatch) breaks the semantics of NaN
+                            return false;
+                        }
+
                         return true;
                     }
                 }
