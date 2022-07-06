@@ -62,6 +62,7 @@ param (
   [switch][Alias('test')]$testDesktop,
   [switch]$testCoreClr,
   [switch]$testCompilerOnly = $false,
+  [switch]$testCompilerEndToEndOnly = $false,
   [switch]$testIOperation,
   [switch]$testUsedAssemblies,
   [switch]$sequential,
@@ -96,6 +97,7 @@ function Print-Usage() {
   Write-Host "  -testDesktop              Run Desktop unit tests (short: -test)"
   Write-Host "  -testCoreClr              Run CoreClr unit tests"
   Write-Host "  -testCompilerOnly         Run only the compiler unit tests"
+  Write-Host "  -testCompilerEndToEndOnly Run only the compiler end-to-end unit tests"
   Write-Host "  -testVsi                  Run all integration tests"
   Write-Host "  -testIOperation           Run extra checks to validate IOperations"
   Write-Host "  -testUsedAssemblies       Run extra checks to validate used assemblies feature (see ROSLYN_TEST_USEDASSEMBLIES in codebase)"
@@ -341,6 +343,11 @@ function GetCompilerTestAssembliesIncludePaths() {
   return $assemblies
 }
 
+function GetCompilerEndToEndTestAssemblyExclusion() {
+  $assemblies += " --exclude '^Microsoft\.CodeAnalysis\.CSharp\.EndToEnd\.UnitTests$'"
+  return $assemblies
+}
+
 # Core function for running our unit / integration tests tests
 function TestUsingRunTests() {
 
@@ -384,21 +391,34 @@ function TestUsingRunTests() {
   if ($testCoreClr) {
     $args += " --tfm net6.0"
     $args += " --timeout 90"
-    if ($testCompilerOnly) {
+
+    if ($testCompilerEndToEndOnly) {
+      $args += " --include '^Microsoft\.CodeAnalysis\.CSharp\.EndToEnd\.UnitTests$'"
+    } elseif ($testCompilerOnly) {
       $args += GetCompilerTestAssembliesIncludePaths
+      #EndToEnd tests are run separately below
+      $args += GetCompilerEndToEndTestAssemblyExclusion
     } else {
       $args += " --tfm net6.0-windows"
       $args += " --include '\.UnitTests'"
+      #EndToEnd tests are run separately below
+      $args += GetCompilerEndToEndTestAssemblyExclusion
     }
   }
   elseif ($testDesktop -or ($testIOperation -and -not $testCoreClr)) {
     $args += " --tfm net472"
     $args += " --timeout 90"
 
-    if ($testCompilerOnly) {
+    if ($testCompilerEndToEndOnly) {
+      $args += " --include '^Microsoft\.CodeAnalysis\.CSharp\.EndToEnd\.UnitTests$'"
+    } elseif ($testCompilerOnly) {
       $args += GetCompilerTestAssembliesIncludePaths
+      #EndToEnd tests are run separately below
+      $args += GetCompilerEndToEndTestAssemblyExclusion
     } else {
       $args += " --include '\.UnitTests'"
+      #EndToEnd tests are run separately below
+      $args += GetCompilerEndToEndTestAssemblyExclusion
     }
 
     if ($testArch -ne "x86") {
@@ -488,6 +508,12 @@ function TestUsingRunTests() {
         }
       }
     }
+  }
+
+  # Run the compiler end-to-end tests separately to increase their isolation
+  if (($testCoreClr -or $testDesktop) -and -not $testCompilerEndToEndOnly) {
+    $testCompilerEndToEndOnly = $true
+    TestUsingRunTests
   }
 }
 
