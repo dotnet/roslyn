@@ -6,7 +6,6 @@
 
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Interactive;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
@@ -24,9 +23,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
             IInteractiveWindow interactiveWindow,
             ISendToInteractiveSubmissionProvider sendToInteractiveSubmissionProvider,
             IContentTypeRegistryService contentTypeRegistryService,
-            EditorOptionsService editorOptionsService,
+            IEditorOptionsFactoryService editorOptionsFactoryService,
             IEditorOperationsFactoryService editorOperationsFactoryService)
-            : base(contentTypeRegistryService, editorOptionsService, editorOperationsFactoryService)
+            : base(contentTypeRegistryService, editorOptionsFactoryService, editorOperationsFactoryService)
         {
             _interactiveWindow = interactiveWindow;
             _sendToInteractiveSubmissionProvider = sendToInteractiveSubmissionProvider;

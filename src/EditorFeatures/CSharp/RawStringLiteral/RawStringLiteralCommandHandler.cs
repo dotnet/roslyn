@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.RawStringLiteral
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IGlobalOptionService _globalOptions;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
-        private readonly EditorOptionsService _editorOptionsService;
+        private readonly IEditorOptionsFactoryService _editorOptionsFactory;
         private readonly IIndentationManagerService _indentationManager;
 
         [ImportingConstructor]
@@ -32,13 +32,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.RawStringLiteral
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IGlobalOptionService globalOptions,
             IEditorOperationsFactoryService editorOperationsFactoryService,
-            EditorOptionsService editorOptionsService,
+            IEditorOptionsFactoryService editorOptionsFactory,
             IIndentationManagerService indentationManager)
         {
             _undoHistoryRegistry = undoHistoryRegistry;
             _globalOptions = globalOptions;
             _editorOperationsFactoryService = editorOperationsFactoryService;
-            _editorOptionsService = editorOptionsService;
+            _editorOptionsFactory = editorOptionsFactory;
             _indentationManager = indentationManager;
         }
 

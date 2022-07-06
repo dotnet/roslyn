@@ -37,7 +37,9 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
         private readonly IThreadingContext _threadingContext;
         private readonly ITextBufferUndoManagerProvider _undoManager;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
-        private readonly EditorOptionsService _editorOptionsService;
+        private readonly IIndentationManagerService _indentationManager;
+        private readonly IEditorOptionsFactoryService _editorOptionsFactory;
+        private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -45,12 +47,16 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
             IThreadingContext threadingContext,
             ITextBufferUndoManagerProvider undoManager,
             IEditorOperationsFactoryService editorOperationsFactoryService,
-            EditorOptionsService editorOptionsService)
+            IEditorOptionsFactoryService editorOptionsFactory,
+            IIndentationManagerService indentationManager,
+            IGlobalOptionService globalOptions)
         {
             _threadingContext = threadingContext;
             _undoManager = undoManager;
             _editorOperationsFactoryService = editorOperationsFactoryService;
-            _editorOptionsService = editorOptionsService;
+            _globalOptions = globalOptions;
+            _editorOptionsFactory = editorOptionsFactory;
+            _indentationManager = indentationManager;
         }
 
         public bool TryCreateSession(ITextView textView, SnapshotPoint openingPoint, char openingBrace, char closingBrace, out IBraceCompletionSession session)
@@ -73,8 +79,8 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
                         var undoHistory = _undoManager.GetTextBufferUndoManager(textView.TextBuffer).TextBufferUndoHistory;
                         session = new BraceCompletionSession(
                             textView, openingPoint.Snapshot.TextBuffer, openingPoint, openingBrace, closingBrace,
-                            undoHistory, _editorOperationsFactoryService, _editorOptionsService,
-                            editorSession, _threadingContext);
+                            undoHistory, _editorOperationsFactoryService, _editorOptionsFactory, _indentationManager,
+                            editorSession, _globalOptions, _threadingContext);
                         return true;
                     }
                 }

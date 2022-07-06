@@ -63,6 +63,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             = new InteractiveEvaluatorResetOptions(InteractiveHostPlatform.Desktop64);
 
         internal CSharpInteractiveEvaluator(
+            IGlobalOptionService globalOptions,
             IThreadingContext threadingContext,
             IAsynchronousOperationListener listener,
             IContentType contentType,
@@ -71,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             IInteractiveWindowCommandsFactory commandsFactory,
             ImmutableArray<IInteractiveWindowCommand> commands,
             ITextDocumentFactoryService textDocumentFactoryService,
-            EditorOptionsService editorOptionsService,
+            IEditorOptionsFactoryService editorOptionsFactory,
             InteractiveEvaluatorLanguageInfoProvider languageInfo,
             string initialWorkingDirectory)
         {
@@ -84,14 +85,15 @@ namespace Microsoft.CodeAnalysis.Interactive
             _commandsFactory = commandsFactory;
             _commands = commands;
 
-            _workspace = new InteractiveWindowWorkspace(hostServices, editorOptionsService.GlobalOptions);
+            _workspace = new InteractiveWindowWorkspace(hostServices, globalOptions);
 
             _session = new InteractiveSession(
                 _workspace,
                 threadingContext,
                 listener,
                 textDocumentFactoryService,
-                editorOptionsService,
+                editorOptionsFactory,
+                globalOptions,
                 languageInfo,
                 initialWorkingDirectory);
 

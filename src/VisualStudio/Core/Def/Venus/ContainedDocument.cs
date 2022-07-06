@@ -83,8 +83,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         private readonly IComponentModel _componentModel;
         private readonly Workspace _workspace;
-        private readonly EditorOptionsService _editorOptionsService;
+        private readonly IGlobalOptionService _globalOptions;
         private readonly ITextDifferencingSelectorService _differenceSelectorService;
+        private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
         private readonly HostType _hostType;
         private readonly ReiteratedVersionSnapshotTracker _snapshotTracker;
         private readonly AbstractFormattingRule _vbHelperFormattingRule;
@@ -105,6 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             ITextBuffer dataBuffer,
             IVsTextBufferCoordinator bufferCoordinator,
             Workspace workspace,
+            IGlobalOptionService globalOptions,
             VisualStudioProject project,
             IComponentModel componentModel,
             AbstractFormattingRule vbHelperFormattingRule)
@@ -112,6 +114,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         {
             _componentModel = componentModel;
             _workspace = workspace;
+            _globalOptions = globalOptions;
             _project = project;
 
             Id = documentId;
@@ -120,7 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             BufferCoordinator = bufferCoordinator;
 
             _differenceSelectorService = componentModel.GetService<ITextDifferencingSelectorService>();
-            _editorOptionsService = componentModel.GetService<EditorOptionsService>();
+            _editorOptionsFactoryService = _componentModel.GetService<IEditorOptionsFactoryService>();
             _snapshotTracker = new ReiteratedVersionSnapshotTracker(SubjectBuffer);
             _vbHelperFormattingRule = vbHelperFormattingRule;
 
@@ -757,8 +760,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             var parsedDocument = ParsedDocument.CreateSynchronously(document, CancellationToken.None);
             Debug.Assert(ReferenceEquals(parsedDocument.Text, subjectBuffer.CurrentSnapshot.AsText()));
 
-            var editorOptionsService = _componentModel.GetService<EditorOptionsService>();
-            var formattingOptions = subjectBuffer.GetSyntaxFormattingOptions(editorOptionsService, document.Project.LanguageServices, explicitFormat: false);
+            var editorOptionsFactory = _componentModel.GetService<IEditorOptionsFactoryService>();
+            var indentationManager = _componentModel.GetService<IIndentationManagerService>();
+            var formattingOptions = subjectBuffer.GetSyntaxFormattingOptions(editorOptionsFactory, indentationManager, _globalOptions, document.Project.LanguageServices, explicitFormat: false);
 
             using var pooledObject = SharedPools.Default<List<TextSpan>>().GetPooledObject();
 
@@ -872,7 +876,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         private int GetBaseIndentation(SyntaxNode root, SourceText text, TextSpan span)
         {
             // Is this right?  We should probably get this from the IVsContainedLanguageHost instead.
-            var editorOptions = _editorOptionsService.Factory.GetOptions(DataBuffer);
+            var editorOptions = _editorOptionsFactoryService.GetOptions(DataBuffer);
 
             var additionalIndentation = GetAdditionalIndentation(root, text, span);
 

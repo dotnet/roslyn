@@ -51,7 +51,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
         protected abstract SyntaxNode ParseCompilationUnit(string expected);
 
         internal static void TestIndentation(
-            int point, int? expectedIndentation, ITextView textView, TestHostDocument subjectDocument, EditorOptionsService editorOptionsService)
+            int point, int? expectedIndentation, ITextView textView, TestHostDocument subjectDocument, IGlobalOptionService globalOptions,
+            IEditorOptionsFactoryService editorOptionsFactory, IIndentationManagerService indentationManager)
         {
             var textUndoHistory = new Mock<ITextUndoHistoryRegistry>();
             var editorOperationsFactory = new Mock<IEditorOperationsFactoryService>();
@@ -61,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
             var snapshot = subjectDocument.GetTextBuffer().CurrentSnapshot;
             var indentationLineFromBuffer = snapshot.GetLineFromPosition(point);
 
-            var provider = new SmartIndent(textView, editorOptionsService);
+            var provider = new SmartIndent(textView, globalOptions, editorOptionsFactory, indentationManager);
             var actualIndentation = provider.GetDesiredIndentation(indentationLineFromBuffer);
 
             Assert.Equal(expectedIndentation, actualIndentation.Value);
@@ -115,7 +116,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
 
             var provider = new SmartIndent(
                 textView.Object,
-                workspace.GetService<EditorOptionsService>());
+                workspace.GlobalOptions,
+                editorOptionsFactory,
+                workspace.GetService<IIndentationManagerService>());
 
             var indentationLineFromBuffer = snapshot.GetLineFromLineNumber(indentationLine);
             var actualIndentation = provider.GetDesiredIndentation(indentationLineFromBuffer);

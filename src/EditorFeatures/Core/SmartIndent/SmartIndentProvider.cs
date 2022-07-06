@@ -18,13 +18,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
     [ContentType(ContentTypeNames.VisualBasicContentType)]
     internal sealed class SmartIndentProvider : ISmartIndentProvider
     {
-        private readonly EditorOptionsService _editorOptionsService;
+        private readonly IGlobalOptionService _globalOptions;
+        private readonly IEditorOptionsFactoryService _editorOptionsFactory;
+        private readonly IIndentationManagerService _indentationManager;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SmartIndentProvider(EditorOptionsService editorOptionsService)
+        public SmartIndentProvider(IGlobalOptionService globalOptions, IEditorOptionsFactoryService editorOptionsFactory, IIndentationManagerService indentationManager)
         {
-            _editorOptionsService = editorOptionsService;
+            _globalOptions = globalOptions;
+            _editorOptionsFactory = editorOptionsFactory;
+            _indentationManager = indentationManager;
         }
 
         public ISmartIndent? CreateSmartIndent(ITextView textView)
@@ -34,12 +38,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
                 throw new ArgumentNullException(nameof(textView));
             }
 
-            if (!_editorOptionsService.GlobalOptions.GetOption(InternalFeatureOnOffOptions.SmartIndenter))
+            if (!_globalOptions.GetOption(InternalFeatureOnOffOptions.SmartIndenter))
             {
                 return null;
             }
 
-            return new SmartIndent(textView, _editorOptionsService);
+            return new SmartIndent(textView, _globalOptions, _editorOptionsFactory, _indentationManager);
         }
     }
 }

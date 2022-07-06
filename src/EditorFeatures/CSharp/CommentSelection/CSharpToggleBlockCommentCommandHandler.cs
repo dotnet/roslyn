@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
@@ -35,8 +34,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CommentSelection
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService,
             ITextStructureNavigatorSelectorService navigatorSelectorService,
-            EditorOptionsService editorOptionsService)
-            : base(undoHistoryRegistry, editorOperationsFactoryService, navigatorSelectorService, editorOptionsService)
+            IGlobalOptionService globalOptions)
+            : base(undoHistoryRegistry, editorOperationsFactoryService, navigatorSelectorService, globalOptions)
         {
         }
 
@@ -44,10 +43,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CommentSelection
         /// Retrieves block comments near the selection in the document.
         /// Uses the CSharp syntax tree to find the commented spans.
         /// </summary>
-        protected override ImmutableArray<TextSpan> GetBlockCommentsInDocument(Document document, ITextSnapshot snapshot,
+        protected override async Task<ImmutableArray<TextSpan>> GetBlockCommentsInDocumentAsync(Document document, ITextSnapshot snapshot,
             TextSpan linesContainingSelections, CommentSelectionInfo commentInfo, CancellationToken cancellationToken)
         {
-            var root = document.GetRequiredSyntaxRootSynchronously(cancellationToken);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             // Only search for block comments intersecting the lines in the selections.
             return root.DescendantTrivia(linesContainingSelections)
                 .Where(trivia => trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))

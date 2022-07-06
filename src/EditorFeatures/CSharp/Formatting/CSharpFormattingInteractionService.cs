@@ -28,13 +28,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         // All the characters that might potentially trigger formatting when typed
         private static readonly char[] _supportedChars = ";{}#nte:)".ToCharArray();
 
-        private readonly EditorOptionsService _editorOptionsService;
+        private readonly IIndentationManagerService _indentationManager;
+        private readonly IEditorOptionsFactoryService _editorOptionsFactory;
+        private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpFormattingInteractionService(EditorOptionsService editorOptionsService)
+        public CSharpFormattingInteractionService(IIndentationManagerService indentationManager, IEditorOptionsFactoryService editorOptionsFactory, IGlobalOptionService globalOptions)
         {
-            _editorOptionsService = editorOptionsService;
+            _indentationManager = indentationManager;
+            _editorOptionsFactory = editorOptionsFactory;
+            _globalOptions = globalOptions;
         }
 
         public bool SupportsFormatDocument => true;
@@ -44,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         public bool SupportsFormattingOnTypedCharacter(Document document, char ch)
         {
-            var isSmartIndent = _editorOptionsService.GlobalOptions.GetOption(IndentationOptionsStorage.SmartIndent, LanguageNames.CSharp) == FormattingOptions2.IndentStyle.Smart;
+            var isSmartIndent = _globalOptions.GetOption(IndentationOptionsStorage.SmartIndent, LanguageNames.CSharp) == FormattingOptions2.IndentStyle.Smart;
 
             // We consider the proper placement of a close curly or open curly when it is typed at
             // the start of the line to be a smart-indentation operation.  As such, even if "format
@@ -57,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return true;
             }
 
-            var options = _editorOptionsService.GlobalOptions.GetAutoFormattingOptions(LanguageNames.CSharp);
+            var options = _globalOptions.GetAutoFormattingOptions(LanguageNames.CSharp);
 
             // If format-on-typing is not on, then we don't support formatting on any other characters.
             var autoFormattingOnTyping = options.FormatOnTyping;
@@ -92,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             CancellationToken cancellationToken)
         {
             var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
-            var options = textBuffer.GetSyntaxFormattingOptions(_editorOptionsService, parsedDocument.LanguageServices, explicitFormat: true);
+            var options = textBuffer.GetSyntaxFormattingOptions(_editorOptionsFactory, _indentationManager, _globalOptions, parsedDocument.LanguageServices, explicitFormat: true);
 
             var span = textSpan ?? new TextSpan(0, parsedDocument.Root.FullSpan.Length);
             var formattingSpan = CommonFormattingHelpers.GetFormattingSpan(parsedDocument.Root, span);
@@ -103,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public Task<ImmutableArray<TextChange>> GetFormattingChangesOnPasteAsync(Document document, ITextBuffer textBuffer, TextSpan textSpan, CancellationToken cancellationToken)
         {
             var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
-            var options = textBuffer.GetSyntaxFormattingOptions(_editorOptionsService, parsedDocument.LanguageServices, explicitFormat: true);
+            var options = textBuffer.GetSyntaxFormattingOptions(_editorOptionsFactory, _indentationManager, _globalOptions, parsedDocument.LanguageServices, explicitFormat: true);
             var service = parsedDocument.LanguageServices.GetRequiredService<ISyntaxFormattingService>();
             return Task.FromResult(service.GetFormattingChangesOnPaste(parsedDocument, textSpan, options, cancellationToken));
         }
@@ -118,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             if (service.ShouldFormatOnTypedCharacter(parsedDocument, typedChar, position, cancellationToken))
             {
-                var indentationOptions = textBuffer.GetIndentationOptions(_editorOptionsService, parsedDocument.LanguageServices, explicitFormat: false);
+                var indentationOptions = textBuffer.GetIndentationOptions(_editorOptionsFactory, _indentationManager, _globalOptions, parsedDocument.LanguageServices, explicitFormat: false);
                 return Task.FromResult(service.GetFormattingChangesOnTypedCharacter(parsedDocument, position, indentationOptions, cancellationToken));
             }
 

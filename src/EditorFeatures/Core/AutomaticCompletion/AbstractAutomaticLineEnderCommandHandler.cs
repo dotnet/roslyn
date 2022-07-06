@@ -25,19 +25,18 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
     {
         private readonly ITextUndoHistoryRegistry _undoRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
-
-        public readonly EditorOptionsService EditorOptionsService;
+        public readonly IGlobalOptionService GlobalOptions;
 
         public string DisplayName => EditorFeaturesResources.Automatic_Line_Ender;
 
         protected AbstractAutomaticLineEnderCommandHandler(
             ITextUndoHistoryRegistry undoRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService,
-            EditorOptionsService editorOptionsService)
+            IGlobalOptionService globalOptions)
         {
             _undoRegistry = undoRegistry;
             _editorOperationsFactoryService = editorOperationsFactoryService;
-            EditorOptionsService = editorOptionsService;
+            GlobalOptions = globalOptions;
         }
 
         /// <summary>
@@ -91,7 +90,7 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
             }
 
             // feature off
-            if (!EditorOptionsService.GlobalOptions.GetOption(InternalFeatureOnOffOptions.AutomaticLineEnder))
+            if (!GlobalOptions.GetOption(InternalFeatureOnOffOptions.AutomaticLineEnder))
             {
                 NextAction(operations, nextHandler);
                 return;
@@ -143,7 +142,7 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
                 if (endingInsertionPosition != null)
                 {
                     using var transaction = args.TextView.CreateEditTransaction(EditorFeaturesResources.Automatic_Line_Ender, _undoRegistry, _editorOperationsFactoryService);
-                    var formattingOptions = args.SubjectBuffer.GetSyntaxFormattingOptions(EditorOptionsService, document.Project.LanguageServices, explicitFormat: false);
+                    var formattingOptions = document.GetSyntaxFormattingOptionsAsync(GlobalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
                     InsertEnding(args.TextView, document, endingInsertionPosition.Value, caretPosition, formattingOptions, cancellationToken);
                     NextAction(operations, nextHandler);
                     transaction.Complete();

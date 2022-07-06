@@ -47,18 +47,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         private const string ExternDeclaration = "extern";
         private const string ImportsStatement = "Imports";
 
-        protected readonly EditorOptionsService EditorOptionsService;
+        protected readonly IEditorOptionsFactoryService EditorOptionsFactoryService;
         protected readonly IProjectionBufferFactoryService ProjectionBufferFactoryService;
 
         protected AbstractStructureTaggerProvider(
             IThreadingContext threadingContext,
-            EditorOptionsService editorOptionsService,
+            IEditorOptionsFactoryService editorOptionsFactoryService,
             IProjectionBufferFactoryService projectionBufferFactoryService,
+            IGlobalOptionService globalOptions,
             ITextBufferVisibilityTracker? visibilityTracker,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, editorOptionsService.GlobalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.Outlining))
+            : base(threadingContext, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.Outlining))
         {
-            EditorOptionsService = editorOptionsService;
+            EditorOptionsFactoryService = editorOptionsFactoryService;
             ProjectionBufferFactoryService = projectionBufferFactoryService;
         }
 
@@ -350,7 +351,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             SnapshotSpan shortHintSpan)
         {
             return ProjectionBufferFactoryService.CreateProjectionBufferWithoutIndentation(
-                EditorOptionsService.Factory.GlobalOptions,
+                EditorOptionsFactoryService.GlobalOptions,
                 contentType: null,
                 exposedSpans: shortHintSpan);
         }

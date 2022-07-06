@@ -38,9 +38,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
         private readonly ITextBufferFactoryService _textBufferFactoryService;
         private readonly IContentTypeRegistryService _contentTypeRegistryService;
         private readonly IProjectionBufferFactoryService _projectionBufferFactoryService;
-        private readonly EditorOptionsService _editorOptionsService;
+        private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
         private readonly ITextDifferencingSelectorService _differenceSelectorService;
         private readonly IDifferenceBufferFactoryService _differenceBufferService;
+        private readonly IGlobalOptionService _globalOptions;
 
         protected readonly IThreadingContext ThreadingContext;
 
@@ -51,19 +52,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             ITextBufferFactoryService textBufferFactoryService,
             IContentTypeRegistryService contentTypeRegistryService,
             IProjectionBufferFactoryService projectionBufferFactoryService,
-            EditorOptionsService editorOptionsService,
+            IEditorOptionsFactoryService editorOptionsFactoryService,
             ITextDifferencingSelectorService differenceSelectorService,
             IDifferenceBufferFactoryService differenceBufferService,
-            ITextViewRoleSet previewRoleSet)
+            ITextViewRoleSet previewRoleSet,
+            IGlobalOptionService globalOptions)
         {
             ThreadingContext = threadingContext;
             _textBufferFactoryService = textBufferFactoryService;
             _contentTypeRegistryService = contentTypeRegistryService;
             _projectionBufferFactoryService = projectionBufferFactoryService;
-            _editorOptionsService = editorOptionsService;
+            _editorOptionsFactoryService = editorOptionsFactoryService;
             _differenceSelectorService = differenceSelectorService;
             _differenceBufferService = differenceBufferService;
+
             _previewRoleSet = previewRoleSet;
+            _globalOptions = globalOptions;
         }
 
         public SolutionPreviewResult? GetSolutionPreviews(Solution oldSolution, Solution? newSolution, CancellationToken cancellationToken)
@@ -581,7 +585,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 
             var originalBuffer = _projectionBufferFactoryService.CreateProjectionBufferWithoutIndentation(
                 _contentTypeRegistryService,
-                _editorOptionsService.Factory.GlobalOptions,
+                _editorOptionsFactoryService.GlobalOptions,
                 oldBuffer.CurrentSnapshot,
                 "...",
                 description,
@@ -589,7 +593,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 
             var changedBuffer = _projectionBufferFactoryService.CreateProjectionBufferWithoutIndentation(
                 _contentTypeRegistryService,
-                _editorOptionsService.Factory.GlobalOptions,
+                _editorOptionsFactoryService.GlobalOptions,
                 newBuffer.CurrentSnapshot,
                 "...",
                 description,
@@ -678,7 +682,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 rightWorkspace = null;
             };
 
-            if (_editorOptionsService.GlobalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
+            if (_globalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
             {
                 leftWorkspace?.EnableSolutionCrawler();
                 rightWorkspace?.EnableSolutionCrawler();

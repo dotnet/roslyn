@@ -34,8 +34,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
     {
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
-        private readonly EditorOptionsService _editorOptionsService;
-        private readonly IIndentationManagerService _indentationManager;
         private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
@@ -43,14 +41,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
         public SplitCommentCommandHandler(
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService,
-            EditorOptionsService editorOptionsService,
-            IIndentationManagerService indentationManager,
             IGlobalOptionService globalOptions)
         {
             _undoHistoryRegistry = undoHistoryRegistry;
             _editorOperationsFactoryService = editorOperationsFactoryService;
-            _editorOptionsService = editorOptionsService;
-            _indentationManager = indentationManager;
             _globalOptions = globalOptions;
         }
 
@@ -98,8 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
             using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Split_comment))
             {
                 var cancellationToken = context.OperationContext.UserCancellationToken;
-                var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
-                var result = SplitComment(parsedDocument, textView, subjectBuffer, new SnapshotSpan(snapshot, selectionSpan));
+                var result = SplitCommentAsync(textView, document, new SnapshotSpan(snapshot, selectionSpan), cancellationToken).WaitAndGetResult(cancellationToken);
                 if (result == null)
                     return false;
 
@@ -145,24 +138,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
             return true;
         }
 
-        private (Span replacementSpan, string replacementText)? SplitComment(
-            ParsedDocument document,
+        private async Task<(Span replacementSpan, string replacementText)?> SplitCommentAsync(
             ITextView textView,
-            ITextBuffer textBuffer,
-            SnapshotSpan selectionSpan)
+            Document document,
+            SnapshotSpan selectionSpan,
+            CancellationToken cancellationToken)
         {
-            var syntaxKinds = document.LanguageServices.GetRequiredService<ISyntaxKindsService>();
-            var trivia = document.Root.FindTrivia(selectionSpan.Start);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxKinds = document.GetRequiredLanguageService<ISyntaxKindsService>();
+            var trivia = root.FindTrivia(selectionSpan.Start);
             if (syntaxKinds.SingleLineCommentTrivia != trivia.RawKind)
                 return null;
 
-            var splitCommentService = document.LanguageServices.GetRequiredService<ISplitCommentService>();
+            var splitCommentService = document.GetRequiredLanguageService<ISplitCommentService>();
 
             // if the user hits enter at `/$$/` we don't want to consider this a comment continuation.
             if (selectionSpan.Start < (trivia.SpanStart + splitCommentService.CommentStart.Length))
                 return null;
 
-            if (!splitCommentService.IsAllowed(document.Root, trivia))
+            if (!splitCommentService.IsAllowed(root, trivia))
                 return null;
 
             // If the user hits enter at:    // goo $$ // bar
@@ -175,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
             var textSnapshot = selectionSpan.Snapshot;
             var triviaLine = textSnapshot.GetLineFromPosition(trivia.SpanStart);
 
-            var options = textBuffer.GetLineFormattingOptions(_editorOptionsService, explicitFormat: false);
+            var options = await document.GetLineFormattingOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(false);
             var replacementSpan = GetReplacementSpan(triviaLine, selectionSpan);
             var replacementText = GetReplacementText(textView, options, triviaLine, trivia, selectionSpan.Start);
             return (replacementSpan, replacementText);

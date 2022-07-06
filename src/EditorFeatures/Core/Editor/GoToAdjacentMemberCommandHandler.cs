@@ -80,17 +80,17 @@ namespace Microsoft.CodeAnalysis.Editor
             }
 
             var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            var syntaxFactsService = document?.GetLanguageService<ISyntaxFactsService>();
-            if (syntaxFactsService == null)
+            if (document?.SupportsSyntaxTree != true)
             {
                 return false;
             }
 
             int? targetPosition = null;
+
             using (context.OperationContext.AddScope(allowCancellation: true, description: EditorFeaturesResources.Navigating))
             {
-                var root = document.GetSyntaxRootSynchronously(context.OperationContext.UserCancellationToken);
-                targetPosition = GetTargetPosition(syntaxFactsService, root, caretPoint.Value.Position, gotoNextMember);
+                var task = GetTargetPositionAsync(document, caretPoint.Value.Position, gotoNextMember, context.OperationContext.UserCancellationToken);
+                targetPosition = task.WaitAndGetResult(context.OperationContext.UserCancellationToken);
             }
 
             if (targetPosition != null)
@@ -104,9 +104,16 @@ namespace Microsoft.CodeAnalysis.Editor
         /// <summary>
         /// Internal for testing purposes.
         /// </summary>
-        internal static int? GetTargetPosition(ISyntaxFactsService service, SyntaxNode root, int caretPosition, bool next)
+        internal static async Task<int?> GetTargetPositionAsync(Document document, int caretPosition, bool next, CancellationToken cancellationToken)
         {
-            var members = service.GetMethodLevelMembers(root);
+            var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
+            if (syntaxFactsService == null)
+            {
+                return null;
+            }
+
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(true);
+            var members = syntaxFactsService.GetMethodLevelMembers(root);
             if (members.Count == 0)
             {
                 return null;

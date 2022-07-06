@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
@@ -26,13 +25,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         /// <summary>
         /// format given snapshot and apply text changes to buffer
         /// </summary>
-        public static void FormatAndApplyToBuffer(
-            this ITextBuffer textBuffer,
-            TextSpan span,
-            EditorOptionsService editorOptionsService,
-            CancellationToken cancellationToken)
+        public static void FormatAndApplyToBuffer(this ITextSnapshot snapshot, TextSpan span, IGlobalOptionService globalOptions, CancellationToken cancellationToken)
         {
-            var document = textBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
                 return;
@@ -43,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 
             var formatter = document.GetRequiredLanguageService<ISyntaxFormattingService>();
 
-            var options = textBuffer.GetSyntaxFormattingOptions(editorOptionsService, document.Project.LanguageServices, explicitFormat: false);
+            var options = document.GetSyntaxFormattingOptionsAsync(globalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
             var result = formatter.GetFormattingResult(documentSyntax.Root, SpecializedCollections.SingletonEnumerable(span), options, rules, cancellationToken);
             var changes = result.GetTextChanges(cancellationToken);
 

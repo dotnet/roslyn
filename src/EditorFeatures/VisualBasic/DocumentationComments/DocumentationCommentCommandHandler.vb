@@ -11,7 +11,6 @@ Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Utilities
 Imports Microsoft.CodeAnalysis.DocumentationComments
 Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.VisualStudio.Text.Editor
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.DocumentationComments
     <Export(GetType(ICommandHandler))>
@@ -28,9 +27,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.DocumentationComments
             uiThreadOperationExecutor As IUIThreadOperationExecutor,
             undoHistoryRegistry As ITextUndoHistoryRegistry,
             editorOperationsFactoryService As IEditorOperationsFactoryService,
-            editorOptionsService As EditorOptionsService)
+            globalOptions As IGlobalOptionService)
 
-            MyBase.New(uiThreadOperationExecutor, undoHistoryRegistry, editorOperationsFactoryService, editorOptionsService)
+            MyBase.New(uiThreadOperationExecutor, undoHistoryRegistry, editorOperationsFactoryService, globalOptions)
         End Sub
 
         Protected Overrides ReadOnly Property ExteriorTriviaText As String

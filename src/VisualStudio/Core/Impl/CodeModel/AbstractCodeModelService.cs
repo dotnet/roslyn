@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         protected readonly ISyntaxFactsService SyntaxFactsService;
 
-        private readonly EditorOptionsService _editorOptionsService;
+        private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
         private readonly AbstractNodeNameGenerator _nodeNameGenerator;
         private readonly AbstractNodeLocator _nodeLocator;
         private readonly AbstractCodeModelEventCollector _eventCollector;
@@ -52,24 +52,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         private readonly AbstractFormattingRule _lineAdjustmentFormattingRule;
         private readonly AbstractFormattingRule _endRegionFormattingRule;
+        private readonly IGlobalOptionService _globalOptions;
         private readonly IThreadingContext _threadingContext;
 
         protected AbstractCodeModelService(
             HostLanguageServices languageServiceProvider,
-            EditorOptionsService editorOptionsService,
+            IEditorOptionsFactoryService editorOptionsFactoryService,
             IEnumerable<IRefactorNotifyService> refactorNotifyServices,
             AbstractFormattingRule lineAdjustmentFormattingRule,
             AbstractFormattingRule endRegionFormattingRule,
+            IGlobalOptionService globalOptions,
             IThreadingContext threadingContext)
         {
             RoslynDebug.AssertNotNull(languageServiceProvider);
-            RoslynDebug.AssertNotNull(editorOptionsService);
+            RoslynDebug.AssertNotNull(editorOptionsFactoryService);
 
             this.SyntaxFactsService = languageServiceProvider.GetRequiredService<ISyntaxFactsService>();
 
-            _editorOptionsService = editorOptionsService;
+            _editorOptionsFactoryService = editorOptionsFactoryService;
             _lineAdjustmentFormattingRule = lineAdjustmentFormattingRule;
             _endRegionFormattingRule = endRegionFormattingRule;
+            _globalOptions = globalOptions;
             _threadingContext = threadingContext;
             _refactorNotifyServices = refactorNotifyServices;
             _nodeNameGenerator = CreateNodeNameGenerator();
@@ -80,7 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         protected string GetNewLineCharacter(SourceText text)
         {
             var textBuffer = text.Container.TryGetTextBuffer();
-            var editorOptions = (textBuffer != null) ? _editorOptionsService.Factory.GetOptions(textBuffer) : _editorOptionsService.Factory.GlobalOptions;
+            var editorOptions = (textBuffer != null) ? _editorOptionsFactoryService.GetOptions(textBuffer) : _editorOptionsFactoryService.GlobalOptions;
             return editorOptions.GetNewLineCharacter();
         }
 
@@ -1043,7 +1046,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             return _threadingContext.JoinableTaskFactory.Run(async () =>
             {
-                var options = await document.GetSyntaxFormattingOptionsAsync(_editorOptionsService.GlobalOptions, cancellationToken).ConfigureAwait(false);
+                var options = await document.GetSyntaxFormattingOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(false);
 
                 return await Formatter.FormatAsync(
                     document,
@@ -1089,7 +1092,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             {
                 document = _threadingContext.JoinableTaskFactory.Run(async () =>
                 {
-                    var simplifierOptions = await document.GetSimplifierOptionsAsync(_editorOptionsService.GlobalOptions, cancellationToken).ConfigureAwait(false);
+                    var simplifierOptions = await document.GetSimplifierOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(false);
                     return await Simplifier.ReduceAsync(document, annotation, simplifierOptions, cancellationToken).ConfigureAwait(false);
                 });
             }

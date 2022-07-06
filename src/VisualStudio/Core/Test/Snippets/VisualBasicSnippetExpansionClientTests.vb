@@ -16,7 +16,6 @@ Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
-Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Projection
 Imports Roslyn.Test.Utilities
 
@@ -366,7 +365,7 @@ End Class</Test>
                     editorCommandHandlerServiceFactory:=Nothing,
                     Nothing,
                     workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)().ToImmutableArray(),
-                    workspace.GetService(Of EditorOptionsService)())
+                    workspace.GetService(Of IGlobalOptionService))
 
                 SnippetExpansionClientTestsHelper.TestFormattingAndCaretPosition(snippetExpansionClient, document, expectedResult, tabSize * 3)
             End Using
@@ -410,7 +409,7 @@ End Class</Test>
                     editorCommandHandlerServiceFactory:=Nothing,
                     Nothing,
                     workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)().ToImmutableArray(),
-                    workspace.GetService(Of EditorOptionsService)())
+                    workspace.GetService(Of IGlobalOptionService))
 
                 Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()
 
@@ -452,7 +451,7 @@ End Class</Test>
                     editorCommandHandlerServiceFactory:=Nothing,
                     Nothing,
                     workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)().ToImmutableArray(),
-                    workspace.GetService(Of EditorOptionsService)())
+                    workspace.GetService(Of IGlobalOptionService))
 
                 SnippetExpansionClientTestsHelper.TestProjectionBuffer(snippetExpansionClient, surfaceBufferDocument, expectedSurfaceBuffer)
             End Using

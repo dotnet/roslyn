@@ -2,9 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.DocumentationComments
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -30,10 +28,7 @@ End Class
 Class C
 End Class
 "
-            VerifyTypingCharacter(code, expected, globalOptions:=New OptionsCollection(LanguageNames.VisualBasic) From
-            {
-                {DocumentationCommentOptionsStorage.AutoXmlDocCommentGeneration, False}
-            })
+            VerifyTypingCharacter(code, expected, autoGenerateXmlDocComments:=False)
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
@@ -285,10 +280,7 @@ $$
 Class C
 End Class
 "
-            VerifyPressingEnter(code, expected, globalOptions:=New OptionsCollection(LanguageNames.VisualBasic) From
-            {
-                {DocumentationCommentOptionsStorage.AutoXmlDocCommentGeneration, False}
-            })
+            VerifyPressingEnter(code, expected, autoGenerateXmlDocComments:=False)
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
@@ -556,10 +548,7 @@ End Class
 Class C
 End Class
 "
-            VerifyPressingEnter(code, expected, globalOptions:=New OptionsCollection(LanguageNames.VisualBasic) From
-            {
-                {DocumentationCommentOptionsStorage.AutoXmlDocCommentGeneration, False}
-            })
+            VerifyPressingEnter(code, expected, autoGenerateXmlDocComments:=False)
         End Sub
 
         <WorkItem(540017, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540017")>
@@ -877,10 +866,7 @@ Class C
 
 End Class
 "
-            VerifyInsertCommentCommand(code, expected, globalOptions:=New OptionsCollection(LanguageNames.VisualBasic) From
-            {
-                {DocumentationCommentOptionsStorage.AutoXmlDocCommentGeneration, False}
-            })
+            VerifyInsertCommentCommand(code, expected, autoGenerateXmlDocComments:=False)
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>

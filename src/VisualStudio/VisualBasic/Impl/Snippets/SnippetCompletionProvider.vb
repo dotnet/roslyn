@@ -36,7 +36,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
         Private ReadOnly _editorCommandHandlerServiceFactory As IEditorCommandHandlerServiceFactory
         Private ReadOnly _editorAdaptersFactoryService As IVsEditorAdaptersFactoryService
         Private ReadOnly _argumentProviders As ImmutableArray(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata))
-        Private ReadOnly _editorOptionsService As EditorOptionsService
+        Private ReadOnly _globalOptions As IGlobalOptionService
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
@@ -46,14 +46,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
             editorCommandHandlerServiceFactory As IEditorCommandHandlerServiceFactory,
             editorAdaptersFactoryService As IVsEditorAdaptersFactoryService,
             <ImportMany> argumentProviders As IEnumerable(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)),
-            editorOptionsService As EditorOptionsService)
+            globalOptions As IGlobalOptionService)
 
             _threadingContext = threadingContext
             _signatureHelpControllerProvider = signatureHelpControllerProvider
             _editorCommandHandlerServiceFactory = editorCommandHandlerServiceFactory
             _editorAdaptersFactoryService = editorAdaptersFactoryService
             _argumentProviders = argumentProviders.ToImmutableArray()
-            _editorOptionsService = editorOptionsService
+            _globalOptions = globalOptions
         End Sub
 
         Friend Overrides ReadOnly Property Language As String
@@ -131,7 +131,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
                 _editorCommandHandlerServiceFactory,
                 _editorAdaptersFactoryService,
                 _argumentProviders,
-                _editorOptionsService)
+                _globalOptions)
 
             Dim trackingSpan = triggerSnapshot.CreateTrackingSpan(completionItem.Span.ToSpan(), SpanTrackingMode.EdgeInclusive)
             Dim currentSpan = trackingSpan.GetSpan(subjectBuffer.CurrentSnapshot)

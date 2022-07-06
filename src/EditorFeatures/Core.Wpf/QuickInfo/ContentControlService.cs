@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
@@ -31,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
         private readonly ITextEditorFactoryService _textEditorFactoryService;
         private readonly IContentTypeRegistryService _contentTypeRegistryService;
         private readonly IProjectionBufferFactoryService _projectionBufferFactoryService;
-        private readonly EditorOptionsService _editorOptionsService;
+        private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -40,13 +39,13 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
             ITextEditorFactoryService textEditorFactoryService,
             IContentTypeRegistryService contentTypeRegistryService,
             IProjectionBufferFactoryService projectionBufferFactoryService,
-            EditorOptionsService editorOptionsService)
+            IEditorOptionsFactoryService editorOptionsFactoryService)
         {
             _threadingContext = threadingContext;
             _textEditorFactoryService = textEditorFactoryService;
             _contentTypeRegistryService = contentTypeRegistryService;
             _projectionBufferFactoryService = projectionBufferFactoryService;
-            _editorOptionsService = editorOptionsService;
+            _editorOptionsFactoryService = editorOptionsFactoryService;
         }
 
         public void AttachToolTipToControl(FrameworkElement element, Func<DisposableToolTip> createToolTip)
@@ -106,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
                 _threadingContext,
                 ImmutableArray.Create(snapshotSpan),
                 _projectionBufferFactoryService,
-                _editorOptionsService,
+                _editorOptionsFactoryService,
                 _textEditorFactoryService,
                 contentType,
                 roleSet);

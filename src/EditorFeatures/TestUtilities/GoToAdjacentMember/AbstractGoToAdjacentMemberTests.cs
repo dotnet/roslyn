@@ -9,8 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.CommandHandlers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -39,15 +37,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToAdjacentMember
                 {
                     var hostDocument = workspace.DocumentWithCursor;
                     var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-                    var parsedDocument = await ParsedDocument.CreateAsync(document, CancellationToken.None);
-                    Assert.Empty(parsedDocument.SyntaxTree.GetDiagnostics());
-                    var service = document.GetRequiredLanguageService<ISyntaxFactsService>();
-
-                    var targetPosition = GoToAdjacentMemberCommandHandler.GetTargetPosition(
-                        service,
-                        parsedDocument.Root,
+                    Assert.Empty((await document.GetSyntaxTreeAsync()).GetDiagnostics());
+                    var targetPosition = await GoToAdjacentMemberCommandHandler.GetTargetPositionAsync(
+                        document,
                         hostDocument.CursorPosition.Value,
-                        next);
+                        next,
+                        CancellationToken.None);
 
                     Assert.NotNull(targetPosition);
                     Assert.Equal(hostDocument.SelectedSpans.Single().Start, targetPosition.Value);
@@ -65,14 +60,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToAdjacentMember
             {
                 var hostDocument = workspace.DocumentWithCursor;
                 var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-                var parsedDocument = await ParsedDocument.CreateAsync(document, CancellationToken.None);
-                Assert.Empty(parsedDocument.SyntaxTree.GetDiagnostics());
+                Assert.Empty((await document.GetSyntaxTreeAsync()).GetDiagnostics());
 
-                return GoToAdjacentMemberCommandHandler.GetTargetPosition(
-                    document.GetRequiredLanguageService<ISyntaxFactsService>(),
-                    parsedDocument.Root,
+                return await GoToAdjacentMemberCommandHandler.GetTargetPositionAsync(
+                    document,
                     hostDocument.CursorPosition.Value,
-                    next);
+                    next,
+                    CancellationToken.None);
             }
         }
     }

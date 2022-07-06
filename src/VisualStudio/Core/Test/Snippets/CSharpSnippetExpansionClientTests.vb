@@ -16,7 +16,6 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
-Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Projection
 Imports Roslyn.Test.Utilities
 
@@ -325,7 +324,7 @@ using G=   H.I;
                     editorCommandHandlerServiceFactory:=Nothing,
                     editorAdaptersFactoryService:=Nothing,
                     workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)().ToImmutableArray(),
-                    workspace.GetService(Of EditorOptionsService)())
+                    workspace.GetService(Of IGlobalOptionService))
 
                 SnippetExpansionClientTestsHelper.TestFormattingAndCaretPosition(snippetExpansionClient, document, expectedResult, tabSize * 3)
             End Using
@@ -349,7 +348,7 @@ using G=   H.I;
                     editorCommandHandlerServiceFactory:=Nothing,
                     editorAdaptersFactoryService:=Nothing,
                     workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)().ToImmutableArray(),
-                    workspace.GetService(Of EditorOptionsService)())
+                    workspace.GetService(Of IGlobalOptionService))
 
                 SnippetExpansionClientTestsHelper.TestProjectionBuffer(snippetExpansionClient, surfaceBufferDocument, expectedSurfaceBuffer)
             End Using
@@ -392,7 +391,7 @@ using G=   H.I;
                     editorCommandHandlerServiceFactory:=Nothing,
                     editorAdaptersFactoryService:=Nothing,
                     workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)().ToImmutableArray(),
-                    workspace.GetService(Of EditorOptionsService)())
+                    workspace.GetService(Of IGlobalOptionService))
 
                 Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()
                 Dim addImportOptions = New AddImportPlacementOptions() With

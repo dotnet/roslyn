@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CommentSelection;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -120,7 +119,7 @@ class C
             var commandHandler = new CommentUncommentSelectionCommandHandler(
                 workspace.GetService<ITextUndoHistoryRegistry>(),
                 workspace.GetService<IEditorOperationsFactoryService>(),
-                workspace.GetService<EditorOptionsService>());
+                workspace.GlobalOptions);
 
             var textView = doc.GetTextView();
             var textBuffer = doc.GetTextBuffer();

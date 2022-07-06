@@ -6,7 +6,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -46,19 +45,19 @@ namespace Microsoft.CodeAnalysis.CommentSelection
 
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
-        private readonly EditorOptionsService _editorOptionsService;
+        private readonly IGlobalOptionService _globalOptions;
 
         internal AbstractCommentSelectionBase(
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService,
-            EditorOptionsService editorOptionsService)
+            IGlobalOptionService globalOptions)
         {
             Contract.ThrowIfNull(undoHistoryRegistry);
             Contract.ThrowIfNull(editorOperationsFactoryService);
 
             _undoHistoryRegistry = undoHistoryRegistry;
             _editorOperationsFactoryService = editorOperationsFactoryService;
-            _editorOptionsService = editorOptionsService;
+            _globalOptions = globalOptions;
         }
 
         public abstract string DisplayName { get; }
@@ -68,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CommentSelection
         protected abstract string GetMessage(TCommand command);
 
         // Internal as tests currently rely on this method.
-        internal abstract CommentSelectionResult CollectEdits(
+        internal abstract Task<CommentSelectionResult> CollectEditsAsync(
             Document document, ICommentSelectionService service, ITextBuffer textBuffer, NormalizedSnapshotSpanCollection selectedSpans,
             TCommand command, CancellationToken cancellationToken);
 
@@ -112,8 +111,9 @@ namespace Microsoft.CodeAnalysis.CommentSelection
                     return true;
                 }
 
-                var edits = CollectEdits(document, service, subjectBuffer, selectedSpans, command, cancellationToken);
-                ApplyEdits(document, textView, subjectBuffer, title, edits, cancellationToken);
+                var edits = CollectEditsAsync(document, service, subjectBuffer, selectedSpans, command, cancellationToken).WaitAndGetResult(cancellationToken);
+
+                ApplyEdits(document, textView, subjectBuffer, service, title, edits);
             }
 
             return true;
@@ -123,28 +123,18 @@ namespace Microsoft.CodeAnalysis.CommentSelection
         /// Applies the requested edits and sets the selection.
         /// This operation is not cancellable.
         /// </summary>
-        private void ApplyEdits(Document document, ITextView textView, ITextBuffer subjectBuffer, string title, CommentSelectionResult edits, CancellationToken cancellationToken)
+        private void ApplyEdits(Document document, ITextView textView, ITextBuffer subjectBuffer,
+            ICommentSelectionService service, string title, CommentSelectionResult edits)
         {
-            var workspace = document.Project.Solution.Workspace;
-
             // Create tracking spans to track the text changes.
             var currentSnapshot = subjectBuffer.CurrentSnapshot;
             var trackingSpans = edits.TrackingSpans
                 .SelectAsArray(textSpan => (originalSpan: textSpan, trackingSpan: CreateTrackingSpan(edits.ResultOperation, currentSnapshot, textSpan.TrackingTextSpan)));
 
             // Apply the text changes.
-            SourceText newText;
             using (var transaction = new CaretPreservingEditTransaction(title, textView, _undoHistoryRegistry, _editorOperationsFactoryService))
             {
-                var oldSolution = workspace.CurrentSolution;
-
-                var oldDocument = oldSolution.GetRequiredDocument(document.Id);
-                var oldText = oldDocument.GetTextSynchronously(cancellationToken);
-                newText = oldText.WithChanges(edits.TextChanges.Distinct());
-
-                var newSolution = oldSolution.WithDocumentText(document.Id, newText, PreservationMode.PreserveIdentity);
-                workspace.TryApplyChanges(newSolution);
-
+                document.Project.Solution.Workspace.ApplyTextChanges(document.Id, edits.TextChanges.Distinct(), CancellationToken.None);
                 transaction.Complete();
             }
 
@@ -153,22 +143,17 @@ namespace Microsoft.CodeAnalysis.CommentSelection
 
             if (trackingSnapshotSpans.Any())
             {
-                if (edits.ResultOperation == Operation.Uncomment && document.SupportsSyntaxTree)
+                if (edits.ResultOperation == Operation.Uncomment)
                 {
                     // Format the document only during uncomment operations.  Use second transaction so it can be undone.
                     using var transaction = new CaretPreservingEditTransaction(title, textView, _undoHistoryRegistry, _editorOperationsFactoryService);
 
-                    var formattingOptions = subjectBuffer.GetSyntaxFormattingOptions(_editorOptionsService, document.Project.LanguageServices, explicitFormat: false);
-
-                    var updatedDocument = workspace.CurrentSolution.GetRequiredDocument(document.Id);
-                    var root = updatedDocument.GetRequiredSyntaxRootSynchronously(cancellationToken);
-
-                    var formattingSpans = trackingSnapshotSpans.Select(change => CommonFormattingHelpers.GetFormattingSpan(root, change.Span.ToTextSpan()));
-                    var formattedRoot = Formatter.Format(root, formattingSpans, workspace.Services, formattingOptions, rules: null, cancellationToken);
-                    var formattedDocument = document.WithSyntaxRoot(formattedRoot);
-
-                    workspace.ApplyDocumentChanges(formattedDocument, cancellationToken);
-                    transaction.Complete();
+                    var formattedDocument = Format(service, subjectBuffer.CurrentSnapshot, trackingSnapshotSpans, CancellationToken.None);
+                    if (formattedDocument != null)
+                    {
+                        formattedDocument.Project.Solution.Workspace.ApplyDocumentChanges(formattedDocument, CancellationToken.None);
+                        transaction.Complete();
+                    }
                 }
 
                 // Set the multi selection after edits have been applied.
@@ -207,6 +192,19 @@ namespace Microsoft.CodeAnalysis.CommentSelection
             }
 
             return snapshotSpan;
+        }
+
+        private Document Format(ICommentSelectionService service, ITextSnapshot snapshot, IEnumerable<SnapshotSpan> changes, CancellationToken cancellationToken)
+        {
+            var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            if (document == null)
+            {
+                return null;
+            }
+
+            var formattingOptions = document.GetSyntaxFormattingOptionsAsync(_globalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
+            var textSpans = changes.SelectAsArray(change => change.Span.ToTextSpan());
+            return service.FormatAsync(document, textSpans, formattingOptions, cancellationToken).WaitAndGetResult(cancellationToken);
         }
 
         /// <summary>

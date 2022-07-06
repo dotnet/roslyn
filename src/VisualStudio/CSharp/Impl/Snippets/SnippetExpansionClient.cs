@@ -45,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             IEditorCommandHandlerServiceFactory editorCommandHandlerServiceFactory,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
             ImmutableArray<Lazy<ArgumentProvider, OrderableLanguageMetadata>> argumentProviders,
-            EditorOptionsService editorOptionsService)
+            IGlobalOptionService globalOptions)
             : base(
                 threadingContext,
                 languageServiceGuid,
@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
                 editorCommandHandlerServiceFactory,
                 editorAdaptersFactoryService,
                 argumentProviders,
-                editorOptionsService)
+                globalOptions)
         {
         }
 

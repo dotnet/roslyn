@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         protected readonly IThreadingContext ThreadingContext;
         protected readonly IExpansionServiceProvider ExpansionServiceProvider;
         protected readonly IExpansionManager ExpansionManager;
-        protected readonly EditorOptionsService EditorOptionsService;
+        protected readonly IGlobalOptionService GlobalOptions;
 
         public string DisplayName => FeaturesResources.Snippets;
 
@@ -40,12 +40,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             IThreadingContext threadingContext,
             IExpansionServiceProvider expansionServiceProvider,
             IExpansionManager expansionManager,
-            EditorOptionsService editorOptionsService)
+            IGlobalOptionService globalOptions)
         {
             ThreadingContext = threadingContext;
             ExpansionServiceProvider = expansionServiceProvider;
             ExpansionManager = expansionManager;
-            EditorOptionsService = editorOptionsService;
+            GlobalOptions = globalOptions;
         }
 
         protected abstract AbstractSnippetExpansionClient GetSnippetExpansionClient(ITextView textView, ITextBuffer subjectBuffer);
@@ -290,7 +290,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         protected bool AreSnippetsEnabled(EditorCommandArgs args)
         {
-            return EditorOptionsService.GlobalOptions.GetOption(InternalFeatureOnOffOptions.Snippets) &&
+            return GlobalOptions.GetOption(InternalFeatureOnOffOptions.Snippets) &&
                 // TODO (https://github.com/dotnet/roslyn/issues/5107): enable in interactive
                 !(Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out var workspace) && workspace.Kind == WorkspaceKind.Interactive);
         }
