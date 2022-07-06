@@ -1473,7 +1473,7 @@ class XAttribute : System.Attribute
         Assert.False(runResult.TrackedSteps.ContainsKey("individualFileGlobalAliases_ForAttribute"));
         Assert.Equal(IncrementalStepRunReason.Unchanged, runResult.TrackedSteps["collectedGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
         Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["compilationGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
-        Assert.Equal(IncrementalStepRunReason.Unchanged, runResult.TrackedSteps["allUpGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
+        Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["allUpGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
         Assert.Collection(runResult.TrackedSteps["compilationUnit_ForAttribute"].Single().Outputs,
             o => Assert.Equal(IncrementalStepRunReason.Unchanged, o.Reason),
             o => Assert.Equal(IncrementalStepRunReason.Modified, o.Reason));
@@ -1481,7 +1481,7 @@ class XAttribute : System.Attribute
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"].Single().Outputs,
             t => Assert.Equal(IncrementalStepRunReason.Cached, t.Reason),
             t => Assert.Equal(IncrementalStepRunReason.Cached, t.Reason));
-        Assert.Equal(IncrementalStepRunReason.Unchanged, runResult.TrackedSteps["collectedNodes_ForAttributeWithMetadataName"].Single().Outputs.Single().Reason);
+        Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["collectedNodes_ForAttributeWithMetadataName"].Single().Outputs.Single().Reason);
         Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["groupedNodes_ForAttributeWithMetadataName"].Single().Outputs.Single().Reason);
         Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps["compilationAndGroupedNodes_ForAttributeWithMetadataName"].Single().Outputs.Single().Reason);
         Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"].Single().Outputs,
@@ -1599,7 +1599,7 @@ class XAttribute : System.Attribute
         Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["allUpGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
         Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps["compilationUnit_ForAttribute"].Single().Outputs.Single().Reason);
         Assert.Equal(IncrementalStepRunReason.New, runResult.TrackedSteps["compilationUnitAndGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
-        Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps["result_ForAttribute"].Single().Outputs.Single().Reason);
+        Assert.Equal(IncrementalStepRunReason.New, runResult.TrackedSteps["result_ForAttribute"].Single().Outputs.Single().Reason);
         Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps["collectedNodes_ForAttributeWithMetadataName"].Single().Outputs.Single().Reason);
         Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps["groupedNodes_ForAttributeWithMetadataName"].Single().Outputs.Single().Reason);
         Assert.Equal(IncrementalStepRunReason.New, runResult.TrackedSteps["compilationAndGroupedNodes_ForAttributeWithMetadataName"].Single().Outputs.Single().Reason);
@@ -1651,7 +1651,7 @@ class C { }
             o => Assert.Equal(IncrementalStepRunReason.Modified, o.Reason),
             o => Assert.Equal(IncrementalStepRunReason.Unchanged, o.Reason));
         Assert.Equal(IncrementalStepRunReason.New, runResult.TrackedSteps["compilationUnitAndGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
-        Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps["result_ForAttribute"].Single().Outputs.Single().Reason);
+        Assert.Equal(IncrementalStepRunReason.New, runResult.TrackedSteps["result_ForAttribute"].Single().Outputs.Single().Reason);
         Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps["collectedNodes_ForAttributeWithMetadataName"].Single().Outputs.Single().Reason);
         Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps["groupedNodes_ForAttributeWithMetadataName"].Single().Outputs.Single().Reason);
         Assert.Equal(IncrementalStepRunReason.New, runResult.TrackedSteps["compilationAndGroupedNodes_ForAttributeWithMetadataName"].Single().Outputs.Single().Reason);
