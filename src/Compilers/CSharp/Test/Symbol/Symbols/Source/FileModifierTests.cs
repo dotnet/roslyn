@@ -745,11 +745,12 @@ public class FileModifierTests : CSharpTestBase
                 static void Main()
                 {
                     C.M();
+                    global::C.M();
                 }
             }
             """;
 
-        var verifier = CompileAndVerify(new[] { source1 + main, source2 }, expectedOutput: "1");
+        var verifier = CompileAndVerify(new[] { source1 + main, source2 }, expectedOutput: "11");
         var comp = (CSharpCompilation)verifier.Compilation;
         var cs = comp.GetMembers("C");
         var tree = comp.SyntaxTrees[0];
@@ -757,7 +758,7 @@ public class FileModifierTests : CSharpTestBase
         Assert.Equal(firstMetadataName, expectedSymbol.MetadataName);
         verify();
 
-        verifier = CompileAndVerify(new[] { source1, source2 + main }, expectedOutput: "2");
+        verifier = CompileAndVerify(new[] { source1, source2 + main }, expectedOutput: "22");
         comp = (CSharpCompilation)verifier.Compilation;
         cs = comp.GetMembers("C");
         tree = comp.SyntaxTrees[1];
