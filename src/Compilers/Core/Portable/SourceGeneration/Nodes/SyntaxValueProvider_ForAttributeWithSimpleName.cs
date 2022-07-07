@@ -135,7 +135,6 @@ public partial struct SyntaxValueProvider
         var compilationUnit = syntaxTree.GetRoot(cancellationToken);
         Debug.Assert(compilationUnit is ICompilationUnitSyntax);
 
-        // Walk the green node tree first to avoid allocating the entire red tree for files that have no attributes.
         Debug.Assert(ContainsAttributeList(compilationUnit.Green, syntaxHelper.AttributeListKind));
 
         var isCaseSensitive = syntaxHelper.IsCaseSensitive;
