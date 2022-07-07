@@ -21,6 +21,23 @@ using Aliases = ArrayBuilder<(string aliasName, string symbolName)>;
 
 public partial struct SyntaxValueProvider
 {
+    /// <summary>
+    /// Information computed about a particular tree.  Cached so we don't repeated recompute this important information
+    /// each time the incremental pipeline is rerun.
+    /// </summary>
+    private record SyntaxTreeInfo(SyntaxTree Tree, bool ContainsGlobalAliases, bool ContainsAttributeList);
+
+    /// <summary>
+    /// Caching of syntax-tree to the info we've computed about it.  Used because compilations will have thousands of
+    /// trees, and the incremental pipeline will get called back for *all* of them each time a compilation changes.  We
+    /// do not want to continually recompute this data over and over again each time that happens given that normally
+    /// only one tree will be different.  We also do not want to create an IncrementalValuesProvider that yield this
+    /// information as that will mean we have a node in the tree that scales with the number of *all syntax trees*, not
+    /// the number of *relevant syntax trees*. This can lead to huge memory churn keeping track of a high number of
+    /// trees, most of which are not going to be relevant.
+    /// </summary>
+    private static readonly ConditionalWeakTable<SyntaxTree, SyntaxTreeInfo> s_treeToInfo = new();
+
     private static readonly ObjectPool<Stack<string>> s_stackPool = new(static () => new());
 
     /// <summary>
@@ -121,9 +138,6 @@ public partial struct SyntaxValueProvider
             return GlobalAliases.Create(globalAliases.ToImmutableAndFree());
         }
     }
-
-    private record SyntaxTreeInfo(SyntaxTree Tree, bool ContainsGlobalAliases, bool ContainsAttributeList);
-    private static readonly ConditionalWeakTable<SyntaxTree, SyntaxTreeInfo> s_treeToInfo = new();
 
     private static SyntaxTreeInfo GetTreeInfo(
         SyntaxTree tree, ISyntaxHelper syntaxHelper, CancellationToken cancellationToken)
