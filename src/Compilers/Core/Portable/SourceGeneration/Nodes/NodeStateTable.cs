@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 Debug.Assert(_previous._states[_states.Count].Count == 1);
-                var (chosen, state) = GetModifiedItemAndState(_previous._states[_states.Count].GetItem(0), value, comparer);
+                var (chosen, state, _) = GetModifiedItemAndState(_previous._states[_states.Count].GetItem(0), value, comparer);
                 _states.Add(new TableEntry(chosen, state));
                 RecordStepInfoForLastEntry(elapsedTime, stepInputs, overallInputState);
                 return true;
@@ -293,20 +293,40 @@ namespace Microsoft.CodeAnalysis
                     // we shrunk the number of items.  we need to create a new array so that we can store the 'removed'
                     // entries in it.
 
-                    var builder = new TableEntry.TableEntryBuilder(capacity: previousEntry.Count);
+                    var itemsBuilder = ArrayBuilder<T>.GetInstance(previousEntry.Count);
+                    var entryStatesBuilder = new TableEntry.EntryStatesBuilder(capacity: previousEntry.Count);
+                    var itemValuesChanged = false;
 
                     // cached or modified items
                     for (int i = 0, n = outputs.Length; i < n; i++)
                     {
-                        var (item, state) = GetModifiedItemAndState(previousEntry.GetItem(i), outputs[i], comparer);
-                        builder.Add(item, state);
+                        var (item, state, chosePrevious) = GetModifiedItemAndState(previousEntry.GetItem(i), outputs[i], comparer);
+                        itemsBuilder.Add(item);
+                        entryStatesBuilder.Add(state);
+                        itemValuesChanged = itemValuesChanged || !chosePrevious;
                     }
 
                     // removed
-                    for (int i = outputs.Length; i < previousEntry.Count; i++)
-                        builder.Add(previousEntry.GetItem(i), EntryState.Removed);
+                    for (int i = outputs.Length, n = previousEntry.Count; i < n; i++)
+                    {
+                        // removing an item still keeps that item around (just with the 'removed' state), so we don't need
+                        // to update itemValuesChanged.
+                        itemsBuilder.Add(previousEntry.GetItem(i));
+                        entryStatesBuilder.Add(EntryState.Removed);
+                    }
 
-                    _states.Add(builder.ToImmutableAndFree());
+                    var entryStates = entryStatesBuilder.ToImmutableAndFree();
+                    if (itemValuesChanged)
+                    {
+                        var items = itemsBuilder.ToImmutableAndFree();
+                        _states.Add(new TableEntry(item: default, items, entryStates));
+                    }
+                    else
+                    {
+                        itemsBuilder.Free();
+                        // we didn't actually change any item values.  just reuse the prior entry's entirely.
+                        _states.Add(previousEntry.WithEntryStates(entryStates));
+                    }
                 }
                 else
                 {
@@ -323,7 +343,7 @@ namespace Microsoft.CodeAnalysis
                     // cached or modified items
                     for (int i = 0, n = previousEntry.Count; i < n; i++)
                     {
-                        var (_, state) = GetModifiedItemAndState(previousEntry.GetItem(i), outputs[i], comparer);
+                        var (_, state, _) = GetModifiedItemAndState(previousEntry.GetItem(i), outputs[i], comparer);
 
                         if (builder != null)
                         {
@@ -462,13 +482,13 @@ namespace Microsoft.CodeAnalysis
                     hasTrackedSteps: TrackIncrementalSteps);
             }
 
-            private static (T chosen, EntryState state) GetModifiedItemAndState(T previous, T replacement, IEqualityComparer<T> comparer)
+            private static (T chosen, EntryState state, bool chosePrevious) GetModifiedItemAndState(T previous, T replacement, IEqualityComparer<T> comparer)
             {
                 // when comparing an item to check if its modified we explicitly cache the *previous* item in the case where its 
                 // considered to be equal. This ensures that subsequent comparisons are stable across future generation passes.
                 return comparer.Equals(previous, replacement)
-                    ? (previous, EntryState.Cached)
-                    : (replacement, EntryState.Modified);
+                    ? (previous, EntryState.Cached, true)
+                    : (replacement, EntryState.Modified, false);
             }
         }
 
@@ -503,6 +523,9 @@ namespace Microsoft.CodeAnalysis
                 this._items = items;
                 this._states = states;
             }
+
+            public NodeStateTable<T>.TableEntry WithEntryStates(ImmutableArray<EntryState> entryStates)
+                => new TableEntry(_item, _items, entryStates);
 
             public ImmutableArray<EntryState> States => _states;
 
@@ -608,41 +631,6 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 #endif
-
-            public struct TableEntryBuilder
-            {
-                private readonly ArrayBuilder<T> _items;
-                private readonly EntryStatesBuilder _entryStates;
-
-                public TableEntryBuilder(int capacity)
-                {
-                    _items = ArrayBuilder<T>.GetInstance(capacity);
-                    _entryStates = new EntryStatesBuilder(capacity);
-                }
-
-                public void Add(T item, EntryState state)
-                {
-                    _items.Add(item);
-                    _entryStates.Add(state);
-                }
-
-                public TableEntry ToImmutableAndFree()
-                {
-                    Debug.Assert(_items.Count > 0, "Created a builder with no values?");
-
-                    var entryStates = _entryStates.ToImmutableAndFree();
-                    if (_items.Count == 1)
-                    {
-                        var item = _items[0];
-                        _items.Free();
-                        return new TableEntry(item, items: default, entryStates);
-                    }
-                    else
-                    {
-                        return new TableEntry(item: default, items: _items.ToImmutableAndFree(), entryStates);
-                    }
-                }
-            }
 
             public sealed class EntryStatesBuilder
             {
