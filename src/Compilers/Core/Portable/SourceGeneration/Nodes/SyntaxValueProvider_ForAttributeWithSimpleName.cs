@@ -93,24 +93,21 @@ public partial struct SyntaxValueProvider
             .Select((tuple, _) => GlobalAliases.Concat(tuple.Left, tuple.Right))
             .WithTrackingName("allUpIncludingCompilationGlobalAliases_ForAttribute");
 
-        // Filter down to the trees that contain attributes in them.  in general, this will normally be smaller than the
-        // number of total trees, allowing us to hold onto a much smaller number of nodes.
-        var treesContainingAttribute = syntaxTreesProvider
+        // Combine the two providers so that we reanalyze every file if the global aliases change, or we reanalyze a
+        // particular file when it's compilation unit changes.
+        var syntaxTreeAndGlobalAliasesProvider = syntaxTreesProvider
             .Where((tree, cancellationToken) =>
             {
                 // Walk the green node tree first to avoid allocating the entire red tree for files that have no attributes.
+                //
+                // Don't bother looking in trees that don't even have attributes in them.
                 var root = tree.GetRoot(cancellationToken);
                 return ContainsAttributeList(root.Green, syntaxHelper.AttributeListKind);
             })
-            .WithTrackingName("treesContainingAttribute_ForAttribute");
-
-        // Combine the two providers so that we reanalyze every file if the global aliases change, or we reanalyze a
-        // particular file when it's compilation unit changes.
-        var treesWithAttributeAndGlobalAliasesProvider = treesContainingAttribute
             .Combine(allUpGlobalAliasesProvider)
             .WithTrackingName("compilationUnitAndGlobalAliases_ForAttribute");
 
-        return treesWithAttributeAndGlobalAliasesProvider.Select(
+        return syntaxTreeAndGlobalAliasesProvider.Select(
             (tuple, c) => (tuple.Left, GetMatchingNodes(syntaxHelper, tuple.Right, tuple.Left, simpleName, predicate, c)))
             .Where(tuple => tuple.Item2.Length > 0)
             .WithTrackingName("result_ForAttributeInternal");
