@@ -2198,6 +2198,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_ScopedRefAndRefStructOnly:
                 case ErrorCode.ERR_FixedFieldMustNotBeRef:
                 case ErrorCode.ERR_RefFieldCannotReferToRefStruct:
+                case ErrorCode.ERR_FileTypeDisallowedInSignature:
+                case ErrorCode.ERR_FileTypeNoExplicitAccessibility:
+                case ErrorCode.ERR_FileTypeBase:
+                case ErrorCode.ERR_FileTypeNested:
+                case ErrorCode.ERR_GlobalUsingStaticFileType:
+                case ErrorCode.ERR_FileTypeNameDisallowed:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement
