@@ -190,6 +190,7 @@ stages:
                    /p:DotNetArtifactsCategory=$(_DotNetArtifactsCategory)
                    /p:DotnetPublishUsingPipelines=true
                    /p:IgnoreIbcMergeErrors=true
+                   /p:GenerateSbom=true
       condition: succeeded()
       
     - template: eng\common\templates\steps\generate-sbom.yml
@@ -310,7 +311,7 @@ stages:
         - OfficialBuild
       pool:
         name: NetCore1ESPool-Svc-Internal
-        demands: ImageOverride -equals Build.Server.Amd64.VS2019
+        demands: ImageOverride -equals Build.Windows.Amd64.VS2022
 
 - stage: insert
   dependsOn:

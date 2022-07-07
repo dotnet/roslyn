@@ -5,7 +5,9 @@
 #nullable disable
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog;
@@ -35,16 +37,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
             _uiThreadOperationExecutor = uiThreadOperationExecutor;
         }
 
-        public PullMembersUpOptions GetPullMemberUpOptions(Document document, ISymbol selectedMember)
+        public PullMembersUpOptions GetPullMemberUpOptions(Document document, ImmutableArray<ISymbol> selectedMembers)
         {
-            var membersInType = selectedMember.ContainingType.GetMembers().
-                WhereAsArray(member => MemberAndDestinationValidator.IsMemberValid(member));
+            // all selected members must have the same containing type
+            var containingType = selectedMembers[0].ContainingType;
+            var membersInType = containingType.GetMembers().
+                WhereAsArray(MemberAndDestinationValidator.IsMemberValid);
             var memberViewModels = membersInType
                 .SelectAsArray(member =>
                     new PullMemberUpSymbolViewModel(member, _glyphService)
                     {
                         // The member user selected will be checked at the beginning.
-                        IsChecked = SymbolEquivalenceComparer.Instance.Equals(selectedMember, member),
+                        IsChecked = selectedMembers.Any(SymbolEquivalenceComparer.Instance.Equals, member),
                         MakeAbstract = false,
                         IsMakeAbstractCheckable = !member.IsKind(SymbolKind.Field) && !member.IsAbstract,
                         IsCheckable = true
@@ -54,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
             var baseTypeRootViewModel = BaseTypeTreeNodeViewModel.CreateBaseTypeTree(
                 _glyphService,
                 document.Project.Solution,
-                selectedMember.ContainingType,
+                containingType,
                 cancellationTokenSource.Token);
             var memberToDependentsMap = SymbolDependentsBuilder.FindMemberToDependentsMap(membersInType, document.Project, cancellationTokenSource.Token);
             var viewModel = new PullMemberUpDialogViewModel(_uiThreadOperationExecutor, memberViewModels, baseTypeRootViewModel, memberToDependentsMap);

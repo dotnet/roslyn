@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Private Sub New()
         End Sub
 
-        Public Function CanHaveAccessibility(declaration As SyntaxNode) As Boolean Implements IAccessibilityFacts.CanHaveAccessibility
+        Public Function CanHaveAccessibility(declaration As SyntaxNode, Optional ignoreDeclarationModifiers As Boolean = False) As Boolean Implements IAccessibilityFacts.CanHaveAccessibility
             Select Case declaration.Kind
                 Case SyntaxKind.ClassBlock,
                      SyntaxKind.ClassStatement,

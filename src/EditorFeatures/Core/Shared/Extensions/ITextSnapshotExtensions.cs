@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
@@ -25,9 +26,13 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         /// <summary>
         /// format given snapshot and apply text changes to buffer
         /// </summary>
-        public static void FormatAndApplyToBuffer(this ITextSnapshot snapshot, TextSpan span, IGlobalOptionService globalOptions, CancellationToken cancellationToken)
+        public static void FormatAndApplyToBuffer(
+            this ITextBuffer textBuffer,
+            TextSpan span,
+            EditorOptionsService editorOptionsService,
+            CancellationToken cancellationToken)
         {
-            var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = textBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
                 return;
@@ -38,13 +43,13 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 
             var formatter = document.GetRequiredLanguageService<ISyntaxFormattingService>();
 
-            var options = document.GetSyntaxFormattingOptionsAsync(globalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
+            var options = textBuffer.GetSyntaxFormattingOptions(editorOptionsService, document.Project.LanguageServices, explicitFormat: false);
             var result = formatter.GetFormattingResult(documentSyntax.Root, SpecializedCollections.SingletonEnumerable(span), options, rules, cancellationToken);
             var changes = result.GetTextChanges(cancellationToken);
 
             using (Logger.LogBlock(FunctionId.Formatting_ApplyResultToBuffer, cancellationToken))
             {
-                document.Project.Solution.Workspace.ApplyTextChanges(document.Id, changes, cancellationToken);
+                textBuffer.ApplyChanges(changes);
             }
         }
 

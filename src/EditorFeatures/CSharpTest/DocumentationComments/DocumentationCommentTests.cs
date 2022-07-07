@@ -4,7 +4,9 @@
 
 #nullable disable
 
+using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -137,7 +139,10 @@ class C
 {
 }";
 
-            VerifyTypingCharacter(code, expected, autoGenerateXmlDocComments: false);
+            VerifyTypingCharacter(code, expected, globalOptions: new OptionsCollection(LanguageNames.CSharp)
+            {
+                { DocumentationCommentOptionsStorage.AutoXmlDocCommentGeneration, false }
+            });
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
@@ -785,7 +790,10 @@ class C
 {
 }";
 
-            VerifyPressingEnter(code, expected, autoGenerateXmlDocComments: false);
+            VerifyPressingEnter(code, expected, globalOptions: new OptionsCollection(LanguageNames.CSharp)
+            {
+                { DocumentationCommentOptionsStorage.AutoXmlDocCommentGeneration, false }
+            });
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
@@ -1344,7 +1352,10 @@ class C
 {
 }";
 
-            VerifyPressingEnter(code, expected, autoGenerateXmlDocComments: false);
+            VerifyPressingEnter(code, expected, globalOptions: new OptionsCollection(LanguageNames.CSharp)
+            {
+                { DocumentationCommentOptionsStorage.AutoXmlDocCommentGeneration, false }
+            });
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
@@ -1787,7 +1798,10 @@ class C
 {
 }";
 
-            VerifyInsertCommentCommand(code, expected, autoGenerateXmlDocComments: false);
+            VerifyInsertCommentCommand(code, expected, globalOptions: new OptionsCollection(LanguageNames.CSharp)
+            {
+                { DocumentationCommentOptionsStorage.AutoXmlDocCommentGeneration, false }
+            });
         }
 
         [WorkItem(538714, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538714")]
@@ -2274,20 +2288,7 @@ class C { }";
 /// </summary>
 class C { }";
 
-            try
-            {
-                VerifyPressingEnter(code, expected, useTabs: true, setOptionsOpt:
-                workspace =>
-                {
-                    workspace.GetService<IEditorOptionsFactoryService>().GlobalOptions
-                        .SetOptionValue(DefaultOptions.TrimTrailingWhiteSpaceOptionName, true);
-                });
-            }
-            finally
-            {
-                TestWorkspace.CreateCSharp("").GetService<IEditorOptionsFactoryService>().GlobalOptions
-                        .SetOptionValue(DefaultOptions.TrimTrailingWhiteSpaceOptionName, false);
-            }
+            VerifyPressingEnter(code, expected, useTabs: true, trimTrailingWhiteSpace: true);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
