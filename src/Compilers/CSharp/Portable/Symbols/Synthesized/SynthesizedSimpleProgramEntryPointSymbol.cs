@@ -219,10 +219,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             CSharpCompilation compilation = DeclaringCompilation;
 
-            Binder result = new BuckStopsHereBinder(compilation);
+            var syntaxNode = SyntaxNode;
+            Binder result = new BuckStopsHereBinder(compilation, syntaxNode.SyntaxTree);
             var globalNamespace = compilation.GlobalNamespace;
             var declaringSymbol = (SourceNamespaceSymbol)compilation.SourceModule.GlobalNamespace;
-            var syntaxNode = SyntaxNode;
             result = WithExternAndUsingAliasesBinder.Create(declaringSymbol, syntaxNode, WithUsingNamespacesAndTypesBinder.Create(declaringSymbol, syntaxNode, result));
             result = new InContainerBinder(globalNamespace, result);
             result = new InContainerBinder(ContainingType, result);

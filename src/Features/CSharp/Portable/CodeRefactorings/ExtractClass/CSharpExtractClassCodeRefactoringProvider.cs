@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ExtractClass
             return relaventNodes.FirstOrDefault();
         }
 
-        protected override Task<SyntaxNode?> GetSelectedNodeAsync(CodeRefactoringContext context)
-            => NodeSelectionHelpers.GetSelectedDeclarationOrVariableAsync(context);
+        protected override Task<ImmutableArray<SyntaxNode>> GetSelectedNodesAsync(CodeRefactoringContext context)
+            => NodeSelectionHelpers.GetSelectedDeclarationsOrVariablesAsync(context);
     }
 }
