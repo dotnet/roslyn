@@ -57,9 +57,9 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
         ///      C:\Project\MultiTarget.csproj (Debug;AnyCPU;net45 {72B509BD-C502-4707-ADFD-E2D43867CF45})
         /// </param>
         /// <param name="data">Providers access to msbuild evaluation data for the project.</param>
-        /// <param name="hierarchy">The IVsHierarchy for the project; this is used to track linked files across multiple projects when determining contexts.</param>
-        /// <exception cref="InvalidOperationException">A property or item is not present in <see cref="EvaluationData"/> or has invalid value.</exception>
-        Task<IWorkspaceProjectContext> CreateProjectContextAsync(Guid id, string uniqueName, EvaluationData data, object? hierarchy, CancellationToken cancellationToken);
+        /// <param name="hostObject">The IVsHierarchy for the project; this is used to track linked files across multiple projects when determining contexts.</param>
+        /// <exception cref="InvalidOperationException">A required property or item is not present in <see cref="EvaluationData"/> or has invalid value.</exception>
+        Task<IWorkspaceProjectContext> CreateProjectContextAsync(Guid id, string uniqueName, EvaluationData data, object? hostObject, CancellationToken cancellationToken);
 
         /// <summary>
         /// Names of msbuild properties whose values that <see cref="CreateProjectContextAsync(Guid, string, EvaluationData, object?, CancellationToken)"/> will receive via <see cref="EvaluationData"/>.
@@ -82,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
         /// <returns>
         /// Returns empty string if the property is not set.
         /// </returns>
-        /// <exception cref="InvalidOperationException">
+        /// <exception cref="ArgumentException">
         /// The <paramref name="name"/> is not listed in <see cref="IWorkspaceProjectContextFactory.EvaluationPropertyNames"/>
         /// </exception>
         public abstract string GetPropertyValue(string name);
@@ -93,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
         /// <returns>
         /// Returns empty if no items of the specified type are defined.
         /// </returns>
-        /// <exception cref="InvalidOperationException">
+        /// <exception cref="ArgumentException">
         /// The <paramref name="itemType"/> is not listed in <see cref="IWorkspaceProjectContextFactory.EvaluationItemTypes"/>
         /// </exception>
         public abstract IEnumerable<EvaluationItem> GetItems(string itemType);
