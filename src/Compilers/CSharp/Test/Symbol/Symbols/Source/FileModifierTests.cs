@@ -2075,26 +2075,79 @@ public class FileModifierTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "C").WithArguments("C", "E.M<T>(T)").WithLocation(10, 30));
     }
 
-    [Fact, WorkItem(62435, "https://github.com/dotnet/roslyn/issues/62435")]
-    public void Constraints_02()
+    [Theory, WorkItem(62435, "https://github.com/dotnet/roslyn/issues/62435")]
+    [InlineData("class")]
+    [InlineData("struct")]
+    [InlineData("interface")]
+    [InlineData("record")]
+    [InlineData("record struct")]
+    public void Constraints_02(string typeKind)
     {
-        var source = """
-            file class C { }
+        var source = $$"""
+            file {{typeKind}} C { }
 
-            file class D<T> where T : C // ok
+            file {{typeKind}} D<T> where T : C // ok
             {
             }
 
-            class E<T> where T : C // 1
+            {{typeKind}} E<T> where T : C // 1
             {
             }
             """;
 
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (7,22): error CS9051: File type 'C' cannot be used in a member signature in non-file type 'E<T>'.
-            // class E<T> where T : C // 1
-            Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "C").WithArguments("C", "E<T>").WithLocation(7, 22));
+            // (7,{{17 + typeKind.Length}}): error CS9051: File type 'C' cannot be used in a member signature in non-file type 'E<T>'.
+            // {{typeKind}} E<T> where T : C // 1
+            Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "C").WithArguments("C", "E<T>").WithLocation(7, 17 + typeKind.Length));
+    }
+
+    [Fact]
+    public void Constraints_03()
+    {
+        var source = """
+            file class C { }
+
+            file class D
+            {
+                void M()
+                {
+                    local(new C());
+                    void local<T>(T t) where T : C { } // ok
+                }
+            }
+
+            class E
+            {
+                void M()
+                {
+                    local(new C());
+                    void local<T>(T t) where T : C { } // ok
+                }
+            }
+            """;
+
+        // Local functions aren't members, so we don't give any diagnostics when their signatures contain file types.
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Constraints_04()
+    {
+        var source = """
+            file class C { }
+
+            file delegate void D1<T>(T t) where T : C; // ok
+
+            delegate void D2<T>(T t) where T : C; // 1
+            """;
+
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics(
+            // (5,36): error CS9051: File type 'C' cannot be used in a member signature in non-file type 'D2<T>'.
+            // delegate void D2<T>(T t) where T : C; // 1
+            Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "C").WithArguments("C", "D2<T>").WithLocation(5, 36));
     }
 
     [Fact]

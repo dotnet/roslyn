@@ -411,7 +411,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(ErrorCode.ERR_BadVisBound, location, containingSymbol, constraintType.Type);
             }
 
-            if (constraintType.Type.IsFileTypeOrUsesFileTypes() && !(containingSymbol as TypeSymbol ?? containingSymbol.ContainingType).IsFileTypeOrUsesFileTypes())
+            // Whether a member is effectively file-local is determined on the type level. When non-type members have constraints we need to check the containing symbol.
+            // If the 'containingSymbol.ContainingSymbol' is not a type, then 'containingSymbol' is not a member, and we don't need to enforce file types here.
+            if (constraintType.Type.IsFileTypeOrUsesFileTypes() && (containingSymbol as TypeSymbol ?? containingSymbol.ContainingSymbol as TypeSymbol)?.IsFileTypeOrUsesFileTypes() == false)
             {
                 diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, location, constraintType.Type, containingSymbol);
             }
