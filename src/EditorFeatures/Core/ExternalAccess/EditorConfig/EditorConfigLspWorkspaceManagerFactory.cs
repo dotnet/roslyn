@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.LanguageServer;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig;
 
-[ExportLspServiceFactory(typeof(LspWorkspaceManager), ProtocolConstants.TypeScriptLanguageContract), Shared]
+[ExportLspServiceFactory(typeof(LspWorkspaceManager), ProtocolConstants.EditorConfigLanguageContract), Shared]
 internal class EditorConfigLspWorkspaceManagerFactory : LspWorkspaceManagerFactory
 {
     [ImportingConstructor]

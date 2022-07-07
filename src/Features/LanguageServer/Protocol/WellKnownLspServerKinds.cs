@@ -97,6 +97,9 @@ internal static class WellKnownLspServerExtensions
             WellKnownLspServerKinds.XamlLspServerDisableUX => "XamlInProcLanguageClientDisableUX",
 
             WellKnownLspServerKinds.RoslynTypeScriptLspServer => "RoslynTypeScriptLspServer",
+
+            WellKnownLspServerKinds.EditorConfigLspServer => "EditorConfigLspServer",
+
             _ => throw ExceptionUtilities.UnexpectedValue(server),
         };
     }

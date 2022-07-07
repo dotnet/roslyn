@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig
     /// </summary>
     [ContentType(ContentTypeNames.EditorConfigContentType)]
     [Export(typeof(ILanguageClient))]
+    [Export(typeof(EditorConfigInProcLanguageClient))]
     internal class EditorConfigInProcLanguageClient : AbstractInProcLanguageClient
     {
         private readonly IEditorConfigCapabilitiesProvider? _editorConfigCapabilitiesProvider;
