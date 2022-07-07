@@ -190,6 +190,7 @@ stages:
                    /p:DotNetArtifactsCategory=$(_DotNetArtifactsCategory)
                    /p:DotnetPublishUsingPipelines=true
                    /p:IgnoreIbcMergeErrors=true
+                   /p:GenerateSbom=true
       condition: succeeded()
       
     - template: eng\common\templates\steps\generate-sbom.yml
