@@ -1096,7 +1096,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (localSymbol.Scope == DeclarationScope.ValueScoped && !declTypeOpt.Type.IsErrorTypeOrRefLikeType())
             {
-                localDiagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, typeSyntax.Location);
+                localDiagnostics.Add(ErrorCode.WRN_ScopedRefAndRefStructOnly, typeSyntax.Location);
             }
 
             localSymbol.SetTypeWithAnnotations(declTypeOpt);

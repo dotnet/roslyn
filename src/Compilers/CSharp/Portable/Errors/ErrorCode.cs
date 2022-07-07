@@ -2095,7 +2095,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers = 9045,
         ERR_BadAbstractEqualityOperatorSignature = 9046,
         ERR_BadBinaryReadOnlySpanConcatenation = 9047,
-        ERR_ScopedRefAndRefStructOnly = 9048,
+        WRN_ScopedRefAndRefStructOnly = 9048,
         ERR_FixedFieldMustNotBeRef = 9049,
         ERR_RefFieldCannotReferToRefStruct = 9050,
 

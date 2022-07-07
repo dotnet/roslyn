@@ -6751,7 +6751,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ListPatternRequiresLength" xml:space="preserve">
     <value>List patterns may not be used for a value of type '{0}'. No suitable 'Length' or 'Count' property was found.</value>
   </data>
-  <data name="ERR_ScopedRefAndRefStructOnly" xml:space="preserve">
+  <data name="WRN_ScopedRefAndRefStructOnly" xml:space="preserve">
+    <value>The 'scoped' modifier can be used for refs and ref struct values only.</value>
+  </data>
+  <data name="WRN_ScopedRefAndRefStructOnly_Title" xml:space="preserve">
     <value>The 'scoped' modifier can be used for refs and ref struct values only.</value>
   </data>
   <data name="ERR_ScopedMismatchInParameterOfOverrideOrImplementation" xml:space="preserve">

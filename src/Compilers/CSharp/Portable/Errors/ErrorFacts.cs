@@ -500,6 +500,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_UnassignedThisAutoPropertySupportedVersion:
                 case ErrorCode.WRN_UnassignedThisSupportedVersion:
                 case ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired:
+                case ErrorCode.WRN_ScopedRefAndRefStructOnly:
                     return 1;
                 default:
                     return 0;
@@ -2195,7 +2196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers:
                 case ErrorCode.ERR_BadAbstractEqualityOperatorSignature:
                 case ErrorCode.ERR_BadBinaryReadOnlySpanConcatenation:
-                case ErrorCode.ERR_ScopedRefAndRefStructOnly:
+                case ErrorCode.WRN_ScopedRefAndRefStructOnly:
                 case ErrorCode.ERR_FixedFieldMustNotBeRef:
                 case ErrorCode.ERR_RefFieldCannotReferToRefStruct:
                 case ErrorCode.ERR_FileTypeDisallowedInSignature:

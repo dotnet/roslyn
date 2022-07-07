@@ -288,6 +288,7 @@
                 case ErrorCode.WRN_UnassignedThisAutoPropertySupportedVersion:
                 case ErrorCode.WRN_UnassignedThisSupportedVersion:
                 case ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired:
+                case ErrorCode.WRN_ScopedRefAndRefStructOnly:
                     return true;
                 default:
                     return false;

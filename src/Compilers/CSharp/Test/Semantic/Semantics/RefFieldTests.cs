@@ -7248,12 +7248,12 @@ static class Extensions
 }";
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (3,20): error CS8986: The 'scoped' modifier can be used for refs and ref struct values only.
+                // (3,20): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
                 //     static void F1(scoped params object[] args) { }
-                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "scoped params object[] args").WithLocation(3, 20),
-                // (4,20): error CS8986: The 'scoped' modifier can be used for refs and ref struct values only.
+                Diagnostic(ErrorCode.WRN_ScopedRefAndRefStructOnly, "scoped params object[] args").WithLocation(3, 20),
+                // (4,20): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
                 //     static void F2(params scoped object[] args) { }
-                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "params scoped object[] args").WithLocation(4, 20));
+                Diagnostic(ErrorCode.WRN_ScopedRefAndRefStructOnly, "params scoped object[] args").WithLocation(4, 20));
 
             VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F1").Parameters[0], "scoped params System.Object[] args", RefKind.None, DeclarationScope.ValueScoped);
             VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F2").Parameters[0], "scoped params System.Object[] args", RefKind.None, DeclarationScope.ValueScoped);
@@ -9314,22 +9314,22 @@ class Program
             comp.VerifyDiagnostics(
                 // (4,20): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
                 //     static void F1(scoped S s) { }
-                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "scoped S s").WithLocation(4, 20),
+                Diagnostic(ErrorCode.WRN_ScopedRefAndRefStructOnly, "scoped S s").WithLocation(4, 20),
                 // (5,20): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
                 //     static void F2(ref scoped S s) { }
-                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "ref scoped S s").WithLocation(5, 20),
+                Diagnostic(ErrorCode.WRN_ScopedRefAndRefStructOnly, "ref scoped S s").WithLocation(5, 20),
                 // (7,20): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
                 //     static void F4(scoped ref scoped S s) { }
-                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "scoped ref scoped S s").WithLocation(7, 20),
+                Diagnostic(ErrorCode.WRN_ScopedRefAndRefStructOnly, "scoped ref scoped S s").WithLocation(7, 20),
                 // (8,20): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
                 //     static void F5(ref scoped int i) { }
-                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "ref scoped int i").WithLocation(8, 20),
+                Diagnostic(ErrorCode.WRN_ScopedRefAndRefStructOnly, "ref scoped int i").WithLocation(8, 20),
                 // (9,20): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
                 //     static void F6(in scoped  int i) { }
-                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "in scoped  int i").WithLocation(9, 20),
+                Diagnostic(ErrorCode.WRN_ScopedRefAndRefStructOnly, "in scoped  int i").WithLocation(9, 20),
                 // (10,20): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
                 //     static void F7(out scoped int i) { i = 0; }
-                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "out scoped int i").WithLocation(10, 20));
+                Diagnostic(ErrorCode.WRN_ScopedRefAndRefStructOnly, "out scoped int i").WithLocation(10, 20));
         }
 
         [Fact]
@@ -9348,16 +9348,16 @@ interface I
             comp.VerifyDiagnostics(
                 // (4,16): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
                 //     void F1<T>(scoped T t);
-                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "scoped T t").WithLocation(4, 16),
+                Diagnostic(ErrorCode.WRN_ScopedRefAndRefStructOnly, "scoped T t").WithLocation(4, 16),
                 // (5,16): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
                 //     void F2<T>(scoped T t) where T : class;
-                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "scoped T t").WithLocation(5, 16),
+                Diagnostic(ErrorCode.WRN_ScopedRefAndRefStructOnly, "scoped T t").WithLocation(5, 16),
                 // (6,16): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
                 //     void F3<T>(scoped T t) where T : struct;
-                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "scoped T t").WithLocation(6, 16),
+                Diagnostic(ErrorCode.WRN_ScopedRefAndRefStructOnly, "scoped T t").WithLocation(6, 16),
                 // (7,16): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
                 //     void F4<T>(scoped T t) where T : unmanaged;
-                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "scoped T t").WithLocation(7, 16));
+                Diagnostic(ErrorCode.WRN_ScopedRefAndRefStructOnly, "scoped T t").WithLocation(7, 16));
         }
 
         [Fact]
@@ -9378,10 +9378,10 @@ class Program
             comp.VerifyDiagnostics(
                 // (6,43): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
                 //         var f = (scoped ref E x, scoped E y) => { };
-                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "y").WithLocation(6, 43),
+                Diagnostic(ErrorCode.WRN_ScopedRefAndRefStructOnly, "y").WithLocation(6, 43),
                 // (8,39): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
                 //         static void L(scoped ref E x, scoped E y) { }
-                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "scoped E y").WithLocation(8, 39));
+                Diagnostic(ErrorCode.WRN_ScopedRefAndRefStructOnly, "scoped E y").WithLocation(8, 39));
         }
 
         [Fact]
@@ -9400,7 +9400,7 @@ class C
             comp.VerifyDiagnostics(
                 // (1,17): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
                 // delegate void D(scoped C c);
-                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "scoped C c").WithLocation(1, 17),
+                Diagnostic(ErrorCode.WRN_ScopedRefAndRefStructOnly, "scoped C c").WithLocation(1, 17),
                 // (6,19): error CS8755: 'scoped' cannot be used as a modifier on a function pointer parameter.
                 //         delegate*<scoped C, int> d = default;
                 Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "scoped").WithArguments("scoped").WithLocation(6, 19));
@@ -9425,11 +9425,11 @@ class Program
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,29): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
-                //         ref readonly scoped S s1 = ref s;
-                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "S").WithLocation(6, 29),
+                //         ref          scoped S s1 = ref s;
+                Diagnostic(ErrorCode.WRN_ScopedRefAndRefStructOnly, "S").WithLocation(6, 29),
                 // (8,36): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
-                //         scoped ref readonly scoped S s3 = ref s;
-                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "S").WithLocation(8, 36));
+                //         scoped ref          scoped S s3 = ref s;
+                Diagnostic(ErrorCode.WRN_ScopedRefAndRefStructOnly, "S").WithLocation(8, 36));
         }
 
         [Fact]
@@ -9457,15 +9457,15 @@ class Program
                 // (9,33): error CS8352: Cannot use variable 'x1' in this context because it may expose referenced variables outside of their declaration scope
                 //         scoped ref var x3 = ref x1;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "x1").WithArguments("x1").WithLocation(9, 33),
-                // (11,16): error CS8986: The 'scoped' modifier can be used for refs and ref struct values only.
+                // (11,16): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
                 //         scoped var y1 = new S<int>(); // 1
-                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "var").WithLocation(11, 16),
+                Diagnostic(ErrorCode.WRN_ScopedRefAndRefStructOnly, "var").WithLocation(11, 16),
                 // (12,20): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
                 //         ref scoped var y2 = ref y1; // 2
-                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "var").WithLocation(12, 20),
+                Diagnostic(ErrorCode.WRN_ScopedRefAndRefStructOnly, "var").WithLocation(12, 20),
                 // (14,27): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
                 //         scoped ref scoped var y4 = ref y1; // 3
-                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "var").WithLocation(14, 27));
+                Diagnostic(ErrorCode.WRN_ScopedRefAndRefStructOnly, "var").WithLocation(14, 27));
         }
 
         [Fact]

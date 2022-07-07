@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         if (data.Scope(i) == DeclarationScope.ValueScoped && !type.IsErrorTypeOrRefLikeType())
                         {
-                            diagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, data.ParameterLocation(i));
+                            diagnostics.Add(ErrorCode.WRN_ScopedRefAndRefStructOnly, data.ParameterLocation(i));
                         }
                     }
                 }

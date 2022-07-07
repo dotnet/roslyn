@@ -1357,11 +1357,6 @@
         <target state="translated">O modificador 'scoped' do parâmetro '{0}' não corresponde ao parâmetro de '{1}'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ScopedRefAndRefStructOnly">
-        <source>The 'scoped' modifier can be used for refs and ref struct values only.</source>
-        <target state="translated">O modificador 'scoped' só pode ser usado para valores de struct refs e ref.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers">
         <source>Required members are not allowed on the top level of a script or submission.</source>
         <target state="translated">Os membros necessários não são permitidos no nível superior de um script ou envio.</target>
@@ -1960,6 +1955,16 @@
       <trans-unit id="WRN_ReturnNotNullIfNotNull_Title">
         <source>Return value must be non-null because parameter is non-null.</source>
         <target state="translated">O valor retornado precisa ser não nulo porque o parâmetro não é nulo.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ScopedRefAndRefStructOnly">
+        <source>The 'scoped' modifier can be used for refs and ref struct values only.</source>
+        <target state="new">The 'scoped' modifier can be used for refs and ref struct values only.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ScopedRefAndRefStructOnly_Title">
+        <source>The 'scoped' modifier can be used for refs and ref struct values only.</source>
+        <target state="new">The 'scoped' modifier can be used for refs and ref struct values only.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue">

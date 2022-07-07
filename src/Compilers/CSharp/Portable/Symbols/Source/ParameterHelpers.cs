@@ -634,7 +634,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (parameter.Scope == DeclarationScope.ValueScoped && !parameter.Type.IsErrorTypeOrRefLikeType())
             {
-                diagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, parameterSyntax.Location);
+                diagnostics.Add(ErrorCode.WRN_ScopedRefAndRefStructOnly, parameterSyntax.Location);
             }
         }
 #nullable disable
