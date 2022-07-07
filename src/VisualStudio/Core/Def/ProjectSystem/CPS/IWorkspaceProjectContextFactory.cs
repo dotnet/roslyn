@@ -44,26 +44,8 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
         /// project.  This method guarantees that either the project is added (and the returned task
         /// completes) or cancellation is observed and no project is added.
         /// </summary>
-        /// <param name="data">Providers access to msbuild evaluation data for the project.</param>
-        /// <param name="hierarchy">The IVsHierarchy for the project; this is used to track linked files across multiple projects when determining contexts.</param>
-        Task<IWorkspaceProjectContext> CreateProjectContextAsync(EvaluationData data, object? hierarchy, CancellationToken cancellationToken);
-
-        /// <summary>
-        /// Names of msbuild properties whose values that <see cref="CreateProjectContextAsync(EvaluationData, object?, CancellationToken)"/> will receive via <see cref="EvaluationData"/>.
-        /// </summary>
-        ImmutableArray<string> EvaluationPropertyNames { get; }
-
-        /// <summary>
-        /// Types of msbuild items whose values and metadata that <see cref="CreateProjectContextAsync(EvaluationData, object?, CancellationToken)"/> will receive via <see cref="EvaluationData"/>.
-        /// </summary>
-        ImmutableArray<string> EvaluationItemTypes { get; }
-    }
-
-    internal abstract class EvaluationData
-    {
-        public abstract Guid ProjectGuid { get; }
-
-        /// <summary>
+        /// <param name="id">Project guid</param>
+        /// <param name="uniqueName">
         /// Unique across the entire solution for the life of the solution. 
         /// Includes full path of the project, the GUID of project and the name of the config.
         /// 
@@ -73,25 +55,47 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
         /// For example:
         ///      C:\Project\Project.csproj (Debug;AnyCPU {72B509BD-C502-4707-ADFD-E2D43867CF45})
         ///      C:\Project\MultiTarget.csproj (Debug;AnyCPU;net45 {72B509BD-C502-4707-ADFD-E2D43867CF45})
-        /// </summary>
-        public abstract string ProjectUniqueName { get; }
+        /// </param>
+        /// <param name="data">Providers access to msbuild evaluation data for the project.</param>
+        /// <param name="hierarchy">The IVsHierarchy for the project; this is used to track linked files across multiple projects when determining contexts.</param>
+        /// <exception cref="InvalidOperationException">A property or item is not present in <see cref="EvaluationData"/> or has invalid value.</exception>
+        Task<IWorkspaceProjectContext> CreateProjectContextAsync(Guid id, string uniqueName, EvaluationData data, object? hierarchy, CancellationToken cancellationToken);
 
+        /// <summary>
+        /// Names of msbuild properties whose values that <see cref="CreateProjectContextAsync(Guid, string, EvaluationData, object?, CancellationToken)"/> will receive via <see cref="EvaluationData"/>.
+        /// </summary>
+        ImmutableArray<string> EvaluationPropertyNames { get; }
+
+        /// <summary>
+        /// Types of msbuild items whose values and metadata that <see cref="CreateProjectContextAsync(Guid, string, EvaluationData, object?, CancellationToken)"/> will receive via <see cref="EvaluationData"/>.
+        /// </summary>
+        ImmutableArray<string> EvaluationItemTypes { get; }
+    }
+
+    internal abstract class EvaluationData
+    {
         public abstract string LanguageName { get; }
 
         /// <summary>
         /// Returns the value of property of the specified <paramref name="name"/>.
         /// </summary>
         /// <returns>
-        /// Returns null if the property is not set or the name is not listed in <see cref="IWorkspaceProjectContextFactory.EvaluationPropertyNames"/>.
+        /// Returns empty string if the property is not set.
         /// </returns>
-        public abstract string? GetPropertyValue(string name);
+        /// <exception cref="InvalidOperationException">
+        /// The <paramref name="name"/> is not listed in <see cref="IWorkspaceProjectContextFactory.EvaluationPropertyNames"/>
+        /// </exception>
+        public abstract string GetPropertyValue(string name);
 
         /// <summary>
         /// Returns all items of the specified <paramref name="itemType"/>.
         /// </summary>
         /// <returns>
-        /// Returns empty if no items of the specified type are defined or the type is not listed in <see cref="IWorkspaceProjectContextFactory.EvaluationItemTypes"/>.
+        /// Returns empty if no items of the specified type are defined.
         /// </returns>
+        /// <exception cref="InvalidOperationException">
+        /// The <paramref name="itemType"/> is not listed in <see cref="IWorkspaceProjectContextFactory.EvaluationItemTypes"/>
+        /// </exception>
         public abstract IEnumerable<EvaluationItem> GetItems(string itemType);
 
         public string GetRequiredPropertyValue(string name)
@@ -105,10 +109,27 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
         }
     }
 
+    /// <summary>
+    /// Represents metadata of an evaluated msbuild item.
+    /// </summary>
     internal abstract class EvaluationItemMetadata
     {
-        public abstract string? GetMetadataValue(string name);
+        /// <summary>
+        /// The value of metadata of the specified <paramref name="name"/>.
+        /// </summary>
+        /// <returns>Empty if the metadata has no value.</returns>
+        public abstract string GetMetadataValue(string name);
+
+        /// <summary>
+        /// Names of all metadata of the item.
+        /// </summary>
+        public abstract IEnumerable<string> MetadataNames { get; }
     }
 
-    internal readonly record struct EvaluationItem(string Value, EvaluationItemMetadata? Metadata);
+    /// <summary>
+    /// Represents evaluated msbuild item.
+    /// </summary>
+    /// <param name="Value">ItemSpec of the item.</param>
+    /// <param name="Metadata">Metadata.</param>
+    internal readonly record struct EvaluationItem(string Value, EvaluationItemMetadata Metadata);
 }
