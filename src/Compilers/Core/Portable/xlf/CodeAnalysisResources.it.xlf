@@ -49,6 +49,16 @@
         <target state="translated">Modifica e Continua non sono in grado di riprendere l'enumeratore sospeso perché l'istruzione yield return corrispondente è stata eliminata</target>
         <note />
       </trans-unit>
+      <trans-unit id="GeneratorNameColumnHeader">
+        <source>Generator</source>
+        <target state="new">Generator</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GeneratorTotalExecutionTime">
+        <source>Total generator execution time: {0} seconds.</source>
+        <target state="new">Total generator execution time: {0} seconds.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="HintNameInvalidChar">
         <source>The hintName '{0}' contains an invalid character '{1}' at position {2}.</source>
         <target state="translated">L'elemento hintName '{0}' contiene un carattere non valido '{1}' alla posizione {2}.</target>
