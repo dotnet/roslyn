@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
+using System.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -24,44 +25,27 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Optional action to invoke when this metadata is disposed.
         /// </summary>
-        private readonly Action? _onDispose;
-
-        /// <summary>
-        /// Whether or not to call _onDispose when this is disposed.  The reason that this is controlled by a flag is
-        /// that if we make a copy of this <see cref="ModuleMetadata"/>, we still want to keep the Action alive in it
-        /// (as it may be keeping alive underlying object this metadata needs).  However, the copy of the metadata
-        /// should not call the action as only the <see cref="Metadata.IsImageOwner"/> metadata is responsible for that.
-        /// </summary>
-        private readonly bool _callOnDispose;
+        private Action? _onDispose;
 
         private bool _isDisposed;
 
-        private ModuleMetadata(PEReader peReader, Action? onDispose, bool callOnDispose)
+        private ModuleMetadata(PEReader peReader, Action? onDispose)
             : base(isImageOwner: true, id: MetadataId.CreateNewId())
         {
-            // If we've been asked to dispose the owner, then we better have an owner to dispose.
-            Debug.Assert(!callOnDispose || onDispose is not null);
-
             _module = new PEModule(this, peReader: peReader, metadataOpt: IntPtr.Zero, metadataSizeOpt: 0, includeEmbeddedInteropTypes: false, ignoreAssemblyRefs: false);
             _onDispose = onDispose;
-            _callOnDispose = callOnDispose;
         }
 
         private ModuleMetadata(
             IntPtr metadata,
             int size,
             Action? onDispose,
-            bool callOnDispose,
             bool includeEmbeddedInteropTypes,
             bool ignoreAssemblyRefs)
             : base(isImageOwner: true, id: MetadataId.CreateNewId())
         {
-            // If we've been asked to dispose the owner, then we better have an owner to dispose.
-            Debug.Assert(!callOnDispose || onDispose is not null);
-
             _module = new PEModule(this, peReader: null, metadataOpt: metadata, metadataSizeOpt: size, includeEmbeddedInteropTypes: includeEmbeddedInteropTypes, ignoreAssemblyRefs: ignoreAssemblyRefs);
             _onDispose = onDispose;
-            _callOnDispose = callOnDispose;
         }
 
         // creates a copy
@@ -70,10 +54,10 @@ namespace Microsoft.CodeAnalysis
         {
             _module = metadata.Module;
 
-            // Keep the onDispose callback alive as it may be rooting data that this metadata needs. However, mark that
-            // we are not to dispose it ourselves, that's only the responsibility of the image owner (see IsImageOwner).
-            _onDispose = metadata._onDispose;
-            _callOnDispose = false;
+            // note: we intentionally do not pass the _onDispose callback to the copy.  Only the owner owns the callback
+            // and controls calling it.  This does mean that the callback (and underlying memory it holds onto) may
+            // disappear once the owner is disposed or GC'd.  But that's ok as that expected semantics.  Once an image
+            // owner is gone, all copies are no longer in a valid state for use.
         }
 
         /// <summary>
@@ -123,14 +107,14 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(CodeAnalysisResources.SizeHasToBePositive, nameof(size));
             }
 
-            return new ModuleMetadata(metadata, size, onDispose, callOnDispose: onDispose != null, includeEmbeddedInteropTypes: false, ignoreAssemblyRefs: false);
+            return new ModuleMetadata(metadata, size, onDispose, includeEmbeddedInteropTypes: false, ignoreAssemblyRefs: false);
         }
 
         internal static ModuleMetadata CreateFromMetadata(IntPtr metadata, int size, bool includeEmbeddedInteropTypes, bool ignoreAssemblyRefs = false)
         {
             Debug.Assert(metadata != IntPtr.Zero);
             Debug.Assert(size > 0);
-            return new ModuleMetadata(metadata, size, onDispose: null, callOnDispose: false, includeEmbeddedInteropTypes, ignoreAssemblyRefs);
+            return new ModuleMetadata(metadata, size, onDispose: null, includeEmbeddedInteropTypes, ignoreAssemblyRefs);
         }
 
         /// <summary>
@@ -155,7 +139,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(CodeAnalysisResources.SizeHasToBePositive, nameof(size));
             }
 
-            return new ModuleMetadata(new PEReader(peImage, size), onDispose, callOnDispose: onDispose != null);
+            return new ModuleMetadata(new PEReader(peImage, size), onDispose);
         }
 
         /// <summary>
@@ -185,7 +169,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(peImage));
             }
 
-            return new ModuleMetadata(new PEReader(peImage), onDispose: null, callOnDispose: false);
+            return new ModuleMetadata(new PEReader(peImage), onDispose: null);
         }
 
         /// <summary>
@@ -264,7 +248,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // ownership of the stream is passed on PEReader:
-            return new ModuleMetadata(new PEReader(peStream, options), onDispose: null, callOnDispose: false);
+            return new ModuleMetadata(new PEReader(peStream, options), onDispose: null);
         }
 
         /// <summary>
@@ -316,8 +300,8 @@ namespace Microsoft.CodeAnalysis
             {
                 _module.Dispose();
 
-                if (_callOnDispose)
-                    _onDispose!.Invoke();
+                var onDispose = Interlocked.Exchange(ref _onDispose, null);
+                onDispose?.Invoke();
             }
         }
 
