@@ -60,13 +60,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         public ImmutableArray<string> EvaluationItemTypes
             => s_evaluationItemTypes;
 
-        public Task<IWorkspaceProjectContext> CreateProjectContextAsync(EvaluationData data, object? hierarchy, CancellationToken cancellationToken)
+        public Task<IWorkspaceProjectContext> CreateProjectContextAsync(Guid id, string uniqueName, EvaluationData data, object? hostObject, CancellationToken cancellationToken)
             => CreateProjectContextAsync(
                 languageName: data.LanguageName,
-                projectUniqueName: data.ProjectUniqueName,
+                projectUniqueName: uniqueName,
                 projectFilePath: data.GetRequiredPropertyValue(PropertyName_MSBuildProjectFullPath),
-                projectGuid: data.ProjectGuid,
-                hierarchy: hierarchy,
+                projectGuid: id,
+                hierarchy: hostObject,
                 binOutputPath: data.GetRequiredPropertyValue(PropertyName_TargetPath),
                 assemblyName: data.GetPropertyValue(PropertyName_AssemblyName),
                 cancellationToken);
