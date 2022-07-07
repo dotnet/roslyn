@@ -25,6 +25,8 @@ namespace Microsoft.CodeAnalysis.Rename
         /// <returns>The root of the annotated tree.</returns>
         SyntaxNode AnnotateAndRename(RenameRewriterParameters parameters);
 
+        SyntaxNode AnnotateAndRename(RenameRewriterParametersNextGen parameters);
+
         /// <summary>
         /// Based on the kind of the symbol and the new name, this function determines possible conflicting names that
         /// should be tracked for semantic changes during rename.

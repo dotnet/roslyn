@@ -11,6 +11,20 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Rename
 {
+    internal record RenameRewriterParametersNextGen(
+        ImmutableHashSet<TextSpan> ConflictLocationSpans,
+        Solution OriginalSolution,
+        SyntaxTree OriginalSyntaxTree,
+        RenamedSpansTracker RenameSpansTracker,
+        SyntaxNode SyntaxRoot,
+        Document Document,
+        SemanticModel SemanticModel,
+        AnnotationTable<RenameAnnotation> RenameAnnotations,
+        ImmutableArray<TextSpanRenameContext> TokenTextSpanRenameContexts,
+        ImmutableArray<TextSpanRenameContext> StringAndCommentsTextSpanRenameContexts,
+        ImmutableArray<RenameSymbolContext> RenameSymbolContexts,
+        CancellationToken CancellationToken);
+
     internal class RenameRewriterParameters
     {
         internal readonly CancellationToken CancellationToken;
