@@ -41,7 +41,8 @@ namespace Microsoft.CodeAnalysis
                 return previousTable;
             }
 
-            var builder = graphState.CreateTableBuilder(previousTable, _name, _comparer);
+            var totalEntryItemCount = input1Table.GetTotalEntryItemCount();
+            var builder = graphState.CreateTableBuilder(previousTable, _name, _comparer, totalEntryItemCount);
 
             // Semantics of a join:
             //
@@ -75,6 +76,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
+            Debug.Assert(builder.Count == totalEntryItemCount);
             return builder.ToImmutableAndFree();
         }
 
