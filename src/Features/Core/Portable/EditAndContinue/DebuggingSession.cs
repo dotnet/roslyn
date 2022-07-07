@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </summary>
         /// <returns>
         /// An MVID and an error message to report, in case an IO exception occurred while reading the binary.
-        /// The MVID is default if either project not built, or an it can't be read from the module binary.
+        /// The MVID is <see cref="Guid.Empty"/> if either the project is not built, or the MVID can't be read from the module binary.
         /// </returns>
         internal async Task<(Guid Mvid, Diagnostic? Error)> GetProjectModuleIdAsync(Project project, CancellationToken cancellationToken)
         {
@@ -284,8 +284,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return id;
                 }
 
-                _moduleIds[newId.Mvid] = project.Id;
-                return _projectModuleIds[project.Id] = newId;
+                // Do not cache failures. The error might be intermittent and might be corrected next time we attempt to read the MVID.
+                if (newId.Mvid != Guid.Empty)
+                {
+                    _moduleIds[newId.Mvid] = project.Id;
+                    _projectModuleIds[project.Id] = newId;
+                }
+
+                return newId;
             }
         }
 
