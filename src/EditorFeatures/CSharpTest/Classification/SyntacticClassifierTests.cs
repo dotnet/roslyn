@@ -4543,6 +4543,47 @@ void M()
 
         [Theory]
         [CombinatorialData]
+        public async Task TestConflictMarkers2(TestHost testHost)
+        {
+            await TestAsync(
+@"class C
+{
+<<<<<<< Start
+    public void Goo();
+||||||| Baseline
+    int removed;
+=======
+    public void Bar();
+>>>>>>> End
+}",
+                testHost,
+                Keyword("class"),
+                Class("C"),
+                Punctuation.OpenCurly,
+                Comment("<<<<<<< Start"),
+                Keyword("public"),
+                Keyword("void"),
+                Method("Goo"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.Semicolon,
+                Comment("||||||| Baseline"),
+                Keyword("int"),
+                Identifier("removed"),
+                Punctuation.Semicolon,
+                Comment("======="),
+                Keyword("public"),
+                Keyword("void"),
+                Identifier("Bar"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.Semicolon,
+                Comment(">>>>>>> End"),
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
         public async Task TestUnmanagedConstraint_InsideMethod(TestHost testHost)
         {
             await TestInMethodAsync(@"

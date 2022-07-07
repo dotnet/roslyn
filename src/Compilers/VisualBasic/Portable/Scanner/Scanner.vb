@@ -637,6 +637,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                ch <> "R"c AndAlso
                ch <> "r"c AndAlso
                ch <> "<"c AndAlso
+               ch <> "|"c AndAlso
                ch <> "="c AndAlso
                ch <> ">"c Then
                 Return Nothing
@@ -708,15 +709,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return False
         End Function
 
-        ' All conflict markers consist of the same character repeated seven times.  If it Is
-        ' a <<<<<<< Or >>>>>>> marker then it Is also followed by a space.
+        ' All conflict markers consist of the same character repeated seven times.  If it is
+        ' a <<<<<<< or >>>>>>> marker then it is also followed by a space.
         Private Shared ReadOnly s_conflictMarkerLength As Integer = "<<<<<<<".Length
 
         Private Function IsConflictMarkerTrivia() As Boolean
             If CanGet() Then
                 Dim ch = Peek()
 
-                If ch = "<"c OrElse ch = ">"c OrElse ch = "="c Then
+                If ch = "<"c OrElse ch = ">"c OrElse ch = "|"c OrElse ch = "="c Then
                     Dim position = _lineBufferOffset
                     Dim text = _buffer
 
@@ -730,7 +731,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                                 End If
                             Next
 
-                            If firstCh = "="c Then
+                            If firstCh = "|"c OrElse firstCh = "="c Then
                                 Return True
                             End If
 
@@ -754,17 +755,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             ' Now add the newlines as the next trivia.
             ScanConflictMarkerEndOfLine(tList)
 
-            If startCh = "="c Then
+            If startCh = "|"c OrElse startCh = "="c Then
                 ' Consume everything from the start of the mid-conflict marker to the start of the next
                 ' end-conflict marker.
-                ScanConflictMarkerDisabledText(tList)
+                ScanConflictMarkerDisabledText(startCh = "="c, tList)
             End If
         End Sub
 
-        Private Sub ScanConflictMarkerDisabledText(tList As SyntaxListBuilder)
+        Private Sub ScanConflictMarkerDisabledText(atSecondMiddleMarker As Boolean, tList As SyntaxListBuilder)
             Dim start = _lineBufferOffset
             While CanGet()
                 Dim ch = Peek()
+
+                If Not atSecondMiddleMarker AndAlso ch = "="c AndAlso IsConflictMarkerTrivia() Then
+                    Exit While
+                End If
 
                 If ch = ">"c AndAlso IsConflictMarkerTrivia() Then
                     Exit While

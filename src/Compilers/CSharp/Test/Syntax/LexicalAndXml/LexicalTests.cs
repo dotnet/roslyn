@@ -3746,7 +3746,7 @@ class C
         [Fact]
         public void TestEqualsConflictMarker3()
         {
-            // second ======= is pat of disabled text
+            // second ======= is part of disabled text
             var token = Lex("======= Trailing\r\ndisabled text 2\r\n======= \r\nmore disabled text\r\n>>>>>>> Actually the end").First();
             Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
             Assert.True(token.HasLeadingTrivia);
