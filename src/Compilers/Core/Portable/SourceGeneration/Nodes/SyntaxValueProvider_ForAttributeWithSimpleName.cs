@@ -106,11 +106,11 @@ public partial struct SyntaxValueProvider
 
         // Combine the two providers so that we reanalyze every file if the global aliases change, or we reanalyze a
         // particular file when it's compilation unit changes.
-        var rootsWithAttributeAndGlobalAliasesProvider = treesContainingAttribute
+        var treesWithAttributeAndGlobalAliasesProvider = treesContainingAttribute
             .Combine(allUpGlobalAliasesProvider)
             .WithTrackingName("compilationUnitAndGlobalAliases_ForAttribute");
 
-        return rootsWithAttributeAndGlobalAliasesProvider.Select(
+        return treesWithAttributeAndGlobalAliasesProvider.Select(
             (tuple, c) => (tuple.Left, GetMatchingNodes(syntaxHelper, tuple.Right, tuple.Left, simpleName, predicate, c)))
             .Where(tuple => tuple.Item2.Length > 0)
             .WithTrackingName("result_ForAttributeInternal");

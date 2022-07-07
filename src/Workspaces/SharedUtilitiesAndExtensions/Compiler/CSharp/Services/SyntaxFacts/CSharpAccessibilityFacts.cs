@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         {
         }
 
-        public bool CanHaveAccessibility(SyntaxNode declaration)
+        public bool CanHaveAccessibility(SyntaxNode declaration, bool ignoreDeclarationModifiers = false)
         {
             switch (declaration.Kind())
             {
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.EnumDeclaration:
                 case SyntaxKind.DelegateDeclaration:
-                    return !((MemberDeclarationSyntax)declaration).Modifiers.Any(SyntaxKind.FileKeyword);
+                    return ignoreDeclarationModifiers || !((MemberDeclarationSyntax)declaration).Modifiers.Any(SyntaxKind.FileKeyword);
 
                 case SyntaxKind.FieldDeclaration:
                 case SyntaxKind.EventFieldDeclaration:
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
                 case SyntaxKind.ConstructorDeclaration:
                     // Static constructor can't have accessibility
-                    return !((ConstructorDeclarationSyntax)declaration).Modifiers.Any(SyntaxKind.StaticKeyword);
+                    return ignoreDeclarationModifiers || !((ConstructorDeclarationSyntax)declaration).Modifiers.Any(SyntaxKind.StaticKeyword);
 
                 case SyntaxKind.PropertyDeclaration:
                     return ((PropertyDeclarationSyntax)declaration).ExplicitInterfaceSpecifier == null;
@@ -141,6 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                     SyntaxKind.RefKeyword => DeclarationModifiers.Ref,
                     SyntaxKind.VolatileKeyword => DeclarationModifiers.Volatile,
                     SyntaxKind.ExternKeyword => DeclarationModifiers.Extern,
+                    SyntaxKind.FileKeyword => DeclarationModifiers.File,
                     _ => DeclarationModifiers.None,
                 };
 
