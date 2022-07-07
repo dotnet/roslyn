@@ -79,7 +79,6 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            Debug.Assert(newTable.Count == totalEntryItemCount);
             return newTable.ToImmutableAndFree();
         }
 

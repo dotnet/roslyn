@@ -3532,14 +3532,14 @@ namespace NS
                 provider.BaseIndentation = BaseIndentationOfNugget;
                 provider.TextSpan = subjectDocument.SelectedSpans.Single();
 
-                var editorOptionsFactory = workspace.GetService<IEditorOptionsFactoryService>();
+                var editorOptionsService = workspace.GetService<EditorOptionsService>();
 
                 var indentationLine = projectedDocument.GetTextBuffer().CurrentSnapshot.GetLineFromPosition(projectedDocument.CursorPosition.Value);
                 var textView = projectedDocument.GetTextView();
                 var buffer = subjectDocument.GetTextBuffer();
                 var point = textView.BufferGraph.MapDownToBuffer(indentationLine.Start, PointTrackingMode.Negative, buffer, PositionAffinity.Predecessor);
 
-                var editorOptions = editorOptionsFactory.GetOptions(buffer);
+                var editorOptions = editorOptionsService.Factory.GetOptions(buffer);
                 editorOptions.SetOptionValue(DefaultOptions.IndentStyleId, indentStyle.ToEditorIndentStyle());
                 editorOptions.SetOptionValue(DefaultOptions.ConvertTabsToSpacesOptionId, !useTabs);
 
@@ -3548,9 +3548,7 @@ namespace NS
                     expectedIndentation,
                     textView,
                     subjectDocument,
-                    workspace.GlobalOptions,
-                    editorOptionsFactory,
-                    workspace.GetService<IIndentationManagerService>());
+                    editorOptionsService);
             }
         }
 
