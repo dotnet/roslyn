@@ -29,7 +29,8 @@ namespace Microsoft.CodeAnalysis.Emit
             EmitBaseline baseline,
             Compilation targetCompilation,
             CommonPEModuleBuilder targetModuleBuilder,
-            ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> mappedSynthesizedMembers)
+            ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> mappedSynthesizedMembers,
+            ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> mappedDeletedMembers)
         {
             // Map all definitions to this compilation.
             var typesAdded = MapDefinitions(baseline.TypesAdded);
@@ -64,6 +65,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 anonymousDelegates: MapAnonymousDelegates(baseline.AnonymousDelegates),
                 anonymousDelegatesWithFixedTypes: MapAnonymousDelegatesWithFixedTypes(baseline.AnonymousDelegatesWithFixedTypes),
                 synthesizedMembers: mappedSynthesizedMembers,
+                deletedMembers: mappedDeletedMembers,
                 addedOrChangedMethods: MapAddedOrChangedMethods(baseline.AddedOrChangedMethods),
                 debugInformationProvider: baseline.DebugInformationProvider,
                 localSignatureProvider: baseline.LocalSignatureProvider);

@@ -12,12 +12,8 @@ using Microsoft.CodeAnalysis.Host;
 namespace Microsoft.CodeAnalysis.Options
 {
     /// <summary>
-    /// Provides services for reading and writing options.
-    /// This will provide support for options at the global level (i.e. shared among
-    /// all workspaces/services).
-    /// 
-    /// In general you should not import this type directly, and should instead get an
-    /// <see cref="ILegacyWorkspaceOptionService"/> from <see cref="Workspace.Services"/>
+    /// Provides services for reading and writing global client (in-proc) options
+    /// shared across all workspaces.
     /// </summary>
     internal interface IGlobalOptionService
     {

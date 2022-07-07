@@ -32,16 +32,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                        p.Name <> PredefinedCodeCleanupProviderNames.Format
             End Function
 
-        Private ReadOnly _globalOptions As IGlobalOptionService
-        Private ReadOnly _indentationManager As IIndentationManagerService
-        Private ReadOnly _editorOptionsFactory As IEditorOptionsFactoryService
+        Private ReadOnly _editorOptionsService As EditorOptionsService
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Public Sub New(indentationManager As IIndentationManagerService, editorOptionsFactory As IEditorOptionsFactoryService, globalOptions As IGlobalOptionService)
-            _indentationManager = indentationManager
-            _editorOptionsFactory = editorOptionsFactory
-            _globalOptions = globalOptions
+        Public Sub New(editorOptionsService As EditorOptionsService)
+            _editorOptionsService = editorOptionsService
         End Sub
 
         Public Sub CommitRegion(spanToFormat As SnapshotSpan,
@@ -68,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                     Return
                 End If
 
-                If Not (isExplicitFormat OrElse _globalOptions.GetOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic)) Then
+                If Not (isExplicitFormat OrElse _editorOptionsService.GlobalOptions.GetOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic)) Then
                     Return
                 End If
 
@@ -80,8 +76,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 End If
 
                 ' create commit formatting cleanup provider that has line commit specific behavior
-                Dim fallbackOptions = _globalOptions.GetVisualBasicSyntaxFormattingOptions()
-                Dim formattingOptions = _indentationManager.GetInferredFormattingOptions(buffer, _editorOptionsFactory, document.Project.LanguageServices, fallbackOptions, isExplicitFormat)
+                Dim formattingOptions = buffer.GetSyntaxFormattingOptions(_editorOptionsService, document.Project.LanguageServices, isExplicitFormat)
                 Dim commitFormattingCleanup = GetCommitFormattingCleanupProvider(
                     document.Id,
                     document.Project.LanguageServices,
@@ -98,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                                                Concat(commitFormattingCleanup)
 
                 Dim cleanupService = document.GetRequiredLanguageService(Of ICodeCleanerService)
-                Dim cleanupOptions = document.GetCodeCleanupOptionsAsync(_globalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken)
+                Dim cleanupOptions = document.GetCodeCleanupOptionsAsync(_editorOptionsService.GlobalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken)
 
                 Dim finalDocument As Document
                 If useSemantics OrElse isExplicitFormat Then

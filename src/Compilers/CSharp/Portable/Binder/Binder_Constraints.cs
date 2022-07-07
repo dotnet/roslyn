@@ -410,6 +410,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // "Inconsistent accessibility: constraint type '{1}' is less accessible than '{0}'"
                 diagnostics.Add(ErrorCode.ERR_BadVisBound, location, containingSymbol, constraintType.Type);
             }
+
+            if (constraintType.Type.IsFileTypeOrUsesFileTypes() && !containingSymbol.ContainingType.IsFileTypeOrUsesFileTypes())
+            {
+                diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, location, constraintType.Type, containingSymbol);
+            }
+
             diagnostics.Add(location, useSiteInfo);
         }
 
