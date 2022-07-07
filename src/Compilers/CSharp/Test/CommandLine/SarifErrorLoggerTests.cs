@@ -140,7 +140,7 @@ public class C
             string[] arguments = new[] { "/nologo", "/t:library", $"/out:{outputFilePath}", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}{ErrorLogQualifier}" };
 
             var cmd = CreateCSharpCompiler(null, WorkingDirectory, arguments,
-               analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(new AnalyzerForErrorLogTest()));
+               analyzers: new[] { new AnalyzerForErrorLogTest() });
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
 
@@ -176,7 +176,7 @@ class C
             string[] arguments = new[] { "/nologo", "/t:library", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}{ErrorLogQualifier}" };
 
             var cmd = CreateCSharpCompiler(null, WorkingDirectory, arguments,
-               analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(new AnalyzerForErrorLogTest()));
+               analyzers: new[] { new AnalyzerForErrorLogTest() });
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
 
             var exitCode = cmd.Run(outWriter);
@@ -211,7 +211,7 @@ class C
             string[] arguments = new[] { "/nologo", "/t:library", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}{ErrorLogQualifier}" };
 
             var cmd = CreateCSharpCompiler(null, WorkingDirectory, arguments,
-               analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(new AnalyzerForErrorLogTest()));
+               analyzers: new[] { new AnalyzerForErrorLogTest() });
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
 
             var exitCode = cmd.Run(outWriter);
@@ -246,7 +246,7 @@ class C
             string[] arguments = new[] { "/nologo", "/t:library", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}{ErrorLogQualifier}" };
 
             var cmd = CreateCSharpCompiler(null, WorkingDirectory, arguments,
-               analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(new AnalyzerForErrorLogTest()));
+               analyzers: new[] { new AnalyzerForErrorLogTest() });
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
 
             var exitCode = cmd.Run(outWriter);
@@ -281,7 +281,7 @@ class C
             string[] arguments = new[] { "/nologo", "/t:library", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}{ErrorLogQualifier}" };
 
             var cmd = CreateCSharpCompiler(null, WorkingDirectory, arguments,
-               analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(new AnalyzerForErrorLogTest()));
+               analyzers: new[] { new AnalyzerForErrorLogTest() });
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
 
             var exitCode = cmd.Run(outWriter);
