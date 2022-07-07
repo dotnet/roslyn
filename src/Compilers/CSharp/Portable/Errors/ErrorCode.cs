@@ -2108,6 +2108,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion
 
-        // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
+        // Note: you will need to do the following after adding warnings:
+        //  1) Re-generate compiler code (eng\generate-compiler-code.cmd).
+        //  2) Update ErrorFacts.IsBuildOnlyDiagnostic to handle the new error code.
     }
 }
