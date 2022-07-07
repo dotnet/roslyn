@@ -65,7 +65,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 // records can't be inherited from normal classes and normal classes cant be interited from records.
                 // so if it is currently a non-record and has a base class, that base class must be a non-record (and so we can't convert)
                 (type.BaseType?.SpecialType != SpecialType.System_ValueType && type.BaseType?.SpecialType != SpecialType.System_Object) ||
-                !type.Interfaces.IsEmpty ||
                 // records can't be static and so if the class is static we probably shouldn't convert it
                 type.IsStatic ||
                 // since we can't have any classes inherit this one, if a class is abstract it probably is inherited
@@ -110,7 +109,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 originalType.TypeKind,
                 originalType.Name,
                 typeParameters: originalType.TypeParameters,
-                members: membersToKeep);
+                interfaces: originalType.Interfaces,
+                members: membersToKeep,
+                nullableAnnotation: originalType.NullableAnnotation,
+                containingAssembly: originalType.ContainingAssembly);
 
             var context = new CodeGenerationContext(reuseSyntax: true);
 
