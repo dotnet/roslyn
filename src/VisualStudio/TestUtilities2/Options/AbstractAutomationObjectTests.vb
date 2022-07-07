@@ -49,7 +49,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
                                                              detach:=Sub(h) RemoveHandler workspace.GlobalOptions.OptionChanged, h,
                                                              testCode:=Sub() [property].SetValue(automationObject, newValue))
 
-
                     Dim retrievedNewValue = [property].GetValue(automationObject, Nothing)
                     Assert.True(retrievedNewValue.Equals(newValue), $"'{[property].Name}' didn't retrieve the new value correctly.")
                 Next
@@ -120,10 +119,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
                     For Each bindingExpression In pageControl.BindingExpressions
                         Dim target = bindingExpression.Target
                         Dim optionForAssertMessage = DirectCast(target, FrameworkElement).Name
-                        If optionForAssertMessage = "Show_completion_item_filters" Then
-                            ' TODO: Investigate
-                            Continue For
-                        End If
 
                         If TypeOf target Is CheckBox Then
                             Dim checkBox = DirectCast(target, CheckBox)
