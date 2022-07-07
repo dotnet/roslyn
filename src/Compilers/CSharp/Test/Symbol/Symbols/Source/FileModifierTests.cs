@@ -1455,8 +1455,8 @@ public class FileModifierTests : CSharpTestBase
             {
                 public static partial void Print()
                 {
-                    global::C.M();
-                    C.M();
+                    global::C.M(); // binds to 'class C'/'file class C' from global namespace
+                    C.M(); // binds to class 'UserCode.C'
                 }
             }
 
@@ -1501,8 +1501,8 @@ public class FileModifierTests : CSharpTestBase
                 {
                     public static void Print()
                     {
-                        global::C.M();
-                        C.M();
+                        global::C.M(); // binds to 'class C'/'file class C' from global namespace
+                        C.M(); // binds to class 'UserNamespace.C'
                     }
                 }
             }
