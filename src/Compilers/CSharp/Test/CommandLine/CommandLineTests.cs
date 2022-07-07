@@ -34,6 +34,7 @@ using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
 using Roslyn.Utilities;
+using TestResources.Analyzers;
 using Xunit;
 using Basic.Reference.Assemblies;
 using static Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers;
@@ -9192,7 +9193,12 @@ public class C { }
             var srcDirectory = Path.GetDirectoryName(srcFile.Path);
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            var csc = CreateCSharpCompiler(null, srcDirectory, new[] { "/reportanalyzer", "/t:library", "/a:" + Assembly.GetExecutingAssembly().Location, srcFile.Path });
+            var csc = CreateCSharpCompiler(
+                responseFile: null,
+                srcDirectory,
+                new[] { "/reportanalyzer", "/t:library", srcFile.Path },
+                analyzers: new[] { new WarningDiagnosticAnalyzer() },
+                generators: new[] { new DoNothingGenerator().AsSourceGenerator() });
             var exitCode = csc.Run(outWriter);
             Assert.Equal(0, exitCode);
             var output = outWriter.ToString();
@@ -9243,7 +9249,7 @@ public class C { }
             var srcFile = Temp.CreateFile().WriteAllText(@"class C {}");
             var srcDirectory = Path.GetDirectoryName(srcFile.Path);
 
-            var args = new List<string>() { "/reportanalyzer", "/t:library", "/a:" + Assembly.GetExecutingAssembly().Location, srcFile.Path };
+            var args = new List<string>() { "/reportanalyzer", "/t:library", "/a:" + typeof(DoNothingGenerator).Assembly.Location, srcFile.Path };
             var csc = CreateCSharpCompiler(
                 responseFile: null,
                 srcDirectory,
@@ -9262,7 +9268,7 @@ public class C { }
                 out _,
                 out analyzers,
                 out generators);
-            Assert.Empty(analyzers);
+            Assert.All(analyzers, static x => Assert.IsAssignableFrom<DiagnosticSuppressor>(x));
             Assert.NotEmpty(generators);
 
             CleanupAllGeneratedFiles(srcFile.Path);
@@ -9278,8 +9284,8 @@ public class C { }
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var analyzers = skipAnalyzers
-                ? ImmutableArray<DiagnosticAnalyzer>.Empty
-                : ImmutableArray.Create<DiagnosticAnalyzer>(new HiddenDiagnosticAnalyzer(), new WarningDiagnosticAnalyzer());
+                ? Array.Empty<DiagnosticAnalyzer>()
+                : new DiagnosticAnalyzer[] { new HiddenDiagnosticAnalyzer(), new WarningDiagnosticAnalyzer() };
             var csc = CreateCSharpCompiler(
                 responseFile: null,
                 srcDirectory,
@@ -9316,7 +9322,7 @@ class C { }
                 null,
                 workingDirectory: Path.GetDirectoryName(srcFile.Path),
                 args: new[] { "/errorlog:" + errorLog.Path, "/warnaserror+", "/nologo", "/t:library", srcFile.Path },
-                analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(new WarningDiagnosticAnalyzer()));
+                analyzers: new[] { new WarningDiagnosticAnalyzer() });
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = csc.Run(outWriter);
@@ -9338,7 +9344,7 @@ class C { }
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var csc = CreateCSharpCompiler(null, WorkingDirectory, new[] { "/t:library", srcFile.Path },
-               analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(new AnalyzerThatThrowsInGetMessage()));
+               analyzers: new[] { new AnalyzerThatThrowsInGetMessage() });
 
             var exitCode = csc.Run(outWriter);
             Assert.Equal(0, exitCode);
@@ -9363,7 +9369,7 @@ class C { }
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var csc = CreateCSharpCompiler(null, WorkingDirectory, new[] { "/t:library", $"/warnaserror:{AnalyzerExecutor.AnalyzerExceptionDiagnosticId}", srcFile.Path },
-               analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(new AnalyzerThatThrowsInGetMessage()));
+               analyzers: new[] { new AnalyzerThatThrowsInGetMessage() });
 
             var exitCode = csc.Run(outWriter);
             Assert.NotEqual(0, exitCode);
@@ -9385,7 +9391,7 @@ class C { }
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var csc = CreateCSharpCompiler(null, WorkingDirectory, new[] { "/t:library", srcFile.Path },
-               analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(new AnalyzerReportingMisformattedDiagnostic()));
+               analyzers: new[] { new AnalyzerReportingMisformattedDiagnostic() });
 
             var exitCode = csc.Run(outWriter);
             Assert.Equal(0, exitCode);
@@ -10262,9 +10268,9 @@ class C
                                            int? expectedExitCode = null,
                                            bool errorlog = false,
                                            bool skipAnalyzers = false,
-                                           IEnumerable<ISourceGenerator> generators = null,
-                                           GeneratorDriverCache driverCache = null,
-                                           params DiagnosticAnalyzer[] analyzers)
+                                           DiagnosticAnalyzer[] analyzers = null,
+                                           ISourceGenerator[] generators = null,
+                                           GeneratorDriverCache driverCache = null)
         {
             var args = new[] {
                                 "/nologo", "/preferreduilang:en", "/t:library",
@@ -10290,7 +10296,7 @@ class C
                 args = args.Append(additionalFlags);
             }
 
-            var csc = CreateCSharpCompiler(null, sourceDir.Path, args, analyzers: analyzers.ToImmutableArrayOrEmpty(), generators: generators.ToImmutableArrayOrEmpty(), driverCache: driverCache);
+            var csc = CreateCSharpCompiler(null, sourceDir.Path, args, analyzers: analyzers, generators: generators, driverCache: driverCache);
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = csc.Run(outWriter);
             var output = outWriter.ToString();
@@ -12211,7 +12217,7 @@ class C
                 additionalFlags: new[] { "/warnAsError" },
                 includeCurrentAssemblyAsAnalyzerReference: false,
                 errorlog: true,
-                analyzers: suppressor);
+                analyzers: new[] { suppressor });
             Assert.DoesNotContain($"error CS0078", output, StringComparison.Ordinal);
             Assert.DoesNotContain($"warning CS0078", output, StringComparison.Ordinal);
 
@@ -12263,7 +12269,7 @@ class C
                 suppressor.SuppressionDescriptor.Justification);
 
             output = VerifyOutput(srcDirectory, srcFile, expectedInfoCount: 1, expectedWarningCount: 0, includeCurrentAssemblyAsAnalyzerReference: false,
-                analyzers: suppressor, errorlog: true, skipAnalyzers: skipAnalyzers);
+                analyzers: new[] { suppressor }, errorlog: true, skipAnalyzers: skipAnalyzers);
             Assert.DoesNotContain($"warning CS1522", output, StringComparison.Ordinal);
             Assert.Contains($"info SP0001", output, StringComparison.Ordinal);
             Assert.Contains(suppressionMessage, output, StringComparison.Ordinal);
@@ -12280,7 +12286,7 @@ class C
                 includeCurrentAssemblyAsAnalyzerReference: false,
                 errorlog: true,
                 skipAnalyzers: skipAnalyzers,
-                analyzers: suppressor);
+                analyzers: new[] { suppressor });
             Assert.DoesNotContain($"error CS1522", output, StringComparison.Ordinal);
             Assert.DoesNotContain($"warning CS1522", output, StringComparison.Ordinal);
             Assert.Contains("info SP0001", output, StringComparison.Ordinal);
@@ -12319,7 +12325,7 @@ class C
                 suppressor.SuppressionDescriptor.Justification);
 
             output = VerifyOutput(srcDirectory, srcFile, expectedInfoCount: 1, expectedWarningCount: 0, includeCurrentAssemblyAsAnalyzerReference: false,
-                analyzers: suppressor, errorlog: true, skipAnalyzers: skipAnalyzers);
+                analyzers: new[] { suppressor }, errorlog: true, skipAnalyzers: skipAnalyzers);
             Assert.DoesNotContain($"warning CS0169", output, StringComparison.Ordinal);
             Assert.Contains("info SP0001", output, StringComparison.Ordinal);
             Assert.Contains(suppressionMessage, output, StringComparison.Ordinal);
@@ -12336,7 +12342,7 @@ class C
                 includeCurrentAssemblyAsAnalyzerReference: false,
                 errorlog: true,
                 skipAnalyzers: skipAnalyzers,
-                analyzers: suppressor);
+                analyzers: new[] { suppressor });
             Assert.DoesNotContain($"error CS0169", output, StringComparison.Ordinal);
             Assert.DoesNotContain($"warning CS0169", output, StringComparison.Ordinal);
             Assert.Contains("info SP0001", output, StringComparison.Ordinal);
@@ -12362,7 +12368,7 @@ class { }";
 
             // Verify that compiler syntax error CS1001 cannot be suppressed with diagnostic suppressor.
             output = VerifyOutput(srcDirectory, srcFile, expectedErrorCount: 1, includeCurrentAssemblyAsAnalyzerReference: false,
-                analyzers: new DiagnosticSuppressorForId("CS1001"));
+                analyzers: new[] { new DiagnosticSuppressorForId("CS1001") });
             Assert.Contains("error CS1001", output, StringComparison.Ordinal);
 
             CleanupAllGeneratedFiles(srcFile.Path);
@@ -12388,7 +12394,7 @@ class C
 
             // Verify that compiler error CS0246 cannot be suppressed with diagnostic suppressor.
             output = VerifyOutput(srcDirectory, srcFile, expectedErrorCount: 1, includeCurrentAssemblyAsAnalyzerReference: false,
-                analyzers: new DiagnosticSuppressorForId("CS0246"));
+                analyzers: new[] { new DiagnosticSuppressorForId("CS0246") });
             Assert.Contains("error CS0246", output, StringComparison.Ordinal);
 
             CleanupAllGeneratedFiles(srcFile.Path);
@@ -12408,7 +12414,7 @@ class C { }";
             var analyzer = new CompilationAnalyzerWithSeverity(DiagnosticSeverity.Warning, configurable: true);
             var output = VerifyOutput(srcDirectory, srcFile, expectedWarningCount: 1,
                 includeCurrentAssemblyAsAnalyzerReference: false,
-                analyzers: analyzer);
+                analyzers: new[] { analyzer });
             Assert.Contains($"warning {analyzer.Descriptor.Id}", output, StringComparison.Ordinal);
 
             // Verify that analyzer warning is suppressed with diagnostic suppressor
@@ -12435,7 +12441,7 @@ class C { }";
             output = VerifyOutput(srcDirectory, srcFile, expectedErrorCount: 1,
                 additionalFlags: new[] { "/warnAsError" },
                 includeCurrentAssemblyAsAnalyzerReference: false,
-                analyzers: analyzer);
+                analyzers: new[] { analyzer });
             Assert.Contains($"error {analyzer.Descriptor.Id}", output, StringComparison.Ordinal);
 
             // Verify that analyzer warning is suppressed with diagnostic suppressor even with /warnaserror
@@ -12475,7 +12481,7 @@ class C { }";
             var analyzer = new CompilationAnalyzerWithSeverity(DiagnosticSeverity.Error, configurable: true);
             var output = VerifyOutput(srcDirectory, srcFile, expectedErrorCount: 1,
                 includeCurrentAssemblyAsAnalyzerReference: false,
-                analyzers: analyzer);
+                analyzers: new[] { analyzer });
             Assert.Contains($"error {analyzer.Descriptor.Id}", output, StringComparison.Ordinal);
 
             // Verify that analyzer error cannot be suppressed with diagnostic suppressor.
@@ -12752,7 +12758,7 @@ dotnet_analyzer_diagnostic.severity = suggestion";
             }
 
             var cmd = CreateCSharpCompiler(null, dir.Path, arguments,
-                analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
+                analyzers: new[] { analyzer });
 
             Assert.Equal(analyzerConfig.Path, Assert.Single(cmd.Arguments.AnalyzerConfigPaths));
 
@@ -12993,7 +12999,7 @@ dotnet_diagnostic.{descriptor.Id}.severity = {analyzerConfigSeverity.ToAnalyzerC
             }
 
             var cmd = CreateCSharpCompiler(null, dir.Path, arguments,
-                analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
+                analyzers: new[] { analyzer });
 
             Assert.Equal(analyzerConfig.Path, Assert.Single(cmd.Arguments.AnalyzerConfigPaths));
 
@@ -13082,7 +13088,7 @@ generated_code = auto");
             if (errorlog)
                 args = args.Append("/errorlog:errorlog");
 
-            var cmd = CreateCSharpCompiler(null, dir.Path, args, analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
+            var cmd = CreateCSharpCompiler(null, dir.Path, args, analyzers: new[] { analyzer });
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = cmd.Run(outWriter);
             Assert.Equal(0, exitCode);
@@ -13118,7 +13124,7 @@ generated_code = auto");
             // Verify '/warnaserror-:DiagnosticId' behavior.
             var args = new[] { "/warnaserror+", $"/warnaserror-:{diagnosticId}", "/nologo", "/t:library", "/preferreduilang:en", src.Path };
 
-            var cmd = CreateCSharpCompiler(null, dir.Path, args, analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
+            var cmd = CreateCSharpCompiler(null, dir.Path, args, analyzers: new[] { analyzer });
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = cmd.Run(outWriter);
             var expectedExitCode = !analyzerShouldBeSkipped && defaultSeverity == DiagnosticSeverity.Error ? 1 : 0;
@@ -13691,7 +13697,7 @@ key7 = value7");
                 src.Path
             };
 
-            var cmd = CreateCSharpCompiler(null, dir.Path, args, generators: ImmutableArray.Create<ISourceGenerator>(generator));
+            var cmd = CreateCSharpCompiler(null, dir.Path, args, generators: new[] { generator });
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = cmd.Run(outWriter);
             Assert.Equal(0, exitCode);
@@ -13808,7 +13814,7 @@ class C
                 null,
                 WorkingDirectory,
                 new[] { "/nologo", "/t:library", srcFile.Path },
-               analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(new FieldAnalyzer())); // at least one analyzer required
+               analyzers: new[] { new FieldAnalyzer() }); // at least one analyzer required
             var exitCode = csc.Run(outWriter);
             Assert.Equal(0, exitCode);
             var output = outWriter.ToString();
@@ -14103,9 +14109,9 @@ is_global = true
 dotnet_diagnostic.Warning01.severity = error;
 ");
 
-            VerifyOutput(dir, src, additionalFlags: new[] { "/analyzerconfig:" + globalConfig.Path }, expectedErrorCount: 1, includeCurrentAssemblyAsAnalyzerReference: false, analyzers: new WarningDiagnosticAnalyzer());
+            VerifyOutput(dir, src, additionalFlags: new[] { "/analyzerconfig:" + globalConfig.Path }, expectedErrorCount: 1, includeCurrentAssemblyAsAnalyzerReference: false, analyzers: new[] { new WarningDiagnosticAnalyzer() });
 
-            VerifyOutput(dir, src, additionalFlags: new[] { "/nowarn:Warning01", "/analyzerconfig:" + globalConfig.Path }, includeCurrentAssemblyAsAnalyzerReference: false, analyzers: new WarningDiagnosticAnalyzer());
+            VerifyOutput(dir, src, additionalFlags: new[] { "/nowarn:Warning01", "/analyzerconfig:" + globalConfig.Path }, includeCurrentAssemblyAsAnalyzerReference: false, analyzers: new[] { new WarningDiagnosticAnalyzer() });
         }
 
         [Theory, CombinatorialData]
@@ -14126,7 +14132,7 @@ dotnet_diagnostic.Warning01.severity = error;
 
             var output = VerifyOutput(srcDirectory, srcFile, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false,
                 additionalFlags: new[] { "/additionalfile:" + additionalFile.Path },
-                analyzers: analyzer);
+                analyzers: new[] { analyzer });
             Assert.Contains("b.txt(1,3): warning ID0001", output, StringComparison.Ordinal);
 
             CleanupAllGeneratedFiles(srcDirectory.Path);
@@ -14485,15 +14491,6 @@ public class Generator : ISourceGenerator
                 },
                 SyntaxKind.PragmaWarningDirectiveTrivia
                 );
-        }
-    }
-
-    [Generator(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    internal sealed class DoNothingGenerator : IIncrementalGenerator
-    {
-        public void Initialize(IncrementalGeneratorInitializationContext context)
-        {
-
         }
     }
 }

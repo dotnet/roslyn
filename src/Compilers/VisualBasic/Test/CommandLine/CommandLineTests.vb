@@ -27,6 +27,7 @@ Imports Roslyn.Test.PdbUtilities
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Test.Utilities.SharedResourceHelpers
 Imports Roslyn.Utilities
+Imports TestResources.Analyzers
 Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
@@ -7822,7 +7823,7 @@ BC2006: option 'analyzerconfig' requires ':<file_list>']]>
                                              Optional expectedWarningCount As Integer = 0,
                                              Optional expectedErrorCount As Integer = 0,
                                              Optional errorlog As Boolean = False,
-                                             Optional analyzers As ImmutableArray(Of DiagnosticAnalyzer) = Nothing) As String
+                                             Optional analyzers As DiagnosticAnalyzer() = Nothing) As String
             Dim args = {
                             "/nologo", "/preferreduilang:en", "/t:library",
                             sourceFile.Path
@@ -8844,7 +8845,12 @@ Class C
 End Class
 </text>.Value).Path
 
-            Dim vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/reportanalyzer", "/t:library", "/a:" + Assembly.GetExecutingAssembly().Location, source})
+            Dim vbc = New MockVisualBasicCompiler(
+                Nothing,
+                _baseDirectory,
+                {"/reportanalyzer", "/t:library", source},
+                analyzers:={New WarningDiagnosticAnalyzer()},
+                generators:={New DoNothingGenerator().AsSourceGenerator()})
             Dim outWriter = New StringWriter()
             Dim exitCode = vbc.Run(outWriter, Nothing)
             Assert.Equal(0, exitCode)
@@ -9682,10 +9688,9 @@ End Class"
                 suppressor.SuppressionDescriptor.Id,
                 suppressor.SuppressionDescriptor.Justification)
 
-            Dim suppressors = ImmutableArray.Create(Of DiagnosticAnalyzer)(suppressor)
             output = VerifyOutput(dir, file, expectedInfoCount:=1, expectedWarningCount:=0,
                                   includeCurrentAssemblyAsAnalyzerReference:=False,
-                                  analyzers:=suppressors)
+                                  analyzers:={suppressor})
             Assert.DoesNotContain("warning BC40008", output, StringComparison.Ordinal)
             Assert.Contains("info SP0001", output, StringComparison.Ordinal)
             Assert.Contains(suppressionMessage, output, StringComparison.Ordinal)
@@ -9725,7 +9730,7 @@ End Class"
             ' and info diagnostic is logged with programmatic suppression information.
             Dim suppressor = New DiagnosticSuppressorForId("BC40008")
 
-            Dim suppressors = ImmutableArray.Create(Of DiagnosticAnalyzer)(suppressor)
+            Dim suppressors = {suppressor}
             output = VerifyOutput(dir, file, expectedInfoCount:=1, expectedWarningCount:=0, expectedErrorCount:=0,
                                   additionalFlags:={"/warnaserror+"},
                                   includeCurrentAssemblyAsAnalyzerReference:=False,
@@ -9762,7 +9767,7 @@ End Class"
             Assert.Contains("error BC30203", output, StringComparison.Ordinal)
 
             ' Verify that compiler error BC30203 cannot be suppressed with diagnostic suppressor.
-            Dim analyzers = ImmutableArray.Create(Of DiagnosticAnalyzer)(New DiagnosticSuppressorForId("BC30203"))
+            Dim analyzers = {New DiagnosticSuppressorForId("BC30203")}
             output = VerifyOutput(dir, file, expectedErrorCount:=1,
                                   includeCurrentAssemblyAsAnalyzerReference:=False,
                                   analyzers:=analyzers)
@@ -9783,7 +9788,7 @@ End Class"
 
             ' Verify that analyzer warning is reported.
             Dim analyzer = New CompilationAnalyzerWithSeverity(DiagnosticSeverity.Warning, configurable:=True)
-            Dim analyzers = ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer)
+            Dim analyzers = {analyzer}
             Dim output = VerifyOutput(dir, file, expectedWarningCount:=1,
                                       includeCurrentAssemblyAsAnalyzerReference:=False,
                                       analyzers:=analyzers)
@@ -9800,7 +9805,7 @@ End Class"
                 suppressor.SuppressionDescriptor.Id,
                 suppressor.SuppressionDescriptor.Justification)
 
-            Dim analyzerAndSuppressor = ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer, suppressor)
+            Dim analyzerAndSuppressor As DiagnosticAnalyzer() = {analyzer, suppressor}
             output = VerifyOutput(dir, file, expectedInfoCount:=1, expectedWarningCount:=0,
                                   includeCurrentAssemblyAsAnalyzerReference:=False,
                                   analyzers:=analyzerAndSuppressor)
@@ -9828,7 +9833,7 @@ End Class"
             ' Verify that "NotConfigurable" analyzer warning cannot be suppressed with diagnostic suppressor even with /warnaserror.
             analyzer = New CompilationAnalyzerWithSeverity(DiagnosticSeverity.Warning, configurable:=False)
             suppressor = New DiagnosticSuppressorForId(analyzer.Descriptor.Id)
-            analyzerAndSuppressor = ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer, suppressor)
+            analyzerAndSuppressor = {analyzer, suppressor}
             output = VerifyOutput(dir, file, expectedWarningCount:=1,
                                   includeCurrentAssemblyAsAnalyzerReference:=False,
                                   analyzers:=analyzerAndSuppressor)
@@ -9849,15 +9854,14 @@ End Class"
 
             ' Verify that analyzer error is reported.
             Dim analyzer = New CompilationAnalyzerWithSeverity(DiagnosticSeverity.Error, configurable:=True)
-            Dim analyzers = ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer)
             Dim output = VerifyOutput(dir, file, expectedErrorCount:=1,
                                       includeCurrentAssemblyAsAnalyzerReference:=False,
-                                      analyzers:=analyzers)
+                                      analyzers:={analyzer})
             Assert.Contains($"error {analyzer.Descriptor.Id}", output, StringComparison.Ordinal)
 
             ' Verify that analyzer error cannot be suppressed with diagnostic suppressor.
             Dim suppressor = New DiagnosticSuppressorForId(analyzer.Descriptor.Id)
-            Dim analyzerAndSuppressor = ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer, suppressor)
+            Dim analyzerAndSuppressor As DiagnosticAnalyzer() = {analyzer, suppressor}
             output = VerifyOutput(dir, file, expectedErrorCount:=1,
                                   includeCurrentAssemblyAsAnalyzerReference:=False,
                                   analyzers:=analyzerAndSuppressor)
@@ -10043,7 +10047,7 @@ End Class"
                                       additionalFlags,
                                       expectedErrorCount:=expectedErrorCount,
                                       expectedWarningCount:=expectedWarningCount,
-                                      analyzers:=ImmutableArray.Create(analyzer))
+                                      analyzers:={analyzer})
 
             Dim expectedODiagnosticSeverity = If(warnAsError, "error", "warning")
             Assert.Contains($"{expectedODiagnosticSeverity} {WarningDiagnosticAnalyzer.Warning01.Id}", output)
@@ -10175,7 +10179,7 @@ dotnet_diagnostic.{diagnosticId}.severity = {severityString}")
                          expectedWarningCount:=expectedWarningCount,
                          expectedErrorCount:=expectedErrorCount,
                          additionalFlags:=additionalFlags,
-                         analyzers:=ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
+                         analyzers:={analyzer})
         End Sub
 
         <Fact>
@@ -10283,7 +10287,7 @@ End Class"
             Dim output = VerifyOutput(srcDirectory, srcFile, expectedWarningCount:=1,
                                       includeCurrentAssemblyAsAnalyzerReference:=False,
                                       additionalFlags:={"/additionalfile:" & additionalFile.Path},
-                                      analyzers:=ImmutableArray.Create(analyzer))
+                                      analyzers:={analyzer})
             Assert.Contains("b.txt(1) : warning ID0001", output, StringComparison.Ordinal)
             CleanupAllGeneratedFiles(srcDirectory.Path)
         End Sub
@@ -10367,7 +10371,7 @@ dotnet_diagnostic.{diagnosticId}.severity = {analyzerConfigSeverity}")
             Dim output = VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference:=False, additionalArgs,
                                       expectedErrorCount:=If(expectError, 1, 0),
                                       expectedWarningCount:=If(expectWarning, 1, 0),
-                                      analyzers:=analyzers.ToImmutableArrayOrEmpty())
+                                      analyzers:=analyzers)
 
             If expectError Then
                 Assert.Contains($"error {diagnosticId}", output)
@@ -10604,14 +10608,6 @@ End Class
             Dim diagLocation = Location.Create(path, span, linePosSpan)
             Dim diag = Diagnostic.Create(Rule, diagLocation, IO.Path.GetFileNameWithoutExtension(path))
             context.ReportDiagnostic(diag)
-        End Sub
-    End Class
-
-    Friend Class DoNothingGenerator
-        Implements IIncrementalGenerator
-
-        Public Sub Initialize(context As IncrementalGeneratorInitializationContext) Implements IIncrementalGenerator.Initialize
-
         End Sub
     End Class
 End Namespace
