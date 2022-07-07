@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis
 
             // note: we intentionally do not pass the _onDispose callback to the copy.  Only the owner owns the callback
             // and controls calling it.  This does mean that the callback (and underlying memory it holds onto) may
-            // disappear once the owner is disposed or GC'd.  But that's ok as that expected semantics.  Once an image
+            // disappear once the owner is disposed or GC'd.  But that's ok as that is expected semantics.  Once an image
             // owner is gone, all copies are no longer in a valid state for use.
         }
 
