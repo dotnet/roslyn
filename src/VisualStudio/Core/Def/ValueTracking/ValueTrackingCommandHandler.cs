@@ -183,33 +183,22 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
                 return null;
             }
 
+            var window = (ValueTrackingToolWindow)await roslynPackage.FindWindowPaneAsync(
+                typeof(ValueTrackingToolWindow),
+                0,
+                create: true,
+                roslynPackage.DisposalToken).ConfigureAwait(false);
+
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            if (ValueTrackingToolWindow.Instance is null)
+            if (!window.Initialized)
             {
-                var factory = roslynPackage.GetAsyncToolWindowFactory(Guids.ValueTrackingToolWindowId);
-
+                var workspace = roslynPackage.ComponentModel.GetService<VisualStudioWorkspace>();
                 var viewModel = new ValueTrackingTreeViewModel(_classificationFormatMapService.GetClassificationFormatMap(textView), _typeMap, _formatMapService);
-
-                factory.CreateToolWindow(Guids.ValueTrackingToolWindowId, 0, viewModel);
-                await factory.InitializeToolWindowAsync(Guids.ValueTrackingToolWindowId, 0);
-
-                // FindWindowPaneAsync creates an instance if it does not exist
-                ValueTrackingToolWindow.Instance = (ValueTrackingToolWindow)await roslynPackage.FindWindowPaneAsync(
-                    typeof(ValueTrackingToolWindow),
-                    0,
-                    true,
-                    roslynPackage.DisposalToken).ConfigureAwait(false);
+                window.Initialize(viewModel, workspace, _threadingContext);
             }
 
-            // This can happen if the tool window was initialized outside of this command handler. The ViewModel 
-            // still needs to be initialized but had no necessary context. Provide that context now in the command handler.
-            if (ValueTrackingToolWindow.Instance.ViewModel is null)
-            {
-                ValueTrackingToolWindow.Instance.ViewModel = new ValueTrackingTreeViewModel(_classificationFormatMapService.GetClassificationFormatMap(textView), _typeMap, _formatMapService);
-            }
-
-            return ValueTrackingToolWindow.Instance;
+            return window;
         }
     }
 }
