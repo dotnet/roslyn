@@ -205,6 +205,6 @@ namespace Roslyn.Utilities
             => new OneOrMany<T>(one);
 
         public static OneOrMany<T> Create<T>(ImmutableArray<T> many)
-            => many.IsEmpty ? OneOrMany<T>.Empty : new OneOrMany<T>(many);
+            => new OneOrMany<T>(many);
     }
 }
