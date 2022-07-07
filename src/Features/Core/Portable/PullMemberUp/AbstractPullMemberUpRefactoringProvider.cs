@@ -48,15 +48,15 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var memberNodeSymbolPairs = selectedMemberNodes
-                .SelectAsArray(m => (node: m, symbol: semanticModel.GetRequiredDeclaredSymbol(m, cancellationToken)))
-                .WhereAsArray(pair => MemberAndDestinationValidator.IsMemberValid(pair.symbol));
+                .SelectAsArray(m => (node: m, symbol: semanticModel.GetDeclaredSymbol(m, cancellationToken)))
+                .WhereAsArray(pair => pair.symbol != null && MemberAndDestinationValidator.IsMemberValid(pair.symbol));
 
             if (memberNodeSymbolPairs.IsEmpty)
             {
                 return;
             }
 
-            var selectedMembers = memberNodeSymbolPairs.SelectAsArray(pair => pair.symbol);
+            var selectedMembers = memberNodeSymbolPairs.SelectAsArray(pair => pair.symbol!);
 
             var containingType = selectedMembers.First().ContainingType;
             Contract.ThrowIfNull(containingType);

@@ -67,17 +67,17 @@ namespace Microsoft.CodeAnalysis.ExtractClass
             var (document, span, cancellationToken) = context;
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var memberNodeSymbolPairs = selectedMemberNodes
-                .SelectAsArray(m => (node: m, symbol: semanticModel.GetRequiredDeclaredSymbol(m, cancellationToken)))
+                .SelectAsArray(m => (node: m, symbol: semanticModel.GetDeclaredSymbol(m, cancellationToken)))
                 // Use same logic as pull members up for determining if a selected member
                 // is valid to be moved into a base
-                .WhereAsArray(pair => MemberAndDestinationValidator.IsMemberValid(pair.symbol));
+                .WhereAsArray(pair => pair.symbol != null && MemberAndDestinationValidator.IsMemberValid(pair.symbol));
 
             if (memberNodeSymbolPairs.IsEmpty)
             {
                 return null;
             }
 
-            var selectedMembers = memberNodeSymbolPairs.SelectAsArray(pair => pair.symbol);
+            var selectedMembers = memberNodeSymbolPairs.SelectAsArray(pair => pair.symbol!);
 
             var containingType = selectedMembers.First().ContainingType;
             Contract.ThrowIfNull(containingType);

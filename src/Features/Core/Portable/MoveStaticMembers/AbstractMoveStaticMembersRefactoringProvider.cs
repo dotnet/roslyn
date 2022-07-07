@@ -36,23 +36,19 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             }
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            if (semanticModel == null)
-            {
-                return;
-            }
 
             var memberNodeSymbolPairs = selectedMemberNodes
-                .SelectAsArray(m => (node: m, symbol: semanticModel.GetRequiredDeclaredSymbol(m, cancellationToken)))
+                .SelectAsArray(m => (node: m, symbol: semanticModel.GetDeclaredSymbol(m, cancellationToken)))
                 // Use same logic as pull members up for determining if a selected member
                 // is valid to be moved into a base
-                .WhereAsArray(pair => MemberAndDestinationValidator.IsMemberValid(pair.symbol) && pair.symbol.IsStatic);
+                .WhereAsArray(pair => pair.symbol != null && MemberAndDestinationValidator.IsMemberValid(pair.symbol) && pair.symbol.IsStatic);
 
             if (memberNodeSymbolPairs.IsEmpty)
             {
                 return;
             }
 
-            var selectedMembers = memberNodeSymbolPairs.SelectAsArray(pair => pair.symbol);
+            var selectedMembers = memberNodeSymbolPairs.SelectAsArray(pair => pair.symbol!);
 
             var containingType = selectedMembers.First().ContainingType;
             Contract.ThrowIfNull(containingType);
