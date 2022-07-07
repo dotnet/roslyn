@@ -46,6 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
         private readonly IGlobalOptionService _globalOptions;
         private readonly IUIThreadOperationExecutor _threadOperationExecutor;
         private readonly IAsynchronousOperationListener _listener;
+        private readonly Workspace _workspace;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -58,7 +59,8 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             IEditorFormatMapService formatMapService,
             IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider,
-            IUIThreadOperationExecutor threadOperationExecutor)
+            IUIThreadOperationExecutor threadOperationExecutor,
+            VisualStudioWorkspace workspace)
         {
             _serviceProvider = (IAsyncServiceProvider)serviceProvider;
             _threadingContext = threadingContext;
@@ -69,6 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             _globalOptions = globalOptions;
             _threadOperationExecutor = threadOperationExecutor;
             _listener = listenerProvider.GetListener(FeatureAttribute.ValueTracking);
+            _workspace = workspace;
         }
 
         public string DisplayName => "Go to value tracking";
@@ -193,9 +196,8 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 
             if (!window.Initialized)
             {
-                var workspace = roslynPackage.ComponentModel.GetService<VisualStudioWorkspace>();
                 var viewModel = new ValueTrackingTreeViewModel(_classificationFormatMapService.GetClassificationFormatMap(textView), _typeMap, _formatMapService);
-                window.Initialize(viewModel, workspace, _threadingContext);
+                window.Initialize(viewModel, _workspace, _threadingContext);
             }
 
             return window;
