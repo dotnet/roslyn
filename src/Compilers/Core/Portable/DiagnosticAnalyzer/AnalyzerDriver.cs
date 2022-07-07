@@ -889,7 +889,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private SemanticModel GetOrCreateSemanticModel(SyntaxTree tree)
             => GetOrCreateSemanticModel(tree, AnalyzerExecutor.Compilation);
 
-        private SemanticModel GetOrCreateSemanticModel(SyntaxTree tree, Compilation compilation)
+        protected SemanticModel GetOrCreateSemanticModel(SyntaxTree tree, Compilation compilation)
         {
             Debug.Assert(compilation.ContainsSyntaxTree(tree));
 
@@ -2510,12 +2510,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return success;
-        }
-
-        private SemanticModel GetOrCreateSemanticModel(SyntaxTree tree, Compilation compilation)
-        {
-            Debug.Assert(compilation.ContainsSyntaxTree(tree));
-            return SemanticModelProvider.GetSemanticModel(tree, compilation);
         }
 
         private void ClearCachedAnalysisDataIfAnalyzed(SyntaxReference declaration, ISymbol symbol, int declarationIndex, AnalysisState analysisState)
