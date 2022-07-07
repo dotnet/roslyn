@@ -27,7 +27,7 @@ jobs:
   pool:
     name: NetCore1ESPool-Public
     demands: ImageOverride -equals $(queueName)
-  timeoutInMinutes: 135
+  timeoutInMinutes: 150
 
   steps:
     - template: eng/pipelines/test-integration-job.yml

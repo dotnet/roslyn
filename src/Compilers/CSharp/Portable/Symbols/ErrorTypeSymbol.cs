@@ -578,6 +578,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _originalDefinition.MangleName; }
         }
 
+        internal override SyntaxTree? AssociatedSyntaxTree => _originalDefinition.AssociatedSyntaxTree;
+
         internal override DiagnosticInfo? ErrorInfo
         {
             get { return _originalDefinition.ErrorInfo; }
