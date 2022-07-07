@@ -58,8 +58,14 @@ public partial struct SyntaxValueProvider
             .WithTrackingName("compilationUnit_ForAttribute");
 
         // Create a provider that provides (and updates) the global aliases for any particular file when it is edited.
-        var individualFileGlobalAliasesProvider = syntaxTreesProvider.Select(
-            (s, c) => getGlobalAliasesInCompilationUnit(syntaxHelper, s.GetRoot(c))).WithTrackingName("individualFileGlobalAliases_ForAttribute");
+        var individualFileGlobalAliasesProvider = syntaxTreesProvider
+            .Where((tree, cancellationToken) =>
+            {
+                var root = tree.GetRoot(cancellationToken);
+                return syntaxHelper.ContainsGlobalAliases(root);
+            })
+            .Select((tree, cancellationToken) => getGlobalAliasesInCompilationUnit(syntaxHelper, tree.GetRoot(cancellationToken)))
+            .WithTrackingName("individualFileGlobalAliases_ForAttribute");
 
         // Create an aggregated view of all global aliases across all files.  This should only update when an individual
         // file changes its global aliases or a file is added / removed from the compilation
@@ -89,15 +95,19 @@ public partial struct SyntaxValueProvider
 
         // Filter down to the trees that contain attributes in them.  in general, this will normally be smaller than the
         // number of total trees, allowing us to hold onto a much smaller number of nodes.
-        var treesContainingAttribute = syntaxTreesProvider.Where(
-            (t, c) =>
+        var treesContainingAttribute = syntaxTreesProvider
+            .Where((tree, cancellationToken) =>
             {
                 // Walk the green node tree first to avoid allocating the entire red tree for files that have no attributes.
-                var root = t.GetRoot(c);
+                var root = tree.GetRoot(cancellationToken);
                 return ContainsAttributeList(root.Green, syntaxHelper.AttributeListKind);
-            }).WithTrackingName("treesContainingAttribute_ForAttribute");
+            })
+            .WithTrackingName("treesContainingAttribute_ForAttribute");
 
-        var rootsWithAttributeAndGlobalAliasesProvider = treesContainingAttribute.Combine(allUpGlobalAliasesProvider)
+        // Combine the two providers so that we reanalyze every file if the global aliases change, or we reanalyze a
+        // particular file when it's compilation unit changes.
+        var rootsWithAttributeAndGlobalAliasesProvider = treesContainingAttribute
+            .Combine(allUpGlobalAliasesProvider)
             .WithTrackingName("compilationUnitAndGlobalAliases_ForAttribute");
 
         return rootsWithAttributeAndGlobalAliasesProvider.Select(
@@ -128,6 +138,8 @@ public partial struct SyntaxValueProvider
     {
         var compilationUnit = syntaxTree.GetRoot(cancellationToken);
         Debug.Assert(compilationUnit is ICompilationUnitSyntax);
+
+        Debug.Assert(ContainsAttributeList(compilationUnit.Green, syntaxHelper.AttributeListKind));
 
         var isCaseSensitive = syntaxHelper.IsCaseSensitive;
         var comparison = isCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
@@ -185,8 +197,7 @@ public partial struct SyntaxValueProvider
                 {
                     // Have to lookup both with the name in the attribute, as well as adding the 'Attribute' suffix.
                     // e.g. if there is [X] then we have to lookup with X and with XAttribute.
-                    var simpleAttributeName = syntaxHelper.GetUnqualifiedIdentifierOfName(
-                        syntaxHelper.GetNameOfAttribute(attribute)).ValueText;
+                    var simpleAttributeName = syntaxHelper.GetUnqualifiedIdentifierOfName(syntaxHelper.GetNameOfAttribute(attribute));
                     if (matchesAttributeName(simpleAttributeName, withAttributeSuffix: false) ||
                         matchesAttributeName(simpleAttributeName, withAttributeSuffix: true))
                     {
