@@ -1424,6 +1424,98 @@ public class FileModifierTests : CSharpTestBase
         }
     }
 
+    [Theory]
+    [InlineData("file ")]
+    [InlineData("")]
+    public void Duplication_13(string fileModifier)
+    {
+        var userCode = """
+            using System;
+
+            UserCode.Print();
+
+            partial class UserCode
+            {
+                public static partial void Print();
+
+                private class C
+                {
+                    public static void M() => Console.WriteLine("Program.cs");
+                }
+            }
+            """;
+
+        // A source generator must assume that partial classes and namespaces may bring user-defined types into scope.
+        // Therefore, generators should reference types they introduce with a `global::`-qualified name.
+        var generatedCode = $$"""
+            using System;
+
+            partial class UserCode
+            {
+                public static partial void Print()
+                {
+                    global::C.M();
+                    C.M();
+                }
+            }
+
+            {{fileModifier}}class C
+            {
+                public static void M() => Console.WriteLine("OtherFile.cs");
+            }
+            """;
+
+        var verifier = CompileAndVerify(new[] { userCode, generatedCode }, expectedOutput: "OtherFile.cs\r\nProgram.cs");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Theory]
+    [InlineData("file ")]
+    [InlineData("")]
+    public void Duplication_14(string fileModifier)
+    {
+        var userCode = """
+            using System;
+            using UserNamespace;
+
+            GeneratedClass.Print();
+
+            namespace UserNamespace
+            {
+                class C
+                {
+                    public static void M() => Console.WriteLine("Program.cs");
+                }
+            }
+            """;
+
+        // A source generator must assume that partial classes and namespaces may bring user-defined types into scope.
+        // Therefore, generators should reference types they introduce with a `global::`-qualified name.
+        var generatedCode = $$"""
+            using System;
+
+            namespace UserNamespace
+            {
+                class GeneratedClass
+                {
+                    public static void Print()
+                    {
+                        global::C.M();
+                        C.M();
+                    }
+                }
+            }
+
+            {{fileModifier}}class C
+            {
+                public static void M() => Console.WriteLine("OtherFile.cs");
+            }
+            """;
+
+        var verifier = CompileAndVerify(new[] { userCode, generatedCode }, expectedOutput: "OtherFile.cs\r\nProgram.cs");
+        verifier.VerifyDiagnostics();
+    }
+
     [Fact]
     public void SignatureUsage_01()
     {
