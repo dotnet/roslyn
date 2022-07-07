@@ -371,10 +371,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (diagnosticsLspClientName != null)
             {
-                if (additionalProperties == null)
-                {
-                    additionalProperties = ImmutableDictionary.Create<string, string?>();
-                }
+                additionalProperties ??= ImmutableDictionary.Create<string, string?>();
 
                 additionalProperties = additionalProperties.Add(nameof(documentPropertiesService.DiagnosticsLspClientName), diagnosticsLspClientName);
             }

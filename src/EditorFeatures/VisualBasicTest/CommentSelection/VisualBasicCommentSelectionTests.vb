@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CommentSelection
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
@@ -85,7 +86,7 @@ End Module</code>
                 Dim commandHandler = New CommentUncommentSelectionCommandHandler(
                     workspace.GetService(Of ITextUndoHistoryRegistry),
                     workspace.GetService(Of IEditorOperationsFactoryService),
-                    workspace.GlobalOptions)
+                    workspace.GetService(Of EditorOptionsService))
                 Dim textView = doc.GetTextView()
                 Dim textBuffer = doc.GetTextBuffer()
                 commandHandler.ExecuteCommand(textView, textBuffer, operation, TestCommandExecutionContext.Create())

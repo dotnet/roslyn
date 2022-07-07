@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             using var pipe = await tryConnectToServer(pipeName, timeoutOverride, logger, tryCreateServerFunc, cancellationToken).ConfigureAwait(false);
             if (pipe is null)
             {
-                return new RejectedBuildResponse("Failed to connect to server");
+                return new CannotConnectResponse();
             }
             else
             {

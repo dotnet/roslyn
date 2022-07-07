@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         }
 
         private static bool SpansPreprocessorDirective(this ISyntaxFacts syntaxFacts, SyntaxTriviaList list)
-            => list.Any(t => syntaxFacts.IsPreprocessorDirective(t));
+            => list.Any(syntaxFacts.IsPreprocessorDirective);
 
         public static bool IsLegalIdentifier(this ISyntaxFacts syntaxFacts, string name)
         {
@@ -845,6 +845,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         public static bool IsForEachStatement(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.ForEachStatement;
+
+        public static bool IsIfStatement(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == syntaxFacts.SyntaxKinds.IfStatement;
 
         public static bool IsLocalDeclarationStatement(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.LocalDeclarationStatement;

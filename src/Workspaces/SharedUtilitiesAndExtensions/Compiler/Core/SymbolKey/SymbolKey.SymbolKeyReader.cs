@@ -120,6 +120,13 @@ namespace Microsoft.CodeAnalysis
             public TStringResult? ReadString()
                 => ReadString(out _);
 
+            public TStringResult ReadRequiredString()
+            {
+                var result = ReadString();
+                Contract.ThrowIfNull(result);
+                return result;
+            }
+
             public TStringResult? ReadString(out string? failureReason)
             {
                 failureReason = null;

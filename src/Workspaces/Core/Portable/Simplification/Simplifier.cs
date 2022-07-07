@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         internal static async Task<SimplifierOptions> GetOptionsAsync(Document document, OptionSet? optionSet, CancellationToken cancellationToken)
         {
             var services = document.Project.Solution.Workspace.Services;
-            var optionService = services.GetRequiredService<IOptionService>();
+            var optionService = services.GetRequiredService<IEditorConfigOptionMappingService>();
             var configOptionSet = (optionSet ?? await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false)).AsAnalyzerConfigOptions(optionService, document.Project.Language);
             var simplificationService = services.GetRequiredLanguageService<ISimplificationService>(document.Project.Language);
             return simplificationService.GetSimplifierOptions(configOptionSet, fallbackOptions: null);

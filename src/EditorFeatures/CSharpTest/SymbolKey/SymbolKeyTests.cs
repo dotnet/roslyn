@@ -19,6 +19,111 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
     [UseExportProvider]
     public class SymbolKeyTests
     {
+        [Fact]
+        public async Task FileType_01()
+        {
+            var typeSource = @"
+file class C1
+{
+    public static void M() { }
+}
+";
+
+            var workspaceXml = @$"
+<Workspace>
+    <Project Language=""C#"">
+        <CompilationOptions Nullable=""Enable""/>
+        <Document FilePath=""C.cs"">
+{typeSource}
+        </Document>
+    </Project>
+</Workspace>
+";
+            using var workspace = TestWorkspace.Create(workspaceXml);
+
+            var solution = workspace.CurrentSolution;
+            var project = solution.Projects.Single();
+
+            var compilation = await project.GetCompilationAsync();
+            var type = compilation.GetTypeByMetadataName("<C>F0__C1");
+            Assert.NotNull(type);
+            var symbolKey = SymbolKey.Create(type);
+            var resolved = symbolKey.Resolve(compilation).Symbol;
+            Assert.Same(type, resolved);
+        }
+
+        [Fact]
+        public async Task FileType_02()
+        {
+            var workspaceXml = $$"""
+<Workspace>
+    <Project Language="C#">
+        <CompilationOptions Nullable="Enable"/>
+        <Document FilePath="File0.cs">
+file class C
+{
+    public static void M() { }
+}
+        </Document>
+        <Document FilePath="File1.cs">
+file class C
+{
+    public static void M() { }
+}
+        </Document>
+    </Project>
+</Workspace>
+""";
+            using var workspace = TestWorkspace.Create(workspaceXml);
+
+            var solution = workspace.CurrentSolution;
+            var project = solution.Projects.Single();
+
+            var compilation = await project.GetCompilationAsync();
+
+            var type = compilation.GetTypeByMetadataName("<File1>F1__C");
+            Assert.NotNull(type);
+            var symbolKey = SymbolKey.Create(type);
+            var resolved = symbolKey.Resolve(compilation).Symbol;
+            Assert.Same(type, resolved);
+
+            type = compilation.GetTypeByMetadataName("<File0>F0__C");
+            Assert.NotNull(type);
+            symbolKey = SymbolKey.Create(type);
+            resolved = symbolKey.Resolve(compilation).Symbol;
+            Assert.Same(type, resolved);
+        }
+
+        [Fact]
+        public async Task FileType_03()
+        {
+            var workspaceXml = $$"""
+<Workspace>
+    <Project Language="C#">
+        <CompilationOptions Nullable="Enable"/>
+        <Document FilePath="File0.cs">
+file class C
+{
+    public class Inner { }
+}
+        </Document>
+    </Project>
+</Workspace>
+""";
+            using var workspace = TestWorkspace.Create(workspaceXml);
+
+            var solution = workspace.CurrentSolution;
+            var project = solution.Projects.Single();
+
+            var compilation = await project.GetCompilationAsync();
+
+            var type = compilation.GetTypeByMetadataName("<File0>F0__C+Inner");
+            Assert.NotNull(type);
+            var symbolKey = SymbolKey.Create(type);
+            var resolved = symbolKey.Resolve(compilation).Symbol;
+            Assert.Same(type, resolved);
+        }
+
         [Fact, WorkItem(45437, "https://github.com/dotnet/roslyn/issues/45437")]
         public async Task TestGenericsAndNullability()
         {

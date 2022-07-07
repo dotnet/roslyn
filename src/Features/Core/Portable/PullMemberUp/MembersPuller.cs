@@ -36,18 +36,23 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 
         public static CodeAction TryComputeCodeAction(
             Document document,
-            ISymbol selectedMember,
+            ImmutableArray<ISymbol> selectedMembers,
             INamedTypeSymbol destination,
             CleanCodeGenerationOptionsProvider fallbackOptions)
         {
-            var result = PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(destination, ImmutableArray.Create((member: selectedMember, makeAbstract: false)));
+            var result = PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(destination,
+                selectedMembers.SelectAsArray(m => (member: m, makeAbstract: false)));
+
             if (result.PullUpOperationNeedsToDoExtraChanges ||
-                IsSelectedMemberDeclarationAlreadyInDestination(selectedMember, destination))
+                selectedMembers.Any(IsSelectedMemberDeclarationAlreadyInDestination, destination))
             {
                 return null;
             }
 
-            var title = string.Format(FeaturesResources.Pull_0_up_to_1, selectedMember.Name, result.Destination.Name);
+            var title = selectedMembers.IsSingle()
+                ? string.Format(FeaturesResources.Pull_0_up_to_1, selectedMembers.Single().Name, result.Destination.Name)
+                : string.Format(FeaturesResources.Pull_selected_members_up_to_0, result.Destination.Name);
+
             return SolutionChangeAction.Create(
                 title,
                 cancellationToken => PullMembersUpAsync(document, result, fallbackOptions, cancellationToken),

@@ -107,10 +107,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
             base.Close();
 
-            if (this.ViewModel != null)
-            {
-                this.ViewModel.Dispose();
-            }
+            this.ViewModel?.Dispose();
         }
 
         internal void Generate_Save_EditorConfig(object sender, System.Windows.RoutedEventArgs e)

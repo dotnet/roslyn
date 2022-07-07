@@ -37,13 +37,23 @@ internal class ExperimentalWorkspacePullDiagnosticsHandler : AbstractPullDiagnos
         return ConvertTags(diagnosticData, potentialDuplicate: false);
     }
 
-    protected override WorkspaceDiagnosticReport CreateReport(TextDocumentIdentifier identifier, VisualStudio.LanguageServer.Protocol.Diagnostic[]? diagnostics, string? resultId)
-    {
-        var itemToReport = diagnostics == null
-            ? new WorkspaceDocumentDiagnosticReport(new WorkspaceUnchangedDocumentDiagnosticReport(identifier.Uri, resultId, version: null))
-            : new WorkspaceDocumentDiagnosticReport(new WorkspaceFullDocumentDiagnosticReport(identifier.Uri, diagnostics, version: null, resultId));
-        return new WorkspaceDiagnosticReport(new[] { itemToReport });
-    }
+    protected override WorkspaceDiagnosticReport CreateReport(TextDocumentIdentifier identifier, VisualStudio.LanguageServer.Protocol.Diagnostic[] diagnostics, string resultId)
+        => new WorkspaceDiagnosticReport(new[]
+        {
+            new WorkspaceDocumentDiagnosticReport(new WorkspaceFullDocumentDiagnosticReport(identifier.Uri, diagnostics, version: null, resultId))
+        });
+
+    protected override WorkspaceDiagnosticReport CreateRemovedReport(TextDocumentIdentifier identifier)
+        => new WorkspaceDiagnosticReport(new[]
+        {
+            new WorkspaceDocumentDiagnosticReport(new WorkspaceFullDocumentDiagnosticReport(identifier.Uri, Array.Empty<VisualStudio.LanguageServer.Protocol.Diagnostic>(), version: null, resultId: null))
+        });
+
+    protected override WorkspaceDiagnosticReport CreateUnchangedReport(TextDocumentIdentifier identifier, string resultId)
+        => new WorkspaceDiagnosticReport(new[]
+        {
+            new WorkspaceDocumentDiagnosticReport(new WorkspaceUnchangedDocumentDiagnosticReport(identifier.Uri, resultId, version: null))
+        });
 
     protected override WorkspaceDiagnosticReport? CreateReturn(BufferedProgress<WorkspaceDiagnosticReport> progress)
     {

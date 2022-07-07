@@ -205,7 +205,7 @@ End Class
 
                 Dim formatOptions = VisualBasicSyntaxFormattingOptions.Default
                 Dim smartFormatter = New VisualBasicSmartTokenFormatter(formatOptions, formattingRules, root)
-                Dim changes = Await smartFormatter.FormatTokenAsync(token, Nothing)
+                Dim changes = smartFormatter.FormatToken(token, Nothing)
 
                 Using edit = buffer.CreateEdit()
                     For Each change In changes

@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
     internal interface ISyntaxHelper
     {
         bool IsCaseSensitive { get; }
+        int AttributeListKind { get; }
 
         bool IsValidIdentifier(string name);
 
@@ -33,13 +34,14 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         /// <summary>
         /// <paramref name="node"/> must be a compilation unit or namespace block.
         /// </summary>
-        void AddAliases(SyntaxNode node, ArrayBuilder<(string aliasName, string symbolName)> aliases, bool global);
+        void AddAliases(GreenNode node, ArrayBuilder<(string aliasName, string symbolName)> aliases, bool global);
         void AddAliases(CompilationOptions options, ArrayBuilder<(string aliasName, string symbolName)> aliases);
     }
 
     internal abstract class AbstractSyntaxHelper : ISyntaxHelper
     {
         public abstract bool IsCaseSensitive { get; }
+        public abstract int AttributeListKind { get; }
 
         public abstract bool IsValidIdentifier(string name);
 
@@ -56,7 +58,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
         public abstract bool IsLambdaExpression(SyntaxNode node);
 
-        public abstract void AddAliases(SyntaxNode node, ArrayBuilder<(string aliasName, string symbolName)> aliases, bool global);
+        public abstract void AddAliases(GreenNode node, ArrayBuilder<(string aliasName, string symbolName)> aliases, bool global);
         public abstract void AddAliases(CompilationOptions options, ArrayBuilder<(string aliasName, string symbolName)> aliases);
     }
 }

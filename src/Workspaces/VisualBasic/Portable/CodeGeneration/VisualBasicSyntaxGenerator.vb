@@ -2608,7 +2608,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Private Shared Function CanHaveAccessibility(declaration As SyntaxNode) As Boolean
-            Return VisualBasicAccessibilityFacts.Instance.CanHaveAccessibility(declaration)
+            Return VisualBasicAccessibilityFacts.Instance.CanHaveAccessibility(declaration, ignoreDeclarationModifiers:=True)
         End Function
 
         Private Function WithAccessibilityInternal(declaration As SyntaxNode, accessibility As Accessibility) As SyntaxNode

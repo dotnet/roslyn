@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (builder.DriverState.TrackIncrementalSteps)
                 {
-                    return previousTable.CreateCachedTableWithUpdatedSteps(sourceTable, _name);
+                    return previousTable.CreateCachedTableWithUpdatedSteps(sourceTable, _name, _comparer);
                 }
                 return previousTable;
             }
@@ -56,7 +56,8 @@ namespace Microsoft.CodeAnalysis
             // - Added: perform transform and add
             // - Modified: perform transform and do element wise comparison with previous results
 
-            var newTable = builder.CreateTableBuilder(previousTable, _name);
+            var totalEntryItemCount = sourceTable.GetTotalEntryItemCount();
+            var newTable = builder.CreateTableBuilder(previousTable, _name, _comparer, totalEntryItemCount);
 
             foreach (var entry in sourceTable)
             {
@@ -77,6 +78,8 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
             }
+
+            Debug.Assert(newTable.Count == totalEntryItemCount);
             return newTable.ToImmutableAndFree();
         }
 
