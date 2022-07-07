@@ -17339,7 +17339,7 @@ class Program {
   IL_0039:  ret
 }
 ";
-            CompileAndVerify(source, targetFramework: TargetFramework.NetStandard20, expectedOutput: "1234")
+            CompileAndVerify(source, targetFramework: ExecutionConditionUtil.IsDesktop ? TargetFramework.NetFramework : TargetFramework.NetStandard20, expectedOutput: "1234")
                .VerifyIL("Program.Main(string[])", expect);
         }
 
@@ -17431,7 +17431,7 @@ public class Program {
 
             CompileAndVerify(source, targetFramework: TargetFramework.Net50, expectedOutput: "3 5 7")
                 .VerifyIL("Program.Main(string[])", expectILNet50);
-            CompileAndVerify(source, targetFramework: TargetFramework.NetStandard20, expectedOutput: "3 5 7")
+            CompileAndVerify(source, targetFramework: ExecutionConditionUtil.IsDesktop ? TargetFramework.NetFramework : TargetFramework.NetStandard20, expectedOutput: "3 5 7")
                 .VerifyIL("Program.Main(string[])", expectILNetStandard20);
         }
 
@@ -17744,7 +17744,7 @@ public class Program {
             CompileAndVerify(source, targetFramework: TargetFramework.Net50, expectedOutput: "abcdefghijk")
                 .VerifyIL("Program.Main(string[])", expectILNet50);
 
-            CompileAndVerify(source, targetFramework: TargetFramework.NetStandard20, expectedOutput: "abcdefghijk")
+            CompileAndVerify(source, targetFramework: ExecutionConditionUtil.IsDesktop ? TargetFramework.NetFramework : TargetFramework.NetStandard20, expectedOutput: "abcdefghijk")
                 .VerifyIL("Program.Main(string[])", expectILNetStandard20);
         }
     }

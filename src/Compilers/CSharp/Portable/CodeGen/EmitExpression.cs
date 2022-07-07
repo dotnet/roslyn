@@ -1564,7 +1564,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private void EmitStaticCallExpression(BoundCall call, UseKind useKind)
         {
             var method = call.Method;
-            var receiver = call.ReceiverOpt ?? null;
+            var receiver = call.ReceiverOpt;
             var arguments = call.Arguments;
 
             EmitStaticCall(method, receiver, arguments, useKind, call.Syntax, call.ArgumentRefKindsOpt);
