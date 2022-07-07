@@ -2084,7 +2084,7 @@ public class FileModifierTests : CSharpTestBase
     public void Constraints_02(string typeKind)
     {
         var source = $$"""
-            file {{typeKind}} C { }
+            file class C { }
 
             file {{typeKind}} D<T> where T : C // ok
             {
