@@ -132,9 +132,9 @@ namespace Microsoft.VisualStudio.LanguageServices
             var updatedDocumentSymbolItems = model.DocumentSymbolItems;
 
             if (!string.IsNullOrWhiteSpace(searchQuery))
-                updatedDocumentSymbolItems = DocumentOutlineHelper.Search(updatedDocumentSymbolItems, searchQuery);
+                updatedDocumentSymbolItems = DocumentOutlineHelper.Search(updatedDocumentSymbolItems, searchQuery, cancellationToken);
 
-            updatedDocumentSymbolItems = DocumentOutlineHelper.Sort(updatedDocumentSymbolItems, SortOption);
+            updatedDocumentSymbolItems = DocumentOutlineHelper.Sort(updatedDocumentSymbolItems, SortOption, cancellationToken);
 
             // Switch to the UI thread to update the view.
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);

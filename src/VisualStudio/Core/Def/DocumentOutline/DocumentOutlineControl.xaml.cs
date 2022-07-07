@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis;
@@ -71,7 +72,8 @@ namespace Microsoft.VisualStudio.LanguageServices
             IThreadingContext threadingContext,
             IAsynchronousOperationListener asyncListener,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
-            IVsCodeWindow codeWindow)
+            IVsCodeWindow codeWindow,
+            CancellationToken cancellationToken)
         {
             InitializeComponent();
 
@@ -87,26 +89,26 @@ namespace Microsoft.VisualStudio.LanguageServices
                 ComputeModelAsync,
                 EqualityComparer<bool>.Default,
                 asyncListener,
-                threadingContext.DisposalToken);
+                cancellationToken);
 
             _updateUIQueue = new AsyncBatchingWorkQueue<bool, DocumentSymbolModel?>(
                 DelayTimeSpan.NearImmediate,
                 UpdateUIAsync,
                 EqualityComparer<bool>.Default,
                 asyncListener,
-                threadingContext.DisposalToken);
+                cancellationToken);
 
             _highlightNodeQueue = new AsyncBatchingWorkQueue(
                 DelayTimeSpan.NearImmediate,
                 HightlightNodeAsync,
                 asyncListener,
-                threadingContext.DisposalToken);
+                cancellationToken);
 
             _jumpToContentQueue = new AsyncBatchingWorkQueue<DocumentSymbolItem>(
                 DelayTimeSpan.NearImmediate,
                 JumpToContentAsync,
                 asyncListener,
-                threadingContext.DisposalToken);
+                cancellationToken);
 
             // Primary text view is expected to exist on window initialization.
             if (ErrorHandler.Failed(codeWindow.GetPrimaryView(out var primaryTextView)))

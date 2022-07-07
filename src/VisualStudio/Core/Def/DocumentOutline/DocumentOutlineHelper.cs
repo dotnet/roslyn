@@ -152,8 +152,10 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// <summary>
         /// Sorts and returns an immutable array of DocumentSymbolViewModels based on a SortOption.
         /// </summary>
-        public static ImmutableArray<DocumentSymbolItem> Sort(ImmutableArray<DocumentSymbolItem> documentSymbolItems, SortOption sortOption)
+        public static ImmutableArray<DocumentSymbolItem> Sort(ImmutableArray<DocumentSymbolItem> documentSymbolItems, SortOption sortOption, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             // Log which sort option was used
             Logger.Log(sortOption switch
             {
@@ -163,10 +165,12 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 _ => throw new NotImplementedException(),
             });
 
-            return SortDocumentSymbolItems(documentSymbolItems, sortOption);
+            return SortDocumentSymbolItems(documentSymbolItems, sortOption, cancellationToken);
 
-            static ImmutableArray<DocumentSymbolItem> SortDocumentSymbolItems(ImmutableArray<DocumentSymbolItem> documentSymbolModels, SortOption sortOption)
+            static ImmutableArray<DocumentSymbolItem> SortDocumentSymbolItems(ImmutableArray<DocumentSymbolItem> documentSymbolModels, SortOption sortOption, CancellationToken cancellationToken)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 // Sort the top-level DocumentSymbolViewModels
                 var sortedDocumentSymbolModels = sortOption switch
                 {
@@ -191,7 +195,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 // Recursively sort descendant DocumentSymbolViewModels
                 foreach (var documentSymbolModel in sortedDocumentSymbolModels)
                 {
-                    documentSymbolModel.Children = SortDocumentSymbolItems(documentSymbolModel.Children, sortOption);
+                    documentSymbolModel.Children = SortDocumentSymbolItems(documentSymbolModel.Children, sortOption, cancellationToken);
                 }
 
                 return sortedDocumentSymbolModels;
@@ -201,28 +205,32 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// <summary>
         /// Returns an immutable array of DocumentSymbolViewModels such that each node or one of its descendants matches the given pattern.
         /// </summary>
-        public static ImmutableArray<DocumentSymbolItem> Search(ImmutableArray<DocumentSymbolItem> documentSymbolModels, string pattern)
+        public static ImmutableArray<DocumentSymbolItem> Search(ImmutableArray<DocumentSymbolItem> documentSymbolModels, string pattern, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             var documentSymbols = ArrayBuilder<DocumentSymbolItem>.GetInstance();
             var patternMatcher = PatternMatcher.CreatePatternMatcher(pattern, includeMatchedSpans: false, allowFuzzyMatching: true);
 
             foreach (var documentSymbol in documentSymbolModels)
             {
-                if (SearchNodeTree(documentSymbol, patternMatcher))
+                if (SearchNodeTree(documentSymbol, patternMatcher, cancellationToken))
                     documentSymbols.Add(documentSymbol);
             }
 
             return documentSymbols.ToImmutableAndFree();
 
             // Returns true if the name of one of the tree nodes results in a pattern match.
-            static bool SearchNodeTree(DocumentSymbolItem tree, PatternMatcher patternMatcher)
+            static bool SearchNodeTree(DocumentSymbolItem tree, PatternMatcher patternMatcher, CancellationToken cancellationToken)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 if (patternMatcher.Matches(tree.Name))
                     return true;
 
                 foreach (var childItem in tree.Children)
                 {
-                    if (SearchNodeTree(childItem, patternMatcher))
+                    if (SearchNodeTree(childItem, patternMatcher, cancellationToken))
                         return true;
                 }
 
