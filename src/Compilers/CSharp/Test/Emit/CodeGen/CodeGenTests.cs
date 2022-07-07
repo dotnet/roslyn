@@ -17282,7 +17282,10 @@ class Program {
   IL_003a:  ret
 }
 ";
-            CompileAndVerify(source, targetFramework: TargetFramework.Net50, expectedOutput: "1234")
+
+            // We need >= Net50 to have access to System.GC.AllocateUninitializedArray, but this means the use of the initialize array helper will cause a PEVerify failure,
+            // so we have to skip verification
+            CompileAndVerify(source, targetFramework: TargetFramework.Net50, expectedOutput: "1234", verify: Verification.Skipped)
                .VerifyIL("Program.Main(string[])", expect);
         }
 
@@ -17362,40 +17365,7 @@ public class Program {
     }
 }
 """;
-            var expectILNet50 = @"
-{
-  // Code size       74 (0x4a)
-  .maxstack  6
-  .locals init (int[,] V_0) //m
-  IL_0000:  ldc.i4.3
-  IL_0001:  ldc.i4.3
-  IL_0002:  newobj     ""int[*,*]..ctor""
-  IL_0007:  dup
-  IL_0008:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=36 <PrivateImplementationDetails>.E3D25E7590EDD76206831801F67D1EE231D8B90A2BB4BFE31A152BE21D2F536C""
-  IL_000d:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
-  IL_0012:  stloc.0
-  IL_0013:  ldstr      ""{0} {1} {2}""
-  IL_0018:  ldloc.0
-  IL_0019:  ldc.i4.0
-  IL_001a:  ldc.i4.2
-  IL_001b:  call       ""int[*,*].Get""
-  IL_0020:  box        ""int""
-  IL_0025:  ldloc.0
-  IL_0026:  ldc.i4.1
-  IL_0027:  ldc.i4.1
-  IL_0028:  call       ""int[*,*].Get""
-  IL_002d:  box        ""int""
-  IL_0032:  ldloc.0
-  IL_0033:  ldc.i4.2
-  IL_0034:  ldc.i4.0
-  IL_0035:  call       ""int[*,*].Get""
-  IL_003a:  box        ""int""
-  IL_003f:  call       ""string string.Format(string, object, object, object)""
-  IL_0044:  call       ""void System.Console.WriteLine(string)""
-  IL_0049:  ret
-}
-";
-            var expectILNetStandard20 = @"
+            var expectIL = @"
 {
   // Code size       74 (0x4a)
   .maxstack  6
@@ -17429,10 +17399,14 @@ public class Program {
 }
 ";
 
-            CompileAndVerify(source, targetFramework: TargetFramework.Net50, expectedOutput: "3 5 7")
-                .VerifyIL("Program.Main(string[])", expectILNet50);
+
+            // We need >= Net50 to have access to System.GC.AllocateUninitializedArray, but this means the use of the initialize array helper will cause a PEVerify failure,
+            // so we have to skip verification
+            CompileAndVerify(source, targetFramework: TargetFramework.Net50, expectedOutput: "3 5 7", verify: Verification.Skipped)
+                .VerifyIL("Program.Main(string[])", expectIL);
+
             CompileAndVerify(source, targetFramework: ExecutionConditionUtil.IsDesktop ? TargetFramework.NetFramework : TargetFramework.NetStandard20, expectedOutput: "3 5 7")
-                .VerifyIL("Program.Main(string[])", expectILNetStandard20);
+                .VerifyIL("Program.Main(string[])", expectIL);
         }
 
         [Fact]
@@ -17553,6 +17527,7 @@ public class Program {
   IL_0088:  ldloc.2
   IL_0089:  ldelem.ref
   IL_008a:  stloc.3
+
   IL_008b:  ldc.i4.0
   IL_008c:  stloc.s    V_4
   IL_008e:  br.s       IL_00c4
@@ -17614,6 +17589,7 @@ public class Program {
                 char[][] V_3,
                 int V_4,
                 char[] V_5,
+            
                 int V_6,
                 char V_7) //c
   IL_0000:  ldc.i4.2
@@ -17741,7 +17717,9 @@ public class Program {
 }
 ";
 
-            CompileAndVerify(source, targetFramework: TargetFramework.Net50, expectedOutput: "abcdefghijk")
+            // We need >= Net50 to have access to System.GC.AllocateUninitializedArray, but this means the use of the initialize array helper will cause a PEVerify failure,
+            // so we have to skip verification
+            CompileAndVerify(source, targetFramework: TargetFramework.Net50, expectedOutput: "abcdefghijk", verify: Verification.Skipped)
                 .VerifyIL("Program.Main(string[])", expectILNet50);
 
             CompileAndVerify(source, targetFramework: ExecutionConditionUtil.IsDesktop ? TargetFramework.NetFramework : TargetFramework.NetStandard20, expectedOutput: "abcdefghijk")
