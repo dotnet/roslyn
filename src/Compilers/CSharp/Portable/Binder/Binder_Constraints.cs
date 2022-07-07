@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(ErrorCode.ERR_BadVisBound, location, containingSymbol, constraintType.Type);
             }
 
-            if (constraintType.Type.IsFileTypeOrUsesFileTypes() && (containingSymbol as TypeSymbol ?? containingSymbol.ContainingSymbol as TypeSymbol)?.IsFileTypeOrUsesFileTypes() == false)
+            if (constraintType.Type.IsFileTypeOrUsesFileTypes())
             {
                 // if the containing symbol of the constraint is a member, we need to ensure the nearest containing type is a file type.
                 var possibleFileType = containingSymbol switch
