@@ -60,8 +60,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override bool IsLambdaExpression(SyntaxNode node)
             => node is LambdaExpressionSyntax;
 
-        public override SyntaxToken GetUnqualifiedIdentifierOfName(SyntaxNode node)
-            => ((NameSyntax)node).GetUnqualifiedName().Identifier;
+        public override string GetUnqualifiedIdentifierOfName(SyntaxNode node)
+            => ((NameSyntax)node).GetUnqualifiedName().Identifier.ValueText;
 
         public override void AddAliases(GreenNode node, ArrayBuilder<(string aliasName, string symbolName)> aliases, bool global)
         {
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return;
         }
 
-        public override bool ContainsGlobalAliases(SyntaxNode root, CancellationToken cancellationToken)
+        public override bool ContainsGlobalAliases(SyntaxNode root)
         {
             // Walk down the green tree to avoid unnecessary allocations of red nodes.
             //

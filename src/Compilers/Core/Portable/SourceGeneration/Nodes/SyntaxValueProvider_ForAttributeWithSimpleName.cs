@@ -58,7 +58,7 @@ public partial struct SyntaxValueProvider
             .Where((tree, cancellationToken) =>
             {
                 var root = tree.GetRoot(cancellationToken);
-                return syntaxHelper.ContainsGlobalAliases(root, cancellationToken);
+                return syntaxHelper.ContainsGlobalAliases(root);
             })
             .Select((tree, cancellationToken) => getGlobalAliasesInCompilationUnit(syntaxHelper, tree.GetRoot(cancellationToken)))
             .WithTrackingName("individualFileGlobalAliases_ForAttribute");
@@ -193,8 +193,7 @@ public partial struct SyntaxValueProvider
                 {
                     // Have to lookup both with the name in the attribute, as well as adding the 'Attribute' suffix.
                     // e.g. if there is [X] then we have to lookup with X and with XAttribute.
-                    var simpleAttributeName = syntaxHelper.GetUnqualifiedIdentifierOfName(
-                        syntaxHelper.GetNameOfAttribute(attribute)).ValueText;
+                    var simpleAttributeName = syntaxHelper.GetUnqualifiedIdentifierOfName(syntaxHelper.GetNameOfAttribute(attribute));
                     if (matchesAttributeName(simpleAttributeName, withAttributeSuffix: false) ||
                         matchesAttributeName(simpleAttributeName, withAttributeSuffix: true))
                     {
