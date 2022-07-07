@@ -109,51 +109,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void AddAliases(CompilationOptions compilation, ArrayBuilder<(string aliasName, string symbolName)> aliases)
         {
-            // C# doesn't have global aliases at the compilation level.
+            // C# doesn't have global aliases at the compilation-options, only the compilation-unit level.
             return;
         }
 
         public override bool ContainsGlobalAliases(SyntaxNode root, CancellationToken cancellationToken)
         {
             // Walk down the green tree to avoid unnecessary allocations of red nodes.
+            //
+            // Global usings can only exist at the compilation-unit level, so no need to dive any deeper than that.
             var compilationUnit = (Syntax.InternalSyntax.CompilationUnitSyntax)root.Green;
 
-            return usingsContainGlobalAliases(compilationUnit.Usings) ||
-                   membersContainGlobalAliases(compilationUnit.Members);
-
-            bool usingsContainGlobalAliases(CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.UsingDirectiveSyntax> usings)
+            foreach (var directive in compilationUnit.Usings)
             {
-                foreach (var directive in usings)
+                if (directive.GlobalKeyword != null &&
+                    directive.Alias != null)
                 {
-                    if (directive.GlobalKeyword != null &&
-                        directive.Alias != null)
-                    {
-                        return true;
-                    }
+                    return true;
                 }
-
-                return false;
             }
 
-            bool membersContainGlobalAliases(CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax> members)
-            {
-                foreach (var member in members)
-                {
-                    if (member is Syntax.InternalSyntax.BaseNamespaceDeclarationSyntax baseNamespace &&
-                        namespaceContainsGlobalAliases(baseNamespace))
-                    {
-                        return true;
-                    }
-                }
-
-                return false;
-            }
-
-            bool namespaceContainsGlobalAliases(Syntax.InternalSyntax.BaseNamespaceDeclarationSyntax baseNamespace)
-            {
-                return usingsContainGlobalAliases(baseNamespace.Usings) ||
-                       membersContainGlobalAliases(baseNamespace.Members);
-            }
+            return false;
         }
     }
 }
