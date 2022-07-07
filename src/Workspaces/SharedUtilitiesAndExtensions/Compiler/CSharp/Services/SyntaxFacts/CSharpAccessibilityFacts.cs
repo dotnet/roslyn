@@ -34,6 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.EnumDeclaration:
                 case SyntaxKind.DelegateDeclaration:
+                    return !((MemberDeclarationSyntax)declaration).Modifiers.Any(SyntaxKind.FileKeyword);
+
                 case SyntaxKind.FieldDeclaration:
                 case SyntaxKind.EventFieldDeclaration:
                 case SyntaxKind.GetAccessorDeclaration:

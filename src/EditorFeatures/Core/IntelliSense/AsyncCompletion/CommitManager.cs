@@ -9,12 +9,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Completion.Providers.Snippets;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Indentation;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         private readonly ITextView _textView;
         private readonly IGlobalOptionService _globalOptions;
         private readonly IThreadingContext _threadingContext;
+        private readonly ILanguageServerSnippetExpander? _languageServerSnippetExpander;
 
         public IEnumerable<char> PotentialCommitCharacters
         {
@@ -59,12 +60,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             ITextView textView,
             RecentItemsManager recentItemsManager,
             IGlobalOptionService globalOptions,
-            IThreadingContext threadingContext)
+            IThreadingContext threadingContext,
+            ILanguageServerSnippetExpander? languageServerSnippetExpander)
         {
             _globalOptions = globalOptions;
             _threadingContext = threadingContext;
             _recentItemsManager = recentItemsManager;
             _textView = textView;
+            _languageServerSnippetExpander = languageServerSnippetExpander;
         }
 
         /// <summary>
@@ -229,6 +232,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var triggerSnapshotSpan = new SnapshotSpan(triggerSnapshot, textChange.Span.ToSpan());
             var mappedSpan = triggerSnapshotSpan.TranslateTo(subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
 
+            // Specifically for snippets, we check to see if the associated completion item is a snippet,
+            // and if so, we call upon the LanguageServerSnippetExpander's TryExpand to insert the snippet.
+            if (SnippetCompletionItem.IsSnippet(roslynItem))
+            {
+                Contract.ThrowIfNull(_languageServerSnippetExpander);
+
+                var lspSnippetText = change.Properties[SnippetCompletionItem.LSPSnippetKey];
+
+                Contract.ThrowIfNull(lspSnippetText);
+                if (!_languageServerSnippetExpander.TryExpand(lspSnippetText, mappedSpan, _textView))
+                {
+                    FatalError.ReportAndCatch(new InvalidOperationException("The invoked LSP snippet expander came back as false."), ErrorSeverity.Critical);
+                }
+
+                return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.None);
+            }
+
             using (var edit = subjectBuffer.CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber: null, editTag: null))
             {
                 edit.Replace(mappedSpan.Span, change.TextChange.NewText);
@@ -276,8 +296,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     if (currentDocument != null && formattingService != null)
                     {
                         var spanToFormat = triggerSnapshotSpan.TranslateTo(subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
-                        var changes = formattingService.GetFormattingChangesAsync(
-                            currentDocument, subjectBuffer, spanToFormat.Span.ToTextSpan(), cancellationToken).WaitAndGetResult(cancellationToken);
+
+                        // Note: C# always completes synchronously, TypeScript is async
+                        var changes = formattingService.GetFormattingChangesAsync(currentDocument, subjectBuffer, spanToFormat.Span.ToTextSpan(), cancellationToken).WaitAndGetResult(cancellationToken);
                         currentDocument.Project.Solution.Workspace.ApplyTextChanges(currentDocument.Id, changes, cancellationToken);
                     }
                 }

@@ -582,6 +582,31 @@
         <target state="translated">El espacio de nombres con ámbito de archivo debe preceder a todos los demás miembros de un archivo.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FileTypeBase">
+        <source>File type '{0}' cannot be used as a base type of non-file type '{1}'.</source>
+        <target state="new">File type '{0}' cannot be used as a base type of non-file type '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileTypeDisallowedInSignature">
+        <source>File type '{0}' cannot be used in a member signature in non-file type '{1}'.</source>
+        <target state="new">File type '{0}' cannot be used in a member signature in non-file type '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileTypeNameDisallowed">
+        <source>Types and aliases cannot be named 'file'.</source>
+        <target state="new">Types and aliases cannot be named 'file'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileTypeNested">
+        <source>File type '{0}' must be defined in a top level type; '{0}' is a nested type.</source>
+        <target state="new">File type '{0}' must be defined in a top level type; '{0}' is a nested type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileTypeNoExplicitAccessibility">
+        <source>File type '{0}' cannot use accessibility modifiers.</source>
+        <target state="new">File type '{0}' cannot use accessibility modifiers.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FixedFieldMustNotBeRef">
         <source>A fixed field must not be a ref field.</source>
         <target state="translated">Un campo fijo no debe ser un campo de referencia.</target>
@@ -625,6 +650,11 @@
       <trans-unit id="ERR_GlobalUsingOutOfOrder">
         <source>A global using directive must precede all non-global using directives.</source>
         <target state="translated">Una directiva de uso global debe ser anterior a todas las directivas no globales que no son de uso.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_GlobalUsingStaticFileType">
+        <source>File type '{0}' cannot be used in a 'global using static' directive.</source>
+        <target state="new">File type '{0}' cannot be used in a 'global using static' directive.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
@@ -1602,6 +1632,11 @@
         <target state="translated">espacio de nombres con ámbito de archivo</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureFileTypes">
+        <source>file types</source>
+        <target state="new">file types</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureGenericAttributes">
         <source>generic attributes</source>
         <target state="translated">atributos genéricos</target>
@@ -2188,7 +2223,7 @@
                              Opciones del compilador de Visual C#
 
                        - ARCHIVOS DE SALIDA -
--out:&lt;archivo&gt;                   Especifica el nombre del archivo de salida (el valor predeterminado: nombre base del 
+-out:&lt;archivo&gt;                   Especifica el nombre del archivo de salida (el valor predeterminado: nombre base del
                               archivo con la clase principal o el primer archivo)
 -target:exe                   Compila un archivo ejecutable de consola (predeterminado) (forma
                               corta: -t:exe)
@@ -2250,7 +2285,7 @@
 -instrument:TestCoverage      Produce un ensamblado instrumentado para recopilar
                               información de cobertura.
 -sourcelink:&lt;archivo&gt;            Información del vínculo de origen para insertar en el PDB.
- 
+
                        - ERRORES Y ADVERTENCIAS -
 -warnaserror[+|-]             Notifica todas las advertencias como errores.
 -warnaserror[+|-]:&lt;lista de advertencias &gt; Notifica advertencias específicas como errores
@@ -2322,7 +2357,7 @@
 -pdb:&lt;archivo&gt;                   Especifica el nombre de archivo de información de depuración (valor predeterminado:
                               nombre de archivo de salida con la extensión .pdb).
 -errorendlocation             Línea y columna de salida de la ubicación final de
-                              cada error. 
+                              cada error.
 -preferreduilang              Especifica el nombre del lenguaje de salida preferido.
 -nosdkpath                    Deshabilita la búsqueda de la ruta del SDK predeterminada para los ensamblados de biblioteca estándar.
 -nostdlib[+|-]                No hace referencia a la biblioteca estándar (mscorlib.dll).

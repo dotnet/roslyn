@@ -582,6 +582,31 @@
         <target state="translated">ファイルスコープの名前空間は、ファイル内の他のすべてのメンバーの前に指定する必要があります。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FileTypeBase">
+        <source>File type '{0}' cannot be used as a base type of non-file type '{1}'.</source>
+        <target state="new">File type '{0}' cannot be used as a base type of non-file type '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileTypeDisallowedInSignature">
+        <source>File type '{0}' cannot be used in a member signature in non-file type '{1}'.</source>
+        <target state="new">File type '{0}' cannot be used in a member signature in non-file type '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileTypeNameDisallowed">
+        <source>Types and aliases cannot be named 'file'.</source>
+        <target state="new">Types and aliases cannot be named 'file'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileTypeNested">
+        <source>File type '{0}' must be defined in a top level type; '{0}' is a nested type.</source>
+        <target state="new">File type '{0}' must be defined in a top level type; '{0}' is a nested type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileTypeNoExplicitAccessibility">
+        <source>File type '{0}' cannot use accessibility modifiers.</source>
+        <target state="new">File type '{0}' cannot use accessibility modifiers.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FixedFieldMustNotBeRef">
         <source>A fixed field must not be a ref field.</source>
         <target state="translated">固定フィールドを ref フィールドにすることはできません。</target>
@@ -625,6 +650,11 @@
       <trans-unit id="ERR_GlobalUsingOutOfOrder">
         <source>A global using directive must precede all non-global using directives.</source>
         <target state="translated">グローバル using ディレクティブは、すべての非グローバル using ディレクティブの前に指定する必要があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_GlobalUsingStaticFileType">
+        <source>File type '{0}' cannot be used in a 'global using static' directive.</source>
+        <target state="new">File type '{0}' cannot be used in a 'global using static' directive.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
@@ -1602,6 +1632,11 @@
         <target state="translated">ファイルスコープの名前空間</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureFileTypes">
+        <source>file types</source>
+        <target state="new">file types</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureGenericAttributes">
         <source>generic attributes</source>
         <target state="translated">汎用属性</target>
@@ -2250,7 +2285,7 @@
 -instrument:TestCoverage      カバレッジ情報を収集するようにインストルメント化された
                               アセンブリを生成します
 -sourcelink:&lt;file&gt;            PDB に埋め込むソース リンク情報。
- 
+
                        - エラーと警告 -
 -warnaserror[+|-]             すべての警告をエラーとして報告します
 -warnaserror[+|-]:&lt;warn list&gt; 特定の警告をエラーとして報告します

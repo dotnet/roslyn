@@ -541,6 +541,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             => simpleName.IsKind(SyntaxKind.GenericName) ||
                simpleName.GetLastToken().GetNextToken().Kind() == SyntaxKind.LessThanToken;
 
+        public SeparatedSyntaxList<SyntaxNode> GetTypeArgumentsOfGenericName(SyntaxNode? genericName)
+            => (genericName as GenericNameSyntax)?.TypeArgumentList.Arguments ?? default;
+
         public SyntaxNode? GetTargetOfMemberBinding(SyntaxNode? node)
             => (node as MemberBindingExpressionSyntax).GetParentConditionalAccessExpression()?.Expression;
 
@@ -1585,6 +1588,14 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         #endregion
 
         #region GetPartsOfXXX members
+
+        public void GetPartsOfArgumentList(SyntaxNode node, out SyntaxToken openParenToken, out SeparatedSyntaxList<SyntaxNode> arguments, out SyntaxToken closeParenToken)
+        {
+            var argumentListNode = (ArgumentListSyntax)node;
+            openParenToken = argumentListNode.OpenParenToken;
+            arguments = argumentListNode.Arguments;
+            closeParenToken = argumentListNode.CloseParenToken;
+        }
 
         public void GetPartsOfBaseObjectCreationExpression(SyntaxNode node, out SyntaxNode? argumentList, out SyntaxNode? initializer)
         {

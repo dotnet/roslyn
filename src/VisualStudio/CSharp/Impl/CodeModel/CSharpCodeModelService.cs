@@ -39,16 +39,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
     {
         internal CSharpCodeModelService(
             HostLanguageServices languageServiceProvider,
-            IEditorOptionsFactoryService editorOptionsFactoryService,
+            EditorOptionsService editorOptionsService,
             IEnumerable<IRefactorNotifyService> refactorNotifyServices,
-            IGlobalOptionService globalOptions,
             IThreadingContext threadingContext)
             : base(languageServiceProvider,
-                   editorOptionsFactoryService,
+                   editorOptionsService,
                    refactorNotifyServices,
                    BlankLineInGeneratedMethodFormattingRule.Instance,
                    EndRegionFormattingRule.Instance,
-                   globalOptions,
                    threadingContext)
         {
         }
@@ -3562,17 +3560,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 switch (accessor.Kind())
                 {
                     case SyntaxKind.GetAccessorDeclaration:
-                        if (getAccessor == null)
-                        {
-                            getAccessor = accessor;
-                        }
+                        getAccessor ??= accessor;
 
                         break;
                     case SyntaxKind.SetAccessorDeclaration:
-                        if (setAccessor == null)
-                        {
-                            setAccessor = accessor;
-                        }
+                        setAccessor ??= accessor;
 
                         break;
                 }

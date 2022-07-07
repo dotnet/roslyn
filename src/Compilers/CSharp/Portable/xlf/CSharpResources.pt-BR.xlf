@@ -582,6 +582,31 @@
         <target state="translated">O namespace de escopo de arquivo deve preceder todos os outros membros em um arquivo.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FileTypeBase">
+        <source>File type '{0}' cannot be used as a base type of non-file type '{1}'.</source>
+        <target state="new">File type '{0}' cannot be used as a base type of non-file type '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileTypeDisallowedInSignature">
+        <source>File type '{0}' cannot be used in a member signature in non-file type '{1}'.</source>
+        <target state="new">File type '{0}' cannot be used in a member signature in non-file type '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileTypeNameDisallowed">
+        <source>Types and aliases cannot be named 'file'.</source>
+        <target state="new">Types and aliases cannot be named 'file'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileTypeNested">
+        <source>File type '{0}' must be defined in a top level type; '{0}' is a nested type.</source>
+        <target state="new">File type '{0}' must be defined in a top level type; '{0}' is a nested type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileTypeNoExplicitAccessibility">
+        <source>File type '{0}' cannot use accessibility modifiers.</source>
+        <target state="new">File type '{0}' cannot use accessibility modifiers.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FixedFieldMustNotBeRef">
         <source>A fixed field must not be a ref field.</source>
         <target state="translated">Um campo fixo não deve ser um campo ref.</target>
@@ -625,6 +650,11 @@
       <trans-unit id="ERR_GlobalUsingOutOfOrder">
         <source>A global using directive must precede all non-global using directives.</source>
         <target state="translated">Uma diretiva de uso global deve preceder todas as diretivas de uso não global.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_GlobalUsingStaticFileType">
+        <source>File type '{0}' cannot be used in a 'global using static' directive.</source>
+        <target state="new">File type '{0}' cannot be used in a 'global using static' directive.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
@@ -1602,6 +1632,11 @@
         <target state="translated">namespace de escopo de arquivo</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureFileTypes">
+        <source>file types</source>
+        <target state="new">file types</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureGenericAttributes">
         <source>generic attributes</source>
         <target state="translated">atributos genéricos</target>
@@ -2213,7 +2248,7 @@
                               curinga
 -reference:&lt;alias&gt;=&lt;file&gt;     Metadados de referência do arquivo de assembly
                               especificado usando o alias fornecido (Forma abreviada: -r)
--reference:&lt;file list&gt;        Metadados de referência dos arquivos de assembly 
+-reference:&lt;file list&gt;        Metadados de referência dos arquivos de assembly
                               especificados (Forma abreviada: -r)
 -addmodule:&lt;file list&gt;        Vincular o módulo especificado a este assembly
 -link:&lt;file list&gt;             Inserir os metadados dos arquivos de assembly de
@@ -2241,7 +2276,7 @@
 -debug:{full|pdbonly|portable|embedded}
                               Especificar o tipo de depuração ('full' é o padrão,
                               'portable' é um formato multiplataforma,
-                              'embedded' é um formato multiplataforma inserido no 
+                              'embedded' é um formato multiplataforma inserido no
                               .dll ou no .exe de destino)
 -optimize[+|-]                Habilitar as otimizações (Forma abreviada: -o)
 -deterministic                Produzir um assembly determinístico
@@ -2275,7 +2310,7 @@
 -define:&lt;symbol list&gt;         Definir os símbolos de compilação condicional (Forma
                               abreviada: -d)
 -langversion:?                Exibir os valores permitidos para a versão da linguagem
--langversion:&lt;string&gt;         Especificar a versão da linguagem, como 
+-langversion:&lt;string&gt;         Especificar a versão da linguagem, como
                               `latest` (última versão, incluindo as versões secundárias),
                               `default` (igual a `latest`),
                               `latestmajor` (última versão, excluindo as versões secundárias),
@@ -2292,7 +2327,7 @@
                               da chave de nome forte
 -keyfile:&lt;file&gt;               Especificar a arquivo de chave de nome forte
 -keycontainer:&lt;string&gt;        Especificar o contêiner de chave de nome forte
--highentropyva[+|-]           Habilitar a ASLR de alta entropia 
+-highentropyva[+|-]           Habilitar a ASLR de alta entropia
 
                        – DIVERSOS –
 @&lt;file&gt;                       Ler o arquivo de resposta de mais opções
