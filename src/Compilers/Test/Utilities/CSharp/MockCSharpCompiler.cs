@@ -53,6 +53,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             }
         }
 
+        public void ResolveAnalyzersFromArguments(
+            bool skipAnalyzers,
+            out List<DiagnosticInfo> diagnostics,
+            out ImmutableArray<DiagnosticAnalyzer> analyzers,
+            out ImmutableArray<ISourceGenerator> generators)
+        {
+            diagnostics = new List<DiagnosticInfo>();
+            ResolveAnalyzersFromArguments(diagnostics, this.MessageProvider, skipAnalyzers, out analyzers, out generators);
+        }
+
         public Compilation CreateCompilation(
             TextWriter consoleOutput,
             TouchedFileLogger touchedFilesLogger,

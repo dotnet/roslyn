@@ -423,8 +423,10 @@ namespace Microsoft.CodeAnalysis
                 }
 
 #if DEBUG
-                // If the caller requested a specific capacity, then we should have added exactly that amount of items.
-                Debug.Assert(_requestedTableCapacity == null || _requestedTableCapacity == _states.Count);
+                // If the caller requested a specific capacity, then we should have added either that amount, or some
+                // amount less than that.  It's possible to have added less as a Where clause will mean some amount of
+                // states are filtered out.
+                Debug.Assert(_requestedTableCapacity == null || _states.Count <= _requestedTableCapacity);
 #endif
 
                 // if we added the exact same entries as before, then we can directly embed previous' entry array,

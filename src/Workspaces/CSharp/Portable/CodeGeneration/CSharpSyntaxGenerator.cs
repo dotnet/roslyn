@@ -1348,7 +1348,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             };
 
         private static bool CanHaveAccessibility(SyntaxNode declaration)
-            => CSharpAccessibilityFacts.Instance.CanHaveAccessibility(declaration);
+            // For certain declarations, the answer of CanHaveAccessibility depends on the modifiers.
+            // For example, static constructors cannot have accessibility, but constructors in general can.
+            // The same applies to file-local declarations (e.g, "file class C { }").
+            // For such declarations, we want to return true. This is because we can be explicitly asked to put accessibility.
+            // In such cases, we'll drop the modifier that prevents us from having accessibility.
+            => CSharpAccessibilityFacts.Instance.CanHaveAccessibility(declaration, ignoreDeclarationModifiers: true);
 
         public override Accessibility GetAccessibility(SyntaxNode declaration)
             => CSharpAccessibilityFacts.Instance.GetAccessibility(declaration);
@@ -1368,6 +1373,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 var tokens = GetModifierTokens(d);
                 GetAccessibilityAndModifiers(tokens, out _, out var modifiers, out _);
+                if (modifiers.IsFile && accessibility != Accessibility.NotApplicable)
+                {
+                    // If user wants to set accessibility for a file-local declaration, we remove file.
+                    // Otherwise, code will be in error:
+                    // error CS9052: File type '{0}' cannot use accessibility modifiers.
+                    modifiers = modifiers.WithIsFile(false);
+                }
+
+                if (modifiers.IsStatic && declaration.IsKind(SyntaxKind.ConstructorDeclaration) && accessibility != Accessibility.NotApplicable)
+                {
+                    // If user wants to add accessibility for a static constructor, we remove static modifier
+                    modifiers = modifiers.WithIsStatic(false);
+                }
+
                 var newTokens = Merge(tokens, AsModifierList(accessibility, modifiers));
                 return SetModifierTokens(d, newTokens);
             });
@@ -1572,6 +1591,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 {
                     var tokens = GetModifierTokens(d);
                     GetAccessibilityAndModifiers(tokens, out var accessibility, out var tmp, out _);
+                    if (accessibility != Accessibility.NotApplicable)
+                    {
+                        if (modifiers.IsFile ||
+                            (modifiers.IsStatic && declaration.IsKind(SyntaxKind.ConstructorDeclaration)))
+                        {
+                            // We remove the accessibility if the modifiers don't allow it.
+                            accessibility = Accessibility.NotApplicable;
+                        }
+                    }
                     var newTokens = Merge(tokens, AsModifierList(accessibility, modifiers));
                     return SetModifierTokens(d, newTokens);
                 });
@@ -1627,6 +1655,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 case Accessibility.NotApplicable:
                     break;
             }
+
+            if (modifiers.IsFile)
+                list.Add(SyntaxFactory.Token(SyntaxKind.FileKeyword));
 
             if (modifiers.IsAbstract)
                 list.Add(SyntaxFactory.Token(SyntaxKind.AbstractKeyword));
