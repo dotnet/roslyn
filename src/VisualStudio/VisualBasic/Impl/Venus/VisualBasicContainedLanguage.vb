@@ -36,7 +36,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
                 componentModel.GetService(Of VisualStudioWorkspace)(),
                 project.Id,
                 project,
-                ContainedLanguage.GetFilePathFromHierarchyAndItemId(hierarchy, itemid),
+                hierarchy,
+                itemid,
                 languageServiceGuid,
                 VisualBasicHelperFormattingRule.Instance)
         End Sub

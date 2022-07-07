@@ -281,15 +281,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             IVsTextBufferCoordinator bufferCoordinator, VisualStudioProject project,
             IVsHierarchy hierarchy, uint itemid)
         {
-            var filePath = ContainedLanguage.GetFilePathFromHierarchyAndItemId(hierarchy, itemid);
-
             return new ContainedLanguage(
                 bufferCoordinator,
                 this.Package.ComponentModel,
                 this.Workspace,
                 project.Id,
                 project,
-                filePath,
+                hierarchy,
+                itemid,
                 this.LanguageServiceId);
         }
     }
