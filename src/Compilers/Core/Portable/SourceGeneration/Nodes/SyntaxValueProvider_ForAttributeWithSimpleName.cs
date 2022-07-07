@@ -100,11 +100,11 @@ public partial struct SyntaxValueProvider
 
         // Combine the two providers so that we reanalyze every file if the global aliases change, or we reanalyze a
         // particular file when it's compilation unit changes.
-        var rootsWithAttributeAndGlobalAliasesProvider = treesContainingAttribute
+        var treesWithAttributeAndGlobalAliasesProvider = treesContainingAttribute
             .Combine(allUpGlobalAliasesProvider)
             .WithTrackingName("compilationUnitAndGlobalAliases_ForAttribute");
 
-        return rootsWithAttributeAndGlobalAliasesProvider.Select(
+        return treesWithAttributeAndGlobalAliasesProvider.Select(
             (tuple, c) => (tuple.Left.Tree, GetMatchingNodes(syntaxHelper, tuple.Right, tuple.Left.Tree, simpleName, predicate, c)))
             .Where(tuple => tuple.Item2.Length > 0)
             .WithTrackingName("result_ForAttributeInternal");
@@ -128,15 +128,15 @@ public partial struct SyntaxValueProvider
     private static SyntaxTreeInfo GetTreeInfo(
         SyntaxTree tree, ISyntaxHelper syntaxHelper, CancellationToken cancellationToken)
     {
-        if (s_treeToInfo.TryGetValue(tree, out var info))
-            return info;
+        // prevent captures for the case where the item is in the tree.
+        return s_treeToInfo.TryGetValue(tree, out var info)
+            ? info
+            : computeTreeInfo();
 
-        return ComputeTreeInfo();
-
-        SyntaxTreeInfo ComputeTreeInfo()
+        SyntaxTreeInfo computeTreeInfo()
         {
             var root = tree.GetRoot(cancellationToken);
-            var containsGlobalAliases = syntaxHelper.ContainsGlobalAliases(root, cancellationToken);
+            var containsGlobalAliases = syntaxHelper.ContainsGlobalAliases(root);
             var containsAttributeList = ContainsAttributeList(root.Green, syntaxHelper.AttributeListKind);
 
             var info = new SyntaxTreeInfo(tree, containsGlobalAliases, containsAttributeList);
@@ -155,7 +155,6 @@ public partial struct SyntaxValueProvider
         var compilationUnit = syntaxTree.GetRoot(cancellationToken);
         Debug.Assert(compilationUnit is ICompilationUnitSyntax);
 
-        // Walk the green node tree first to avoid allocating the entire red tree for files that have no attributes.
         Debug.Assert(ContainsAttributeList(compilationUnit.Green, syntaxHelper.AttributeListKind));
 
         var isCaseSensitive = syntaxHelper.IsCaseSensitive;
@@ -214,8 +213,7 @@ public partial struct SyntaxValueProvider
                 {
                     // Have to lookup both with the name in the attribute, as well as adding the 'Attribute' suffix.
                     // e.g. if there is [X] then we have to lookup with X and with XAttribute.
-                    var simpleAttributeName = syntaxHelper.GetUnqualifiedIdentifierOfName(
-                        syntaxHelper.GetNameOfAttribute(attribute)).ValueText;
+                    var simpleAttributeName = syntaxHelper.GetUnqualifiedIdentifierOfName(syntaxHelper.GetNameOfAttribute(attribute));
                     if (matchesAttributeName(simpleAttributeName, withAttributeSuffix: false) ||
                         matchesAttributeName(simpleAttributeName, withAttributeSuffix: true))
                     {
