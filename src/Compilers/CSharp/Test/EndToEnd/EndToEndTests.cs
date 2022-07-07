@@ -15,6 +15,12 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EndToEnd
 {
+    /// <summary>
+    /// The EndToEnd tests are isolated from other compiler test to avoid other tests and random
+    /// ordering from affecting how they are JITted.
+    /// Because they are in a single test class, they also don't get parallelized.
+    /// </summary>
+    [TestCaseOrderer("XUnit.Project.Orderers.AlphabeticalOrderer", "XUnit.Project")]
     public class EndToEndTests : EmitMetadataTestBase
     {
         /// <summary>
