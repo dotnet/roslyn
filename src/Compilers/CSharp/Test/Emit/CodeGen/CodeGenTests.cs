@@ -17285,7 +17285,7 @@ class Program {
 
             // We need >= Net50 to have access to System.GC.AllocateUninitializedArray, but this means the use of the initialize array helper will cause a PEVerify failure,
             // so we have to skip verification
-            CompileAndVerify(source, targetFramework: TargetFramework.Net50, expectedOutput: "1234", verify: Verification.Skipped)
+            CompileAndVerify(source, targetFramework: TargetFramework.Net50, expectedOutput: ExecutionConditionUtil.IsDesktop ? null : "1234", verify: Verification.Skipped)
                .VerifyIL("Program.Main(string[])", expect);
         }
 
@@ -17402,7 +17402,7 @@ public class Program {
 
             // We need >= Net50 to have access to System.GC.AllocateUninitializedArray, but this means the use of the initialize array helper will cause a PEVerify failure,
             // so we have to skip verification
-            CompileAndVerify(source, targetFramework: TargetFramework.Net50, expectedOutput: "3 5 7", verify: Verification.Skipped)
+            CompileAndVerify(source, targetFramework: TargetFramework.Net50, expectedOutput: ExecutionConditionUtil.IsDesktop ? null : "3 5 7", verify: Verification.Skipped)
                 .VerifyIL("Program.Main(string[])", expectIL);
 
             CompileAndVerify(source, targetFramework: ExecutionConditionUtil.IsDesktop ? TargetFramework.NetFramework : TargetFramework.NetStandard20, expectedOutput: "3 5 7")
@@ -17719,7 +17719,7 @@ public class Program {
 
             // We need >= Net50 to have access to System.GC.AllocateUninitializedArray, but this means the use of the initialize array helper will cause a PEVerify failure,
             // so we have to skip verification
-            CompileAndVerify(source, targetFramework: TargetFramework.Net50, expectedOutput: "abcdefghijk", verify: Verification.Skipped)
+            CompileAndVerify(source, targetFramework: TargetFramework.Net50, expectedOutput: ExecutionConditionUtil.IsDesktop ? null : "abcdefghijk", verify: Verification.Skipped)
                 .VerifyIL("Program.Main(string[])", expectILNet50);
 
             CompileAndVerify(source, targetFramework: ExecutionConditionUtil.IsDesktop ? TargetFramework.NetFramework : TargetFramework.NetStandard20, expectedOutput: "abcdefghijk")
