@@ -173,7 +173,7 @@ namespace IdeCoreBenchmarks
             Thread.Sleep(5000);
 
             var totalIncrementalTime = TimeSpan.Zero;
-            for (var i = 0; i < 5000; i++)
+            for (var i = 0; i < 10000; i++)
             {
                 var changedText = sourceText.WithChanges(new TextChange(new TextSpan(0, 0), $"// added text{i}\r\n"));
                 var changedTree = syntaxTree.WithChangedText(changedText);
@@ -182,7 +182,7 @@ namespace IdeCoreBenchmarks
                 start = DateTime.Now;
                 driver = driver.RunGenerators(changedCompilation);
                 var incrementalTime = DateTime.Now - start;
-                if (i % 100 == 0)
+                if (i % 1000 == 0)
                     Console.WriteLine("Incremental time: " + incrementalTime);
                 totalIncrementalTime += incrementalTime;
             }
