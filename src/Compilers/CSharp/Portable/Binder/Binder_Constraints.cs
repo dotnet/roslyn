@@ -411,11 +411,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(ErrorCode.ERR_BadVisBound, location, containingSymbol, constraintType.Type);
             }
 
-            // Whether a member is effectively file-local is determined on the type level. When non-type members have constraints we need to check the containing symbol.
-            // If the 'containingSymbol.ContainingSymbol' is not a type, then 'containingSymbol' is not a member, and we don't need to enforce file types here.
             if (constraintType.Type.IsFileTypeOrUsesFileTypes() && (containingSymbol as TypeSymbol ?? containingSymbol.ContainingSymbol as TypeSymbol)?.IsFileTypeOrUsesFileTypes() == false)
             {
-                diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, location, constraintType.Type, containingSymbol);
+                // if the containing symbol of the constraint is a member, we need to ensure the nearest containing type is a file type.
+                var possibleFileType = containingSymbol switch
+                {
+                    TypeSymbol typeSymbol => typeSymbol,
+                    LocalFunctionSymbol => null,
+                    MethodSymbol method => (TypeSymbol)method.ContainingSymbol,
+                    _ => throw ExceptionUtilities.UnexpectedValue(containingSymbol)
+                };
+                Debug.Assert(possibleFileType?.IsDefinition != false);
+                if (possibleFileType?.IsFileTypeOrUsesFileTypes() == false)
+                {
+                    diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, location, constraintType.Type, containingSymbol);
+                }
             }
 
             diagnostics.Add(location, useSiteInfo);
