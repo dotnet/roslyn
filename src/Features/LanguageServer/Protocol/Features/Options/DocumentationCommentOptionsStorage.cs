@@ -11,15 +11,6 @@ namespace Microsoft.CodeAnalysis.DocumentationComments;
 
 internal static class DocumentationCommentOptionsStorage
 {
-    public static async ValueTask<DocumentationCommentOptions> GetDocumentationCommentOptionsAsync(this Document document, IGlobalOptionService globalOptions, CancellationToken cancellationToken)
-    {
-        var lineFormattingOptions = await document.GetLineFormattingOptionsAsync(globalOptions, cancellationToken).ConfigureAwait(false);
-        return new()
-        {
-            LineFormatting = lineFormattingOptions,
-            AutoXmlDocCommentGeneration = globalOptions.GetOption(AutoXmlDocCommentGeneration, document.Project.Language),
-        };
-    }
 
     public static DocumentationCommentOptions GetDocumentationCommentOptions(this IGlobalOptionService globalOptions, LineFormattingOptions lineFormatting, string language)
       => new()
