@@ -161,7 +161,8 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </remarks>
         internal ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> MapSynthesizedMembers(
             ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> previousMembers,
-            ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> newMembers)
+            ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> newMembers,
+            bool mappedMembersCanBeNew)
         {
             // Note: we can't just return previous members if there are no new members, since we still need to map the symbols to the new compilation.
 
@@ -207,7 +208,11 @@ namespace Microsoft.CodeAnalysis.Emit
                         // If the matcher found a member in the current compilation corresponding to previous memberDef,
                         // then the member has to be synthesized and produced as a result of a method update 
                         // and thus already contained in newSynthesizedMembers.
-                        Debug.Assert(newSynthesizedMembers.Contains(mappedMember));
+                        // However, because this method is also used to map deleted members, it's possible that a method
+                        // could be renamed in the previous generation, and renamed back in this generation, which would
+                        // mean it could be mapped, but isn't in the newSynthesizedMembers list, so we allow the flag to
+                        // override this behaviour for deleted methods.
+                        Debug.Assert(mappedMembersCanBeNew || newSynthesizedMembers.Contains(mappedMember));
                     }
                     else
                     {

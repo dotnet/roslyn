@@ -198,10 +198,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 currentSynthesizedMembers,
                 currentDeletedMembers);
 
-            var mappedSynthesizedMembers = matcher.MapSynthesizedMembers(previousGeneration.SynthesizedMembers, currentSynthesizedMembers);
+            var mappedSynthesizedMembers = matcher.MapSynthesizedMembers(previousGeneration.SynthesizedMembers, currentSynthesizedMembers, mappedMembersCanBeNew: false);
 
             // Deleted members are mapped the same way as synthesized members, so we can just call the same method.
-            var mappedDeletedMembers = matcher.MapSynthesizedMembers(previousGeneration.DeletedMembers, currentDeletedMembers);
+            var mappedDeletedMembers = matcher.MapSynthesizedMembers(previousGeneration.DeletedMembers, currentDeletedMembers, mappedMembersCanBeNew: true);
 
             // TODO: can we reuse some data from the previous matcher?
             var matcherWithAllSynthesizedMembers = new CSharpSymbolMatcher(

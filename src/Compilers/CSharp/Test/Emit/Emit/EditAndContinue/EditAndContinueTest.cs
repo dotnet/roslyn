@@ -69,6 +69,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             }
             catch (Exception ex)
             {
+                // Pretend we've verified so we don't hide the test failure
+                _hasVerified = true;
                 throw new Exception($"Exception during generation #{_generations.Count}. See inner stack trace for details.", ex);
             }
 

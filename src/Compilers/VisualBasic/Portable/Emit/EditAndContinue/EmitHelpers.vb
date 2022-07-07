@@ -135,8 +135,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 currentSynthesizedMembers,
                 currentDeletedMembers)
 
-            Dim mappedSynthesizedMembers = matcher.MapSynthesizedMembers(previousGeneration.SynthesizedMembers, currentSynthesizedMembers)
-            Dim mappedDeletedMembers = matcher.MapSynthesizedMembers(previousGeneration.DeletedMembers, currentDeletedMembers)
+            Dim mappedSynthesizedMembers = matcher.MapSynthesizedMembers(previousGeneration.SynthesizedMembers, currentSynthesizedMembers, mappedMembersCanBeNew:=False)
+            Dim mappedDeletedMembers = matcher.MapSynthesizedMembers(previousGeneration.DeletedMembers, currentDeletedMembers, mappedMembersCanBeNew:=True)
 
             ' TODO can we reuse some data from the previous matcher?
             Dim matcherWithAllSynthesizedMembers = New VisualBasicSymbolMatcher(

@@ -14040,6 +14040,65 @@ class C
         }
 
         [Fact]
+        public void Method_Rename_Multiple()
+        {
+            using var test = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
+                .AddGeneration(
+                    source: $$"""
+                        class C
+                        {
+                            int M1() { return 0; }
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C");
+                        g.VerifyMethodDefNames("M1", ".ctor");
+                        g.VerifyMemberRefNames(/*CompilationRelaxationsAttribute.*/".ctor", /*RuntimeCompatibilityAttribute.*/".ctor", /*Object.*/".ctor", /*DebuggableAttribute*/".ctor");
+                    });
+
+            for (int i = 0; i < 10; i++)
+            {
+                test.AddGeneration(
+                    source: $$"""
+                        class C
+                        {
+                            int M2() { return {{i}}; }
+                        }
+                        """,
+                    edits: new[] {
+                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.M1"), newSymbolProvider: c=>c.GetMember("C")),
+                        Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMember("C.M2")),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames();
+                        g.VerifyMethodDefNames("M1", "M2");
+                        g.VerifyDeletedMembers("C: {M1}");
+                    })
+                .AddGeneration(
+                    source: $$"""
+                        class C
+                        {
+                            int M1() { return {{i}}; }
+                        }
+                        """,
+                    edits: new[] {
+                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.M2"), newSymbolProvider: c=>c.GetMember("C")),
+                        Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMember("C.M1")),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames();
+                        g.VerifyMethodDefNames("M1", "M2");
+                        g.VerifyDeletedMembers("C: {M2}");
+                    });
+            }
+
+            test.Verify();
+        }
+
+        [Fact]
         public void FileTypes_01()
         {
             var source0 = MarkedSource(@"
