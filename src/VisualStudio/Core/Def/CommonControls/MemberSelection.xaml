@@ -13,7 +13,7 @@
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="../../VSThemeDictionary.xaml" />
+                <ResourceDictionary Source="../VSThemeDictionary.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <Thickness x:Key="ButtonControlsPadding">2, 4, 4, 2</Thickness>
             <utilities:BooleanReverseConverter x:Key="BooleanReverseConverter"/>

@@ -25,7 +25,7 @@
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="../../../VSThemeDictionary.xaml" />
+                <ResourceDictionary Source="../../VSThemeDictionary.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <Thickness x:Key="ButtonPadding">9, 2, 9, 2</Thickness>
             <sys:Double x:Key="ButtonWidth">73</sys:Double>

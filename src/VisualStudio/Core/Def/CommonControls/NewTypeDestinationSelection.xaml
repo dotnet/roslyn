@@ -15,7 +15,7 @@
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="../../VSThemeDictionary.xaml" />
+                <ResourceDictionary Source="../VSThemeDictionary.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
             <u:EnumBoolConverter x:Key="enumBoolConverter" />
