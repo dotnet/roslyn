@@ -87,6 +87,30 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             description: new LocalizableResourceString(nameof(AnalyzersResources.Avoid_unused_parameters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
             isUnnecessary: true);
 
+        private static readonly DiagnosticDescriptor s_unusedParameterRuleForPublicApiHasReference = CreateDescriptorWithId(
+            IDEDiagnosticIds.UnusedParameterDiagnosticId,
+            EnforceOnBuildValues.UnusedParameter,
+            new LocalizableResourceString(nameof(AnalyzersResources.Remove_unused_parameter), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+            new LocalizableResourceString(nameof(AnalyzersResources.Parameter_0_can_be_removed_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+            description: new LocalizableResourceString(nameof(AnalyzersResources.Avoid_unused_parameters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+            isUnnecessary: true);
+
+        private static readonly DiagnosticDescriptor s_unusedParameterRuleForPublicApiNoReference = CreateDescriptorWithId(
+            IDEDiagnosticIds.UnusedParameterDiagnosticId,
+            EnforceOnBuildValues.UnusedParameter,
+            new LocalizableResourceString(nameof(AnalyzersResources.Remove_unused_parameter), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+            new LocalizableResourceString(nameof(AnalyzersResources.Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+            description: new LocalizableResourceString(nameof(AnalyzersResources.Avoid_unused_parameters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+            isUnnecessary: true);
+
+        private static readonly DiagnosticDescriptor s_unusedParameterRuleForNonPublicApiHasReference = CreateDescriptorWithId(
+            IDEDiagnosticIds.UnusedParameterDiagnosticId,
+            EnforceOnBuildValues.UnusedParameter,
+            new LocalizableResourceString(nameof(AnalyzersResources.Remove_unused_parameter), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+            new LocalizableResourceString(nameof(AnalyzersResources.Parameter_0_can_be_removed_its_initial_value_is_never_used), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+            description: new LocalizableResourceString(nameof(AnalyzersResources.Avoid_unused_parameters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+            isUnnecessary: true);
+
         private static readonly PropertiesMap s_propertiesMap = CreatePropertiesMap();
 
         protected AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer(
@@ -97,7 +121,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         .Add(s_expressionValueIsUnusedRule, unusedValueExpressionStatementOption)
                         .Add(s_valueAssignedIsUnusedRule, unusedValueAssignmentOption),
                    ImmutableDictionary<DiagnosticDescriptor, IPerLanguageOption>.Empty
-                        .Add(s_unusedParameterRule, CodeStyleOptions2.UnusedParameters),
+                        .Add(s_unusedParameterRule, CodeStyleOptions2.UnusedParameters)
+                        .Add(s_unusedParameterRuleForPublicApiHasReference, CodeStyleOptions2.UnusedParameters)
+                        .Add(s_unusedParameterRuleForPublicApiNoReference, CodeStyleOptions2.UnusedParameters)
+                        .Add(s_unusedParameterRuleForNonPublicApiHasReference, CodeStyleOptions2.UnusedParameters),
                    language)
         {
         }

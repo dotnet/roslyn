@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             builder["OptionName"] = nameof(NamingStyleOptions.NamingPreferences);
             builder["OptionLanguage"] = compilation.Language;
 
-            return DiagnosticHelper.Create(Descriptor, symbol.Locations.First(), applicableRule.EnforcementLevel, additionalLocations: null, builder.ToImmutable(), failureReason);
+            return DiagnosticHelper.Create(Descriptor, symbol.Locations.First(), applicableRule.EnforcementLevel, additionalLocations: null, builder.ToImmutable(), failureReason).Diagnostic;
         }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()

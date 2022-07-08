@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
                 var properties = ImmutableDictionary<string, string>.Empty;
                 return DiagnosticHelper.Create(
                     CreateDescriptorWithId(UseExpressionBodyTitle, UseExpressionBodyTitle),
-                    location, option.Notification.Severity, additionalLocations, properties);
+                    location, option.Notification.Severity, additionalLocations, properties).Diagnostic;
             }
 
             if (CanOfferUseBlockBody(semanticModel, option.Value, declaration, cancellationToken))
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
                 var additionalLocations = ImmutableArray.Create(declaration.GetLocation());
                 return DiagnosticHelper.Create(
                     CreateDescriptorWithId(UseBlockBodyTitle, UseBlockBodyTitle),
-                    location, option.Notification.Severity, additionalLocations, properties);
+                    location, option.Notification.Severity, additionalLocations, properties).Diagnostic;
             }
 
             return null;

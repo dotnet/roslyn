@@ -144,41 +144,39 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     return;
                 }
 
-                var message = GetMessageForUnusedParameterDiagnostic(
-                    parameter.Name,
+                var rule = GetDescriptorForUnusedParameterDiagnostic(
                     hasReference,
                     isPublicApiParameter: parameter.ContainingSymbol.HasPublicResultantVisibility(),
                     isLocalFunctionParameter: parameter.ContainingSymbol.IsLocalFunction());
 
-                var diagnostic = DiagnosticHelper.CreateWithMessage(s_unusedParameterRule, location,
-                    option.Notification.Severity, additionalLocations: null, properties: null, message);
-                reportDiagnostic(diagnostic);
+                var diagnostic = DiagnosticHelper.Create(rule, location,
+                    option.Notification.Severity, additionalLocations: null, properties: null, parameter.Name);
+                if (diagnostic.Diagnostic is not null)
+                {
+                    reportDiagnostic(diagnostic.Diagnostic);
+                }
             }
 
-            private static LocalizableString GetMessageForUnusedParameterDiagnostic(
-                string parameterName,
+            private static DiagnosticDescriptor GetDescriptorForUnusedParameterDiagnostic(
                 bool hasReference,
                 bool isPublicApiParameter,
                 bool isLocalFunctionParameter)
             {
-                LocalizableString messageFormat;
                 if (isPublicApiParameter &&
                     !isLocalFunctionParameter)
                 {
-                    messageFormat = hasReference
-                        ? AnalyzersResources.Parameter_0_can_be_removed_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used
-                        : AnalyzersResources.Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API;
+                    return hasReference
+                        ? s_unusedParameterRuleForPublicApiHasReference
+                        : s_unusedParameterRuleForPublicApiNoReference;
                 }
                 else if (hasReference)
                 {
-                    messageFormat = AnalyzersResources.Parameter_0_can_be_removed_its_initial_value_is_never_used;
+                    return s_unusedParameterRuleForNonPublicApiHasReference;
                 }
                 else
                 {
-                    messageFormat = s_unusedParameterRule.MessageFormat;
+                    return s_unusedParameterRule;
                 }
-
-                return new DiagnosticHelper.LocalizableStringWithArguments(messageFormat, parameterName);
             }
 
             private static IEnumerable<INamedTypeSymbol> GetAttributesForMethodsToIgnore(Compilation compilation)

@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
                 diagnosticLocation,
                 severity,
                 ImmutableArray.Create(declaration.GetLocation()),
-                ImmutableDictionary<string, string?>.Empty);
+                ImmutableDictionary<string, string?>.Empty).Diagnostic;
         }
     }
 }
