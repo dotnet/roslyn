@@ -27,7 +27,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 @"class C
 {
     privat C[]? F;
-}");
+}",
+                // (3,13): error CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.
+                //     privat C[]? F;
+                Diagnostic(ErrorCode.ERR_CStyleArray, "[]").WithLocation(3, 13),
+                // (3,15): error CS1003: Syntax error, ',' expected
+                //     privat C[]? F;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments(",").WithLocation(3, 15),
+                // (3,17): error CS1002: ; expected
+                //     privat C[]? F;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "F").WithLocation(3, 17),
+                // (3,18): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
+                //     privat C[]? F;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 18),
+                // (3,18): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
+                //     privat C[]? F;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 18));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
