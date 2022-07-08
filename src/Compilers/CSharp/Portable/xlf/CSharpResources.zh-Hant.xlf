@@ -10502,11 +10502,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="translated">為可能包含多重變數宣告子的宣告節點，呼叫了 GetDeclarationName。</target>
         <note />
       </trans-unit>
-      <trans-unit id="TreeNotPartOfCompilation">
-        <source>tree not part of compilation</source>
-        <target state="translated">樹狀結構不是編譯的一部分</target>
-        <note />
-      </trans-unit>
       <trans-unit id="PositionIsNotWithinSyntax">
         <source>Position is not within syntax tree with full span {0}</source>
         <target state="translated">位置不在有完整範圍 {0} 的語法樹狀結構內</target>

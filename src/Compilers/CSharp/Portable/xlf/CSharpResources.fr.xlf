@@ -10502,11 +10502,6 @@ Pour supprimer l'avertissement, vous pouvez utiliser la commande /reference (dé
         <target state="translated">GetDeclarationName appelé pour un nœud de déclaration susceptible de contenir plusieurs déclarateurs de variable.</target>
         <note />
       </trans-unit>
-      <trans-unit id="TreeNotPartOfCompilation">
-        <source>tree not part of compilation</source>
-        <target state="translated">arborescence non intégrée à la compilation</target>
-        <note />
-      </trans-unit>
       <trans-unit id="PositionIsNotWithinSyntax">
         <source>Position is not within syntax tree with full span {0}</source>
         <target state="translated">La position ne se trouve pas dans l'étendue complète {0} de l'arborescence de syntaxe</target>
