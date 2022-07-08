@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             )
             Dim errors = compilation.GetDiagnostics().ToArray()
             Assert.Equal(2, errors.Count)
-            Assert.Equal(1, compilation.SyntaxTrees.Length)
+            Assert.Equal(1, compilation.SyntaxTrees.Count)
             Dim tree = compilation.SyntaxTrees(0)
             Dim model = compilation.GetSemanticModel(tree)
 
@@ -193,7 +193,7 @@ BC30179: structure 'Name5' and namespace 'Name5' conflict in namespace 'NS'.
 </compilation>)
 
             Assert.Equal("Banana", compilation.Assembly.Name)
-            Assert.Equal(0, compilation.SyntaxTrees.Length)
+            Assert.Equal(0, compilation.SyntaxTrees.Count)
             Dim mscorlibAssembly = compilation.GetReferencedAssemblySymbol(compilation.References(0))
             Assert.Equal("mscorlib", mscorlibAssembly.Name)
 

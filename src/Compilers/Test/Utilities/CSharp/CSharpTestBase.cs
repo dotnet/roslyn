@@ -1333,7 +1333,7 @@ namespace System.Diagnostics.CodeAnalysis
         {
             // This method should not cause any binding, including resolving references, etc.
             var trees = compilation.SyntaxTrees;
-            if (trees.IsDefaultOrEmpty)
+            if (trees is null || trees.Count == 0)
             {
                 return false;
             }
@@ -1591,7 +1591,7 @@ namespace System.Diagnostics.CodeAnalysis
         /// </summary>
         public TNode GetBindingNode<TNode>(CSharpCompilation compilation, int treeIndex = 0) where TNode : SyntaxNode
         {
-            Assert.True(compilation.SyntaxTrees.Length > treeIndex, "Compilation has enough trees");
+            Assert.True(compilation.SyntaxTrees.Count > treeIndex, "Compilation has enough trees");
             var tree = compilation.SyntaxTrees[treeIndex];
 
             const string bindStart = "/*<bind>*/";
@@ -1612,7 +1612,7 @@ namespace System.Diagnostics.CodeAnalysis
         /// <returns></returns>
         public IList<TNode> GetBindingNodes<TNode>(CSharpCompilation compilation, int treeIndex = 0, int which = -1) where TNode : SyntaxNode
         {
-            Assert.True(compilation.SyntaxTrees.Length > treeIndex, "Compilation has enough trees");
+            Assert.True(compilation.SyntaxTrees.Count > treeIndex, "Compilation has enough trees");
             var tree = compilation.SyntaxTrees[treeIndex];
 
             var nodeList = new List<TNode>();

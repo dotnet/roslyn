@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 var options = TestOptions.DebugDll.WithSourceReferenceResolver(resolver);
                 var compilation = CreateCompilationWithMscorlib45(code, options: options, parseOptions: TestOptions.Script);
 
-                Assert.Equal(2, compilation.SyntaxTrees.Length);
+                Assert.Equal(2, compilation.SyntaxTrees.Count);
                 compilation.GetParseDiagnostics().Verify(
                     // a.csx(2,27): error CS1504: Source file 'b.csx' could not be opened -- Could not find file.
                     //                     #load "b.csx";
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var external2 = Parse(code, "external2.csx", TestOptions.Script);
             compilation = compilation.AddSyntaxTrees(external2);
 
-            Assert.Equal(3, compilation.SyntaxTrees.Length);
+            Assert.Equal(3, compilation.SyntaxTrees.Count);
             compilation.GetParseDiagnostics().Verify(
                 // (1,7): error CS2015: 'a.csx' is a binary file instead of a text file
                 // #load "a.csx"
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 #load ""a.csx""", filename: "external3.csx", options: TestOptions.Script);
             compilation = compilation.ReplaceSyntaxTree(external1, external3);
 
-            Assert.Equal(3, compilation.SyntaxTrees.Length);
+            Assert.Equal(3, compilation.SyntaxTrees.Count);
             compilation.GetParseDiagnostics().Verify(
                 // external3.csx(3,23): error CS2015: 'a.csx' is a binary file instead of a text file
                 //                 #load "a.csx"
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var external4 = Parse("#load \"a.csx\"", "external4.csx", TestOptions.Script);
             compilation = compilation.ReplaceSyntaxTree(external3, external4);
 
-            Assert.Equal(3, compilation.SyntaxTrees.Length);
+            Assert.Equal(3, compilation.SyntaxTrees.Count);
             compilation.GetParseDiagnostics().Verify(
                 // external4.csx(1,7): error CS2015: 'a.csx' is a binary file instead of a text file
                 // #load "a.csx"
@@ -156,13 +156,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var options = TestOptions.DebugDll.WithSourceReferenceResolver(resolver);
             var compilation = CreateCompilationWithMscorlib45(code, options: options, parseOptions: TestOptions.Script);
 
-            Assert.Equal(2, compilation.SyntaxTrees.Length);
+            Assert.Equal(2, compilation.SyntaxTrees.Count);
             compilation.VerifyDiagnostics();
 
             var newTree = Parse(code, "a.csx", TestOptions.Script);
             compilation = compilation.ReplaceSyntaxTree(compilation.SyntaxTrees.Last(), newTree);
 
-            Assert.Equal(2, compilation.SyntaxTrees.Length);
+            Assert.Equal(2, compilation.SyntaxTrees.Count);
             compilation.VerifyDiagnostics();
 
             compilation = compilation.RemoveSyntaxTrees(newTree);
@@ -176,13 +176,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             options = TestOptions.DebugDll.WithSourceReferenceResolver(resolver);
             compilation = CreateCompilationWithMscorlib45(code, options: options, parseOptions: TestOptions.Script);
 
-            Assert.Equal(3, compilation.SyntaxTrees.Length);
+            Assert.Equal(3, compilation.SyntaxTrees.Count);
             compilation.VerifyDiagnostics();
 
             newTree = Parse(code, "a.csx", TestOptions.Script);
             compilation = compilation.ReplaceSyntaxTree(compilation.SyntaxTrees.Last(), newTree);
 
-            Assert.Equal(3, compilation.SyntaxTrees.Length);
+            Assert.Equal(3, compilation.SyntaxTrees.Count);
             compilation.VerifyDiagnostics();
 
             compilation = compilation.RemoveSyntaxTrees(newTree);

@@ -34,11 +34,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private static void CheckCompilationSyntaxTrees(CSharpCompilation compilation, params SyntaxTree[] expectedSyntaxTrees)
         {
-            ImmutableArray<SyntaxTree> actualSyntaxTrees = compilation.SyntaxTrees;
+            ImmutableList<SyntaxTree> actualSyntaxTrees = compilation.SyntaxTrees;
 
             int numTrees = expectedSyntaxTrees.Length;
 
-            Assert.Equal(numTrees, actualSyntaxTrees.Length);
+            Assert.Equal(numTrees, actualSyntaxTrees.Count);
             for (int i = 0; i < numTrees; i++)
             {
                 Assert.Equal(expectedSyntaxTrees[i], actualSyntaxTrees[i]);

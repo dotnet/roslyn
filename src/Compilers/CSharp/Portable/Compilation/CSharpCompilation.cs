@@ -795,7 +795,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// The syntax trees (parsed from source code) that this compilation was created with.
         /// </summary>
-        public new ImmutableArray<SyntaxTree> SyntaxTrees
+        public new ImmutableList<SyntaxTree> SyntaxTrees
         {
             get { return _syntaxAndDeclarations.GetLazyState().SyntaxTrees; }
         }
@@ -2291,7 +2291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             WeakReference<BinderFactory>[]? binderFactories = cachedBinderFactories;
             if (binderFactories == null)
             {
-                binderFactories = new WeakReference<BinderFactory>[this.SyntaxTrees.Length];
+                binderFactories = new WeakReference<BinderFactory>[this.SyntaxTrees.Count];
                 binderFactories = Interlocked.CompareExchange(ref cachedBinderFactories, binderFactories, null) ?? binderFactories;
             }
 
@@ -2347,7 +2347,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // signal the end of the compilation unit
                     EventQueue?.TryEnqueue(new CompilationUnitCompletedEvent(this, tree));
 
-                    if (_lazyCompilationUnitCompletedTrees.Count == this.SyntaxTrees.Length)
+                    if (_lazyCompilationUnitCompletedTrees.Count == this.SyntaxTrees.Count)
                     {
                         // if that was the last tree, signal the end of compilation
                         CompleteCompilationEventQueue_NoLock();
@@ -2662,7 +2662,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     RoslynParallel.For(
                         0,
-                        syntaxTrees.Length,
+                        syntaxTrees.Count,
                         UICultureUtilities.WithCurrentUICulture<int>(i =>
                         {
                             var syntaxTree = syntaxTrees[i];
@@ -2720,7 +2720,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 builder.AddRange(GetSourceDeclarationDiagnostics(cancellationToken: cancellationToken), allowMismatchInDependencyAccumulation: true);
 
-                if (EventQueue != null && SyntaxTrees.Length == 0)
+                if (EventQueue != null && SyntaxTrees.Count == 0)
                 {
                     EnsureCompilationEventQueueCompleted();
                 }
@@ -2917,7 +2917,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     }
 
-                    if (updated.Count == SyntaxTrees.Length)
+                    if (updated.Count == SyntaxTrees.Count)
                     {
                         _usageOfUsingsRecordedInTrees = null;
                         break;
@@ -3548,7 +3548,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.GetSemanticModel((SyntaxTree)syntaxTree, ignoreAccessibility);
         }
 
-        protected override ImmutableArray<SyntaxTree> CommonSyntaxTrees
+        protected override ImmutableList<SyntaxTree> CommonSyntaxTrees
         {
             get
             {

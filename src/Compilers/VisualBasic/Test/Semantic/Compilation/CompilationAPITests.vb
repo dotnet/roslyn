@@ -696,22 +696,22 @@ End Namespace
 
             ' Add a new empty item
             comp = comp.AddSyntaxTrees(Enumerable.Empty(Of SyntaxTree))
-            Assert.Equal(0, comp.SyntaxTrees.Length)
+            Assert.Equal(0, comp.SyntaxTrees.Count)
 
             ' Add a new valid item
             comp = comp.AddSyntaxTrees(t1)
-            Assert.Equal(1, comp.SyntaxTrees.Length)
+            Assert.Equal(1, comp.SyntaxTrees.Count)
 
             comp = comp.AddSyntaxTrees(VisualBasicSyntaxTree.ParseText(s4))
-            Assert.Equal(2, comp.SyntaxTrees.Length)
+            Assert.Equal(2, comp.SyntaxTrees.Count)
 
             ' Replace an existing item with another valid item 
             comp = comp.ReplaceSyntaxTree(t1, VisualBasicSyntaxTree.ParseText(s4))
-            Assert.Equal(2, comp.SyntaxTrees.Length)
+            Assert.Equal(2, comp.SyntaxTrees.Count)
 
             ' Replace an existing item with same item 
             comp = comp.AddSyntaxTrees(t1).ReplaceSyntaxTree(t1, t1)
-            Assert.Equal(3, comp.SyntaxTrees.Length)
+            Assert.Equal(3, comp.SyntaxTrees.Count)
 
             ' Replace with existing and verify that it throws
             Assert.Throws(Of ArgumentException)(Sub() comp.ReplaceSyntaxTree(t1, comp.SyntaxTrees(0)))
@@ -720,11 +720,11 @@ End Namespace
 
             ' SyntaxTrees have reference equality. This removal should fail.
             Assert.Throws(Of ArgumentException)(Sub() comp = comp.RemoveSyntaxTrees(VisualBasicSyntaxTree.ParseText(s4)))
-            Assert.Equal(3, comp.SyntaxTrees.Length)
+            Assert.Equal(3, comp.SyntaxTrees.Count)
 
             ' Remove non-existing item
             Assert.Throws(Of ArgumentException)(Sub() comp = comp.RemoveSyntaxTrees(withErrorTree))
-            Assert.Equal(3, comp.SyntaxTrees.Length)
+            Assert.Equal(3, comp.SyntaxTrees.Count)
 
             Dim t4 = VisualBasicSyntaxTree.ParseText("Using System;")
             Dim t5 = VisualBasicSyntaxTree.ParseText("Usingsssssssssssss System;")
@@ -734,17 +734,17 @@ End Namespace
             Dim hs = New HashSet(Of SyntaxTree) From {t4, t5, t6}
             Dim compCollection = VisualBasicCompilation.Create("Compilation", syntaxTrees:=hs)
             compCollection = compCollection.RemoveSyntaxTrees(hs)
-            Assert.Equal(0, compCollection.SyntaxTrees.Length)
+            Assert.Equal(0, compCollection.SyntaxTrees.Count)
             compCollection = compCollection.AddSyntaxTrees(hs).RemoveSyntaxTrees(t4, t5, t6)
-            Assert.Equal(0, compCollection.SyntaxTrees.Length)
+            Assert.Equal(0, compCollection.SyntaxTrees.Count)
 
             ' Overload with Collection
             Dim col = New ObjectModel.Collection(Of SyntaxTree) From {t4, t5, t6}
             compCollection = VisualBasicCompilation.Create("Compilation", syntaxTrees:=col)
             compCollection = compCollection.RemoveSyntaxTrees(t4, t5, t6)
-            Assert.Equal(0, compCollection.SyntaxTrees.Length)
+            Assert.Equal(0, compCollection.SyntaxTrees.Count)
             Assert.Throws(Of ArgumentException)(Sub() compCollection = compCollection.AddSyntaxTrees(t4, t5).RemoveSyntaxTrees(col))
-            Assert.Equal(0, compCollection.SyntaxTrees.Length)
+            Assert.Equal(0, compCollection.SyntaxTrees.Count)
 
             ' Overload with ConcurrentStack
             Dim stack = New Concurrent.ConcurrentStack(Of SyntaxTree)
@@ -753,9 +753,9 @@ End Namespace
             stack.Push(t6)
             compCollection = VisualBasicCompilation.Create("Compilation", syntaxTrees:=stack)
             compCollection = compCollection.RemoveSyntaxTrees(t4, t6, t5)
-            Assert.Equal(0, compCollection.SyntaxTrees.Length)
+            Assert.Equal(0, compCollection.SyntaxTrees.Count)
             Assert.Throws(Of ArgumentException)(Sub() compCollection = compCollection.AddSyntaxTrees(t4, t6).RemoveSyntaxTrees(stack))
-            Assert.Equal(0, compCollection.SyntaxTrees.Length)
+            Assert.Equal(0, compCollection.SyntaxTrees.Count)
 
             ' Overload with ConcurrentQueue
             Dim queue = New Concurrent.ConcurrentQueue(Of SyntaxTree)
@@ -764,9 +764,9 @@ End Namespace
             queue.Enqueue(t6)
             compCollection = VisualBasicCompilation.Create("Compilation", syntaxTrees:=queue)
             compCollection = compCollection.RemoveSyntaxTrees(t4, t6, t5)
-            Assert.Equal(0, compCollection.SyntaxTrees.Length)
+            Assert.Equal(0, compCollection.SyntaxTrees.Count)
             Assert.Throws(Of ArgumentException)(Sub() compCollection = compCollection.AddSyntaxTrees(t4, t6).RemoveSyntaxTrees(queue))
-            Assert.Equal(0, compCollection.SyntaxTrees.Length)
+            Assert.Equal(0, compCollection.SyntaxTrees.Count)
 
             ' VisualBasicCompilation.Create with syntaxtree with a non-CompilationUnit root node: should throw an ArgumentException.
             Assert.False(withExpressionRootTree.HasCompilationUnitRoot, "how did we get a CompilationUnit root?")
@@ -796,7 +796,7 @@ End Namespace
             ' Remove second SyntaxTree
             Dim comp = VisualBasicCompilation.Create("Compilation")
             comp = comp.AddSyntaxTrees(listSyntaxTree).RemoveSyntaxTrees(t2)
-            Assert.Equal(1, comp.SyntaxTrees.Length)
+            Assert.Equal(1, comp.SyntaxTrees.Count)
 
             'ContainsSyntaxTree
             Dim b1 As Boolean = comp.ContainsSyntaxTree(t2)
@@ -809,33 +809,33 @@ End Namespace
             Assert.Equal(Of Boolean)(False, comp.ContainsSyntaxTree(xt))
 
             comp = comp.RemoveSyntaxTrees({t2})
-            Assert.Equal(1, comp.SyntaxTrees.Length)
+            Assert.Equal(1, comp.SyntaxTrees.Count)
             comp = comp.AddSyntaxTrees({t2})
-            Assert.Equal(2, comp.SyntaxTrees.Length)
+            Assert.Equal(2, comp.SyntaxTrees.Count)
 
             'RemoveAllSyntaxTrees
             comp = comp.RemoveAllSyntaxTrees
-            Assert.Equal(0, comp.SyntaxTrees.Length)
+            Assert.Equal(0, comp.SyntaxTrees.Count)
             comp = VisualBasicCompilation.Create("Compilation").AddSyntaxTrees(listSyntaxTree).RemoveSyntaxTrees({t2})
-            Assert.Equal(Of Integer)(1, comp.SyntaxTrees.Length)
+            Assert.Equal(Of Integer)(1, comp.SyntaxTrees.Count)
             Assert.Equal(Of String)("Object", comp.ObjectType.Name)
 
             ' Remove mid SyntaxTree
             listSyntaxTree.Add(t3)
             comp = comp.RemoveSyntaxTrees(t1).AddSyntaxTrees(listSyntaxTree).RemoveSyntaxTrees(t2)
-            Assert.Equal(2, comp.SyntaxTrees.Length)
+            Assert.Equal(2, comp.SyntaxTrees.Count)
 
             ' remove list
             listSyntaxTree.Remove(t2)
             comp = comp.AddSyntaxTrees().RemoveSyntaxTrees(listSyntaxTree)
             comp = comp.AddSyntaxTrees(listSyntaxTree).RemoveSyntaxTrees(listSyntaxTree)
-            Assert.Equal(0, comp.SyntaxTrees.Length)
+            Assert.Equal(0, comp.SyntaxTrees.Count)
 
             listSyntaxTree.Clear()
             listSyntaxTree.Add(t1)
             ' Chained operation count > 2
             comp = comp.AddSyntaxTrees(listSyntaxTree).AddReferences().ReplaceSyntaxTree(t1, t2)
-            Assert.Equal(1, comp.SyntaxTrees.Length)
+            Assert.Equal(1, comp.SyntaxTrees.Count)
             Assert.Equal(0, comp.References.Count)
 
             ' Create compilation with args is disordered
@@ -851,7 +851,7 @@ End Namespace
             comp1 = comp1.AddReferences(listRef).AddSyntaxTrees(listSyntaxTree).RemoveReferences().RemoveSyntaxTrees()
             'should have only added one reference since ref1.Equals(ref1) and Equal references are added only once.
             Assert.Equal(1, comp1.References.Count)
-            Assert.Equal(1, comp1.SyntaxTrees.Length)
+            Assert.Equal(1, comp1.SyntaxTrees.Count)
 
         End Sub
 
@@ -1303,7 +1303,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
             Dim comp = VisualBasicCompilation.Create("Compilation")
             Dim t1 = VisualBasicSyntaxTree.ParseText("Using System;")
             Assert.Throws(Of ArgumentException)(Sub() comp.AddSyntaxTrees(t1, t1))
-            Assert.Equal(0, comp.SyntaxTrees.Length)
+            Assert.Equal(0, comp.SyntaxTrees.Count)
         End Sub
 
         ' Throw exception when the parameter of ContainsSyntaxTrees is null

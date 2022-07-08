@@ -8,6 +8,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -49,7 +50,7 @@ namespace Microsoft.CodeAnalysis
     {
         public static string GetDeterministicKey(
             CompilationOptions compilationOptions,
-            ImmutableArray<SyntaxTree> syntaxTrees,
+            ImmutableList<SyntaxTree> syntaxTrees,
             ImmutableArray<MetadataReference> references,
             ImmutableArray<byte> publicKey = default,
             ImmutableArray<AdditionalText> additionalTexts = default,

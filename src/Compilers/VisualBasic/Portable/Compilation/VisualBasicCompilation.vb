@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' The syntax trees explicitly given to the compilation at creation, in ordinal order.
         ''' </summary>
-        Private ReadOnly _syntaxTrees As ImmutableArray(Of SyntaxTree)
+        Private ReadOnly _syntaxTrees As ImmutableList(Of SyntaxTree)
 
         Private ReadOnly _syntaxTreeOrdinalMap As ImmutableDictionary(Of SyntaxTree, Integer)
 
@@ -384,7 +384,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 assemblyName,
                 options,
                 validatedReferences,
-                ImmutableArray(Of SyntaxTree).Empty,
+                ImmutableList(Of SyntaxTree).Empty,
                 ImmutableDictionary.Create(Of SyntaxTree, Integer)(),
                 declMap,
                 embeddedTrees,
@@ -411,7 +411,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             assemblyName As String,
             options As VisualBasicCompilationOptions,
             references As ImmutableArray(Of MetadataReference),
-            syntaxTrees As ImmutableArray(Of SyntaxTree),
+            syntaxTrees As ImmutableList(Of SyntaxTree),
             syntaxTreeOrdinalMap As ImmutableDictionary(Of SyntaxTree, Integer),
             rootNamespaces As ImmutableDictionary(Of SyntaxTree, DeclarationTableEntry),
             embeddedTrees As ImmutableArray(Of EmbeddedTreeAndDeclaration),
@@ -477,7 +477,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Private Function CommonLanguageVersion(syntaxTrees As ImmutableArray(Of SyntaxTree)) As LanguageVersion
+        Private Function CommonLanguageVersion(syntaxTrees As ImmutableList(Of SyntaxTree)) As LanguageVersion
             ' We don't check m_Options.ParseOptions.LanguageVersion for consistency, because
             ' it isn't consistent in practice.  In fact sometimes m_Options.ParseOptions is Nothing.
             Dim result As LanguageVersion? = Nothing
@@ -517,7 +517,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function UpdateSyntaxTrees(
-            syntaxTrees As ImmutableArray(Of SyntaxTree),
+            syntaxTrees As ImmutableList(Of SyntaxTree),
             syntaxTreeOrdinalMap As ImmutableDictionary(Of SyntaxTree, Integer),
             rootNamespaces As ImmutableDictionary(Of SyntaxTree, DeclarationTableEntry),
             declarationTable As DeclarationTable,
@@ -869,7 +869,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Get a read-only list of the syntax trees that this compilation was created with.
         ''' </summary>
-        Public Shadows ReadOnly Property SyntaxTrees As ImmutableArray(Of SyntaxTree)
+        Public Shadows ReadOnly Property SyntaxTrees As ImmutableList(Of SyntaxTree)
             Get
                 Return _syntaxTrees
             End Get
@@ -922,12 +922,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' and we don't want to see console spew (even though we don't generally
             ' care about pool "leaks" in exceptional cases).  Alternatively, we
             ' could create a new ArrayBuilder.
-            Dim builder = ArrayBuilder(Of SyntaxTree).GetInstance()
+            Dim builder = ImmutableList.CreateBuilder(Of SyntaxTree)
             Try
                 builder.AddRange(_syntaxTrees)
 
                 Dim referenceDirectivesChanged = False
-                Dim oldTreeCount = _syntaxTrees.Length
+                Dim oldTreeCount = _syntaxTrees.Count
 
                 Dim ordinalMap = _syntaxTreeOrdinalMap
                 Dim declMap = _rootNamespaces
@@ -963,7 +963,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Return UpdateSyntaxTrees(builder.ToImmutable(), ordinalMap, declMap, declTable, referenceDirectivesChanged)
             Finally
-                builder.Free()
             End Try
         End Function
 
@@ -1024,7 +1023,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' case where remove calls are made sequentially (rare?).
 
             Dim ordinalMap = ImmutableDictionary.Create(Of SyntaxTree, Integer)()
-            Dim builder = ArrayBuilder(Of SyntaxTree).GetInstance()
+            Dim builder = ImmutableList.CreateBuilder(Of SyntaxTree)
             Dim i = 0
 
             For Each tree In _syntaxTrees
@@ -1035,7 +1034,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             Next
 
-            Return UpdateSyntaxTrees(builder.ToImmutableAndFree(), ordinalMap, declMap, declTable, referenceDirectivesChanged)
+            Return UpdateSyntaxTrees(builder.ToImmutable(), ordinalMap, declMap, declTable, referenceDirectivesChanged)
         End Function
 
         Private Shared Sub RemoveSyntaxTreeFromDeclarationMapAndTable(
@@ -1055,7 +1054,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Public Shadows Function RemoveAllSyntaxTrees() As VisualBasicCompilation
-            Return UpdateSyntaxTrees(ImmutableArray(Of SyntaxTree).Empty,
+            Return UpdateSyntaxTrees(ImmutableList(Of SyntaxTree).Empty,
                                      ImmutableDictionary.Create(Of SyntaxTree, Integer)(),
                                      ImmutableDictionary.Create(Of SyntaxTree, DeclarationTableEntry)(),
                                      AddEmbeddedTrees(DeclarationTable.Empty, _embeddedTrees),
@@ -1109,14 +1108,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(ordinalMap.ContainsKey(oldTree)) ' Checked by RemoveSyntaxTreeFromDeclarationMapAndTable
             Dim oldOrdinal = ordinalMap(oldTree)
 
-            Dim newArray = _syntaxTrees.ToArray()
-            newArray(oldOrdinal) = vbNewTree
+            Dim newArray = _syntaxTrees.SetItem(oldOrdinal, vbNewTree)
 
             ' CONSIDER: should this be an operation on ImmutableDictionary?
             ordinalMap = ordinalMap.Remove(oldTree)
             ordinalMap = ordinalMap.Add(newTree, oldOrdinal)
 
-            Return UpdateSyntaxTrees(newArray.AsImmutableOrNull(), ordinalMap, declMap, declTable, referenceDirectivesChanged)
+            Return UpdateSyntaxTrees(newArray, ordinalMap, declMap, declTable, referenceDirectivesChanged)
         End Function
 
         Private Shared Function CreateEmbeddedTrees(compReference As Lazy(Of VisualBasicCompilation)) As ImmutableArray(Of EmbeddedTreeAndDeclaration)
@@ -1785,7 +1783,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' signal the end of the compilation unit
                     EventQueue.TryEnqueue(New CompilationUnitCompletedEvent(Me, tree))
 
-                    If _lazyCompilationUnitCompletedTrees.Count = SyntaxTrees.Length Then
+                    If _lazyCompilationUnitCompletedTrees.Count = SyntaxTrees.Count Then
                         ' if that was the last tree, signal the end of compilation
                         CompleteCompilationEventQueue_NoLock()
                     End If
@@ -2138,7 +2136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If Options.ConcurrentBuild Then
                     RoslynParallel.For(
                         0,
-                        SyntaxTrees.Length,
+                        SyntaxTrees.Count,
                         UICultureUtilities.WithCurrentUICulture(
                             Sub(i As Integer)
                                 builder.AddRange(SyntaxTrees(i).GetDiagnostics(cancellationToken))
@@ -2175,7 +2173,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 SourceAssembly.GetAllDeclarationErrors(builder, cancellationToken)
                 AddClsComplianceDiagnostics(builder, cancellationToken)
 
-                If EventQueue IsNot Nothing AndAlso SyntaxTrees.Length = 0 Then
+                If EventQueue IsNot Nothing AndAlso SyntaxTrees.Count = 0 Then
                     EnsureCompilationEventQueueCompleted()
                 End If
             End If
@@ -2725,7 +2723,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Me.GetSemanticModel(syntaxTree, ignoreAccessibility)
         End Function
 
-        Protected Overrides ReadOnly Property CommonSyntaxTrees As ImmutableArray(Of SyntaxTree)
+        Protected Overrides ReadOnly Property CommonSyntaxTrees As ImmutableList(Of SyntaxTree)
             Get
                 Return Me.SyntaxTrees
             End Get

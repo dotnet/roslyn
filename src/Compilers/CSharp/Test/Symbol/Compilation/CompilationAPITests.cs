@@ -360,7 +360,7 @@ namespace A.B {
             Assert.Equal(ops, comp.Options);
             Assert.NotEqual(default, comp.SyntaxTrees);
             Assert.NotNull(comp.References);
-            Assert.Equal(1, comp.SyntaxTrees.Length);
+            Assert.Equal(1, comp.SyntaxTrees.Count);
             Assert.Equal(1, comp.ExternalReferences.Length);
             var ref1 = comp.ExternalReferences[0];
             Assert.True(ref1.Properties.EmbedInteropTypes);
@@ -789,30 +789,30 @@ class D
             // Create compilation takes three args
             var comp = CSharpCompilation.Create("Compilation", syntaxTrees: new[] { SyntaxFactory.ParseSyntaxTree(s1) }, options: TestOptions.ReleaseDll);
             comp = comp.AddSyntaxTrees(t1, withErrorTree, withErrorTree1, withErrorTreeVB);
-            Assert.Equal(5, comp.SyntaxTrees.Length);
+            Assert.Equal(5, comp.SyntaxTrees.Count);
             comp = comp.RemoveSyntaxTrees(t1, withErrorTree, withErrorTree1, withErrorTreeVB);
-            Assert.Equal(1, comp.SyntaxTrees.Length);
+            Assert.Equal(1, comp.SyntaxTrees.Count);
 
             // Add a new empty item
             comp = comp.AddSyntaxTrees(Enumerable.Empty<SyntaxTree>());
-            Assert.Equal(1, comp.SyntaxTrees.Length);
+            Assert.Equal(1, comp.SyntaxTrees.Count);
 
             // Add a new valid item
             comp = comp.AddSyntaxTrees(t1);
-            Assert.Equal(2, comp.SyntaxTrees.Length);
+            Assert.Equal(2, comp.SyntaxTrees.Count);
             Assert.Contains(t1, comp.SyntaxTrees);
             Assert.False(comp.SyntaxTrees.Contains(SyntaxFactory.ParseSyntaxTree(s1)));
 
             comp = comp.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(s1));
-            Assert.Equal(3, comp.SyntaxTrees.Length);
+            Assert.Equal(3, comp.SyntaxTrees.Count);
 
             // Replace an existing item with another valid item
             comp = comp.ReplaceSyntaxTree(t1, SyntaxFactory.ParseSyntaxTree(s1));
-            Assert.Equal(3, comp.SyntaxTrees.Length);
+            Assert.Equal(3, comp.SyntaxTrees.Count);
 
             // Replace an existing item with same item
             comp = comp.AddSyntaxTrees(t1).ReplaceSyntaxTree(t1, t1);
-            Assert.Equal(4, comp.SyntaxTrees.Length);
+            Assert.Equal(4, comp.SyntaxTrees.Count);
 
             // add again and verify that it throws
             Assert.Throws<ArgumentException>(() => comp.AddSyntaxTrees(t1));
@@ -822,11 +822,11 @@ class D
 
             // SyntaxTrees have reference equality. This removal should fail.
             Assert.Throws<ArgumentException>(() => comp = comp.RemoveSyntaxTrees(SyntaxFactory.ParseSyntaxTree(s1)));
-            Assert.Equal(4, comp.SyntaxTrees.Length);
+            Assert.Equal(4, comp.SyntaxTrees.Count);
 
             // Remove non-existing item
             Assert.Throws<ArgumentException>(() => comp = comp.RemoveSyntaxTrees(withErrorTree));
-            Assert.Equal(4, comp.SyntaxTrees.Length);
+            Assert.Equal(4, comp.SyntaxTrees.Count);
 
             // Add syntaxtree with error
             comp = comp.AddSyntaxTrees(withErrorTree1);
@@ -844,17 +844,17 @@ class D
             var hs = new HashSet<SyntaxTree> { t4, t5, t6 };
             var compCollection = CSharpCompilation.Create("Compilation", syntaxTrees: hs);
             compCollection = compCollection.RemoveSyntaxTrees(hs);
-            Assert.Equal(0, compCollection.SyntaxTrees.Length);
+            Assert.Equal(0, compCollection.SyntaxTrees.Count);
             compCollection = compCollection.AddSyntaxTrees(hs).RemoveSyntaxTrees(t4, t5, t6);
-            Assert.Equal(0, compCollection.SyntaxTrees.Length);
+            Assert.Equal(0, compCollection.SyntaxTrees.Count);
 
             // Overload with Collection
             var col = new Collection<SyntaxTree> { t4, t5, t6 };
             compCollection = CSharpCompilation.Create("Compilation", syntaxTrees: col);
             compCollection = compCollection.RemoveSyntaxTrees(t4, t5, t6);
-            Assert.Equal(0, compCollection.SyntaxTrees.Length);
+            Assert.Equal(0, compCollection.SyntaxTrees.Count);
             Assert.Throws<ArgumentException>(() => compCollection = compCollection.AddSyntaxTrees(t4, t5).RemoveSyntaxTrees(col));
-            Assert.Equal(0, compCollection.SyntaxTrees.Length);
+            Assert.Equal(0, compCollection.SyntaxTrees.Count);
 
             // Overload with ConcurrentStack
             var stack = new ConcurrentStack<SyntaxTree> { };
@@ -863,9 +863,9 @@ class D
             stack.Push(t6);
             compCollection = CSharpCompilation.Create("Compilation", syntaxTrees: stack);
             compCollection = compCollection.RemoveSyntaxTrees(t4, t6, t5);
-            Assert.Equal(0, compCollection.SyntaxTrees.Length);
+            Assert.Equal(0, compCollection.SyntaxTrees.Count);
             Assert.Throws<ArgumentException>(() => compCollection = compCollection.AddSyntaxTrees(t4, t6).RemoveSyntaxTrees(stack));
-            Assert.Equal(0, compCollection.SyntaxTrees.Length);
+            Assert.Equal(0, compCollection.SyntaxTrees.Count);
 
             // Overload with ConcurrentQueue
             var queue = new ConcurrentQueue<SyntaxTree> { };
@@ -874,9 +874,9 @@ class D
             queue.Enqueue(t6);
             compCollection = CSharpCompilation.Create("Compilation", syntaxTrees: queue);
             compCollection = compCollection.RemoveSyntaxTrees(t4, t6, t5);
-            Assert.Equal(0, compCollection.SyntaxTrees.Length);
+            Assert.Equal(0, compCollection.SyntaxTrees.Count);
             Assert.Throws<ArgumentException>(() => compCollection = compCollection.AddSyntaxTrees(t4, t6).RemoveSyntaxTrees(queue));
-            Assert.Equal(0, compCollection.SyntaxTrees.Length);
+            Assert.Equal(0, compCollection.SyntaxTrees.Count);
 
             // Get valid binding
             var bind = comp.GetSemanticModel(syntaxTree: t1);
@@ -936,18 +936,18 @@ class D
             // Remove second SyntaxTree
             CSharpCompilation comp = CSharpCompilation.Create(options: TestOptions.ReleaseDll, assemblyName: "Compilation", references: null, syntaxTrees: null);
             comp = comp.AddSyntaxTrees(listSyntaxTree).RemoveSyntaxTrees(t2);
-            Assert.Equal(1, comp.SyntaxTrees.Length);
+            Assert.Equal(1, comp.SyntaxTrees.Count);
 
             // Remove mid SyntaxTree
             listSyntaxTree.Add(t3);
             comp = comp.RemoveSyntaxTrees(t1).AddSyntaxTrees(listSyntaxTree).RemoveSyntaxTrees(t2);
-            Assert.Equal(2, comp.SyntaxTrees.Length);
+            Assert.Equal(2, comp.SyntaxTrees.Count);
 
             // remove list
             listSyntaxTree.Remove(t2);
             comp = comp.AddSyntaxTrees().RemoveSyntaxTrees(listSyntaxTree);
             comp = comp.AddSyntaxTrees(listSyntaxTree).RemoveSyntaxTrees(listSyntaxTree);
-            Assert.Equal(0, comp.SyntaxTrees.Length);
+            Assert.Equal(0, comp.SyntaxTrees.Count);
 
             listSyntaxTree.Clear();
             listSyntaxTree.Add(t1);
@@ -956,7 +956,7 @@ class D
             Assert.Throws<ArgumentException>(() => comp = comp.AddSyntaxTrees(listSyntaxTree).AddReferences().ReplaceSyntaxTree(t1, t2));
             comp = comp.AddSyntaxTrees(t1).AddReferences().ReplaceSyntaxTree(t1, t2);
 
-            Assert.Equal(1, comp.SyntaxTrees.Length);
+            Assert.Equal(1, comp.SyntaxTrees.Count);
             Assert.Equal(0, comp.ExternalReferences.Length);
 
             // Create compilation with args is disordered
@@ -969,7 +969,7 @@ class D
             // Remove with no args
             comp1 = comp1.AddReferences(listRef).AddSyntaxTrees(t1).RemoveReferences().RemoveSyntaxTrees();
             Assert.Equal(1, comp1.ExternalReferences.Length);
-            Assert.Equal(1, comp1.SyntaxTrees.Length);
+            Assert.Equal(1, comp1.SyntaxTrees.Count);
         }
 
         [WorkItem(713356, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713356")]
@@ -1485,9 +1485,9 @@ var a = new C2();
             {
                 comp.ReplaceReference(newReference: Net451.System, oldReference: ref2);
             });
-            Assert.Equal(0, comp.SyntaxTrees.Length);
+            Assert.Equal(0, comp.SyntaxTrees.Count);
             Assert.Throws<ArgumentException>(() => comp.ReplaceSyntaxTree(newTree: SyntaxFactory.ParseSyntaxTree("Using System;"), oldTree: t1));
-            Assert.Equal(0, comp.SyntaxTrees.Length);
+            Assert.Equal(0, comp.SyntaxTrees.Count);
         }
 
         [WorkItem(527256, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527256")]
@@ -1554,7 +1554,7 @@ var a = new C2();
             var comp = CSharpCompilation.Create("Compilation");
             SyntaxTree t1 = SyntaxFactory.ParseSyntaxTree("Using System;");
             Assert.Throws<ArgumentException>(() => (comp.AddSyntaxTrees(t1, t1)));
-            Assert.Equal(0, comp.SyntaxTrees.Length);
+            Assert.Equal(0, comp.SyntaxTrees.Count);
         }
 
         [Fact]
@@ -1579,7 +1579,7 @@ var a = new C2();
             // No exception when replacing a SyntaxTree with null
             var compP = comp.AddSyntaxTrees(syntaxTree);
             comp = compP.ReplaceSyntaxTree(syntaxTree, null);
-            Assert.Equal(0, comp.SyntaxTrees.Length);
+            Assert.Equal(0, comp.SyntaxTrees.Count);
 
             // Throw exception when remove null SyntaxTree
             Assert.Throws<ArgumentNullException>(

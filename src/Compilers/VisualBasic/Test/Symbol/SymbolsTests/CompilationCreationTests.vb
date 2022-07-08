@@ -2218,7 +2218,7 @@ End Class
 
             Dim numTrees = expectedSyntaxTrees.Length
 
-            Assert.Equal(numTrees, actualSyntaxTrees.Length)
+            Assert.Equal(numTrees, actualSyntaxTrees.Count)
             For i = 0 To numTrees - 1
                 Assert.Equal(expectedSyntaxTrees(i), actualSyntaxTrees(i))
             Next
