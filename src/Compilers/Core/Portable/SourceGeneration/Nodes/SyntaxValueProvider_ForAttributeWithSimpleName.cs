@@ -116,8 +116,8 @@ public partial struct SyntaxValueProvider
             .Combine(allUpGlobalAliasesProvider)
             .WithTrackingName("compilationUnitAndGlobalAliases_ForAttribute");
 
-        return syntaxTreeAndGlobalAliasesProvider.Select(
-            (tuple, c) => (tuple.Left.Tree, GetMatchingNodes(syntaxHelper, tuple.Right, tuple.Left.Tree, simpleName, predicate, c)))
+        return syntaxTreeAndGlobalAliasesProvider
+            .Select((tuple, c) => (tuple.Left.Tree, GetMatchingNodes(syntaxHelper, tuple.Right, tuple.Left.Tree, simpleName, predicate, c)))
             .Where(tuple => tuple.Item2.Length > 0)
             .WithTrackingName("result_ForAttributeInternal");
 
