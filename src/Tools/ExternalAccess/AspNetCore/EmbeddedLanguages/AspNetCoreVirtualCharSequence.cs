@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages
         public static readonly AspNetCoreVirtualCharSequence Empty = new(VirtualCharSequence.Empty);
 
         /// <inheritdoc cref="VirtualCharSequence.IsDefault"/>
-        public int IsDefault => _virtualCharSequence.IsDefault;
+        public bool IsDefault => _virtualCharSequence.IsDefault;
 
         /// <inheritdoc cref="VirtualCharSequence.Length"/>
         public int Length => _virtualCharSequence.Length;
