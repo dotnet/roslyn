@@ -30,8 +30,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Ap
                 componentModel.GetService<VisualStudioWorkspace>(),
                 project.Project.Id,
                 project.Project,
-                hierarchy,
-                itemid,
                 languageServiceGuid,
                 vbHelperFormattingRule: null);
         }
@@ -52,12 +50,10 @@ namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Ap
                 workspace,
                 projectId,
                 null,
-                hierarchy,
-                itemid,
                 languageServiceGuid,
                 vbHelperFormattingRule: null);
 
-            var filePath = _underlyingObject.GetFilePathFromBufferOrHierarchy(hierarchy, itemid);
+            var filePath = _underlyingObject.GetFilePathFromBuffers();
             workspace.OnProjectAdded(ProjectInfo.Create(projectId, VersionStamp.Default, filePath, string.Empty, InternalLanguageNames.TypeScript));
         }
 

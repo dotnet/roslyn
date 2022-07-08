@@ -47,7 +47,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Razor
                 _razorProjectFactory.Workspace,
                 projectId,
                 project: null,
-                filePath,
                 Guids.CSharpLanguageServiceId);
         }
     }
