@@ -31,18 +31,18 @@ namespace Microsoft.VisualStudio.LanguageServices
         }
 
         /// <summary>
-        /// Starts a new task to get the current document model.
+        /// Starts a new task to compute the UI model.
         /// </summary>
-        private void StartComputeModelTask()
+        private void StartComputeUIModelTask()
         {
             // 'true' value is unused.  this just signals to the queue that we have work to do.
-            _computeModelQueue.AddWork(true);
+            _computeUIModelQueue.AddWork(true);
         }
 
         /// <summary>
-        /// Fetches and processes the current document model.
+        /// Creates the UI model.
         /// </summary>
-        private async ValueTask<DocumentSymbolModel?> ComputeModelAsync(ImmutableSegmentedList<bool> unused, CancellationToken cancellationToken)
+        private async ValueTask<DocumentSymbolModel?> ComputeUIModelAsync(ImmutableSegmentedList<bool> unused, CancellationToken cancellationToken)
         {
             // Jump to the UI thread to get the currently active text view.
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -51,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             if (activeTextView is null)
                 return null;
 
-            var lspSnapshot = activeTextView.TextSnapshot;
+            var originalSnapshot = activeTextView.TextSnapshot;
             var textBuffer = activeTextView.TextBuffer;
 
             var filePath = GetFilePath();
@@ -62,14 +62,14 @@ namespace Microsoft.VisualStudio.LanguageServices
             // that fetching and processing the document model is not done on the UI thread.
             await TaskScheduler.Default;
 
-            var model = await ComputeModelAsync().ConfigureAwait(false);
+            var model = await ComputeUIModelAsync().ConfigureAwait(false);
 
             if (model is not null)
-                StartUpdateUITask();
+                StartUpdateUIModelTask();
 
             return model;
 
-            async Task<DocumentSymbolModel?> ComputeModelAsync()
+            async Task<DocumentSymbolModel?> ComputeUIModelAsync()
             {
                 var response = await DocumentOutlineHelper.DocumentSymbolsRequestAsync(
                     textBuffer, LanguageServiceBroker, filePath, cancellationToken).ConfigureAwait(false);
@@ -83,7 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices
 
                 var documentSymbols = DocumentOutlineHelper.GetNestedDocumentSymbols(responseBody);
                 var documentSymbolItems = DocumentOutlineHelper.GetDocumentSymbolModels(documentSymbols);
-                return new DocumentSymbolModel(documentSymbolItems, lspSnapshot);
+                return new DocumentSymbolModel(documentSymbolItems, originalSnapshot);
             }
 
             string? GetFilePath()
@@ -100,20 +100,20 @@ namespace Microsoft.VisualStudio.LanguageServices
         }
 
         /// <summary>
-        /// Starts a new task to update the UI.
+        /// Starts a new task to update the UI model.
         /// </summary>
-        private void StartUpdateUITask()
+        private void StartUpdateUIModelTask()
         {
             // 'true' value is unused.  this just signals to the queue that we have work to do.
-            _updateUIQueue.AddWork(true);
+            _updateUIModelQueue.AddWork(true);
         }
 
         /// <summary>
-        /// Filters and sorts the DocumentSymbolItems then updates the UI.
+        /// Filters and sorts the UI model.
         /// </summary>
         private async ValueTask<DocumentSymbolModel?> UpdateUIAsync(ImmutableSegmentedList<bool> unused, CancellationToken cancellationToken)
         {
-            var model = await _computeModelQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
+            var model = await _computeUIModelQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
             if (model is null)
                 return null;
 
@@ -136,33 +136,29 @@ namespace Microsoft.VisualStudio.LanguageServices
 
             updatedDocumentSymbolItems = DocumentOutlineHelper.Sort(updatedDocumentSymbolItems, SortOption, cancellationToken);
 
-            // Switch to the UI thread to update the view.
-            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            symbolTree.ItemsSource = updatedDocumentSymbolItems;
-
             StartHightlightNodeTask();
 
-            return new DocumentSymbolModel(updatedDocumentSymbolItems, model.LspSnapshot);
+            return new DocumentSymbolModel(updatedDocumentSymbolItems, model.OriginalSnapshot);
         }
 
         /// <summary>
-        /// Starts a new task to highlight the symbol node corresponding to the current caret position in the editor.
+        /// Starts a new task to highlight the symbol node corresponding to the current caret position in the editor then updates the UI.
         /// </summary>
         private void StartHightlightNodeTask()
         {
-            _highlightNodeQueue.AddWork();
+            _highlightNodeAndUpdateUIQueue.AddWork();
         }
 
         /// <summary>
-        /// Highlights the symbol node corresponding to the current caret position in the editor.
+        /// Highlights the symbol node corresponding to the current caret position in the editor then updates the UI.
         /// </summary>
         private async ValueTask HightlightNodeAsync(CancellationToken cancellationToken)
         {
-            var model = await _updateUIQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
+            var model = await _updateUIModelQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
             if (model is null)
                 return;
 
-            // Switch to the UI thread to get the current caret point, latest active text view, and currently selected tree node.
+            // Switch to the UI thread to get the current caret point and latest active text view.
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var activeTextView = GetLastActiveIWpfTextView();
@@ -173,10 +169,27 @@ namespace Microsoft.VisualStudio.LanguageServices
             if (!caretPoint.HasValue)
                 return;
 
-            var selectedDocumentSymbolItem = (DocumentSymbolItem?)symbolTree.SelectedItem;
+            var currentSnapshot = activeTextView.TextSnapshot;
+            var caretPosition = caretPoint.Value.Position;
 
-            DocumentOutlineHelper.SelectDocumentNode(
-                ThreadingContext, model, selectedDocumentSymbolItem, activeTextView.TextSnapshot, caretPoint.Value.Position);
+            // Switch to the threadpool to determine which node is currently selected and which node to select (if they exist).
+            await TaskScheduler.Default;
+
+            var currentlySelectedSymbol = DocumentOutlineHelper.GetCurrentlySelectedNode(model.DocumentSymbolItems);
+            var symbolToSelect = DocumentOutlineHelper.GetDocumentNodeToSelect(model.DocumentSymbolItems, model.OriginalSnapshot, currentSnapshot, caretPosition);
+
+            // Switch to the UI thread to update the view.
+            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            // Unselects the currently selected symbol. This is required in case the current caret position is not in range of any symbols
+            // (symbolToSelect will be null) so that no symbols in the tree are highlighted.
+            if (currentlySelectedSymbol is not null)
+                currentlySelectedSymbol.IsSelected = false;
+
+            if (symbolToSelect is not null)
+                symbolToSelect.IsSelected = true;
+
+            symbolTree.ItemsSource = model.DocumentSymbolItems;
         }
 
         /// <summary>
@@ -195,7 +208,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             if (symbol.IsDefault || symbol.IsEmpty)
                 return;
 
-            var model = await _computeModelQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
+            var model = await _computeUIModelQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
             if (model is null)
                 return;
 
@@ -211,13 +224,14 @@ namespace Microsoft.VisualStudio.LanguageServices
             // This is not ideal because we would be doing extra work to highlight a node that's already highlighted.
             activeTextView.Caret.PositionChanged -= Caret_PositionChanged;
 
+            // Prevents us from being permanently unsubscribed if an exception is thrown while updating the text view selection.
             try
             {
                 // Get the original position of the start of the line of the symbol.
-                var originalPosition = model.LspSnapshot.GetLineFromLineNumber(symbol.First().StartPosition.Line).Start.Position;
+                var originalPosition = model.OriginalSnapshot.GetLineFromLineNumber(symbol.First().StartPosition.Line).Start.Position;
 
                 // Map this position to a span in the current textview.
-                var originalSpan = new SnapshotSpan(model.LspSnapshot, Span.FromBounds(originalPosition, originalPosition));
+                var originalSpan = new SnapshotSpan(model.OriginalSnapshot, Span.FromBounds(originalPosition, originalPosition));
                 var currentSpan = originalSpan.TranslateTo(activeTextView.TextSnapshot, SpanTrackingMode.EdgeExclusive);
 
                 // Set the active text view selection to this span.

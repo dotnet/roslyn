@@ -32,9 +32,9 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         private IThreadingContext ThreadingContext { get; }
 
-        public IVsEditorAdaptersFactoryService EditorAdaptersFactoryService { get; }
+        private IVsEditorAdaptersFactoryService EditorAdaptersFactoryService { get; }
 
-        public IVsCodeWindow CodeWindow { get; }
+        private IVsCodeWindow CodeWindow { get; }
 
         /// <summary>
         /// The type of sorting to be applied to the DocumentSymbolItems in the UI.
@@ -42,20 +42,20 @@ namespace Microsoft.VisualStudio.LanguageServices
         private SortOption SortOption { get; set; }
 
         /// <summary>
-        /// Queue to batch up work to do to get the current document model. Used so we can batch up a lot of events 
+        /// Queue to batch up work to do to compute the UI model. Used so we can batch up a lot of events 
         /// and only fetch the model once for every batch.
         /// </summary>
-        private readonly AsyncBatchingWorkQueue<bool, DocumentSymbolModel?> _computeModelQueue;
+        private readonly AsyncBatchingWorkQueue<bool, DocumentSymbolModel?> _computeUIModelQueue;
 
         /// <summary>
-        /// Queue to batch up work to do to update the UI.
+        /// Queue to batch up work to do to update the UI model.
         /// </summary>
-        private readonly AsyncBatchingWorkQueue<bool, DocumentSymbolModel?> _updateUIQueue;
+        private readonly AsyncBatchingWorkQueue<bool, DocumentSymbolModel?> _updateUIModelQueue;
 
         /// <summary>
-        /// Queue to batch up work to do to highlight the currently selected symbol node.
+        /// Queue to batch up work to do to highlight the currently selected symbol node and update the UI.
         /// </summary>
-        private readonly AsyncBatchingWorkQueue _highlightNodeQueue;
+        private readonly AsyncBatchingWorkQueue _highlightNodeAndUpdateUIQueue;
 
         /// <summary>
         /// Queue to batch up work to do to select code in the editor based on the current caret position.
@@ -84,21 +84,21 @@ namespace Microsoft.VisualStudio.LanguageServices
             ComEventSink.Advise<IVsCodeWindowEvents>(codeWindow, this);
             SortOption = SortOption.Order;
 
-            _computeModelQueue = new AsyncBatchingWorkQueue<bool, DocumentSymbolModel?>(
+            _computeUIModelQueue = new AsyncBatchingWorkQueue<bool, DocumentSymbolModel?>(
                 DelayTimeSpan.Short,
-                ComputeModelAsync,
+                ComputeUIModelAsync,
                 EqualityComparer<bool>.Default,
                 asyncListener,
                 cancellationToken);
 
-            _updateUIQueue = new AsyncBatchingWorkQueue<bool, DocumentSymbolModel?>(
+            _updateUIModelQueue = new AsyncBatchingWorkQueue<bool, DocumentSymbolModel?>(
                 DelayTimeSpan.NearImmediate,
                 UpdateUIAsync,
                 EqualityComparer<bool>.Default,
                 asyncListener,
                 cancellationToken);
 
-            _highlightNodeQueue = new AsyncBatchingWorkQueue(
+            _highlightNodeAndUpdateUIQueue = new AsyncBatchingWorkQueue(
                 DelayTimeSpan.NearImmediate,
                 HightlightNodeAsync,
                 asyncListener,
@@ -123,7 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                     Debug.Fail("StartTrackingView failed during DocumentOutlineControl initialization.");
             }
 
-            StartComputeModelTask();
+            StartComputeUIModelTask();
         }
 
         int IVsCodeWindowEvents.OnNewView(IVsTextView pView)
@@ -144,6 +144,8 @@ namespace Microsoft.VisualStudio.LanguageServices
             _trackedTextViews.Add(textView, wpfTextView);
 
             wpfTextView.Caret.PositionChanged += Caret_PositionChanged;
+
+            // Subscribe only once since text buffer is the same for the primary and secondary text views.
             if (_trackedTextViews.Count == 1)
                 wpfTextView.TextBuffer.Changed += TextBuffer_Changed;
 
@@ -157,6 +159,8 @@ namespace Microsoft.VisualStudio.LanguageServices
             if (_trackedTextViews.TryGetValue(pView, out var view))
             {
                 view.Caret.PositionChanged -= Caret_PositionChanged;
+
+                // Unsubscribe only once since text buffer is the same for the primary and secondary text views.
                 if (_trackedTextViews.Count == 1)
                     view.TextBuffer.Changed -= TextBuffer_Changed;
 
@@ -166,8 +170,11 @@ namespace Microsoft.VisualStudio.LanguageServices
             return VSConstants.S_OK;
         }
 
+        /// <summary>
+        /// On text buffer change, obtain an updated UI model and update the view.
+        /// </summary>
         private void TextBuffer_Changed(object sender, TextContentChangedEventArgs e)
-            => StartComputeModelTask();
+            => StartComputeUIModelTask();
 
         /// <summary>
         /// On caret position change in a text view, highlight the corresponding symbol node in the window.
@@ -190,25 +197,25 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         private void Search(object sender, EventArgs e)
         {
-            StartUpdateUITask();
+            StartUpdateUIModelTask();
         }
 
         private void SortByName(object sender, EventArgs e)
         {
             SortOption = SortOption.Name;
-            StartUpdateUITask();
+            StartUpdateUIModelTask();
         }
 
         private void SortByOrder(object sender, EventArgs e)
         {
             SortOption = SortOption.Order;
-            StartUpdateUITask();
+            StartUpdateUIModelTask();
         }
 
         private void SortByType(object sender, EventArgs e)
         {
             SortOption = SortOption.Type;
-            StartUpdateUITask();
+            StartUpdateUIModelTask();
         }
 
         /// <summary>

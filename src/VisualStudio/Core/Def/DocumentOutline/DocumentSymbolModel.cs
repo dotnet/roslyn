@@ -15,12 +15,12 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
     internal class DocumentSymbolModel
     {
         public ImmutableArray<DocumentSymbolItem> DocumentSymbolItems { get; }
-        public ITextSnapshot LspSnapshot { get; }
+        public ITextSnapshot OriginalSnapshot { get; }
 
-        public DocumentSymbolModel(ImmutableArray<DocumentSymbolItem> documentSymbolItems, ITextSnapshot lspSnapshot)
+        public DocumentSymbolModel(ImmutableArray<DocumentSymbolItem> documentSymbolItems, ITextSnapshot originalSnapshot)
         {
             DocumentSymbolItems = documentSymbolItems;
-            LspSnapshot = lspSnapshot;
+            OriginalSnapshot = originalSnapshot;
         }
     }
 }
