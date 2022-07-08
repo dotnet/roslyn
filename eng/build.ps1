@@ -62,7 +62,6 @@ param (
   [switch][Alias('test')]$testDesktop,
   [switch]$testCoreClr,
   [switch]$testCompilerOnly = $false,
-  [switch]$testCompilerEndToEndOnly = $false,
   [switch]$testIOperation,
   [switch]$testUsedAssemblies,
   [switch]$sequential,
@@ -97,7 +96,6 @@ function Print-Usage() {
   Write-Host "  -testDesktop              Run Desktop unit tests (short: -test)"
   Write-Host "  -testCoreClr              Run CoreClr unit tests"
   Write-Host "  -testCompilerOnly         Run only the compiler unit tests"
-  Write-Host "  -testCompilerEndToEndOnly Run only the compiler end-to-end unit tests"
   Write-Host "  -testVsi                  Run all integration tests"
   Write-Host "  -testIOperation           Run extra checks to validate IOperations"
   Write-Host "  -testUsedAssemblies       Run extra checks to validate used assemblies feature (see ROSLYN_TEST_USEDASSEMBLIES in codebase)"
@@ -349,7 +347,7 @@ function GetCompilerEndToEndTestAssemblyExclusion() {
 }
 
 # Core function for running our unit / integration tests tests
-function TestUsingRunTests() {
+function TestUsingRunTests([bool]$testCompilerEndToEndOnly) {
 
   # Tests need to locate .NET Core SDK
   $dotnet = InitializeDotNetCli
@@ -512,8 +510,7 @@ function TestUsingRunTests() {
 
   # Run the compiler end-to-end tests separately to increase their isolation
   if (($testCoreClr -or $testDesktop) -and -not $testCompilerEndToEndOnly) {
-    $testCompilerEndToEndOnly = $true
-    TestUsingRunTests
+    TestUsingRunTests($true)
   }
 }
 
@@ -764,7 +761,7 @@ try {
   try
   {
     if ($testDesktop -or $testVsi -or $testIOperation -or $testCoreClr) {
-      TestUsingRunTests
+      TestUsingRunTests($false)
     }
   }
   catch
