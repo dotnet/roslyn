@@ -22,8 +22,14 @@ namespace Microsoft.CodeAnalysis.Emit
         internal readonly ImmutableArray<LocalSlotDebugInfo> LocalSlots;
         internal readonly ImmutableArray<LambdaDebugInfo> Lambdas;
         internal readonly ImmutableArray<ClosureDebugInfo> Closures;
+        internal readonly ImmutableArray<StateMachineStateDebugInfo> StateMachineStates;
 
-        internal EditAndContinueMethodDebugInformation(int methodOrdinal, ImmutableArray<LocalSlotDebugInfo> localSlots, ImmutableArray<ClosureDebugInfo> closures, ImmutableArray<LambdaDebugInfo> lambdas)
+        internal EditAndContinueMethodDebugInformation(
+            int methodOrdinal,
+            ImmutableArray<LocalSlotDebugInfo> localSlots,
+            ImmutableArray<ClosureDebugInfo> closures,
+            ImmutableArray<LambdaDebugInfo> lambdas,
+            ImmutableArray<StateMachineStateDebugInfo> stateMachineStates)
         {
             Debug.Assert(methodOrdinal >= -1);
 
@@ -31,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Emit
             LocalSlots = localSlots;
             Lambdas = lambdas;
             Closures = closures;
+            StateMachineStates = stateMachineStates;
         }
 
         /// <summary>
@@ -40,9 +47,24 @@ namespace Microsoft.CodeAnalysis.Emit
         /// <param name="compressedLambdaMap">Lambda and closure map.</param>
         /// <exception cref="InvalidDataException">Invalid data.</exception>
         public static EditAndContinueMethodDebugInformation Create(ImmutableArray<byte> compressedSlotMap, ImmutableArray<byte> compressedLambdaMap)
+            => Create(compressedSlotMap, compressedLambdaMap, compressedStateMachineStateMap: default);
+
+        /// <summary>
+        /// Deserializes Edit and Continue method debug information from specified blobs.
+        /// </summary>
+        /// <param name="compressedSlotMap">Local variable slot map.</param>
+        /// <param name="compressedLambdaMap">Lambda and closure map.</param>
+        /// <param name="compressedStateMachineStateMap">State machine suspension points, if the method is the MoveNext method of the state machine.</param>
+        /// <exception cref="InvalidDataException">Invalid data.</exception>
+        public static EditAndContinueMethodDebugInformation Create(ImmutableArray<byte> compressedSlotMap, ImmutableArray<byte> compressedLambdaMap, ImmutableArray<byte> compressedStateMachineStateMap)
         {
             UncompressLambdaMap(compressedLambdaMap, out var methodOrdinal, out var closures, out var lambdas);
-            return new EditAndContinueMethodDebugInformation(methodOrdinal, UncompressSlotMap(compressedSlotMap), closures, lambdas);
+            return new EditAndContinueMethodDebugInformation(
+                methodOrdinal,
+                UncompressSlotMap(compressedSlotMap),
+                closures,
+                lambdas,
+                UncompressStateMachineStates(compressedStateMachineStateMap));
         }
 
         private static InvalidDataException CreateInvalidDataException(ImmutableArray<byte> data, int offset)
@@ -241,6 +263,9 @@ namespace Microsoft.CodeAnalysis.Emit
             Debug.Assert(MethodOrdinal >= -1);
             writer.WriteCompressedInteger(MethodOrdinal + 1);
 
+            // Negative syntax offsets are rare - only when the syntax node is in an initializer of a field or property.
+            // To optimize for size calculate the base offset and adds it to all syntax offsets. In common cases (no negative offsets)
+            // this base offset will be 0. Otherwise it will be the lowest negative offset.
             int syntaxOffsetBaseline = -1;
             foreach (ClosureDebugInfo info in Closures)
             {
@@ -273,6 +298,69 @@ namespace Microsoft.CodeAnalysis.Emit
 
                 writer.WriteCompressedInteger(info.SyntaxOffset - syntaxOffsetBaseline);
                 writer.WriteCompressedInteger(info.ClosureOrdinal - LambdaDebugInfo.MinClosureOrdinal);
+            }
+        }
+
+        #endregion
+
+        #region State Machine States
+
+        /// <exception cref="InvalidDataException">Invalid data.</exception>
+        private static unsafe ImmutableArray<StateMachineStateDebugInfo> UncompressStateMachineStates(ImmutableArray<byte> compressedStateMachineStates)
+        {
+            if (compressedStateMachineStates.IsDefaultOrEmpty)
+            {
+                return default;
+            }
+
+            var mapBuilder = ArrayBuilder<StateMachineStateDebugInfo>.GetInstance();
+
+            fixed (byte* ptr = &compressedStateMachineStates.ToArray()[0])
+            {
+                var blobReader = new BlobReader(ptr, compressedStateMachineStates.Length);
+
+                try
+                {
+                    int count = blobReader.ReadCompressedInteger();
+                    if (count > 0)
+                    {
+                        int syntaxOffsetBaseline = -blobReader.ReadCompressedInteger();
+
+                        while (count > 0)
+                        {
+                            int stateNumber = blobReader.ReadCompressedSignedInteger();
+                            int syntaxOffset = syntaxOffsetBaseline + blobReader.ReadCompressedInteger();
+
+                            mapBuilder.Add(new StateMachineStateDebugInfo(syntaxOffset, (StateMachineState)stateNumber));
+                            count--;
+                        }
+                    }
+                }
+                catch (BadImageFormatException)
+                {
+                    throw CreateInvalidDataException(compressedStateMachineStates, blobReader.Offset);
+                }
+            }
+
+            return mapBuilder.ToImmutableAndFree();
+        }
+
+        internal void SerializeStateMachineStates(BlobBuilder writer)
+        {
+            writer.WriteCompressedInteger(StateMachineStates.Length);
+            if (StateMachineStates.Length > 0)
+            {
+                // Negative syntax offsets are rare - only when the syntax node is in an initializer of a field or property.
+                // To optimize for size calculate the base offset and adds it to all syntax offsets. In common cases (no negative offsets)
+                // this base offset will be 0. Otherwise it will be the lowest negative offset.
+                int syntaxOffsetBaseline = Math.Min(StateMachineStates.Min(state => state.SyntaxOffset), 0);
+                writer.WriteCompressedInteger(-syntaxOffsetBaseline);
+
+                foreach (StateMachineStateDebugInfo state in StateMachineStates)
+                {
+                    writer.WriteCompressedSignedInteger((int)state.StateNumber);
+                    writer.WriteCompressedInteger(state.SyntaxOffset - syntaxOffsetBaseline);
+                }
             }
         }
 

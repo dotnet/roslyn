@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private static FieldSymbol SubstituteField(FieldSymbol field, TypeMap typeMap)
         {
             Debug.Assert(!field.IsStatic);
-            Debug.Assert(!field.IsReadOnly || GeneratedNames.GetKind(field.Name) == GeneratedNameKind.AnonymousTypeField);
+            Debug.Assert(!field.IsReadOnly || GeneratedNameParser.GetKind(field.Name) == GeneratedNameKind.AnonymousTypeField);
             // CONSIDER: Instead of digging fields out of the unsubstituted type and then performing substitution
             // on each one individually, we could dig fields out of the substituted type.
             return new EEDisplayClassFieldSymbol(typeMap.SubstituteNamedType(field.ContainingType), field.Name, typeMap.SubstituteType(field.TypeWithAnnotations));
@@ -159,6 +159,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 get { return false; }
             }
 
+            internal override bool IsRequired => throw ExceptionUtilities.Unreachable;
+
             public override FlowAnalysisAnnotations FlowAnalysisAnnotations
             {
                 get { return FlowAnalysisAnnotations.None; }
@@ -213,6 +215,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 return _type;
             }
+
+            public override RefKind RefKind => RefKind.None;
+
+            public override ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
         }
     }
 }

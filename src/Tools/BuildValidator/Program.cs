@@ -72,6 +72,7 @@ namespace BuildValidator
             var excludes = new List<string>(exclude ?? Array.Empty<string>());
             excludes.Add(Path.DirectorySeparatorChar + "runtimes" + Path.DirectorySeparatorChar);
             excludes.Add(Path.DirectorySeparatorChar + "ref" + Path.DirectorySeparatorChar);
+            excludes.Add(Path.DirectorySeparatorChar + "refint" + Path.DirectorySeparatorChar);
             excludes.Add(@".resources.dll");
 
             var options = new Options(assembliesPath, referencesPath, excludes.ToArray(), sourcePath, verbose, quiet, debug, debugPath);
@@ -322,15 +323,17 @@ namespace BuildValidator
         {
             using var _ = logger.BeginScope("Source Links");
 
-            var sourceLinkUTF8 = compilationOptionsReader.GetSourceLinkUTF8();
-            if (sourceLinkUTF8 is null)
+            var sourceLinkUtf8 = compilationOptionsReader.GetSourceLinkUtf8();
+            if (sourceLinkUtf8 is null)
             {
                 logger.LogInformation("No source link cdi found in pdb");
                 return ImmutableArray<SourceLinkEntry>.Empty;
             }
 
-            var parseResult = JsonConvert.DeserializeAnonymousType(Encoding.UTF8.GetString(sourceLinkUTF8), new { documents = (Dictionary<string, string>?)null });
-            var sourceLinks = parseResult.documents.Select(makeSourceLink).ToImmutableArray();
+            var documents = JsonConvert.DeserializeAnonymousType(Encoding.UTF8.GetString(sourceLinkUtf8), new { documents = (Dictionary<string, string>?)null })?.documents
+                ?? throw new InvalidOperationException("Failed to deserialize source links.");
+
+            var sourceLinks = documents.Select(makeSourceLink).ToImmutableArray();
 
             if (sourceLinks.IsDefault)
             {

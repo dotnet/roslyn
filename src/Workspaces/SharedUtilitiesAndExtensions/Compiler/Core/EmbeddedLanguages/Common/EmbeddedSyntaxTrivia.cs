@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
 {
@@ -29,5 +30,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
             VirtualChars = virtualChars;
             Diagnostics = diagnostics;
         }
+
+        public TextSpan GetSpan()
+            => EmbeddedSyntaxHelpers.GetSpan(this.VirtualChars);
+
+        public override string ToString()
+            => VirtualChars.CreateString();
     }
 }

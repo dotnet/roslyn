@@ -14,13 +14,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SourceSimpleParameterSymbol : SourceParameterSymbol
     {
         public SourceSimpleParameterSymbol(
-           Symbol owner,
-           TypeWithAnnotations parameterType,
-           int ordinal,
-           RefKind refKind,
-           string name,
-           ImmutableArray<Location> locations)
-           : base(owner, parameterType, ordinal, refKind, name, locations)
+            Symbol owner,
+            TypeWithAnnotations parameterType,
+            int ordinal,
+            RefKind refKind,
+            DeclarationScope scope,
+            string name,
+            ImmutableArray<Location> locations)
+            : base(owner, parameterType, ordinal, refKind, scope, name, locations)
         {
         }
 
@@ -84,6 +85,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool IsCallerMemberName
         {
             get { return false; }
+        }
+
+        internal override int CallerArgumentExpressionParameterIndex
+        {
+            get { return -1; }
         }
 
         internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => ImmutableArray<int>.Empty;

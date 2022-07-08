@@ -133,8 +133,9 @@ namespace Microsoft.CodeAnalysis.Operations
             IOperation? instance = CreateReceiverOperation(boundEventAssignmentOperator.ReceiverOpt, boundEventAssignmentOperator.Event);
             SyntaxNode eventAccessSyntax = ((AssignmentExpressionSyntax)syntax).Left;
             bool isImplicit = boundEventAssignmentOperator.WasCompilerGenerated;
+            TypeParameterSymbol? constrainedToType = GetConstrainedToType(boundEventAssignmentOperator.Event, boundEventAssignmentOperator.ReceiverOpt);
 
-            return new EventReferenceOperation(@event, instance, _semanticModel, eventAccessSyntax, @event.Type, isImplicit);
+            return new EventReferenceOperation(@event, constrainedToType.GetPublicSymbol(), instance, _semanticModel, eventAccessSyntax, @event.Type, isImplicit);
         }
 
         internal IOperation CreateDelegateTargetOperation(BoundNode delegateNode)
@@ -259,7 +260,17 @@ namespace Microsoft.CodeAnalysis.Operations
                                                boundCollectionElementInitializer.Syntax,
                                                boundCollectionElementInitializer.InvokedAsExtensionMethod);
                     }
-
+                case BoundKind.FunctionPointerInvocation:
+                    {
+                        var boundFunctionPointerInvocation = (BoundFunctionPointerInvocation)containingExpression;
+                        return DeriveArguments(boundFunctionPointerInvocation.FunctionPointer.Signature,
+                                               boundFunctionPointerInvocation.Arguments,
+                                               default,
+                                               BitVector.Empty,
+                                               false,
+                                               boundFunctionPointerInvocation.Syntax,
+                                               false);
+                    }
                 default:
                     throw ExceptionUtilities.UnexpectedValue(containingExpression.Kind);
             }
@@ -349,6 +360,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     // No matching declaration, synthesize a property reference to be assigned.
                     target = new PropertyReferenceOperation(
                         property.GetPublicSymbol(),
+                        constrainedToType: null,
                         arguments: ImmutableArray<IArgumentOperation>.Empty,
                         instance,
                         semanticModel: _semanticModel,
@@ -360,6 +372,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 else
                 {
                     target = new PropertyReferenceOperation(anonymousProperty.Property.GetPublicSymbol(),
+                                                            constrainedToType: null,
                                                             ImmutableArray<IArgumentOperation>.Empty,
                                                             instance,
                                                             _semanticModel,
@@ -476,6 +489,9 @@ namespace Microsoft.CodeAnalysis.Operations
 
                     case CSharp.BinaryOperatorKind.RightShift:
                         return BinaryOperatorKind.RightShift;
+
+                    case CSharp.BinaryOperatorKind.UnsignedRightShift:
+                        return BinaryOperatorKind.UnsignedRightShift;
 
                     case CSharp.BinaryOperatorKind.And:
                         return BinaryOperatorKind.And;

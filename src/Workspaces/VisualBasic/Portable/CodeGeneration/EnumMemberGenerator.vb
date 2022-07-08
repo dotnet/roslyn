@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Friend Function AddEnumMemberTo(
             destination As EnumBlockSyntax,
             enumMember As IFieldSymbol,
-            options As CodeGenerationOptions) As EnumBlockSyntax
+            options As CodeGenerationContextInfo) As EnumBlockSyntax
 
             Dim member = GenerateEnumMemberDeclaration(enumMember, destination, options)
             If member Is Nothing Then
@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Function GenerateEnumMemberDeclaration(enumMember As IFieldSymbol,
                                                              enumDeclarationOpt As EnumBlockSyntax,
-                                                             options As CodeGenerationOptions) As EnumMemberDeclarationSyntax
+                                                             options As CodeGenerationContextInfo) As EnumMemberDeclarationSyntax
             ' We never generate the special enum backing field.
             If enumMember.Name = WellKnownMemberNames.EnumBackingFieldName Then
                 Return Nothing

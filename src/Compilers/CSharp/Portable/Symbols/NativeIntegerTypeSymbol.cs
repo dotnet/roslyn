@@ -13,6 +13,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
+    /// <summary>
+    /// This wrapper is only used on platforms where System.IntPtr isn't considered
+    /// a numeric type (as indicated by a RuntimeFeature flag).
+    /// </summary>
     internal sealed class NativeIntegerTypeSymbol : WrappedNamedTypeSymbol
 #if !DEBUG
         , Cci.IReference
@@ -27,6 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(underlyingType.TupleData is null);
             Debug.Assert(!underlyingType.IsNativeIntegerType);
             Debug.Assert(underlyingType.SpecialType == SpecialType.System_IntPtr || underlyingType.SpecialType == SpecialType.System_UIntPtr);
+            Debug.Assert(!underlyingType.ContainingAssembly.RuntimeSupportsNumericIntPtr);
             VerifyEquality(this, underlyingType);
         }
 
@@ -45,6 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override SpecialType SpecialType => _underlyingType.SpecialType;
 
         public override IEnumerable<string> MemberNames => GetMembers().Select(m => m.Name);
+
+        internal override bool HasDeclaredRequiredMembers => false;
 
         /// <summary>
         /// Certain members from the underlying types are not exposed from the native integer types:
@@ -70,7 +77,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<Symbol> makeMembers(ImmutableArray<Symbol> underlyingMembers)
             {
                 var builder = ArrayBuilder<Symbol>.GetInstance();
-                builder.Add(new SynthesizedInstanceConstructor(this));
                 foreach (var underlyingMember in underlyingMembers)
                 {
                     Debug.Assert(_underlyingType.Equals(underlyingMember.ContainingSymbol));
@@ -101,6 +107,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                         default:
                                             builder.Add(new NativeIntegerMethodSymbol(this, underlyingMethod, associatedSymbol: null));
                                             break;
+                                    }
+                                    break;
+
+                                case MethodKind.Constructor:
+                                    if (underlyingMethod.ParameterCount == 0)
+                                    {
+                                        builder.Add(new NativeIntegerMethodSymbol(this, underlyingMethod, associatedSymbol: null));
                                     }
                                     break;
                             }
@@ -157,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool AreLocalsZeroed => throw ExceptionUtilities.Unreachable;
 
-        internal override bool IsNativeIntegerType => true;
+        internal override bool IsNativeIntegerWrapperType => true;
 
         internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable;
 
@@ -181,8 +194,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return false;
             }
+
             return (comparison & TypeCompareKind.IgnoreNativeIntegers) != 0 ||
-                other.IsNativeIntegerType;
+                other.IsNativeIntegerWrapperType;
         }
 
         public override int GetHashCode() => _underlyingType.GetHashCode();
@@ -365,6 +379,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal NativeIntegerParameterSymbol(NativeIntegerTypeSymbol containingType, NativeIntegerMethodSymbol container, ParameterSymbol underlyingParameter) : base(underlyingParameter)
         {
+            Debug.Assert(container != null);
+
             _containingType = containingType;
             _container = container;
             NativeIntegerTypeSymbol.VerifyEquality(this, underlyingParameter);
@@ -375,6 +391,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override TypeWithAnnotations TypeWithAnnotations => _containingType.SubstituteUnderlyingType(_underlyingParameter.TypeWithAnnotations);
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers => _underlyingParameter.RefCustomModifiers;
+
+        internal override bool IsCallerLineNumber => _underlyingParameter.IsCallerLineNumber;
+
+        internal override bool IsCallerFilePath => _underlyingParameter.IsCallerFilePath;
+
+        internal override bool IsCallerMemberName => _underlyingParameter.IsCallerMemberName;
+
+        internal override int CallerArgumentExpressionParameterIndex => _underlyingParameter.CallerArgumentExpressionParameterIndex;
 
         internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => _underlyingParameter.InterpolatedStringHandlerArgumentIndexes;
 

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Microsoft.CodeAnalysis.Formatting;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -12,13 +10,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         public const string SimplifyNamesDiagnosticId = "IDE0001";
         public const string SimplifyMemberAccessDiagnosticId = "IDE0002";
-        public const string RemoveQualificationDiagnosticId = "IDE0003";
+        public const string RemoveThisOrMeQualificationDiagnosticId = "IDE0003";
         public const string RemoveUnnecessaryCastDiagnosticId = "IDE0004";
         public const string RemoveUnnecessaryImportsDiagnosticId = "IDE0005";
         public const string IntellisenseBuildFailedDiagnosticId = "IDE0006";
         public const string UseImplicitTypeDiagnosticId = "IDE0007";
         public const string UseExplicitTypeDiagnosticId = "IDE0008";
-        public const string AddQualificationDiagnosticId = "IDE0009";
+        public const string AddThisOrMeQualificationDiagnosticId = "IDE0009";
         public const string PopulateSwitchStatementDiagnosticId = "IDE0010";
         public const string AddBracesDiagnosticId = "IDE0011";
 
@@ -83,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string PreferBuiltInOrFrameworkTypeDiagnosticId = "IDE0049";
 
-        public const string ConvertAnonymousTypeToTupleDiagnosticId = "IDE0050";
+        // public const string ConvertAnonymousTypeToTupleDiagnosticId = "IDE0050";
 
         public const string RemoveUnusedMembersDiagnosticId = "IDE0051";
         public const string RemoveUnreadMembersDiagnosticId = "IDE0052";
@@ -161,6 +159,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string SimplifyObjectCreationDiagnosticId = "IDE0140";
 
         public const string UseNullCheckOverTypeCheckDiagnosticId = "IDE0150";
+
+        public const string UseBlockScopedNamespaceDiagnosticId = "IDE0160";
+        public const string UseFileScopedNamespaceDiagnosticId = "IDE0161";
+
+        public const string SimplifyPropertyPatternDiagnosticId = "IDE0170";
+
+        public const string UseTupleSwapDiagnosticId = "IDE0180";
+
+        // Don't use "IDE0190". It corresponds to the deleted field UseParameterNullCheckingId which was previously shipped.
+
+        public const string RemoveUnnecessaryLambdaExpressionDiagnosticId = "IDE0200";
+
+        public const string UseTopLevelStatementsId = "IDE0210";
+        public const string UseProgramMainId = "IDE0211";
+
+        public const string ForEachCastDiagnosticId = "IDE0220";
+
+        public const string UseUtf8StringLiteralDiagnosticId = "IDE0230";
+
+        public const string RemoveRedundantNullableDirectiveDiagnosticId = "IDE0240";
+        public const string RemoveUnnecessaryNullableDirectiveDiagnosticId = "IDE0241";
 
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";

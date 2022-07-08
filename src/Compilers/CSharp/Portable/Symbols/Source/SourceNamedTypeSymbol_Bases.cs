@@ -105,8 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // you need to know all bases before you can ask this question... (asking this causes a cycle)
             if (this.IsGenericType && !baseContainsErrorTypes && this.DeclaringCompilation.IsAttributeType(localBase))
             {
-                // A generic type cannot derive from '{0}' because it is an attribute class
-                diagnostics.Add(ErrorCode.ERR_GenericDerivingFromAttribute, baseLocation, localBase);
+                MessageID.IDS_FeatureGenericAttributes.CheckFeatureAvailability(diagnostics, this.DeclaringCompilation, baseLocation);
             }
 
             // Check constraints on the first declaration with explicit bases.
@@ -316,13 +315,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         baseType = partBase;
                         baseTypeLocation = decl.NameLocation;
                     }
-                    else if ((object)partBase != null && !TypeSymbol.Equals(partBase, baseType, TypeCompareKind.ConsiderEverything2) && partBase.TypeKind != TypeKind.Error)
+                    else if ((object)partBase != null && !TypeSymbol.Equals(partBase, baseType, TypeCompareKind.ConsiderEverything) && partBase.TypeKind != TypeKind.Error)
                     {
                         // the parts do not agree
+                        if (partBase.Equals(baseType, TypeCompareKind.ObliviousNullableModifierMatchesAny))
+                        {
+                            if (containsOnlyOblivious(baseType))
+                            {
+                                baseType = partBase;
+                                baseTypeLocation = decl.NameLocation;
+                                continue;
+                            }
+                            else if (containsOnlyOblivious(partBase))
+                            {
+                                continue;
+                            }
+                        }
+
                         var info = diagnostics.Add(ErrorCode.ERR_PartialMultipleBases, Locations[0], this);
                         baseType = new ExtendedErrorTypeSymbol(baseType, LookupResultKind.Ambiguous, info);
                         baseTypeLocation = decl.NameLocation;
                         reportedPartialConflict = true;
+
+                        static bool containsOnlyOblivious(TypeSymbol type)
+                        {
+                            return TypeWithAnnotations.Create(type).VisitType(
+                                type: null,
+                                static (type, arg, flag) => !type.Type.IsValueType && !type.NullableAnnotation.IsOblivious(),
+                                typePredicate: null,
+                                arg: (object)null) is null;
+                        }
                     }
                 }
 
@@ -362,6 +384,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // Inconsistent accessibility: base class '{1}' is less accessible than class '{0}'
                     diagnostics.Add(ErrorCode.ERR_BadVisBaseClass, baseTypeLocation, this, baseType);
                 }
+
+                if (baseType.IsFileTypeOrUsesFileTypes() && !this.IsFileTypeOrUsesFileTypes())
+                {
+                    diagnostics.Add(ErrorCode.ERR_FileTypeBase, baseTypeLocation, baseType, this);
+                }
             }
 
             var baseInterfacesRO = baseInterfaces.ToImmutableAndFree();
@@ -373,6 +400,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         // Inconsistent accessibility: base interface '{1}' is less accessible than interface '{0}'
                         diagnostics.Add(ErrorCode.ERR_BadVisBaseInterface, interfaceLocations[i], this, i);
+                    }
+
+                    if (i.IsFileTypeOrUsesFileTypes() && !this.IsFileTypeOrUsesFileTypes())
+                    {
+                        diagnostics.Add(ErrorCode.ERR_FileTypeBase, interfaceLocations[i], i, this);
                     }
                 }
             }
@@ -525,13 +557,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if (this.IsStatic)
                         {
                             // '{0}': static classes cannot implement interfaces
-                            diagnostics.Add(ErrorCode.ERR_StaticClassInterfaceImpl, location, this, baseType);
+                            diagnostics.Add(ErrorCode.ERR_StaticClassInterfaceImpl, location, this);
                         }
 
                         if (this.IsRefLikeType)
                         {
                             // '{0}': ref structs cannot implement interfaces
-                            diagnostics.Add(ErrorCode.ERR_RefStructInterfaceImpl, location, this, baseType);
+                            diagnostics.Add(ErrorCode.ERR_RefStructInterfaceImpl, location, this);
                         }
 
                         if (baseType.ContainsDynamic())

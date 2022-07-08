@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
     /// Argument.
     /// 
     /// </summary>
-    internal class BuildRequest
+    internal sealed class BuildRequest
     {
         /// <summary>
         /// The maximum size of a request supported by the compiler server.
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// Strings are encoded via a length prefix as a signed
         /// 32-bit integer, followed by an array of characters.
         /// </summary>
-        public struct Argument
+        public readonly struct Argument
         {
             public readonly ArgumentId ArgumentId;
             public readonly int ArgumentIndex;
@@ -290,6 +290,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
             // The server hash did not match the one supplied by the client
             IncorrectHash,
+
+            // Cannot connect to the server
+            CannotConnect,
         }
 
         public abstract ResponseType Type { get; }
@@ -364,6 +367,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
                         return ShutdownBuildResponse.Create(reader);
                     case ResponseType.Rejected:
                         return RejectedBuildResponse.Create(reader);
+
+                    // Intentional fall through
+                    case ResponseType.CannotConnect:
                     default:
                         throw new InvalidOperationException("Received invalid response type from server.");
                 }
@@ -493,6 +499,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
         }
     }
 
+    /// <summary>
+    /// The <see cref="BuildRequest"/> was rejected by the server.
+    /// </summary>
     internal sealed class RejectedBuildResponse : BuildResponse
     {
         public string Reason;
@@ -515,6 +524,16 @@ namespace Microsoft.CodeAnalysis.CommandLine
             Debug.Assert(reason is object);
             return new RejectedBuildResponse(reason);
         }
+    }
+
+    /// <summary>
+    /// Used when the client cannot connect to the server.
+    /// </summary>
+    internal sealed class CannotConnectResponse : BuildResponse
+    {
+        public override ResponseType Type => ResponseType.CannotConnect;
+
+        protected override void AddResponseBody(BinaryWriter writer) { }
     }
 
     // The id numbers below are just random. It's useful to use id numbers

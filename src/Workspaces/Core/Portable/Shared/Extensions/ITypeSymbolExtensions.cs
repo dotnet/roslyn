@@ -48,9 +48,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (typeSymbol == null || interfaceMember == null)
                 return ImmutableArray<ISymbol>.Empty;
 
-            if (interfaceMember.Kind != SymbolKind.Event &&
-                interfaceMember.Kind != SymbolKind.Method &&
-                interfaceMember.Kind != SymbolKind.Property)
+            if (interfaceMember.Kind is not SymbolKind.Event and
+                not SymbolKind.Method and
+                not SymbolKind.Property)
             {
                 return ImmutableArray<ISymbol>.Empty;
             }
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // the XmlReader.Dispose() method will not be an explicit implementation of
             // IDisposable.Dispose()
             if ((!semanticFacts.SupportsImplicitInterfaceImplementation &&
-                typeSymbol.Locations.Any(location => location.IsInSource)) ||
+                typeSymbol.Locations.Any(static location => location.IsInSource)) ||
                 typeSymbol.TypeKind == TypeKind.Interface)
             {
                 return explicitMatches.FirstOrDefault();

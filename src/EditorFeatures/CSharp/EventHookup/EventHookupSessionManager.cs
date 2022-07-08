@@ -12,17 +12,22 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Editor;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 {
     [Export]
-    internal sealed partial class EventHookupSessionManager : ForegroundThreadAffinitizedObject
+    internal sealed partial class EventHookupSessionManager
     {
+        public readonly IThreadingContext ThreadingContext;
         private readonly IToolTipService _toolTipService;
+        private readonly IGlobalOptionService _globalOptions;
+
         private IToolTipPresenter _toolTipPresenter;
 
         internal EventHookupSession CurrentSession { get; set; }
@@ -32,15 +37,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public EventHookupSessionManager(IThreadingContext threadingContext, IToolTipService toolTipService)
-            : base(threadingContext)
+        public EventHookupSessionManager(
+            IThreadingContext threadingContext,
+            IToolTipService toolTipService,
+            IGlobalOptionService globalOptions)
         {
+            ThreadingContext = threadingContext;
             _toolTipService = toolTipService;
+            _globalOptions = globalOptions;
         }
 
         internal void EventHookupFoundInSession(EventHookupSession analyzedSession)
         {
-            AssertIsForeground();
+            ThreadingContext.ThrowIfNotOnUIThread();
 
             var caretPoint = analyzedSession.TextView.GetCaretPoint(analyzedSession.SubjectBuffer);
 
@@ -50,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             if (_toolTipPresenter == null &&
                 CurrentSession == analyzedSession &&
                 caretPoint.HasValue &&
-                analyzedSession.TrackingSpan.GetSpan(CurrentSession.TextView.TextSnapshot).Contains(caretPoint.Value))
+                IsCaretWithinSpanOrAtEnd(analyzedSession.TrackingSpan, analyzedSession.TextView.TextSnapshot, caretPoint.Value))
             {
                 // Create a tooltip presenter that stays alive, even when the user types, without tracking the mouse.
                 _toolTipPresenter = _toolTipService.CreatePresenter(analyzedSession.TextView,
@@ -80,6 +89,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             }
         }
 
+        private static bool IsCaretWithinSpanOrAtEnd(ITrackingSpan trackingSpan, ITextSnapshot textSnapshot, SnapshotPoint caretPoint)
+        {
+            var snapshotSpan = trackingSpan.GetSpan(textSnapshot);
+
+            // If the caret is within the span, then we want to show the tooltip
+            if (snapshotSpan.Contains(caretPoint))
+            {
+                return true;
+            }
+
+            // Otherwise if the span is empty, and at the end of the file, and the caret
+            // is also at the end of the file, then show the tooltip.
+            if (snapshotSpan.IsEmpty &&
+                snapshotSpan.Start.Position == caretPoint.Position &&
+                caretPoint.Position == textSnapshot.Length)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         internal void BeginSession(
             EventHookupCommandHandler eventHookupCommandHandler,
             ITextView textView,
@@ -87,12 +118,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             IAsynchronousOperationListener asyncListener,
             Mutex testSessionHookupMutex)
         {
-            CurrentSession = new EventHookupSession(this, eventHookupCommandHandler, textView, subjectBuffer, asyncListener, testSessionHookupMutex);
+            CurrentSession = new EventHookupSession(this, eventHookupCommandHandler, textView, subjectBuffer, asyncListener, _globalOptions, testSessionHookupMutex);
         }
 
         internal void CancelAndDismissExistingSessions()
         {
-            AssertIsForeground();
+            ThreadingContext.ThrowIfNotOnUIThread();
 
             if (CurrentSession != null)
             {
@@ -115,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
         /// </summary>
         private void TextBuffer_Changed(object sender, TextContentChangedEventArgs e)
         {
-            AssertIsForeground();
+            ThreadingContext.ThrowIfNotOnUIThread();
 
             foreach (var change in e.Changes)
             {
@@ -132,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
         /// </summary>
         private void Caret_PositionChanged(object sender, EventArgs e)
         {
-            AssertIsForeground();
+            ThreadingContext.ThrowIfNotOnUIThread();
 
             if (CurrentSession == null)
             {

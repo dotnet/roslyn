@@ -4,7 +4,9 @@
 
 #nullable disable
 
+using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -137,7 +139,10 @@ class C
 {
 }";
 
-            VerifyTypingCharacter(code, expected, autoGenerateXmlDocComments: false);
+            VerifyTypingCharacter(code, expected, globalOptions: new OptionsCollection(LanguageNames.CSharp)
+            {
+                { DocumentationCommentOptionsStorage.AutoXmlDocCommentGeneration, false }
+            });
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
@@ -160,6 +165,139 @@ class C
     /// <param name=""goo""></param>
     /// <returns></returns>
     int M<T>(int goo) { return 0; }
+}";
+
+            VerifyTypingCharacter(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WorkItem(54245, "https://github.com/dotnet/roslyn/issues/54245")]
+        public void TypingCharacter_Method_WithExceptions()
+        {
+            var code =
+@"class C
+{
+    //$$
+    int M<T>(int goo)
+    {
+        if (goo < 0) throw new /*leading trivia*/Exception/*trailing trivia*/();
+        return 0;
+    }
+}";
+
+            var expected =
+@"class C
+{
+    /// <summary>
+    /// $$
+    /// </summary>
+    /// <typeparam name=""T""></typeparam>
+    /// <param name=""goo""></param>
+    /// <returns></returns>
+    /// <exception cref=""Exception""></exception>
+    int M<T>(int goo)
+    {
+        if (goo < 0) throw new /*leading trivia*/Exception/*trailing trivia*/();
+        return 0;
+    }
+}";
+
+            VerifyTypingCharacter(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WorkItem(54245, "https://github.com/dotnet/roslyn/issues/54245")]
+        public void TypingCharacter_Constructor_WithExceptions()
+        {
+            var code =
+@"class C
+{
+    //$$
+    public C(int goo)
+    {
+        if (goo < 0) throw new /*leading trivia*/Exception/*trailing trivia*/();
+        throw null;
+        throw null;
+    }
+}";
+
+            var expected =
+@"class C
+{
+    /// <summary>
+    /// $$
+    /// </summary>
+    /// <param name=""goo""></param>
+    /// <exception cref=""Exception""></exception>
+    /// <exception cref=""System.NullReferenceException""></exception>
+    public C(int goo)
+    {
+        if (goo < 0) throw new /*leading trivia*/Exception/*trailing trivia*/();
+        throw null;
+        throw null;
+    }
+}";
+
+            VerifyTypingCharacter(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WorkItem(54245, "https://github.com/dotnet/roslyn/issues/54245")]
+        public void TypingCharacter_Constructor_WithExceptions_Caught()
+        {
+            // This result is wrong, but we can't do better as long as we only check syntax.
+            var code = @"
+using System;
+
+class C
+{
+    //$$
+    public C(int goo)
+    {
+        try
+        {
+            if (goo == 10)
+                throw new Exception();
+            if (goo == 9)
+                throw new ArgumentOutOfRangeException();
+        }
+        catch (ArgumentException)
+        {
+        }
+
+        throw null;
+        throw null;
+    }
+}";
+
+            var expected = @"
+using System;
+
+class C
+{
+    /// <summary>
+    /// $$
+    /// </summary>
+    /// <param name=""goo""></param>
+    /// <exception cref=""Exception""></exception>
+    /// <exception cref=""ArgumentOutOfRangeException""></exception>
+    /// <exception cref=""NullReferenceException""></exception>
+    public C(int goo)
+    {
+        try
+        {
+            if (goo == 10)
+                throw new Exception();
+            if (goo == 9)
+                throw new ArgumentOutOfRangeException();
+        }
+        catch (ArgumentException)
+        {
+        }
+
+        throw null;
+        throw null;
+    }
 }";
 
             VerifyTypingCharacter(code, expected);
@@ -573,6 +711,48 @@ C()
             VerifyTypingCharacter(code, expected);
         }
 
+        [WorkItem(59081, "https://github.com/dotnet/roslyn/issues/59081")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void TypingCharacter_NotInTopLevel()
+        {
+            var code = @"
+using System;
+
+//$$
+Console.WriteLine();
+";
+
+            var expected = @"
+using System;
+
+///$$
+Console.WriteLine();
+";
+
+            VerifyTypingCharacter(code, expected);
+        }
+
+        [WorkItem(59081, "https://github.com/dotnet/roslyn/issues/59081")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void TypingCharacter_NotInNamespace()
+        {
+            var code = @"
+using System;
+
+//$$
+namespace NS { }
+";
+
+            var expected = @"
+using System;
+
+///$$
+namespace NS { }
+";
+
+            VerifyTypingCharacter(code, expected);
+        }
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_InsertComment_Class1()
         {
@@ -610,7 +790,10 @@ class C
 {
 }";
 
-            VerifyPressingEnter(code, expected, autoGenerateXmlDocComments: false);
+            VerifyPressingEnter(code, expected, globalOptions: new OptionsCollection(LanguageNames.CSharp)
+            {
+                { DocumentationCommentOptionsStorage.AutoXmlDocCommentGeneration, false }
+            });
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
@@ -1169,7 +1352,10 @@ class C
 {
 }";
 
-            VerifyPressingEnter(code, expected, autoGenerateXmlDocComments: false);
+            VerifyPressingEnter(code, expected, globalOptions: new OptionsCollection(LanguageNames.CSharp)
+            {
+                { DocumentationCommentOptionsStorage.AutoXmlDocCommentGeneration, false }
+            });
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
@@ -1612,7 +1798,10 @@ class C
 {
 }";
 
-            VerifyInsertCommentCommand(code, expected, autoGenerateXmlDocComments: false);
+            VerifyInsertCommentCommand(code, expected, globalOptions: new OptionsCollection(LanguageNames.CSharp)
+            {
+                { DocumentationCommentOptionsStorage.AutoXmlDocCommentGeneration, false }
+            });
         }
 
         [WorkItem(538714, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538714")]
@@ -2099,20 +2288,47 @@ class C { }";
 /// </summary>
 class C { }";
 
-            try
-            {
-                VerifyPressingEnter(code, expected, useTabs: true, setOptionsOpt:
-                workspace =>
-                {
-                    workspace.GetService<IEditorOptionsFactoryService>().GlobalOptions
-                        .SetOptionValue(DefaultOptions.TrimTrailingWhiteSpaceOptionName, true);
-                });
-            }
-            finally
-            {
-                TestWorkspace.CreateCSharp("").GetService<IEditorOptionsFactoryService>().GlobalOptions
-                        .SetOptionValue(DefaultOptions.TrimTrailingWhiteSpaceOptionName, false);
-            }
+            VerifyPressingEnter(code, expected, useTabs: true, trimTrailingWhiteSpace: true);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void TypingCharacter_Class_WithComment()
+        {
+            var code =
+@"//$$ This is my class and it does great things.
+class C
+{
+}";
+
+            var expected =
+@"/// <summary>
+/// $$This is my class and it does great things.
+/// </summary>
+class C
+{
+}";
+
+            VerifyTypingCharacter(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void TypingCharacter_Class_WithComment_NoSpace()
+        {
+            var code =
+@"//$$This is my class and it does great things.
+class C
+{
+}";
+
+            var expected =
+@"/// <summary>
+/// $$This is my class and it does great things.
+/// </summary>
+class C
+{
+}";
+
+            VerifyTypingCharacter(code, expected);
         }
 
         protected override char DocumentationCommentCharacter

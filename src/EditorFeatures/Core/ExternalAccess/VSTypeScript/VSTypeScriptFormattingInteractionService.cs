@@ -13,6 +13,8 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Indentation;
+using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {
@@ -34,16 +36,16 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
         public bool SupportsFormattingOnTypedCharacter(Document document, char ch)
             => _implementation.SupportsFormattingOnTypedCharacter(document, ch);
 
-        public Task<ImmutableArray<TextChange>> GetFormattingChangesAsync(Document document, TextSpan? textSpan, DocumentOptionSet? documentOptions, CancellationToken cancellationToken)
-            => _implementation.GetFormattingChangesAsync(document, textSpan, documentOptions, cancellationToken);
+        public Task<ImmutableArray<TextChange>> GetFormattingChangesAsync(Document document, ITextBuffer textBuffer, TextSpan? textSpan, CancellationToken cancellationToken)
+            => _implementation.GetFormattingChangesAsync(document, textSpan, documentOptions: null, cancellationToken);
 
-        public Task<ImmutableArray<TextChange>> GetFormattingChangesOnPasteAsync(Document document, TextSpan textSpan, DocumentOptionSet? documentOptions, CancellationToken cancellationToken)
-            => _implementation.GetFormattingChangesOnPasteAsync(document, textSpan, documentOptions, cancellationToken);
+        public Task<ImmutableArray<TextChange>> GetFormattingChangesOnPasteAsync(Document document, ITextBuffer textBuffer, TextSpan textSpan, CancellationToken cancellationToken)
+            => _implementation.GetFormattingChangesOnPasteAsync(document, textSpan, documentOptions: null, cancellationToken);
 
-        public Task<ImmutableArray<TextChange>> GetFormattingChangesAsync(Document document, char typedChar, int position, DocumentOptionSet? documentOptions, CancellationToken cancellationToken)
-            => _implementation.GetFormattingChangesAsync(document, typedChar, position, documentOptions, cancellationToken);
+        public Task<ImmutableArray<TextChange>> GetFormattingChangesAsync(Document document, ITextBuffer textBuffer, char typedChar, int position, CancellationToken cancellationToken)
+            => _implementation.GetFormattingChangesAsync(document, typedChar, position, documentOptions: null, cancellationToken);
 
-        public Task<ImmutableArray<TextChange>> GetFormattingChangesOnReturnAsync(Document document, int position, DocumentOptionSet? documentOptions, CancellationToken cancellationToken)
-            => _implementation.GetFormattingChangesOnReturnAsync(document, position, documentOptions, cancellationToken);
+        public Task<ImmutableArray<TextChange>> GetFormattingChangesOnReturnAsync(Document document, int position, CancellationToken cancellationToken)
+            => _implementation.GetFormattingChangesOnReturnAsync(document, position, documentOptions: null, cancellationToken);
     }
 }

@@ -6,11 +6,13 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation
 {
@@ -35,17 +37,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
-            var options = context.Options;
             var syntaxTree = context.Node.SyntaxTree;
-            var semanticModel = context.SemanticModel;
-            var cancellationToken = context.CancellationToken;
 
             // Not available prior to C# 9.
-            if (((CSharpParseOptions)syntaxTree.Options).LanguageVersion < LanguageVersion.CSharp9)
+            if (syntaxTree.Options.LanguageVersion() < LanguageVersion.CSharp9)
                 return;
 
-            var optionSet = options.GetAnalyzerOptionSet(syntaxTree, cancellationToken);
-            var styleOption = options.GetOption(CSharpCodeStyleOptions.ImplicitObjectCreationWhenTypeIsApparent, syntaxTree, cancellationToken);
+            var styleOption = context.GetCSharpAnalyzerOptions().ImplicitObjectCreationWhenTypeIsApparent;
             if (!styleOption.Value)
             {
                 // Bail immediately if the user has disabled this feature.
@@ -64,6 +62,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation
             var objectCreation = (ObjectCreationExpressionSyntax)context.Node;
 
             TypeSyntax? typeNode;
+            var semanticModel = context.SemanticModel;
+            var cancellationToken = context.CancellationToken;
 
             if (objectCreation.Parent.IsKind(SyntaxKind.EqualsValueClause) &&
                 objectCreation.Parent.Parent.IsKind(SyntaxKind.VariableDeclarator) &&
@@ -73,11 +73,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation
                 typeNode = variableDeclaration.Type;
 
                 var helper = CSharpUseImplicitTypeHelper.Instance;
-                if (helper.ShouldAnalyzeVariableDeclaration(variableDeclaration, cancellationToken) &&
-                    helper.AnalyzeTypeName(typeNode, semanticModel, optionSet, cancellationToken).IsStylePreferred)
+                if (helper.ShouldAnalyzeVariableDeclaration(variableDeclaration, cancellationToken))
                 {
-                    // this is a case where the user would prefer 'var'.  don't offer to use an implicit object here.
-                    return;
+                    var simplifierOptions = context.GetCSharpAnalyzerOptions().GetSimplifierOptions();
+
+                    if (helper.AnalyzeTypeName(typeNode, semanticModel, simplifierOptions, cancellationToken).IsStylePreferred)
+                    {
+                        // this is a case where the user would prefer 'var'.  don't offer to use an implicit object here.
+                        return;
+                    }
                 }
             }
             else if (objectCreation.Parent.IsKind(SyntaxKind.ArrowExpressionClause))
@@ -111,6 +115,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation
                 return;
 
             if (leftType.IsErrorType() || rightType.IsErrorType())
+                return;
+
+            // `new T?()` cannot be simplified to `new()`.  Even if the contextual type is `T?`, `new()` will be
+            // interpetted as `new T()` which is a change in semantics.
+            if (rightType.IsNullable())
                 return;
 
             // The default SymbolEquivalenceComparer will ignore tuple name differences, which is advantageous here

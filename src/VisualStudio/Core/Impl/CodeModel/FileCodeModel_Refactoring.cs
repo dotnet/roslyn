@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
@@ -21,10 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             // TODO: Support options
 
             var codeElement = ComAggregate.TryGetManagedObject<AbstractCodeElement>(element);
-            if (codeElement != null)
-            {
-                codeElement.RenameSymbol(newName);
-            }
+            codeElement?.RenameSymbol(newName);
         }
 
         public void ReorderParameters(EnvDTE.CodeElement element)

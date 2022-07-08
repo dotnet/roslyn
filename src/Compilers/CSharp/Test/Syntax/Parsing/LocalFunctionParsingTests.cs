@@ -50,7 +50,61 @@ class C
     {
         int? L(
     }
-}");
+}",
+                // (6,17): error CS1525: Invalid expression term '}'
+                //         await L<
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(6, 17),
+                // (6,17): error CS1002: ; expected
+                //         await L<
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 17),
+                // (10,15): error CS1001: Identifier expected
+                //         int L<
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(10, 15),
+                // (10,15): error CS1003: Syntax error, '>' expected
+                //         int L<
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(">").WithLocation(10, 15),
+                // (10,15): error CS1003: Syntax error, '(' expected
+                //         int L<
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(10, 15),
+                // (10,15): error CS1026: ) expected
+                //         int L<
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(10, 15),
+                // (10,15): error CS1002: ; expected
+                //         int L<
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(10, 15),
+                // (14,16): error CS1001: Identifier expected
+                //         int? L<
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(14, 16),
+                // (14,16): error CS1003: Syntax error, '>' expected
+                //         int? L<
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(">").WithLocation(14, 16),
+                // (14,16): error CS1003: Syntax error, '(' expected
+                //         int? L<
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(14, 16),
+                // (14,16): error CS1026: ) expected
+                //         int? L<
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(14, 16),
+                // (14,16): error CS1002: ; expected
+                //         int? L<
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(14, 16),
+                // (18,17): error CS1026: ) expected
+                //         await L(
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(18, 17),
+                // (18,17): error CS1002: ; expected
+                //         await L(
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(18, 17),
+                // (22,15): error CS1026: ) expected
+                //         int L(
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(22, 15),
+                // (22,15): error CS1002: ; expected
+                //         int L(
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(22, 15),
+                // (26,16): error CS1026: ) expected
+                //         int? L(
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(26, 16),
+                // (26,16): error CS1002: ; expected
+                //         int? L(
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(26, 16));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -503,7 +557,13 @@ class C
     {
         public object local;
     }
-}", TestOptions.Regular9);
+}", TestOptions.Regular9,
+                // (5,6): error CS1513: } expected
+                //     {
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 6),
+                // (8,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -636,7 +696,7 @@ class C
             UsingTree(code, TestOptions.Regular9).GetDiagnostics().Verify();
             verifyTree();
 
-            UsingTree(code, TestOptions.Regular8).GetDiagnostics().Verify(
+            UsingTree(code, TestOptions.Regular8,
                 // (6,9): error CS8400: Feature 'extern local functions' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         extern void local();
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "extern").WithArguments("extern local functions", "9.0").WithLocation(6, 9));
@@ -708,7 +768,7 @@ class C
             UsingTree(code, TestOptions.Regular9).GetDiagnostics().Verify();
             verifyTree();
 
-            UsingTree(code, TestOptions.Regular8).GetDiagnostics().Verify(
+            UsingTree(code, TestOptions.Regular8,
                 // (6,9): error CS8400: Feature 'extern local functions' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         extern void local() { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "extern").WithArguments("extern local functions", "9.0").WithLocation(6, 9));
@@ -986,7 +1046,13 @@ class C
     {
         [A]
     }
-}");
+}",
+                // (6,12): error CS1525: Invalid expression term '}'
+                //         [A]
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(6, 12),
+                // (6,12): error CS1002: ; expected
+                //         [A]
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 12));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1098,7 +1164,7 @@ class C
             CreateCompilation(errorText).VerifyDiagnostics(
                 // (11,19): error CS1003: Syntax error, '(' expected
                 //             goo<T>) { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("(", ")").WithLocation(11, 19),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("(").WithLocation(11, 19),
                 // (7,19): error CS0080: Constraints are not allowed on non-generic declarations
                 //             goo() where T : IFace => 5;
                 Diagnostic(ErrorCode.ERR_ConstraintOnlyAllowedOnGenericDecl, "where").WithLocation(7, 19),
@@ -1268,7 +1334,28 @@ class c
     async void m3() { await () => new await(); }
     void m4() { async await() => new await(); }
     async void m5() { await async () => new await(); }
-}");
+}",
+                // (6,30): error CS1525: Invalid expression term ')'
+                //     async void m3() { await () => new await(); }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 30),
+                // (6,32): error CS1002: ; expected
+                //     async void m3() { await () => new await(); }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "=>").WithLocation(6, 32),
+                // (6,32): error CS1513: } expected
+                //     async void m3() { await () => new await(); }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "=>").WithLocation(6, 32),
+                // (6,39): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
+                //     async void m3() { await () => new await(); }
+                Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(6, 39),
+                // (8,38): error CS1002: ; expected
+                //     async void m5() { await async () => new await(); }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "=>").WithLocation(8, 38),
+                // (8,38): error CS1513: } expected
+                //     async void m5() { await async () => new await(); }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "=>").WithLocation(8, 38),
+                // (8,45): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
+                //     async void m5() { await async () => new await(); }
+                Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(8, 45));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1768,7 +1855,7 @@ class c
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(5, 9),
                 // (5,16): error CS1031: Type expected
                 //         static static void F1() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithArguments("static").WithLocation(5, 16),
+                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithLocation(5, 16),
                 // (5,16): error CS8652: The feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         static static void F1() { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(5, 16),
@@ -1777,7 +1864,7 @@ class c
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(6, 9),
                 // (6,22): error CS1031: Type expected
                 //         static async static void F2() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithArguments("static").WithLocation(6, 22),
+                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithLocation(6, 22),
                 // (6,22): error CS8652: The feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         static async static void F2() { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(6, 22)
@@ -1789,19 +1876,19 @@ class c
             UsingDeclaration(text, options: TestOptions.Regular8,
                 // (5,16): error CS1031: Type expected
                 //         static static void F1() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithArguments("static").WithLocation(5, 16),
+                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithLocation(5, 16),
                 // (6,22): error CS1031: Type expected
                 //         static async static void F2() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithArguments("static").WithLocation(6, 22));
+                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithLocation(6, 22));
             checkNodes();
 
             UsingDeclaration(text, options: TestOptions.Regular9,
                 // (5,16): error CS1031: Type expected
                 //         static static void F1() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithArguments("static").WithLocation(5, 16),
+                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithLocation(5, 16),
                 // (6,22): error CS1031: Type expected
                 //         static async static void F2() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithArguments("static").WithLocation(6, 22));
+                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithLocation(6, 22));
             checkNodes();
 
             void checkNodes()

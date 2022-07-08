@@ -4,10 +4,11 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
-using System.Linq;
-using System.ComponentModel;
+using Microsoft.CodeAnalysis.SourceGeneration;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="optionsProvider">An <see cref="AnalyzerConfigOptionsProvider"/> that can be used to retrieve analyzer config values by the generators in this driver.</param>
         /// <param name="additionalTexts">A list of <see cref="AdditionalText"/>s available to generators in this driver.</param>
         internal CSharpGeneratorDriver(CSharpParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts, GeneratorDriverOptions driverOptions)
-            : base(parseOptions, generators, optionsProvider, additionalTexts, enableIncremental: parseOptions.LanguageVersion == LanguageVersion.Preview, driverOptions)
+            : base(parseOptions, generators, optionsProvider, additionalTexts, driverOptions)
         {
         }
 
@@ -73,6 +74,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override CommonMessageProvider MessageProvider => CSharp.MessageProvider.Instance;
 
-        internal override AdditionalSourcesCollection CreateSourcesCollection() => new AdditionalSourcesCollection(".cs");
+        internal override string SourceExtension => ".cs";
+
+        internal override ISyntaxHelper SyntaxHelper => CSharpSyntaxHelper.Instance;
     }
 }

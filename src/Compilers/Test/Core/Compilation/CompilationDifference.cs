@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             [CallerFilePath] string callerPath = null)
         {
             string actualIL = ILDelta.GetMethodIL();
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, escapeQuotes: true, expectedValueSourcePath: callerPath, expectedValueSourceLine: callerLine);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, escapeQuotes: false, expectedValueSourcePath: callerPath, expectedValueSourceLine: callerLine);
         }
 
         public void VerifyLocalSignature(
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             string actualIL = ILBuilderVisualizer.ILBuilderToString(ilBuilder, mapLocal ?? ToLocalInfo, sequencePointMarkers);
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, escapeQuotes: true, expectedValueSourcePath: callerPath, expectedValueSourceLine: callerLine);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, escapeQuotes: false, expectedValueSourcePath: callerPath, expectedValueSourceLine: callerLine);
         }
 
         internal string GetMethodIL(string qualifiedMethodName)
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public void VerifySynthesizedMembers(params string[] expectedSynthesizedTypesAndMemberCounts)
         {
             var actual = EmitResult.Baseline.SynthesizedMembers.Select(e => e.Key.ToString() + ": {" + string.Join(", ", e.Value.Select(v => v.Name)) + "}");
-            AssertEx.SetEqual(expectedSynthesizedTypesAndMemberCounts, actual, itemSeparator: "\r\n");
+            AssertEx.SetEqual(expectedSynthesizedTypesAndMemberCounts, actual, itemSeparator: ",\r\n", itemInspector: s => $"\"{s}\"");
         }
 
         public void VerifySynthesizedFields(string typeName, params string[] expectedSynthesizedTypesAndMemberCounts)
@@ -148,13 +148,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             AssertEx.Equal(
                 expectedMethodTokens,
                 EmitResult.UpdatedMethods.Select(methodHandle => $"0x{MetadataTokens.GetToken(methodHandle):X8}"));
-        }
-
-        public void VerifyUpdatedTypes(params string[] expectedTypeTokens)
-        {
-            AssertEx.Equal(
-                expectedTypeTokens,
-                EmitResult.UpdatedTypes.Select(typeHandle => $"0x{MetadataTokens.GetToken(typeHandle):X8}"));
         }
     }
 }

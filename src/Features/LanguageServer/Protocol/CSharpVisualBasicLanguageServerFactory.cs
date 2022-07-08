@@ -4,9 +4,10 @@
 
 using System;
 using System.Composition;
+using System.Linq;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
@@ -14,36 +15,31 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     [Export(typeof(ILanguageServerFactory)), Shared]
     internal class CSharpVisualBasicLanguageServerFactory : ILanguageServerFactory
     {
-        public const string UserVisibleName = "Roslyn Language Server Client";
-
-        private readonly RequestDispatcherFactory _dispatcherFactory;
+        private readonly AbstractLspServiceProvider _lspServiceProvider;
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpVisualBasicLanguageServerFactory(RequestDispatcherFactory dispatcherFactory,
+        public CSharpVisualBasicLanguageServerFactory(
+            CSharpVisualBasicLspServiceProvider lspServiceProvider,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
-            _dispatcherFactory = dispatcherFactory;
+            _lspServiceProvider = lspServiceProvider;
             _listenerProvider = listenerProvider;
         }
 
         public ILanguageServerTarget Create(
             JsonRpc jsonRpc,
             ICapabilitiesProvider capabilitiesProvider,
-            ILspWorkspaceRegistrationService workspaceRegistrationService,
             ILspLogger logger)
         {
             return new LanguageServerTarget(
-                _dispatcherFactory,
-                jsonRpc,
+                _lspServiceProvider, jsonRpc,
                 capabilitiesProvider,
-                workspaceRegistrationService,
                 _listenerProvider,
                 logger,
-                clientName: null,
-                userVisibleServerName: UserVisibleName,
-                telemetryServerTypeName: this.GetType().Name);
+                ProtocolConstants.RoslynLspLanguages,
+                WellKnownLspServerKinds.CSharpVisualBasicLspServer);
         }
     }
 }

@@ -31,6 +31,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         ImplicitUserDefined,
         AnonymousFunction,
         MethodGroup,
+        // Function type conversions are conversions from an inferred "function type" of
+        // a method group or lambda expression:
+        // - to another inferred "function type", or
+        // - to MulticastDelegate or base type or interface, or
+        // - to Expression or LambdaExpression.
+        FunctionType,
         ExplicitNumeric,
         ExplicitEnumeration,
         ExplicitNullable,

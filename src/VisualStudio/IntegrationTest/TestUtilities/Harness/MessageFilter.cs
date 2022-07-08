@@ -37,8 +37,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
 
         public uint RetryRejectedCall(IntPtr htaskCallee, uint dwTickCount, uint dwRejectType)
         {
-            if ((SERVERCALL)dwRejectType != SERVERCALL.SERVERCALL_RETRYLATER
-                && (SERVERCALL)dwRejectType != SERVERCALL.SERVERCALL_REJECTED)
+            if ((SERVERCALL)dwRejectType is not SERVERCALL.SERVERCALL_RETRYLATER
+                and not SERVERCALL.SERVERCALL_REJECTED)
             {
                 return CancelCall;
             }

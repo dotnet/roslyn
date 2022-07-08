@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
             //
             // Note that qualified type name can appear in QualifiedNameSyntax or MemberAccessSyntax, so we need to handle both cases.
 
-            if (syntaxFacts.IsRightSideOfQualifiedName(nameRef))
+            if (syntaxFacts.IsRightOfQualifiedName(nameRef))
             {
                 RoslynDebug.Assert(nameRef.Parent is object);
                 oldNode = nameRef.Parent;
@@ -358,7 +358,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
 
                 var node = compilationUnit.FindNode(span, getInnermostNodeForTie: true);
 
-                var namespaceDecl = node.AncestorsAndSelf().OfType<BaseNamespaceDeclarationSyntax>().SingleOrDefault();
+                var namespaceDecls = node.AncestorsAndSelf().OfType<BaseNamespaceDeclarationSyntax>().ToImmutableArray();
+                if (namespaceDecls.Length != 1)
+                    return null;
+
+                var namespaceDecl = namespaceDecls[0];
                 if (namespaceDecl == null)
                     return null;
 
@@ -380,7 +384,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
             return container;
 
             static bool ContainsNamespaceDeclaration(SyntaxNode node)
-                => node.DescendantNodes(n => n is CompilationUnitSyntax || n is BaseNamespaceDeclarationSyntax)
+                => node.DescendantNodes(n => n is CompilationUnitSyntax or BaseNamespaceDeclarationSyntax)
                        .OfType<BaseNamespaceDeclarationSyntax>().Any();
         }
 
@@ -427,7 +431,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
             if (index == 0)
             {
                 return aliasQualifier == null
-                     ? (NameSyntax)namePiece
+                     ? namePiece
                      : SyntaxFactory.AliasQualifiedName(aliasQualifier, namePiece);
             }
 

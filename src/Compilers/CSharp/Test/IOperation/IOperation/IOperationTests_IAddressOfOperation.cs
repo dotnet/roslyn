@@ -125,7 +125,7 @@ Block[B0] - Entry
                       Reference: 
                         IFieldReferenceOperation: System.Int32 S2.i (OperationKind.FieldReference, Type: System.Int32) (Syntax: '(x ? p1 : p2)->i')
                           Instance Receiver: 
-                            IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: '(x ? p1 : p2)')
+                            IOperation:  (OperationKind.None, Type: S2, IsImplicit) (Syntax: '(x ? p1 : p2)')
                               Children(1):
                                   IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: S2*, IsImplicit) (Syntax: 'x ? p1 : p2')
 

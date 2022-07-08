@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -111,6 +110,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression VisitBinaryOperator(BoundBinaryOperator node, BoundUnaryOperator? applyParentUnaryOperator)
         {
+            if (node.InterpolatedStringHandlerData is InterpolatedStringHandlerData data)
+            {
+                Debug.Assert(node.Type.SpecialType == SpecialType.System_String, "Non-string binary addition should have been handled by VisitConversion or VisitArguments");
+                ImmutableArray<BoundExpression> parts = CollectBinaryOperatorInterpolatedStringParts(node);
+                return LowerPartsToString(data, parts, node.Syntax, node.Type);
+            }
+
+            if (node.OperatorKind is BinaryOperatorKind.Utf8Addition)
+            {
+                Debug.Assert(applyParentUnaryOperator is null);
+                return VisitUtf8Addition(node);
+            }
+
             // In machine-generated code we frequently end up with binary operator trees that are deep on the left,
             // such as a + b + c + d ...
             // To avoid blowing the call stack, we make an explicit stack of the binary operators to the left, 
@@ -120,6 +132,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (BoundBinaryOperator? current = node; current != null && current.ConstantValue == null; current = current.Left as BoundBinaryOperator)
             {
+                // The regular visit mechanism will handle this.
+                if (current.InterpolatedStringHandlerData is not null || current.OperatorKind is BinaryOperatorKind.Utf8Addition)
+                {
+                    Debug.Assert(stack.Count >= 1);
+                    break;
+                }
+
                 stack.Push(current);
             }
 
@@ -134,6 +153,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             stack.Free();
             return loweredLeft;
+        }
+
+        private static ImmutableArray<BoundExpression> CollectBinaryOperatorInterpolatedStringParts(BoundBinaryOperator node)
+        {
+            Debug.Assert(node.OperatorKind == BinaryOperatorKind.StringConcatenation);
+            Debug.Assert(node.InterpolatedStringHandlerData is not null);
+            var partsBuilder = ArrayBuilder<BoundExpression>.GetInstance();
+            node.VisitBinaryOperatorInterpolatedString(partsBuilder,
+                static (BoundInterpolatedString interpolatedString, ArrayBuilder<BoundExpression> partsBuilder) =>
+                {
+                    partsBuilder.AddRange(interpolatedString.Parts);
+                    return true;
+                });
+            return partsBuilder.ToImmutableAndFree();
         }
 
         private BoundExpression MakeBinaryOperator(
@@ -216,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case BinaryOperatorKind.NullableNullEqual:
                     case BinaryOperatorKind.NullableNullNotEqual:
-                        return RewriteNullableNullEquality(syntax, operatorKind, loweredLeft, loweredRight, type);
+                        return _factory.RewriteNullableNullEquality(syntax, operatorKind, loweredLeft, loweredRight, type);
 
                     case BinaryOperatorKind.ObjectAndStringConcatenation:
                     case BinaryOperatorKind.StringAndObjectConcatenation:
@@ -337,13 +370,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BinaryOperatorKind.UIntLeftShift:
                     case BinaryOperatorKind.IntRightShift:
                     case BinaryOperatorKind.UIntRightShift:
+                    case BinaryOperatorKind.IntUnsignedRightShift:
+                    case BinaryOperatorKind.UIntUnsignedRightShift:
                         return RewriteBuiltInShiftOperation(oldNode, syntax, operatorKind, loweredLeft, loweredRight, type, 0x1F);
 
                     case BinaryOperatorKind.LongLeftShift:
                     case BinaryOperatorKind.ULongLeftShift:
                     case BinaryOperatorKind.LongRightShift:
                     case BinaryOperatorKind.ULongRightShift:
+                    case BinaryOperatorKind.LongUnsignedRightShift:
+                    case BinaryOperatorKind.ULongUnsignedRightShift:
                         return RewriteBuiltInShiftOperation(oldNode, syntax, operatorKind, loweredLeft, loweredRight, type, 0x3F);
+
+                    case BinaryOperatorKind.NIntRightShift:
+                    case BinaryOperatorKind.NUIntRightShift:
+                    case BinaryOperatorKind.NIntUnsignedRightShift:
+                    case BinaryOperatorKind.NUIntUnsignedRightShift:
+                    case BinaryOperatorKind.NIntLeftShift:
+                    case BinaryOperatorKind.NUIntLeftShift:
+                        return RewriteBuiltInNativeShiftOperation(oldNode, syntax, operatorKind, loweredLeft, loweredRight, type);
 
                     case BinaryOperatorKind.DecimalAddition:
                     case BinaryOperatorKind.DecimalSubtraction:
@@ -473,6 +518,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         goto default;
+
+                    case BinaryOperatorKind.Utf8Addition:
+                        throw ExceptionUtilities.UnexpectedValue(operatorKind);
 
                     default:
                         break;
@@ -684,13 +732,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If not the type has to implement IsTrue/IsFalse operator - we checked it during binding.
 
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo();
-            var conversion = _compilation.Conversions.ClassifyConversionFromExpression(loweredLeft, boolean, ref useSiteInfo);
+            var conversion = _compilation.Conversions.ClassifyConversionFromExpression(loweredLeft, boolean, isChecked: false, ref useSiteInfo);
             _diagnostics.Add(loweredLeft.Syntax, useSiteInfo);
             if (conversion.IsImplicit)
             {
                 Debug.Assert(leftTruthOperator == null);
 
-                var converted = MakeConversionNode(loweredLeft, boolean, @checked: false);
+                var converted = MakeConversionNode(loweredLeft, boolean, @checked: false, markAsChecked: true); // The conversion was checked in binding
                 if (negative)
                 {
                     return new BoundUnaryOperator(syntax, UnaryOperatorKind.BoolLogicalNegation, converted, ConstantValue.NotAvailable, MethodSymbol.None, constrainedToTypeOpt: null, LookupResultKind.Viable, boolean)
@@ -807,7 +855,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (operatorKind == BinaryOperatorKind.Equal || operatorKind == BinaryOperatorKind.NotEqual)
                 {
-                    BoundExpression callHasValue = MakeNullableHasValue(syntax, maybeNull);
+                    BoundExpression callHasValue = _factory.MakeNullableHasValue(syntax, maybeNull);
                     BoundExpression result = operatorKind == BinaryOperatorKind.Equal ?
                         MakeUnaryOperator(UnaryOperatorKind.BoolLogicalNegation, syntax, method: null, constrainedToTypeOpt: null, callHasValue, boolType) :
                         callHasValue;
@@ -850,7 +898,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // so return constant true.
             if (expression.Type.IsNullableType())
             {
-                return MakeNullableHasValue(syntax, expression);
+                return _factory.MakeNullableHasValue(syntax, expression);
             }
 
             return MakeBooleanConstant(syntax, true);
@@ -1712,7 +1760,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // tempy.GetValueOrDefault()
             BoundExpression callY_GetValueOrDefault = BoundCall.Synthesized(syntax, boundTempY, getValueOrDefaultY);
             // tempx.HasValue
-            BoundExpression callX_HasValue = MakeNullableHasValue(syntax, boundTempX);
+            BoundExpression callX_HasValue = _factory.MakeNullableHasValue(syntax, boundTempX);
 
             // (tempy.GetValueOrDefault || tempx.HasValue)
             BoundExpression innerOr = MakeBinaryOperator(
@@ -1772,7 +1820,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Recommendation: Do not use, use <see cref="TryGetNullableMethod"/> instead! 
         /// If used, a unit-test with a missing member is absolutely a must have.
         /// </summary>
-        private static MethodSymbol UnsafeGetNullableMethod(SyntaxNode syntax, TypeSymbol nullableType, SpecialMember member, CSharpCompilation compilation, BindingDiagnosticBag diagnostics)
+        internal static MethodSymbol UnsafeGetNullableMethod(SyntaxNode syntax, TypeSymbol nullableType, SpecialMember member, CSharpCompilation compilation, BindingDiagnosticBag diagnostics)
         {
             var nullableType2 = nullableType as NamedTypeSymbol;
             Debug.Assert(nullableType2 is { });
@@ -2054,6 +2102,67 @@ namespace Microsoft.CodeAnalysis.CSharp
                     loweredLeft,
                     loweredRight,
                     type);
+        }
+
+        private BoundExpression RewriteBuiltInNativeShiftOperation(
+            BoundBinaryOperator? oldNode,
+            SyntaxNode syntax,
+            BinaryOperatorKind operatorKind,
+            BoundExpression loweredLeft,
+            BoundExpression loweredRight,
+            TypeSymbol type)
+        {
+            // For the predefined operators, the number of bits to shift in `x << count`, `x >> count` or `x >>> count` is computed as follows:
+            // [...]
+            // - When the type of `x` is `nint` or `nuint`, the shift count is given by
+            //   the low-order five bits of `count` on a 32 bit platform, or
+            //   the lower-order six bits of `count` on a 64 bit platform.
+            //   The shift count is computed as `count & (sizeof(nint) * 8 - 1)` or `count & (sizeof(nuint) * 8 - 1)`,
+            //   which is `count & 0x1F` on a 32 bit platform and `count & 0x3F` on a 64 bit platform.
+
+            Debug.Assert(loweredLeft.Type is { });
+            TypeSymbol leftType = loweredLeft.Type;
+            Debug.Assert(leftType.SpecialType is SpecialType.System_IntPtr or SpecialType.System_UIntPtr);
+
+            ConstantValue? rightConstantValue = loweredRight.ConstantValue;
+            Debug.Assert(loweredRight.Type is { });
+            TypeSymbol rightType = loweredRight.Type;
+            Debug.Assert(rightType.SpecialType == SpecialType.System_Int32);
+
+            var oldSyntax = _factory.Syntax;
+            _factory.Syntax = loweredRight.Syntax;
+
+            if (rightConstantValue != null
+                && rightConstantValue.Discriminator == ConstantValueTypeDiscriminator.Int32
+                && rightConstantValue.Int32Value is >= 0 and <= 0x1F)
+            {
+                // For cases where count is small enough, we don't need any masking.
+                int shiftAmount = rightConstantValue.Int32Value;
+                if (shiftAmount == 0)
+                {
+                    return loweredLeft;
+                }
+
+                loweredRight = _factory.Literal(shiftAmount);
+            }
+            else
+            {
+                BinaryOperatorKind andOperatorKind = (operatorKind & ~BinaryOperatorKind.OpMask) | BinaryOperatorKind.And;
+
+                // count & (sizeof(nint) * 8 - 1)
+                loweredRight = _factory.Binary(andOperatorKind, rightType,
+                    loweredRight,
+                    _factory.IntSubtract(_factory.IntMultiply(_factory.Sizeof(leftType), _factory.Literal(8)), _factory.Literal(1)));
+            }
+
+            _factory.Syntax = syntax;
+            var result = oldNode == null
+                ? _factory.Binary(operatorKind, type, loweredLeft, loweredRight)
+                : oldNode.Update(operatorKind, null, methodOpt: null, constrainedToTypeOpt: null,
+                    oldNode.ResultKind, loweredLeft, loweredRight, type);
+
+            _factory.Syntax = oldSyntax;
+            return result;
         }
 
         private BoundExpression RewritePointerNumericOperator(

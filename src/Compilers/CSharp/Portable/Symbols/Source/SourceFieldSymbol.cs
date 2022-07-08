@@ -47,11 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected void CheckAccessibility(BindingDiagnosticBag diagnostics)
         {
-            var info = ModifierUtils.CheckAccessibility(Modifiers, this, isExplicitInterfaceImplementation: false);
-            if (info != null)
-            {
-                diagnostics.Add(new CSDiagnostic(info, this.ErrorLocation));
-            }
+            ModifierUtils.CheckAccessibility(Modifiers, this, isExplicitInterfaceImplementation: false, diagnostics, ErrorLocation);
         }
 
         protected void ReportModifiersDiagnostics(BindingDiagnosticBag diagnostics)
@@ -94,6 +90,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        // Currently, source symbols cannot declare RefCustomModifiers. If that changes, and this
+        // property is updated, test retargeting. (Update RefFieldTests.RetargetingField for instance.)
+        public sealed override ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
+
         public sealed override Symbol ContainingSymbol
         {
             get
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        protected sealed override void DecodeWellKnownAttributeImpl(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
             Debug.Assert(arguments.Diagnostics is BindingDiagnosticBag);
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                base.DecodeWellKnownAttribute(ref arguments);
+                base.DecodeWellKnownAttributeImpl(ref arguments);
             }
         }
 
@@ -135,7 +135,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var compilation = DeclaringCompilation;
             var location = ErrorLocation;
 
-            if (Type.ContainsNativeInteger())
+            if (RefKind == RefKind.RefReadOnly)
+            {
+                compilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
+            }
+
+            if (compilation.ShouldEmitNativeIntegerAttributes(Type))
             {
                 compilation.EnsureNativeIntegerAttributeExists(diagnostics, location, modifyCompilation: true);
             }
@@ -154,6 +159,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return this.Name == WellKnownMemberNames.EnumBackingFieldName;
             }
         }
+
+        internal override bool IsRequired => (Modifiers & DeclarationModifiers.Required) != 0;
     }
 
     internal abstract class SourceFieldSymbolWithSyntaxReference : SourceFieldSymbol

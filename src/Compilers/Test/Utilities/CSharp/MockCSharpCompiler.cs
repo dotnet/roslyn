@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         {
         }
 
-        public MockCSharpCompiler(string responseFile, BuildPaths buildPaths, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, ImmutableArray<ISourceGenerator> generators = default, AnalyzerAssemblyLoader loader = null)
-            : base(CSharpCommandLineParser.Default, responseFile, args, buildPaths, Environment.GetEnvironmentVariable("LIB"), loader ?? new DefaultAnalyzerAssemblyLoader())
+        public MockCSharpCompiler(string responseFile, BuildPaths buildPaths, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, ImmutableArray<ISourceGenerator> generators = default, AnalyzerAssemblyLoader loader = null, GeneratorDriverCache driverCache = null)
+            : base(CSharpCommandLineParser.Default, responseFile, args, buildPaths, Environment.GetEnvironmentVariable("LIB"), loader ?? new DefaultAnalyzerAssemblyLoader(), driverCache)
         {
             _analyzers = analyzers.NullToEmpty();
             _generators = generators.NullToEmpty();
@@ -51,6 +51,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             {
                 generators = generators.InsertRange(0, _generators);
             }
+        }
+
+        public void ResolveAnalyzersFromArguments(
+            bool skipAnalyzers,
+            out List<DiagnosticInfo> diagnostics,
+            out ImmutableArray<DiagnosticAnalyzer> analyzers,
+            out ImmutableArray<ISourceGenerator> generators)
+        {
+            diagnostics = new List<DiagnosticInfo>();
+            ResolveAnalyzersFromArguments(diagnostics, this.MessageProvider, skipAnalyzers, out analyzers, out generators);
         }
 
         public Compilation CreateCompilation(

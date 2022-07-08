@@ -144,9 +144,9 @@ class C : I {
 
             Items.Add(new HeaderItemViewModel() { Header = CSharpVSResources.Set_spacing_for_operators });
 
-            Items.Add(new RadioButtonViewModel<BinaryOperatorSpacingOptions>(CSharpVSResources.Ignore_spaces_around_binary_operators, s_expressionSpacingPreview, "binary", BinaryOperatorSpacingOptions.Ignore, CSharpFormattingOptions.SpacingAroundBinaryOperator, this, OptionStore));
-            Items.Add(new RadioButtonViewModel<BinaryOperatorSpacingOptions>(CSharpVSResources.Remove_spaces_before_and_after_binary_operators, s_expressionSpacingPreview, "binary", BinaryOperatorSpacingOptions.Remove, CSharpFormattingOptions.SpacingAroundBinaryOperator, this, OptionStore));
-            Items.Add(new RadioButtonViewModel<BinaryOperatorSpacingOptions>(CSharpVSResources.Insert_space_before_and_after_binary_operators, s_expressionSpacingPreview, "binary", BinaryOperatorSpacingOptions.Single, CSharpFormattingOptions.SpacingAroundBinaryOperator, this, OptionStore));
+            Items.Add(new RadioButtonViewModel<BinaryOperatorSpacingOptions>(CSharpVSResources.Ignore_spaces_around_binary_operators, s_expressionSpacingPreview, "binary", BinaryOperatorSpacingOptions.Ignore, CSharpFormattingOptions2.SpacingAroundBinaryOperator, this, OptionStore));
+            Items.Add(new RadioButtonViewModel<BinaryOperatorSpacingOptions>(CSharpVSResources.Remove_spaces_before_and_after_binary_operators, s_expressionSpacingPreview, "binary", BinaryOperatorSpacingOptions.Remove, CSharpFormattingOptions2.SpacingAroundBinaryOperator, this, OptionStore));
+            Items.Add(new RadioButtonViewModel<BinaryOperatorSpacingOptions>(CSharpVSResources.Insert_space_before_and_after_binary_operators, s_expressionSpacingPreview, "binary", BinaryOperatorSpacingOptions.Single, CSharpFormattingOptions2.SpacingAroundBinaryOperator, this, OptionStore));
         }
     }
 }

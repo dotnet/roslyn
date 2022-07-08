@@ -8,16 +8,18 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Differencing;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 {
     [Export(typeof(IPreviewFactoryService)), Shared]
-    internal class PreviewFactoryService : AbstractPreviewFactoryService<ICocoaDifferenceViewer>, IPreviewFactoryService
+    internal class PreviewFactoryService : AbstractPreviewFactoryService<ICocoaDifferenceViewer>
     {
         private readonly ICocoaDifferenceViewerFactoryService _differenceViewerService;
 
@@ -29,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             IContentTypeRegistryService contentTypeRegistryService,
             IProjectionBufferFactoryService projectionBufferFactoryService,
             ICocoaTextEditorFactoryService textEditorFactoryService,
-            IEditorOptionsFactoryService editorOptionsFactoryService,
+            EditorOptionsService editorOptionsService,
             ITextDifferencingSelectorService differenceSelectorService,
             IDifferenceBufferFactoryService differenceBufferService,
             ICocoaDifferenceViewerFactoryService differenceViewerService)
@@ -37,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                   textBufferFactoryService,
                   contentTypeRegistryService,
                   projectionBufferFactoryService,
-                  editorOptionsFactoryService,
+                  editorOptionsService,
                   differenceSelectorService,
                   differenceBufferService,
                   textEditorFactoryService.CreateTextViewRoleSet(
@@ -50,6 +52,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
         {
             var diffViewer = _differenceViewerService.CreateDifferenceView(diffBuffer, previewRoleSet);
             diffViewer.ViewMode = mode;
+            const string DiffOverviewMarginName = "deltadifferenceViewerOverview";
+            if (mode == DifferenceViewMode.RightViewOnly)
+            {
+                diffViewer.RightHost.GetTextViewMargin(DiffOverviewMarginName).VisualElement.Hidden = true;
+            }
+            else if (mode == DifferenceViewMode.LeftViewOnly)
+            {
+                diffViewer.LeftHost.GetTextViewMargin(DiffOverviewMarginName).VisualElement.Hidden = true;
+            }
+            else
+            {
+                Contract.ThrowIfFalse(mode == DifferenceViewMode.Inline);
+                diffViewer.InlineHost.GetTextViewMargin(DiffOverviewMarginName).VisualElement.Hidden = true;
+            }
 
             // We use ConfigureAwait(true) to stay on the UI thread.
             await diffViewer.SizeToFitAsync(ThreadingContext, cancellationToken: cancellationToken).ConfigureAwait(true);

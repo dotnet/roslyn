@@ -39,8 +39,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     {
         // Static helpers so we can pass delegates around without allocations.
 
-        private static readonly Func<Location, bool> s_isInMetadata = loc => loc.IsInMetadata;
-        private static readonly Func<Location, bool> s_isInSource = loc => loc.IsInSource;
+        private static readonly Func<Location, bool> s_isInMetadata = static loc => loc.IsInMetadata;
+        private static readonly Func<Location, bool> s_isInSource = static loc => loc.IsInSource;
 
         private static readonly Func<INamedTypeSymbol, bool> s_isInterface = t => t?.TypeKind == TypeKind.Interface;
         private static readonly Func<INamedTypeSymbol, bool> s_isNonSealedClass = t => t?.TypeKind == TypeKind.Class && !t.IsSealed;
@@ -83,6 +83,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // are passed in.  There is no need to check D as there's no way it could
             // contribute an intermediate type that affects A or C.  We only need to check
             // A, B and C
+            //
+            // An exception to the above rule is if we're just searching a single project.
+            // in that case there can be no intermediary projects that could add types.
+            // So we can just limit ourselves to that single project.
 
             // First find all the projects that could potentially reference this type.
             var projectsThatCouldReferenceType = await GetProjectsThatCouldReferenceTypeAsync(
@@ -123,14 +127,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                Debug.Assert(project.SupportsCompilation);
-                await DescendInheritanceTreeInProjectAsync(
-                    searchInMetadata, result,
-                    currentMetadataTypes, currentSourceAndMetadataTypes,
-                    project,
-                    typeMatches,
-                    shouldContinueSearching,
-                    transitive, cancellationToken).ConfigureAwait(false);
+                if (project.SupportsCompilation)
+                {
+                    await DescendInheritanceTreeInProjectAsync(
+                        searchInMetadata, result,
+                        currentMetadataTypes, currentSourceAndMetadataTypes,
+                        project,
+                        typeMatches,
+                        shouldContinueSearching,
+                        transitive, cancellationToken).ConfigureAwait(false);
+                }
             }
 
             return result.ToImmutableArray();
@@ -247,7 +253,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // Need to find all the possible projects that contain this metadata.
                 var projectsThatReferenceMetadataAssembly =
                     await DependentProjectsFinder.GetDependentProjectsAsync(
-                        solution, type, projects: null, cancellationToken: cancellationToken).ConfigureAwait(false);
+                        solution, ImmutableArray.Create<ISymbol>(type), solution.Projects.ToImmutableHashSet(), cancellationToken).ConfigureAwait(false);
 
                 // Now collect all the dependent projects as well.
                 var projectsThatCouldReferenceType =
@@ -278,10 +284,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             // Get all the projects that depend on 'project' as well as 'project' itself.
             return dependencyGraph.GetProjectsThatTransitivelyDependOnThisProject(project.Id)
-                                               .Concat(project.Id);
+                                  .Concat(project.Id);
         }
 
-        private static List<Project> GetOrderedProjectsToExamine(
+        private static ImmutableArray<Project> GetOrderedProjectsToExamine(
             Solution solution,
             IImmutableSet<Project> projects,
             IEnumerable<ProjectId> projectsThatCouldReferenceType)
@@ -295,7 +301,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return OrderTopologically(solution, projectsToExamine);
         }
 
-        private static List<Project> OrderTopologically(
+        private static ImmutableArray<Project> OrderTopologically(
             Solution solution, IEnumerable<Project> projectsToExamine)
         {
             var order = new Dictionary<ProjectId, int>(capacity: solution.ProjectIds.Count);
@@ -309,10 +315,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 index++;
             }
 
-            return projectsToExamine.OrderBy((p1, p2) => order[p1.Id] - order[p2.Id]).ToList();
+            return projectsToExamine.OrderBy((p1, p2) => order[p1.Id] - order[p2.Id]).ToImmutableArray();
         }
 
-        private static IEnumerable<Project> GetProjectsToExamineWorker(
+        private static ImmutableArray<Project> GetProjectsToExamineWorker(
             Solution solution,
             IImmutableSet<Project> projects,
             IEnumerable<ProjectId> projectsThatCouldReferenceType)
@@ -344,9 +350,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // Finally, because we're searching metadata and source symbols, this needs to be a project
             // that actually supports compilations.
             return projectsThatCouldReferenceType.Intersect(allProjectsThatTheseProjectsDependOn)
-                                                 .Select(id => solution.GetRequiredProject(id))
-                                                 .Where(p => p.SupportsCompilation)
-                                                 .ToList();
+                                                 .Select(solution.GetRequiredProject)
+                                                 .ToImmutableArray();
         }
 
         private static async Task AddDescendantMetadataTypesInProjectAsync(
@@ -375,7 +380,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 foreach (var reference in compilation.References)
                 {
-                    if (!(reference is PortableExecutableReference peReference))
+                    if (reference is not PortableExecutableReference peReference)
                         continue;
 
                     cancellationToken.ThrowIfCancellationRequested();
@@ -409,6 +414,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // 'tpeMatches' to make sure the match is correct.
             var symbolTreeInfo = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
                 project.Solution, reference, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+            // This will always be non-null since we pass loadOnly: false above.
+            Contract.ThrowIfNull(symbolTreeInfo);
 
             // For each type we care about, see if we can find any derived types
             // in this index.

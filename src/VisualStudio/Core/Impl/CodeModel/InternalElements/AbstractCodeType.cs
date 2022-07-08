@@ -66,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
                 var containingNamespaceOrType = GetNamespaceOrTypeNode();
 
                 return containingNamespaceOrType != null
-                    ? (object)FileCodeModel.GetOrCreateCodeElement<EnvDTE.CodeElement>(containingNamespaceOrType)
+                    ? FileCodeModel.GetOrCreateCodeElement<EnvDTE.CodeElement>(containingNamespaceOrType)
                     : this.FileCodeModel;
             }
         }
@@ -175,7 +175,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
 
                     abstractCodeElement = ComAggregate.TryGetManagedObject<AbstractCodeElement>(this.Members.Item(codeElement.Name));
                 }
-                else if (element is string || element is int)
+                else if (element is string or int)
                 {
                     // Is this a string or int? If so, try to retrieve it from the Members collection. Again, this will
                     // throw an ArgumentException if the name or index isn't found in the collection.

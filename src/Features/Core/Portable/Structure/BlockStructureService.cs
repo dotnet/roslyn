@@ -25,6 +25,6 @@ namespace Microsoft.CodeAnalysis.Structure
         /// </summary>
         public abstract string Language { get; }
 
-        public abstract Task<BlockStructure> GetBlockStructureAsync(Document document, CancellationToken cancellationToken);
+        public abstract Task<BlockStructure> GetBlockStructureAsync(Document document, BlockStructureOptions options, CancellationToken cancellationToken);
     }
 }

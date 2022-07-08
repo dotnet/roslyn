@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -42,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
             = ImmutableArray.Create(IDEDiagnosticIds.NamingRuleId);
 
-        public override FixAllProvider GetFixAllProvider()
+        public override FixAllProvider? GetFixAllProvider()
         {
             // Currently Fix All is not supported for naming style violations.
             return null;
@@ -57,10 +55,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
             var document = context.Document;
             var span = context.Span;
 
-            var root = await document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
             var node = root.FindNode(span);
 
-            if (document.GetLanguageService<ISyntaxFactsService>().IsIdentifierName(node))
+            if (document.GetRequiredLanguageService<ISyntaxFactsService>().IsIdentifierName(node))
             {
                 // The location we get from the analyzer only contains the identifier token and when we get its containing node,
                 // it is usually the right one (such as a variable declarator, designation or a foreach statement)
@@ -70,7 +68,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
                 node = node.Parent;
             }
 
-            var model = await document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
+            if (node == null)
+                return;
+
+            var model = await document.GetRequiredSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
             var symbol = model.GetDeclaredSymbol(node, context.CancellationToken);
 
             // TODO: We should always be able to find the symbol that generated this diagnostic,
@@ -104,8 +105,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
             Document document, ISymbol symbol, string fixedName, CancellationToken cancellationToken)
         {
             return await Renamer.RenameSymbolAsync(
-                document.Project.Solution, symbol, fixedName,
-                await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false),
+                document.Project.Solution, symbol, new SymbolRenameOptions(), fixedName,
                 cancellationToken).ConfigureAwait(false);
         }
 

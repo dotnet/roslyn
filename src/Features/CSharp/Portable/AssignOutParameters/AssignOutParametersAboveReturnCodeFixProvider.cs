@@ -29,9 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
 
         protected override void TryRegisterFix(CodeFixContext context, Document document, SyntaxNode container, SyntaxNode location)
         {
-            context.RegisterCodeFix(new MyCodeAction(
-               CSharpFeaturesResources.Assign_out_parameters,
-               c => FixAsync(document, context.Diagnostics[0], c)), context.Diagnostics);
+            RegisterCodeFix(context, CSharpFeaturesResources.Assign_out_parameters, nameof(CSharpFeaturesResources.Assign_out_parameters));
         }
 
         protected override void AssignOutParameters(
@@ -68,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
                     exprOrStatement.Parent,
                     (c, _) => c.WithAdditionalAnnotations(Formatter.Annotation));
             }
-            else if (parent is BlockSyntax || parent is SwitchSectionSyntax)
+            else if (parent is BlockSyntax or SwitchSectionSyntax)
             {
                 editor.InsertBefore(exprOrStatement, statements);
             }

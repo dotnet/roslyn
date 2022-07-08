@@ -144,6 +144,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public bool IsNativeIntegerType => _symbol.IsNativeIntegerType;
 
+            public bool IsFile => _symbol.IsFile;
+
             public INamedTypeSymbol NativeIntegerUnderlyingType => _symbol.NativeIntegerUnderlyingType;
 
             NullableAnnotation ITypeSymbol.NullableAnnotation => throw new NotImplementedException();

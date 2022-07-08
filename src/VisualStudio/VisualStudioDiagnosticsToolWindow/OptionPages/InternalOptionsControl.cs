@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -16,12 +17,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
     internal partial class InternalOptionsControl : AbstractOptionPageControl
     {
-        private readonly string _featureOptionName;
+        private readonly IEnumerable<IOption> _options;
 
-        public InternalOptionsControl(string featureOptionName, OptionStore optionStore)
+        public InternalOptionsControl(IEnumerable<IOption> options, OptionStore optionStore)
             : base(optionStore)
         {
-            _featureOptionName = featureOptionName;
+            _options = options;
 
             // options
             var optionsPanel = new StackPanel();
@@ -108,7 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         protected virtual void AddOptions(Panel panel)
         {
-            foreach (var option in OptionStore.GetRegisteredOptions().Where(o => o.Feature == _featureOptionName).OrderBy(o => o.Name))
+            foreach (var option in _options)
             {
                 if (!option.IsPerLanguage)
                 {
@@ -142,16 +143,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         private UIElement CreateControl(IOption option, string languageName = null, string additional = null)
         {
+            // Underscores in WPF mean that the next character is the access key for keyboard navigation
+            // but thats not why our option names have underscores. Also removing them looks nicer.
+            var optionDisplay = option.Name.Replace('_', ' ') + GetLanguage(languageName) + GetAdditionalText(additional);
+
             if (option.Type == typeof(bool))
             {
-                var checkBox = new CheckBox() { Content = option.Name + GetLanguage(languageName) + GetAdditionalText(additional) };
+                var checkBox = new CheckBox() { Content = optionDisplay };
                 BindToCheckBox(checkBox, option, languageName);
                 return checkBox;
             }
 
             if (option.Type == typeof(int))
             {
-                var label = new Label() { Content = option.Name + GetLanguage(languageName) + GetAdditionalText(additional) };
+                var label = new Label() { Content = optionDisplay };
                 var textBox = new TextBox();
                 BindToTextBox(textBox, option, languageName);
 
@@ -159,13 +164,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 panel.Children.Add(label);
                 panel.Children.Add(textBox);
 
+                AddSearchHandler(label);
+
                 return panel;
             }
 
             return null;
         }
 
-        private string GetAdditionalText(string additional)
+        private static string GetAdditionalText(string additional)
         {
             if (additional == null)
             {
@@ -175,7 +182,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             return " [" + additional + "]";
         }
 
-        private string GetLanguage(string languageName)
+        private static string GetLanguage(string languageName)
         {
             if (languageName == null)
             {

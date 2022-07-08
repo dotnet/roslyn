@@ -57,14 +57,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
             private readonly ISemanticFactsService _semanticFacts;
             private readonly CancellationToken _cancellationToken;
             private readonly QueryExpressionSyntax _source;
-            private readonly List<string> _introducedLocalNames;
+            private readonly List<string> _introducedLocalNames = new();
 
             public Converter(SemanticModel semanticModel, ISemanticFactsService semanticFacts, QueryExpressionSyntax source, CancellationToken cancellationToken)
             {
                 _semanticModel = semanticModel;
                 _semanticFacts = semanticFacts;
                 _source = source;
-                _introducedLocalNames = new List<string>();
                 _cancellationToken = cancellationToken;
             }
 
@@ -96,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 // https://github.com/dotnet/roslyn/issues/25639
                 if ((TryConvertInternal(queryExpressionProcessingInfo, out documentUpdateInfo) ||
                     TryReplaceWithLocalFunction(queryExpressionProcessingInfo, out documentUpdateInfo)) &&  // second attempt: at least to a local function
-                    !_semanticModel.GetDiagnostics(_source.Span, _cancellationToken).Any(diagnostic => diagnostic.DefaultSeverity == DiagnosticSeverity.Error))
+                    !_semanticModel.GetDiagnostics(_source.Span, _cancellationToken).Any(static diagnostic => diagnostic.DefaultSeverity == DiagnosticSeverity.Error))
                 {
                     if (!documentUpdateInfo.Source.IsParentKind(SyntaxKind.Block) &&
                         documentUpdateInfo.Destinations.Length > 1)
@@ -261,12 +260,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                         return true;
                     }
 
-                    if (currentNode is ExpressionSyntax ||
-                        currentNode is ArgumentSyntax ||
-                        currentNode is ArgumentListSyntax ||
-                        currentNode is EqualsValueClauseSyntax ||
-                        currentNode is VariableDeclaratorSyntax ||
-                        currentNode is VariableDeclarationSyntax)
+                    if (currentNode is ExpressionSyntax or
+                        ArgumentSyntax or
+                        ArgumentListSyntax or
+                        EqualsValueClauseSyntax or
+                        VariableDeclaratorSyntax or
+                        VariableDeclarationSyntax)
                     {
                         currentNode = currentNode.Parent;
                     }
@@ -744,7 +743,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 }
 
                 var memberDeclarationNode = FindParentMemberDeclarationNode(returnStatement, out var declaredSymbol);
-                if (!(declaredSymbol is IMethodSymbol methodSymbol))
+                if (declaredSymbol is not IMethodSymbol methodSymbol)
                 {
                     documentUpdateInfo = null;
                     return false;
@@ -880,7 +879,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                     }
 
                     // GroupClause is not supported by the conversion
-                    if (!(queryBody.SelectOrGroup is SelectClauseSyntax selectClause))
+                    if (queryBody.SelectOrGroup is not SelectClauseSyntax selectClause)
                     {
                         return false;
                     }
@@ -919,7 +918,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                     return IsLocalOrParameterSymbol(conversion.Operand);
                 }
 
-                return operation.Kind == OperationKind.LocalReference || operation.Kind == OperationKind.ParameterReference;
+                return operation.Kind is OperationKind.LocalReference or OperationKind.ParameterReference;
             }
 
             private static BlockSyntax WrapWithBlock(StatementSyntax statement)

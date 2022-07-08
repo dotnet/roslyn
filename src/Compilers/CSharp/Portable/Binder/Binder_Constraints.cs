@@ -157,11 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else if (diagnostics.DiagnosticBag is DiagnosticBag diagnosticBag)
                             {
-                                LazyMissingNonNullTypesContextDiagnosticInfo.ReportNullableReferenceTypesIfNeeded(
-                                    AreNullableAnnotationsEnabled(questionToken),
-                                    IsGeneratedCode(questionToken),
-                                    questionToken.GetLocation(),
-                                    diagnosticBag);
+                                LazyMissingNonNullTypesContextDiagnosticInfo.AddAll(this, questionToken, type: null, diagnosticBag);
                             }
                         }
                         else if (isForOverride || AreNullableAnnotationsEnabled(constraintSyntax.ClassOrStructKeyword))
@@ -414,6 +410,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // "Inconsistent accessibility: constraint type '{1}' is less accessible than '{0}'"
                 diagnostics.Add(ErrorCode.ERR_BadVisBound, location, containingSymbol, constraintType.Type);
             }
+
+            if (constraintType.Type.IsFileTypeOrUsesFileTypes())
+            {
+                // if the containing symbol of the constraint is a member, we need to ensure the nearest containing type is a file type.
+                var possibleFileType = containingSymbol switch
+                {
+                    TypeSymbol typeSymbol => typeSymbol,
+                    LocalFunctionSymbol => null,
+                    MethodSymbol method => (TypeSymbol)method.ContainingSymbol,
+                    _ => throw ExceptionUtilities.UnexpectedValue(containingSymbol)
+                };
+                Debug.Assert(possibleFileType?.IsDefinition != false);
+                if (possibleFileType?.IsFileTypeOrUsesFileTypes() == false)
+                {
+                    diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, location, constraintType.Type, containingSymbol);
+                }
+            }
+
             diagnostics.Add(location, useSiteInfo);
         }
 

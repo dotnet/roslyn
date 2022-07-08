@@ -78,14 +78,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             IImmutableSet<Document>? documents,
             CancellationToken cancellationToken = default)
         {
-            if (symbol.Kind == SymbolKind.Event ||
-                symbol.Kind == SymbolKind.Method ||
-                symbol.Kind == SymbolKind.Property)
+            if (symbol.Kind is SymbolKind.Event or
+                SymbolKind.Method or
+                SymbolKind.Property or
+                SymbolKind.Field)
             {
                 var collector = new StreamingProgressCollector();
+                var options = FindReferencesSearchOptions.GetFeatureOptionsForStartingSymbol(symbol);
                 await FindReferencesAsync(
                     symbol, solution, collector, documents,
-                    FindReferencesSearchOptions.Default, cancellationToken).ConfigureAwait(false);
+                    options, cancellationToken).ConfigureAwait(false);
                 return collector.GetReferencedSymbols();
             }
 

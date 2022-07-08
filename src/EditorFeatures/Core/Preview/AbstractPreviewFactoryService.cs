@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
@@ -15,7 +14,9 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.CodeAnalysis.Utilities;
@@ -29,18 +30,19 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 {
-    internal abstract class AbstractPreviewFactoryService<TDifferenceViewer> : ForegroundThreadAffinitizedObject, IPreviewFactoryService
+    internal abstract class AbstractPreviewFactoryService<TDifferenceViewer> : IPreviewFactoryService
         where TDifferenceViewer : IDifferenceViewer
     {
         private const double DefaultZoomLevel = 0.75;
         private readonly ITextViewRoleSet _previewRoleSet;
-
         private readonly ITextBufferFactoryService _textBufferFactoryService;
         private readonly IContentTypeRegistryService _contentTypeRegistryService;
         private readonly IProjectionBufferFactoryService _projectionBufferFactoryService;
-        private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
+        private readonly EditorOptionsService _editorOptionsService;
         private readonly ITextDifferencingSelectorService _differenceSelectorService;
         private readonly IDifferenceBufferFactoryService _differenceBufferService;
+
+        protected readonly IThreadingContext ThreadingContext;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -49,28 +51,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             ITextBufferFactoryService textBufferFactoryService,
             IContentTypeRegistryService contentTypeRegistryService,
             IProjectionBufferFactoryService projectionBufferFactoryService,
-            IEditorOptionsFactoryService editorOptionsFactoryService,
+            EditorOptionsService editorOptionsService,
             ITextDifferencingSelectorService differenceSelectorService,
             IDifferenceBufferFactoryService differenceBufferService,
             ITextViewRoleSet previewRoleSet)
-            : base(threadingContext)
         {
-            Contract.ThrowIfFalse(ThreadingContext.HasMainThread);
-
+            ThreadingContext = threadingContext;
             _textBufferFactoryService = textBufferFactoryService;
             _contentTypeRegistryService = contentTypeRegistryService;
             _projectionBufferFactoryService = projectionBufferFactoryService;
-            _editorOptionsFactoryService = editorOptionsFactoryService;
+            _editorOptionsService = editorOptionsService;
             _differenceSelectorService = differenceSelectorService;
             _differenceBufferService = differenceBufferService;
-
             _previewRoleSet = previewRoleSet;
         }
 
-        public SolutionPreviewResult GetSolutionPreviews(Solution oldSolution, Solution? newSolution, CancellationToken cancellationToken)
+        public SolutionPreviewResult? GetSolutionPreviews(Solution oldSolution, Solution? newSolution, CancellationToken cancellationToken)
             => GetSolutionPreviews(oldSolution, newSolution, DefaultZoomLevel, cancellationToken);
 
-        public SolutionPreviewResult GetSolutionPreviews(Solution oldSolution, Solution? newSolution, double zoomLevel, CancellationToken cancellationToken)
+        public SolutionPreviewResult? GetSolutionPreviews(Solution oldSolution, Solution? newSolution, double zoomLevel, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -500,7 +499,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             double zoomLevel,
             CancellationToken cancellationToken)
         {
-            Debug.Assert(oldDocument.Kind == TextDocumentKind.AdditionalDocument || oldDocument.Kind == TextDocumentKind.AnalyzerConfigDocument);
+            Debug.Assert(oldDocument.Kind is TextDocumentKind.AdditionalDocument or TextDocumentKind.AnalyzerConfigDocument);
 
             // openTextDocument must be called from the main thread
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -582,7 +581,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 
             var originalBuffer = _projectionBufferFactoryService.CreateProjectionBufferWithoutIndentation(
                 _contentTypeRegistryService,
-                _editorOptionsFactoryService.GlobalOptions,
+                _editorOptionsService.Factory.GlobalOptions,
                 oldBuffer.CurrentSnapshot,
                 "...",
                 description,
@@ -590,7 +589,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 
             var changedBuffer = _projectionBufferFactoryService.CreateProjectionBufferWithoutIndentation(
                 _contentTypeRegistryService,
-                _editorOptionsFactoryService.GlobalOptions,
+                _editorOptionsService.Factory.GlobalOptions,
                 newBuffer.CurrentSnapshot,
                 "...",
                 description,
@@ -679,8 +678,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 rightWorkspace = null;
             };
 
-            leftWorkspace?.EnableDiagnostic();
-            rightWorkspace?.EnableDiagnostic();
+            if (_editorOptionsService.GlobalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
+            {
+                leftWorkspace?.EnableSolutionCrawler();
+                rightWorkspace?.EnableSolutionCrawler();
+            }
 
             return new DifferenceViewerPreview(diffViewer);
         }

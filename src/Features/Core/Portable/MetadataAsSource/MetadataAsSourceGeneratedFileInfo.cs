@@ -18,17 +18,19 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
         public readonly AssemblyIdentity AssemblyIdentity;
         public readonly string LanguageName;
+        public readonly bool SignaturesOnly;
         public readonly ImmutableArray<MetadataReference> References;
 
         public readonly string TemporaryFilePath;
 
         private readonly ParseOptions? _parseOptions;
 
-        public MetadataAsSourceGeneratedFileInfo(string rootPath, Project sourceProject, INamedTypeSymbol topLevelNamedType, bool allowDecompilation)
+        public MetadataAsSourceGeneratedFileInfo(string rootPath, Project sourceProject, INamedTypeSymbol topLevelNamedType, bool signaturesOnly)
         {
             this.SourceProjectId = sourceProject.Id;
             this.Workspace = sourceProject.Solution.Workspace;
-            this.LanguageName = allowDecompilation ? LanguageNames.CSharp : sourceProject.Language;
+            this.LanguageName = signaturesOnly ? sourceProject.Language : LanguageNames.CSharp;
+            this.SignaturesOnly = signaturesOnly;
             if (sourceProject.Language == LanguageName)
             {
                 _parseOptions = sourceProject.ParseOptions;

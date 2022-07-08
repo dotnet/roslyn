@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers;
 using Microsoft.CodeAnalysis.PickMembers;
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateEqualsAndGetHas
         private class TestWithDialog : VerifyCS.Test
         {
             private static readonly TestComposition s_composition =
-                FeaturesTestCompositions.Features.AddParts(typeof(TestPickMembersService));
+                EditorTestCompositions.EditorFeatures.AddParts(typeof(TestPickMembersService));
 
             public ImmutableArray<string> MemberNames;
             public Action<ImmutableArray<PickMembersOption>> OptionsCallback;
@@ -93,7 +94,7 @@ class Program
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                a == program.a;
     }
 }";
@@ -103,6 +104,39 @@ class Program
                 TestCode = code,
                 FixedCode = fixedCode,
                 LanguageVersion = LanguageVersion.CSharp6,
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestEqualsSingleField_CSharp7()
+        {
+            var code =
+@"using System.Collections.Generic;
+
+class Program
+{
+    [|int a;|]
+}";
+            var fixedCode =
+@"using System.Collections.Generic;
+
+class Program
+{
+    int a;
+
+    public override bool Equals(object obj)
+    {
+        return obj is Program program &&
+               a == program.a;
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+                LanguageVersion = LanguageVersion.CSharp7,
                 Options = { PreferImplicitTypeWithInfo() },
             }.RunAsync();
         }
@@ -128,7 +162,7 @@ class Program
     public override bool Equals(object obj)
     {
         Program program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                a == program.a;
     }
 }";
@@ -170,7 +204,7 @@ class Program
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                EqualityComparer<S>.Default.Equals(a, program.a);
     }
 }";
@@ -260,7 +294,7 @@ class Program
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                a.Equals(program.a);
     }
 }";
@@ -294,7 +328,7 @@ class ReallyLongName
     public override bool Equals(object obj)
     {
         var name = obj as ReallyLongName;
-        return name != null &&
+        return !ReferenceEquals(name, null) &&
                a == name.a;
     }
 }";
@@ -328,7 +362,7 @@ class ReallyLongLong
     public override bool Equals(object obj)
     {
         var @long = obj as ReallyLongLong;
-        return @long != null &&
+        return !ReferenceEquals(@long, null) &&
                a == @long.a;
     }
 }";
@@ -366,7 +400,7 @@ class ReallyLongName
     public override bool Equals(object obj)
     {
         var name = obj as ReallyLongName;
-        return name != null &&
+        return !ReferenceEquals(name, null) &&
                a == name.a &&
                B == name.B;
     }
@@ -405,7 +439,7 @@ class Program : Base
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                i == program.i;
     }
 }";
@@ -459,7 +493,7 @@ class Program : Base
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                base.Equals(obj) &&
                i == program.i &&
                S == program.S;
@@ -524,7 +558,7 @@ class Program : Middle
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                base.Equals(obj) &&
                i == program.i &&
                S == program.S;
@@ -767,7 +801,7 @@ class Program<T>
     public override bool Equals(object obj)
     {
         var program = obj as Program<T>;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                i == program.i;
     }
 }
@@ -826,7 +860,7 @@ class Program
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                i == program.i;
     }
 
@@ -866,7 +900,7 @@ class Program
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                j == program.j;
     }
 
@@ -914,7 +948,7 @@ class Program : Base
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                j == program.j;
     }
 
@@ -966,7 +1000,7 @@ class Program : Base
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null;
+        return !ReferenceEquals(program, null);
     }
 
     public override int GetHashCode()
@@ -1006,7 +1040,7 @@ class Program
     public override bool Equals(object obj)
     {
         Program program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                i == program.i;
     }
 
@@ -1046,7 +1080,7 @@ class Program<T>
     public override bool Equals(object obj)
     {
         var program = obj as Program<T>;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                EqualityComparer<T>.Default.Equals(i, program.i);
     }
 
@@ -1086,7 +1120,7 @@ class Program<T>
     public override bool Equals(object obj)
     {
         var program = obj as Program<T>;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                EqualityComparer<Program<T>>.Default.Equals(i, program.i);
     }
 
@@ -1130,7 +1164,7 @@ class Program
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                i == program.i &&
                S == program.S;
     }
@@ -1331,7 +1365,7 @@ class C
     public override bool Equals(object obj)
     {
         var c = obj as C;
-        return c != null &&
+        return !ReferenceEquals(c, null) &&
                a.Equals(c.a);
     }
 }";
@@ -1366,7 +1400,7 @@ class C
     public override bool Equals(object obj)
     {
         var c = obj as C;
-        return c != null &&
+        return !ReferenceEquals(c, null) &&
                a.Equals(c.a);
     }
 }";
@@ -1400,7 +1434,7 @@ class C
     public override bool Equals(object obj)
     {
         var c = obj as C;
-        return c != null &&
+        return !ReferenceEquals(c, null) &&
                a.Equals(c.a);
     }
 }";
@@ -1434,7 +1468,7 @@ class Program
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                i.Equals(program.i);
     }
 
@@ -1474,7 +1508,7 @@ class Program
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                i.Equals(program.i);
     }
 
@@ -1518,7 +1552,7 @@ class Foo
     public override bool Equals(object obj)
     {
         var foo = obj as Foo;
-        return foo != null &&
+        return !ReferenceEquals(foo, null) &&
                EqualityComparer<Bar>.Default.Equals(bar, foo.bar);
     }
 
@@ -1567,7 +1601,7 @@ class Foo
     public override bool Equals(object obj)
     {
         var foo = obj as Foo;
-        return foo != null &&
+        return !ReferenceEquals(foo, null) &&
                EqualityComparer<Bar>.Default.Equals(bar, foo.bar);
     }
 
@@ -1616,7 +1650,7 @@ class Foo
     public override bool Equals(object obj)
     {
         var foo = obj as Foo;
-        return foo != null &&
+        return !ReferenceEquals(foo, null) &&
                EqualityComparer<Bar?>.Default.Equals(bar, foo.bar);
     }
 
@@ -1660,7 +1694,7 @@ class Foo<TBar> where TBar : struct
     public override bool Equals(object obj)
     {
         var foo = obj as Foo<TBar>;
-        return foo != null &&
+        return !ReferenceEquals(foo, null) &&
                EqualityComparer<TBar>.Default.Equals(bar, foo.bar);
     }
 
@@ -1700,7 +1734,7 @@ class Foo<TBar> where TBar : struct
     public override bool Equals(object obj)
     {
         var foo = obj as Foo<TBar>;
-        return foo != null &&
+        return !ReferenceEquals(foo, null) &&
                EqualityComparer<TBar?>.Default.Equals(bar, foo.bar);
     }
 
@@ -1744,7 +1778,7 @@ class Foo
     public override bool Equals(object obj)
     {
         var foo = obj as Foo;
-        return foo != null &&
+        return !ReferenceEquals(foo, null) &&
                bar == foo.bar;
     }
 
@@ -1788,7 +1822,7 @@ class Foo
     public override bool Equals(object obj)
     {
         var foo = obj as Foo;
-        return foo != null &&
+        return !ReferenceEquals(foo, null) &&
                bar == foo.bar;
     }
 
@@ -1831,7 +1865,7 @@ class Program
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                a == program.a &&
                b == program.b;
     }
@@ -1872,7 +1906,7 @@ class Program
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                c == program.c &&
                b == program.b;
     }
@@ -1913,7 +1947,7 @@ class Program
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null;
+        return !ReferenceEquals(program, null);
     }
 }";
 
@@ -1947,7 +1981,7 @@ class Program
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                F == program.F;
     }
 }";
@@ -2103,7 +2137,7 @@ class Program
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                s == program.s;
     }
 
@@ -2152,7 +2186,7 @@ class Program
     public override bool Equals(object obj)
     {
         Program program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                s == program.s;
     }
 
@@ -2199,7 +2233,7 @@ class Program
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                s == program.s;
     }
 
@@ -2304,7 +2338,7 @@ class Foo
     public override bool Equals(object obj)
     {
         var foo = obj as Foo;
-        return foo != null &&
+        return !ReferenceEquals(foo, null) &&
                BooleanValue == foo.BooleanValue &&
                DecimalValue == foo.DecimalValue &&
                EnumValue == foo.EnumValue &&
@@ -2367,7 +2401,7 @@ class Foo
     public override bool Equals(object obj)
     {
         var foo = obj as Foo;
-        return foo != null &&
+        return !ReferenceEquals(foo, null) &&
                Value.Equals(foo.Value) &&
                EqualityComparer<Bar?>.Default.Equals(NullableValue, foo.NullableValue);
     }
@@ -2597,7 +2631,7 @@ struct Foo : IEquatable<Foo>
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
-        public async Task TestImplementIEquatableOnClass()
+        public async Task TestImplementIEquatableOnClass_CSharp6()
         {
             var code =
 @"
@@ -2624,7 +2658,7 @@ class Program : IEquatable<Program>
 
     public bool Equals(Program other)
     {
-        return other != null &&
+        return !ReferenceEquals(other, null) &&
                s == other.s;
     }
 }";
@@ -2636,6 +2670,138 @@ class Program : IEquatable<Program>
                 MemberNames = default,
                 OptionsCallback = options => EnableOption(options, GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider.ImplementIEquatableId),
                 LanguageVersion = LanguageVersion.CSharp6,
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestImplementIEquatableOnClass_CSharp7()
+        {
+            var code =
+@"
+using System.Collections.Generic;
+
+class Program
+{
+    public string s;
+    [||]
+}";
+            var fixedCode =
+@"
+using System;
+using System.Collections.Generic;
+
+class Program : IEquatable<Program>
+{
+    public string s;
+
+    public override bool Equals(object obj)
+    {
+        return Equals(obj as Program);
+    }
+
+    public bool Equals(Program other)
+    {
+        return !(other is null) &&
+               s == other.s;
+    }
+}";
+
+            await new TestWithDialog
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+                MemberNames = default,
+                OptionsCallback = options => EnableOption(options, GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider.ImplementIEquatableId),
+                LanguageVersion = LanguageVersion.CSharp7,
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestImplementIEquatableOnClass_CSharp8()
+        {
+            var code =
+@"
+using System.Collections.Generic;
+
+class Program
+{
+    public string s;
+    [||]
+}";
+            var fixedCode =
+@"
+using System;
+using System.Collections.Generic;
+
+class Program : IEquatable<Program>
+{
+    public string s;
+
+    public override bool Equals(object obj)
+    {
+        return Equals(obj as Program);
+    }
+
+    public bool Equals(Program other)
+    {
+        return !(other is null) &&
+               s == other.s;
+    }
+}";
+
+            await new TestWithDialog
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+                MemberNames = default,
+                OptionsCallback = options => EnableOption(options, GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider.ImplementIEquatableId),
+                LanguageVersion = LanguageVersion.CSharp8,
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestImplementIEquatableOnClass_CSharp9()
+        {
+            var code =
+@"
+using System.Collections.Generic;
+
+class Program
+{
+    public string s;
+    [||]
+}";
+            var fixedCode =
+@"
+using System;
+using System.Collections.Generic;
+
+class Program : IEquatable<Program>
+{
+    public string s;
+
+    public override bool Equals(object obj)
+    {
+        return Equals(obj as Program);
+    }
+
+    public bool Equals(Program other)
+    {
+        return other is not null &&
+               s == other.s;
+    }
+}";
+
+            await new TestWithDialog
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+                MemberNames = default,
+                OptionsCallback = options => EnableOption(options, GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider.ImplementIEquatableId),
+                LanguageVersion = LanguageVersion.CSharp9,
                 Options = { PreferImplicitTypeWithInfo() },
             }.RunAsync();
         }
@@ -2667,7 +2833,7 @@ class Foo : IEquatable<Foo?>
 
     public bool Equals(Foo? other)
     {
-        return other != null &&
+        return !(other is null) &&
                Bar == other.Bar;
     }
 }";
@@ -2716,7 +2882,7 @@ class Foo : IEquatable<Foo?>
 
     public bool Equals(Foo? other)
     {
-        return other != null &&
+        return !(other is null) &&
                Bar == other.Bar;
     }
 }
@@ -2755,7 +2921,7 @@ class Program : {|CS0535:System.IEquatable<Program>|}
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                s == program.s;
     }
 }";
@@ -2813,7 +2979,7 @@ class Program : {|CS0535:System.IEquatable<Program>|}
     public override System.Boolean Equals(System.Object obj)
     {
         Class1 @class = obj as Class1;
-        return @class != null &&
+        return !ReferenceEquals(@class, null) &&
                i == @class.i;
     }
 
@@ -2847,8 +3013,10 @@ class Program : {|CS0535:System.IEquatable<Program>|}
     DiagnosticResult.CompilerError("CS0518").WithSpan(7, 9, 7, 15).WithArguments("System.Object"),
     // /0/Test0.cs(7,32): error CS0518: Predefined type 'System.Object' is not defined or imported
     DiagnosticResult.CompilerError("CS0518").WithSpan(7, 32, 7, 38).WithArguments("System.Object"),
-    // /0/Test0.cs(8,16): error CS0518: Predefined type 'System.Object' is not defined or imported
-    DiagnosticResult.CompilerError("CS0518").WithSpan(8, 16, 8, 30).WithArguments("System.Object"),
+    // /0/Test0.cs(8,17): error CS0103: The name 'ReferenceEquals' does not exist in the current context
+    DiagnosticResult.CompilerError("CS0103").WithSpan(8, 17, 8, 32).WithArguments("ReferenceEquals"),
+    // /0/Test0.cs(8,17): error CS0518: Predefined type 'System.Object' is not defined or imported
+    DiagnosticResult.CompilerError("CS0518").WithSpan(8, 17, 8, 32).WithArguments("System.Object"),
     // /0/Test0.cs(9,16): error CS0518: Predefined type 'System.Boolean' is not defined or imported
     DiagnosticResult.CompilerError("CS0518").WithSpan(9, 16, 9, 29).WithArguments("System.Boolean"),
     // /0/Test0.cs(12,12): error CS0518: Predefined type 'System.Void' is not defined or imported
@@ -2857,8 +3025,6 @@ class Program : {|CS0535:System.IEquatable<Program>|}
     DiagnosticResult.CompilerError("CS0518").WithSpan(16, 21, 16, 27).WithArguments("System.Object"),
     // /0/Test0.cs(16,28): error CS1069: The type name 'Int32' could not be found in the namespace 'System'. This type has been forwarded to assembly 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' Consider adding a reference to that assembly.
     DiagnosticResult.CompilerError("CS1069").WithSpan(16, 28, 16, 33).WithArguments("Int32", "System", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"),
-    // /0/Test0.cs(16,34): error CS0115: 'Class1.GetHashCode()': no suitable method found to override
-    DiagnosticResult.CompilerError("CS0115").WithSpan(16, 34, 16, 45).WithArguments("Class1.GetHashCode()"),
     // /0/Test0.cs(18,16): error CS0518: Predefined type 'System.Int32' is not defined or imported
     DiagnosticResult.CompilerError("CS0518").WithSpan(18, 16, 18, 25).WithArguments("System.Int32"),
     // /0/Test0.cs(18,28): error CS0103: The name 'EqualityComparer' does not exist in the current context
@@ -2899,7 +3065,7 @@ class Program
     public override bool Equals(object obj)
     {
         Program program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                i == program.i &&
                S == program.S;
     }

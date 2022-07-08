@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
                 End If
             End If
 
-            If context.IsSingleLineStatementContext AndAlso
+            If context.IsStatementContext AndAlso
                IsDirectlyInIfOrElseIf(context) Then
 
                 Return ImmutableArray.Create(New RecommendedKeyword("Else", VBFeaturesResources.Introduces_a_group_of_statements_in_an_If_statement_that_is_executed_if_no_previous_condition_evaluates_to_True))

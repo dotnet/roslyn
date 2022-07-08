@@ -377,7 +377,7 @@ namespace Outer
                 },
                 Options =
                 {
-                    { CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault },
+                    { CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.OmitIfDefault },
                 },
             }.RunAsync();
         }
@@ -399,7 +399,7 @@ namespace Test
 }",
                 Options =
                 {
-                    { CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault },
+                    { CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.OmitIfDefault },
                 },
             }.RunAsync();
         }
@@ -421,7 +421,7 @@ namespace Test
 }",
                 Options =
                 {
-                    { CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault },
+                    { CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.OmitIfDefault },
                 },
             }.RunAsync();
         }
@@ -437,7 +437,7 @@ internal class [|C1|] { }",
 class C1 { }",
                 Options =
                 {
-                    { CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault },
+                    { CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.OmitIfDefault },
                 },
             }.RunAsync();
         }
@@ -546,6 +546,135 @@ namespace Test;
 internal struct S1 { }
 ",
                 LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
+        [WorkItem(55703, "https://github.com/dotnet/roslyn/issues/55703")]
+        public async Task TestPartial_WithExistingModifier()
+        {
+            var source = @"
+partial class [|C|]
+{
+}
+
+public partial class C
+{
+}
+";
+            var fixedSource = @"
+public partial class C
+{
+}
+
+public partial class C
+{
+}
+";
+
+            var test = new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.Preview,
+            };
+
+            await test.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
+        [WorkItem(58914, "https://github.com/dotnet/roslyn/issues/58914")]
+        public async Task TestStaticOperatorInInterface()
+        {
+            var source = @"
+internal interface I<T> where T : I<T>
+{
+    abstract static int operator +(T x);
+}
+
+internal class C : I<C>
+{
+    static int I<C>.operator +(C x)
+    {
+        throw new System.NotImplementedException();
+    }
+}
+";
+
+            var test = new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.Preview,
+                ReferenceAssemblies = Testing.ReferenceAssemblies.Net.Net60
+            };
+
+            await test.RunAsync();
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
+        [InlineData("class")]
+        [InlineData("struct")]
+        [InlineData("record")]
+        [InlineData("record struct")]
+        [InlineData("interface")]
+        [InlineData("enum")]
+        [WorkItem(62259, "https://github.com/dotnet/roslyn/issues/62259")]
+        public async Task TestFileDeclaration(string declarationKind)
+        {
+            var source = $"file {declarationKind} C {{ }}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.Preview,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
+        [WorkItem(62259, "https://github.com/dotnet/roslyn/issues/62259")]
+        public async Task TestFileDelegate()
+        {
+            var source = "file delegate void M();";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.Preview,
+            }.RunAsync();
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
+        [InlineData("class")]
+        [InlineData("struct")]
+        [InlineData("record")]
+        [InlineData("record struct")]
+        [InlineData("interface")]
+        [InlineData("enum")]
+        [WorkItem(62259, "https://github.com/dotnet/roslyn/issues/62259")]
+        public async Task TestNestedFileDeclaration(string declarationKind)
+        {
+            var source = $$"""
+                file class C1
+                {
+                    {{declarationKind}} [|C2|] { }
+                }
+                """;
+
+            var fixedSource = $$"""
+                file class C1
+                {
+                    private {{declarationKind}} C2 { }
+                }
+                """;
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                LanguageVersion = LanguageVersion.Preview,
             }.RunAsync();
         }
     }

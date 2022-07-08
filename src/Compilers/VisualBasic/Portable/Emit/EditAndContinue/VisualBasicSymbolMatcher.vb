@@ -26,10 +26,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                       sourceContext As EmitContext,
                       otherAssembly As SourceAssemblySymbol,
                       otherContext As EmitContext,
-                      otherSynthesizedMembersOpt As ImmutableDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal)))
+                      otherSynthesizedMembersOpt As ImmutableDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal)),
+                      otherDeletedMembersOpt As ImmutableDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal)))
 
             _defs = New MatchDefsToSource(sourceContext, otherContext)
-            _symbols = New MatchSymbols(anonymousTypeMap, sourceAssembly, otherAssembly, otherSynthesizedMembersOpt, New DeepTranslator(otherAssembly.GetSpecialType(SpecialType.System_Object)))
+            _symbols = New MatchSymbols(anonymousTypeMap, sourceAssembly, otherAssembly, otherSynthesizedMembersOpt, otherDeletedMembersOpt, New DeepTranslator(otherAssembly.GetSpecialType(SpecialType.System_Object)))
         End Sub
 
         Public Sub New(anonymousTypeMap As IReadOnlyDictionary(Of AnonymousTypeKey, AnonymousTypeValue),
@@ -38,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                       otherAssembly As PEAssemblySymbol)
 
             _defs = New MatchDefsToMetadata(sourceContext, otherAssembly)
-            _symbols = New MatchSymbols(anonymousTypeMap, sourceAssembly, otherAssembly, otherSynthesizedMembersOpt:=Nothing, deepTranslatorOpt:=Nothing)
+            _symbols = New MatchSymbols(anonymousTypeMap, sourceAssembly, otherAssembly, otherSynthesizedMembersOpt:=Nothing, otherDeletedMembers:=Nothing, deepTranslatorOpt:=Nothing)
         End Sub
 
         Public Overrides Function MapDefinition(definition As Cci.IDefinition) As Cci.IDefinition
@@ -231,6 +232,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Private ReadOnly _sourceAssembly As SourceAssemblySymbol
             Private ReadOnly _otherAssembly As AssemblySymbol
             Private ReadOnly _otherSynthesizedMembersOpt As ImmutableDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal))
+            Private ReadOnly _otherDeletedMembersOpt As ImmutableDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal))
 
             ' A cache of members per type, populated when the first member for a given
             ' type Is needed. Within each type, members are indexed by name. The reason
@@ -242,12 +244,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                            sourceAssembly As SourceAssemblySymbol,
                            otherAssembly As AssemblySymbol,
                            otherSynthesizedMembersOpt As ImmutableDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal)),
+                           otherDeletedMembers As ImmutableDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal)),
                            deepTranslatorOpt As DeepTranslator)
 
                 _anonymousTypeMap = anonymousTypeMap
                 _sourceAssembly = sourceAssembly
                 _otherAssembly = otherAssembly
                 _otherSynthesizedMembersOpt = otherSynthesizedMembersOpt
+                _otherDeletedMembersOpt = otherDeletedMembers
                 _comparer = New SymbolComparer(Me, deepTranslatorOpt)
                 _matches = New ConcurrentDictionary(Of Symbol, Symbol)(ReferenceEqualityComparer.Instance)
                 _otherMembers = New ConcurrentDictionary(Of ISymbolInternal, IReadOnlyDictionary(Of String, ImmutableArray(Of ISymbolInternal)))(ReferenceEqualityComparer.Instance)
@@ -366,15 +370,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Public Overrides Function VisitNamespace([namespace] As NamespaceSymbol) As Symbol
                 Dim otherContainer As Symbol = Visit([namespace].ContainingSymbol)
 
-                ' TODO: Workaround for https//github.com/dotnet/roslyn/issues/54939.
-                ' We should fail if the container can't be mapped.
-                ' Currently this only occurs when determining reloadable type name for a type added to a new namespace,
-                ' which is a rude edit.
-                ' Debug.Assert(otherContainer IsNot Nothing)
+                ' Containing namespace will be missing from other assembly
+                ' if its was added in the (newer) source assembly.
                 If otherContainer Is Nothing Then
                     Return Nothing
                 End If
-
 
                 Select Case otherContainer.Kind
                     Case SymbolKind.NetModule
@@ -563,7 +563,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 method = SubstituteTypeParameters(method)
                 other = SubstituteTypeParameters(other)
 
-                Return Me._comparer.Equals(method.ReturnType, other.ReturnType) AndAlso
+                Return _comparer.Equals(method.ReturnType, other.ReturnType) AndAlso
                     method.Parameters.SequenceEqual(other.Parameters, AddressOf Me.AreParametersEqual) AndAlso
                     method.TypeParameters.SequenceEqual(other.TypeParameters, AddressOf Me.AreTypesEqual)
             End Function
@@ -597,7 +597,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             Private Function AreParametersEqual(parameter As ParameterSymbol, other As ParameterSymbol) As Boolean
                 Debug.Assert(parameter.Ordinal = other.Ordinal)
-                Return s_nameComparer.Equals(parameter.Name, other.Name) AndAlso parameter.IsByRef = other.IsByRef AndAlso Me._comparer.Equals(parameter.Type, other.Type)
+                Return parameter.IsByRef = other.IsByRef AndAlso Me._comparer.Equals(parameter.Type, other.Type)
             End Function
 
             Private Function ArePropertiesEqual([property] As PropertySymbol, other As PropertySymbol) As Boolean
@@ -658,6 +658,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     members.AddRange(synthesizedMembers)
                 End If
 
+                Dim deletedMembers As ImmutableArray(Of ISymbolInternal) = Nothing
+                If _otherDeletedMembersOpt IsNot Nothing AndAlso _otherDeletedMembersOpt.TryGetValue(symbol, deletedMembers) Then
+                    members.AddRange(deletedMembers)
+                End If
+
                 Dim result = members.ToDictionary(Function(s) s.Name, s_nameComparer)
                 members.Free()
                 Return result
@@ -674,6 +679,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 End Sub
 
                 Public Overloads Function Equals(source As TypeSymbol, other As TypeSymbol) As Boolean
+                    If ReferenceEquals(source, other) Then
+                        Return True
+                    End If
+
                     Dim visitedSource = DirectCast(_matcher.Visit(source), TypeSymbol)
                     Dim visitedOther = If(_deepTranslatorOpt IsNot Nothing, DirectCast(_deepTranslatorOpt.Visit(other), TypeSymbol), other)
 

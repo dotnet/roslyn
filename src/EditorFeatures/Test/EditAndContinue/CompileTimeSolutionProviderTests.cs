@@ -24,18 +24,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
     [UseExportProvider]
     public class CompileTimeSolutionProviderTests
     {
-        [Fact]
-        public async Task TryGetCompileTimeDocumentAsync()
+        [Theory]
+        [InlineData("razor")]
+        [InlineData("cshtml")]
+        public async Task TryGetCompileTimeDocumentAsync(string kind)
         {
             var workspace = new TestWorkspace(composition: FeaturesTestCompositions.Features);
             var projectId = ProjectId.CreateNewId();
 
             var projectFilePath = Path.Combine(TempRoot.Root, "a.csproj");
-            var additionalFilePath = Path.Combine(TempRoot.Root, "a", "X.razor");
-            var designTimeFilePath = Path.Combine(TempRoot.Root, "a", "X.razor.g.cs");
-            var generatedHintName = @"_a_X_razor.cs";
+            var additionalFilePath = Path.Combine(TempRoot.Root, "a", $"X.{kind}");
+            var designTimeFilePath = Path.Combine(TempRoot.Root, "a", $"X.{kind}.g.cs");
 
-            var generator = new TestSourceGenerator() { ExecuteImpl = context => context.AddSource(generatedHintName, "") };
+            var generator = new TestSourceGenerator() { ExecuteImpl = context => context.AddSource($"a_X_{kind}.g.cs", "") };
             var sourceGeneratedPathPrefix = Path.Combine(typeof(TestSourceGenerator).Assembly.GetName().Name, typeof(TestSourceGenerator).FullName);
             var analyzerConfigId = DocumentId.CreateNewId(projectId);
             var documentId = DocumentId.CreateNewId(projectId);

@@ -143,6 +143,9 @@ End Class
                 </Workspace>, host)
 
                 Dim view = workspace.Documents.Single().GetTextView()
+
+                view.Options.GlobalOptions.SetOptionValue(DefaultOptions.IndentStyleId, IndentingStyle.Smart)
+
                 view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value))
 
                 Dim commandHandler = CreateCommandHandler(workspace)
@@ -238,7 +241,7 @@ End Class
                 Await WaitForRename(workspace)
 
                 ' Unfocus the dashboard
-                Dim dashboard = DirectCast(view.GetAdornmentLayer("RoslynRenameDashboard").Elements(0).Adornment, Dashboard)
+                Dim dashboard = DirectCast(view.GetAdornmentLayer("RoslynRenameDashboard").Elements(0).Adornment, RenameDashboard)
                 dashboard.ShouldReceiveKeyboardNavigation = False
 
                 commandHandler.ExecuteCommand(New TabKeyCommandArgs(view, view.TextBuffer),

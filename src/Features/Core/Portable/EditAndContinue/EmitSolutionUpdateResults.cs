@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.Serialization;
 using System.Threading;
@@ -10,8 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
-using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
+using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
@@ -30,38 +30,47 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             [DataMember(Order = 2)]
             public readonly ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> RudeEdits;
 
+            [DataMember(Order = 3)]
+            public readonly DiagnosticData? SyntaxError;
+
             public Data(
                 ManagedModuleUpdates moduleUpdates,
                 ImmutableArray<DiagnosticData> diagnostics,
-                ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> rudeEdits)
+                ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> rudeEdits,
+                DiagnosticData? syntaxError)
             {
                 ModuleUpdates = moduleUpdates;
                 Diagnostics = diagnostics;
                 RudeEdits = rudeEdits;
+                SyntaxError = syntaxError;
             }
         }
 
         public static readonly EmitSolutionUpdateResults Empty =
-            new(new ManagedModuleUpdates(ManagedModuleUpdateStatus.None, ImmutableArray<ManagedModuleUpdate>.Empty),
-                ImmutableArray<(ProjectId ProjectId, ImmutableArray<Diagnostic> Diagnostic)>.Empty,
-                ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)>.Empty);
+            new(moduleUpdates: new ManagedModuleUpdates(ManagedModuleUpdateStatus.None, ImmutableArray<ManagedModuleUpdate>.Empty),
+                diagnostics: ImmutableArray<(ProjectId, ImmutableArray<Diagnostic>)>.Empty,
+                documentsWithRudeEdits: ImmutableArray<(DocumentId, ImmutableArray<RudeEditDiagnostic>)>.Empty,
+                syntaxError: null);
 
         public readonly ManagedModuleUpdates ModuleUpdates;
         public readonly ImmutableArray<(ProjectId ProjectId, ImmutableArray<Diagnostic> Diagnostics)> Diagnostics;
         public readonly ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> RudeEdits;
+        public readonly Diagnostic? SyntaxError;
 
         public EmitSolutionUpdateResults(
             ManagedModuleUpdates moduleUpdates,
             ImmutableArray<(ProjectId ProjectId, ImmutableArray<Diagnostic> Diagnostic)> diagnostics,
-            ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> documentsWithRudeEdits)
+            ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> documentsWithRudeEdits,
+            Diagnostic? syntaxError)
         {
             ModuleUpdates = moduleUpdates;
             Diagnostics = diagnostics;
             RudeEdits = documentsWithRudeEdits;
+            SyntaxError = syntaxError;
         }
 
         public Data Dehydrate(Solution solution)
-            => new(ModuleUpdates, GetDiagnosticData(solution), RudeEdits);
+            => new(ModuleUpdates, GetDiagnosticData(solution), RudeEdits, GetSyntaxErrorData(solution));
 
         public ImmutableArray<DiagnosticData> GetDiagnosticData(Solution solution)
         {
@@ -80,6 +89,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             return result.ToImmutable();
+        }
+
+        public DiagnosticData? GetSyntaxErrorData(Solution solution)
+        {
+            if (SyntaxError == null)
+            {
+                return null;
+            }
+
+            Debug.Assert(SyntaxError.Location.SourceTree != null);
+            return DiagnosticData.Create(SyntaxError, solution.GetRequiredDocument(SyntaxError.Location.SourceTree));
         }
 
         public async Task<ImmutableArray<Diagnostic>> GetAllDiagnosticsAsync(Solution solution, CancellationToken cancellationToken)
@@ -110,7 +130,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         internal static async ValueTask<ImmutableArray<ManagedHotReloadDiagnostic>> GetHotReloadDiagnosticsAsync(
             Solution solution,
-            ImmutableArray<DiagnosticData> diagnosticData, ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> rudeEdits,
+            ImmutableArray<DiagnosticData> diagnosticData,
+            ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> rudeEdits,
+            DiagnosticData? syntaxError,
             CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<ManagedHotReloadDiagnostic>.GetInstance(out var builder);
@@ -139,6 +161,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 break;
             }
 
+            if (syntaxError != null)
+            {
+                Debug.Assert(syntaxError.DataLocation != null);
+                Debug.Assert(syntaxError.Message != null);
+
+                var fileSpan = syntaxError.DataLocation.GetFileLinePositionSpan();
+
+                builder.Add(new ManagedHotReloadDiagnostic(
+                    syntaxError.Id,
+                    syntaxError.Message,
+                    ManagedHotReloadDiagnosticSeverity.Error,
+                    fileSpan.Path,
+                    fileSpan.Span.ToSourceSpan()));
+            }
+
             // Report all rude edits.
 
             foreach (var (documentId, diagnostics) in rudeEdits)
@@ -152,7 +189,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     var severity = descriptor.DefaultSeverity switch
                     {
-                        DiagnosticSeverity.Error => ManagedHotReloadDiagnosticSeverity.Error,
+                        DiagnosticSeverity.Error => ManagedHotReloadDiagnosticSeverity.RestartRequired,
                         DiagnosticSeverity.Warning => ManagedHotReloadDiagnosticSeverity.Warning,
                         _ => throw ExceptionUtilities.UnexpectedValue(descriptor.DefaultSeverity)
                     };

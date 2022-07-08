@@ -2,14 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UsePatternCombinators;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -39,10 +36,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternCombinators
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpUsePatternCombinatorsDiagnosticAnalyzer(), new CSharpUsePatternCombinatorsCodeFixProvider());
 
-        private Task TestAllMissingOnExpressionAsync(string expression, ParseOptions parseOptions = null, bool enabled = true)
+        private Task TestAllMissingOnExpressionAsync(string expression, ParseOptions? parseOptions = null, bool enabled = true)
             => TestMissingAsync(FromExpression(expression), parseOptions, enabled);
 
-        private Task TestMissingAsync(string initialMarkup, ParseOptions parseOptions = null, bool enabled = true)
+        private Task TestMissingAsync(string initialMarkup, ParseOptions? parseOptions = null, bool enabled = true)
             => TestMissingAsync(initialMarkup, new TestParameters(
                 parseOptions: parseOptions ?? CSharp9, options: enabled ? null : s_disabled));
 
@@ -108,12 +105,13 @@ class C
         [InlineData("i == default || i > default(int)", "i is default(int) or > (default(int))")]
         [InlineData("!(o is C c)", "o is not C c")]
         [InlineData("o is int ii && o is long jj", "o is int ii and long jj")]
+        [InlineData("o is string || o is Exception", "o is string or Exception")]
+        [InlineData("o is System.String || o is System.Exception", "o is System.String or System.Exception")]
         [InlineData("!(o is C)", "o is not C")]
         [InlineData("!(o is C _)", "o is not C _")]
         [InlineData("i == (0x02 | 0x04) || i != 0", "i is (0x02 | 0x04) or not 0")]
         [InlineData("i == 1 || 2 == i", "i is 1 or 2")]
         [InlineData("i == (short)1 || (short)2 == i", "i is ((short)1) or ((short)2)")]
-        [InlineData("nullable == 1 || 2 == nullable", "nullable is 1 or 2")]
         [InlineData("i != 1 || 2 != i", "i is not 1 or not 2")]
         [InlineData("i != 1 && 2 != i", "i is not 1 and not 2")]
         [InlineData("!(i != 1 && 2 != i)", "i is 1 or 2")]
@@ -124,6 +122,13 @@ class C
         [InlineData("ch == 'a' || 'b' == ch", "ch is 'a' or 'b'")]
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
         public async Task TestOnExpression(string expression, string expected)
+        {
+            await TestAllOnExpressionAsync(expression, expected);
+        }
+
+        [InlineData("nullable == 1 || 2 == nullable", "nullable is 1 or 2")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        public async Task TestOnNullableExpression(string expression, string expected)
         {
             await TestAllOnExpressionAsync(expression, expected);
         }
@@ -377,6 +382,249 @@ public class C
         return count == 1 [|{logicalOperator}|] ch[0] == 'S';
     }}
 }}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        public async Task TestOnSideEffects1()
+        {
+            await TestInRegularAndScriptAsync(
+                @"
+class C
+{
+    char ReadChar() => default;
+
+    void M(char c)
+    {
+        if ({|FixAllInDocument:c == 'x' && c == 'y'|})
+        {
+        }
+
+        if (c == 'x' && c == 'y')
+        {
+        }
+
+        if (ReadChar() == 'x' && ReadChar() == 'y')
+        {
+        }
+    }
+}
+",
+
+                @"
+class C
+{
+    char ReadChar() => default;
+
+    void M(char c)
+    {
+        if (c is 'x' and 'y')
+        {
+        }
+
+        if (c is 'x' and 'y')
+        {
+        }
+
+        if (ReadChar() == 'x' && ReadChar() == 'y')
+        {
+        }
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        public async Task TestOnSideEffects2()
+        {
+            await TestInRegularAndScriptAsync(
+                @"
+class C
+{
+    char ReadChar() => default;
+
+    void M(char c)
+    {
+        if ({|FixAllInDocument:ReadChar() == 'x' && ReadChar() == 'y'|})
+        {
+        }
+
+        if (ReadChar() == 'x' && ReadChar() == 'y')
+        {
+        }
+
+        if (c == 'x' && c == 'y')
+        {
+        }
+    }
+}
+",
+
+                @"
+class C
+{
+    char ReadChar() => default;
+
+    void M(char c)
+    {
+        if (ReadChar() is 'x' and 'y')
+        {
+        }
+
+        if (ReadChar() is 'x' and 'y')
+        {
+        }
+
+        if (c == 'x' && c == 'y')
+        {
+        }
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        [WorkItem(57199, "https://github.com/dotnet/roslyn/issues/57199")]
+        public async Task TestMissingInNonConvertibleTypePattern1()
+        {
+            await TestMissingAsync(
+@"
+static class C
+{
+    public struct S1 : I { }
+    public struct S2 : I { }
+    public interface I { }
+}
+
+class Test<T>
+{
+    public readonly T C;
+    bool P => [|C is C.S1 || C is C.S2|];
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        [WorkItem(57199, "https://github.com/dotnet/roslyn/issues/57199")]
+        public async Task TestMissingInNonConvertibleTypePattern2()
+        {
+            await TestMissingAsync(
+@"
+        class Goo
+        {
+            private class X { }
+            private class Y { }
+
+            private void M(object o)
+            {
+                var X = 1;
+                var Y = 2;
+
+                if [|(o is X || o is Y)|]
+                {
+                }
+            }
+        }
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        [WorkItem(57199, "https://github.com/dotnet/roslyn/issues/57199")]
+        public async Task TestMissingInNonConvertibleTypePattern3()
+        {
+            await TestMissingAsync(
+@"
+        class Goo
+        {
+            private class X { }
+            private class Y { }
+            private void M(object o)
+            {
+                var X = 1;
+                var Y = 2;
+                if [|(o is global::Goo.X || o is Y)|]
+                {
+                }
+            }
+        }
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        [WorkItem(57199, "https://github.com/dotnet/roslyn/issues/57199")]
+        public async Task TestInConvertibleTypePattern()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+static class C
+{
+    public struct S1 : I { }
+    public struct S2 : I { }
+    public interface I { }
+}
+
+class Test<T>
+{
+    bool P => [|C is C.S1 || C is C.S2|];
+}
+",
+
+@"
+static class C
+{
+    public struct S1 : I { }
+    public struct S2 : I { }
+    public interface I { }
+}
+
+class Test<T>
+{
+    bool P => C is C.S1 or C.S2;
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        [WorkItem(57199, "https://github.com/dotnet/roslyn/issues/57199")]
+        public async Task TestInConvertibleTypePattern2()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+public class Goo
+{
+    private class X { }
+    private class Y { }
+
+    private void M(object o)
+    {
+        var X = 1;
+        var Y = 2;
+
+        var @int = 1;
+        var @long = 2;
+        if [|(o is int || o is long)|]
+        {
+        }
+    }
+}
+", @"
+public class Goo
+{
+    private class X { }
+    private class Y { }
+
+    private void M(object o)
+    {
+        var X = 1;
+        var Y = 2;
+
+        var @int = 1;
+        var @long = 2;
+        if (o is int or long)
+        {
+        }
+    }
+}
+");
         }
     }
 }

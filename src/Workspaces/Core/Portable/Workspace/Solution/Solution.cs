@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -36,7 +37,7 @@ namespace Microsoft.CodeAnalysis
             _state = state;
         }
 
-        internal Solution(Workspace workspace, SolutionInfo.SolutionAttributes solutionAttributes, SerializableOptionSet options, IReadOnlyList<AnalyzerReference> analyzerReferences)
+        internal Solution(Workspace workspace, SolutionInfo.SolutionAttributes solutionAttributes, SolutionOptionSet options, IReadOnlyList<AnalyzerReference> analyzerReferences)
             : this(new SolutionState(workspace.PrimaryBranchId, new SolutionServices(workspace), solutionAttributes, options, analyzerReferences))
         {
         }
@@ -129,7 +130,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Given a <paramref name="symbol"/> returns the <see cref="ProjectId"/> of the <see cref="Project"/> it came
-        /// from.  Returns <see langword="null"/> if <paramref name="symbol"/> does not come from <paramref name="symbol"/>.
+        /// from.  Returns <see langword="null"/> if <paramref name="symbol"/> does not come from any project in this solution.
         /// </summary>
         /// <remarks>
         /// This function differs from <see cref="GetProject(IAssemblySymbol, CancellationToken)"/> in terms of how it
@@ -1703,16 +1704,14 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Gets a copy of the solution isolated from the original so that they do not share computed state.
-        /// 
-        /// Use isolated solutions when doing operations that are likely to access a lot of text,
-        /// syntax trees or compilations that are unlikely to be needed again after the operation is done. 
-        /// When the isolated solution is reclaimed so will the computed state.
+        /// Formerly, returned a copy of the solution isolated from the original so that they do not share computed state. It now does nothing.
         /// </summary>
+        [Obsolete("This method no longer produces a Solution that does not share state and is no longer necessary to call.", error: false)]
+        [EditorBrowsable(EditorBrowsableState.Never)] // hide this since it is obsolete and only leads to confusion
         public Solution GetIsolatedSolution()
         {
-            var newState = _state.GetIsolatedSolution();
-            return new Solution(newState);
+            // To maintain compat, just return ourself, which will be functionally identical.
+            return this;
         }
 
         /// <summary>
@@ -1760,6 +1759,21 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Undoes the operation of <see cref="WithFrozenSourceGeneratedDocument"/>; any frozen source generated document is allowed
+        /// to have it's real output again.
+        /// </summary>
+        internal Solution WithoutFrozenSourceGeneratedDocuments()
+        {
+            var newState = _state.WithoutFrozenSourceGeneratedDocuments();
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
+        }
+
+        /// <summary>
         /// Gets an objects that lists the added, changed and removed projects between
         /// this solution and the specified solution.
         /// </summary>
@@ -1802,7 +1816,7 @@ namespace Microsoft.CodeAnalysis
         {
             return options switch
             {
-                SerializableOptionSet serializableOptions => WithOptions(serializableOptions),
+                SolutionOptionSet serializableOptions => WithOptions(serializableOptions),
                 null => throw new ArgumentNullException(nameof(options)),
                 _ => throw new ArgumentException(WorkspacesResources.Options_did_not_come_from_specified_Solution, paramName: nameof(options))
             };
@@ -1811,7 +1825,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new solution instance with the specified serializable <paramref name="options"/>.
         /// </summary>
-        internal Solution WithOptions(SerializableOptionSet options)
+        internal Solution WithOptions(SolutionOptionSet options)
         {
             var newState = _state.WithOptions(options: options);
             if (newState == _state)

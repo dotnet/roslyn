@@ -5,11 +5,9 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Text;
 using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
@@ -24,16 +22,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             true;
 #elif NETCOREAPP
             false;
-#elif NETSTANDARD2_0
-            throw new PlatformNotSupportedException();
 #else
 #error Unsupported configuration
 #endif
         internal static bool IsCoreClrRuntime => !IsDesktopRuntime;
 
+        internal static bool IsCoreClr6Runtime
+            => IsCoreClrRuntime && RuntimeInformation.FrameworkDescription.StartsWith(".NET 6.", StringComparison.Ordinal);
+
         internal static BuildPaths CreateBuildPaths(string workingDirectory, string sdkDirectory = null, string tempDirectory = null)
         {
-            tempDirectory = tempDirectory ?? Path.GetTempPath();
+            tempDirectory ??= Path.GetTempPath();
 #if NET472
             return new BuildPaths(
                 clientDir: Path.GetDirectoryName(typeof(BuildPathsUtil).Assembly.Location),
@@ -55,8 +54,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return new Roslyn.Test.Utilities.Desktop.DesktopRuntimeEnvironmentFactory();
 #elif NETCOREAPP
             return new Roslyn.Test.Utilities.CoreClr.CoreCLRRuntimeEnvironmentFactory();
-#elif NETSTANDARD2_0
-            throw new PlatformNotSupportedException();
 #else
 #error Unsupported configuration
 #endif

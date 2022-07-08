@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private SynthesizedEmbeddedNullableContextAttributeSymbol _lazyNullableContextAttribute;
         private SynthesizedEmbeddedNullablePublicOnlyAttributeSymbol _lazyNullablePublicOnlyAttribute;
         private SynthesizedEmbeddedNativeIntegerAttributeSymbol _lazyNativeIntegerAttribute;
+        private SynthesizedEmbeddedLifetimeAnnotationAttributeSymbol _lazyLifetimeAnnotationAttribute;
 
         /// <summary>
         /// The behavior of the C# command-line compiler is as follows:
@@ -98,6 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             builder.AddIfNotNull(_lazyNullableContextAttribute);
             builder.AddIfNotNull(_lazyNullablePublicOnlyAttribute);
             builder.AddIfNotNull(_lazyNativeIntegerAttribute);
+            builder.AddIfNotNull(_lazyLifetimeAnnotationAttribute);
 
             return builder.ToImmutableAndFree();
         }
@@ -249,6 +251,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return base.SynthesizeNativeIntegerAttribute(member, arguments);
         }
 
+        internal override SynthesizedAttributeData SynthesizeLifetimeAnnotationAttribute(WellKnownMember member, ImmutableArray<TypedConstant> arguments)
+        {
+            if ((object)_lazyLifetimeAnnotationAttribute != null)
+            {
+                return new SynthesizedAttributeData(
+                    _lazyLifetimeAnnotationAttribute.Constructors[0],
+                    arguments,
+                    ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
+            }
+
+            return base.SynthesizeLifetimeAnnotationAttribute(member, arguments);
+        }
+
         protected override SynthesizedAttributeData TrySynthesizeIsReadOnlyAttribute()
         {
             if ((object)_lazyIsReadOnlyAttribute != null)
@@ -366,11 +381,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             if ((needsAttributes & EmbeddableAttributes.NativeIntegerAttribute) != 0)
             {
+                Debug.Assert(Compilation.ShouldEmitNativeIntegerAttributes());
                 CreateAttributeIfNeeded(
                     ref _lazyNativeIntegerAttribute,
                     diagnostics,
                     AttributeDescription.NativeIntegerAttribute,
                     CreateNativeIntegerAttributeSymbol);
+            }
+
+            if ((needsAttributes & EmbeddableAttributes.LifetimeAnnotationAttribute) != 0)
+            {
+                CreateAttributeIfNeeded(
+                    ref _lazyLifetimeAnnotationAttribute,
+                    diagnostics,
+                    AttributeDescription.LifetimeAnnotationAttribute,
+                    CreateLifetimeAnnotationAttributeSymbol);
             }
         }
 
@@ -407,6 +432,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         private SynthesizedEmbeddedNativeIntegerAttributeSymbol CreateNativeIntegerAttributeSymbol(string name, NamespaceSymbol containingNamespace, BindingDiagnosticBag diagnostics)
             => new SynthesizedEmbeddedNativeIntegerAttributeSymbol(
+                    name,
+                    containingNamespace,
+                    SourceModule,
+                    GetWellKnownType(WellKnownType.System_Attribute, diagnostics),
+                    GetSpecialType(SpecialType.System_Boolean, diagnostics));
+
+        private SynthesizedEmbeddedLifetimeAnnotationAttributeSymbol CreateLifetimeAnnotationAttributeSymbol(string name, NamespaceSymbol containingNamespace, BindingDiagnosticBag diagnostics)
+            => new SynthesizedEmbeddedLifetimeAnnotationAttributeSymbol(
                     name,
                     containingNamespace,
                     SourceModule,

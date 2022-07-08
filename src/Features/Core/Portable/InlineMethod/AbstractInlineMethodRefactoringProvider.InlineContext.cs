@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         {
             // Check if there is await expression. It is used later if the caller should be changed to async
             var awaitExpressions = inlineExpression
-                .DescendantNodesAndSelf(node => !_syntaxFacts.IsAnonymousFunction(node))
+                .DescendantNodesAndSelf(node => !_syntaxFacts.IsAnonymousFunctionExpression(node))
                 .Where(_syntaxFacts.IsAwaitExpression)
                 .ToImmutableArray();
             return !awaitExpressions.IsEmpty;
@@ -386,11 +386,11 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         private class LocalVariableDeclarationVisitor : OperationWalker
         {
             private readonly CancellationToken _cancellationToken;
-            private readonly HashSet<ISymbol> _allSymbols;
+            private readonly HashSet<ISymbol> _allSymbols = new();
+
             private LocalVariableDeclarationVisitor(CancellationToken cancellationToken)
             {
                 _cancellationToken = cancellationToken;
-                _allSymbols = new HashSet<ISymbol>();
             }
 
             public static ImmutableHashSet<ISymbol> GetAllSymbols(

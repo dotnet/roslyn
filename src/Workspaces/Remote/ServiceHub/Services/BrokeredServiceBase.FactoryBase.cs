@@ -4,10 +4,13 @@
 
 using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.IO.Pipelines;
 using System.Runtime;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Remote.Host;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.ServiceHub.Framework.Services;
@@ -18,6 +21,8 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal abstract partial class BrokeredServiceBase
     {
+        private static int s_cultureInitialized;
+
         internal interface IFactory
         {
             object Create(IDuplexPipe pipe, IServiceProvider hostProvidedServices, ServiceActivationOptions serviceActivationOptions, IServiceBroker serviceBroker);
@@ -48,14 +53,32 @@ namespace Microsoft.CodeAnalysis.Remote
                IServiceBroker serviceBroker,
                AuthorizationServiceClient? authorizationServiceClient)
             {
-                // Dispose the AuthorizationServiceClient since we won't be using it
-                authorizationServiceClient?.Dispose();
+                // Exception from IServiceHubServiceFactory.CreateAsync are not propagated to the client.
+                // Intercept the exception here and report it to the log.
+                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1410923
+                try
+                {
+                    // Dispose the AuthorizationServiceClient since we won't be using it
+                    authorizationServiceClient?.Dispose();
 
-                return Task.FromResult((object)Create(
-                    stream.UsePipe(),
-                    hostProvidedServices,
-                    serviceActivationOptions,
-                    serviceBroker));
+                    // First request determines the default culture:
+                    // TODO: Flow culture explicitly where needed https://github.com/dotnet/roslyn/issues/43670
+                    if (Interlocked.CompareExchange(ref s_cultureInitialized, 1, 0) == 0)
+                    {
+                        CultureInfo.DefaultThreadCurrentUICulture = serviceActivationOptions.ClientUICulture;
+                        CultureInfo.DefaultThreadCurrentCulture = serviceActivationOptions.ClientCulture;
+                    }
+
+                    return Task.FromResult((object)Create(
+                        stream.UsePipe(),
+                        hostProvidedServices,
+                        serviceActivationOptions,
+                        serviceBroker));
+                }
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+                {
+                    throw ExceptionUtilities.Unreachable;
+                }
             }
 
             object IFactory.Create(IDuplexPipe pipe, IServiceProvider hostProvidedServices, ServiceActivationOptions serviceActivationOptions, IServiceBroker serviceBroker)
@@ -74,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 GlobalServiceBroker.RegisterServiceBroker(serviceBroker);
 
                 var descriptor = ServiceDescriptors.Instance.GetServiceDescriptorForServiceFactory(typeof(TService));
-                var serviceHubTraceSource = (TraceSource)hostProvidedServices.GetService(typeof(TraceSource));
+                var serviceHubTraceSource = (TraceSource?)hostProvidedServices.GetService(typeof(TraceSource));
                 var serverConnection = descriptor.WithTraceSource(serviceHubTraceSource).ConstructRpcConnection(pipe);
 
                 var args = new ServiceConstructionArguments(hostProvidedServices, serviceBroker);

@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // A span starting on the first line after 'UnmappedCharacterOffset', or starting on
-            // a subseqent line, is mapped to a span of corresponding size.
+            // a subsequent line, is mapped to a span of corresponding size.
             return new LinePositionSpan(translatePosition(entry, unmappedStartPos), translatePosition(entry, unmappedEndPos));
 
             static LinePosition translatePosition(in LineMappingEntry entry, LinePosition unmapped)
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis
         /// <returns>True if there's at least one hidden region in the map.</returns>
         public bool HasAnyHiddenRegions()
         {
-            return this.Entries.Any(e => e.State == PositionState.Hidden);
+            return this.Entries.Any(static e => e.State == PositionState.Hidden);
         }
 
         // Find the line mapped entry with the largest unmapped line number <= lineNumber.

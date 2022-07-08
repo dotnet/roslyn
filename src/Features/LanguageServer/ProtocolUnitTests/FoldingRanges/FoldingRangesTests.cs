@@ -22,9 +22,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.FoldingRanges
             var markup =
 @"using {|foldingRange:System;
 using System.Linq;|}";
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
-            var expected = locations["foldingRange"]
-                .Select(location => CreateFoldingRange(LSP.FoldingRangeKind.Imports, location.Range))
+            using var testLspServer = await CreateTestLspServerAsync(markup);
+            var expected = testLspServer.GetLocations("foldingRange")
+                .Select(location => CreateFoldingRange(LSP.FoldingRangeKind.Imports, location.Range, "..."))
                 .ToArray();
 
             var results = await RunGetFoldingRangeAsync(testLspServer);
@@ -38,9 +38,9 @@ using System.Linq;|}";
 @"{|foldingRange:// A comment|}
 {|foldingRange:/* A multiline
 comment */|}";
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
-            var expected = locations["foldingRange"]
-                .Select(location => CreateFoldingRange(LSP.FoldingRangeKind.Comment, location.Range))
+            using var testLspServer = await CreateTestLspServerAsync(markup);
+            var expected = testLspServer.GetLocations("foldingRange")
+                .Select(location => CreateFoldingRange(LSP.FoldingRangeKind.Comment, location.Range, ""))
                 .ToArray();
 
             var results = await RunGetFoldingRangeAsync(testLspServer);
@@ -54,9 +54,9 @@ comment */|}";
 @"{|foldingRange:#region ARegion
 #endregion|}
 }";
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
-            var expected = locations["foldingRange"]
-                .Select(location => CreateFoldingRange(LSP.FoldingRangeKind.Region, location.Range))
+            using var testLspServer = await CreateTestLspServerAsync(markup);
+            var expected = testLspServer.GetLocations("foldingRange")
+                .Select(location => CreateFoldingRange(LSP.FoldingRangeKind.Region, location.Range, "ARegion"))
                 .ToArray();
 
             var results = await RunGetFoldingRangeAsync(testLspServer);
@@ -72,17 +72,18 @@ comment */|}";
             };
 
             return await testLspServer.ExecuteRequestAsync<LSP.FoldingRangeParams, LSP.FoldingRange[]>(LSP.Methods.TextDocumentFoldingRangeName,
-                request, new LSP.ClientCapabilities(), null, CancellationToken.None);
+                request, CancellationToken.None);
         }
 
-        private static LSP.FoldingRange CreateFoldingRange(LSP.FoldingRangeKind kind, LSP.Range range)
+        private static LSP.FoldingRange CreateFoldingRange(LSP.FoldingRangeKind kind, LSP.Range range, string collapsedText)
             => new LSP.FoldingRange()
             {
                 Kind = kind,
                 StartCharacter = range.Start.Character,
                 EndCharacter = range.End.Character,
                 StartLine = range.Start.Line,
-                EndLine = range.End.Line
+                EndLine = range.End.Line,
+                CollapsedText = collapsedText
             };
     }
 }

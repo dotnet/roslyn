@@ -7,6 +7,11 @@
         <target state="translated">Dodaj brakujące dyrektywy import przy wklejaniu</target>
         <note>'import' is a Visual Basic keyword and should not be localized</note>
       </trans-unit>
+      <trans-unit id="Collapse_imports_on_file_open">
+        <source>Collapse Imports on file open</source>
+        <target state="translated">Zwiń importy przy otwieraniu pliku</target>
+        <note />
+      </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</source>
         <target state="translated">W operatorach relacyjnych:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</target>

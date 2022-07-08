@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -50,6 +48,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsDiscard { get { return false; } }
 
+        internal override DeclarationScope Scope => DeclarationScope.Unscoped;
+
         #region Not used by MethodSignatureComparer
 
         internal override bool IsMetadataIn { get { throw ExceptionUtilities.Unreachable; } }
@@ -73,6 +73,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool IsCallerLineNumber { get { throw ExceptionUtilities.Unreachable; } }
 
         internal override bool IsCallerMemberName { get { throw ExceptionUtilities.Unreachable; } }
+
+        internal override int CallerArgumentExpressionParameterIndex { get { throw ExceptionUtilities.Unreachable; } }
 
         internal override FlowAnalysisAnnotations FlowAnalysisAnnotations { get { throw ExceptionUtilities.Unreachable; } }
 
@@ -102,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var other = obj as SignatureOnlyParameterSymbol;
-            return (object)other != null &&
+            return other is not null &&
                 TypeSymbol.Equals(_type.Type, other._type.Type, compareKind) &&
                 _type.CustomModifiers.Equals(other._type.CustomModifiers) &&
                 _refCustomModifiers.SequenceEqual(other._refCustomModifiers) &&

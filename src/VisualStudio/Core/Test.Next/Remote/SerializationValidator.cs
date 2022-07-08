@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var data = (await AssetStorage.GetTestAccessor().GetAssetAsync(checksum, CancellationToken.None).ConfigureAwait(false))!;
             Contract.ThrowIfNull(data.Value);
 
-            using var context = SolutionReplicationContext.Create();
+            using var context = new SolutionReplicationContext();
             using var stream = SerializableBytes.CreateWritableStream();
             using (var writer = new ObjectWriter(stream, leaveOpen: true))
             {
@@ -94,13 +94,13 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             // deserialize bits to object
             var result = Serializer.Deserialize<T>(data.Kind, reader, CancellationToken.None);
-            Contract.ThrowIfNull(result);
+            Contract.ThrowIfNull<object?>(result);
             return result;
         }
 
         public async Task<Solution> GetSolutionAsync(SolutionAssetStorage.Scope scope)
         {
-            var (solutionInfo, _) = await new AssetProvider(this).CreateSolutionInfoAndOptionsAsync(scope.SolutionInfo.SolutionChecksum, CancellationToken.None).ConfigureAwait(false);
+            var solutionInfo = await new AssetProvider(this).CreateSolutionInfoAsync(scope.SolutionChecksum, CancellationToken.None).ConfigureAwait(false);
 
             var workspace = new AdhocWorkspace(Services.HostServices);
             return workspace.AddSolution(solutionInfo);

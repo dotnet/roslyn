@@ -642,18 +642,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             AnonymousTypeDescriptor typeDescriptor = new AnonymousTypeDescriptor(
-                                                            ImmutableArray.Create<AnonymousTypeField>(
-                                                                new AnonymousTypeField(field1Name, field1Value.Syntax.Location,
-                                                                                       TypeWithAnnotations.Create(TypeOrError(field1Value))),
-                                                                new AnonymousTypeField(field2Name, field2Value.Syntax.Location,
-                                                                                        TypeWithAnnotations.Create(TypeOrError(field2Value)))
-                                                            ),
+                                                            ImmutableArray.Create(
+                                                                createField(field1Name, field1Value),
+                                                                createField(field2Name, field2Value)),
                                                             node.Location
                                                      );
 
             AnonymousTypeManager manager = this.Compilation.AnonymousTypeManager;
             NamedTypeSymbol anonymousType = manager.ConstructAnonymousTypeSymbol(typeDescriptor);
             return MakeConstruction(node, anonymousType, ImmutableArray.Create(field1Value, field2Value), diagnostics);
+
+            AnonymousTypeField createField(string fieldName, BoundExpression fieldValue) =>
+                new AnonymousTypeField(fieldName, fieldValue.Syntax.Location, TypeWithAnnotations.Create(TypeOrError(fieldValue)), RefKind.None, DeclarationScope.Unscoped);
         }
 
         private TypeSymbol TypeOrError(BoundExpression e)
@@ -699,7 +699,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static UnboundLambda MakeQueryUnboundLambda(CSharpSyntaxNode node, QueryUnboundLambdaState state, bool withDependencies)
         {
             Debug.Assert(node is ExpressionSyntax || LambdaUtilities.IsQueryPairLambda(node));
-            var lambda = new UnboundLambda(node, state, withDependencies, hasErrors: false) { WasCompilerGenerated = true };
+            // Function type is null because query expression syntax does not allow an explicit signature.
+            var lambda = new UnboundLambda(node, state, functionType: null, withDependencies, hasErrors: false) { WasCompilerGenerated = true };
             state.SetUnboundLambda(lambda);
             return lambda;
         }
@@ -780,7 +781,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (ultimateReceiver.Type.TypeKind == TypeKind.TypeParameter)
                 {
-                    // https://github.com/dotnet/roslyn/issues/53796: Do we really want to enable usage of static abstract members here?
+                    // We don't want to enable usage of static abstract members here
                     Error(diagnostics, ErrorCode.ERR_BadSKunknown, ultimateReceiver.Syntax, ultimateReceiver.Type, MessageID.IDS_SK_TYVAR.Localize());
                 }
             }

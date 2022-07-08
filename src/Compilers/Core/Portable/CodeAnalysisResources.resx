@@ -722,4 +722,16 @@
   <data name="ChangesMustBeWithinBoundsOfSourceText" xml:space="preserve">
     <value>Changes must be within bounds of SourceText</value>
   </data>
+  <data name="EncCannotResumeSuspendedAsyncMethod" xml:space="preserve">
+    <value>Edit and Continue can't resume suspended asynchronous method since the corresponding await expression has been deleted</value>
+  </data>
+  <data name="EncCannotResumeSuspendedIteratorMethod" xml:space="preserve">
+    <value>Edit and Continue can't resume suspended iterator since the corresponding yield return statement has been deleted</value>
+  </data>
+  <data name="GeneratorNameColumnHeader" xml:space="preserve">
+    <value>Generator</value>
+  </data>
+  <data name="GeneratorTotalExecutionTime" xml:space="preserve">
+    <value>Total generator execution time: {0} seconds.</value>
+  </data>
 </root>

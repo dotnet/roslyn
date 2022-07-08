@@ -490,30 +490,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             void reportNullableReferenceTypesIfNeeded(SyntaxToken questionToken, TypeWithAnnotations typeArgument = default)
             {
-                bool isNullableEnabled = AreNullableAnnotationsEnabled(questionToken);
-                bool isGeneratedCode = IsGeneratedCode(questionToken);
-                var location = questionToken.GetLocation();
-
                 if (diagnostics.DiagnosticBag is DiagnosticBag diagnosticBag)
                 {
                     // Inside a method body or other executable code, we can question IsValueType without causing cycles.
                     if (typeArgument.HasType && !ShouldCheckConstraints)
                     {
-                        LazyMissingNonNullTypesContextDiagnosticInfo.AddAll(
-                            isNullableEnabled,
-                            isGeneratedCode,
-                            typeArgument,
-                            location,
-                            diagnosticBag);
+                        LazyMissingNonNullTypesContextDiagnosticInfo.AddAll(this, questionToken, typeArgument, diagnosticBag);
                     }
-                    else
+                    else if (LazyMissingNonNullTypesContextDiagnosticInfo.IsNullableReference(typeArgument.Type))
                     {
-                        LazyMissingNonNullTypesContextDiagnosticInfo.ReportNullableReferenceTypesIfNeeded(
-                            isNullableEnabled,
-                            isGeneratedCode,
-                            typeArgument,
-                            location,
-                            diagnosticBag);
+                        LazyMissingNonNullTypesContextDiagnosticInfo.AddAll(this, questionToken, type: null, diagnosticBag);
                     }
                 }
             }
@@ -861,7 +847,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return TypeWithAnnotations.Create(new ExtendedErrorTypeSymbol(
                     Compilation.Assembly.GlobalNamespace, identifierValueText, 0,
-                    new CSDiagnosticInfo(ErrorCode.ERR_SingleTypeNameNotFound)));
+                    new CSDiagnosticInfo(ErrorCode.ERR_SingleTypeNameNotFound, identifierValueText)));
             }
 
             var errorResult = CreateErrorIfLookupOnTypeParameter(node.Parent, qualifierOpt, identifierValueText, 0, diagnostics);
@@ -1173,6 +1159,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                var boundTypeArguments = BindTypeArguments(typeArguments, diagnostics, basesBeingResolved);
+                if (unconstructedType.IsGenericType
+                    && options.IsAttributeTypeLookup())
+                {
+                    foreach (var typeArgument in boundTypeArguments)
+                    {
+                        var type = typeArgument.Type;
+                        if (type.IsUnboundGenericType() || type.ContainsTypeParameter())
+                        {
+                            diagnostics.Add(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, node.Location, type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
+                        }
+                        else
+                        {
+                            CheckDisallowedAttributeDependentType(typeArgument, node.Location, diagnostics);
+                        }
+                    }
+                }
+
                 // It's not an unbound type expression, so we must have type arguments, and we have a
                 // generic type of the correct arity in hand (possibly an error type). Bind the type
                 // arguments and construct the final result.
@@ -1180,19 +1184,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     unconstructedType,
                     node,
                     typeArguments,
-                    BindTypeArguments(typeArguments, diagnostics, basesBeingResolved),
+                    boundTypeArguments,
                     basesBeingResolved,
                     diagnostics);
-            }
-
-            if (options.IsAttributeTypeLookup())
-            {
-                // Generic type cannot be an attribute type.
-                // Parser error has already been reported, just wrap the result type with error type symbol.
-                Debug.Assert(unconstructedType.IsErrorType());
-                Debug.Assert(resultType.IsErrorType());
-                resultType = new ExtendedErrorTypeSymbol(GetContainingNamespaceOrType(resultType), resultType,
-                    LookupResultKind.NotAnAttributeType, errorInfo: null);
             }
 
             return TypeWithAnnotations.Create(AreNullableAnnotationsEnabled(node.TypeArgumentList.GreaterThanToken), resultType);
@@ -1328,7 +1322,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// Keep check and error in sync with ConstructNamedTypeUnlessTypeArgumentOmitted.
         /// </remarks>
-        private static BoundMethodOrPropertyGroup ConstructBoundMemberGroupAndReportOmittedTypeArguments(
+        private BoundMethodOrPropertyGroup ConstructBoundMemberGroupAndReportOmittedTypeArguments(
             SyntaxNode syntax,
             SeparatedSyntaxList<TypeSyntax> typeArgumentsSyntax,
             ImmutableArray<TypeWithAnnotations> typeArguments,
@@ -1361,6 +1355,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         members.SelectAsArray(s_toMethodSymbolFunc),
                         lookupResult,
                         methodGroupFlags,
+                        this,
                         hasErrors);
 
                 case SymbolKind.Property:
@@ -1497,7 +1492,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             where TSymbol : Symbol
         {
             symbol = (TSymbol)compilation.GetSpecialTypeMember(specialMember);
-            if ((object)symbol == null)
+            if (symbol is null)
             {
                 MemberDescriptor descriptor = SpecialMembers.GetDescriptor(specialMember);
                 diagnostics.Add(ErrorCode.ERR_MissingPredefinedMember, syntax.Location, descriptor.DeclaringTypeMetadataName, descriptor.Name);
@@ -1821,6 +1816,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(!Symbol.Equals(first, second, TypeCompareKind.ConsiderEverything) || !Symbol.Equals(originalSymbols[best.Index], originalSymbols[secondBest.Index], TypeCompareKind.ConsiderEverything),
                             "Why does the LookupResult contain the same symbol twice?");
 
+                        if (best.IsFromFile && !secondBest.IsFromFile)
+                        {
+                            // a lookup of a file type is "better" than a lookup of a non-file type; no need to further diagnose
+                            // https://github.com/dotnet/roslyn/issues/62331
+                            // some "single symbol" diagnostics are missed here for similar reasons
+                            // that make us miss diagnostics when reporting WRN_SameFullNameThisAggAgg.
+                            // 
+                            return first;
+                        }
+
                         CSDiagnosticInfo info;
                         bool reportError;
 
@@ -2138,6 +2143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private enum BestSymbolLocation
         {
             None,
+            FromFile,
             FromSourceModule,
             FromAddedModule,
             FromReferencedAssembly,
@@ -2182,6 +2188,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 get
                 {
                     return (_location == BestSymbolLocation.FromSourceModule) || (_location == BestSymbolLocation.FromAddedModule);
+                }
+            }
+
+            public bool IsFromFile
+            {
+                get
+                {
+                    return _location == BestSymbolLocation.FromFile;
                 }
             }
 
@@ -2286,6 +2300,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static BestSymbolLocation GetLocation(CSharpCompilation compilation, Symbol symbol)
         {
+            if (symbol is SourceMemberContainerTypeSymbol { IsFile: true })
+            {
+                return BestSymbolLocation.FromFile;
+            }
+
             var containingAssembly = symbol.ContainingAssembly;
             if (containingAssembly == compilation.SourceAssembly)
             {
@@ -2342,7 +2361,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         Debug.Assert(aliasOpt == null || aliasOpt == SyntaxFacts.GetText(SyntaxKind.GlobalKeyword));
                         return (object)forwardedToAssembly == null
-                            ? diagnostics.Add(ErrorCode.ERR_GlobalSingleTypeNameNotFound, location, whereText, qualifierOpt)
+                            ? diagnostics.Add(ErrorCode.ERR_GlobalSingleTypeNameNotFound, location, whereText)
                             : diagnostics.Add(ErrorCode.ERR_GlobalSingleTypeNameNotFoundFwd, location, whereText, forwardedToAssembly);
                     }
                     else
@@ -2424,6 +2443,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        internal static ContextualAttributeBinder TryGetContextualAttributeBinder(Binder binder)
+        {
+            if ((binder.Flags & BinderFlags.InContextualAttributeBinder) != 0)
+            {
+                do
+                {
+                    if (binder is ContextualAttributeBinder contextualAttributeBinder)
+                    {
+                        return contextualAttributeBinder;
+                    }
+
+                    binder = binder.Next;
+                }
+                while (binder != null);
+                Debug.Assert(false);
+            }
+
+            return null;
+        }
+
         /// <summary>
         /// Look for a type forwarder for the given type in the containing assembly and any referenced assemblies.
         /// </summary>
@@ -2447,33 +2486,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             // might require us to examine types forwarded by this assembly, thus binding assembly level
             // attributes again. And the cycle continues.
             // So, we won't do the analysis in this case, at the expense of better diagnostics.
-            if ((this.Flags & BinderFlags.InContextualAttributeBinder) != 0)
+            var contextualAttributeBinder = TryGetContextualAttributeBinder(this);
+            if (contextualAttributeBinder is { AttributeTarget: { Kind: SymbolKind.Assembly } })
             {
-                var current = this;
-
-                do
-                {
-                    var contextualAttributeBinder = current as ContextualAttributeBinder;
-
-                    if (contextualAttributeBinder != null)
-                    {
-                        if ((object)contextualAttributeBinder.AttributeTarget != null &&
-                            contextualAttributeBinder.AttributeTarget.Kind == SymbolKind.Assembly)
-                        {
-                            return null;
-                        }
-
-                        break;
-                    }
-
-                    current = current.Next;
-                }
-                while (current != null);
+                return null;
             }
 
             // NOTE: This won't work if the type isn't using CLS-style generic naming (i.e. `arity), but this code is
             // only intended to improve diagnostic messages, so false negatives in corner cases aren't a big deal.
-            var metadataName = MetadataHelpers.ComposeAritySuffixedMetadataName(name, arity);
+            // File types can't be forwarded, so we won't attempt to determine a file identifier to attach to the metadata name.
+            var metadataName = MetadataHelpers.ComposeAritySuffixedMetadataName(name, arity, associatedFileIdentifier: null);
             var fullMetadataName = MetadataHelpers.BuildQualifiedName(qualifierOpt?.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat), metadataName);
             var result = GetForwardedToAssembly(fullMetadataName, diagnostics, location);
             if ((object)result != null)

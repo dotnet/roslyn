@@ -29,6 +29,10 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public object ConstantValue => _symbol.ConstantValue;
 
+            public RefKind RefKind => _symbol.RefKind;
+
+            public ImmutableArray<CustomModifier> RefCustomModifiers => _symbol.RefCustomModifiers;
+
             public ImmutableArray<CustomModifier> CustomModifiers => _symbol.CustomModifiers;
 
             public bool HasConstantValue => _symbol.HasConstantValue;
@@ -39,7 +43,11 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public bool IsVolatile => _symbol.IsVolatile;
 
+            public bool IsRequired => _symbol.IsRequired;
+
             public bool IsFixedSizeBuffer => _symbol.IsFixedSizeBuffer;
+
+            public int FixedSize => _symbol.FixedSize;
 
             public ITypeSymbol Type => _symbol.Type;
 

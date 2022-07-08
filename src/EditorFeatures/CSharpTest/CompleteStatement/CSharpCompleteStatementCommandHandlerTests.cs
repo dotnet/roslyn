@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CompleteStatement;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Commanding;
 using Roslyn.Test.Utilities;
@@ -1988,6 +1989,43 @@ public class SaleItem
 {
    public string Name 
    { get$$ set; }
+}";
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void PropertyInitializer1()
+        {
+            var code = @"
+public class C
+{
+   public static C MyProp { get; } = new C($$)
+}";
+
+            var expected = @"
+public class C
+{
+   public static C MyProp { get; } = new C();$$
+}";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void PropertyAttribute1()
+        {
+            var code = @"
+public class C
+{
+    public int P
+    {
+        [My(typeof(C$$))]
+        get
+        {
+            return 0;
+        }
+    }
 }";
 
             VerifyNoSpecialSemicolonHandling(code);
@@ -4113,6 +4151,29 @@ class D
             VerifyNoSpecialSemicolonHandling(code);
         }
 
+        [WorkItem(54709, "https://github.com/dotnet/roslyn/issues/54709")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void YieldReturn()
+        {
+            var code = @"
+class D
+{
+    private static IEnumerable<int> M()
+    {
+        yield return GetNumber($$)
+    }
+}";
+            var expected = @"
+class D
+{
+    private static IEnumerable<int> M()
+    {
+        yield return GetNumber();$$
+    }
+}";
+            VerifyTypingSemicolon(code, expected);
+        }
+
         [WorkItem(917499, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/917499")]
         [WpfTheory, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
         [InlineData("/$$* comments */")]
@@ -4180,9 +4241,64 @@ public class ClassC
             Verify(code, expected, ExecuteTest,
                 setOptionsOpt: workspace =>
                 {
-                    workspace.SetOptions(workspace.Options.WithChangedOption(FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon, false));
+                    var globalOptions = workspace.GetService<IGlobalOptionService>();
+                    globalOptions.SetGlobalOption(new OptionKey(FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon), false);
                 });
         }
+
+        [WpfFact]
+        public void TestSwitchExpression()
+        {
+            var code = @"
+public class Bar
+{
+    public void Test(string myString)
+    {
+        var a = myString switch
+        {
+            ""Hello"" => 1,
+            ""World"" => 2,
+            _ => 3$$
+        }
+    }
+}";
+
+            var expected = @"
+public class Bar
+{
+    public void Test(string myString)
+    {
+        var a = myString switch
+        {
+            ""Hello"" => 1,
+            ""World"" => 2,
+            _ => 3
+        };$$
+    }
+}";
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact]
+        public void TestNotInBracesSwitchExpression()
+        {
+            var code = @"
+public class Bar
+{
+    public void Test(string myString)
+    {
+        var a = myString switch
+        $${
+            ""Hello"" => 1,
+            ""World"" => 2,
+            _ => 3
+        }
+    }
+}";
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
         protected override TestWorkspace CreateTestWorkspace(string code)
             => TestWorkspace.CreateCSharp(code);
     }

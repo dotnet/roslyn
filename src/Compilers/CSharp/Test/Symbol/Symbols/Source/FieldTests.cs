@@ -300,7 +300,7 @@ class A
                 Diagnostic(ErrorCode.ERR_ConstValueRequired, "{").WithLocation(5, 46),
                 // (5,46): error CS1003: Syntax error, ',' expected
                 //     protected virtual void Finalize const () { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(5, 46),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(5, 46),
                 // (5,48): error CS1002: ; expected
                 //     protected virtual void Finalize const () { }
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(5, 48),
@@ -368,7 +368,7 @@ class A
                 Diagnostic(ErrorCode.ERR_ConstValueRequired, "{").WithLocation(5, 46),
                 // (5,46): error CS1003: Syntax error, ',' expected
                 //     protected virtual void Finalize const () { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(5, 46),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(5, 46),
                 // (5,48): error CS1002: ; expected
                 //     protected virtual void Finalize const () { }
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(5, 48),
@@ -481,7 +481,7 @@ class K
                 "Error: Field name value__ is reserved for Enums only.");
         }
 
-        [WorkItem(26364, "https://github.com/dotnet/roslyn/issues/26364")]
+        [WorkItem(26364, "https://github.com/dotnet/roslyn/issues/26364"), WorkItem(54799, "https://github.com/dotnet/roslyn/issues/54799")]
         [Fact]
         public void FixedSizeBufferTrue()
         {
@@ -492,15 +492,16 @@ unsafe struct S
     private fixed byte goo[10];
 }
 ";
-            var comp = CreateEmptyCompilation(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var s = global.GetTypeMember("S");
-            var goo = s.GetMember<FieldSymbol>("goo");
+            var goo = (IFieldSymbol)s.GetMember("goo").GetPublicSymbol();
 
             Assert.True(goo.IsFixedSizeBuffer);
+            Assert.Equal(10, goo.FixedSize);
         }
 
-        [WorkItem(26364, "https://github.com/dotnet/roslyn/issues/26364")]
+        [WorkItem(26364, "https://github.com/dotnet/roslyn/issues/26364"), WorkItem(54799, "https://github.com/dotnet/roslyn/issues/54799")]
         [Fact]
         public void FixedSizeBufferFalse()
         {
@@ -511,12 +512,13 @@ unsafe struct S
     private byte goo;
 }
 ";
-            var comp = CreateEmptyCompilation(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var s = global.GetTypeMember("S");
-            var goo = s.GetMember<FieldSymbol>("goo");
+            var goo = (IFieldSymbol)s.GetMember("goo").GetPublicSymbol();
 
             Assert.False(goo.IsFixedSizeBuffer);
+            Assert.Equal(0, goo.FixedSize);
         }
 
         [Fact]
@@ -560,6 +562,27 @@ struct S
 {
     private static string s1 = $"""";
     private static readonly string s2 = $"""";
+}
+");
+
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnreferencedRawInterpolatedStringConstants()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    private static string s1 = $"""""" """""";
+    private static readonly string s2 = $"""""" """""";
+    private string s3 = $"""""" """""";
+    private readonly string s4 = $"""""" """""";
+}
+struct S
+{
+    private static string s1 = $"""""" """""";
+    private static readonly string s2 = $"""""" """""";
 }
 ");
 

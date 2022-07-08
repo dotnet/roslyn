@@ -1,3 +1,14 @@
+trigger:
+  branches:
+    include:
+    - main
+    - main-vs-deps
+    - release/dev16.*-vs-deps
+    - release/dev17.*
+    exclude:
+    - release/dev17.0
+pr: none
+
 resources:
 - repo: self
   clean: true
@@ -42,7 +53,7 @@ variables:
   - group: DotNet-DevDiv-Insertion-Workflow-Variables
   - name: _DevDivDropAccessToken
     value: $(dn-bot-devdiv-drop-rw-code-rw)
-  - group: ManagedLanguageSecrets
+  - group: DotNet-Roslyn-Insertion-Variables
 
   - name: BuildConfiguration
     value: release
@@ -60,19 +71,22 @@ variables:
   - name: Insertion.TitlePrefix
     value: '[Auto Insertion]'
   - name: Insertion.TitleSuffix
-    value: '[Skip-SymbolCheck]'
+    value: ''
 
 stages:
 
 - stage: build
   displayName: Build and Test
+  pool:
+    name: NetCore1ESPool-Svc-Internal
+    demands: ImageOverride -equals Build.Windows.Amd64.VS2022
 
   jobs:
-  - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev16.11-vs-deps') }}:
+  - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev17.3') }}:
     - template: /eng/common/templates/job/onelocbuild.yml
       parameters:
         MirrorRepo: roslyn
-        MirrorBranch: release/dev16.11-vs-deps
+        MirrorBranch: release/dev17.3
         LclSource: lclFilesfromPackage
         LclPackageId: 'LCL-JUNO-PROD-ROSLYN'
 
@@ -81,9 +95,6 @@ stages:
   - job: OfficialBuild
     displayName: Official Build
     timeoutInMinutes: 360
-    pool:
-      name: NetCoreInternal-Pool
-      queue: BuildPool.Server.Amd64.VS2017
 
     steps:
     - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
@@ -122,7 +133,7 @@ stages:
     # Authenticate with service connections to be able to publish packages to external nuget feeds.
     - task: NuGetAuthenticate@0
       inputs:
-        nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk, devdiv/engineering
+        nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk, devdiv/engineering, devdiv/dotnet-core-internal-tooling
 
     # Needed because the build fails the NuGet Tools restore without it
     - task: UseDotNet@2
@@ -178,7 +189,11 @@ stages:
                    /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
                    /p:DotNetArtifactsCategory=$(_DotNetArtifactsCategory)
                    /p:DotnetPublishUsingPipelines=true
+                   /p:IgnoreIbcMergeErrors=true
+                   /p:GenerateSbom=true
       condition: succeeded()
+      
+    - template: eng\common\templates\steps\generate-sbom.yml
 
     - task: PowerShell@2
       displayName: Publish Assets
@@ -295,88 +310,38 @@ stages:
       dependsOn:
         - OfficialBuild
       pool:
-        vmImage: vs2017-win2016
+        name: NetCore1ESPool-Svc-Internal
+        demands: ImageOverride -equals Build.Windows.Amd64.VS2022
 
 - stage: insert
   dependsOn:
-  - build
+  - publish_using_darc
   displayName: Insert to VS
 
   jobs:
   - job: insert
     displayName: Insert to VS
     pool:
-      vmImage: windows-2019
+      name: NetCore1ESPool-Svc-Internal
+      demands: ImageOverride -equals Build.Server.Amd64.VS2019
     steps:
-    - checkout: none
-
-    - task: NuGetCommand@2
-      displayName: 'Install RIT from Azure Artifacts'
-      inputs:
-        command: custom
-        arguments: 'install RoslynTools.VisualStudioInsertionTool -PreRelease -Source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/index.json'
-
+    - download: current
+      artifact: VSSetup
     - powershell: |
-        $response = Invoke-RestMethod -Headers @{Authorization = "Bearer $(System.AccessToken)"} "https://dev.azure.com/dnceng/internal/_apis/git/repositories/dotnet-roslyn/items?path=eng/config/PublishData.json&api-version=6.0"
         $branchName = "$(Build.SourceBranch)".Substring("refs/heads/".Length)
-        $branchData = $response.branches.$branchName
-        if (!$branchData)
-        {
-          Write-Host "No PublishData found for branch '$branchName'. Using PublishData for branch 'main'."
-          $branchData = $response.branches.main
-        }
-        if ($null -ne $branchData.insertionCreateDraftPR)
-        {
-          Write-Host "##vso[task.setvariable variable=Insertion.CreateDraftPR]$($branchData.insertionCreateDraftPR)"
-        }
-        if ($null -ne $branchData.insertionTitlePrefix)
-        {
-          Write-Host "##vso[task.setvariable variable=Insertion.TitlePrefix]$($branchData.insertionTitlePrefix)"
-        }
-        if ($null -ne $branchData.insertToolset)
-        {
-          Write-Host "##vso[task.setvariable variable=Insertion.InsertToolset]$($branchData.insertToolset)"
-        }
-
-        Write-Host "##vso[task.setvariable variable=Insertion.AutoComplete]$(-not $branchData.insertionCreateDraftPR)"
         Write-Host "##vso[task.setvariable variable=ComponentBranchName]$branchName"
-        Write-Host "##vso[task.setvariable variable=VSBranchName]$($branchData.vsBranch)"
-      displayName: Set Insertion Variables
-
-    - powershell: |
-        mv RoslynTools.VisualStudioInsertionTool.* RIT
-        .\RIT\tools\OneOffInsertion.ps1 `
-          -autoComplete "$(Insertion.AutoComplete)" `
-          -buildQueueName "$(Build.DefinitionName)" `
-          -cherryPick "(default)" `
-          -clientId "$(ClientId)" `
-          -clientSecret "$(ClientSecret)" `
-          -componentAzdoUri "$(System.CollectionUri)" `
-          -componentBranchName "$(ComponentBranchName)" `
-          -componentGitHubRepoName "dotnet/roslyn" `
-          -componentName "Roslyn" `
-          -componentProjectName "internal" `
-          -createDraftPR "$(Insertion.CreateDraftPR)" `
-          -defaultValueSentinel "(default)" `
-          -dropPath "(default)" `
-          -insertCore "(default)" `
-          -insertDevDiv "(default)" `
-          -insertionCount "1" `
-          -insertToolset "$(Insertion.InsertToolset)" `
-          -titlePrefix "$(Insertion.TitlePrefix)" `
-          -titleSuffix "$(Insertion.TitleSuffix)" `
-          -queueValidation "true" `
-          -requiredValueSentinel "REQUIRED" `
-          -reviewerGUID "6c25b447-1d90-4840-8fde-d8b22cb8733e" `
-          -specificBuild "$(Build.BuildNumber)" `
-          -updateAssemblyVersions "(default)" `
-          -updateCoreXTLibraries "(default)" `
-          -visualStudioBranchName "$(VSBranchName)" `
-          -writePullRequest "prid.txt" `
-      displayName: 'Run OneOffInsertion.ps1'
-
-    - script: 'echo. && echo. && type "prid.txt" && echo. && echo.'
-      displayName: 'Report PR URL'
+      displayName: Get Branch Name
+    - template: eng/pipelines/insert.yml
+      parameters:
+        buildUserName: "dn-bot@microsoft.com"
+        buildPassword: $(dn-bot-devdiv-build-e-code-full-release-e-packaging-r)
+        componentUserName: "dn-bot@microsoft.com"
+        componentPassword: $(dn-bot-dnceng-build-e-code-full-release-e-packaging-r)
+        componentBuildProjectName: internal
+        sourceBranch: "$(ComponentBranchName)"
+        publishDataURI: "https://dev.azure.com/dnceng/internal/_apis/git/repositories/dotnet-roslyn/items?path=eng/config/PublishData.json&api-version=6.0"
+        publishDataAccessToken: "$(System.AccessToken)"
+        dropPath: '$(Pipeline.Workspace)\VSSetup'
 
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
   - template: eng\common\templates\post-build\post-build.yml

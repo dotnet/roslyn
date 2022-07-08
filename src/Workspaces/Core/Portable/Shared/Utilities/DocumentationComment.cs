@@ -6,8 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text;
 using System.Xml;
+using Microsoft.CodeAnalysis.PooledObjects;
 using XmlNames = Roslyn.Utilities.DocumentationCommentXmlNames;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
@@ -165,8 +168,64 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             private static void ParseCallback(XmlReader reader, CommentBuilder builder)
                 => builder.ParseCallback(reader);
 
+            // Find the shortest whitespace prefix and trim it from all the lines
+            // Before:
+            //  <summary>
+            //  Line1
+            //  <code>
+            //     Line2
+            //   Line3
+            //  </code>
+            //  </summary>
+            // After:
+            //<summary>
+            //Line1
+            //<code>
+            //   Line2
+            // Line3
+            //</code>
+            //</summary>
+            //
+            // We preserve the formatting to let the AbstractDocumentationCommentFormattingService get the unmangled
+            // <code> blocks.
+            // AbstractDocumentationCommentFormattingService will normalize whitespace for non-code element later.
             private static string TrimEachLine(string text)
-                => string.Join(Environment.NewLine, text.Split(s_NewLineAsStringArray, StringSplitOptions.RemoveEmptyEntries).Select(i => i.Trim()));
+            {
+                var lines = text.Split(s_NewLineAsStringArray, StringSplitOptions.RemoveEmptyEntries);
+
+                var maxPrefix = int.MaxValue;
+                foreach (var line in lines)
+                {
+                    var firstNonWhitespaceOffset = line.GetFirstNonWhitespaceOffset();
+
+                    // Don't include all-whitespace lines in the calculation
+                    // They'll be completely trimmed
+                    if (firstNonWhitespaceOffset == null)
+                        continue;
+
+                    // note: this code presumes all whitespace should be treated uniformly (for example that a tab and
+                    // a space are equivalent).  If that turns out to be an issue we will need to revise this to determine
+                    // an appropriate strategy for trimming here.
+                    maxPrefix = Math.Min(maxPrefix, firstNonWhitespaceOffset.Value);
+                }
+
+                if (maxPrefix == int.MaxValue)
+                    return string.Empty;
+
+                using var _ = PooledStringBuilder.GetInstance(out var builder);
+                for (var i = 0; i < lines.Length; i++)
+                {
+                    var line = lines[i];
+                    if (i != 0)
+                        builder.AppendLine();
+
+                    var trimmedLine = line.TrimEnd();
+                    if (trimmedLine.Length != 0)
+                        builder.Append(trimmedLine, maxPrefix, trimmedLine.Length - maxPrefix);
+                }
+
+                return builder.ToString();
+            }
 
             private void ParseCallback(XmlReader reader)
             {
@@ -200,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
                         if (!string.IsNullOrWhiteSpace(name) && !_comment._parameterTexts.ContainsKey(name))
                         {
-                            (_parameterNamesBuilder ?? (_parameterNamesBuilder = ImmutableArray.CreateBuilder<string>())).Add(name);
+                            (_parameterNamesBuilder ??= ImmutableArray.CreateBuilder<string>()).Add(name);
                             _comment._parameterTexts.Add(name, TrimEachLine(paramText));
                         }
                     }
@@ -211,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
                         if (!string.IsNullOrWhiteSpace(name) && !_comment._typeParameterTexts.ContainsKey(name))
                         {
-                            (_typeParameterNamesBuilder ?? (_typeParameterNamesBuilder = ImmutableArray.CreateBuilder<string>())).Add(name);
+                            (_typeParameterNamesBuilder ??= ImmutableArray.CreateBuilder<string>()).Add(name);
                             _comment._typeParameterTexts.Add(name, TrimEachLine(typeParamText));
                         }
                     }
@@ -224,8 +283,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                         {
                             if (_exceptionTextBuilders == null || !_exceptionTextBuilders.ContainsKey(type))
                             {
-                                (_exceptionTypesBuilder ?? (_exceptionTypesBuilder = ImmutableArray.CreateBuilder<string>())).Add(type);
-                                (_exceptionTextBuilders ?? (_exceptionTextBuilders = new Dictionary<string, ImmutableArray<string>.Builder>())).Add(type, ImmutableArray.CreateBuilder<string>());
+                                (_exceptionTypesBuilder ??= ImmutableArray.CreateBuilder<string>()).Add(type);
+                                (_exceptionTextBuilders ??= new Dictionary<string, ImmutableArray<string>.Builder>()).Add(type, ImmutableArray.CreateBuilder<string>());
                             }
 
                             _exceptionTextBuilders[type].Add(exceptionText);

@@ -36,11 +36,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         End Function
 
         Friend Shared Function MarkedSource(source As XElement, Optional fileName As String = "", Optional options As VisualBasicParseOptions = Nothing) As SourceWithMarkedNodes
-            Return New SourceWithMarkedNodes(source.Value, Function(s) Parse(s, fileName, options), Function(s) CInt(GetType(SyntaxKind).GetField(s).GetValue(Nothing)))
+            Return New SourceWithMarkedNodes(WithWindowsLineBreaks(source.Value), Function(s) Parse(s, fileName, options), Function(s) CInt(GetType(SyntaxKind).GetField(s).GetValue(Nothing)))
         End Function
 
         Friend Shared Function MarkedSource(source As String, Optional fileName As String = "", Optional options As VisualBasicParseOptions = Nothing) As SourceWithMarkedNodes
-            Return New SourceWithMarkedNodes(source, Function(s) Parse(s, fileName, options), Function(s) CInt(GetType(SyntaxKind).GetField(s).GetValue(Nothing)))
+            Return New SourceWithMarkedNodes(WithWindowsLineBreaks(source), Function(s) Parse(s, fileName, options), Function(s) CInt(GetType(SyntaxKind).GetField(s).GetValue(Nothing)))
         End Function
 
         Friend Shared Function GetSyntaxMapFromMarkers(source0 As SourceWithMarkedNodes, source1 As SourceWithMarkedNodes) As Func(Of SyntaxNode, SyntaxNode)
@@ -186,12 +186,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         End Sub
 
         Friend Shared Sub CheckEncLogDefinitions(reader As MetadataReader, ParamArray rows As EditAndContinueLogEntry())
-            AssertEx.Equal(rows, reader.GetEditAndContinueLogEntries().Where(Function(entry) IsDefinition(entry)), itemInspector:=AddressOf EncLogRowToString)
+            AssertEx.Equal(rows, reader.GetEditAndContinueLogEntries().Where(Function(entry) IsDefinition(entry.Handle.Kind)), itemInspector:=AddressOf EncLogRowToString)
         End Sub
 
-        Friend Shared Function IsDefinition(entry As EditAndContinueLogEntry) As Boolean
+        Friend Shared Function IsDefinition(kind As HandleKind) As Boolean
             Dim index As TableIndex
-            Assert.True(MetadataTokens.TryGetTableIndex(entry.Handle.Kind, index))
+            Assert.True(MetadataTokens.TryGetTableIndex(kind, index))
 
             Select Case index
                 Case TableIndex.MethodDef,
@@ -230,6 +230,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         Friend Shared Sub CheckEncMap(reader As MetadataReader, ParamArray [handles] As EntityHandle())
             AssertEx.Equal([handles], reader.GetEditAndContinueMapEntries(), itemInspector:=AddressOf EncMapRowToString)
+        End Sub
+
+        Friend Shared Sub CheckEncMapDefinitions(reader As MetadataReader, ParamArray [handles] As EntityHandle())
+            AssertEx.Equal([handles], reader.GetEditAndContinueMapEntries().Where(Function(e) IsDefinition(e.Kind)), itemInspector:=AddressOf EncMapRowToString)
         End Sub
 
         Friend Shared Sub CheckNames(reader As MetadataReader, [handles] As StringHandle(), ParamArray expectedNames As String())
@@ -273,6 +277,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 fromCompilation.SourceAssembly,
                 Nothing,
                 toCompilation.SourceAssembly,
+                Nothing,
                 Nothing,
                 Nothing)
         End Function

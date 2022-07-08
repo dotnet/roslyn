@@ -220,6 +220,9 @@ End Module
         <method containingType="Module1" name="F" parameterNames="a">
             <customDebugInfo>
                 <forwardIterator name="VB$StateMachine_1_F"/>
+                <encStateMachineStateMap>
+                    <state number="0" offset="0"/>
+                </encStateMachineStateMap>
             </customDebugInfo>
         </method>
     </methods>
@@ -275,6 +278,17 @@ End Module
         <method containingType="Module1" name="Test">
             <customDebugInfo>
                 <forwardIterator name="VB$StateMachine_2_Test"/>
+                <encStateMachineStateMap>
+                    <state number="0" offset="38"/>
+                    <state number="1" offset="94"/>
+                    <state number="2" offset="8"/>
+                    <state number="3" offset="171"/>
+                    <state number="4" offset="163"/>
+                    <state number="5" offset="155"/>
+                    <state number="6" offset="205"/>
+                    <state number="7" offset="125"/>
+                    <state number="8" offset="0"/>
+                </encStateMachineStateMap>
             </customDebugInfo>
         </method>
     </methods>
@@ -352,6 +366,9 @@ End Module
         <method containingType="Module1" name="S">
             <customDebugInfo>
                 <forwardIterator name="VB$StateMachine_3_S"/>
+                <encStateMachineStateMap>
+                    <state number="0" offset="0"/>
+                </encStateMachineStateMap>
             </customDebugInfo>
         </method>
     </methods>
@@ -428,6 +445,7 @@ End Class
                     TestOptions.DebugDll)
 
             ' Goal: We're looking for "$VB$ResumableLocal_$VB$Closure_$0" and "$VB$ResumableLocal_a$1".
+            ' Note: since the method is first, it is recording the imports (rather than using an importsforward)
             compilation.VerifyPdb("C+VB$StateMachine_1_Async_Lambda.MoveNext",
 <symbols>
     <files>
@@ -467,7 +485,9 @@ End Class
                 <entry offset="0x12c" hidden="true" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x139">
-                <importsforward declaringType="C+_Closure$__1-0" methodName="_Lambda$__0"/>
+                <namespace name="System" importlevel="file"/>
+                <namespace name="System.Threading.Tasks" importlevel="file"/>
+                <currentnamespace name=""/>
                 <local name="$VB$ResumableLocal_$VB$Closure_$0" il_index="0" il_start="0x0" il_end="0x139" attributes="0"/>
                 <local name="$VB$ResumableLocal_a$1" il_index="1" il_start="0x0" il_end="0x139" attributes="0"/>
             </scope>
@@ -509,6 +529,7 @@ End Class
                     TestOptions.ReleaseDll)
 
             ' Goal: We're looking for "$VB$ResumableLocal_$VB$Closure_$0" but not "$VB$ResumableLocal_a$1".
+            ' Note: since the method is first, it is recording the imports (rather than using an importsforward)
             compilation.VerifyPdb("C+VB$StateMachine_1_Async_Lambda.MoveNext",
 <symbols>
     <files>
@@ -538,7 +559,9 @@ End Class
                 <entry offset="0x103" hidden="true" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10f">
-                <importsforward declaringType="C+_Closure$__1-0" methodName="_Lambda$__0"/>
+                <namespace name="System" importlevel="file"/>
+                <namespace name="System.Threading.Tasks" importlevel="file"/>
+                <currentnamespace name=""/>
                 <local name="$VB$ResumableLocal_$VB$Closure_$0" il_index="0" il_start="0x0" il_end="0x10f" attributes="0"/>
             </scope>
             <asyncInfo>

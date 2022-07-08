@@ -8,7 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Windows.Data;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.AddImports;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
@@ -859,6 +859,46 @@ class Customer2
 }}
 ";
 
+        private static readonly string s_preferFileScopedNamespace = $@"
+//[
+// {ServicesVSResources.Prefer_colon}
+namespace A.B.C;
+
+public class Program
+{{
+}}
+//]
+//[
+// {ServicesVSResources.Over_colon}
+namespace A.B.C
+{{
+    public class Program
+    {{
+    }}
+}}
+//]
+";
+
+        private static readonly string s_preferBlockNamespace = $@"
+//[
+// {ServicesVSResources.Prefer_colon}
+namespace A.B.C
+{{
+    public class Program
+    {{
+    }}
+}}
+//]
+//[
+// {ServicesVSResources.Over_colon}
+namespace A.B.C;
+
+public class Program
+{{
+}}
+//]
+";
+
         private static readonly string s_preferSimpleUsingStatement = $@"
 using System;
 
@@ -918,6 +958,71 @@ class Customer2
     }}
 //]
 }}
+";
+
+        private static readonly string s_preferMethodGroupConversion = $@"
+using System;
+
+class Customer1
+{{
+    public void M()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        Action<object> writeObject = Console.Write;
+//]
+    }}
+}}
+class Customer2
+{{
+    public void M()
+    {{
+//[
+        // {ServicesVSResources.Over_colon}
+        Action<object> writeObject = obj => Console.Write(obj);
+//]
+    }}
+//]
+}}
+";
+
+        private static readonly string s_preferTopLevelStatements = $@"
+using System;
+//[
+// {ServicesVSResources.Prefer_colon}
+Console.WriteLine(""Hello, World!"");
+//]
+
+//[
+// {ServicesVSResources.Over_colon}
+internal class Program
+{{
+    private static void Main(string[] args)
+    {{
+        Console.WriteLine(""Hello, World!"");
+    }}
+}}
+//]
+";
+
+        private static readonly string s_preferProgramMain = $@"
+using System;
+
+//[
+// {ServicesVSResources.Prefer_colon}
+internal class Program
+{{
+    private static void Main(string[] args)
+    {{
+        Console.WriteLine(""Hello, World!"");
+    }}
+}}
+//]
+
+//[
+// {ServicesVSResources.Over_colon}
+Console.WriteLine(""Hello, World!"");
+//]
 ";
 
         private static readonly string s_preferLocalFunctionOverAnonymousFunction = $@"
@@ -1025,6 +1130,30 @@ class Customer
 //[
         // {ServicesVSResources.Over_colon}
         var sub = value.Substring(1, value.Length - 2);
+//]
+    }}
+}}
+";
+
+        private static readonly string s_preferTupleSwap = $@"
+using System;
+
+class Customer
+{{
+    void M1(string[] args)
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        (args[1], args[0]) = (args[0], args[1]);
+//]
+    }}
+    void M2(string[] args)
+    {{
+//[
+        // {ServicesVSResources.Over_colon}
+        var temp = args[0];
+        args[0] = args[1];
+        args[1] = temp;
 //]
     }}
 }}
@@ -1998,9 +2127,12 @@ class C2
 
             // Code block
             AddBracesOptions(optionStore, codeBlockPreferencesGroupTitle);
+            AddNamespaceDeclarationsOptions(optionStore, codeBlockPreferencesGroupTitle);
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferAutoProperties, ServicesVSResources.analyzer_Prefer_auto_properties, s_preferAutoProperties, s_preferAutoProperties, this, optionStore, codeBlockPreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferSimpleUsingStatement, ServicesVSResources.Prefer_simple_using_statement, s_preferSimpleUsingStatement, s_preferSimpleUsingStatement, this, optionStore, codeBlockPreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferSystemHashCode, ServicesVSResources.Prefer_System_HashCode_in_GetHashCode, s_preferSystemHashCode, s_preferSystemHashCode, this, optionStore, codeBlockPreferencesGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferMethodGroupConversion, ServicesVSResources.Prefer_method_group_conversion, s_preferMethodGroupConversion, s_preferMethodGroupConversion, this, optionStore, codeBlockPreferencesGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferTopLevelStatements, ServicesVSResources.Prefer_top_level_statements, s_preferTopLevelStatements, s_preferProgramMain, this, optionStore, codeBlockPreferencesGroupTitle));
 
             AddParenthesesOptions(OptionStore);
 
@@ -2022,14 +2154,16 @@ class C2
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferIndexOperator, ServicesVSResources.Prefer_index_operator, s_preferIndexOperator, s_preferIndexOperator, this, optionStore, expressionPreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferRangeOperator, ServicesVSResources.Prefer_range_operator, s_preferRangeOperator, s_preferRangeOperator, this, optionStore, expressionPreferencesGroupTitle));
 
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferTupleSwap, ServicesVSResources.Prefer_tuple_swap, s_preferTupleSwap, s_preferTupleSwap, this, optionStore, expressionPreferencesGroupTitle));
+
+            AddExpressionBodyOptions(optionStore, expressionPreferencesGroupTitle);
+            AddUnusedValueOptions(optionStore, expressionPreferencesGroupTitle);
+
             // Pattern matching
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferPatternMatching, CSharpVSResources.Prefer_pattern_matching, s_preferPatternMatching, s_preferPatternMatching, this, optionStore, patternMatchingPreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck, CSharpVSResources.Prefer_pattern_matching_over_is_with_cast_check, s_preferPatternMatchingOverIsWithCastCheck, s_preferPatternMatchingOverIsWithCastCheck, this, optionStore, patternMatchingPreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferPatternMatchingOverAsWithNullCheck, CSharpVSResources.Prefer_pattern_matching_over_as_with_null_check, s_preferPatternMatchingOverAsWithNullCheck, s_preferPatternMatchingOverAsWithNullCheck, this, optionStore, patternMatchingPreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferNotPattern, CSharpVSResources.Prefer_pattern_matching_over_mixed_type_check, s_preferPatternMatchingOverMixedTypeCheck, s_preferPatternMatchingOverMixedTypeCheck, this, optionStore, patternMatchingPreferencesGroupTitle));
-
-            AddExpressionBodyOptions(optionStore, expressionPreferencesGroupTitle);
-            AddUnusedValueOptions(optionStore, expressionPreferencesGroupTitle);
 
             // Variable preferences
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferInlinedVariableDeclaration, ServicesVSResources.Prefer_inlined_variable_declaration, s_preferInlinedVariableDeclaration, s_preferInlinedVariableDeclaration, this, optionStore, variablePreferencesGroupTitle));
@@ -2108,6 +2242,24 @@ class C2
                 enumValues,
                 new[] { s_preferBraces, s_doNotPreferBraces, s_preferBracesWhenMultiline },
                 this, optionStore, bracesPreferenceGroupTitle, bracesPreferences));
+        }
+
+        private void AddNamespaceDeclarationsOptions(OptionStore optionStore, string group)
+        {
+            var preferences = new List<CodeStylePreference>
+            {
+                new CodeStylePreference(CSharpVSResources.Block_scoped, isChecked: false),
+                new CodeStylePreference(CSharpVSResources.File_scoped, isChecked: false),
+            };
+
+            var enumValues = new[] { NamespaceDeclarationPreference.BlockScoped, NamespaceDeclarationPreference.FileScoped };
+
+            CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<NamespaceDeclarationPreference>(
+                CSharpCodeStyleOptions.NamespaceDeclarations,
+                ServicesVSResources.Namespace_declarations,
+                enumValues,
+                new[] { s_preferBlockNamespace, s_preferFileScopedNamespace },
+                this, optionStore, group, preferences));
         }
 
         private void AddExpressionBodyOptions(OptionStore optionStore, string expressionPreferencesGroupTitle)

@@ -19,14 +19,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
     {
         public TelemetrySession? CurrentSession { get; private set; }
 
-        protected abstract ILogger CreateLogger(TelemetrySession telemetrySession);
+        protected abstract ILogger CreateLogger(TelemetrySession telemetrySession, bool logDelta);
 
-        public void InitializeTelemetrySession(TelemetrySession telemetrySession)
+        public void InitializeTelemetrySession(TelemetrySession telemetrySession, bool logDelta)
         {
             Contract.ThrowIfFalse(CurrentSession is null);
 
-            Logger.SetLogger(CreateLogger(telemetrySession));
-            WatsonReporter.RegisterTelemetrySesssion(telemetrySession);
+            Logger.SetLogger(CreateLogger(telemetrySession, logDelta));
+            FaultReporter.RegisterTelemetrySesssion(telemetrySession);
 
             CurrentSession = telemetrySession;
 
@@ -44,10 +44,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
             => CurrentSession?.SerializeSettings();
 
         public void RegisterUnexpectedExceptionLogger(TraceSource logger)
-            => WatsonReporter.RegisterLogger(logger);
+            => FaultReporter.RegisterLogger(logger);
 
         public void UnregisterUnexpectedExceptionLogger(TraceSource logger)
-            => WatsonReporter.UnregisterLogger(logger);
+            => FaultReporter.UnregisterLogger(logger);
 
         public void ReportApiUsage(HashSet<ISymbol> symbols, Guid solutionSessionId, Guid projectGuid)
         {

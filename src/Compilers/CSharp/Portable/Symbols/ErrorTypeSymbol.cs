@@ -130,6 +130,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal sealed override bool HasDeclaredRequiredMembers => false;
+
         /// <summary>
         /// Get all the members of this symbol.
         /// </summary>
@@ -139,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (IsTupleType)
             {
-                var result = AddOrWrapTupleMembers(ImmutableArray<Symbol>.Empty);
+                var result = MakeSynthesizedTupleMembers(ImmutableArray<Symbol>.Empty);
                 RoslynDebug.Assert(result is object);
                 return result.ToImmutableAndFree();
             }
@@ -575,6 +577,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return _originalDefinition.MangleName; }
         }
+
+        internal override SyntaxTree? AssociatedSyntaxTree => _originalDefinition.AssociatedSyntaxTree;
 
         internal override DiagnosticInfo? ErrorInfo
         {

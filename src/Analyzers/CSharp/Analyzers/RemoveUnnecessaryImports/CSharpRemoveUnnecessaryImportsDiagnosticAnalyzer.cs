@@ -8,8 +8,10 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -27,6 +29,9 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
         protected override LocalizableString GetTitleAndMessageFormatForClassificationIdDescriptor()
             => s_TitleAndMessageFormat;
 
+        protected override ISyntaxFacts SyntaxFacts
+            => CSharpSyntaxFacts.Instance;
+
         // C# has no need to do any merging of using statements.  Only VB needs to
         // merge import clauses to an import statement if it all the import clauses
         // are unnecessary.
@@ -39,6 +44,10 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
         protected override bool IsRegularCommentOrDocComment(SyntaxTrivia trivia)
             => trivia.IsRegularComment() || trivia.IsDocComment();
 
+        protected override SyntaxToken? TryGetLastToken(SyntaxNode node)
+            // No special behavior needed for C#
+            => null;
+
         protected override IEnumerable<TextSpan> GetFixableDiagnosticSpans(
             IEnumerable<SyntaxNode> nodes, SyntaxTree tree, CancellationToken cancellationToken)
         {
@@ -47,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
             var nodesContainingUnnecessaryUsings = new HashSet<SyntaxNode>();
             foreach (var node in nodes)
             {
-                var nodeContainingUnnecessaryUsings = node.GetAncestors().First(n => n is BaseNamespaceDeclarationSyntax || n is CompilationUnitSyntax);
+                var nodeContainingUnnecessaryUsings = node.GetAncestors().First(n => n is BaseNamespaceDeclarationSyntax or CompilationUnitSyntax);
                 if (!nodesContainingUnnecessaryUsings.Add(nodeContainingUnnecessaryUsings))
                 {
                     continue;

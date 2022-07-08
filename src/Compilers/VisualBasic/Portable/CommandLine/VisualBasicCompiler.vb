@@ -16,14 +16,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Const ResponseFileName As String = "vbc.rsp"
         Friend Const VbcCommandLinePrefix = "vbc : " 'Common prefix String For VB diagnostic output with no location.
-        Private Shared ReadOnly s_responseFileName As String
-        Private ReadOnly _responseFile As String
         Private ReadOnly _diagnosticFormatter As CommandLineDiagnosticFormatter
         Private ReadOnly _tempDirectory As String
         Private _additionalTextFiles As ImmutableArray(Of AdditionalTextFile)
 
-        Protected Sub New(parser As VisualBasicCommandLineParser, responseFile As String, args As String(), buildPaths As BuildPaths, additionalReferenceDirectories As String, analyzerLoader As IAnalyzerAssemblyLoader)
-            MyBase.New(parser, responseFile, args, buildPaths, additionalReferenceDirectories, analyzerLoader)
+        Protected Sub New(parser As VisualBasicCommandLineParser, responseFile As String, args As String(), buildPaths As BuildPaths, additionalReferenceDirectories As String, analyzerLoader As IAnalyzerAssemblyLoader, Optional driverCache As GeneratorDriverCache = Nothing, Optional fileSystem As ICommonCompilerFileSystem = Nothing)
+            MyBase.New(parser, responseFile, args, buildPaths, additionalReferenceDirectories, analyzerLoader, driverCache, fileSystem)
 
             _diagnosticFormatter = New CommandLineDiagnosticFormatter(buildPaths.WorkingDirectory, AddressOf GetAdditionalTextFiles)
             _additionalTextFiles = Nothing
@@ -298,12 +296,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Next
         End Sub
 
-        Private Protected Overrides Function RunGenerators(input As Compilation, parseOptions As ParseOptions, generators As ImmutableArray(Of ISourceGenerator), analyzerConfigOptionsProvider As AnalyzerConfigOptionsProvider, additionalTexts As ImmutableArray(Of AdditionalText), diagnostics As DiagnosticBag) As Compilation
-            Dim driver = VisualBasicGeneratorDriver.Create(generators, additionalTexts, DirectCast(parseOptions, VisualBasicParseOptions), analyzerConfigOptionsProvider)
-            Dim compilationOut As Compilation = Nothing, generatorDiagnostics As ImmutableArray(Of Diagnostic) = Nothing
-            driver.RunGeneratorsAndUpdateCompilation(input, compilationOut, generatorDiagnostics)
-            diagnostics.AddRange(generatorDiagnostics)
-            Return compilationOut
+        Private Protected Overrides Function CreateGeneratorDriver(parseOptions As ParseOptions, generators As ImmutableArray(Of ISourceGenerator), analyzerConfigOptionsProvider As AnalyzerConfigOptionsProvider, additionalTexts As ImmutableArray(Of AdditionalText)) As GeneratorDriver
+            Return VisualBasicGeneratorDriver.Create(generators, additionalTexts, DirectCast(parseOptions, VisualBasicParseOptions), analyzerConfigOptionsProvider)
         End Function
 
     End Class

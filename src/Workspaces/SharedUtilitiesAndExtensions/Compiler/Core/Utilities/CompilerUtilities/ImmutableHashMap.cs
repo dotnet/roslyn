@@ -201,15 +201,9 @@ namespace Roslyn.Collections.Immutable
         [Pure]
         public ImmutableHashMap<TKey, TValue> WithComparers(IEqualityComparer<TKey> keyComparer, IEqualityComparer<TValue> valueComparer)
         {
-            if (keyComparer == null)
-            {
-                keyComparer = EqualityComparer<TKey>.Default;
-            }
+            keyComparer ??= EqualityComparer<TKey>.Default;
 
-            if (valueComparer == null)
-            {
-                valueComparer = EqualityComparer<TValue>.Default;
-            }
+            valueComparer ??= EqualityComparer<TValue>.Default;
 
             if (_keyComparer == keyComparer)
             {
@@ -479,7 +473,7 @@ namespace Roslyn.Collections.Immutable
         /// <returns>A value indicating whether an equal and existing key was found in the map.</returns>
         internal bool TryExchangeKey(TKey key, [NotNullWhen(true)] out TKey? existingKey)
         {
-            var vb = _root != null ? _root.Get(_keyComparer.GetHashCode(key), key, _keyComparer) : null;
+            var vb = _root?.Get(_keyComparer.GetHashCode(key), key, _keyComparer);
             if (vb != null)
             {
                 existingKey = vb.Key;
@@ -956,7 +950,7 @@ namespace Roslyn.Collections.Immutable
             [Pure]
             private static uint RotateRight(uint v, int n)
             {
-                Debug.Assert(n >= 0 && n < 32);
+                Debug.Assert(n is >= 0 and < 32);
                 if (n == 0)
                 {
                     return v;
@@ -967,7 +961,7 @@ namespace Roslyn.Collections.Immutable
 
             private int ComputePhysicalSlot(int logicalSlot)
             {
-                Debug.Assert(logicalSlot >= 0 && logicalSlot < 32);
+                Debug.Assert(logicalSlot is >= 0 and < 32);
                 Contract.Ensures(Contract.Result<int>() >= 0);
                 if (_buckets.Length == 32)
                 {
@@ -1067,10 +1061,7 @@ namespace Roslyn.Collections.Immutable
             {
                 get
                 {
-                    if (_contents == null)
-                    {
-                        _contents = _map.ToArray();
-                    }
+                    _contents ??= _map.ToArray();
 
                     return _contents;
                 }

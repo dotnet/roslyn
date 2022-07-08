@@ -11,9 +11,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
     Friend Class WithBlockStructureProvider
         Inherits AbstractSyntaxNodeStructureProvider(Of WithBlockSyntax)
 
-        Protected Overrides Sub CollectBlockSpans(node As WithBlockSyntax,
+        Protected Overrides Sub CollectBlockSpans(previousToken As SyntaxToken,
+                                                  node As WithBlockSyntax,
                                                   ByRef spans As TemporaryArray(Of BlockSpan),
-                                                  optionProvider As BlockStructureOptionProvider,
+                                                  options As BlockStructureOptions,
                                                   cancellationToken As CancellationToken)
             spans.AddIfNotNull(CreateBlockSpanFromBlock(
                                node, node.WithStatement, autoCollapse:=False,

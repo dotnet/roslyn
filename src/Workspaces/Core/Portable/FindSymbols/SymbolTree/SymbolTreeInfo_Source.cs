@@ -2,18 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
@@ -36,18 +33,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Project project, Checksum checksum, bool loadOnly, CancellationToken cancellationToken)
         {
             var solution = project.Solution;
-            var workspace = solution.Workspace;
+            var services = solution.Workspace.Services;
             var solutionKey = SolutionKey.ToSolutionKey(solution);
-            var projectFilePath = project.FilePath;
+            var projectFilePath = project.FilePath ?? "";
 
             var result = TryLoadOrCreateAsync(
-                workspace,
+                services,
                 solutionKey,
                 checksum,
                 loadOnly,
                 createAsync: () => CreateSourceSymbolTreeInfoAsync(project, checksum, cancellationToken),
                 keySuffix: "_Source_" + project.FilePath,
-                tryReadObject: reader => TryReadSymbolTreeInfo(reader, checksum, nodes => GetSpellCheckerAsync(workspace, solutionKey, checksum, projectFilePath, nodes)),
+                tryReadObject: reader => TryReadSymbolTreeInfo(reader, checksum, nodes => GetSpellCheckerAsync(services, solutionKey, checksum, projectFilePath, nodes)),
                 cancellationToken: cancellationToken);
             Contract.ThrowIfNull(result, "Result should never be null as we passed 'loadOnly: false'.");
             return result;
@@ -121,13 +118,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             GenerateSourceNodes(assembly.GlobalNamespace, unsortedNodes, s_getMembersNoPrivate);
 
             var solution = project.Solution;
-            var workspace = solution.Workspace;
+            var services = solution.Workspace.Services;
             var solutionKey = SolutionKey.ToSolutionKey(solution);
 
             return CreateSymbolTreeInfo(
-                workspace, solutionKey, checksum, project.FilePath, unsortedNodes.ToImmutableAndFree(),
+                services, solutionKey, checksum, project.FilePath ?? "", unsortedNodes.ToImmutableAndFree(),
                 inheritanceMap: new OrderPreservingMultiDictionary<string, string>(),
-                simpleMethods: null);
+                receiverTypeNameToExtensionMethodMap: null);
         }
 
         // generate nodes for the global namespace an all descendants

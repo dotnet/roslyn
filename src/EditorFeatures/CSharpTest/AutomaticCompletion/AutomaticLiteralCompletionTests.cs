@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion;
+using Microsoft.CodeAnalysis.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -80,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
 }";
             using var session = CreateSessionDoubleQuote(code);
             Assert.NotNull(session);
-            CheckStart(session.Session);
+            CheckStart(session.Session, expectValidSession: false);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -424,6 +422,85 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         var s = @""""$$
     }
 }";
+            using var session = CreateSessionDoubleQuote(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session, expectValidSession: false);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WorkItem(59178, "https://github.com/dotnet/roslyn/issues/59178")]
+        public void String_CompleteLiteral()
+        {
+            var code = @"class C
+{
+    void Method()
+    {
+        var s = ""this"" + $$that"";
+    }
+}";
+            using var session = CreateSessionDoubleQuote(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session, expectValidSession: false);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WorkItem(59178, "https://github.com/dotnet/roslyn/issues/59178")]
+        public void String_BeforeOtherString1()
+        {
+            var code = @"class C
+{
+    void Method()
+    {
+        var s = $$ + "" + bar"";
+    }
+}";
+            using var session = CreateSessionDoubleQuote(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WorkItem(59178, "https://github.com/dotnet/roslyn/issues/59178")]
+        public void String_BeforeOtherString2()
+        {
+            var code = @"class C
+{
+    void Method()
+    {
+        var s = $$ + ""; } "";
+    }
+}";
+            using var session = CreateSessionDoubleQuote(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WorkItem(59178, "https://github.com/dotnet/roslyn/issues/59178")]
+        public void String_DontCompleteVerbatim()
+        {
+            var code = @"class C
+{
+    void Method()
+    {
+        var s = ""this"" + @$$that
+            and this"";
+    }
+}";
+            using var session = CreateSessionDoubleQuote(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WorkItem(59178, "https://github.com/dotnet/roslyn/issues/59178")]
+        public void String_CompleteLiteral_EndOfFile()
+        {
+            var code = @"class C
+{
+    void Method()
+    {
+        var s = ""this"" + $$that""";
             using var session = CreateSessionDoubleQuote(code);
             Assert.NotNull(session);
             CheckStart(session.Session, expectValidSession: false);

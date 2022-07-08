@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Friend Function AddFieldTo(destination As CompilationUnitSyntax,
                             field As IFieldSymbol,
-                            options As CodeGenerationOptions,
+                            options As CodeGenerationContextInfo,
                             availableIndices As IList(Of Boolean)) As CompilationUnitSyntax
             Dim fieldDeclaration = GenerateFieldDeclaration(field, CodeGenerationDestination.CompilationUnit, options)
 
@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Friend Function AddFieldTo(destination As TypeBlockSyntax,
                                     field As IFieldSymbol,
-                                    options As CodeGenerationOptions,
+                                    options As CodeGenerationContextInfo,
                                     availableIndices As IList(Of Boolean)) As TypeBlockSyntax
             Dim fieldDeclaration = GenerateFieldDeclaration(field, GetDestination(destination), options)
 
@@ -67,18 +67,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Function GenerateFieldDeclaration(field As IFieldSymbol,
                                                         destination As CodeGenerationDestination,
-                                                        options As CodeGenerationOptions) As FieldDeclarationSyntax
-            Dim reusableSyntax = GetReuseableSyntaxNodeForSymbol(Of ModifiedIdentifierSyntax)(field, options)
+                                                        options As CodeGenerationContextInfo) As FieldDeclarationSyntax
+            Dim reusableSyntax = GetReuseableSyntaxNodeForSymbol(Of FieldDeclarationSyntax)(field, options)
             If reusableSyntax IsNot Nothing Then
-                Dim variableDeclarator = TryCast(reusableSyntax.Parent, VariableDeclaratorSyntax)
-                If variableDeclarator IsNot Nothing Then
-                    Dim names = (New SeparatedSyntaxList(Of ModifiedIdentifierSyntax)).Add(reusableSyntax)
-                    Dim newVariableDeclarator = variableDeclarator.WithNames(names)
-                    Dim fieldDecl = TryCast(variableDeclarator.Parent, FieldDeclarationSyntax)
-                    If fieldDecl IsNot Nothing Then
-                        Return fieldDecl.WithDeclarators((New SeparatedSyntaxList(Of VariableDeclaratorSyntax)).Add(newVariableDeclarator))
-                    End If
-                End If
+                Return EnsureLastElasticTrivia(reusableSyntax)
             End If
 
             Dim initializerNode = TryCast(CodeGenerationFieldInfo.GetInitializer(field), ExpressionSyntax)
@@ -108,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Private Function GenerateModifiers(field As IFieldSymbol,
                                                   destination As CodeGenerationDestination,
-                                                  options As CodeGenerationOptions) As SyntaxTokenList
+                                                  options As CodeGenerationContextInfo) As SyntaxTokenList
             Dim tokens As ArrayBuilder(Of SyntaxToken) = Nothing
             Using x = ArrayBuilder(Of SyntaxToken).GetInstance(tokens)
 

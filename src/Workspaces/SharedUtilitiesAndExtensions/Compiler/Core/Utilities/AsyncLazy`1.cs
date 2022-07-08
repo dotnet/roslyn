@@ -15,6 +15,9 @@ namespace Roslyn.Utilities
     {
         public static AsyncLazy<T> Create<T>(Func<CancellationToken, Task<T>> asynchronousComputeFunction, bool cacheResult)
             => new(asynchronousComputeFunction, cacheResult);
+
+        public static AsyncLazy<T> Create<T>(T value)
+            => new(value);
     }
 
     /// <summary>
@@ -296,10 +299,7 @@ namespace Roslyn.Utilities
 
         private Request CreateNewRequest_NoLock()
         {
-            if (_requests == null)
-            {
-                _requests = new HashSet<Request>();
-            }
+            _requests ??= new HashSet<Request>();
 
             var request = new Request();
             _requests.Add(request);

@@ -4704,6 +4704,31 @@ End Class
                 SymbolDisplayPartKind.Punctuation)
         End Sub
 
+        <Fact()>
+        Public Sub TupleCollapseTupleTypes()
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
+                <compilation>
+                    <file name="a.vb">
+Class C
+    Private f As (Integer, String)
+End Class
+                    </file>
+                </compilation>, references:={TestMetadata.Net40.SystemCore})
+
+            Dim format = New SymbolDisplayFormat(memberOptions:=SymbolDisplayMemberOptions.IncludeType, miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.CollapseTupleTypes)
+
+            Dim symbol = FindSymbol("C.f")(comp.GlobalNamespace)
+            Dim description = VisualBasic.SymbolDisplay.ToDisplayParts(symbol, format)
+
+            Assert.Equal(SymbolDisplayPartKind.FieldName, description(0).Kind)
+            Assert.Equal(SymbolDisplayPartKind.Space, description(1).Kind)
+            Assert.Equal(SymbolDisplayPartKind.Keyword, description(2).Kind)
+            Assert.Equal(SymbolDisplayPartKind.Space, description(3).Kind)
+            Assert.Equal(SymbolDisplayPartKind.StructName, description(4).Kind)
+
+            Assert.True(DirectCast(description(4).Symbol, ITypeSymbol).IsTupleType)
+        End Sub
+
         <WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")>
         <Fact()>
         Public Sub TupleWith1Arity()
@@ -5177,6 +5202,227 @@ End Class")
             position = methodDecl.Statements(0).SpanStart
             Dim description = symbol.ToMinimalDisplayParts(model, position, SymbolDisplayFormat.MinimallyQualifiedFormat)
             Verify(description, "A.B", SymbolDisplayPartKind.AliasName, SymbolDisplayPartKind.Operator, SymbolDisplayPartKind.ClassName)
+        End Sub
+
+        <Fact()>
+        Public Sub AnonymousDelegateType()
+            Dim source =
+"Class Program
+    Shared Sub Main()
+        Dim f = Function(ByRef x as Integer) x.ToString()
+    End Sub
+End Class"
+            Dim comp = CreateCompilation(source)
+            comp.VerifyDiagnostics()
+            Dim tree = comp.SyntaxTrees.First()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim declarator = tree.GetCompilationUnitRoot().DescendantNodes().OfType(Of VariableDeclaratorSyntax)().Single()
+            Dim type = DirectCast(model.GetDeclaredSymbol(declarator.Names(0)), ILocalSymbol).Type
+
+            Verify(
+                type.ToDisplayParts(),
+                "Function <generated method>(ByRef x As Integer) As String",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.DelegateName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword)
+
+            Dim format = New SymbolDisplayFormat(
+                typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+                delegateStyle:=SymbolDisplayDelegateStyle.NameAndSignature,
+                genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters Or SymbolDisplayGenericsOptions.IncludeVariance Or SymbolDisplayGenericsOptions.IncludeTypeConstraints,
+                parameterOptions:=SymbolDisplayParameterOptions.IncludeType Or SymbolDisplayParameterOptions.IncludeName Or SymbolDisplayParameterOptions.IncludeParamsRefOut,
+                miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers Or SymbolDisplayMiscellaneousOptions.UseSpecialTypes,
+                kindOptions:=SymbolDisplayKindOptions.IncludeNamespaceKeyword Or SymbolDisplayKindOptions.IncludeTypeKeyword)
+
+            Verify(
+                type.ToDisplayParts(format),
+                "AnonymousType Function <generated method>(ByRef x As Integer) As String",
+                SymbolDisplayPartKind.AnonymousTypeIndicator,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.DelegateName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword)
+        End Sub
+
+        ''' <summary>
+        ''' IFieldSymbol.RefKind is ignored in VisualBasic.SymbolDisplayVisitor.
+        ''' </summary>
+        <Fact()>
+        Public Sub RefFields()
+            Dim source =
+"#pragma warning disable 169
+ref struct S<T>
+{
+    ref T F1;
+    ref readonly T F2;
+}"
+            Dim comp = CreateCSharpCompilation(GetUniqueName(), source, parseOptions:=New CSharp.CSharpParseOptions(CSharp.LanguageVersion.Preview))
+            comp.VerifyDiagnostics()
+
+            Dim type = comp.GlobalNamespace.GetTypeMembers("S").Single()
+
+            Verify(SymbolDisplay.ToDisplayParts(type.GetMembers("F1").Single(), SymbolDisplayFormat.TestFormat),
+                "S(Of T).F1 As T",
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Operator,
+                SymbolDisplayPartKind.FieldName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.TypeParameterName)
+
+            Verify(SymbolDisplay.ToDisplayParts(type.GetMembers("F2").Single(), SymbolDisplayFormat.TestFormat),
+                "S(Of T).F2 As T",
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Operator,
+                SymbolDisplayPartKind.FieldName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.TypeParameterName)
+        End Sub
+
+        ''' <summary>
+        ''' IParameterSymbol.IsRefScoped and IsValueScoped are ignored in VisualBasic.SymbolDisplayVisitor.
+        ''' </summary>
+        <Theory>
+        <InlineData(False)>
+        <InlineData(True)>
+        Public Sub ScopedParameter(includeScoped As Boolean)
+            Dim source =
+"ref struct R { }
+class Program
+{
+    static void F(scoped R r1, in scoped R r2, scoped ref R r3) { }
+}"
+            Dim comp = CreateCSharpCompilation(GetUniqueName(), source, parseOptions:=New CSharp.CSharpParseOptions(CSharp.LanguageVersion.Preview))
+            comp.VerifyDiagnostics()
+            Dim method = comp.GlobalNamespace.GetTypeMembers("Program").Single().GetMembers("F").Single()
+
+            Dim format = SymbolDisplayFormat.TestFormat
+            If includeScoped Then
+                format = format.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped)
+            End If
+
+            Verify(SymbolDisplay.ToDisplayParts(method, format),
+                "Sub Program.F(r1 As R, r2 As R, r3 As R)",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Operator,
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Punctuation)
+        End Sub
+
+        ''' <summary>
+        ''' ILocalSymbol.IsRefScoped and IsValueScoped are ignored in VisualBasic.SymbolDisplayVisitor.
+        ''' </summary>
+        <Theory>
+        <InlineData(False)>
+        <InlineData(True)>
+        Public Sub ScopedLocal(includeScoped As Boolean)
+            Dim source =
+"ref struct R { }
+class Program
+{
+    static void M(R r0)
+    {
+        scoped R r1;
+        ref readonly scoped R r2 = ref r1;
+        scoped ref R r3 = ref r0;
+    }
+}"
+            Dim comp = CreateCSharpCompilation(GetUniqueName(), source, parseOptions:=New CSharp.CSharpParseOptions(CSharp.LanguageVersion.Preview))
+            comp.VerifyDiagnostics()
+            Dim tree = comp.SyntaxTrees(0)
+            Dim model = comp.GetSemanticModel(tree)
+            Dim decls = tree.GetRoot().DescendantNodes().OfType(Of Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeclaratorSyntax)().ToArray()
+            Dim locals = decls.Select(Function(d) model.GetDeclaredSymbol(d)).ToArray()
+
+            Dim format = SymbolDisplayFormat.TestFormat.AddLocalOptions(SymbolDisplayLocalOptions.IncludeRef)
+            If includeScoped Then
+                format = format.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped)
+            End If
+
+            Verify(SymbolDisplay.ToDisplayParts(locals(0), format),
+                "r1 As R",
+                SymbolDisplayPartKind.LocalName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StructName)
+
+            Verify(SymbolDisplay.ToDisplayParts(locals(1), format),
+                "r2 As R",
+                SymbolDisplayPartKind.LocalName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StructName)
+
+            Verify(SymbolDisplay.ToDisplayParts(locals(2), format),
+                "r3 As R",
+                SymbolDisplayPartKind.LocalName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StructName)
         End Sub
 
 #Region "Helpers"

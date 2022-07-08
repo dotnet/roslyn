@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         // Encode in payload as a sequence of bytes {count}{dynamicFlags}{tupleNames}
         // where {count} is a byte of the number of bytes in {dynamicFlags} (max: 8*256 bits)
-        // and {tupleNames} is a UTF8 encoded string of the names each preceded by '|'.
+        // and {tupleNames} is a UTF-8 encoded string of the names each preceded by '|'.
         internal static ReadOnlyCollection<byte>? Encode(
             ReadOnlyCollection<byte>? dynamicFlags,
             ReadOnlyCollection<string?>? tupleElementNames)

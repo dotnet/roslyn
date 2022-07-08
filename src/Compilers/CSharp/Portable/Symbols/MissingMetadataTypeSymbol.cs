@@ -47,6 +47,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return mangleName;
             }
         }
+
+        internal override SyntaxTree? AssociatedSyntaxTree => null;
+
         /// <summary>
         /// Get the arity of the missing type.
         /// </summary>
@@ -355,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return other;
             }
 
-            internal sealed override bool IsNativeIntegerType => _isNativeInt;
+            internal sealed override bool IsNativeIntegerWrapperType => _isNativeInt;
 
             internal sealed override NamedTypeSymbol? NativeIntegerUnderlyingType => _isNativeInt ? AsNativeInteger(asNativeInt: false) : null;
 

@@ -337,10 +337,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 var newService = CreateRemoteService(options, skipInitialization: false);
 
                 var oldService = Interlocked.Exchange(ref _lazyRemoteService, newService);
-                if (oldService != null)
-                {
-                    oldService.Dispose();
-                }
+                oldService?.Dispose();
 
                 var initializedService = await TryGetOrCreateRemoteServiceAsync().ConfigureAwait(false);
                 if (initializedService.Service == null)
@@ -404,8 +401,8 @@ namespace Microsoft.CodeAnalysis.Interactive
         /// </summary>
         public Task<RemoteExecutionResult> SetPathsAsync(ImmutableArray<string> referenceSearchPaths, ImmutableArray<string> sourceSearchPaths, string baseDirectory)
         {
-            Contract.ThrowIfNull(referenceSearchPaths);
-            Contract.ThrowIfNull(sourceSearchPaths);
+            Contract.ThrowIfTrue(referenceSearchPaths.IsDefault);
+            Contract.ThrowIfTrue(sourceSearchPaths.IsDefault);
             Contract.ThrowIfNull(baseDirectory);
 
             return ExecuteRemoteAsync(nameof(Service.SetPathsAsync), referenceSearchPaths, sourceSearchPaths, baseDirectory);

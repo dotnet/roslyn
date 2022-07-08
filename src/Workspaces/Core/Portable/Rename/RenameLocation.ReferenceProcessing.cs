@@ -94,9 +94,9 @@ namespace Microsoft.CodeAnalysis.Rename
                 if (symbol.Kind == SymbolKind.Method)
                 {
                     var methodSymbol = (IMethodSymbol)symbol;
-                    if (methodSymbol.MethodKind == MethodKind.Constructor ||
-                        methodSymbol.MethodKind == MethodKind.StaticConstructor ||
-                        methodSymbol.MethodKind == MethodKind.Destructor)
+                    if (methodSymbol.MethodKind is MethodKind.Constructor or
+                        MethodKind.StaticConstructor or
+                        MethodKind.Destructor)
                     {
                         return methodSymbol.ContainingType;
                     }
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 // Do not cascade to symbols that are defined only in metadata.
                 if (referencedSymbol.Kind == originalSymbol.Kind &&
                     string.Compare(TrimNameToAfterLastDot(referencedSymbol.Name), TrimNameToAfterLastDot(originalSymbol.Name), StringComparison.OrdinalIgnoreCase) == 0 &&
-                    referencedSymbol.Locations.Any(loc => loc.IsInSource))
+                    referencedSymbol.Locations.Any(static loc => loc.IsInSource))
                 {
                     return true;
                 }
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 if (referencedSymbol.ContainingSymbol != null &&
                     referencedSymbol.ContainingSymbol.Kind == SymbolKind.NamedType &&
                     ((INamedTypeSymbol)referencedSymbol.ContainingSymbol).TypeKind == TypeKind.Interface &&
-                    !originalSymbol.ExplicitInterfaceImplementations().Any(s => s.Equals(referencedSymbol)))
+                    !originalSymbol.ExplicitInterfaceImplementations().Any(static (s, referencedSymbol) => s.Equals(referencedSymbol), referencedSymbol))
                 {
                     return true;
                 }
@@ -360,6 +360,13 @@ namespace Microsoft.CodeAnalysis.Rename
 
             internal static async Task<IEnumerable<RenameLocation>> GetRenamableReferenceLocationsAsync(ISymbol referencedSymbol, ISymbol originalSymbol, ReferenceLocation location, Solution solution, CancellationToken cancellationToken)
             {
+                // We won't try to update references in source generated files; we'll assume the generator will rerun
+                // and produce an updated document with the new name.
+                if (location.Document is SourceGeneratedDocument)
+                {
+                    return SpecializedCollections.EmptyEnumerable<RenameLocation>();
+                }
+
                 var shouldIncludeSymbol = await ShouldIncludeSymbolAsync(referencedSymbol, originalSymbol, solution, true, cancellationToken).ConfigureAwait(false);
                 if (!shouldIncludeSymbol)
                 {
