@@ -122,6 +122,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public bool IsSerializable => false;
 
-        public bool IsFile => Modifiers.IsFile;
+        public bool IsFileLocal => Modifiers.IsFile;
     }
 }

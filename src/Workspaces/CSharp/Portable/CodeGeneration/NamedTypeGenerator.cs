@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             var tokens = ArrayBuilder<SyntaxToken>.GetInstance();
 
-            if (!namedType.IsFile)
+            if (!namedType.IsFileLocal)
             {
                 var defaultAccessibility = destination is CodeGenerationDestination.CompilationUnit or CodeGenerationDestination.Namespace
                     ? Accessibility.Internal

@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(ErrorCode.ERR_BadVisBound, location, containingSymbol, constraintType.Type);
             }
 
-            if (constraintType.Type.IsFileTypeOrUsesFileTypes())
+            if (constraintType.Type.HasFileLocalTypes())
             {
                 // if the containing symbol of the constraint is a member, we need to ensure the nearest containing type is a file type.
                 var possibleFileType = containingSymbol switch
@@ -422,7 +422,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _ => throw ExceptionUtilities.UnexpectedValue(containingSymbol)
                 };
                 Debug.Assert(possibleFileType?.IsDefinition != false);
-                if (possibleFileType?.IsFileTypeOrUsesFileTypes() == false)
+                if (possibleFileType?.HasFileLocalTypes() == false)
                 {
                     diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, location, constraintType.Type, containingSymbol);
                 }
