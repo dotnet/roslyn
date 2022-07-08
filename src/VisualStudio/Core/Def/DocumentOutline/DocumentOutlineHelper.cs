@@ -94,23 +94,23 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// <summary>
         /// Converts an array of type DocumentSymbol to an array of type DocumentSymbolItem.
         /// </summary>
-        public static ImmutableArray<DocumentSymbolItem> GetDocumentSymbolModels(DocumentSymbol[] documentSymbols)
+        public static ImmutableArray<DocumentSymbolItem> GetDocumentSymbolItems(DocumentSymbol[] documentSymbols)
         {
-            var documentSymbolModels = ArrayBuilder<DocumentSymbolItem>.GetInstance();
+            var documentSymbolItems = ArrayBuilder<DocumentSymbolItem>.GetInstance();
             if (documentSymbols.Length == 0)
             {
-                return documentSymbolModels.ToImmutableAndFree();
+                return documentSymbolItems.ToImmutableAndFree();
             }
 
             foreach (var documentSymbol in documentSymbols)
             {
-                var documentSymbolModel = new DocumentSymbolItem(documentSymbol);
+                var documentSymbolItem = new DocumentSymbolItem(documentSymbol);
                 if (documentSymbol.Children is not null)
-                    documentSymbolModel.Children = GetDocumentSymbolModels(documentSymbol.Children);
-                documentSymbolModels.Add(documentSymbolModel);
+                    documentSymbolItem.Children = GetDocumentSymbolItems(documentSymbol.Children);
+                documentSymbolItems.Add(documentSymbolItem);
             }
 
-            return documentSymbolModels.ToImmutableAndFree();
+            return documentSymbolItems.ToImmutableAndFree();
         }
 
         public static async Task<JToken?> DocumentSymbolsRequestAsync(
@@ -140,17 +140,17 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
-        public static void SetIsExpanded(IEnumerable<DocumentSymbolItem> documentSymbolModels, bool isExpanded)
+        public static void SetIsExpanded(IEnumerable<DocumentSymbolItem> documentSymbolItems, bool isExpanded)
         {
-            foreach (var documentSymbolModel in documentSymbolModels)
+            foreach (var documentSymbolItem in documentSymbolItems)
             {
-                documentSymbolModel.IsExpanded = isExpanded;
-                SetIsExpanded(documentSymbolModel.Children, isExpanded);
+                documentSymbolItem.IsExpanded = isExpanded;
+                SetIsExpanded(documentSymbolItem.Children, isExpanded);
             }
         }
 
         /// <summary>
-        /// Sorts and returns an immutable array of DocumentSymbolViewModels based on a SortOption.
+        /// Sorts and returns an immutable array of DocumentSymbolItem based on a SortOption.
         /// </summary>
         public static ImmutableArray<DocumentSymbolItem> Sort(
             ImmutableArray<DocumentSymbolItem> documentSymbolItems,
@@ -171,24 +171,24 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             return SortDocumentSymbolItems(documentSymbolItems, sortOption, cancellationToken);
 
             static ImmutableArray<DocumentSymbolItem> SortDocumentSymbolItems(
-                ImmutableArray<DocumentSymbolItem> documentSymbolModels,
+                ImmutableArray<DocumentSymbolItem> documentSymbolItems,
                 SortOption sortOption,
                 CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                // Sort the top-level DocumentSymbolViewModels
-                var sortedDocumentSymbolModels = sortOption switch
+                // Sort the top-level DocumentSymbolItems
+                var sortedDocumentSymbolItems = sortOption switch
                 {
-                    SortOption.Name => documentSymbolModels.Sort((x, y) => x.Name.CompareTo(y.Name)),
-                    SortOption.Order => documentSymbolModels.Sort((x, y) =>
+                    SortOption.Name => documentSymbolItems.Sort((x, y) => x.Name.CompareTo(y.Name)),
+                    SortOption.Order => documentSymbolItems.Sort((x, y) =>
                     {
                         if (x.StartPosition.Line == y.StartPosition.Line)
                             return x.StartPosition.Character - y.StartPosition.Character;
 
                         return x.StartPosition.Line - y.StartPosition.Line;
                     }),
-                    SortOption.Type => documentSymbolModels.Sort((x, y) =>
+                    SortOption.Type => documentSymbolItems.Sort((x, y) =>
                     {
                         if (x.SymbolKind == y.SymbolKind)
                             return x.Name.CompareTo(y.Name);
@@ -198,21 +198,21 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                     _ => throw new NotImplementedException()
                 };
 
-                // Recursively sort descendant DocumentSymbolViewModels
-                foreach (var documentSymbolModel in sortedDocumentSymbolModels)
+                // Recursively sort descendant DocumentSymbolItems
+                foreach (var documentSymbolItem in sortedDocumentSymbolItems)
                 {
-                    documentSymbolModel.Children = SortDocumentSymbolItems(documentSymbolModel.Children, sortOption, cancellationToken);
+                    documentSymbolItem.Children = SortDocumentSymbolItems(documentSymbolItem.Children, sortOption, cancellationToken);
                 }
 
-                return sortedDocumentSymbolModels;
+                return sortedDocumentSymbolItems;
             }
         }
 
         /// <summary>
-        /// Returns an immutable array of DocumentSymbolViewModels such that each node or one of its descendants matches the given pattern.
+        /// Returns an immutable array of DocumentSymbolItem such that each node or one of its descendants matches the given pattern.
         /// </summary>
         public static ImmutableArray<DocumentSymbolItem> Search(
-            ImmutableArray<DocumentSymbolItem> documentSymbolModels,
+            ImmutableArray<DocumentSymbolItem> documentSymbolItems,
             string pattern,
             CancellationToken cancellationToken)
         {
@@ -221,7 +221,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             var documentSymbols = ArrayBuilder<DocumentSymbolItem>.GetInstance();
             var patternMatcher = PatternMatcher.CreatePatternMatcher(pattern, includeMatchedSpans: false, allowFuzzyMatching: true);
 
-            foreach (var documentSymbol in documentSymbolModels)
+            foreach (var documentSymbol in documentSymbolItems)
             {
                 if (SearchNodeTree(documentSymbol, patternMatcher, cancellationToken))
                     documentSymbols.Add(documentSymbol);

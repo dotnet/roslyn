@@ -63,7 +63,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
         public void TestSortByName()
         {
             var sortedByName = DocumentOutlineHelper.Sort(
-                DocumentOutlineHelper.GetDocumentSymbolModels(GetDocumentSymbols()), SortOption.Name, CancellationToken.None);
+                DocumentOutlineHelper.GetDocumentSymbolItems(GetDocumentSymbols()), SortOption.Name, CancellationToken.None);
 
             CheckSortedByName(sortedByName);
             foreach (var documentSymbolItem in sortedByName)
@@ -80,7 +80,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
         public void TestSortByOrder()
         {
             var sortedByOrder = DocumentOutlineHelper.Sort(
-                DocumentOutlineHelper.GetDocumentSymbolModels(GetDocumentSymbols()), SortOption.Order, CancellationToken.None);
+                DocumentOutlineHelper.GetDocumentSymbolItems(GetDocumentSymbols()), SortOption.Order, CancellationToken.None);
 
             CheckSortedByOrder(sortedByOrder);
             foreach (var documentSymbolItem in sortedByOrder)
@@ -101,7 +101,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
         public void TestSortByType()
         {
             var sortedByType = DocumentOutlineHelper.Sort(
-                DocumentOutlineHelper.GetDocumentSymbolModels(GetDocumentSymbols()), SortOption.Type, CancellationToken.None);
+                DocumentOutlineHelper.GetDocumentSymbolItems(GetDocumentSymbols()), SortOption.Type, CancellationToken.None);
 
             CheckSortedByType(sortedByType);
             foreach (var documentSymbolItem in sortedByType)
@@ -123,7 +123,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
         [Fact]
         public void TestSearch()
         {
-            var documentSymbolModels = DocumentOutlineHelper.GetDocumentSymbolModels(GetDocumentSymbols());
+            var documentSymbolModels = DocumentOutlineHelper.GetDocumentSymbolItems(GetDocumentSymbols());
 
             Assert.Equal(2, DocumentOutlineHelper.Search(documentSymbolModels, "Class", CancellationToken.None).Length);
             Assert.Equal(1, DocumentOutlineHelper.Search(documentSymbolModels, "Field", CancellationToken.None).Length);

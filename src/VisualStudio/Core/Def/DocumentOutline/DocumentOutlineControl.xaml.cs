@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         private IVsCodeWindow CodeWindow { get; }
 
         /// <summary>
-        /// The type of sorting to be applied to the DocumentSymbolItems in the UI.
+        /// The type of sorting to be applied to the UI model in <see cref="UpdateUIAsync"/>.
         /// </summary>
         private SortOption SortOption { get; set; }
 

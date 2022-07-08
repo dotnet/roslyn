@@ -58,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             if (filePath is null)
                 return null;
 
-            // Ensure we switch to the threadpool before calling DocumentSymbolsRequestAsync.  It ensures
+            // Ensure we switch to the threadpool before calling ComputeUIModelAsync. It ensures
             // that fetching and processing the document model is not done on the UI thread.
             await TaskScheduler.Default;
 
@@ -82,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                     return null;
 
                 var documentSymbols = DocumentOutlineHelper.GetNestedDocumentSymbols(responseBody);
-                var documentSymbolItems = DocumentOutlineHelper.GetDocumentSymbolModels(documentSymbols);
+                var documentSymbolItems = DocumentOutlineHelper.GetDocumentSymbolItems(documentSymbols);
                 return new DocumentSymbolModel(documentSymbolItems, originalSnapshot);
             }
 
