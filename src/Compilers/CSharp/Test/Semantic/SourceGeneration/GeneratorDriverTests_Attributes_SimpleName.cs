@@ -1310,6 +1310,7 @@ class C { }
             compilation.SyntaxTrees.First()));
         runResult = driver.GetRunResult().Results[0];
 
+        Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttribute"));
         Assert.False(runResult.TrackedSteps.ContainsKey("individualFileGlobalAliases_ForAttribute"));
         Assert.False(runResult.TrackedSteps.ContainsKey("collectedGlobalAliases_ForAttribute"));
         Assert.False(runResult.TrackedSteps.ContainsKey("allUpGlobalAliases_ForAttribute"));
