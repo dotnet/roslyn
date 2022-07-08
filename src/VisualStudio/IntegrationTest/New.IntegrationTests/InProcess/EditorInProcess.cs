@@ -93,15 +93,15 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var shell = await GetRequiredGlobalServiceAsync<SVsShell, IVsShell>(cancellationToken);
-            if (shell.IsPackageLoaded(guid, out var languagePackage) == VSConstants.S_OK)
+            if (shell.IsPackageLoaded(guid, out var csharpPackage) == VSConstants.S_OK)
             {
-                var asyncPackage = (AsyncPackage)languagePackage;
+                var asyncPackage = (AsyncPackage)csharpPackage;
                 var collection = asyncPackage.GetPropertyValue<JoinableTaskCollection>("JoinableTaskCollection");
                 await collection.JoinTillEmptyAsync(cancellationToken);
                 return asyncPackage;
             }
 
-            throw new Exception($"Can't load {languageName} package");
+            throw new Exception("Can't load C# package");
         }
 
         public async Task<bool> IsSavedAsync(CancellationToken cancellationToken)
