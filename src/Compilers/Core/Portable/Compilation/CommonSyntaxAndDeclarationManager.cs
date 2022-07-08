@@ -184,12 +184,10 @@ namespace Microsoft.CodeAnalysis
                 return new(_before, tree, _after);
             }
 
-            Console.WriteLine("Inefficiently");
+            Console.WriteLine($"Inefficiently count:{this.Count} index:{index} middle:{_before.Length}");
 
             var before = ArrayBuilder<SyntaxTree>.GetInstance(index);
             var after = ArrayBuilder<SyntaxTree>.GetInstance(count - (1 + index));
-
-            Debug.Assert(before.Capacity + after.Capacity + 1 == this.Count);
 
             for (var i = 0; i < index; i++)
                 before.Add(this[i]);

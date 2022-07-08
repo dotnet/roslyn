@@ -104,9 +104,6 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             }
         }
 
-        internal int Capacity
-            => _builder.Capacity;
-
         public T this[int index]
         {
             get
