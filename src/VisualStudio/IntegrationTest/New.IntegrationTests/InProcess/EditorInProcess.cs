@@ -29,7 +29,6 @@ using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
-using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.FindUsages;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
@@ -79,29 +78,6 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                 var collection = asyncPackage.GetPropertyValue<JoinableTaskCollection>("JoinableTaskCollection");
                 await collection.JoinTillEmptyAsync(cancellationToken);
             }
-        }
-
-        public async Task<AsyncPackage> GetLanguagePackageAsync(string languageName, CancellationToken cancellationToken)
-        {
-            var guid = languageName switch
-            {
-                LanguageNames.CSharp => Guids.CSharpPackageId,
-                LanguageNames.VisualBasic => Guids.VisualBasicPackageId,
-                _ => throw ExceptionUtilities.UnexpectedValue(languageName),
-            };
-
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            var shell = await GetRequiredGlobalServiceAsync<SVsShell, IVsShell>(cancellationToken);
-            if (shell.IsPackageLoaded(guid, out var csharpPackage) == VSConstants.S_OK)
-            {
-                var asyncPackage = (AsyncPackage)csharpPackage;
-                var collection = asyncPackage.GetPropertyValue<JoinableTaskCollection>("JoinableTaskCollection");
-                await collection.JoinTillEmptyAsync(cancellationToken);
-                return asyncPackage;
-            }
-
-            throw new Exception("Can't load C# package");
         }
 
         public async Task<bool> IsSavedAsync(CancellationToken cancellationToken)

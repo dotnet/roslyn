@@ -68,10 +68,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetBooleanOption(CompletionOptionsStorage.ProvideRegexCompletions, value); }
         }
 
-        //public int ShowNameSuggestions
-        //{
-        //    get { return GetBooleanOption(CompletionOptionsStorage.ShowNameSuggestions); }
-        //    set { SetBooleanOption(CompletionOptionsStorage.ShowNameSuggestions, value); }
-        //}
+        public int ShowNameSuggestions
+        {
+            get { return GetBooleanOption(CompletionOptionsStorage.ShowNameSuggestions); }
+            set { SetBooleanOption(CompletionOptionsStorage.ShowNameSuggestions, value); }
+        }
     }
 }

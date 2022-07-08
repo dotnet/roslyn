@@ -55,5 +55,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
         Protected Overrides Function CreateWorkspace() As TestWorkspace
             Return TestWorkspace.CreateVisualBasic("")
         End Function
+
+        Protected Overrides Iterator Function CreatePageControls(optionStore As OptionStore) As IEnumerable(Of AbstractOptionPageControl)
+            ' TODO: AdvancedOptionPageControl(optionStore)
+            Yield New IntelliSenseOptionPageControl(optionStore)
+        End Function
     End Class
 End Namespace
