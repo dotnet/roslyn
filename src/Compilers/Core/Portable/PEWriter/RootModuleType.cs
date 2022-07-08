@@ -58,6 +58,11 @@ namespace Microsoft.Cci
             get { return false; }
         }
 
+        public string? AssociatedFileIdentifier
+        {
+            get { return null; }
+        }
+
         public string Name
         {
             get { return "<Module>"; }

@@ -41,9 +41,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
             return rawKind == SyntaxKinds.StringLiteralToken ||
                    rawKind == SyntaxKinds.SingleLineRawStringLiteralToken ||
                    rawKind == SyntaxKinds.MultiLineRawStringLiteralToken ||
-                   rawKind == SyntaxKinds.UTF8StringLiteralToken ||
-                   rawKind == SyntaxKinds.UTF8SingleLineRawStringLiteralToken ||
-                   rawKind == SyntaxKinds.UTF8MultiLineRawStringLiteralToken;
+                   rawKind == SyntaxKinds.Utf8StringLiteralToken ||
+                   rawKind == SyntaxKinds.Utf8SingleLineRawStringLiteralToken ||
+                   rawKind == SyntaxKinds.Utf8MultiLineRawStringLiteralToken;
         }
     }
 }

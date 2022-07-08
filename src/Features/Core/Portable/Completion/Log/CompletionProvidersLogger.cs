@@ -2,17 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis.Completion.Log
 {
     internal static class CompletionProvidersLogger
     {
-        private static readonly StatisticLogAggregator<ActionInfo> s_statisticLogAggregator = new();
-        private static readonly CountLogAggregator<ActionInfo> s_countLogAggregator = new();
+        private static readonly StatisticLogAggregator s_statisticLogAggregator = new();
+        private static readonly LogAggregator s_logAggregator = new();
 
-        private static readonly HistogramLogAggregator<ActionInfo> s_histogramLogAggregator = new(bucketSize: 50, maxBucketValue: 1000);
+        private static readonly HistogramLogAggregator s_histogramLogAggregator = new(bucketSize: 50, maxBucketValue: 1000);
 
         internal enum ActionInfo
         {
@@ -34,52 +33,52 @@ namespace Microsoft.CodeAnalysis.Completion.Log
             CommitUsingDotToAddParenthesis
         }
 
-        internal static void LogTypeImportCompletionTicksDataPoint(TimeSpan elapsed)
+        internal static void LogTypeImportCompletionTicksDataPoint(int count)
         {
-            s_histogramLogAggregator.LogTime(ActionInfo.TypeImportCompletionTicks, elapsed);
-            s_statisticLogAggregator.AddDataPoint(ActionInfo.TypeImportCompletionTicks, elapsed);
+            s_histogramLogAggregator.IncreaseCount((int)ActionInfo.TypeImportCompletionTicks, count);
+            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.TypeImportCompletionTicks, count);
         }
 
         internal static void LogTypeImportCompletionItemCountDataPoint(int count) =>
-            s_statisticLogAggregator.AddDataPoint(ActionInfo.TypeImportCompletionItemCount, count);
+            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.TypeImportCompletionItemCount, count);
 
         internal static void LogTypeImportCompletionReferenceCountDataPoint(int count) =>
-            s_statisticLogAggregator.AddDataPoint(ActionInfo.TypeImportCompletionReferenceCount, count);
+            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.TypeImportCompletionReferenceCount, count);
 
         internal static void LogTypeImportCompletionCacheMiss() =>
-            s_countLogAggregator.IncreaseCount(ActionInfo.TypeImportCompletionCacheMissCount);
+            s_logAggregator.IncreaseCount((int)ActionInfo.TypeImportCompletionCacheMissCount);
 
         internal static void LogCommitOfTypeImportCompletionItem() =>
-            s_countLogAggregator.IncreaseCount(ActionInfo.CommitsOfTypeImportCompletionItem);
+            s_logAggregator.IncreaseCount((int)ActionInfo.CommitsOfTypeImportCompletionItem);
 
-        internal static void LogExtensionMethodCompletionTicksDataPoint(TimeSpan total, TimeSpan getSymbols, TimeSpan createItems, bool isRemote)
+        internal static void LogExtensionMethodCompletionTicksDataPoint(int total, int getSymbols, int createItems, bool isRemote)
         {
-            s_histogramLogAggregator.LogTime(ActionInfo.ExtensionMethodCompletionTicks, total);
-            s_statisticLogAggregator.AddDataPoint(ActionInfo.ExtensionMethodCompletionTicks, total);
+            s_histogramLogAggregator.IncreaseCount((int)ActionInfo.ExtensionMethodCompletionTicks, total);
+            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionTicks, total);
 
             if (isRemote)
             {
-                s_statisticLogAggregator.AddDataPoint(ActionInfo.ExtensionMethodCompletionRemoteTicks, total - getSymbols - createItems);
+                s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionRemoteTicks, (total - getSymbols - createItems));
             }
 
-            s_statisticLogAggregator.AddDataPoint(ActionInfo.ExtensionMethodCompletionGetSymbolsTicks, getSymbols);
-            s_statisticLogAggregator.AddDataPoint(ActionInfo.ExtensionMethodCompletionCreateItemsTicks, createItems);
+            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionGetSymbolsTicks, getSymbols);
+            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionCreateItemsTicks, createItems);
         }
 
         internal static void LogExtensionMethodCompletionMethodsProvidedDataPoint(int count) =>
-            s_statisticLogAggregator.AddDataPoint(ActionInfo.ExtensionMethodCompletionMethodsProvided, count);
+            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionMethodsProvided, count);
 
         internal static void LogCommitOfExtensionMethodImportCompletionItem() =>
-            s_countLogAggregator.IncreaseCount(ActionInfo.CommitsOfExtensionMethodImportCompletionItem);
+            s_logAggregator.IncreaseCount((int)ActionInfo.CommitsOfExtensionMethodImportCompletionItem);
 
         internal static void LogExtensionMethodCompletionPartialResultCount() =>
-            s_countLogAggregator.IncreaseCount(ActionInfo.ExtensionMethodCompletionPartialResultCount);
+            s_logAggregator.IncreaseCount((int)ActionInfo.ExtensionMethodCompletionPartialResultCount);
 
         internal static void LogCommitUsingSemicolonToAddParenthesis() =>
-            s_countLogAggregator.IncreaseCount(ActionInfo.CommitUsingSemicolonToAddParenthesis);
+            s_logAggregator.IncreaseCount((int)ActionInfo.CommitUsingSemicolonToAddParenthesis);
 
         internal static void LogCommitUsingDotToAddParenthesis() =>
-            s_countLogAggregator.IncreaseCount(ActionInfo.CommitUsingDotToAddParenthesis);
+            s_logAggregator.IncreaseCount((int)ActionInfo.CommitUsingDotToAddParenthesis);
 
         internal static void LogCustomizedCommitToAddParenthesis(char? commitChar)
         {
@@ -110,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Completion.Log
                     m[CreateProperty(info, nameof(statistics.Count))] = statistics.Count;
                 }
 
-                foreach (var kv in s_countLogAggregator)
+                foreach (var kv in s_logAggregator)
                 {
                     var info = ((ActionInfo)kv.Key).ToString("f");
                     m[info] = kv.Value.GetCount();

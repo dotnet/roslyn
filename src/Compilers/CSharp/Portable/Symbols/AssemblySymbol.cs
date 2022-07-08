@@ -467,6 +467,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal bool RuntimeSupportsUnmanagedSignatureCallingConvention
             => RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__UnmanagedSignatureCallingConvention);
 
+        internal bool RuntimeSupportsByRefFields
+            => RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__ByRefFields);
+
         /// <summary>
         /// True if the target runtime support covariant returns of methods declared in classes.
         /// </summary>

@@ -587,7 +587,7 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       </trans-unit>
       <trans-unit id="Could_not_find_implementation_of_symbol_0">
         <source>Could not find implementation of symbol '{0}'</source>
-        <target state="new">Could not find implementation of symbol '{0}'</target>
+        <target state="translated">No se pudo encontrar la implementación del símbolo '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Create_and_assign_field_0">
@@ -737,7 +737,7 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       </trans-unit>
       <trans-unit id="Fixing_0">
         <source>Fixing '{0}'</source>
-        <target state="new">Fixing '{0}'</target>
+        <target state="translated">Corrigiendo '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_document">
@@ -958,6 +958,11 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       <trans-unit id="Inline_and_keep_0">
         <source>Inline and keep '{0}'</source>
         <target state="translated">Alinear y mantener "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_an_if_statement">
+        <source>Insert an 'if' statement</source>
+        <target state="new">Insert an 'if' statement</target>
         <note />
       </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
@@ -1313,6 +1318,16 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       <trans-unit id="Pull_members_up_to_base_type">
         <source>Pull members up to base type...</source>
         <target state="translated">Extraer miembros hasta el tipo de base...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pull_selected_members_up">
+        <source>Pull selected members up</source>
+        <target state="new">Pull selected members up</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pull_selected_members_up_to_0">
+        <source>Pull selected members up to {0}</source>
+        <target state="new">Pull selected members up to {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Quantifier_x_y_following_nothing">
@@ -2522,8 +2537,13 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
       </trans-unit>
       <trans-unit id="Replace_conditional_expression_with_statements">
         <source>Replace conditional expression with statements</source>
-        <target state="new">Replace conditional expression with statements</target>
+        <target state="translated">Reemplazar expresión condicional con instrucciones</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Required">
+        <source>required</source>
+        <target state="new">required</target>
+        <note>Used in the object initializer completion.</note>
       </trans-unit>
       <trans-unit id="Resolve_conflict_markers">
         <source>Resolve conflict markers</source>
@@ -2968,6 +2988,11 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
       <trans-unit id="Wrapping">
         <source>Wrapping</source>
         <target state="translated">Ajuste</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Write_to_the_console">
+        <source>Write to the console</source>
+        <target state="new">Write to the console</target>
         <note />
       </trans-unit>
       <trans-unit id="You_can_use_the_navigation_bar_to_switch_contexts">

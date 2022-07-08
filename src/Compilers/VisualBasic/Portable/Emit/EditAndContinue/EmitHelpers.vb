@@ -118,6 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End If
 
             Dim currentSynthesizedMembers = moduleBeingBuilt.GetAllSynthesizedMembers()
+            Dim currentDeletedMembers = moduleBeingBuilt.EncSymbolChanges.GetAllDeletedMethods()
 
             ' Mapping from previous compilation to the current.
             Dim anonymousTypeMap = moduleBeingBuilt.GetAnonymousTypeMap()
@@ -131,9 +132,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 sourceContext,
                 compilation.SourceAssembly,
                 otherContext,
-                currentSynthesizedMembers)
+                currentSynthesizedMembers,
+                currentDeletedMembers)
 
             Dim mappedSynthesizedMembers = matcher.MapSynthesizedMembers(previousGeneration.SynthesizedMembers, currentSynthesizedMembers)
+            Dim mappedDeletedMembers = matcher.MapSynthesizedMembers(previousGeneration.DeletedMembers, currentDeletedMembers)
 
             ' TODO can we reuse some data from the previous matcher?
             Dim matcherWithAllSynthesizedMembers = New VisualBasicSymbolMatcher(
@@ -142,13 +145,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 sourceContext,
                 compilation.SourceAssembly,
                 otherContext,
-                mappedSynthesizedMembers)
+                mappedSynthesizedMembers,
+                mappedDeletedMembers)
 
             Return matcherWithAllSynthesizedMembers.MapBaselineToCompilation(
                 previousGeneration,
                 compilation,
                 moduleBeingBuilt,
-                mappedSynthesizedMembers)
+                mappedSynthesizedMembers,
+                mappedDeletedMembers)
         End Function
     End Module
 End Namespace
