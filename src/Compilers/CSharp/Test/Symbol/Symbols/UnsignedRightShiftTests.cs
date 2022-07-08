@@ -2715,12 +2715,12 @@ class C
                 // (3,20): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator >>>'
                 // /// See <see cref="operator >>>"/>.
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "operator >>>").WithArguments("operator >>>").WithLocation(3, 20),
-                // (3,29): warning CS1658: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.. See also error CS8652.
+                // (3,29): warning CS1658: Feature 'unsigned right shift' is not available in C# 10.0. Please use language version 11.0 or greater.. See also error CS8936.
                 // /// See <see cref="operator >>>"/>.
-                Diagnostic(ErrorCode.WRN_ErrorOverride, ">>>").WithArguments("The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.", "8652").WithLocation(3, 29),
-                // (7,30): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.WRN_ErrorOverride, ">>>").WithArguments("Feature 'unsigned right shift' is not available in C# 10.0. Please use language version 11.0 or greater.", "8936").WithLocation(3, 29),
+                // (7,30): error CS8936: Feature 'unsigned right shift' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public static C operator >>>(C c, int y)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>").WithArguments("unsigned right shift").WithLocation(7, 30)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, ">>>").WithArguments("unsigned right shift", "11.0").WithLocation(7, 30)
                 );
 
             crefSyntax = CrefTests.GetCrefSyntaxes(compilation).Single();
@@ -2887,12 +2887,12 @@ class C
                 // (3,20): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator >>>(C, int)'
                 // /// See <see cref="operator >>>(C, int)"/>.
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "operator >>>(C, int)").WithArguments("operator >>>(C, int)").WithLocation(3, 20),
-                // (3,29): warning CS1658: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.. See also error CS8652.
+                // (3,29): warning CS1658: Feature 'unsigned right shift' is not available in C# 10.0. Please use language version 11.0 or greater.. See also error CS8936.
                 // /// See <see cref="operator >>>(C, int)"/>.
-                Diagnostic(ErrorCode.WRN_ErrorOverride, ">>>").WithArguments("The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.", "8652").WithLocation(3, 29),
-                // (7,30): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.WRN_ErrorOverride, ">>>").WithArguments("Feature 'unsigned right shift' is not available in C# 10.0. Please use language version 11.0 or greater.", "8936").WithLocation(3, 29),
+                // (7,30): error CS8936: Feature 'unsigned right shift' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public static C operator >>>(C c, int y)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>").WithArguments("unsigned right shift").WithLocation(7, 30)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, ">>>").WithArguments("unsigned right shift", "11.0").WithLocation(7, 30)
                 );
 
             crefSyntax = CrefTests.GetCrefSyntaxes(compilation).Single();
@@ -3115,9 +3115,9 @@ class C
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular10);
             compilation1.VerifyDiagnostics(
-                // (8,13): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,13): error CS8936: Feature 'unsigned right shift' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         _ = x >>> y;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x >>> y").WithArguments("unsigned right shift").WithLocation(8, 13)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "x >>> y").WithArguments("unsigned right shift", "11.0").WithLocation(8, 13)
                 );
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugExe,
@@ -3209,9 +3209,9 @@ class C
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular10);
             compilation1.VerifyDiagnostics(
-                // (8,9): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,9): error CS8936: Feature 'unsigned right shift' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         x >>>= y;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x >>>= y").WithArguments("unsigned right shift").WithLocation(8, 9)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "x >>>= y").WithArguments("unsigned right shift", "11.0").WithLocation(8, 9)
                 );
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugExe,
@@ -3303,9 +3303,9 @@ class C
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular10);
             compilation1.VerifyDiagnostics(
-                // (8,13): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,13): error CS8936: Feature 'unsigned right shift' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         _ = x >>> y;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x >>> y").WithArguments("unsigned right shift").WithLocation(8, 13)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "x >>> y").WithArguments("unsigned right shift", "11.0").WithLocation(8, 13)
                 );
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugExe,
@@ -3397,9 +3397,9 @@ class C
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular10);
             compilation1.VerifyDiagnostics(
-                // (8,9): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,9): error CS8936: Feature 'unsigned right shift' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         x >>>= y;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x >>>= y").WithArguments("unsigned right shift").WithLocation(8, 9)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "x >>>= y").WithArguments("unsigned right shift", "11.0").WithLocation(8, 9)
                 );
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugExe,
@@ -3431,9 +3431,9 @@ class C
             var compilation1 = CreateCompilation(source0 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular10);
             compilation1.VerifyDiagnostics(
-                // (4,31): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,31): error CS8936: Feature 'unsigned right shift' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public static C1 operator >>>(C1 x, int y)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>").WithArguments("unsigned right shift").WithLocation(4, 31)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, ">>>").WithArguments("unsigned right shift", "11.0").WithLocation(4, 31)
                 );
 
             compilation1 = CreateCompilation(source0 + source1, options: TestOptions.DebugDll,
@@ -3448,9 +3448,9 @@ class C
                 var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll, references: new[] { reference },
                                                      parseOptions: TestOptions.Regular10);
                 compilation2.VerifyDiagnostics(
-                    // (4,37): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (4,37): error CS8936: Feature 'unsigned right shift' is not available in C# 10.0. Please use language version 11.0 or greater.
                     //     static C1 Test1(C1 x, int y) => x >>> y; 
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "x >>> y").WithArguments("unsigned right shift").WithLocation(4, 37)
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "x >>> y").WithArguments("unsigned right shift", "11.0").WithLocation(4, 37)
                     );
 
                 compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll, references: new[] { reference },
@@ -3483,9 +3483,9 @@ class C
             var compilation1 = CreateCompilation(source0 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular10);
             compilation1.VerifyDiagnostics(
-                // (4,31): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,31): error CS8936: Feature 'unsigned right shift' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public static C1 operator >>>(C1 x, int y)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>").WithArguments("unsigned right shift").WithLocation(4, 31)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, ">>>").WithArguments("unsigned right shift", "11.0").WithLocation(4, 31)
                 );
 
             compilation1 = CreateCompilation(source0 + source1, options: TestOptions.DebugDll,
@@ -3500,9 +3500,9 @@ class C
                 var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll, references: new[] { reference },
                                                      parseOptions: TestOptions.Regular10);
                 compilation2.VerifyDiagnostics(
-                    // (4,37): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (4,37): error CS8936: Feature 'unsigned right shift' is not available in C# 10.0. Please use language version 11.0 or greater.
                     //     static C1 Test1(C1 x, int y) => x >>>= y; 
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "x >>>= y").WithArguments("unsigned right shift").WithLocation(4, 37)
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "x >>>= y").WithArguments("unsigned right shift", "11.0").WithLocation(4, 37)
                     );
 
                 compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll, references: new[] { reference },
@@ -3535,9 +3535,9 @@ class C
             var compilation1 = CreateCompilation(source0 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular10);
             compilation1.VerifyDiagnostics(
-                // (4,31): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,31): error CS8936: Feature 'unsigned right shift' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public static C1 operator >>>(C1 x, int y)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>").WithArguments("unsigned right shift").WithLocation(4, 31)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, ">>>").WithArguments("unsigned right shift", "11.0").WithLocation(4, 31)
                 );
 
             compilation1 = CreateCompilation(source0 + source1, options: TestOptions.DebugDll,
@@ -3552,9 +3552,9 @@ class C
                 var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll, references: new[] { reference },
                                                      parseOptions: TestOptions.Regular10);
                 compilation2.VerifyDiagnostics(
-                    // (4,40): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (4,40): error CS8936: Feature 'unsigned right shift' is not available in C# 10.0. Please use language version 11.0 or greater.
                     //     static C1? Test1(C1? x, int? y) => x >>> y; 
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "x >>> y").WithArguments("unsigned right shift").WithLocation(4, 40)
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "x >>> y").WithArguments("unsigned right shift", "11.0").WithLocation(4, 40)
                     );
 
                 compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll, references: new[] { reference },
@@ -3587,9 +3587,9 @@ class C
             var compilation1 = CreateCompilation(source0 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular10);
             compilation1.VerifyDiagnostics(
-                // (4,31): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,31): error CS8936: Feature 'unsigned right shift' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public static C1 operator >>>(C1 x, int y)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>").WithArguments("unsigned right shift").WithLocation(4, 31)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, ">>>").WithArguments("unsigned right shift", "11.0").WithLocation(4, 31)
                 );
 
             compilation1 = CreateCompilation(source0 + source1, options: TestOptions.DebugDll,
@@ -3604,9 +3604,9 @@ class C
                 var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll, references: new[] { reference },
                                                      parseOptions: TestOptions.Regular10);
                 compilation2.VerifyDiagnostics(
-                    // (4,40): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (4,40): error CS8936: Feature 'unsigned right shift' is not available in C# 10.0. Please use language version 11.0 or greater.
                     //     static C1? Test1(C1? x, int? y) => x >>>= y; 
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "x >>>= y").WithArguments("unsigned right shift").WithLocation(4, 40)
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "x >>>= y").WithArguments("unsigned right shift", "11.0").WithLocation(4, 40)
                     );
 
                 compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll, references: new[] { reference },

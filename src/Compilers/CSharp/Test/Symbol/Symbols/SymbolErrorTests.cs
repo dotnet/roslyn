@@ -10583,16 +10583,16 @@ class C2
 
             comp = CreateCompilation(text, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (4,32): error CS8652: The feature 'relaxed shift operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,32): error CS8936: Feature 'relaxed shift operator' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public static int operator <<(C c1, C c2) // CS0564
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "<<").WithArguments("relaxed shift operator").WithLocation(4, 32),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "<<").WithArguments("relaxed shift operator", "11.0").WithLocation(4, 32),
                 // (8,32): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type
                 //     public static int operator >>(int c1, int c2) // CS0564
                 Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, ">>").WithLocation(8, 32),
-                // (12,32): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (12,32): error CS8936: Feature 'unsigned right shift' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public static int operator >>>(int c1, int c2) // CS0564
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>").WithArguments("unsigned right shift").WithLocation(12, 32),
-                // (12,32): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, ">>>").WithArguments("unsigned right shift", "11.0").WithLocation(12, 32),
+                // (12,32): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type
                 //     public static int operator >>>(int c1, int c2) // CS0564
                 Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, ">>>").WithLocation(12, 32)
                 );

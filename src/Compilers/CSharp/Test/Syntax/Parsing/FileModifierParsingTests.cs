@@ -569,9 +569,9 @@ public class FileModifierParsingTests : ParsingTests
             options: TestOptions.Regular10,
             expectedBindingDiagnostics: new[]
             {
-                // (1,12): error CS8652: The feature 'file types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,12): error CS8936: Feature 'file types' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // file class C { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "C").WithArguments("file types").WithLocation(1, 12)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "C").WithArguments("file types", "11.0").WithLocation(1, 12)
             });
         N(SyntaxKind.CompilationUnit);
         {

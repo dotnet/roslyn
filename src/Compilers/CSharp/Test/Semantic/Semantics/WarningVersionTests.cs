@@ -167,9 +167,9 @@ public struct Struct
                 parseOptions: TestOptions.Regular10,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics(
-                // (4,12): warning CS8880: Auto-implemented property 'Program.Property' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the property.
+                // (4,12): warning CS8880: Auto-implemented property 'Program.Property' must be fully assigned before control is returned to the caller. Consider updating to language version '11.0' to auto-default the property.
                 //     public Program(int dummy)
-                Diagnostic(ErrorCode.WRN_UnassignedThisAutoPropertyUnsupportedVersion, "Program").WithArguments("Program.Property", "preview").WithLocation(4, 12));
+                Diagnostic(ErrorCode.WRN_UnassignedThisAutoPropertyUnsupportedVersion, "Program").WithArguments("Program.Property", "11.0").WithLocation(4, 12));
             verifier.VerifyIL("Program..ctor", expectedIL);
 
             // C# 11+
@@ -245,9 +245,9 @@ public struct Struct
                 parseOptions: TestOptions.Regular10,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics(
-                // (4,12): warning CS8881: Field 'Program.Field' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
+                // (4,12): warning CS8881: Field 'Program.Field' must be fully assigned before control is returned to the caller. Consider updating to language version '11.0' to auto-default the field.
                 //     public Program(int dummy)
-                Diagnostic(ErrorCode.WRN_UnassignedThisUnsupportedVersion, "Program").WithArguments("Program.Field", "preview").WithLocation(4, 12));
+                Diagnostic(ErrorCode.WRN_UnassignedThisUnsupportedVersion, "Program").WithArguments("Program.Field", "11.0").WithLocation(4, 12));
             verifier.VerifyIL("Program..ctor", expectedIL);
 
             // C# 11+
@@ -331,9 +331,9 @@ public struct Struct
                 parseOptions: TestOptions.Regular10,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics(
-                // (4,12): warning CS8881: Field 'Program.Field' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
+                // (4,12): warning CS8881: Field 'Program.Field' must be fully assigned before control is returned to the caller. Consider updating to language version '11.0' to auto-default the field.
                 //     public Program(int dummy)
-                Diagnostic(ErrorCode.WRN_UnassignedThisUnsupportedVersion, "Program").WithArguments("Program.Field", "preview").WithLocation(4, 12),
+                Diagnostic(ErrorCode.WRN_UnassignedThisUnsupportedVersion, "Program").WithArguments("Program.Field", "11.0").WithLocation(4, 12),
                 // (7,9): warning CS8887: Use of unassigned local variable 's'
                 //         s.ToString();
                 Diagnostic(ErrorCode.WRN_UseDefViolation, "s").WithArguments("s").WithLocation(7, 9));
@@ -455,9 +455,9 @@ public struct Struct
                 parseOptions: TestOptions.Regular10,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics(
-                // (6,21): warning CS9015: Use of possibly unassigned auto-implemented property 'Property'. Consider updating to language version 'preview' to auto-default the property.
+                // (6,21): warning CS9016: Use of possibly unassigned auto-implemented property 'Property'. Consider updating to language version '11.0' to auto-default the property.
                 //         Struct v2 = Property;
-                Diagnostic(ErrorCode.WRN_UseDefViolationPropertyUnsupportedVersion, "Property").WithArguments("Property", "preview").WithLocation(6, 21));
+                Diagnostic(ErrorCode.WRN_UseDefViolationPropertyUnsupportedVersion, "Property").WithArguments("Property", "11.0").WithLocation(6, 21));
             verifier.VerifyIL("Program..ctor", expectedIL);
 
             // C# 11+
@@ -542,9 +542,9 @@ public struct Struct
                 parseOptions: TestOptions.Regular10,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics(
-                // (6,21): warning CS9016: Use of possibly unassigned field 'Field'. Consider updating to language version 'preview' to auto-default the field.
+                // (6,21): warning CS9017: Use of possibly unassigned field 'Field'. Consider updating to language version '11.0' to auto-default the field.
                 //         Struct v2 = Field;
-                Diagnostic(ErrorCode.WRN_UseDefViolationFieldUnsupportedVersion, "Field").WithArguments("Field", "preview").WithLocation(6, 21));
+                Diagnostic(ErrorCode.WRN_UseDefViolationFieldUnsupportedVersion, "Field").WithArguments("Field", "11.0").WithLocation(6, 21));
             verifier.VerifyIL("Program..ctor", expectedIL);
 
             // C# 11+
@@ -629,9 +629,9 @@ public struct Struct
                 parseOptions: TestOptions.Regular10,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics(
-                // (6,22): warning CS8885: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version 'preview' to auto-default the unassigned fields.
+                // (6,22): warning CS8885: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version '11.0' to auto-default the unassigned fields.
                 //         Program p2 = this;
-                Diagnostic(ErrorCode.WRN_UseDefViolationThisUnsupportedVersion, "this").WithArguments("preview").WithLocation(6, 22));
+                Diagnostic(ErrorCode.WRN_UseDefViolationThisUnsupportedVersion, "this").WithArguments("11.0").WithLocation(6, 22));
             verifier.VerifyIL("Program..ctor", expectedIL);
 
             // C# 11+

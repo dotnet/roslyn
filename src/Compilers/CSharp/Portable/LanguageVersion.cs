@@ -208,7 +208,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         CSharp10 = 1000,
 
         /// <summary>
-        /// TODO2
+        /// C# language version 11.0
+        /// <br/>
+        /// Features:
+        /// <list type="bullet">
+        /// <item><description>Raw string literals</description></item>
+        /// <item><description>Static abstract members in interfaces</description></item>
+        /// <item><description>Generic attributes</description></item>
+        /// <item><description>Newlines in interpolations</description></item>
+        /// <item><description>List-patterns</description></item>
+        /// <item><description>Required members</description></item>
+        /// <item><description>Span&lt;char> constant pattern</description></item>
+        /// <item><description>Struct auto-default</description></item>
+        /// <item><description>Nameof(parameter)</description></item>
+        /// <item><description>Checked user-defined operators</description></item>
+        /// <item><description>UTF-8 string literals</description></item>
+        /// <item><description>Unsigned right-shift operator</description></item>
+        /// <item><description>Relaxed shift operator</description></item>
+        /// <item><description>Ref fields</description></item>
+        /// <item><description>File-local types</description></item>
+        /// </list> 
         /// </summary>
         CSharp11 = 1100,
 
@@ -252,6 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case LanguageVersion.CSharp8:
                 case LanguageVersion.CSharp9:
                 case LanguageVersion.CSharp10:
+                case LanguageVersion.CSharp11:
                 case LanguageVersion.Preview:
                     return true;
             }
@@ -289,6 +309,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ErrorCode.ERR_FeatureNotAvailableInVersion9;
                 case LanguageVersion.CSharp10:
                     return ErrorCode.ERR_FeatureNotAvailableInVersion10;
+                case LanguageVersion.CSharp11:
+                    return ErrorCode.ERR_FeatureNotAvailableInVersion11;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(version);
             }
@@ -352,6 +374,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "9.0";
                 case LanguageVersion.CSharp10:
                     return "10.0";
+                case LanguageVersion.CSharp11:
+                    return "11.0";
                 case LanguageVersion.Default:
                     return "default";
                 case LanguageVersion.Latest:
@@ -458,6 +482,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result = LanguageVersion.CSharp10;
                     return true;
 
+                case "11":
+                case "11.0":
+                    result = LanguageVersion.CSharp11;
+                    return true;
+
                 default:
                     result = LanguageVersion.Default;
                     return false;
@@ -474,13 +503,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case LanguageVersion.Latest:
                 case LanguageVersion.Default:
                 case LanguageVersion.LatestMajor:
-                    return LanguageVersion.CSharp10;
+                    return LanguageVersion.CSharp11;
                 default:
                     return version;
             }
         }
 
-        internal static LanguageVersion CurrentVersion => LanguageVersion.CSharp10;
+        internal static LanguageVersion CurrentVersion => LanguageVersion.CSharp11;
 
         /// <summary>Inference of tuple element names was added in C# 7.1</summary>
         internal static bool DisallowInferredTupleElementNames(this LanguageVersion self)

@@ -2067,7 +2067,7 @@ public class TestClass
             var ta = Parse("class C { }", options: TestOptions.Regular10);
 
             var tb = Parse(@"
-class C { }", options: TestOptions.Script);
+class C { }", options: TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp10));
 
             var tc = Parse(@"
 #r ""bar""  // error: #r in regular code
@@ -2075,11 +2075,11 @@ class D { }", options: TestOptions.Regular10);
 
             var tr = Parse(@"
 #r ""goo""
-class C { }", options: TestOptions.Script);
+class C { }", options: TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp10));
 
             var ts = Parse(@"
 #r ""bar""
-class C { }", options: TestOptions.Script);
+class C { }", options: TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp10));
 
             var a = CSharpCompilation.Create("c", syntaxTrees: new[] { ta });
 

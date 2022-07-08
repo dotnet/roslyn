@@ -99,9 +99,9 @@ abstract partial class AbstractGoo : IGoo
                 // (34,23): error CS0106: The modifier 'private' is not valid for this item
                 //     private void IGoo.Method10() { }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method10").WithArguments("private").WithLocation(34, 23),
-                // (37,22): error CS8703: The modifier 'static' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                // (37,22): error CS8703: The modifier 'static' is not valid for this item in C# 9.0. Please use language version '11.0' or greater.
                 //     static void IGoo.Method12() { }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "Method12").WithArguments("static", "9.0", "preview").WithLocation(37, 22),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "Method12").WithArguments("static", "9.0", "11.0").WithLocation(37, 22),
                 // (40,33): error CS0106: The modifier 'private protected' is not valid for this item
                 //     private protected void IGoo.Method14() { }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method14").WithArguments("private protected").WithLocation(40, 33),
@@ -162,28 +162,38 @@ abstract class AbstractGoo : IGoo
 
             CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
                 // (20,23): error CS0106: The modifier 'abstract' is not valid for this item
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Property1").WithArguments("abstract"),
+                //     abstract int IGoo.Property1 { set { } }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Property1").WithArguments("abstract").WithLocation(20, 23),
                 // (21,22): error CS0106: The modifier 'virtual' is not valid for this item
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Property2").WithArguments("virtual"),
+                //     virtual int IGoo.Property2 { set { } }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Property2").WithArguments("virtual").WithLocation(21, 22),
                 // (22,23): error CS0106: The modifier 'override' is not valid for this item
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Property3").WithArguments("override"),
+                //     override int IGoo.Property3 { set { } }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Property3").WithArguments("override").WithLocation(22, 23),
                 // (24,21): error CS0106: The modifier 'sealed' is not valid for this item
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Property4").WithArguments("sealed"),
+                //     sealed int IGoo.Property4 { set { } }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Property4").WithArguments("sealed").WithLocation(24, 21),
                 // (26,18): error CS0106: The modifier 'new' is not valid for this item
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Property5").WithArguments("new"),
+                //     new int IGoo.Property5 { set { } }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Property5").WithArguments("new").WithLocation(26, 18),
                 // (28,21): error CS0106: The modifier 'public' is not valid for this item
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Property6").WithArguments("public"),
+                //     public int IGoo.Property6 { set { } }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Property6").WithArguments("public").WithLocation(28, 21),
                 // (29,24): error CS0106: The modifier 'protected' is not valid for this item
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Property7").WithArguments("protected"),
+                //     protected int IGoo.Property7 { set { } }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Property7").WithArguments("protected").WithLocation(29, 24),
                 // (30,23): error CS0106: The modifier 'internal' is not valid for this item
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Property8").WithArguments("internal"),
+                //     internal int IGoo.Property8 { set { } }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Property8").WithArguments("internal").WithLocation(30, 23),
                 // (31,33): error CS0106: The modifier 'protected internal' is not valid for this item
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Property9").WithArguments("protected internal"),
+                //     protected internal int IGoo.Property9 { set { } } //roslyn considers 'protected internal' one modifier (two in dev10)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Property9").WithArguments("protected internal").WithLocation(31, 33),
                 // (32,22): error CS0106: The modifier 'private' is not valid for this item
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Property10").WithArguments("private"),
-                // (35,21): error CS8703: The modifier 'static' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                //     private int IGoo.Property10 { set { } }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Property10").WithArguments("private").WithLocation(32, 22),
+                // (35,21): error CS8703: The modifier 'static' is not valid for this item in C# 9.0. Please use language version '11.0' or greater.
                 //     static int IGoo.Property12 { set { } }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "Property12").WithArguments("static", "9.0", "preview").WithLocation(35, 21),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "Property12").WithArguments("static", "9.0", "11.0").WithLocation(35, 21),
                 // (35,21): error CS0539: 'AbstractGoo.Property12' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     static int IGoo.Property12 { set { } }
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Property12").WithArguments("AbstractGoo.Property12").WithLocation(35, 21),
@@ -191,7 +201,8 @@ abstract class AbstractGoo : IGoo
                 // abstract class AbstractGoo : IGoo
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IGoo").WithArguments("AbstractGoo", "IGoo.Property12").WithLocation(18, 30),
                 // (34,34): warning CS0626: Method, operator, or accessor 'AbstractGoo.IGoo.Property11.set' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "set").WithArguments("AbstractGoo.IGoo.Property11.set"));
+                //     extern int IGoo.Property11 { set; } //not an error (in dev10 or roslyn)
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "set").WithArguments("AbstractGoo.IGoo.Property11.set").WithLocation(34, 34));
         }
 
         [Fact]
@@ -308,43 +319,43 @@ abstract class AbstractGoo : IGoo
             CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
                 // (20,39): error CS0106: The modifier 'abstract' is not valid for this item
                 //     abstract event System.Action IGoo.Event1 { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Event1").WithArguments("abstract"),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Event1").WithArguments("abstract").WithLocation(20, 39),
                 // (21,38): error CS0106: The modifier 'virtual' is not valid for this item
                 //     virtual event System.Action IGoo.Event2 { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Event2").WithArguments("virtual"),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Event2").WithArguments("virtual").WithLocation(21, 38),
                 // (22,39): error CS0106: The modifier 'override' is not valid for this item
                 //     override event System.Action IGoo.Event3 { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Event3").WithArguments("override"),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Event3").WithArguments("override").WithLocation(22, 39),
                 // (24,37): error CS0106: The modifier 'sealed' is not valid for this item
                 //     sealed event System.Action IGoo.Event4 { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Event4").WithArguments("sealed"),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Event4").WithArguments("sealed").WithLocation(24, 37),
                 // (26,34): error CS0106: The modifier 'new' is not valid for this item
                 //     new event System.Action IGoo.Event5 { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Event5").WithArguments("new"),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Event5").WithArguments("new").WithLocation(26, 34),
                 // (28,37): error CS0106: The modifier 'public' is not valid for this item
                 //     public event System.Action IGoo.Event6 { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Event6").WithArguments("public"),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Event6").WithArguments("public").WithLocation(28, 37),
                 // (29,40): error CS0106: The modifier 'protected' is not valid for this item
                 //     protected event System.Action IGoo.Event7 { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Event7").WithArguments("protected"),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Event7").WithArguments("protected").WithLocation(29, 40),
                 // (30,39): error CS0106: The modifier 'internal' is not valid for this item
                 //     internal event System.Action IGoo.Event8 { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Event8").WithArguments("internal"),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Event8").WithArguments("internal").WithLocation(30, 39),
                 // (31,49): error CS0106: The modifier 'protected internal' is not valid for this item
                 //     protected internal event System.Action IGoo.Event9 { add { } remove { } } //roslyn considers 'protected internal' one modifier (two in dev10)
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Event9").WithArguments("protected internal"),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Event9").WithArguments("protected internal").WithLocation(31, 49),
                 // (32,38): error CS0106: The modifier 'private' is not valid for this item
                 //     private event System.Action IGoo.Event10 { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Event10").WithArguments("private"),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Event10").WithArguments("private").WithLocation(32, 38),
                 // (34,47): error CS0179: 'AbstractGoo.IGoo.Event11.add' cannot be extern and declare a body
                 //     extern event System.Action IGoo.Event11 { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_ExternHasBody, "add").WithArguments("AbstractGoo.IGoo.Event11.add"),
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "add").WithArguments("AbstractGoo.IGoo.Event11.add").WithLocation(34, 47),
                 // (34,55): error CS0179: 'AbstractGoo.IGoo.Event11.remove' cannot be extern and declare a body
                 //     extern event System.Action IGoo.Event11 { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_ExternHasBody, "remove").WithArguments("AbstractGoo.IGoo.Event11.remove"),
-                // (35,37): error CS8703: The modifier 'static' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "remove").WithArguments("AbstractGoo.IGoo.Event11.remove").WithLocation(34, 55),
+                // (35,37): error CS8703: The modifier 'static' is not valid for this item in C# 9.0. Please use language version '11.0' or greater.
                 //     static event System.Action IGoo.Event12 { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "Event12").WithArguments("static", "9.0", "preview").WithLocation(35, 37),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "Event12").WithArguments("static", "9.0", "11.0").WithLocation(35, 37),
                 // (35,37): error CS0539: 'AbstractGoo.Event12' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     static event System.Action IGoo.Event12 { add { } remove { } }
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Event12").WithArguments("AbstractGoo.Event12").WithLocation(35, 37),

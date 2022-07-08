@@ -478,9 +478,9 @@ public class Test
 
             ParserErrorMessageTests.ParseAndValidate(test);
             CreateCompilation(test, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (7,23): error CS8967: Newlines inside a non-verbatim interpolated string is not supported in C# 10.0. Please use language version preview or greater.
+                // (7,23): error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 10.0. Please use language version 11.0 or greater.
                 //                       } y";
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "preview").WithLocation(7, 23));
+                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "11.0").WithLocation(7, 23));
             CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 
@@ -500,9 +500,9 @@ public class Test
 
             ParserErrorMessageTests.ParseAndValidate(test);
             CreateCompilation(test, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (7,28): error CS8967: Newlines inside a non-verbatim interpolated string is not supported in C# 10.0. Please use language version preview or greater.
+                // (7,28): error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 10.0. Please use language version 11.0 or greater.
                 //                          " } y";
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "preview").WithLocation(7, 28));
+                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "11.0").WithLocation(7, 28));
             CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 
@@ -523,9 +523,9 @@ public class Test
 
             ParserErrorMessageTests.ParseAndValidate(test);
             CreateCompilation(test, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (8,23): error CS8967: Newlines inside a non-verbatim interpolated string is not supported in C# 10.0. Please use language version preview or greater.
+                // (8,23): error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 10.0. Please use language version 11.0 or greater.
                 //                       } y";
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "preview").WithLocation(8, 23));
+                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "11.0").WithLocation(8, 23));
             CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 
@@ -545,9 +545,9 @@ public class Test
 
             ParserErrorMessageTests.ParseAndValidate(test);
             CreateCompilation(test, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (7,30): error CS8967: Newlines inside a non-verbatim interpolated string is not supported in C# 10.0. Please use language version preview or greater.
+                // (7,30): error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 10.0. Please use language version 11.0 or greater.
                 //                         @" " } y";
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "preview").WithLocation(7, 30));
+                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "11.0").WithLocation(7, 30));
             CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 
@@ -568,9 +568,9 @@ public class Test
 
             ParserErrorMessageTests.ParseAndValidate(test);
             CreateCompilation(test, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (8,28): error CS8967: Newlines inside a non-verbatim interpolated string is not supported in C# 10.0. Please use language version preview or greater.
+                // (8,28): error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 10.0. Please use language version 11.0 or greater.
                 //                          " } y";
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "preview").WithLocation(8, 28));
+                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "11.0").WithLocation(8, 28));
             CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 
@@ -592,9 +592,9 @@ public class Test
 
             ParserErrorMessageTests.ParseAndValidate(test);
             CreateCompilation(test, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (9,23): error CS8967: Newlines inside a non-verbatim interpolated string is not supported in C# 10.0. Please use language version preview or greater.
+                // (9,23): error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 10.0. Please use language version 11.0 or greater.
                 //                       } y";
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "preview").WithLocation(9, 23));
+                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "11.0").WithLocation(9, 23));
             CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 
@@ -615,9 +615,9 @@ public class Test
 
             ParserErrorMessageTests.ParseAndValidate(test);
             CreateCompilation(test, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (8,28): error CS8967: Newlines inside a non-verbatim interpolated string is not supported in C# 10.0. Please use language version preview or greater.
+                // (8,28): error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 10.0. Please use language version 11.0 or greater.
                 //                          " } y";
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "preview").WithLocation(8, 28));
+                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "11.0").WithLocation(8, 28));
             CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 
@@ -638,9 +638,9 @@ public class Test
 
             ParserErrorMessageTests.ParseAndValidate(test);
             CreateCompilation(test, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (8,28): error CS8967: Newlines inside a non-verbatim interpolated string is not supported in C# 10.0. Please use language version preview or greater.
+                // (8,28): error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 10.0. Please use language version 11.0 or greater.
                 //                          " } y";
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "preview").WithLocation(8, 28));
+                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "11.0").WithLocation(8, 28));
             CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 
@@ -661,9 +661,9 @@ public class Test
 
             ParserErrorMessageTests.ParseAndValidate(test);
             CreateCompilation(test, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (8,39): error CS8967: Newlines inside a non-verbatim interpolated string is not supported in C# 10.0. Please use language version preview or greater.
+                // (8,39): error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 10.0. Please use language version 11.0 or greater.
                 //                                 " } " } y";
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "preview").WithLocation(8, 39));
+                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "11.0").WithLocation(8, 39));
             CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 
@@ -873,9 +873,9 @@ public class Test
 
             ParserErrorMessageTests.ParseAndValidate(test);
             CreateCompilation(test, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (7,27): error CS8967: Newlines inside a non-verbatim interpolated string is not supported in C# 10.0. Please use language version preview or greater.
+                // (7,27): error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 10.0. Please use language version 11.0 or greater.
                 //                         0 } y";
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "preview").WithLocation(7, 27));
+                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "11.0").WithLocation(7, 27));
             CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 
@@ -942,9 +942,9 @@ public class Test
 
             ParserErrorMessageTests.ParseAndValidate(test);
             CreateCompilation(test, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (7,27): error CS8967: Newlines inside a non-verbatim interpolated string is not supported in C# 10.0. Please use language version preview or greater.
+                // (7,27): error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 10.0. Please use language version 11.0 or greater.
                 //                         0 } y";
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "preview").WithLocation(7, 27));
+                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "11.0").WithLocation(7, 27));
             CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 
@@ -992,9 +992,9 @@ public class Test
 
             ParserErrorMessageTests.ParseAndValidate(test);
             CreateCompilation(test, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (7,23): error CS8967: Newlines inside a non-verbatim interpolated string is not supported in C# 10.0. Please use language version preview or greater.
+                // (7,23): error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 10.0. Please use language version 11.0 or greater.
                 //                       } y";
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "preview").WithLocation(7, 23));
+                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "11.0").WithLocation(7, 23));
             CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 
@@ -1014,9 +1014,9 @@ public class Test
 
             ParserErrorMessageTests.ParseAndValidate(test);
             CreateCompilation(test, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (7,27): error CS8967: Newlines inside a non-verbatim interpolated string is not supported in C# 10.0. Please use language version preview or greater.
+                // (7,27): error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 10.0. Please use language version 11.0 or greater.
                 //                         0 } y";
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "preview").WithLocation(7, 27));
+                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "11.0").WithLocation(7, 27));
             CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 
@@ -1068,9 +1068,9 @@ public class Test
 
             ParserErrorMessageTests.ParseAndValidate(test);
             CreateCompilation(test, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (9,23): error CS8967: Newlines inside a non-verbatim interpolated string is not supported in C# 10.0. Please use language version preview or greater.
+                // (9,23): error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 10.0. Please use language version 11.0 or greater.
                 //                       } y";
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "preview").WithLocation(9, 23));
+                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "11.0").WithLocation(9, 23));
             CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 
@@ -1092,9 +1092,9 @@ public class Test
 
             ParserErrorMessageTests.ParseAndValidate(test);
             CreateCompilation(test, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (9,27): error CS8967: Newlines inside a non-verbatim interpolated string is not supported in C# 10.0. Please use language version preview or greater.
+                // (9,27): error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 10.0. Please use language version 11.0 or greater.
                 //                         0 } y";
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "preview").WithLocation(9, 27));
+                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "11.0").WithLocation(9, 27));
             CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 
@@ -1117,9 +1117,9 @@ public class Test
 
             ParserErrorMessageTests.ParseAndValidate(test);
             CreateCompilation(test, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (10,23): error CS8967: Newlines inside a non-verbatim interpolated string is not supported in C# 10.0. Please use language version preview or greater.
+                // (10,23): error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 10.0. Please use language version 11.0 or greater.
                 //                       } y";
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "preview").WithLocation(10, 23));
+                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "11.0").WithLocation(10, 23));
             CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 
@@ -1167,9 +1167,9 @@ public class Test
 
             ParserErrorMessageTests.ParseAndValidate(test);
             CreateCompilation(test, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (7,41): error CS8967: Newlines inside a non-verbatim interpolated string is not supported in C# 10.0. Please use language version preview or greater.
+                // (7,41): error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 10.0. Please use language version 11.0 or greater.
                 //                         /* comment */ 0 } y";
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "preview").WithLocation(7, 41));
+                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "11.0").WithLocation(7, 41));
             CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 
@@ -1221,9 +1221,9 @@ public class Test
 
             ParserErrorMessageTests.ParseAndValidate(test);
             CreateCompilation(test, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (9,31): error CS8967: Newlines inside a non-verbatim interpolated string is not supported in C# 10.0. Please use language version preview or greater.
+                // (9,31): error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 10.0. Please use language version 11.0 or greater.
                 //                          */ 0 } y";
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "preview").WithLocation(9, 31));
+                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "11.0").WithLocation(9, 31));
             CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 
@@ -1246,9 +1246,9 @@ public class Test
 
             ParserErrorMessageTests.ParseAndValidate(test);
             CreateCompilation(test, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (10,27): error CS8967: Newlines inside a non-verbatim interpolated string is not supported in C# 10.0. Please use language version preview or greater.
+                // (10,27): error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 10.0. Please use language version 11.0 or greater.
                 //                         0 } y";
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "preview").WithLocation(10, 27));
+                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "11.0").WithLocation(10, 27));
             CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 
@@ -1302,9 +1302,9 @@ public class Test
 
             ParserErrorMessageTests.ParseAndValidate(test);
             CreateCompilation(test, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (10,23): error CS8967: Newlines inside a non-verbatim interpolated string is not supported in C# 10.0. Please use language version preview or greater.
+                // (10,23): error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 10.0. Please use language version 11.0 or greater.
                 //                       } y";
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "preview").WithLocation(10, 23));
+                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "11.0").WithLocation(10, 23));
             CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 
@@ -1328,9 +1328,9 @@ public class Test
 
             ParserErrorMessageTests.ParseAndValidate(test);
             CreateCompilation(test, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (11,23): error CS8967: Newlines inside a non-verbatim interpolated string is not supported in C# 10.0. Please use language version preview or greater.
+                // (11,23): error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 10.0. Please use language version 11.0 or greater.
                 //                       } y";
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "preview").WithLocation(11, 23));
+                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "11.0").WithLocation(11, 23));
             CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 
@@ -1435,9 +1435,9 @@ public class Test
 
             ParserErrorMessageTests.ParseAndValidate(test);
             CreateCompilation(test, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                    // (8,23): error CS8967: Newlines inside a non-verbatim interpolated string is not supported in C# 10.0. Please use language version preview or greater.
+                    // (8,23): error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 10.0. Please use language version 11.0 or greater.
                     //                       } y";
-                    Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "preview").WithLocation(8, 23));
+                    Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "11.0").WithLocation(8, 23));
             CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 
@@ -1478,9 +1478,9 @@ public class Test
 
             ParserErrorMessageTests.ParseAndValidate(test);
             CreateCompilation(test, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (8,34): error CS8967: Newlines inside a non-verbatim interpolated string is not supported in C# 10.0. Please use language version preview or greater.
+                // (8,34): error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 10.0. Please use language version 11.0 or greater.
                 //                              } " } y";
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "preview").WithLocation(8, 34));
+                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "11.0").WithLocation(8, 34));
             CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 

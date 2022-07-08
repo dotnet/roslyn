@@ -8349,9 +8349,9 @@ class C
 ";
             var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (5,57): error CS8652: The feature 'pattern matching ReadOnly/Span<char> on constant string' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,57): error CS8936: Feature 'pattern matching ReadOnly/Span<char> on constant string' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     static bool M(ReadOnlySpan<char> chars) => chars is "";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""").WithArguments("pattern matching ReadOnly/Span<char> on constant string").WithLocation(5, 57));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, @"""""").WithArguments("pattern matching ReadOnly/Span<char> on constant string", "11.0").WithLocation(5, 57));
 
             comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics();
@@ -8391,9 +8391,9 @@ class C
 ";
             var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (4,63): error CS8652: The feature 'pattern matching ReadOnly/Span<char> on constant string' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,63): error CS8936: Feature 'pattern matching ReadOnly/Span<char> on constant string' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     static bool M(ReadOnlySpan<char> chars) => chars switch { "" => true, _ => false };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""").WithArguments("pattern matching ReadOnly/Span<char> on constant string").WithLocation(4, 63));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, @"""""").WithArguments("pattern matching ReadOnly/Span<char> on constant string", "11.0").WithLocation(4, 63));
 
             comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics();
@@ -9703,9 +9703,9 @@ class C
 ";
             var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (5,49): error CS8652: The feature 'pattern matching ReadOnly/Span<char> on constant string' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,49): error CS8936: Feature 'pattern matching ReadOnly/Span<char> on constant string' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     static bool M(Span<char> chars) => chars is "";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""").WithArguments("pattern matching ReadOnly/Span<char> on constant string").WithLocation(5, 49));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, @"""""").WithArguments("pattern matching ReadOnly/Span<char> on constant string", "11.0").WithLocation(5, 49));
 
             comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics();
@@ -9744,9 +9744,9 @@ class C
 ";
             var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (5,55): error CS8652: The feature 'pattern matching ReadOnly/Span<char> on constant string' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,55): error CS8936: Feature 'pattern matching ReadOnly/Span<char> on constant string' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     static bool M(Span<char> chars) => chars switch { "" => true, _ => false };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""").WithArguments("pattern matching ReadOnly/Span<char> on constant string").WithLocation(5, 55));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, @"""""").WithArguments("pattern matching ReadOnly/Span<char> on constant string", "11.0").WithLocation(5, 55));
 
             comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics();

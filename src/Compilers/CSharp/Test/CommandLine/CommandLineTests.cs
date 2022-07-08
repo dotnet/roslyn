@@ -1666,12 +1666,13 @@ class C
         [Fact]
         public void LanguageVersionAdded_Canary()
         {
+            // TODO2
             // When a new version is added, this test will break. This list must be checked:
             // - update the "UpgradeProject" codefixer
             // - update all the tests that call this canary
             // - update MaxSupportedLangVersion (a relevant test should break when new version is introduced)
             // - email release management to add to the release notes (see old example: https://github.com/dotnet/core/pull/1454)
-            AssertEx.SetEqual(new[] { "default", "1", "2", "3", "4", "5", "6", "7.0", "7.1", "7.2", "7.3", "8.0", "9.0", "10.0", "latest", "latestmajor", "preview" },
+            AssertEx.SetEqual(new[] { "default", "1", "2", "3", "4", "5", "6", "7.0", "7.1", "7.2", "7.3", "8.0", "9.0", "10.0", "11.0", "latest", "latestmajor", "preview" },
                 Enum.GetValues(typeof(LanguageVersion)).Cast<LanguageVersion>().Select(v => v.ToDisplayString()));
             // For minor versions and new major versions, the format should be "x.y", such as "7.1"
         }
@@ -1704,6 +1705,7 @@ class C
                 ErrorCode.ERR_FeatureNotAvailableInVersion8,
                 ErrorCode.ERR_FeatureNotAvailableInVersion9,
                 ErrorCode.ERR_FeatureNotAvailableInVersion10,
+                ErrorCode.ERR_FeatureNotAvailableInVersion11,
             };
 
             AssertEx.SetEqual(versions, errorCodes);
@@ -1726,9 +1728,10 @@ class C
             InlineData(LanguageVersion.CSharp8, LanguageVersion.CSharp8),
             InlineData(LanguageVersion.CSharp9, LanguageVersion.CSharp9),
             InlineData(LanguageVersion.CSharp10, LanguageVersion.CSharp10),
-            InlineData(LanguageVersion.CSharp10, LanguageVersion.LatestMajor),
-            InlineData(LanguageVersion.CSharp10, LanguageVersion.Latest),
-            InlineData(LanguageVersion.CSharp10, LanguageVersion.Default),
+            InlineData(LanguageVersion.CSharp11, LanguageVersion.CSharp11),
+            InlineData(LanguageVersion.CSharp11, LanguageVersion.LatestMajor),
+            InlineData(LanguageVersion.CSharp11, LanguageVersion.Latest),
+            InlineData(LanguageVersion.CSharp11, LanguageVersion.Default),
             InlineData(LanguageVersion.Preview, LanguageVersion.Preview),
             ]
         public void LanguageVersion_MapSpecifiedToEffectiveVersion(LanguageVersion expectedMappedVersion, LanguageVersion input)
@@ -1769,6 +1772,8 @@ class C
             InlineData("9.0", true, LanguageVersion.CSharp9),
             InlineData("10", true, LanguageVersion.CSharp10),
             InlineData("10.0", true, LanguageVersion.CSharp10),
+            InlineData("11", true, LanguageVersion.CSharp11),
+            InlineData("11.0", true, LanguageVersion.CSharp11),
             InlineData("08", false, LanguageVersion.Default),
             InlineData("07.1", false, LanguageVersion.Default),
             InlineData("default", true, LanguageVersion.Default),

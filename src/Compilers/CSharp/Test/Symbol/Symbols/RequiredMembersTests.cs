@@ -258,12 +258,12 @@ class C
         var comp = CreateCompilationWithRequiredMembers(code, parseOptions: TestOptions.Regular10);
 
         comp.VerifyDiagnostics(
-            // (5,27): error CS8652: The feature 'required members' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (5,27): error CS8936: Feature 'required members' is not available in C# 10.0. Please use language version 11.0 or greater.
             //     internal required int Field;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "Field").WithArguments("required members").WithLocation(5, 27),
-            // (6,27): error CS8652: The feature 'required members' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "Field").WithArguments("required members", "11.0").WithLocation(5, 27),
+            // (6,27): error CS8936: Feature 'required members' is not available in C# 10.0. Please use language version 11.0 or greater.
             //     internal required int Prop { get; set; }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "Prop").WithArguments("required members").WithLocation(6, 27)
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "Prop").WithArguments("required members", "11.0").WithLocation(6, 27)
         );
 
         comp = CreateCompilationWithRequiredMembers(code, parseOptions: TestOptions.Regular11);

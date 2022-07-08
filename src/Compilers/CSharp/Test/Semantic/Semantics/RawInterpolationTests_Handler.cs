@@ -589,9 +589,9 @@ Console.WriteLine($""""""{span}"""""");";
 
         var comp = CreateCompilation(new[] { source, GetInterpolatedStringHandlerDefinition(includeSpanOverloads: true, useDefaultParameters: false, useBoolReturns: false) }, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.NetCoreApp);
         comp.VerifyDiagnostics(
-            // (4,19): error CS8652: The feature 'raw string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (4,19): error CS8773: Feature 'raw string literals' is not available in C# 9.0. Please use language version 11.0 or greater.
             // Console.WriteLine($"""{span}""");
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""""""{span}""""""").WithArguments("raw string literals").WithLocation(4, 19),
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$""""""{span}""""""").WithArguments("raw string literals", "11.0").WithLocation(4, 19),
             // (4,24): error CS8773: Feature 'interpolated string handlers' is not available in C# 9.0. Please use language version 10.0 or greater.
             // Console.WriteLine($"""{span}""");
             Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "span").WithArguments("interpolated string handlers", "10.0").WithLocation(4, 24));
@@ -2120,18 +2120,18 @@ value:");
         if (expression.Contains('+'))
         {
             comp.VerifyDiagnostics(
-            // (1,26): error CS8652: The feature 'raw string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,26): error CS8773: Feature 'raw string literals' is not available in C# 9.0. Please use language version 11.0 or greater.
             // System.Console.WriteLine($"""{(null, default)}""" + $"""{new()}""");
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""""""{(null, default)}""""""").WithArguments("raw string literals").WithLocation(1, 26),
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$""""""{(null, default)}""""""").WithArguments("raw string literals", "11.0").WithLocation(1, 26),
             // (1,31): error CS1503: Argument 1: cannot convert from '(<null>, default)' to 'object'
             // System.Console.WriteLine($"""{(null, default)}""" + $"""{new()}""");
             Diagnostic(ErrorCode.ERR_BadArgType, "(null, default)").WithArguments("1", "(<null>, default)", "object").WithLocation(1, 31),
             // (1,31): error CS8773: Feature 'interpolated string handlers' is not available in C# 9.0. Please use language version 10.0 or greater.
             // System.Console.WriteLine($"""{(null, default)}""" + $"""{new()}""");
             Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "(null, default)").WithArguments("interpolated string handlers", "10.0").WithLocation(1, 31),
-            // (1,53): error CS8652: The feature 'raw string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,53): error CS8773: Feature 'raw string literals' is not available in C# 9.0. Please use language version 11.0 or greater.
             // System.Console.WriteLine($"""{(null, default)}""" + $"""{new()}""");
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""""""{new()}""""""").WithArguments("raw string literals").WithLocation(1, 53),
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$""""""{new()}""""""").WithArguments("raw string literals", "11.0").WithLocation(1, 53),
             // (1,58): error CS1729: 'string' does not contain a constructor that takes 0 arguments
             // System.Console.WriteLine($"""{(null, default)}""" + $"""{new()}""");
             Diagnostic(ErrorCode.ERR_BadCtorArgCount, "new()").WithArguments("string", "0").WithLocation(1, 58));
@@ -2139,9 +2139,9 @@ value:");
         else
         {
             comp.VerifyDiagnostics(
-            // (1,26): error CS8652: The feature 'raw string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,26): error CS8773: Feature 'raw string literals' is not available in C# 9.0. Please use language version 11.0 or greater.
             // System.Console.WriteLine($"""{(null, default)}{new()}""");
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""""""{(null, default)}{new()}""""""").WithArguments("raw string literals").WithLocation(1, 26),
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$""""""{(null, default)}{new()}""""""").WithArguments("raw string literals", "11.0").WithLocation(1, 26),
             // (1,31): error CS1503: Argument 1: cannot convert from '(<null>, default)' to 'object'
             // System.Console.WriteLine($"""{(null, default)}{new()}""");
             Diagnostic(ErrorCode.ERR_BadArgType, "(null, default)").WithArguments("1", "(<null>, default)", "object").WithLocation(1, 31),
@@ -3774,27 +3774,27 @@ namespace System.Runtime.CompilerServices
         if (expression.Contains('+'))
         {
             comp.VerifyDiagnostics(
-                // (3,11): error CS8652: The feature 'raw string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,11): error CS8773: Feature 'raw string literals' is not available in C# 9.0. Please use language version 11.0 or greater.
                 // C.M(() => $"""{new S { Field = """Field""" }}""" + $"""
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""""""{new S { Field = """"""Field"""""" }}""""""").WithArguments("raw string literals").WithLocation(3, 11),
-                // (3,32): error CS8652: The feature 'raw string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$""""""{new S { Field = """"""Field"""""" }}""""""").WithArguments("raw string literals", "11.0").WithLocation(3, 11),
+                // (3,32): error CS8773: Feature 'raw string literals' is not available in C# 9.0. Please use language version 11.0 or greater.
                 // C.M(() => $"""{new S { Field = """Field""" }}""" + $"""
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""""Field""""""").WithArguments("raw string literals").WithLocation(3, 32),
-                // (3,52): error CS8652: The feature 'raw string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"""""""Field""""""").WithArguments("raw string literals", "11.0").WithLocation(3, 32),
+                // (3,52): error CS8773: Feature 'raw string literals' is not available in C# 9.0. Please use language version 11.0 or greater.
                 // C.M(() => $"""{new S { Field = """Field""" }}""" + $"""
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""""""
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$""""""
 
-""""""").WithArguments("raw string literals").WithLocation(3, 52));
+""""""").WithArguments("raw string literals", "11.0").WithLocation(3, 52));
         }
         else
         {
             comp.VerifyDiagnostics(
-            // (3,11): error CS8652: The feature 'raw string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (3,11): error CS8773: Feature 'raw string literals' is not available in C# 9.0. Please use language version 11.0 or greater.
             // C.M(() => $"""{new S { Field = """Field""" }}""");
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""""""{new S { Field = """"""Field"""""" }}""""""").WithArguments("raw string literals").WithLocation(3, 11),
-            // (3,32): error CS8652: The feature 'raw string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$""""""{new S { Field = """"""Field"""""" }}""""""").WithArguments("raw string literals", "11.0").WithLocation(3, 11),
+            // (3,32): error CS8773: Feature 'raw string literals' is not available in C# 9.0. Please use language version 11.0 or greater.
             // C.M(() => $"""{new S { Field = """Field""" }}""");
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""""Field""""""").WithArguments("raw string literals").WithLocation(3, 32));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"""""""Field""""""").WithArguments("raw string literals", "11.0").WithLocation(3, 32));
         }
 
         comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
@@ -4077,19 +4077,19 @@ static class C
         if (expression.Contains('+'))
         {
             comp.VerifyEmitDiagnostics(
-                // (5,17): error CS8652: The feature 'raw string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,17): error CS8773: Feature 'raw string literals' is not available in C# 9.0. Please use language version 11.0 or greater.
                 //         param = $"""{1}""" + $"""{2}""";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""""""{1}""""""").WithArguments("raw string literals").WithLocation(5, 17),
-                // (5,30): error CS8652: The feature 'raw string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$""""""{1}""""""").WithArguments("raw string literals", "11.0").WithLocation(5, 17),
+                // (5,30): error CS8773: Feature 'raw string literals' is not available in C# 9.0. Please use language version 11.0 or greater.
                 //         param = $"""{1}""" + $"""{2}""";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""""""{2}""""""").WithArguments("raw string literals").WithLocation(5, 30));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$""""""{2}""""""").WithArguments("raw string literals", "11.0").WithLocation(5, 30));
         }
         else
         {
             comp.VerifyEmitDiagnostics(
-            // (5,17): error CS8652: The feature 'raw string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (5,17): error CS8773: Feature 'raw string literals' is not available in C# 9.0. Please use language version 11.0 or greater.
             //         param = $"""{1}""";
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""""""{1}""""""").WithArguments("raw string literals").WithLocation(5, 17));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$""""""{1}""""""").WithArguments("raw string literals", "11.0").WithLocation(5, 17));
         }
 
         comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
