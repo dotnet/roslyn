@@ -537,14 +537,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return GetSymbolInfoFromSymbolOrNone(TypeFromVariable((SingleVariableDesignationSyntax)parent.Designation, cancellationToken).Type);
 
                     case SyntaxKind.DiscardDesignation:
-                        return GetSymbolInfoFromSymbolOrNone(GetTypeInfoWorker(parent, cancellationToken).Type.GetPublicSymbol());
-
                     case SyntaxKind.ParenthesizedVariableDesignation:
-                        if (((TypeSyntax)expression).IsVar)
-                        {
-                            return SymbolInfo.None;
-                        }
-                        break;
+                        return GetSymbolInfoFromSymbolOrNone(GetTypeInfoWorker(parent, cancellationToken).Type.GetPublicSymbol());
                 }
             }
             else if (expression is DeclarationExpressionSyntax declaration)
@@ -960,15 +954,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return new CSharpTypeInfo(declarationTypeSymbol, declarationTypeSymbol, nullabilityInfo, nullabilityInfo, Conversion.Identity);
 
                     case SyntaxKind.DiscardDesignation:
-                        var declarationInfo = GetTypeInfoWorker(parent, cancellationToken);
-                        return new CSharpTypeInfo(declarationInfo.Type, declarationInfo.Type, declarationInfo.Nullability, declarationInfo.Nullability, Conversion.Identity);
-
                     case SyntaxKind.ParenthesizedVariableDesignation:
-                        if (((TypeSyntax)expression).IsVar)
-                        {
-                            return CSharpTypeInfo.None;
-                        }
-                        break;
+                        var declarationInfo = GetTypeInfoWorker(parent, cancellationToken);
+                        return new CSharpTypeInfo(declarationInfo.Type, declarationInfo.ConvertedType, declarationInfo.Nullability, declarationInfo.ConvertedNullability, Conversion.Identity);
                 }
             }
 

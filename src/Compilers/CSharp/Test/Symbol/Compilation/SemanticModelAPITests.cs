@@ -4450,6 +4450,54 @@ public partial class C
             Assert.Equal("DEBUG", model.GetConstantValue(root.DescendantNodes().OfType<InvocationExpressionSyntax>().Single()));
         }
 
+        [Theory, CombinatorialData, WorkItem(54437, "https://github.com/dotnet/roslyn/issues/54437")]
+        public void TestVarTuple(NullableContextOptions nullableContextOption)
+        {
+            var source = """
+                var (a1, b1) = ("", 0);
+                """;
+            var options = WithNullable(TestOptions.DebugExe, nullableContextOption);
+            var comp = CreateCompilation(source, options: options, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var root = tree.GetCompilationUnitRoot();
+
+            var varNode = root.DescendantNodes().OfType<DeclarationExpressionSyntax>().Single().Type;
+
+            var varTypeInfo = model.GetTypeInfo(varNode);
+            assertTypeInfo(varTypeInfo);
+
+            var varSymbolInfo = model.GetSymbolInfo(varNode);
+            assertSymbolInfo(varSymbolInfo);
+
+            static void assertTypeInfo(TypeInfo typeInfo)
+            {
+                Assert.Equal(CodeAnalysis.NullableAnnotation.None, typeInfo.Nullability.Annotation);
+                Assert.Equal(CodeAnalysis.NullableAnnotation.None, typeInfo.ConvertedNullability.Annotation);
+
+                Assert.NotNull(typeInfo.Type);
+                Assert.NotNull(typeInfo.ConvertedType);
+                Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
+
+                var type = (INamedTypeSymbol)typeInfo.Type;
+                Assert.True(type.IsTupleType);
+                Assert.Equal(2, type.Arity);
+                Assert.Equal(2, type.TupleElements.Length);
+                Assert.Equal(SpecialType.System_String, type.TupleElements[0].Type.SpecialType);
+                Assert.Equal(SpecialType.System_Int32, type.TupleElements[1].Type.SpecialType);
+            }
+
+            static void assertSymbolInfo(SymbolInfo symbolInfo)
+            {
+                Assert.False(symbolInfo.IsEmpty);
+                Assert.Empty(symbolInfo.CandidateSymbols);
+                Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+                Assert.Equal("(System.String a1, System.Int32 b1)", symbolInfo.Symbol.ToTestDisplayString());
+            }
+        }
+
         [Fact]
         public void EqualsOnAliasSymbolWithNullContainingAssembly_NotEquals()
         {
