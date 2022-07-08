@@ -56,6 +56,11 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             // Only the top most containing type in the ExportedType table actually points to an assembly
             // so no point looking for nested types.
             var typeSymbol = MetadataAsSourceHelpers.GetTopLevelContainingNamedType(symbol);
+            // We need to generate the namespace name in the same format that is used in metadata, which
+            // is SymbolDisplayFormat.QualifiedNameOnlyFormat, which this is a copy of.
+            var namespaceName = typeSymbol.ContainingNamespace.ToDisplayString(new SymbolDisplayFormat(
+                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces));
 
             try
             {
@@ -66,7 +71,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                     {
                         // If there are no type forwards in this DLL, or not one for this type, then it means
                         // we've found the right DLL
-                        if (typeForwards?.TryGetValue((typeSymbol.ContainingNamespace.MetadataName, typeSymbol.MetadataName), out var assemblyName) != true)
+                        if (typeForwards?.TryGetValue((namespaceName, typeSymbol.MetadataName), out var assemblyName) != true)
                         {
                             return dllPath;
                         }
