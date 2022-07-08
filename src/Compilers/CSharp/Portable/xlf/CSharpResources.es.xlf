@@ -10502,11 +10502,6 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
         <target state="translated">Se ha llamado a GetDeclarationName para un nodo de declaración que puede contener varios declaradores de variables.</target>
         <note />
       </trans-unit>
-      <trans-unit id="TreeNotPartOfCompilation">
-        <source>tree not part of compilation</source>
-        <target state="translated">el árbol no forma parte de la compilación</target>
-        <note />
-      </trans-unit>
       <trans-unit id="PositionIsNotWithinSyntax">
         <source>Position is not within syntax tree with full span {0}</source>
         <target state="translated">La posición no está dentro del árbol de sintaxis con el intervalo completo {0}</target>
