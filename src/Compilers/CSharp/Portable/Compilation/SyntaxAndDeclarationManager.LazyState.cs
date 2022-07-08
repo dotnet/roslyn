@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         internal sealed class State
         {
-            internal readonly ImmutableList<SyntaxTree> SyntaxTrees; // In ordinal order.
+            internal readonly SyntaxTreeList SyntaxTrees; // In ordinal order.
             internal readonly ImmutableDictionary<SyntaxTree, int> OrdinalMap; // Inverse of syntaxTrees array (i.e. maps tree to index)
             internal readonly ImmutableDictionary<SyntaxTree, ImmutableArray<LoadDirective>> LoadDirectiveMap;
             internal readonly ImmutableDictionary<string, SyntaxTree> LoadedSyntaxTreeMap;
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal readonly DeclarationTable DeclarationTable;
 
             internal State(
-                ImmutableList<SyntaxTree> syntaxTrees,
+                SyntaxTreeList syntaxTrees,
                 ImmutableDictionary<SyntaxTree, int> syntaxTreeOrdinalMap,
                 ImmutableDictionary<SyntaxTree, ImmutableArray<LoadDirective>> loadDirectiveMap,
                 ImmutableDictionary<string, SyntaxTree> loadedSyntaxTreeMap,

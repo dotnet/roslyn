@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private State _lazyState;
 
         internal SyntaxAndDeclarationManager(
-            ImmutableArray<SyntaxTree> externalSyntaxTrees,
+            SyntaxTreeList externalSyntaxTrees,
             string scriptClassName,
             SourceReferenceResolver resolver,
             CommonMessageProvider messageProvider,
@@ -42,13 +42,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static State CreateState(
-            ImmutableArray<SyntaxTree> externalSyntaxTrees,
+            SyntaxTreeList externalSyntaxTrees,
             string scriptClassName,
             SourceReferenceResolver resolver,
             CommonMessageProvider messageProvider,
             bool isSubmission)
         {
-            var treesBuilder = ImmutableList.CreateBuilder<SyntaxTree>();
+            var treesBuilder = SyntaxTreeList.CreateBuilder();
             var ordinalMapBuilder = PooledDictionary<SyntaxTree, int>.GetInstance();
             var loadDirectiveMapBuilder = PooledDictionary<SyntaxTree, ImmutableArray<LoadDirective>>.GetInstance();
             var loadedSyntaxTreeMapBuilder = PooledDictionary<string, SyntaxTree>.GetInstance();
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new State(
-                treesBuilder.ToImmutable(),
+                treesBuilder.ToImmutableAndFree(),
                 ordinalMapBuilder.ToImmutableDictionaryAndFree(),
                 loadDirectiveMapBuilder.ToImmutableDictionaryAndFree(),
                 loadedSyntaxTreeMapBuilder.ToImmutableDictionaryAndFree(),
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var declMapBuilder = state.RootNamespaces.ToBuilder();
             var declTable = state.DeclarationTable;
 
-            var treesBuilder = ImmutableList.CreateBuilder<SyntaxTree>();
+            var treesBuilder = SyntaxTreeList.CreateBuilder();
             treesBuilder.AddRange(state.SyntaxTrees);
 
             foreach (var tree in trees)
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             state = new State(
-                treesBuilder.ToImmutable(),
+                treesBuilder.ToImmutableAndFree(),
                 ordinalMapBuilder.ToImmutableDictionary(),
                 loadDirectiveMapBuilder.ToImmutableDictionary(),
                 loadedSyntaxTreeMapBuilder.ToImmutableDictionary(),
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Appends all trees (including any trees from #load'ed files).
         /// </summary>
         private static void AppendAllSyntaxTrees(
-            ImmutableList<SyntaxTree>.Builder treesBuilder,
+            SyntaxTreeList.Builder treesBuilder,
             SyntaxTree tree,
             string scriptClassName,
             SourceReferenceResolver resolver,
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static void AppendAllLoadedSyntaxTrees(
-            ImmutableList<SyntaxTree>.Builder treesBuilder,
+            SyntaxTreeList.Builder treesBuilder,
             SyntaxTree tree,
             string scriptClassName,
             SourceReferenceResolver resolver,
@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     oldLoadDirectives: out unused2);
             }
 
-            var treesBuilder = ImmutableList.CreateBuilder<SyntaxTree>();
+            var treesBuilder = SyntaxTreeList.CreateBuilder();
             var ordinalMapBuilder = PooledDictionary<SyntaxTree, int>.GetInstance();
             var declMapBuilder = state.RootNamespaces.ToBuilder();
             var declTable = state.DeclarationTable;
@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             removeSet.Free();
 
             state = new State(
-                treesBuilder.ToImmutable(),
+                treesBuilder.ToImmutableAndFree(),
                 ordinalMapBuilder.ToImmutableDictionaryAndFree(),
                 loadDirectiveMap,
                 loadedSyntaxTreeMap,
@@ -356,7 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static void GetRemoveSet(
             SyntaxTree oldTree,
             bool includeLoadedTrees,
-            ImmutableList<SyntaxTree> syntaxTrees,
+            SyntaxTreeList syntaxTrees,
             ImmutableDictionary<SyntaxTree, int> syntaxTreeOrdinalMap,
             ImmutableDictionary<SyntaxTree, ImmutableArray<LoadDirective>> loadDirectiveMap,
             ImmutableDictionary<string, SyntaxTree> loadedSyntaxTreeMap,
@@ -479,7 +479,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             removeSet.Free();
 
             var oldOrdinal = ordinalMap[oldTree];
-            ImmutableList<SyntaxTree> newTrees;
+            SyntaxTreeList newTrees;
             if (loadDirectivesHaveChanged)
             {
                 // Should have been removed above...
@@ -488,7 +488,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // If we're inserting new #load'ed trees, we'll rebuild
                 // the whole syntaxTree array and the ordinalMap.
-                var treesBuilder = ImmutableList.CreateBuilder<SyntaxTree>();
+                var treesBuilder = SyntaxTreeList.CreateBuilder();
                 var ordinalMapBuilder = PooledDictionary<SyntaxTree, int>.GetInstance();
                 for (var i = 0; i <= (oldOrdinal - totalReferencedTreeCount); i++)
                 {
@@ -524,7 +524,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                newTrees = treesBuilder.ToImmutable();
+                newTrees = treesBuilder.ToImmutableAndFree();
                 ordinalMap = ordinalMapBuilder.ToImmutableDictionaryAndFree();
                 Debug.Assert(newTrees.Count == ordinalMap.Count);
             }
@@ -567,7 +567,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 state);
         }
 
-        internal SyntaxAndDeclarationManager WithExternalSyntaxTrees(ImmutableArray<SyntaxTree> trees)
+        internal SyntaxAndDeclarationManager WithExternalSyntaxTrees(SyntaxTreeList trees)
         {
             return new SyntaxAndDeclarationManager(trees, this.ScriptClassName, this.Resolver, this.MessageProvider, this.IsSubmission, state: null);
         }
@@ -579,7 +579,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static void UpdateSyntaxTreesAndOrdinalMapOnly(
-            ImmutableList<SyntaxTree>.Builder treesBuilder,
+            SyntaxTreeList.Builder treesBuilder,
             SyntaxTree tree,
             IDictionary<SyntaxTree, int> ordinalMapBuilder,
             ImmutableDictionary<SyntaxTree, ImmutableArray<LoadDirective>> loadDirectiveMap,

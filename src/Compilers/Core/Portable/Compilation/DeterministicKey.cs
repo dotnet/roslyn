@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis
     {
         public static string GetDeterministicKey(
             CompilationOptions compilationOptions,
-            ImmutableList<SyntaxTree> syntaxTrees,
+            SyntaxTreeList syntaxTrees,
             ImmutableArray<MetadataReference> references,
             ImmutableArray<byte> publicKey = default,
             ImmutableArray<AdditionalText> additionalTexts = default,

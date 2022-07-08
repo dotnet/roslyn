@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis
             _features = features;
         }
 
-        protected static IReadOnlyDictionary<string, string> SyntaxTreeCommonFeatures(IEnumerable<SyntaxTree> trees)
+        protected static IReadOnlyDictionary<string, string> SyntaxTreeCommonFeatures(SyntaxTreeList trees)
         {
             IReadOnlyDictionary<string, string>? set = null;
 
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         internal static string GetDeterministicKey(
             CompilationOptions compilationOptions,
-            ImmutableList<SyntaxTree> syntaxTrees,
+            SyntaxTreeList syntaxTrees,
             ImmutableArray<MetadataReference> references,
             ImmutableArray<byte> publicKey,
             ImmutableArray<AdditionalText> additionalTexts = default,
@@ -532,8 +532,8 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the syntax trees (parsed from source code) that this compilation was created with.
         /// </summary>
-        public IEnumerable<SyntaxTree> SyntaxTrees { get { return CommonSyntaxTrees; } }
-        protected abstract ImmutableList<SyntaxTree> CommonSyntaxTrees { get; }
+        public IEnumerable<SyntaxTree> SyntaxTrees { get { return null; } }// return CommonSyntaxTrees; } }
+        internal abstract SyntaxTreeList CommonSyntaxTrees { get; }
 
         /// <summary>
         /// Creates a new compilation with additional syntax trees.

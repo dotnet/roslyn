@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' The syntax trees explicitly given to the compilation at creation, in ordinal order.
         ''' </summary>
-        Private ReadOnly _syntaxTrees As ImmutableList(Of SyntaxTree)
+        Private ReadOnly _syntaxTrees As SyntaxTreeList
 
         Private ReadOnly _syntaxTreeOrdinalMap As ImmutableDictionary(Of SyntaxTree, Integer)
 
@@ -384,7 +384,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 assemblyName,
                 options,
                 validatedReferences,
-                ImmutableList(Of SyntaxTree).Empty,
+                SyntaxTreeList.Empty,
                 ImmutableDictionary.Create(Of SyntaxTree, Integer)(),
                 declMap,
                 embeddedTrees,
@@ -411,7 +411,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             assemblyName As String,
             options As VisualBasicCompilationOptions,
             references As ImmutableArray(Of MetadataReference),
-            syntaxTrees As ImmutableList(Of SyntaxTree),
+            syntaxTrees As SyntaxTreeList,
             syntaxTreeOrdinalMap As ImmutableDictionary(Of SyntaxTree, Integer),
             rootNamespaces As ImmutableDictionary(Of SyntaxTree, DeclarationTableEntry),
             embeddedTrees As ImmutableArray(Of EmbeddedTreeAndDeclaration),
@@ -477,7 +477,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Private Function CommonLanguageVersion(syntaxTrees As ImmutableList(Of SyntaxTree)) As LanguageVersion
+        Private Function CommonLanguageVersion(syntaxTrees As SyntaxTreeList) As LanguageVersion
             ' We don't check m_Options.ParseOptions.LanguageVersion for consistency, because
             ' it isn't consistent in practice.  In fact sometimes m_Options.ParseOptions is Nothing.
             Dim result As LanguageVersion? = Nothing
@@ -517,7 +517,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function UpdateSyntaxTrees(
-            syntaxTrees As ImmutableList(Of SyntaxTree),
+            syntaxTrees As SyntaxTreeList,
             syntaxTreeOrdinalMap As ImmutableDictionary(Of SyntaxTree, Integer),
             rootNamespaces As ImmutableDictionary(Of SyntaxTree, DeclarationTableEntry),
             declarationTable As DeclarationTable,
@@ -869,7 +869,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Get a read-only list of the syntax trees that this compilation was created with.
         ''' </summary>
-        Public Shadows ReadOnly Property SyntaxTrees As ImmutableList(Of SyntaxTree)
+        Public Shadows ReadOnly Property SyntaxTrees As SyntaxTreeList
             Get
                 Return _syntaxTrees
             End Get
@@ -922,7 +922,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' and we don't want to see console spew (even though we don't generally
             ' care about pool "leaks" in exceptional cases).  Alternatively, we
             ' could create a new ArrayBuilder.
-            Dim builder = ImmutableList.CreateBuilder(Of SyntaxTree)
+            Dim builder = SyntaxTreeList.CreateBuilder()
             Try
                 builder.AddRange(_syntaxTrees)
 
@@ -961,7 +961,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Throw New ArgumentException(VBResources.SubmissionCanHaveAtMostOneSyntaxTree, NameOf(trees))
                 End If
 
-                Return UpdateSyntaxTrees(builder.ToImmutable(), ordinalMap, declMap, declTable, referenceDirectivesChanged)
+                Return UpdateSyntaxTrees(builder.ToImmutableAndFree(), ordinalMap, declMap, declTable, referenceDirectivesChanged)
             Finally
             End Try
         End Function
@@ -1023,7 +1023,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' case where remove calls are made sequentially (rare?).
 
             Dim ordinalMap = ImmutableDictionary.Create(Of SyntaxTree, Integer)()
-            Dim builder = ImmutableList.CreateBuilder(Of SyntaxTree)
+            Dim builder = SyntaxTreeList.CreateBuilder()
             Dim i = 0
 
             For Each tree In _syntaxTrees
@@ -1034,7 +1034,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             Next
 
-            Return UpdateSyntaxTrees(builder.ToImmutable(), ordinalMap, declMap, declTable, referenceDirectivesChanged)
+            Return UpdateSyntaxTrees(builder.ToImmutableAndFree(), ordinalMap, declMap, declTable, referenceDirectivesChanged)
         End Function
 
         Private Shared Sub RemoveSyntaxTreeFromDeclarationMapAndTable(
@@ -1054,7 +1054,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Public Shadows Function RemoveAllSyntaxTrees() As VisualBasicCompilation
-            Return UpdateSyntaxTrees(ImmutableList(Of SyntaxTree).Empty,
+            Return UpdateSyntaxTrees(SyntaxTreeList.Empty,
                                      ImmutableDictionary.Create(Of SyntaxTree, Integer)(),
                                      ImmutableDictionary.Create(Of SyntaxTree, DeclarationTableEntry)(),
                                      AddEmbeddedTrees(DeclarationTable.Empty, _embeddedTrees),
@@ -1527,7 +1527,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                     mainType = TryCast(mainTypeOrNamespace, SourceMemberContainerTypeSymbol)
-                    If mainType Is Nothing OrElse (mainType.TypeKind <> TYPEKIND.Class AndAlso mainType.TypeKind <> TYPEKIND.Structure AndAlso mainType.TypeKind <> TYPEKIND.Module) Then
+                    If mainType Is Nothing OrElse (mainType.TypeKind <> TypeKind.Class AndAlso mainType.TypeKind <> TypeKind.Structure AndAlso mainType.TypeKind <> TypeKind.Module) Then
                         diagnostics.Add(ERRID.ERR_StartupCodeNotFound1, NoLocation.Singleton, mainType)
                         Return Nothing
                     End If
@@ -1547,7 +1547,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' named "Main".
 
                     Dim binder As Binder = BinderBuilder.CreateBinderForType(mainType.ContainingSourceModule, mainType.SyntaxReferences(0).SyntaxTree, mainType)
-                    Dim lookupResult As LookupResult = lookupResult.GetInstance()
+                    Dim lookupResult As LookupResult = LookupResult.GetInstance()
                     Dim entryPointLookupOptions As LookupOptions = LookupOptions.AllMethodsOfAnyArity Or LookupOptions.IgnoreExtensionMethods
                     binder.LookupMember(lookupResult, mainType, WellKnownMemberNames.EntryPointMethodName, arity:=0, options:=entryPointLookupOptions, useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
 
@@ -2613,7 +2613,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim sourceInfo = existingDoc.GetSourceInfo()
 
                     If CheckSumMatches(checkSumText, sourceInfo.Checksum) Then
-                        Dim guid As Guid = guid.Parse(checksumDirective.Guid.ValueText)
+                        Dim guid As Guid = Guid.Parse(checksumDirective.Guid.ValueText)
                         If guid = sourceInfo.ChecksumAlgorithmId Then
                             ' all parts match, nothing to do
                             Continue For
@@ -2723,7 +2723,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Me.GetSemanticModel(syntaxTree, ignoreAccessibility)
         End Function
 
-        Protected Overrides ReadOnly Property CommonSyntaxTrees As ImmutableList(Of SyntaxTree)
+        Friend Overrides ReadOnly Property CommonSyntaxTrees As SyntaxTreeList
             Get
                 Return Me.SyntaxTrees
             End Get

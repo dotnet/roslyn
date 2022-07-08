@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 referenceManager: null,
                 reuseReferenceManager: false,
                 syntaxAndDeclarations: new SyntaxAndDeclarationManager(
-                    ImmutableArray<SyntaxTree>.Empty,
+                    SyntaxTreeList.Empty,
                     options.ScriptClassName,
                     options.SourceReferenceResolver,
                     CSharp.MessageProvider.Instance,
@@ -509,7 +509,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static LanguageVersion CommonLanguageVersion(ImmutableArray<SyntaxTree> syntaxTrees)
+        private static LanguageVersion CommonLanguageVersion(SyntaxTreeList syntaxTrees)
         {
             LanguageVersion? result = null;
             foreach (var tree in syntaxTrees)
@@ -795,7 +795,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// The syntax trees (parsed from source code) that this compilation was created with.
         /// </summary>
-        public new ImmutableList<SyntaxTree> SyntaxTrees
+        public new SyntaxTreeList SyntaxTrees
         {
             get { return _syntaxAndDeclarations.GetLazyState().SyntaxTrees; }
         }
@@ -951,7 +951,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Update(
                 _referenceManager,
                 reuseReferenceManager: !syntaxAndDeclarations.MayHaveReferenceDirectives(),
-                syntaxAndDeclarations: syntaxAndDeclarations.WithExternalSyntaxTrees(ImmutableArray<SyntaxTree>.Empty));
+                syntaxAndDeclarations: syntaxAndDeclarations.WithExternalSyntaxTrees(SyntaxTreeList.Empty));
         }
 
         /// <summary>
@@ -1431,7 +1431,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool IsSubmissionSyntaxTree(SyntaxTree tree)
         {
             Debug.Assert(tree != null);
-            Debug.Assert(!this.IsSubmission || _syntaxAndDeclarations.ExternalSyntaxTrees.Length <= 1);
+            Debug.Assert(!this.IsSubmission || _syntaxAndDeclarations.ExternalSyntaxTrees.Count <= 1);
             return this.IsSubmission && tree == _syntaxAndDeclarations.ExternalSyntaxTrees.SingleOrDefault();
         }
 
@@ -1487,7 +1487,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal Imports GetSubmissionImports()
         {
             Debug.Assert(this.IsSubmission);
-            Debug.Assert(_syntaxAndDeclarations.ExternalSyntaxTrees.Length <= 1);
+            Debug.Assert(_syntaxAndDeclarations.ExternalSyntaxTrees.Count <= 1);
 
             // A submission may be empty or comprised of a single script file.
             var tree = _syntaxAndDeclarations.ExternalSyntaxTrees.SingleOrDefault();
@@ -2704,7 +2704,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.AddRange(Options.Errors);
 
                 if (Options.NullableContextOptions != NullableContextOptions.Disable && LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() &&
-                    _syntaxAndDeclarations.ExternalSyntaxTrees.Any())
+                    _syntaxAndDeclarations.ExternalSyntaxTrees.Count > 0)
                 {
                     builder.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_NullableOptionNotAvailable,
                                                  nameof(Options.NullableContextOptions), Options.NullableContextOptions, LanguageVersion.ToDisplayString(),
@@ -3548,7 +3548,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.GetSemanticModel((SyntaxTree)syntaxTree, ignoreAccessibility);
         }
 
-        protected override ImmutableList<SyntaxTree> CommonSyntaxTrees
+        internal override SyntaxTreeList CommonSyntaxTrees
         {
             get
             {

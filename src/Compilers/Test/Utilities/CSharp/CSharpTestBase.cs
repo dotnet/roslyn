@@ -1333,7 +1333,7 @@ namespace System.Diagnostics.CodeAnalysis
         {
             // This method should not cause any binding, including resolving references, etc.
             var trees = compilation.SyntaxTrees;
-            if (trees is null || trees.Count == 0)
+            if (trees.IsDefaultOrEmpty)
             {
                 return false;
             }
