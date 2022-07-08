@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -15,7 +14,6 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -168,22 +166,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         public string GetFilePathFromBuffers()
         {
+            var textDocumentFactoryService = ComponentModel.GetService<ITextDocumentFactoryService>();
+
             // Try to get the file path from the secondary buffer
-            if (SubjectBuffer.CurrentSnapshot.TextBuffer.Properties.TryGetProperty<ITextDocument>(typeof(ITextDocument), out var secondaryDocument) &&
-                secondaryDocument.FilePath is string secondaryFilePath)
+            if (!textDocumentFactoryService.TryGetTextDocument(SubjectBuffer, out var document))
             {
-                return secondaryFilePath;
+                // Fallback to the primary buffer
+                textDocumentFactoryService.TryGetTextDocument(DataBuffer, out document);
             }
 
-            // Fallback to the primary buffer
-            if (DataBuffer.CurrentSnapshot.TextBuffer.Properties.TryGetProperty<ITextDocument>(typeof(ITextDocument), out var primaryDocument) &&
-                primaryDocument.FilePath is string primaryFilePath)
+            if (document == null)
             {
-                return primaryFilePath;
+                FatalError.ReportAndPropagate(new InvalidOperationException("Failed to get file path for a contained document"));
             }
 
-            FatalError.ReportAndPropagate(new InvalidOperationException("Failed to get file path for a contained document"));
-            return string.Empty;
+            return document?.FilePath ?? string.Empty;
         }
     }
 }
