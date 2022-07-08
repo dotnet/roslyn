@@ -532,7 +532,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the syntax trees (parsed from source code) that this compilation was created with.
         /// </summary>
-        public IEnumerable<SyntaxTree> SyntaxTrees { get { return null; } }// return CommonSyntaxTrees; } }
+        public IEnumerable<SyntaxTree> SyntaxTrees { get { return CommonSyntaxTrees; } }
         internal abstract SyntaxTreeList CommonSyntaxTrees { get; }
 
         /// <summary>
