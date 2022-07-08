@@ -3158,7 +3158,7 @@ class C {
 
         [WorkItem(60661, "https://github.com/dotnet/roslyn/issues/60661")]
         [InlineData(LanguageVersion.CSharp9)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         [Theory]
         public void KeywordParameterName_01(LanguageVersion languageVersion)
         {
@@ -3188,7 +3188,7 @@ class C {
 
         [WorkItem(60661, "https://github.com/dotnet/roslyn/issues/60661")]
         [InlineData(LanguageVersion.CSharp9)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         [Theory]
         public void KeywordParameterName_02(LanguageVersion languageVersion)
         {
@@ -3216,7 +3216,7 @@ class C {
 
         [WorkItem(60661, "https://github.com/dotnet/roslyn/issues/60661")]
         [InlineData(LanguageVersion.CSharp9)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         [Theory]
         public void KeywordParameterName_03(LanguageVersion languageVersion)
         {

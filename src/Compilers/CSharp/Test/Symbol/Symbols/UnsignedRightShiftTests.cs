@@ -395,7 +395,7 @@ class C
             compilation1.VerifyEmitDiagnostics(expected);
 
             compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularNext);
+                                                 parseOptions: TestOptions.Regular11);
             compilation1.VerifyEmitDiagnostics(expected);
         }
 
@@ -898,7 +898,7 @@ class C
             compilation1.VerifyEmitDiagnostics(expected);
 
             compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                             parseOptions: TestOptions.RegularNext);
+                                             parseOptions: TestOptions.Regular11);
             compilation1.VerifyEmitDiagnostics(expected);
         }
 
@@ -1013,7 +1013,7 @@ class C
             compilation1.VerifyEmitDiagnostics(expected);
 
             compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                             parseOptions: TestOptions.RegularNext);
+                                             parseOptions: TestOptions.Regular11);
             compilation1.VerifyEmitDiagnostics(expected);
         }
 
@@ -1054,7 +1054,7 @@ class C
             compilation1.VerifyEmitDiagnostics(expected);
 
             compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                             parseOptions: TestOptions.RegularNext);
+                                             parseOptions: TestOptions.Regular11);
             compilation1.VerifyEmitDiagnostics(expected);
         }
 
@@ -1452,7 +1452,7 @@ class C
             compilation1.VerifyEmitDiagnostics(expected);
 
             compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                             parseOptions: TestOptions.RegularNext);
+                                             parseOptions: TestOptions.Regular11);
             compilation1.VerifyEmitDiagnostics(expected);
         }
 
@@ -1860,7 +1860,7 @@ class C
             compilation1.VerifyEmitDiagnostics(expected);
 
             compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                             parseOptions: TestOptions.RegularNext);
+                                             parseOptions: TestOptions.Regular11);
             compilation1.VerifyEmitDiagnostics(expected);
         }
 
@@ -2728,7 +2728,7 @@ class C
             actualSymbol = CrefTests.GetReferencedSymbol(crefSyntax, compilation);
             Assert.Equal(expectedSymbol, actualSymbol);
 
-            compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.RegularNext.WithDocumentationMode(DocumentationMode.Diagnose));
+            compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.Regular11.WithDocumentationMode(DocumentationMode.Diagnose));
             compilation.VerifyDiagnostics();
 
             crefSyntax = CrefTests.GetCrefSyntaxes(compilation).Single();
@@ -2900,7 +2900,7 @@ class C
             actualSymbol = CrefTests.GetReferencedSymbol(crefSyntax, compilation);
             Assert.Equal(expectedSymbol, actualSymbol);
 
-            compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.RegularNext.WithDocumentationMode(DocumentationMode.Diagnose));
+            compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.Regular11.WithDocumentationMode(DocumentationMode.Diagnose));
             compilation.VerifyDiagnostics();
 
             crefSyntax = CrefTests.GetCrefSyntaxes(compilation).Single();
@@ -3121,7 +3121,7 @@ class C
                 );
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.RegularNext);
+                                                 parseOptions: TestOptions.Regular11);
             compilation2.VerifyDiagnostics();
         }
 
@@ -3215,7 +3215,7 @@ class C
                 );
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.RegularNext);
+                                                 parseOptions: TestOptions.Regular11);
             compilation2.VerifyDiagnostics();
         }
 
@@ -3309,7 +3309,7 @@ class C
                 );
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.RegularNext);
+                                                 parseOptions: TestOptions.Regular11);
             compilation2.VerifyDiagnostics();
         }
 
@@ -3403,7 +3403,7 @@ class C
                 );
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.RegularNext);
+                                                 parseOptions: TestOptions.Regular11);
             compilation2.VerifyDiagnostics();
         }
 
@@ -3437,7 +3437,7 @@ class C
                 );
 
             compilation1 = CreateCompilation(source0 + source1, options: TestOptions.DebugDll,
-                                             parseOptions: TestOptions.RegularNext);
+                                             parseOptions: TestOptions.Regular11);
             compilation1.VerifyDiagnostics();
 
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll,
@@ -3454,7 +3454,7 @@ class C
                     );
 
                 compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll, references: new[] { reference },
-                                                 parseOptions: TestOptions.RegularNext);
+                                                 parseOptions: TestOptions.Regular11);
                 compilation2.VerifyDiagnostics();
             }
         }
@@ -3489,7 +3489,7 @@ class C
                 );
 
             compilation1 = CreateCompilation(source0 + source1, options: TestOptions.DebugDll,
-                                             parseOptions: TestOptions.RegularNext);
+                                             parseOptions: TestOptions.Regular11);
             compilation1.VerifyDiagnostics();
 
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll,
@@ -3506,7 +3506,7 @@ class C
                     );
 
                 compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll, references: new[] { reference },
-                                                 parseOptions: TestOptions.RegularNext);
+                                                 parseOptions: TestOptions.Regular11);
                 compilation2.VerifyDiagnostics();
             }
         }
@@ -3541,7 +3541,7 @@ class C
                 );
 
             compilation1 = CreateCompilation(source0 + source1, options: TestOptions.DebugDll,
-                                             parseOptions: TestOptions.RegularNext);
+                                             parseOptions: TestOptions.Regular11);
             compilation1.VerifyDiagnostics();
 
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll,
@@ -3558,7 +3558,7 @@ class C
                     );
 
                 compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll, references: new[] { reference },
-                                                 parseOptions: TestOptions.RegularNext);
+                                                 parseOptions: TestOptions.Regular11);
                 compilation2.VerifyDiagnostics();
             }
         }
@@ -3593,7 +3593,7 @@ class C
                 );
 
             compilation1 = CreateCompilation(source0 + source1, options: TestOptions.DebugDll,
-                                             parseOptions: TestOptions.RegularNext);
+                                             parseOptions: TestOptions.Regular11);
             compilation1.VerifyDiagnostics();
 
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll,
@@ -3610,7 +3610,7 @@ class C
                     );
 
                 compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll, references: new[] { reference },
-                                                 parseOptions: TestOptions.RegularNext);
+                                                 parseOptions: TestOptions.Regular11);
                 compilation2.VerifyDiagnostics();
             }
         }
@@ -3690,7 +3690,7 @@ class Test
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: @"150150", parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(source, expectedOutput: @"150150", parseOptions: TestOptions.Regular11);
         }
     }
 }

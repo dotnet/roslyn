@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void FieldDeclaration_01(LanguageVersion languageVersion)
         {
             string source = "struct S { ref T F; }";
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void FieldDeclaration_02(LanguageVersion languageVersion)
         {
             string source = "struct S { ref readonly T F; }";
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void FieldDeclaration_03(LanguageVersion languageVersion)
         {
             string source = "struct S { out T F; }";
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void FieldDeclaration_04(LanguageVersion languageVersion)
         {
             string source = "struct S { in T F; }";
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void Fixed_01(LanguageVersion languageVersion)
         {
             string source = "struct S { fixed ref int F1[1]; fixed ref readonly int F2[2]; }";
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void Fixed_02(LanguageVersion languageVersion)
         {
             string source = "struct S {  ref fixed int F1[1]; ref readonly fixed int F2[2]; }";
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void ReadOnlyRefParameter(LanguageVersion languageVersion)
         {
             string source = "class C { void M(readonly ref int i) { } }";
@@ -417,7 +417,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         // https://github.com/dotnet/roslyn/issues/62120: Support ref field assignment in object initializers.
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void ObjectInitializer(LanguageVersion languageVersion)
         {
             string source = "new S { F = ref t }";

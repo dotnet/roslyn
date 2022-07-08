@@ -1520,7 +1520,7 @@ public class FileModifierParsingTests : ParsingTests
 
     [Theory]
     [InlineData(LanguageVersion.CSharp10)]
-    [InlineData(LanguageVersionFacts.CSharpNext)]
+    [InlineData(LanguageVersion.CSharp11)]
     public void TypeNamedFile_02(LanguageVersion languageVersion)
     {
         UsingNode($$"""
@@ -1932,7 +1932,7 @@ public class FileModifierParsingTests : ParsingTests
     }
 
     [Fact]
-    public void MethodNamedRecord_01_CSharpNext()
+    public void MethodNamedRecord_01_CSharp11()
     {
         UsingNode("""
             class C
@@ -2028,7 +2028,7 @@ public class FileModifierParsingTests : ParsingTests
     }
 
     [Fact]
-    public void MethodNamedRecord_02_CSharpNext()
+    public void MethodNamedRecord_02_CSharp11()
     {
         UsingNode("""
             class C
@@ -2127,7 +2127,7 @@ public class FileModifierParsingTests : ParsingTests
     }
 
     [Fact]
-    public void FileRecord_01_CSharpNext()
+    public void FileRecord_01_CSharp11()
     {
         UsingNode("""
             class C
@@ -2225,7 +2225,7 @@ public class FileModifierParsingTests : ParsingTests
     }
 
     [Fact]
-    public void FileRecord_02_CSharpNext()
+    public void FileRecord_02_CSharp11()
     {
         UsingNode("""
             class C
@@ -2320,7 +2320,7 @@ public class FileModifierParsingTests : ParsingTests
     }
 
     [Fact]
-    public void FileRecord_03_CSharpNext()
+    public void FileRecord_03_CSharp11()
     {
         UsingNode("""
             class C
@@ -2357,7 +2357,7 @@ public class FileModifierParsingTests : ParsingTests
     }
 
     [Fact]
-    public void FileRecord_04_CSharpNext()
+    public void FileRecord_04_CSharp11()
     {
         UsingNode("""
             file record X();
@@ -2509,7 +2509,7 @@ public class FileModifierParsingTests : ParsingTests
 
     [Theory]
     [InlineData(LanguageVersion.CSharp10)]
-    [InlineData(LanguageVersionFacts.CSharpNext)]
+    [InlineData(LanguageVersion.CSharp11)]
     public void TopLevelVariable_01(LanguageVersion languageVersion)
     {
         UsingNode("""
@@ -2553,7 +2553,7 @@ public class FileModifierParsingTests : ParsingTests
 
     [Theory]
     [InlineData(LanguageVersion.CSharp10)]
-    [InlineData(LanguageVersionFacts.CSharpNext)]
+    [InlineData(LanguageVersion.CSharp11)]
     public void TopLevelVariable_02(LanguageVersion languageVersion)
     {
         UsingNode("""
@@ -2593,7 +2593,7 @@ public class FileModifierParsingTests : ParsingTests
 
     [Theory]
     [InlineData(LanguageVersion.CSharp10)]
-    [InlineData(LanguageVersionFacts.CSharpNext)]
+    [InlineData(LanguageVersion.CSharp11)]
     public void TopLevelVariable_03(LanguageVersion languageVersion)
     {
         UsingNode("""

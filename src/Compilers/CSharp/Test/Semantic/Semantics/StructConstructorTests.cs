@@ -1982,7 +1982,7 @@ class Program
                 //     public S2(object y) { Y = y; }
                 Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S2").WithArguments("S2.X", "preview").WithLocation(20, 12));
 
-            var verifier = CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput:
+            var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular11, expectedOutput:
 @"(, )
 (, 1)
 (, )");
@@ -2022,7 +2022,7 @@ class Program
                 //     public S0() { }
                 Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S0").WithArguments("S0.X", "preview").WithLocation(7, 12));
 
-            var verifier = CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: "(, )");
+            var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular11, expectedOutput: "(, )");
             verifier.VerifyDiagnostics();
 
             verifier.VerifyIL("S0..ctor", @"
@@ -2577,7 +2577,7 @@ struct S4
                 //     public S3() { Y = 3; }
                 Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S3").WithArguments("S3.X", "preview").WithLocation(17, 12));
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
                 // (2,8): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
                 // struct S1
@@ -2659,7 +2659,7 @@ struct S4
                 //     public S3() { Y = 3; }
                 Diagnostic(ErrorCode.ERR_UnassignedThisAutoPropertyUnsupportedVersion, "S3").WithArguments("S3.X", "preview").WithLocation(17, 12));
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
                 // (2,8): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
                 // struct S1
@@ -2709,7 +2709,7 @@ record struct S4
                 //     public S3() { Y = 3; }
                 Diagnostic(ErrorCode.ERR_UnassignedThisAutoPropertyUnsupportedVersion, "S3").WithArguments("S3.X", "preview").WithLocation(17, 12));
 
-            comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
                 // (2,15): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
                 // record struct S1
@@ -2762,7 +2762,7 @@ class Program
                 // record struct S3()
                 Diagnostic(ErrorCode.ERR_UnassignedThisAutoPropertyUnsupportedVersion, "S3").WithArguments("S3.X", "preview").WithLocation(15, 15));
 
-            var verifier = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularNext, expectedOutput:
+            var verifier = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular11, expectedOutput:
 @"
 S1 { X = 1, Y =  }
 S2 { X = 2, Y =  }
@@ -2873,7 +2873,7 @@ class Program
                 // record struct S3(object Y)
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Y").WithArguments("Y").WithLocation(15, 25));
 
-            var verifier = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularNext, expectedOutput:
+            var verifier = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular11, expectedOutput:
 @"S1 { X = 1, Y =  }
 S2 { X = 2, Y =  }
 S3 { X = , Y = 3 }
@@ -2944,7 +2944,7 @@ class Program
                 // record struct S3(object Y)
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Y").WithArguments("Y").WithLocation(15, 25));
 
-            var verifier = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularNext, expectedOutput:
+            var verifier = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular11, expectedOutput:
 @"S1 { X = , Y = 1 }
 S2 { X = , Y = 2 }
 S3 { X = 3, Y =  }", verify: Verification.Skipped);
@@ -3294,7 +3294,7 @@ struct S3
                 //     public S3() { F3 = GetValue(); }
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "GetValue()").WithLocation(21, 24));
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
                 // (10,12): warning CS8618: Non-nullable field 'F1' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
                 //     public S1() { }
@@ -3415,7 +3415,7 @@ unsafe struct S5
                 //     int X;
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "X").WithArguments("S5.X").WithLocation(29, 9));
 
-            comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
                 // (22,15): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
                 // unsafe struct S4
@@ -3902,19 +3902,19 @@ public struct S
                     //     public S() { }
                     Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S").WithArguments("S.x", "preview").WithLocation(5, 12));
 
-            CreateCompilation(source, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings), parseOptions: TestOptions.RegularNext)
+            CreateCompilation(source, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings), parseOptions: TestOptions.Regular11)
                 .VerifyDiagnostics(
                     // (5,12): warning CS9021: Control is returned to caller before field 'S.x' is explicitly assigned, causing a preceding implicit assignment of 'default'.
                     //     public S() { }
                     Diagnostic(ErrorCode.WRN_UnassignedThisSupportedVersion, "S").WithArguments("S.x").WithLocation(5, 12));
 
-            CreateCompilation(source, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(GetIdForErrorCode(ErrorCode.WRN_UnassignedThisSupportedVersion), ReportDiagnostic.Error), parseOptions: TestOptions.RegularNext)
+            CreateCompilation(source, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(GetIdForErrorCode(ErrorCode.WRN_UnassignedThisSupportedVersion), ReportDiagnostic.Error), parseOptions: TestOptions.Regular11)
                 .VerifyDiagnostics(
                 // (5,12): error CS9021: Control is returned to caller before field 'S.x' is explicitly assigned, causing a preceding implicit assignment of 'default'.
                 //     public S() { }
                 Diagnostic(ErrorCode.WRN_UnassignedThisSupportedVersion, "S").WithArguments("S.x").WithLocation(5, 12).WithWarningAsError(true));
 
-            var verifier = CompileAndVerify(source, parseOptions: TestOptions.RegularNext);
+            var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular11);
             verifier.VerifyDiagnostics();
 
             verifier.VerifyIL("S..ctor()", @"
@@ -3957,7 +3957,7 @@ public struct S
                     //         other2.ToString(); // 3
                     Diagnostic(ErrorCode.ERR_UseDefViolation, "other2").WithArguments("other2").WithLocation(11, 9));
 
-            CreateCompilation(source, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings), parseOptions: TestOptions.RegularNext)
+            CreateCompilation(source, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings), parseOptions: TestOptions.Regular11)
                 .VerifyDiagnostics(
                     // (5,12): warning CS9021: Control is returned to caller before field 'S.x' is explicitly assigned, causing a preceding implicit assignment of 'default'.
                     //     public S() // 1
@@ -3988,7 +3988,7 @@ public struct S
                 //         return;
                 Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "return;").WithArguments("S.x", "preview").WithLocation(7, 9));
 
-            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings), parseOptions: TestOptions.RegularNext);
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings), parseOptions: TestOptions.Regular11);
             verifier.VerifyDiagnostics(
                 // (7,9): warning CS9021: Control is returned to caller before field 'S.x' is explicitly assigned, causing a preceding implicit assignment of 'default'.
                 //         return;
@@ -4031,7 +4031,7 @@ public struct S
                 //         E?.Invoke();
                 Diagnostic(ErrorCode.ERR_UseDefViolationFieldUnsupportedVersion, "E").WithArguments("E", "preview").WithLocation(9, 9));
 
-            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings), parseOptions: TestOptions.RegularNext);
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings), parseOptions: TestOptions.Regular11);
             verifier.VerifyDiagnostics(
                 // (7,12): warning CS9021: Control is returned to caller before field 'S.E' is explicitly assigned, causing a preceding implicit assignment of 'default'.
                 //     public S()
@@ -4063,7 +4063,7 @@ public struct S
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void ImplicitlyInitializedFields_EmptyStruct(LanguageVersion languageVersion)
         {
             var source = @"
@@ -4611,7 +4611,7 @@ public struct S<T>
                 Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S").WithArguments("S.Item", "preview").WithLocation(4, 12)
                 );
 
-            var verifier = CompileAndVerify(new[] { source }, options: WithNullableEnable(), parseOptions: TestOptions.RegularNext);
+            var verifier = CompileAndVerify(new[] { source }, options: WithNullableEnable(), parseOptions: TestOptions.Regular11);
             verifier.VerifyDiagnostics(
                 // (4,12): warning CS8618: Non-nullable field 'Item' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
                 //     public S(bool unused)
@@ -4630,7 +4630,7 @@ public struct S<T>
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void Struct_ExplicitThisConstructorInitializer_01(LanguageVersion languageVersion)
         {
             var source =
@@ -4661,7 +4661,7 @@ public struct S<T>
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void Struct_ExplicitThisConstructorInitializer_02(LanguageVersion languageVersion)
         {
             var source =

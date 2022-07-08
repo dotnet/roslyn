@@ -1261,7 +1261,7 @@ class App{
     Console.WriteLine(str);
   }
 }";
-            var parseOptions = TestOptions.RegularNext;
+            var parseOptions = TestOptions.Regular11;
             var compOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication);
 
             //string.Format was fixed in dotnet core 3
@@ -1422,7 +1422,7 @@ class App{
     Console.WriteLine(str);
   }
 }";
-            var parseOptions = TestOptions.RegularNext;
+            var parseOptions = TestOptions.Regular11;
             var compOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication);
 
             var expectedOutput = "Before {a} After";

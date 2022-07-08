@@ -83,7 +83,7 @@ public class RawInterpolatedStringLiteralCompilingTests : CompilingTestBase
 @"class C
 {
     const string s = $"""""" """""";
-}", parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+}", parseOptions: TestOptions.Regular11).VerifyDiagnostics();
     }
 
     [Fact]

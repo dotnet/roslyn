@@ -177,7 +177,7 @@ public struct Struct
                 source2,
                 references: moduleReference,
                 options: TestOptions.DebugDll.WithWarningLevel(5),
-                parseOptions: TestOptions.RegularNext,
+                parseOptions: TestOptions.Regular11,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program..ctor", expectedIL);
@@ -188,7 +188,7 @@ public struct Struct
                 options: TestOptions.DebugDll
                     .WithWarningLevel(5)
                     .WithSpecificDiagnosticOptions(ReportStructInitializationWarnings),
-                parseOptions: TestOptions.RegularNext,
+                parseOptions: TestOptions.Regular11,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics(
                 // (4,12): warning CS9020: Control is returned to caller before auto-implemented property 'Program.Property' is explicitly assigned, causing a preceding implicit assignment of 'default'.
@@ -256,7 +256,7 @@ public struct Struct
                 references: moduleReference,
                 options: TestOptions.DebugDll
                     .WithWarningLevel(5),
-                parseOptions: TestOptions.RegularNext,
+                parseOptions: TestOptions.Regular11,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program..ctor", expectedIL);
@@ -267,7 +267,7 @@ public struct Struct
                 options: TestOptions.DebugDll
                     .WithWarningLevel(5)
                     .WithSpecificDiagnosticOptions(ReportStructInitializationWarnings),
-                parseOptions: TestOptions.RegularNext,
+                parseOptions: TestOptions.Regular11,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics(
                 // (4,12): warning CS9021: Control is returned to caller before field 'Program.Field' is explicitly assigned, causing a preceding implicit assignment of 'default'.
@@ -344,7 +344,7 @@ public struct Struct
                 source2,
                 references: moduleReference,
                 options: TestOptions.DebugDll.WithWarningLevel(5),
-                parseOptions: TestOptions.RegularNext,
+                parseOptions: TestOptions.Regular11,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics(
                 // (7,9): warning CS8887: Use of unassigned local variable 's'
@@ -358,7 +358,7 @@ public struct Struct
                 options: TestOptions.DebugDll
                     .WithWarningLevel(5)
                     .WithSpecificDiagnosticOptions(ReportStructInitializationWarnings),
-                parseOptions: TestOptions.RegularNext,
+                parseOptions: TestOptions.Regular11,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics(
                 // (4,12): warning CS9021: Control is returned to caller before field 'Program.Field' is explicitly assigned, causing a preceding implicit assignment of 'default'.
@@ -465,7 +465,7 @@ public struct Struct
                 source2,
                 references: moduleReference,
                 options: TestOptions.DebugDll.WithWarningLevel(5),
-                parseOptions: TestOptions.RegularNext,
+                parseOptions: TestOptions.Regular11,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program..ctor", expectedIL);
@@ -476,7 +476,7 @@ public struct Struct
                 options: TestOptions.DebugDll
                     .WithWarningLevel(5)
                     .WithSpecificDiagnosticOptions(ReportStructInitializationWarnings),
-                parseOptions: TestOptions.RegularNext,
+                parseOptions: TestOptions.Regular11,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics(
                 // (6,21): warning CS9014: Use of possibly unassigned auto-implemented property 'Property'
@@ -552,7 +552,7 @@ public struct Struct
                 source2,
                 references: moduleReference,
                 options: TestOptions.DebugDll.WithWarningLevel(5),
-                parseOptions: TestOptions.RegularNext,
+                parseOptions: TestOptions.Regular11,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
 
@@ -563,7 +563,7 @@ public struct Struct
                 options: TestOptions.DebugDll
                     .WithWarningLevel(5)
                     .WithSpecificDiagnosticOptions(ReportStructInitializationWarnings),
-                parseOptions: TestOptions.RegularNext,
+                parseOptions: TestOptions.Regular11,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics(
                 // (6,21): warning CS9014: Use of possibly unassigned field 'Field'
@@ -639,7 +639,7 @@ public struct Struct
                 source2,
                 references: moduleReference,
                 options: TestOptions.DebugDll.WithWarningLevel(5),
-                parseOptions: TestOptions.RegularNext,
+                parseOptions: TestOptions.Regular11,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program..ctor", expectedIL);
@@ -650,7 +650,7 @@ public struct Struct
                 options: TestOptions.DebugDll
                     .WithWarningLevel(5)
                     .WithSpecificDiagnosticOptions(ReportStructInitializationWarnings),
-                parseOptions: TestOptions.RegularNext,
+                parseOptions: TestOptions.Regular11,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics(
                 // (6,22): warning CS9020: The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.

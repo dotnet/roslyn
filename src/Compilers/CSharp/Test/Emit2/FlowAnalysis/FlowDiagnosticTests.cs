@@ -1217,7 +1217,7 @@ struct S
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "y").WithArguments("S.y").WithLocation(4, 12)
                 );
 
-            var verifier = CompileAndVerify(program, parseOptions: TestOptions.RegularNext);
+            var verifier = CompileAndVerify(program, parseOptions: TestOptions.Regular11);
             verifier.VerifyDiagnostics(
                 // (4,12): warning CS0169: The field 'S.y' is never used
                 //     int x, y;
@@ -1277,7 +1277,7 @@ struct Program
                 //     public Program(int x)
                 Diagnostic(ErrorCode.ERR_UnassignedThisAutoPropertyUnsupportedVersion, "Program").WithArguments("Program.X", "preview").WithLocation(5, 12));
 
-            var verifier = CompileAndVerify(program, parseOptions: TestOptions.RegularNext);
+            var verifier = CompileAndVerify(program, parseOptions: TestOptions.Regular11);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program..ctor", @"
 {
@@ -1390,7 +1390,7 @@ struct Program
     //     public Program(int dummy)
     Diagnostic(ErrorCode.ERR_UnassignedThisAutoPropertyUnsupportedVersion, "Program").WithArguments("Program.x2", "preview").WithLocation(14, 12));
 
-            comp = CreateCompilation(text, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(text, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
                 // (16,9): error CS1612: Cannot modify the return value of 'Program.x' because it is not a variable
                 //         x.i = 1;
@@ -1447,7 +1447,7 @@ struct Program
     //     public Program(int dummy)
     Diagnostic(ErrorCode.ERR_UnassignedThisAutoPropertyUnsupportedVersion, "Program").WithArguments("Program.x2", "preview").WithLocation(14, 12));
 
-            comp = CreateCompilation(text, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings), parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(text, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings), parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
                 // (14,12): warning CS9020: Control is returned to caller before auto-implemented property 'Program.x' is explicitly assigned, causing a preceding implicit assignment of 'default'.
                 //     public Program(int dummy)
@@ -1465,7 +1465,7 @@ struct Program
                 //         System.Console.WriteLine(x2.ii);
                 Diagnostic(ErrorCode.WRN_UseDefViolationPropertySupportedVersion, "x2").WithArguments("x2").WithLocation(17, 34));
 
-            comp = CreateCompilation(text, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(text, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
                 // (16,9): error CS1612: Cannot modify the return value of 'Program.x' because it is not a variable
                 //         x.i = 1;
@@ -1768,7 +1768,7 @@ struct Program
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "x").WithArguments("Program.S1.x", "0").WithLocation(6, 20)
                 );
 
-            comp = CreateCompilation(text, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(text, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
                 // (15,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
                 //         Goo(out x1);
@@ -2407,7 +2407,7 @@ class Program
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "x").WithArguments("C.S.x").WithLocation(5, 13)
                 );
 
-            comp = CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
                 // (8,13): error CS1501: No overload for method 'Goo' takes 2 arguments
                 //             Goo(y, null);
@@ -2564,7 +2564,7 @@ class Derived2 : Base
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "x").WithArguments("Derived.x").WithLocation(8, 17)
                 );
 
-            comp = CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
                 // (4,28): error CS0103: The name 'p2' does not exist in the current context
                 //     Derived(long x) : this(p2) // error CS0188: The 'this' object cannot be used before all of its fields are assigned to
@@ -2691,7 +2691,7 @@ struct S
                 //         Action a = () => { F = x; };
                 Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "F").WithLocation(8, 28));
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
                 // (8,28): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
                 //         Action a = () => { F = x; };
@@ -2724,7 +2724,7 @@ struct S
                 //         void f() { F = x; }
                 Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "F").WithLocation(7, 20));
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
                 // (7,14): warning CS8321: The local function 'f' is declared but never used
                 //         void f() { F = x; }

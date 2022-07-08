@@ -266,7 +266,7 @@ class C
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "Prop").WithArguments("required members").WithLocation(6, 27)
         );
 
-        comp = CreateCompilationWithRequiredMembers(code, parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilationWithRequiredMembers(code, parseOptions: TestOptions.Regular11);
         comp.VerifyDiagnostics();
     }
 
@@ -335,7 +335,7 @@ namespace N8
     class required<T> {}
 }
 ";
-        var comp = CreateCompilationWithRequiredMembers(code, parseOptions: use10 ? TestOptions.Regular10 : TestOptions.RegularNext);
+        var comp = CreateCompilationWithRequiredMembers(code, parseOptions: use10 ? TestOptions.Regular10 : TestOptions.Regular11);
 
         comp.VerifyDiagnostics(
             use10 ?
@@ -396,7 +396,7 @@ namespace N8
         );
 
         code = code.Replace("required", "@required");
-        comp = CreateCompilationWithRequiredMembers(code, parseOptions: use10 ? TestOptions.Regular10 : TestOptions.RegularNext);
+        comp = CreateCompilationWithRequiredMembers(code, parseOptions: use10 ? TestOptions.Regular10 : TestOptions.Regular11);
         comp.VerifyDiagnostics();
     }
 

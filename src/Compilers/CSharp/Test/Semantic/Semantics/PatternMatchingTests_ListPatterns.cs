@@ -462,7 +462,7 @@ class C
             Diagnostic(ErrorCode.ERR_MisplacedSlicePattern, ".. var y").WithLocation(4, 16)
             );
 
-        compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularNext);
+        compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.Regular11);
         compilation.VerifyDiagnostics(
             // (4,16): error CS9002: Slice patterns may only be used once and directly inside a list pattern.
             // _ = new C() is .. var y;

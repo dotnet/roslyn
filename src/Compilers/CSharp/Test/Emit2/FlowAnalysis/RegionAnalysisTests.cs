@@ -6435,7 +6435,7 @@ public class ExportedSymbol
                 );
             verify();
 
-            compilation = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            compilation = CreateCompilation(source, parseOptions: TestOptions.Regular11);
             compilation.VerifyDiagnostics();
             verify();
 

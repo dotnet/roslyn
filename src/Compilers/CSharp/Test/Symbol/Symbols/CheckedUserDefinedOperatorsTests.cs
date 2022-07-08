@@ -42,7 +42,7 @@ class C
                 );
             validator(compilation1.SourceModule);
 
-            compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularNext);
+            compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular11);
             CompileAndVerify(compilation1, sourceSymbolValidator: validator, symbolValidator: validator).VerifyDiagnostics();
 
             void validator(ModuleSymbol m)
@@ -534,7 +534,7 @@ class C
             actualSymbol = CrefTests.GetReferencedSymbol(crefSyntax, compilation);
             Assert.Equal(expectedSymbol, actualSymbol);
 
-            compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.RegularNext.WithDocumentationMode(DocumentationMode.Diagnose));
+            compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.Regular11.WithDocumentationMode(DocumentationMode.Diagnose));
             compilation.VerifyDiagnostics();
 
             crefSyntax = CrefTests.GetCrefSyntaxes(compilation).Single();
@@ -654,7 +654,7 @@ class C
             actualSymbol = CrefTests.GetReferencedSymbol(crefSyntax, compilation, expected);
             Assert.Null(actualSymbol);
 
-            compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.RegularNext.WithDocumentationMode(DocumentationMode.Diagnose));
+            compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.Regular11.WithDocumentationMode(DocumentationMode.Diagnose));
             compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(expected);
 
             crefSyntax = CrefTests.GetCrefSyntaxes(compilation).Single();
@@ -706,7 +706,7 @@ class C
             actualSymbol = CrefTests.GetReferencedSymbol(crefSyntax, compilation);
             Assert.Equal(expectedSymbol, actualSymbol);
 
-            compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.RegularNext.WithDocumentationMode(DocumentationMode.Diagnose));
+            compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.Regular11.WithDocumentationMode(DocumentationMode.Diagnose));
             compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify();
 
             crefSyntax = CrefTests.GetCrefSyntaxes(compilation).Single();
@@ -819,7 +819,7 @@ class C
             actualSymbol = CrefTests.GetReferencedSymbol(crefSyntax, compilation);
             Assert.Equal(expectedSymbol, actualSymbol);
 
-            compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.RegularNext.WithDocumentationMode(DocumentationMode.Diagnose));
+            compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.Regular11.WithDocumentationMode(DocumentationMode.Diagnose));
             compilation.VerifyDiagnostics(expected);
 
             crefSyntax = CrefTests.GetCrefSyntaxes(compilation).Single();
@@ -868,7 +868,7 @@ class C
             actualSymbol = CrefTests.GetReferencedSymbol(crefSyntax, compilation);
             Assert.Equal(expectedSymbol, actualSymbol);
 
-            compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.RegularNext.WithDocumentationMode(DocumentationMode.Diagnose));
+            compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.Regular11.WithDocumentationMode(DocumentationMode.Diagnose));
             compilation.VerifyDiagnostics(expected);
 
             crefSyntax = CrefTests.GetCrefSyntaxes(compilation).Single();
@@ -890,7 +890,7 @@ class C
     public static C operator checked " + op + @"(C x) => x;
 }
 ";
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.RegularNext })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.Regular11 })
             {
                 var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: options);
 
@@ -921,7 +921,7 @@ class C
     public static bool operator checked false(C x) => false;
 }
 ";
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.RegularNext })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.Regular11 })
             {
                 var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: options);
 
@@ -1072,7 +1072,7 @@ class C
             actualSymbol = CrefTests.GetReferencedSymbol(crefSyntax, compilation, expected);
             Assert.Null(actualSymbol);
 
-            compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.RegularNext.WithDocumentationMode(DocumentationMode.Diagnose));
+            compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.Regular11.WithDocumentationMode(DocumentationMode.Diagnose));
             compilation.VerifyDiagnostics(expected);
 
             crefSyntax = CrefTests.GetCrefSyntaxes(compilation).Single();
@@ -1122,7 +1122,7 @@ class C
             actualSymbol = CrefTests.GetReferencedSymbol(crefSyntax, compilation, expected);
             Assert.Null(actualSymbol);
 
-            compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.RegularNext.WithDocumentationMode(DocumentationMode.Diagnose));
+            compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.Regular11.WithDocumentationMode(DocumentationMode.Diagnose));
             compilation.VerifyDiagnostics(expected);
 
             crefSyntax = CrefTests.GetCrefSyntaxes(compilation).Single();
@@ -1175,7 +1175,7 @@ class C
             actualSymbol = CrefTests.GetReferencedSymbol(crefSyntax, compilation, expected);
             Assert.Null(actualSymbol);
 
-            compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.RegularNext.WithDocumentationMode(DocumentationMode.Diagnose));
+            compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.Regular11.WithDocumentationMode(DocumentationMode.Diagnose));
             compilation.VerifyDiagnostics(expected);
 
             crefSyntax = CrefTests.GetCrefSyntaxes(compilation).Single();
@@ -1225,7 +1225,7 @@ class C
             actualSymbol = CrefTests.GetReferencedSymbol(crefSyntax, compilation, expected);
             Assert.Null(actualSymbol);
 
-            compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.RegularNext.WithDocumentationMode(DocumentationMode.Diagnose));
+            compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.Regular11.WithDocumentationMode(DocumentationMode.Diagnose));
             compilation.VerifyDiagnostics(expected);
 
             crefSyntax = CrefTests.GetCrefSyntaxes(compilation).Single();
@@ -1260,7 +1260,7 @@ class C
                 );
             validator(compilation1.SourceModule);
 
-            compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularNext);
+            compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular11);
             CompileAndVerify(compilation1, sourceSymbolValidator: validator, symbolValidator: validator).VerifyDiagnostics();
 
             void validator(ModuleSymbol m)
@@ -1715,7 +1715,7 @@ class C
             actualSymbol = CrefTests.GetReferencedSymbol(crefSyntax, compilation);
             Assert.Equal(expectedSymbol, actualSymbol);
 
-            compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.RegularNext.WithDocumentationMode(DocumentationMode.Diagnose));
+            compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.Regular11.WithDocumentationMode(DocumentationMode.Diagnose));
             compilation.VerifyDiagnostics();
 
             crefSyntax = CrefTests.GetCrefSyntaxes(compilation).Single();
@@ -1837,7 +1837,7 @@ class C
             actualSymbol = CrefTests.GetReferencedSymbol(crefSyntax, compilation);
             Assert.Equal(expectedSymbol, actualSymbol);
 
-            compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.RegularNext.WithDocumentationMode(DocumentationMode.Diagnose));
+            compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.Regular11.WithDocumentationMode(DocumentationMode.Diagnose));
             compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (3,20): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator checked'
                 // /// See <see cref="operator checked "/>.
@@ -1893,7 +1893,7 @@ class C
             actualSymbol = CrefTests.GetReferencedSymbol(crefSyntax, compilation);
             Assert.Equal(expectedSymbol, actualSymbol);
 
-            compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.RegularNext.WithDocumentationMode(DocumentationMode.Diagnose));
+            compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.Regular11.WithDocumentationMode(DocumentationMode.Diagnose));
             compilation.VerifyDiagnostics(expected);
 
             crefSyntax = CrefTests.GetCrefSyntaxes(compilation).Single();
@@ -1947,7 +1947,7 @@ class C
             actualSymbol = CrefTests.GetReferencedSymbol(crefSyntax, compilation);
             Assert.Equal(expectedSymbol, actualSymbol);
 
-            compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.RegularNext.WithDocumentationMode(DocumentationMode.Diagnose));
+            compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.Regular11.WithDocumentationMode(DocumentationMode.Diagnose));
             compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify();
 
             crefSyntax = CrefTests.GetCrefSyntaxes(compilation).Single();
@@ -2072,7 +2072,7 @@ class C
             actualSymbol = CrefTests.GetReferencedSymbol(crefSyntax, compilation);
             Assert.Equal(expectedSymbol, actualSymbol);
 
-            compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.RegularNext.WithDocumentationMode(DocumentationMode.Diagnose));
+            compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.Regular11.WithDocumentationMode(DocumentationMode.Diagnose));
             compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(expected);
 
             crefSyntax = CrefTests.GetCrefSyntaxes(compilation).Single();
@@ -2121,7 +2121,7 @@ class C
             actualSymbol = CrefTests.GetReferencedSymbol(crefSyntax, compilation);
             Assert.Equal(expectedSymbol, actualSymbol);
 
-            compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.RegularNext.WithDocumentationMode(DocumentationMode.Diagnose));
+            compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.Regular11.WithDocumentationMode(DocumentationMode.Diagnose));
             compilation.VerifyDiagnostics(expected);
 
             crefSyntax = CrefTests.GetCrefSyntaxes(compilation).Single();
@@ -2153,7 +2153,7 @@ class C
     public static C operator checked " + op + @"(C x, int y) => x;
 }
 ";
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.RegularNext })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.Regular11 })
             {
                 var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: options);
 
@@ -2313,7 +2313,7 @@ class C
             actualSymbol = CrefTests.GetReferencedSymbol(crefSyntax, compilation, expected);
             Assert.Null(actualSymbol);
 
-            compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.RegularNext.WithDocumentationMode(DocumentationMode.Diagnose));
+            compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.Regular11.WithDocumentationMode(DocumentationMode.Diagnose));
             compilation.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).
                 Verify(expected);
 
@@ -2407,7 +2407,7 @@ class C
             actualSymbol = CrefTests.GetReferencedSymbol(crefSyntax, compilation, expected);
             Assert.Null(actualSymbol);
 
-            compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.RegularNext.WithDocumentationMode(DocumentationMode.Diagnose));
+            compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.Regular11.WithDocumentationMode(DocumentationMode.Diagnose));
             compilation.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).
                 Verify(expected);
 
@@ -2493,7 +2493,7 @@ class C
                 );
             validator(compilation1.SourceModule);
 
-            compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularNext);
+            compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular11);
             CompileAndVerify(compilation1, sourceSymbolValidator: validator, symbolValidator: validator).VerifyDiagnostics();
 
             void validator(ModuleSymbol m)
@@ -2873,7 +2873,7 @@ class C
             actualSymbol = CrefTests.GetReferencedSymbol(crefSyntax, compilation);
             Assert.Equal(expectedSymbol, actualSymbol);
 
-            compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.RegularNext.WithDocumentationMode(DocumentationMode.Diagnose));
+            compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.Regular11.WithDocumentationMode(DocumentationMode.Diagnose));
             compilation.VerifyDiagnostics();
 
             crefSyntax = CrefTests.GetCrefSyntaxes(compilation).Single();
@@ -3039,7 +3039,7 @@ class C
             actualSymbol = CrefTests.GetReferencedSymbol(crefSyntax, compilation);
             Assert.Equal(expectedSymbol, actualSymbol);
 
-            compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.RegularNext.WithDocumentationMode(DocumentationMode.Diagnose));
+            compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.Regular11.WithDocumentationMode(DocumentationMode.Diagnose));
             compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify();
 
             crefSyntax = CrefTests.GetCrefSyntaxes(compilation).Single();
@@ -3174,7 +3174,7 @@ class C
     public static implicit operator checked int(C x) => 0;
 }
 ";
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.RegularNext })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.Regular11 })
             {
                 var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: options);
 
@@ -3269,7 +3269,7 @@ class C
             actualSymbol = CrefTests.GetReferencedSymbol(crefSyntax, compilation, expected);
             Assert.Null(actualSymbol);
 
-            compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.RegularNext.WithDocumentationMode(DocumentationMode.Diagnose));
+            compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.Regular11.WithDocumentationMode(DocumentationMode.Diagnose));
             compilation.VerifyDiagnostics(expected);
 
             crefSyntax = CrefTests.GetCrefSyntaxes(compilation).Single();
@@ -3319,7 +3319,7 @@ class C
             actualSymbol = CrefTests.GetReferencedSymbol(crefSyntax, compilation, expected);
             Assert.Null(actualSymbol);
 
-            compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.RegularNext.WithDocumentationMode(DocumentationMode.Diagnose));
+            compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.Regular11.WithDocumentationMode(DocumentationMode.Diagnose));
             compilation.VerifyDiagnostics(expected);
 
             crefSyntax = CrefTests.GetCrefSyntaxes(compilation).Single();
@@ -3429,7 +3429,7 @@ regular C2
 regular C2
 ").VerifyDiagnostics();
 
-            compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular11);
             CompileAndVerify(compilation1, expectedOutput: @"
 checked C0
 regular C0
@@ -3825,7 +3825,7 @@ not null
 null
 ").VerifyDiagnostics();
 
-            compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular11);
             CompileAndVerify(compilation1, expectedOutput: @"
 checked C0
 not null
@@ -4204,7 +4204,7 @@ regular C2
 regular C2
 ").VerifyDiagnostics();
 
-            compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular11);
             CompileAndVerify(compilation1, expectedOutput: @"
 checked C0
 regular C0
@@ -4665,7 +4665,7 @@ regular C2
 regular C2
 ").VerifyDiagnostics();
 
-            compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular11);
             CompileAndVerify(compilation1, expectedOutput: @"
 checked C0
 regular C0
@@ -4785,7 +4785,7 @@ null
 null
 ").VerifyDiagnostics();
 
-            compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular11);
             CompileAndVerify(compilation1, expectedOutput: @"
 checked C0
 not null
@@ -5213,7 +5213,7 @@ implicit C0
 implicit C0
 ").VerifyDiagnostics();
 
-            compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular11);
             CompileAndVerify(compilation1, expectedOutput: @"
 implicit C0
 checked C0
@@ -5686,7 +5686,7 @@ not null
 null
 ").VerifyDiagnostics();
 
-            compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular11);
             CompileAndVerify(compilation1, expectedOutput: @"
 checked C0
 not null
@@ -6313,7 +6313,7 @@ regular C2
 regular C2
 ").VerifyDiagnostics();
 
-            compilation1 = CreateCompilationWithCSharp(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            compilation1 = CreateCompilationWithCSharp(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular11);
             CompileAndVerify(compilation1, expectedOutput: @"
 regular C0
 regular C0
@@ -6418,7 +6418,7 @@ regular C2
 regular C2
 ").VerifyDiagnostics();
 
-            compilation1 = CreateCompilationWithCSharp(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            compilation1 = CreateCompilationWithCSharp(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular11);
             CompileAndVerify(compilation1, expectedOutput: @"
 regular C0
 regular C0
@@ -6535,7 +6535,7 @@ implicit C0
 implicit C0
 ").VerifyDiagnostics();
 
-            compilation1 = CreateCompilationWithCSharp(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            compilation1 = CreateCompilationWithCSharp(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular11);
             CompileAndVerify(compilation1, expectedOutput: @"
 implicit C0
 regular C0

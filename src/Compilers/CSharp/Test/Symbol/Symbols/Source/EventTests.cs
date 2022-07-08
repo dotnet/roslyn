@@ -1354,7 +1354,7 @@ struct S
                 //         This.E = null; //CS1612: receiver is not a variable
                 Diagnostic(ErrorCode.ERR_ReturnNotLValue, "This").WithArguments("S.This").WithLocation(22, 9));
 
-            CreateCompilation(text, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
                 // (22,9): error CS1612: Cannot modify the return value of 'S.This' because it is not a variable
                 //         This.E = null; //CS1612: receiver is not a variable
                 Diagnostic(ErrorCode.ERR_ReturnNotLValue, "This").WithArguments("S.This").WithLocation(22, 9));

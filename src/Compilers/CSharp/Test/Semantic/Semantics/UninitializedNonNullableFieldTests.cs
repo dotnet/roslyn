@@ -871,7 +871,7 @@ struct S1
                 //     public S1(object obj1, object obj2) : this() // 4
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S1").WithArguments("property", "Prop").WithLocation(15, 12));
 
-            var verifier = CompileAndVerify(source, options: WithNullableEnable(), parseOptions: TestOptions.RegularNext);
+            var verifier = CompileAndVerify(source, options: WithNullableEnable(), parseOptions: TestOptions.Regular11);
             verifier.VerifyDiagnostics(
                 // (7,9): warning CS8602: Dereference of a possibly null reference.
                 //         Prop.ToString(); // 2
@@ -980,7 +980,7 @@ public struct S2
     public object F2;
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
                 // (10,9): warning CS8602: Dereference of a possibly null reference.
                 //         F1.ToString(); // 1
@@ -1062,7 +1062,7 @@ struct S1
                 Diagnostic(ErrorCode.ERR_UseDefViolationFieldUnsupportedVersion, "field").WithArguments("field", "preview").WithLocation(15, 30)
                 );
 
-            var verifier = CompileAndVerify(source, parseOptions: TestOptions.RegularNext);
+            var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular11);
             verifier.VerifyDiagnostics(
                 // (13,12): warning CS8618: Non-nullable field 'field' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
                 //     public S1(string s) // 1, 2
@@ -1794,7 +1794,7 @@ class C5<T, U> where T : A where U : T
                 //     internal S(string s)
                 Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S").WithArguments("S.F", "preview").WithLocation(6, 14));
 
-            var verifier = CompileAndVerify(new[] { source }, options: WithNullableEnable(), parseOptions: TestOptions.RegularNext);
+            var verifier = CompileAndVerify(new[] { source }, options: WithNullableEnable(), parseOptions: TestOptions.Regular11);
             verifier.VerifyDiagnostics(
                 // (6,14): warning CS8618: Non-nullable property 'P' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
                 //     internal S(string s)

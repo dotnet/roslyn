@@ -8570,7 +8570,7 @@ class Program
     void M(string s) { }
 }
 ";
-            await TestWithOptionsAsync(Options.Regular.WithLanguageVersion(LanguageVersionFacts.CSharpNext), source,
+            await TestWithOptionsAsync(Options.Regular.WithLanguageVersion(LanguageVersion.CSharp11), source,
                 MainDescription($"({FeaturesResources.parameter}) string s"));
         }
 
@@ -8583,7 +8583,7 @@ class Program
     void M([My(nameof($$s))] string s) { }
 }
 ";
-            await TestWithOptionsAsync(Options.Regular.WithLanguageVersion(LanguageVersionFacts.CSharpNext), source,
+            await TestWithOptionsAsync(Options.Regular.WithLanguageVersion(LanguageVersion.CSharp11), source,
                 MainDescription($"({FeaturesResources.parameter}) string s"));
         }
 
@@ -8600,7 +8600,7 @@ class Program
     }
 }
 ";
-            await TestWithOptionsAsync(Options.Regular.WithLanguageVersion(LanguageVersionFacts.CSharpNext), source,
+            await TestWithOptionsAsync(Options.Regular.WithLanguageVersion(LanguageVersion.CSharp11), source,
                 MainDescription($"({FeaturesResources.parameter}) string s"));
         }
     }

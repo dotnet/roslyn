@@ -6477,7 +6477,7 @@ class MyClass
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "i").WithArguments("MyStruct.i", "0").WithLocation(8, 15)
                 );
 
-            var verifier = CompileAndVerify(text, parseOptions: TestOptions.RegularNext);
+            var verifier = CompileAndVerify(text, parseOptions: TestOptions.Regular11);
             verifier.VerifyDiagnostics(
                 // (15,16): warning CS0219: The variable 'aStruct' is assigned but its value is never used
                 //       MyStruct aStruct = new MyStruct();
@@ -6989,7 +6989,7 @@ namespace MyNamespace
                 //             public int a;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "a").WithArguments("MyNamespace.MyClass.S.a", "0").WithLocation(8, 24));
 
-            var verifier = CompileAndVerify(text, parseOptions: TestOptions.RegularNext).
+            var verifier = CompileAndVerify(text, parseOptions: TestOptions.Regular11).
                 VerifyDiagnostics(
                 // (8,24): warning CS0649: Field 'MyNamespace.MyClass.S.a' is never assigned to, and will always have its default value 0
                 //             public int a;
@@ -7036,7 +7036,7 @@ struct S
                 //         var b1 = F is Action;
                 Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "F").WithArguments("preview").WithLocation(10, 18));
 
-            CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
                 // (10,18): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "F is Action").WithLocation(10, 18));
         }
@@ -7070,7 +7070,7 @@ struct S
                 //         var b1 = this.F is Action;
                 Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "this").WithArguments("preview").WithLocation(10, 18));
 
-            CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
                 // (10,18): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //         var b1 = this.F is Action;
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "this.F is Action").WithLocation(10, 18));
@@ -7103,7 +7103,7 @@ struct S
                 //         /*this.*/ Add(d);
                 Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "Add").WithArguments("preview").WithLocation(10, 19));
 
-            var verifier = CompileAndVerify(source, new[] { CSharpRef }, parseOptions: TestOptions.RegularNext);
+            var verifier = CompileAndVerify(source, new[] { CSharpRef }, parseOptions: TestOptions.Regular11);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("S..ctor", @"
 {
@@ -7174,7 +7174,7 @@ struct S
                 //         this.Add(d);
                 Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "this").WithArguments("preview").WithLocation(10, 9));
 
-            var verifier = CompileAndVerify(source, new[] { CSharpRef }, parseOptions: TestOptions.RegularNext);
+            var verifier = CompileAndVerify(source, new[] { CSharpRef }, parseOptions: TestOptions.Regular11);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("S..ctor", @"
 {
@@ -12926,7 +12926,7 @@ class Test
                 //     public S(int i) { } //CS0843
                 Diagnostic(ErrorCode.ERR_UnassignedThisAutoPropertyUnsupportedVersion, "S").WithArguments("S.AIProp", "preview").WithLocation(5, 12));
 
-            var verifier = CompileAndVerify(text, parseOptions: TestOptions.RegularNext);
+            var verifier = CompileAndVerify(text, parseOptions: TestOptions.Regular11);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("S..ctor", @"
 {

@@ -1630,7 +1630,7 @@ class Test2 : I1
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() },
                                                  options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
-                                                 parseOptions: isStatic ? TestOptions.RegularNext : TestOptions.Regular8);
+                                                 parseOptions: isStatic ? TestOptions.Regular11 : TestOptions.Regular8);
 
             m1 = compilation3.GetMember<MethodSymbol>("I1.M1");
             var test2 = compilation3.GetTypeByMetadataName("Test2");
@@ -1686,7 +1686,7 @@ class Test2 : I1
             {
                 var compilation3 = CreateCompilation(source2, new[] { reference },
                                                      options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
-                                                     parseOptions: isStatic ? TestOptions.RegularNext : TestOptions.Regular8);
+                                                     parseOptions: isStatic ? TestOptions.Regular11 : TestOptions.Regular8);
 
                 var m1 = compilation3.GetMember<MethodSymbol>("I1.M1");
                 var test2 = compilation3.GetTypeByMetadataName("Test2");
@@ -1730,7 +1730,7 @@ public interface I1
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularNext,
+                                                 parseOptions: TestOptions.Regular11,
                                                  targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -1917,7 +1917,7 @@ class Test2 : I1
 ";
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularNext,
+                                                 parseOptions: TestOptions.Regular11,
                                                  targetFramework: isStatic ? TargetFramework.Net60 : TargetFramework.NetCoreApp);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             m1 = compilation2.GetMember<MethodSymbol>("I1.M1");
@@ -1978,7 +1978,7 @@ public interface I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: isStatic ? TargetFramework.Net50 : TargetFramework.DesktopLatestExtended,
-                                                 parseOptions: TestOptions.RegularNext);
+                                                 parseOptions: TestOptions.Regular11);
 
             var m1 = compilation1.GetMember<MethodSymbol>("I1.M1");
 
@@ -2109,7 +2109,7 @@ class Test1 : I2
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.RegularNext,
+                                                 parseOptions: TestOptions.Regular11,
                                                  targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -2188,7 +2188,7 @@ class Test2 : I2
 ";
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.RegularNext,
+                                                 parseOptions: TestOptions.Regular11,
                                                  targetFramework: TargetFramework.Net60);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             m1 = compilation2.GetMember<MethodSymbol>("I1.M1");
@@ -2210,7 +2210,7 @@ class Test2 : I2
                 });
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.RegularNext,
+                                                 parseOptions: TestOptions.Regular11,
                                                  targetFramework: TargetFramework.Net60);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             m1 = compilation3.GetMember<MethodSymbol>("I1.M1");
@@ -3051,7 +3051,7 @@ public interface I1
 }
 ";
                 var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                     parseOptions: TestOptions.RegularNext,
+                                                     parseOptions: TestOptions.Regular11,
                                                      targetFramework: TargetFramework.Net60);
                 Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
                 compilation1.VerifyDiagnostics(
@@ -9069,7 +9069,7 @@ class Test1 : I1
             ValidateMethodModifiersImplicit_10(compilation1.SourceModule, Accessibility.Internal, isStatic: isStatic);
 
             compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: isStatic ? TestOptions.RegularNext : TestOptions.Regular10,
+                                                 parseOptions: isStatic ? TestOptions.Regular11 : TestOptions.Regular10,
                                                  targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1, expectedOutput: !Execute(isStatic) ? null : "M1", verify: Verify(isStatic), symbolValidator: (m) => ValidateMethodModifiersImplicit_10(m, Accessibility.Internal, isStatic: isStatic)).VerifyDiagnostics();

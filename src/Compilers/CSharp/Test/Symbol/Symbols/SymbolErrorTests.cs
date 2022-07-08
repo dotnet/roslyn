@@ -10597,7 +10597,7 @@ class C2
                 Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, ">>>").WithLocation(12, 32)
                 );
 
-            comp = CreateCompilation(text, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(text, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
                 // (8,32): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type
                 //     public static int operator >>(int c1, int c2) // CS0564
@@ -21067,10 +21067,10 @@ class cédille { }
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(expected);
 
-            comp = CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.DebugDll.WithWarningLevel(6));
+            comp = CreateCompilation(text, parseOptions: TestOptions.Regular11, options: TestOptions.DebugDll.WithWarningLevel(6));
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.DebugDll.WithWarningLevel(7));
+            comp = CreateCompilation(text, parseOptions: TestOptions.Regular11, options: TestOptions.DebugDll.WithWarningLevel(7));
             comp.VerifyDiagnostics(expected);
         }
 
@@ -21128,10 +21128,10 @@ class CM
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(expected);
 
-            comp = CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.DebugDll.WithWarningLevel(6));
+            comp = CreateCompilation(text, parseOptions: TestOptions.Regular11, options: TestOptions.DebugDll.WithWarningLevel(6));
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.DebugDll.WithWarningLevel(7));
+            comp = CreateCompilation(text, parseOptions: TestOptions.Regular11, options: TestOptions.DebugDll.WithWarningLevel(7));
             comp.VerifyDiagnostics(expected);
         }
 
@@ -21173,7 +21173,7 @@ using cédille = System.Console;
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(expected);
 
-            comp = CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.DebugDll.WithWarningLevel(6));
+            comp = CreateCompilation(text, parseOptions: TestOptions.Regular11, options: TestOptions.DebugDll.WithWarningLevel(6));
             comp.VerifyDiagnostics(
                 // (2,1): hidden CS8019: Unnecessary using directive.
                 // using one = System.Console;
@@ -21192,7 +21192,7 @@ using cédille = System.Console;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using cédille = System.Console;").WithLocation(6, 1)
                 );
 
-            comp = CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.DebugDll.WithWarningLevel(7));
+            comp = CreateCompilation(text, parseOptions: TestOptions.Regular11, options: TestOptions.DebugDll.WithWarningLevel(7));
             comp.VerifyDiagnostics(expected);
         }
 
@@ -21215,7 +21215,7 @@ class \u00B5 { }
 class \u00c0 { }
 ";
 
-            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.DebugDll.WithWarningLevel(7));
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular11, options: TestOptions.DebugDll.WithWarningLevel(7));
             comp.VerifyDiagnostics(
                 // (2,7): warning CS8981: The type name 'a' only contains lower-cased ascii characters. Such names may become reserved for the language.
                 // class a { }
@@ -21233,7 +21233,7 @@ class \u00c0 { }
 class \u0060 { }
 ";
 
-            comp = CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.DebugDll.WithWarningLevel(7));
+            comp = CreateCompilation(text, parseOptions: TestOptions.Regular11, options: TestOptions.DebugDll.WithWarningLevel(7));
             comp.VerifyDiagnostics(
                 // (3,7): error CS1001: Identifier expected
                 // class \u0060 { }
@@ -21260,7 +21260,7 @@ class \u0060 { }
 class \u007c { }
 ";
 
-            comp = CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.DebugDll.WithWarningLevel(7));
+            comp = CreateCompilation(text, parseOptions: TestOptions.Regular11, options: TestOptions.DebugDll.WithWarningLevel(7));
             comp.VerifyDiagnostics(
                 // (3,7): error CS1001: Identifier expected
                 // class \u007c { }

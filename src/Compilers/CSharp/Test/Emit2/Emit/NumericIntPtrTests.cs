@@ -9562,7 +9562,7 @@ interface I
     void M(nint x1, System.IntPtr x2, nuint x3, System.UIntPtr x4);
 }
 ";
-            var parseOptions = useCSharp11 ? TestOptions.RegularNext : TestOptions.Regular10;
+            var parseOptions = useCSharp11 ? TestOptions.Regular11 : TestOptions.Regular10;
 
             var comp = CreateEmptyCompilation(new[] { source, corlib_cs }, parseOptions: parseOptions);
             verify(comp);

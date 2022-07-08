@@ -208,6 +208,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         CSharp10 = 1000,
 
         /// <summary>
+        /// TODO2
+        /// </summary>
+        CSharp11 = 1100,
+
+        /// <summary>
         /// The latest major supported version.
         /// </summary>
         LatestMajor = int.MaxValue - 2,

@@ -270,7 +270,7 @@ class C
 }
 ");
 
-            comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular11);
 
             CompileAndVerify(comp, expectedOutput: @"
 -1
@@ -1483,7 +1483,7 @@ class C
 }
 ");
 
-            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular11);
 
             CompileAndVerify(comp, expectedOutput: @"
 { 0x63 0x61 0x74 }
@@ -1536,7 +1536,7 @@ class C
 }
 ");
 
-            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular11);
 
             CompileAndVerify(comp, expectedOutput: @"
 { 0x63 0x61 0x74 }
@@ -1589,7 +1589,7 @@ class C
 }
 ");
 
-            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular11);
 
             CompileAndVerify(comp, expectedOutput: @"
 { 0x63 0x61 0x74 }
@@ -1651,7 +1651,7 @@ class C
 }
 ");
 
-            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular11);
 
             CompileAndVerify(comp, expectedOutput: @"
 { 0x63 0x61 0x74 }
