@@ -4,10 +4,7 @@
 
 using System;
 using System.Diagnostics;
-using System.IO.Packaging;
-using System.Linq;
 using System.Runtime.InteropServices;
-using EnvDTE;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -23,7 +20,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
-using static Microsoft.VisualStudio.VSConstants;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 {
@@ -38,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         public VisualStudioProject? Project { get; }
 
-        protected /*readonly*/ ContainedDocument ContainedDocument = null!; // Never actually null because the constructors initialize it.
+        protected readonly ContainedDocument ContainedDocument; // Never actually null because the constructors initialize it.
 
         public IVsTextBufferCoordinator BufferCoordinator { get; protected set; }
 
@@ -79,9 +75,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             VisualStudioProject? project,
             string filePath,
             Guid languageServiceGuid,
-            AbstractFormattingRule? vbHelperFormattingRule = null) : this(bufferCoordinator, componentModel, workspace, project, languageServiceGuid)
+            AbstractFormattingRule? vbHelperFormattingRule = null) : this(
+                bufferCoordinator: bufferCoordinator,
+                componentModel: componentModel,
+                workspace: workspace,
+                projectId: projectId,
+                project: project,
+                languageServiceGuid: languageServiceGuid,
+                filePath: filePath,
+                hierarchy: null,
+                itemid: 0,
+                vbHelperFormattingRule: vbHelperFormattingRule)
         {
-            InitializeContainedDocument(projectId, filePath, vbHelperFormattingRule);
         }
 
         internal ContainedLanguage(
@@ -93,18 +98,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             IVsHierarchy hierarchy,
             uint itemid,
             Guid languageServiceGuid,
-            AbstractFormattingRule? vbHelperFormattingRule = null) : this(bufferCoordinator, componentModel, workspace, project, languageServiceGuid)
+            AbstractFormattingRule? vbHelperFormattingRule = null) : this(
+                bufferCoordinator: bufferCoordinator,
+                componentModel: componentModel,
+                workspace: workspace,
+                projectId: projectId,
+                project: project,
+                languageServiceGuid: languageServiceGuid,
+                filePath: null,
+                hierarchy: hierarchy,
+                itemid: itemid,
+                vbHelperFormattingRule: vbHelperFormattingRule)
         {
-            var filePath = GetFilePathFromBufferOrHierarchy(hierarchy, itemid);
-            InitializeContainedDocument(projectId, filePath, vbHelperFormattingRule);
         }
 
         private ContainedLanguage(
             IVsTextBufferCoordinator bufferCoordinator,
             IComponentModel componentModel,
             Workspace workspace,
+            ProjectId projectId,
             VisualStudioProject? project,
-            Guid languageServiceGuid)
+            Guid languageServiceGuid,
+            string? filePath = null,
+            IVsHierarchy? hierarchy = null,
+            uint itemid = 0,
+            AbstractFormattingRule? vbHelperFormattingRule = null)
         {
             BufferCoordinator = bufferCoordinator;
             ComponentModel = componentModel;
@@ -130,10 +148,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             // TODO: Can contained documents be linked or shared?
             this.DataBuffer.Changed += OnDataBufferChanged;
-        }
 
-        private void InitializeContainedDocument(ProjectId projectId, string filePath, AbstractFormattingRule? vbHelperFormattingRule = null)
-        {
+            if (filePath == null)
+            {
+                Assumes.Present(hierarchy);
+                Assumes.True(itemid != 0);
+                filePath = GetFilePathFromBufferOrHierarchy(hierarchy, itemid);
+            }
+
             DocumentId documentId;
 
             if (this.Project != null)
