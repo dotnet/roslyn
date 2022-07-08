@@ -243,13 +243,13 @@
         <note />
       </trans-unit>
       <trans-unit id="Private_method_0_can_be_removed_as_it_is_never_invoked">
-        <source>Private method '{0}' can be removed as it is never invoked.</source>
-        <target state="translated">프라이빗 메서드 '{0}'은(는) 호출되지 않으므로 제거할 수 있습니다.</target>
+        <source>Private method '{0}' can be removed as it is never invoked</source>
+        <target state="needs-review-translation">프라이빗 메서드 '{0}'은(는) 호출되지 않으므로 제거할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked">
-        <source>Private property '{0}' can be converted to a method as its get accessor is never invoked.</source>
-        <target state="translated">해당 get 접근자가 호출되지 않았으므로 프라이빗 속성 '{0}'을(를) 메서드로 변환할 수 있습니다.</target>
+        <source>Private property '{0}' can be converted to a method as its get accessor is never invoked</source>
+        <target state="needs-review-translation">해당 get 접근자가 호출되지 않았으므로 프라이빗 속성 '{0}'을(를) 메서드로 변환할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_Unnecessary_Cast">
