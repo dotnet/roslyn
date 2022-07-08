@@ -42,8 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings
                     {
                         FieldDeclarationSyntax fieldDeclaration => fieldDeclaration.Declaration.Variables.AsImmutable<SyntaxNode>(),
                         EventFieldDeclarationSyntax eventFieldDeclaration => eventFieldDeclaration.Declaration.Variables.AsImmutable<SyntaxNode>(),
-                        IncompleteMemberSyntax _ => ImmutableArray<SyntaxNode>.Empty,
-                        GlobalStatementSyntax _ => ImmutableArray<SyntaxNode>.Empty,
+                        IncompleteMemberSyntax or GlobalStatementSyntax => ImmutableArray<SyntaxNode>.Empty,
                         _ => ImmutableArray.Create<SyntaxNode>(memberDeclaration),
                     };
                 }

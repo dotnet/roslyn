@@ -2232,22 +2232,19 @@ internal class MyBase<T1, T3>
         }
 
         [Fact]
-        public async Task TestIncompleteFieldSelection_NoAction()
+        public async Task TestIncompleteFieldSelection_NoAction1()
         {
             var input = @"
 class C
 {
-    pub[||] int Foo = 0;
+    pub[||] {|CS1519:int|} Foo = 0;
 }
 ";
-            var test = new Test
+            await new Test
             {
                 TestCode = input,
                 FixedCode = input
-            };
-            // no need for dialog selection because we shouldn't activate at all
-            test.ExpectedDiagnostics.Add( DiagnosticResult.CompilerError("CS1519").WithSpan(4, 9, 4, 12).WithArguments("int"));
-            await test.RunAsync();
+            }.RunAsync();
         }
 
         [Fact]
@@ -2256,20 +2253,17 @@ class C
             var input = @"
 class C
 {
-    pub[||] int Foo()
+    pub[||] {|CS1519:int|} Foo()
     {
         return 5;
     }
 }
 ";
-            var test = new Test
+            await new Test
             {
                 TestCode = input,
                 FixedCode = input
-            };
-            // no need for dialog selection because we shouldn't activate at all
-            test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerError("CS1519").WithSpan(4, 9, 4, 12).WithArguments("int"));
-            await test.RunAsync();
+            }.RunAsync();
         }
 
         [Fact]

@@ -6211,7 +6211,7 @@ public class Bar : BaseClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
-        public async Task TestRefactoringSelectionIncompleteField_NoAction()
+        public async Task TestRefactoringSelectionIncompleteField_NoAction1()
         {
             var text = @"
 public class BaseClass
@@ -6221,6 +6221,22 @@ public class BaseClass
 public class Bar : BaseClass
 {
     publ[||] int Goo = 10;
+}";
+            // we expect a diagnostic/error, but also we shouldn't provide the refactoring
+            await TestQuickActionNotProvidedAsync(text);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task TestRefactoringSelectionIncompleteField_NoAction2()
+        {
+            var text = @"
+public class BaseClass
+{
+}
+
+public class Bar : BaseClass
+{
+    [|publicc int Goo = 10;|]
 }";
             // we expect a diagnostic/error, but also we shouldn't provide the refactoring
             await TestQuickActionNotProvidedAsync(text);

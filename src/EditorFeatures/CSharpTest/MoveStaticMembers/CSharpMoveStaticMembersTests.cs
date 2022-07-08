@@ -3167,19 +3167,17 @@ namespace TestNs1
 {
     public class Class1
     {
-        public st[||] int TestMethod()
+        public st[||] {|CS1519:int|} TestMethod()
         {
             return 0;
         }
     }
 }";
-            var test = new Test("", ImmutableArray<string>.Empty, "")
+            await new Test("", ImmutableArray<string>.Empty, "")
             {
                 TestCode = initialMarkup,
                 FixedCode = initialMarkup,
-            };
-            test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerError("CS1519").WithSpan(6, 19, 6, 22).WithArguments("int"));
-            await test.RunAsync().ConfigureAwait(false);
+            }.RunAsync().ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
@@ -3190,16 +3188,14 @@ namespace TestNs1
 {
     public class Class1
     {
-        public st[||] int TestField = 0;
+        public st[||] {|CS1519:int|} TestField = 0;
     }
 }";
-            var test = new Test("", ImmutableArray<string>.Empty, "")
+            await new Test("", ImmutableArray<string>.Empty, "")
             {
                 TestCode = initialMarkup,
                 FixedCode = initialMarkup,
-            };
-            test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerError("CS1519").WithSpan(6, 19, 6, 22).WithArguments("int"));
-            await test.RunAsync().ConfigureAwait(false);
+            }.RunAsync().ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
@@ -3210,16 +3206,14 @@ namespace TestNs1
 {
     public class Class1
     {
-        public st[| int Test|]Field = 0;
+        public st [|{|CS1519:int|} Test|]Field = 0;
     }
 }";
-            var test = new Test("", ImmutableArray<string>.Empty, "")
+            await new Test("", ImmutableArray<string>.Empty, "")
             {
                 TestCode = initialMarkup,
                 FixedCode = initialMarkup,
-            };
-            test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerError("CS1519").WithSpan(6, 19, 6, 22).WithArguments("int"));
-            await test.RunAsync().ConfigureAwait(false);
+            }.RunAsync().ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
@@ -3230,16 +3224,32 @@ namespace TestNs1
 {
     public class Class1
     {
-        [|public st int TestField = 0;|]
+        [|public st {|CS1519:int|} TestField = 0;|]
     }
 }";
-            var test = new Test("", ImmutableArray<string>.Empty, "")
+            await new Test("", ImmutableArray<string>.Empty, "")
             {
                 TestCode = initialMarkup,
                 FixedCode = initialMarkup,
-            };
-            test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerError("CS1519").WithSpan(6, 19, 6, 22).WithArguments("int"));
-            await test.RunAsync().ConfigureAwait(false);
+            }.RunAsync().ConfigureAwait(false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        public async Task TestSelectMalformedField_NoAction4()
+        {
+            var initialMarkup = @"
+namespace TestNs1
+{
+    public class Class1
+    {
+        [|{|CS1519:publicc|} static int TestField = 0;|]
+    }
+}";
+            await new Test("", ImmutableArray<string>.Empty, "")
+            {
+                TestCode = initialMarkup,
+                FixedCode = initialMarkup,
+            }.RunAsync().ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]

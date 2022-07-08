@@ -2836,17 +2836,15 @@ End Namespace"
             Dim initialMarkup = "
 Namespace TestNs
     Public Class Class1
-        Public[||]
+        Public[||]{|BC30203:|}
     End Class
 End Namespace"
 
-            Dim test = New Test("", ImmutableArray(Of String).Empty, "") With
+            Await New Test("", ImmutableArray(Of String).Empty, "") With
             {
                 .TestCode = initialMarkup,
                 .FixedCode = initialMarkup
-            }
-            test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerError("BC30203").WithSpan(4, 15, 4, 15))
-            Await test.RunAsync().ConfigureAwait(False)
+            }.RunAsync().ConfigureAwait(False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
@@ -2854,17 +2852,15 @@ End Namespace"
             Dim initialMarkup = "
 Namespace TestNs
     Public Class Class1
-        Public Sha[||] TestField As Integer = 0
+        Public Sha[||] {|BC30205:TestField|} As Integer = 0
     End Class
 End Namespace"
 
-            Dim test = New Test("", ImmutableArray(Of String).Empty, "") With
+            Await New Test("", ImmutableArray(Of String).Empty, "") With
             {
                 .TestCode = initialMarkup,
                 .FixedCode = initialMarkup
-            }
-            test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerError("BC30205").WithSpan(4, 20, 4, 29))
-            Await test.RunAsync().ConfigureAwait(False)
+            }.RunAsync().ConfigureAwait(False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
