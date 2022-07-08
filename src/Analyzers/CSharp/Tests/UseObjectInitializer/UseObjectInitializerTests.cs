@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
                 FixedCode = fixedCode,
                 LanguageVersion = LanguageVersion.Preview,
                 TestState = { OutputKind = outputKind },
-                Options = { { CSharpCodeStyleOptions.PreferTrailingComma, preferTrailingComma} }
+                Options = { { CSharpCodeStyleOptions.PreferTrailingComma, preferTrailingComma } }
             }.RunAsync();
         }
 
