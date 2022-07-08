@@ -1441,7 +1441,7 @@ public class FileModifierTests : CSharpTestBase
 
                 private class C
                 {
-                    public static void M() => Console.WriteLine("Program.cs");
+                    public static void M() => Console.Write("Program.cs");
                 }
             }
             """;
@@ -1462,11 +1462,11 @@ public class FileModifierTests : CSharpTestBase
 
             {{fileModifier}}class C
             {
-                public static void M() => Console.WriteLine("OtherFile.cs");
+                public static void M() => Console.Write("OtherFile.cs");
             }
             """;
 
-        var verifier = CompileAndVerify(new[] { userCode, generatedCode }, expectedOutput: "OtherFile.cs\r\nProgram.cs");
+        var verifier = CompileAndVerify(new[] { userCode, generatedCode }, expectedOutput: "OtherFile.csProgram.cs");
         verifier.VerifyDiagnostics();
     }
 
@@ -1485,7 +1485,7 @@ public class FileModifierTests : CSharpTestBase
             {
                 class C
                 {
-                    public static void M() => Console.WriteLine("Program.cs");
+                    public static void M() => Console.Write("Program.cs");
                 }
             }
             """;
@@ -1509,11 +1509,55 @@ public class FileModifierTests : CSharpTestBase
 
             {{fileModifier}}class C
             {
-                public static void M() => Console.WriteLine("OtherFile.cs");
+                public static void M() => Console.Write("OtherFile.cs");
             }
             """;
 
-        var verifier = CompileAndVerify(new[] { userCode, generatedCode }, expectedOutput: "OtherFile.cs\r\nProgram.cs");
+        var verifier = CompileAndVerify(new[] { userCode, generatedCode }, expectedOutput: "OtherFile.csProgram.cs");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Duplication_15()
+    {
+        var userCode = """
+            using System;
+            using UserNamespace;
+
+            GeneratedClass.Print();
+
+            namespace UserNamespace
+            {
+                class C
+                {
+                    public static void M() => Console.Write("Program.cs");
+                }
+            }
+            """;
+
+        // Generators can also mitigate the "nearer scope" problem by ensuring no namespace or partial class scopes lie between the declaration and usage of a file type.
+        var generatedCode = $$"""
+            using System;
+
+            namespace UserNamespace
+            {
+                class GeneratedClass
+                {
+                    public static void Print()
+                    {
+                        C.M(); // binds to 'UserNamespace.C@OtherFile'
+                    }
+                }
+
+                file class C
+                {
+                    public static void M() => Console.Write("OtherFile.cs");
+                }
+            }
+
+            """;
+
+        var verifier = CompileAndVerify(new[] { userCode, generatedCode }, expectedOutput: "OtherFile.cs");
         verifier.VerifyDiagnostics();
     }
 
