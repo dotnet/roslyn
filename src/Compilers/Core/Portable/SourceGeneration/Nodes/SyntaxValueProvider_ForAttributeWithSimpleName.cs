@@ -91,7 +91,7 @@ public partial struct SyntaxValueProvider
             .WithTrackingName("collectedGlobalAliases_ForAttribute");
 
         var allUpGlobalAliasesProvider = collectedGlobalAliasesProvider
-            .Select(static (arrays, _) => GlobalAliases.Create(arrays.SelectMany(a => a.AliasAndSymbolNames).ToImmutableArray()))
+            .Select(static (arrays, _) => GlobalAliases.Create(arrays))
             .WithTrackingName("allUpGlobalAliases_ForAttribute");
 
         // Regenerate our data if the compilation options changed.  VB can supply global aliases with compilation options,
