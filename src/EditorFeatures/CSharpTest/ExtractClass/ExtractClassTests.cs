@@ -2237,7 +2237,7 @@ internal class MyBase<T1, T3>
             var input = @"
 class C
 {
-    pub[||] int Foo = 0;
+    {|CS1519:pub|}[||] int Foo = 0;
 }
 ";
             var test = new Test
@@ -2246,7 +2246,6 @@ class C
                 FixedCode = input
             };
             // no need for dialog selection because we shouldn't activate at all
-            test.ExpectedDiagnostics.Add( DiagnosticResult.CompilerError("CS1519").WithSpan(4, 9, 4, 12).WithArguments("int"));
             await test.RunAsync();
         }
 
