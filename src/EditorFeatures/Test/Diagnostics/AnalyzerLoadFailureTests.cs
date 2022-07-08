@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Xunit;
 
@@ -30,7 +31,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var eventArgs = new AnalyzerLoadFailureEventArgs(
                 errorCode,
                 message: errorCode.ToString(),
-                typeNameOpt: expectsTypeName ? analyzerTypeName : null);
+                typeNameOpt: expectsTypeName ? analyzerTypeName : null)
+            {
+                ReferencedCompilerVersion = errorCode is AnalyzerLoadFailureEventArgs.FailureErrorCode.ReferencesNewerCompiler ? new Version(100, 0, 0, 0) : null
+            };
 
             // Ensure CreateAnalyzerLoadFailureDiagnostic doesn't fail when called. We don't assert much about the resulting
             // diagnostic -- this is primarly to ensure we don't forget to update it if a new error code is added.
