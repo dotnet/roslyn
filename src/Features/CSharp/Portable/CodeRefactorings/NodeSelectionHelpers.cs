@@ -55,6 +55,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings
                 // We could potentially use it for every case if that behavior changes
                 var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var members = await CSharpSelectedMembers.Instance.GetSelectedMembersAsync(tree, span, allowPartialSelection: true, cancellationToken).ConfigureAwait(false);
+                // if we get a node that would not have an obtainable symbol (such as the ones below)
+                // we return an empty list instead of filtering so we don't get other potentially
+                // malformed syntax nodes.
+                // Consider pub[||] static int Foo;
+                // Which has 2 member nodes (an incomplete and a field), but we'd only expect one
                 return members.Any(m => m is GlobalStatementSyntax or IncompleteMemberSyntax)
                     ? ImmutableArray<SyntaxNode>.Empty
                     : members;
