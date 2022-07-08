@@ -75,6 +75,45 @@ class C
 }", preferTrailingComma: true);
         }
 
+        [Fact]
+        public async Task TestNestedCollectionInitializer_PreferTrailingComma()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        var list1 = new List<Action>
+        {
+            () =>
+            {
+                var list2 = [|new|] List<int>();
+                list2.Add(2);
+            }
+        };
+    }
+}",
+@"using System;
+using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        var list1 = new List<Action>
+        {
+            () =>
+            {
+                var list2 = new List<int>() { 2 };
+            }
+        };
+    }
+}", preferTrailingComma: true);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
         public async Task TestOnVariableDeclarator()
         {
