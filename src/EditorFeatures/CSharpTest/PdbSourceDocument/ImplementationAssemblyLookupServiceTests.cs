@@ -189,6 +189,128 @@ public class C
         }
 
         [Fact]
+        public async Task FollowTypeForwards_Namespace()
+        {
+            var source = @"
+namespace A
+{
+    namespace B
+    {
+        public class C
+        {
+            public class D
+            {
+                // A change
+                public event System.EventHandler [|E|] { add { } remove { } }
+            }
+        }
+    }
+}";
+            var typeForwardSource = @"
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(A.B.C))]
+";
+
+            await RunTestAsync(async path =>
+            {
+                MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
+
+                // Compile reference assembly
+                var sourceText = SourceText.From(metadataSource, encoding: Encoding.UTF8);
+                var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("A.B.C.D.E"), buildReferenceAssembly: true);
+
+                // Compile implementation assembly to a different DLL
+                var dllFilePath = Path.Combine(path, "implementation.dll");
+                var sourceCodePath = Path.Combine(path, "implementation.cs");
+                var pdbFilePath = Path.Combine(path, "implementation.pdb");
+                var assemblyName = "implementation";
+
+                var workspace = TestWorkspace.Create(@$"
+<Workspace>
+    <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"">
+    </Project>
+</Workspace>", composition: GetTestComposition());
+
+                var implProject = workspace.CurrentSolution.Projects.First();
+                CompileTestSource(dllFilePath, sourceCodePath, pdbFilePath, assemblyName, sourceText, implProject, Location.Embedded, Location.Embedded, buildReferenceAssembly: false, windowsPdb: false);
+
+                // Compile type forwarding implementation DLL
+                var typeForwardDllFilePath = Path.Combine(path, "typeforward.dll");
+                assemblyName = "typeforward";
+
+                implProject = implProject.AddMetadataReference(MetadataReference.CreateFromFile(dllFilePath));
+                sourceText = SourceText.From(typeForwardSource, Encoding.UTF8);
+                CompileTestSource(typeForwardDllFilePath, sourceCodePath, pdbFilePath, assemblyName, sourceText, implProject, Location.Embedded, Location.Embedded, buildReferenceAssembly: false, windowsPdb: false);
+
+                var service = workspace.GetService<IImplementationAssemblyLookupService>();
+
+                var foundImplementationFilePath = service.FollowTypeForwards(symbol, typeForwardDllFilePath, new NoDuplicatesLogger(), out var visitedAssemblies);
+                Assert.Equal(dllFilePath, foundImplementationFilePath);
+                Assert.Equal(new[] { "typeforward.dll" }, visitedAssemblies.Select(Path.GetFileName));
+            });
+        }
+
+        [Fact]
+        public async Task FollowTypeForwards_Generics()
+        {
+            var source = @"
+namespace A
+{
+    namespace B
+    {
+        public class C<T>
+        {
+            public class D
+            {
+                // A change
+                public event System.EventHandler [|E|] { add { } remove { } }
+            }
+        }
+    }
+}";
+            var typeForwardSource = @"
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(A.B.C<>))]
+";
+
+            await RunTestAsync(async path =>
+            {
+                MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
+
+                // Compile reference assembly
+                var sourceText = SourceText.From(metadataSource, encoding: Encoding.UTF8);
+                var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("A.B.C.D.E"), buildReferenceAssembly: true);
+
+                // Compile implementation assembly to a different DLL
+                var dllFilePath = Path.Combine(path, "implementation.dll");
+                var sourceCodePath = Path.Combine(path, "implementation.cs");
+                var pdbFilePath = Path.Combine(path, "implementation.pdb");
+                var assemblyName = "implementation";
+
+                var workspace = TestWorkspace.Create(@$"
+<Workspace>
+    <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"">
+    </Project>
+</Workspace>", composition: GetTestComposition());
+
+                var implProject = workspace.CurrentSolution.Projects.First();
+                CompileTestSource(dllFilePath, sourceCodePath, pdbFilePath, assemblyName, sourceText, implProject, Location.Embedded, Location.Embedded, buildReferenceAssembly: false, windowsPdb: false);
+
+                // Compile type forwarding implementation DLL
+                var typeForwardDllFilePath = Path.Combine(path, "typeforward.dll");
+                assemblyName = "typeforward";
+
+                implProject = implProject.AddMetadataReference(MetadataReference.CreateFromFile(dllFilePath));
+                sourceText = SourceText.From(typeForwardSource, Encoding.UTF8);
+                CompileTestSource(typeForwardDllFilePath, sourceCodePath, pdbFilePath, assemblyName, sourceText, implProject, Location.Embedded, Location.Embedded, buildReferenceAssembly: false, windowsPdb: false);
+
+                var service = workspace.GetService<IImplementationAssemblyLookupService>();
+
+                var foundImplementationFilePath = service.FollowTypeForwards(symbol, typeForwardDllFilePath, new NoDuplicatesLogger(), out var visitedAssemblies);
+                Assert.Equal(dllFilePath, foundImplementationFilePath);
+                Assert.Equal(new[] { "typeforward.dll" }, visitedAssemblies.Select(Path.GetFileName));
+            });
+        }
+
+        [Fact]
         public async Task FollowTypeForwards_NestedType()
         {
             var source = @"
