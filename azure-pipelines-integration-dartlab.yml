@@ -38,16 +38,16 @@ stages:
     testExecutionJobStrategy:
       maxParallel: 4
       matrix:
-        debug_32:
+        debug_INPROC:
           _configuration: Debug
           _oop64bit: false
-        debug_64:
+        debug_OOP64:
           _configuration: Debug
           _oop64bit: true
-        release_32:
+        release_INPROC:
           _configuration: Release
           _oop64bit: false
-        release_64:
+        release_OOP64:
           _configuration: Release
           _oop64bit: true
     testMachineTotalCount: 4
