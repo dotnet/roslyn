@@ -2,31 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
 using System.Xml.Linq;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.ColorSchemes;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServices.CSharp.Options;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 using Microsoft.VisualStudio.LanguageServices.UnitTests;
-using Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Threading;
-using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -43,7 +28,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Options
 
         protected override AbstractAutomationObject CreateAutomationObject(TestWorkspace workspace) => new AutomationObject(workspace);
 
-        protected override TestWorkspace CreateWorkspace() => TestWorkspace.CreateCSharp("");
+        protected override TestWorkspace CreateWorkspace(TestComposition? composition = null) => TestWorkspace.CreateCSharp("", composition: composition);
 
         /// <summary>
         /// We test automation object by reading every property, then
@@ -116,11 +101,11 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Options
             throw ExceptionUtilities.Unreachable;
         }
 
-        protected override IEnumerable<AbstractOptionPageControl> CreatePageControls(OptionStore optionStore)
+        protected override IEnumerable<AbstractOptionPageControl> CreatePageControls(OptionStore optionStore, TestWorkspace workspace)
         {
-#pragma warning disable CS0618 // Type or member is obsolete
-            yield return new AdvancedOptionPageControl(optionStore);
-#pragma warning restore CS0618 // Type or member is obsolete
+            var threadingContext = workspace.ExportProvider.GetExportedValue<IThreadingContext>();
+            var colorSchemeApplier = workspace.ExportProvider.GetExportedValue<IColorSchemeApplier>();
+            yield return new AdvancedOptionPageControl(optionStore, threadingContext, colorSchemeApplier);
             yield return new IntelliSenseOptionPageControl(optionStore);
             yield return new FormattingOptionPageControl(optionStore);
             // TODO: OptionPreviewControl, GridOptionPreviewControl, NamingStyleOptionPageControl.

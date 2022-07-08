@@ -3,12 +3,17 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Composition
+Imports System.Threading
 Imports System.Windows
 Imports System.Windows.Controls
+Imports Microsoft.CodeAnalysis.ColorSchemes
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Options
-Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
@@ -108,12 +113,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
 
         <WpfFact>
         Public Sub TestOptionsInUIShouldBeInAutomationObject()
-            Using workspace = CreateWorkspace()
+            Using workspace = CreateWorkspace(EditorTestCompositions.LanguageServerProtocol.AddExcludedPartTypes(GetType(ColorSchemeApplier)).AddParts(GetType(TestColorSchemeApplier)))
                 Dim optionStore As New OptionStore(workspace.Options, Enumerable.Empty(Of IOption)())
                 Dim optionService = workspace.Services.GetRequiredService(Of ILegacyWorkspaceOptionService)()
                 Dim automationObject = CreateAutomationObject(workspace)
 
-                Dim pageControls As IEnumerable(Of AbstractOptionPageControl) = CreatePageControls(optionStore)
+                Dim pageControls As IEnumerable(Of AbstractOptionPageControl) = CreatePageControls(optionStore, workspace)
                 For Each pageControl In pageControls
                     Dim radioButtonGroups = New Dictionary(Of String, List(Of RadioButton))()
                     For Each bindingExpression In pageControl.BindingExpressions
@@ -173,7 +178,25 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
 
         Protected MustOverride Function GetNewValue(value As Object, propertyName As String) As Object
         Protected MustOverride Function CreateAutomationObject(workspace As TestWorkspace) As AbstractAutomationObject
-        Protected MustOverride Function CreateWorkspace() As TestWorkspace
-        Protected MustOverride Function CreatePageControls(optionStore As OptionStore) As IEnumerable(Of AbstractOptionPageControl)
+        Protected MustOverride Function CreateWorkspace(Optional composition As TestComposition = Nothing) As TestWorkspace
+        Protected MustOverride Function CreatePageControls(optionStore As OptionStore, workspace As TestWorkspace) As IEnumerable(Of AbstractOptionPageControl)
+
+        <Export(GetType(IColorSchemeApplier)), [Shared], PartNotDiscoverable>
+        Private Class TestColorSchemeApplier
+            Implements IColorSchemeApplier
+
+            <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+            Public Sub New()
+            End Sub
+
+            Public Function IsSupportedThemeAsync(cancellationToken As CancellationToken) As Task(Of Boolean) Implements IColorSchemeApplier.IsSupportedThemeAsync
+                Return Task.FromResult(True)
+            End Function
+
+            Public Function IsThemeCustomizedAsync(cancellationToken As CancellationToken) As Task(Of Boolean) Implements IColorSchemeApplier.IsThemeCustomizedAsync
+                Return Task.FromResult(True)
+            End Function
+        End Class
     End Class
 End Namespace

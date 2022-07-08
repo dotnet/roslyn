@@ -42,28 +42,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
     internal partial class AdvancedOptionPageControl : AbstractOptionPageControl
     {
         private readonly IThreadingContext _threadingContext;
-        private readonly ColorSchemeApplier _colorSchemeApplier;
+        private readonly IColorSchemeApplier _colorSchemeApplier;
 
-        public AdvancedOptionPageControl(OptionStore optionStore, IComponentModel componentModel) : base(optionStore)
+        public AdvancedOptionPageControl(OptionStore optionStore, IThreadingContext threadingContext, IColorSchemeApplier colorSchemeApplier) : base(optionStore)
         {
-            _threadingContext = componentModel.GetService<IThreadingContext>();
-            _colorSchemeApplier = componentModel.GetService<ColorSchemeApplier>();
+            _threadingContext = threadingContext;
+            _colorSchemeApplier = colorSchemeApplier;
 
             InitializeComponent();
 
-            BindToOptions();
-        }
-
-        [Obsolete("Used for testing only.")]
-        public AdvancedOptionPageControl(OptionStore optionStore) : base(optionStore)
-        {
-            InitializeComponent();
-
-            BindToOptions();
-        }
-
-        private void BindToOptions()
-        {
             // Analysis
             BindToOption(Run_background_code_analysis_for, SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp, label: Run_background_code_analysis_for_label);
             BindToOption(Show_compiler_errors_and_warnings_for, SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption, LanguageNames.CSharp, label: Show_compiler_errors_and_warnings_for_label);
@@ -78,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             {
                 // If the option has not been set by the user, check if the option to remove unused references
                 // is enabled from experimentation. If so, default to that.
-                return OptionStore.GetOption(FeatureOnOffOptions.OfferRemoveUnusedReferencesFeatureFlag);
+                return optionStore.GetOption(FeatureOnOffOptions.OfferRemoveUnusedReferencesFeatureFlag);
             });
 
             // Go To Definition
@@ -100,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(ComputeQuickActionsAsynchronouslyExperimental, SuggestionsOptions.Asynchronous, () =>
             {
                 // If the option has not been set by the user, check if the option is disabled from experimentation.
-                return !OptionStore.GetOption(SuggestionsOptions.AsynchronousQuickActionsDisableFeatureFlag);
+                return !optionStore.GetOption(SuggestionsOptions.AsynchronousQuickActionsDisableFeatureFlag);
             });
 
             // Highlighting
@@ -143,7 +130,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             {
                 // If the option has not been set by the user, check if the option is enabled from experimentation.
                 // If so, default to that.
-                return OptionStore.GetOption(WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag);
+                return optionStore.GetOption(WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag);
             });
 
             // Regular Expressions

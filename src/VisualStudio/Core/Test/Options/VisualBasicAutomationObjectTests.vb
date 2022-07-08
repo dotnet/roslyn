@@ -3,14 +3,10 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports System.Windows
-Imports System.Windows.Controls
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Options
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
-Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
@@ -52,11 +48,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
             Return New AutomationObject(workspace)
         End Function
 
-        Protected Overrides Function CreateWorkspace() As TestWorkspace
-            Return TestWorkspace.CreateVisualBasic("")
+        Protected Overrides Function CreateWorkspace(Optional composition As TestComposition = Nothing) As TestWorkspace
+            Return TestWorkspace.CreateVisualBasic("", composition:=composition)
         End Function
 
-        Protected Overrides Iterator Function CreatePageControls(optionStore As OptionStore) As IEnumerable(Of AbstractOptionPageControl)
+        Protected Overrides Iterator Function CreatePageControls(optionStore As OptionStore, workspace As TestWorkspace) As IEnumerable(Of AbstractOptionPageControl)
             ' TODO: AdvancedOptionPageControl(optionStore)
             Yield New IntelliSenseOptionPageControl(optionStore)
         End Function
