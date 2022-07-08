@@ -24,6 +24,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages
         /// <inheritdoc cref="VirtualCharSequence.Empty"/>
         public static readonly AspNetCoreVirtualCharSequence Empty = new(VirtualCharSequence.Empty);
 
+        /// <inheritdoc cref="VirtualCharSequence.IsDefault"/>
+        public int IsDefault => _virtualCharSequence.IsDefault;
+
         /// <inheritdoc cref="VirtualCharSequence.Length"/>
         public int Length => _virtualCharSequence.Length;
 
@@ -44,15 +47,19 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages
             AspNetCoreVirtualCharSequence chars1, AspNetCoreVirtualCharSequence chars2) =>
             new(VirtualCharSequence.FromBounds(chars1._virtualCharSequence, chars2._virtualCharSequence));
 
+        /// <inheritdoc cref="VirtualCharSequence.IndexOf"/>
         public int IndexOf(AspNetCoreVirtualChar @char)
             => _virtualCharSequence.IndexOf(@char.VirtualChar);
 
+        /// <inheritdoc cref="VirtualCharSequence.Contains"/>
         public bool Contains(AspNetCoreVirtualChar @char)
             => _virtualCharSequence.Contains(@char.VirtualChar);
 
+        /// <inheritdoc cref="VirtualCharSequence.GetEnumerator"/>
         public Enumerator GetEnumerator()
             => new Enumerator(_virtualCharSequence.GetEnumerator());
 
+        /// <inheritdoc cref="VirtualCharSequence.Enumerator"/>
         public struct Enumerator : IEnumerator<AspNetCoreVirtualChar>
         {
             private VirtualCharSequence.Enumerator _enumerator;
