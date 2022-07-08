@@ -42,9 +42,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 var conflicts = await _renameLocationSet.ResolveConflictsAsync(
                     _renameInfo.GetFinalSymbolName(replacementText), nonConflictSymbols: null, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-                Contract.ThrowIfTrue(conflicts is FailedConflictResolution);
+                Contract.ThrowIfTrue(conflicts.ErrorMessage != null);
 
-                return new InlineRenameReplacementInfo((ConflictResolution)conflicts);
+                return new InlineRenameReplacementInfo(conflicts);
             }
         }
     }

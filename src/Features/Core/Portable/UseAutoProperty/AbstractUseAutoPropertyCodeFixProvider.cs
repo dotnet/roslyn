@@ -140,9 +140,9 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 nonConflictSymbols: ImmutableHashSet.Create<ISymbol>(propertySymbol),
                 cancellationToken).ConfigureAwait(false);
 
-            Contract.ThrowIfTrue(resolution is FailedConflictResolution);
+            Contract.ThrowIfTrue(resolution.ErrorMessage != null);
 
-            solution = ((ConflictResolution)resolution).NewSolution;
+            solution = resolution.NewSolution;
 
             // Now find the field and property again post rename.
             fieldDocument = solution.GetRequiredDocument(fieldDocument.Id);

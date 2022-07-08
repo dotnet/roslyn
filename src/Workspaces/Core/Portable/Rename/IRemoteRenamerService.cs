@@ -265,10 +265,10 @@ namespace Microsoft.CodeAnalysis.Rename
             Resolution = resolution;
         }
 
-        public async Task<IConflictResolution> RehydrateAsync(Solution oldSolution, CancellationToken cancellationToken)
+        public async Task<ConflictResolution> RehydrateAsync(Solution oldSolution, CancellationToken cancellationToken)
         {
             if (ErrorMessage != null)
-                return new FailedConflictResolution(ErrorMessage);
+                return new ConflictResolution(ErrorMessage);
 
             Contract.ThrowIfNull(Resolution);
 
@@ -340,6 +340,9 @@ namespace Microsoft.CodeAnalysis.Rename
     {
         public async Task<SerializableConflictResolution> DehydrateAsync(CancellationToken cancellationToken)
         {
+            if (ErrorMessage != null)
+                return new SerializableConflictResolution(ErrorMessage, resolution: null);
+
             var documentTextChanges = await RemoteUtilities.GetDocumentTextChangesAsync(OldSolution, _newSolutionWithoutRenamedDocument, cancellationToken).ConfigureAwait(false);
             return new SerializableConflictResolution(
                 errorMessage: null,
