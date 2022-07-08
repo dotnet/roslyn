@@ -178,9 +178,13 @@ namespace Microsoft.CodeAnalysis
 
             if (index == _before.Length)
             {
+                Console.WriteLine("Replaced item efficiently");
+
                 Debug.Assert(_middle != null);
                 return new(_before, tree, _after);
             }
+
+            Console.WriteLine("Inefficiently");
 
             var before = ArrayBuilder<SyntaxTree>.GetInstance(index);
             var after = ArrayBuilder<SyntaxTree>.GetInstance(count - (1 + index));

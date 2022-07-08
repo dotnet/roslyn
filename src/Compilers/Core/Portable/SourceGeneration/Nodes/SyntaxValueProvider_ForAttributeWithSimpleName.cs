@@ -74,24 +74,28 @@ public partial struct SyntaxValueProvider
         var syntaxTreesProvider = _context.CompilationProvider
             .SelectMany((compilation, cancellationToken) =>
             {
-                var count = 0;
-                foreach (var tree in compilation.CommonSyntaxTrees)
-                {
-                    var info = GetTreeInfo(tree, syntaxHelper, cancellationToken);
-                    if (info.ContainsGlobalAliases || info.ContainsAttributeList)
-                        count++;
-                }
+                return compilation.CommonSyntaxTrees
+                    .Select(t => GetTreeInfo(t, syntaxHelper, cancellationToken))
+                    .Where(t => t.ContainsGlobalAliases || t.ContainsAttributeList)
+                    .ToImmutableArray();
+                //var count = 0;
+                //foreach (var tree in compilation.CommonSyntaxTrees)
+                //{
+                //    var info = GetTreeInfo(tree, syntaxHelper, cancellationToken);
+                //    if (info.ContainsGlobalAliases || info.ContainsAttributeList)
+                //        count++;
+                //}
 
-                var result = ArrayBuilder<SyntaxTreeInfo>.GetInstance(count);
+                //var result = ArrayBuilder<SyntaxTreeInfo>.GetInstance(count);
 
-                foreach (var tree in compilation.CommonSyntaxTrees)
-                {
-                    var info = GetTreeInfo(tree, syntaxHelper, cancellationToken);
-                    if (info.ContainsGlobalAliases || info.ContainsAttributeList)
-                        result.Add(info);
-                }
+                //foreach (var tree in compilation.CommonSyntaxTrees)
+                //{
+                //    var info = GetTreeInfo(tree, syntaxHelper, cancellationToken);
+                //    if (info.ContainsGlobalAliases || info.ContainsAttributeList)
+                //        result.Add(info);
+                //}
 
-                return result.ToImmutableAndFree();
+                //return result.ToImmutableAndFree();
             })
             .WithTrackingName("compilationUnit_ForAttribute");
 
