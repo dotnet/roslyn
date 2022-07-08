@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         public VisualStudioProject? Project { get; }
 
-        protected readonly ContainedDocument ContainedDocument; // Never actually null because the constructors initialize it.
+        protected readonly ContainedDocument ContainedDocument;
 
         public IVsTextBufferCoordinator BufferCoordinator { get; protected set; }
 
@@ -73,55 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             Workspace workspace,
             ProjectId projectId,
             VisualStudioProject? project,
-            string filePath,
             Guid languageServiceGuid,
-            AbstractFormattingRule? vbHelperFormattingRule = null) : this(
-                bufferCoordinator: bufferCoordinator,
-                componentModel: componentModel,
-                workspace: workspace,
-                projectId: projectId,
-                project: project,
-                languageServiceGuid: languageServiceGuid,
-                filePath: filePath,
-                hierarchy: null,
-                itemid: 0,
-                vbHelperFormattingRule: vbHelperFormattingRule)
-        {
-        }
-
-        internal ContainedLanguage(
-            IVsTextBufferCoordinator bufferCoordinator,
-            IComponentModel componentModel,
-            Workspace workspace,
-            ProjectId projectId,
-            VisualStudioProject? project,
-            IVsHierarchy hierarchy,
-            uint itemid,
-            Guid languageServiceGuid,
-            AbstractFormattingRule? vbHelperFormattingRule = null) : this(
-                bufferCoordinator: bufferCoordinator,
-                componentModel: componentModel,
-                workspace: workspace,
-                projectId: projectId,
-                project: project,
-                languageServiceGuid: languageServiceGuid,
-                filePath: null,
-                hierarchy: hierarchy,
-                itemid: itemid,
-                vbHelperFormattingRule: vbHelperFormattingRule)
-        {
-        }
-
-        private ContainedLanguage(
-            IVsTextBufferCoordinator bufferCoordinator,
-            IComponentModel componentModel,
-            Workspace workspace,
-            ProjectId projectId,
-            VisualStudioProject? project,
-            Guid languageServiceGuid,
-            string? filePath = null,
-            IVsHierarchy? hierarchy = null,
-            uint itemid = 0,
             AbstractFormattingRule? vbHelperFormattingRule = null)
         {
             BufferCoordinator = bufferCoordinator;
@@ -149,13 +101,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             // TODO: Can contained documents be linked or shared?
             this.DataBuffer.Changed += OnDataBufferChanged;
 
-            if (filePath == null)
-            {
-                Assumes.Present(hierarchy);
-                Assumes.True(itemid != 0);
-                filePath = GetFilePathFromBufferOrHierarchy(hierarchy, itemid);
-            }
-
+            var filePath = GetFilePathFromBuffers();
             DocumentId documentId;
 
             if (this.Project != null)
@@ -220,26 +166,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             _diagnosticAnalyzerService.Reanalyze(this.Workspace, documentIds: SpecializedCollections.SingletonEnumerable(this.ContainedDocument.Id));
         }
 
-        public string GetFilePathFromBufferOrHierarchy(IVsHierarchy hierarchy, uint itemid)
+        public string GetFilePathFromBuffers()
         {
-            if (SubjectBuffer.CurrentSnapshot.TextBuffer.Properties.TryGetProperty<ITextDocument>(typeof(ITextDocument), out var document) &&
-                document.FilePath is string documentFilePath)
+            // Try to get the file path from the secondary buffer
+            if (SubjectBuffer.CurrentSnapshot.TextBuffer.Properties.TryGetProperty<ITextDocument>(typeof(ITextDocument), out var secondaryDocument) &&
+                secondaryDocument.FilePath is string secondaryFilePath)
             {
-                return documentFilePath;
+                return secondaryFilePath;
             }
 
-            if (!ErrorHandler.Succeeded(((IVsProject)hierarchy).GetMkDocument(itemid, out var filePath)))
+            // Fallback to the primary buffer
+            if (DataBuffer.CurrentSnapshot.TextBuffer.Properties.TryGetProperty<ITextDocument>(typeof(ITextDocument), out var primaryDocument) &&
+                primaryDocument.FilePath is string primaryFilePath)
             {
-                // we couldn't look up the document moniker from an hierarchy for an itemid.
-                // Since we only use this moniker as a key, we could fall back to something else, like the document name.
-                Debug.Assert(false, "Could not get the document moniker for an item from its hierarchy.");
-                if (!hierarchy.TryGetItemName(itemid, out filePath!))
-                {
-                    FatalError.ReportAndPropagate(new InvalidOperationException("Failed to get document moniker for a contained document"));
-                }
+                return primaryFilePath;
             }
 
-            return filePath;
+            FatalError.ReportAndPropagate(new InvalidOperationException("Failed to get file path for a contained document"));
+            return string.Empty;
         }
     }
 }

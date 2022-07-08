@@ -287,8 +287,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 this.Workspace,
                 project.Id,
                 project,
-                hierarchy,
-                itemid,
                 this.LanguageServiceId);
         }
     }

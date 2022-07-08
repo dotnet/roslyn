@@ -36,8 +36,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
                 componentModel.GetService(Of VisualStudioWorkspace)(),
                 project.Id,
                 project,
-                hierarchy,
-                itemid,
                 languageServiceGuid,
                 VisualBasicHelperFormattingRule.Instance)
         End Sub
