@@ -4,10 +4,14 @@
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+using System.Windows.Documents;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.MoveStaticMembers;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.MoveStaticMembers;
+using Microsoft.CodeAnalysis.Testing;
+using Newtonsoft.Json.Linq;
+using TestResources.MetadataTests;
 using Xunit;
 using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeRefactoringVerifier<
     Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveStaticMembers.CSharpMoveStaticMembersRefactoringProvider>;
@@ -3156,6 +3160,89 @@ namespace TestNs1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        public async Task TestSelectMalformedMethod_NoAction()
+        {
+            var initialMarkup = @"
+namespace TestNs1
+{
+    public class Class1
+    {
+        public st[||] int TestMethod()
+        {
+            return 0;
+        }
+    }
+}";
+            var test = new Test("", ImmutableArray<string>.Empty, "")
+            {
+                TestCode = initialMarkup,
+                FixedCode = initialMarkup,
+            };
+            test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerError("CS1519").WithSpan(6, 19, 6, 22).WithArguments("int"));
+            await test.RunAsync().ConfigureAwait(false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        public async Task TestSelectMalformedField_NoAction1()
+        {
+            var initialMarkup = @"
+namespace TestNs1
+{
+    public class Class1
+    {
+        public st[||] int TestField = 0;
+    }
+}";
+            var test = new Test("", ImmutableArray<string>.Empty, "")
+            {
+                TestCode = initialMarkup,
+                FixedCode = initialMarkup,
+            };
+            test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerError("CS1519").WithSpan(6, 19, 6, 22).WithArguments("int"));
+            await test.RunAsync().ConfigureAwait(false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        public async Task TestSelectMalformedField_NoAction2()
+        {
+            var initialMarkup = @"
+namespace TestNs1
+{
+    public class Class1
+    {
+        public st[| int Test|]Field = 0;
+    }
+}";
+            var test = new Test("", ImmutableArray<string>.Empty, "")
+            {
+                TestCode = initialMarkup,
+                FixedCode = initialMarkup,
+            };
+            test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerError("CS1519").WithSpan(6, 19, 6, 22).WithArguments("int"));
+            await test.RunAsync().ConfigureAwait(false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        public async Task TestSelectMalformedField_NoAction3()
+        {
+            var initialMarkup = @"
+namespace TestNs1
+{
+    public class Class1
+    {
+        [|public st int TestField = 0;|]
+    }
+}";
+            var test = new Test("", ImmutableArray<string>.Empty, "")
+            {
+                TestCode = initialMarkup,
+                FixedCode = initialMarkup,
+            };
+            test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerError("CS1519").WithSpan(6, 19, 6, 22).WithArguments("int"));
+            await test.RunAsync().ConfigureAwait(false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
         public async Task TestSelectPropertyBody_NoAction()
         {
             var initialMarkup = @"
@@ -3230,6 +3317,72 @@ namespace TestNs1
     }
 }";
             await TestNoRefactoringAsync(initialMarkup).ConfigureAwait(false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        public async Task TestSelectTopLevelStatement_NoAction1()
+        {
+            var initialMarkup = @"
+using System;
+
+[||]Console.WriteLine(5);
+";
+
+            await new Test("", ImmutableArray<string>.Empty, "")
+            {
+                TestCode = initialMarkup,
+                FixedCode = initialMarkup,
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp10,
+                TestState =
+                {
+                    OutputKind = OutputKind.ConsoleApplication
+                },
+            }.RunAsync().ConfigureAwait(false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        public async Task TestSelectTopLevelStatement_NoAction2()
+        {
+            var initialMarkup = @"
+using System;
+
+[|Console.WriteLine(5);|]
+";
+
+            await new Test("", ImmutableArray<string>.Empty, "")
+            {
+                TestCode = initialMarkup,
+                FixedCode = initialMarkup,
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp10,
+                TestState =
+                {
+                    OutputKind = OutputKind.ConsoleApplication
+                },
+            }.RunAsync().ConfigureAwait(false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        public async Task TestSelectTopLevelLocalFunction_NoAction()
+        {
+            var initialMarkup = @"
+DoSomething();
+
+static int Do[||]Something()
+{
+    return 5;
+}
+";
+
+            await new Test("", ImmutableArray<string>.Empty, "")
+            {
+                TestCode = initialMarkup,
+                FixedCode = initialMarkup,
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp10,
+                TestState =
+                {
+                    OutputKind = OutputKind.ConsoleApplication
+                },
+            }.RunAsync().ConfigureAwait(false);
         }
         #endregion
 

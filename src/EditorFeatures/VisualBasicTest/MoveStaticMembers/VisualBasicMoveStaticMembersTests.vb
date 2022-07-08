@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.MoveStaticMembers
 Imports Microsoft.CodeAnalysis.Test.Utilities.MoveStaticMembers
+Imports Microsoft.CodeAnalysis.Testing
 Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeRefactoringVerifier(Of
     Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.MoveStaticMembers.VisualBasicMoveStaticMembersRefactoringProvider)
 
@@ -2828,6 +2829,42 @@ Namespace TestNs
 End Namespace"
 
             Await TestNoRefactoringAsync(initialMarkup)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        Public Async Function TestSelectInIncompleteField_NoAction1() As Task
+            Dim initialMarkup = "
+Namespace TestNs
+    Public Class Class1
+        Public[||]
+    End Class
+End Namespace"
+
+            Dim test = New Test("", ImmutableArray(Of String).Empty, "") With
+            {
+                .TestCode = initialMarkup,
+                .FixedCode = initialMarkup
+            }
+            test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerError("BC30203").WithSpan(4, 15, 4, 15))
+            Await test.RunAsync().ConfigureAwait(False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        Public Async Function TestSelectInIncompleteField_NoAction2() As Task
+            Dim initialMarkup = "
+Namespace TestNs
+    Public Class Class1
+        Public Sha[||] TestField As Integer = 0
+    End Class
+End Namespace"
+
+            Dim test = New Test("", ImmutableArray(Of String).Empty, "") With
+            {
+                .TestCode = initialMarkup,
+                .FixedCode = initialMarkup
+            }
+            test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerError("BC30205").WithSpan(4, 20, 4, 29))
+            Await test.RunAsync().ConfigureAwait(False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
