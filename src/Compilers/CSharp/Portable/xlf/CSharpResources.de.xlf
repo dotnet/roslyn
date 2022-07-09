@@ -10502,11 +10502,6 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
         <target state="translated">GetDeclarationName wurde für einen Deklarationsknoten aufgerufen, der möglicherweise mehrere Variablendeklaratoren enthalten kann.</target>
         <note />
       </trans-unit>
-      <trans-unit id="TreeNotPartOfCompilation">
-        <source>tree not part of compilation</source>
-        <target state="translated">Der Baum ist nicht Teil der Kompilierung.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="PositionIsNotWithinSyntax">
         <source>Position is not within syntax tree with full span {0}</source>
         <target state="translated">Die Position ist nicht innerhalb des Syntaxbaums mit dem Vollbereich {0}.</target>

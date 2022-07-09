@@ -10501,11 +10501,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="translated">여러 변수 선언자를 포함할 수 있는 선언 노드에 대해 호출된 GetDeclarationName입니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="TreeNotPartOfCompilation">
-        <source>tree not part of compilation</source>
-        <target state="translated">트리는 컴파일의 일부가 아닙니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="PositionIsNotWithinSyntax">
         <source>Position is not within syntax tree with full span {0}</source>
         <target state="translated">{0} 전체 범위를 사용한 구문 트리 내에 위치가 없습니다.</target>

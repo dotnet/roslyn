@@ -10502,11 +10502,6 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
         <target state="translated">È stato chiamato GetDeclarationName per un nodo di dichiarazione che può contenere più dichiarazioni di variabile.</target>
         <note />
       </trans-unit>
-      <trans-unit id="TreeNotPartOfCompilation">
-        <source>tree not part of compilation</source>
-        <target state="translated">l'albero non fa parte della compilazione</target>
-        <note />
-      </trans-unit>
       <trans-unit id="PositionIsNotWithinSyntax">
         <source>Position is not within syntax tree with full span {0}</source>
         <target state="translated">Position non è compreso nell'albero della sintassi con full span {0}</target>
