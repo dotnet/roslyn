@@ -16,12 +16,32 @@ namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Ap
     {
         private readonly ContainedLanguage _underlyingObject;
 
+        [Obsolete("Remove once TypeScript has stopped using this.", error: true)]
         public VSTypeScriptContainedLanguageWrapper(
             IVsTextBufferCoordinator bufferCoordinator,
             IComponentModel componentModel,
             VSTypeScriptVisualStudioProjectWrapper project,
             IVsHierarchy hierarchy,
             uint itemid,
+            Guid languageServiceGuid) : this(bufferCoordinator, componentModel, project, languageServiceGuid)
+        {
+        }
+
+        [Obsolete("Remove once TypeScript has stopped using this.", error: true)]
+        public VSTypeScriptContainedLanguageWrapper(
+            IVsTextBufferCoordinator bufferCoordinator,
+            IComponentModel componentModel,
+            Workspace workspace,
+            IVsHierarchy hierarchy,
+            uint itemid,
+            Guid languageServiceGuid) : this(bufferCoordinator, componentModel, workspace, languageServiceGuid)
+        {
+        }
+
+        public VSTypeScriptContainedLanguageWrapper(
+            IVsTextBufferCoordinator bufferCoordinator,
+            IComponentModel componentModel,
+            VSTypeScriptVisualStudioProjectWrapper project,
             Guid languageServiceGuid)
         {
             _underlyingObject = new ContainedLanguage(
@@ -38,8 +58,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Ap
             IVsTextBufferCoordinator bufferCoordinator,
             IComponentModel componentModel,
             Workspace workspace,
-            IVsHierarchy hierarchy,
-            uint itemid,
             Guid languageServiceGuid)
         {
             var projectId = ProjectId.CreateNewId();
