@@ -59,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         /// </summary>
         public ITextBuffer DataBuffer { get; }
 
-        // Set when a TextViewFIlter is set.  We hold onto this to keep our TagSource objects alive even if Venus
+        // Set when a TextViewFilter is set.  We hold onto this to keep our TagSource objects alive even if Venus
         // disconnects the subject buffer from the view temporarily (which they do frequently).  Otherwise, we have to
         // re-compute all of the tag data when they re-connect it, and this causes issues like classification
         // flickering.
