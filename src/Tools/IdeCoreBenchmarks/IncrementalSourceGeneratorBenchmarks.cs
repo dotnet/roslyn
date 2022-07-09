@@ -177,10 +177,11 @@ namespace IdeCoreBenchmarks
             {
                 var changedText = sourceText.WithChanges(new TextChange(new TextSpan(0, 0), $"// added text{i}\r\n"));
                 var changedTree = syntaxTree.WithChangedText(changedText);
-                var changedCompilation = compilation.ReplaceSyntaxTree(syntaxTree, changedTree);
+                compilation = compilation.ReplaceSyntaxTree(syntaxTree, changedTree);
+                syntaxTree = changedTree;
 
                 start = DateTime.Now;
-                driver = driver.RunGenerators(changedCompilation);
+                driver = driver.RunGenerators(compilation);
                 var incrementalTime = DateTime.Now - start;
                 if (i % 5000 == 0)
                     Console.WriteLine("Incremental time: " + incrementalTime);
