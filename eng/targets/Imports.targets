@@ -3,7 +3,6 @@
 <Project>
   <Import Project="VisualStudio.targets"/>
   <Import Project="XUnit.targets" Condition="'$(IsTestProject)' == 'true'" />
-  <Import Project="ReadyToRun.targets"/>
 
   <!--
     Work around .editorconfig evaluation bugs in command line builds.

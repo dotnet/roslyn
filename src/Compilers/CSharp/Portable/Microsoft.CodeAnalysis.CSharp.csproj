@@ -8,7 +8,6 @@
     <TargetFrameworks>netcoreapp3.1;netstandard2.0</TargetFrameworks>
     <GenerateMicrosoftCodeAnalysisCommitHashAttribute>true</GenerateMicrosoftCodeAnalysisCommitHashAttribute>
     <ApplyNgenOptimization Condition="'$(TargetFramework)' == 'netstandard2.0'">full</ApplyNgenOptimization>
-    <EnableReadyToRunGeneration Condition="'$(TargetFramework)' == 'netcoreapp3.1'">win-x64</EnableReadyToRunGeneration>
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
