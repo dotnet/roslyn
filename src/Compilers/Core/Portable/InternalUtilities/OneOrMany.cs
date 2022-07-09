@@ -3,10 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Roslyn.Utilities
 {
@@ -17,7 +18,6 @@ namespace Roslyn.Utilities
     /// Used when a collection usually contains a single item but sometimes might contain multiple.
     /// </remarks>
     internal readonly struct OneOrMany<T>
-        where T : notnull
     {
         public static readonly OneOrMany<T> Empty = new OneOrMany<T>(ImmutableArray<T>.Empty);
 
@@ -73,7 +73,7 @@ namespace Roslyn.Utilities
 
         public OneOrMany<T> Add(T one)
         {
-            var builder = ArrayBuilder<T>.GetInstance();
+            var builder = ArrayBuilder<T>.GetInstance(this.Count + 1);
             if (HasOne)
             {
                 builder.Add(_one);
@@ -89,19 +89,13 @@ namespace Roslyn.Utilities
 
         public bool Contains(T item)
         {
-            RoslynDebug.Assert(item != null);
             if (HasOne)
-            {
-                return item.Equals(_one);
-            }
+                return EqualityComparer<T>.Default.Equals(item, _one);
 
-            var iter = GetEnumerator();
-            while (iter.MoveNext())
+            foreach (var value in _many)
             {
-                if (item.Equals(iter.Current))
-                {
+                if (EqualityComparer<T>.Default.Equals(item, value))
                     return true;
-                }
             }
 
             return false;
@@ -111,21 +105,20 @@ namespace Roslyn.Utilities
         {
             if (HasOne)
             {
-                return item.Equals(_one) ? default : this;
+                return EqualityComparer<T>.Default.Equals(item, _one) ? default : this;
             }
 
             var builder = ArrayBuilder<T>.GetInstance();
-            var iter = GetEnumerator();
-            while (iter.MoveNext())
+
+            foreach (var value in _many)
             {
-                if (!item.Equals(iter.Current))
-                {
-                    builder.Add(iter.Current);
-                }
+                if (!EqualityComparer<T>.Default.Equals(item, value))
+                    builder.Add(value);
             }
 
             if (builder.Count == 0)
             {
+                builder.Free();
                 return default;
             }
 
@@ -133,7 +126,6 @@ namespace Roslyn.Utilities
         }
 
         public OneOrMany<TResult> Select<TResult>(Func<T, TResult> selector)
-            where TResult : notnull
         {
             return HasOne ?
                 OneOrMany.Create(selector(_one)) :
@@ -141,7 +133,6 @@ namespace Roslyn.Utilities
         }
 
         public OneOrMany<TResult> Select<TResult, TArg>(Func<T, TArg, TResult> selector, TArg arg)
-            where TResult : notnull
         {
             return HasOne ?
                 OneOrMany.Create(selector(_one, arg)) :
@@ -204,25 +195,16 @@ namespace Roslyn.Utilities
                 return _index < _collection.Count;
             }
 
-            public T Current
-            {
-                get { return _collection[_index]; }
-            }
+            public T Current => _collection[_index];
         }
     }
 
     internal static class OneOrMany
     {
         public static OneOrMany<T> Create<T>(T one)
-            where T : notnull
-        {
-            return new OneOrMany<T>(one);
-        }
+            => new OneOrMany<T>(one);
 
         public static OneOrMany<T> Create<T>(ImmutableArray<T> many)
-            where T : notnull
-        {
-            return new OneOrMany<T>(many);
-        }
+            => new OneOrMany<T>(many);
     }
 }

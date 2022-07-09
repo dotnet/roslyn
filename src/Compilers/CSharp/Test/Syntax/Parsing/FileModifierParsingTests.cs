@@ -36,7 +36,7 @@ public class FileModifierParsingTests : ParsingTests
         expectedParsingDiagnostics ??= Array.Empty<DiagnosticDescription>();
         expectedBindingDiagnostics ??= expectedParsingDiagnostics;
 
-        var tree = UsingTree(text, options);
+        var tree = UsingTree(text, options, expectedParsingDiagnostics);
         Validate(text, (CSharpSyntaxNode)tree.GetRoot(), expectedParsingDiagnostics);
 
         var comp = CreateCompilation(tree);
