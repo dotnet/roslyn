@@ -96,9 +96,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             var bufferTagAggregatorFactory = ComponentModel.GetService<IBufferTagAggregatorFactoryService>();
             _bufferTagAggregator = bufferTagAggregatorFactory.CreateTagAggregator<ITag>(SubjectBuffer);
 
-            // TODO: Can contained documents be linked or shared?
-            this.DataBuffer.Changed += OnDataBufferChanged;
-
             var filePath = GetFilePathFromBuffers();
             DocumentId documentId;
 
@@ -131,6 +128,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 Project,
                 ComponentModel,
                 vbHelperFormattingRule);
+
+            // TODO: Can contained documents be linked or shared?
+            this.DataBuffer.Changed += OnDataBufferChanged;
         }
 
         public IGlobalOptionService GlobalOptions => _diagnosticAnalyzerService.GlobalOptions;
