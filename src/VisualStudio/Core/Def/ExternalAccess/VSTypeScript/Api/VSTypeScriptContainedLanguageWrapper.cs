@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Ap
     {
         private readonly ContainedLanguage _underlyingObject;
 
-        [Obsolete("Remove once TypeScript has stopped using this.", error: true)]
+        [Obsolete("Use the constructor that omits the IVsHierarchy and uint parameters instead.", error: true)]
         public VSTypeScriptContainedLanguageWrapper(
             IVsTextBufferCoordinator bufferCoordinator,
             IComponentModel componentModel,
@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Ap
         {
         }
 
-        [Obsolete("Remove once TypeScript has stopped using this.", error: true)]
+        [Obsolete("Use the constructor that omits the IVsHierarchy and uint parameters instead.", error: true)]
         public VSTypeScriptContainedLanguageWrapper(
             IVsTextBufferCoordinator bufferCoordinator,
             IComponentModel componentModel,
