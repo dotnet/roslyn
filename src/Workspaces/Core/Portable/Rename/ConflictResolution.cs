@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -12,19 +13,32 @@ namespace Microsoft.CodeAnalysis.Rename
 {
     internal readonly partial struct ConflictResolution
     {
+        /// <summary>
+        /// A flag indicate if the rename operation is successful or not.
+        /// If this is false, the <see cref="ErrorMessage"/> would be with this resolution. All the other field or property would be <see langword="null"/> or empty.
+        /// If this is true, the <see cref="ErrorMessage"/> would be null. All the other fields or properties would be valid.
+        /// </summary>
+        [MemberNotNullWhen(false, nameof(ErrorMessage))]
+        [MemberNotNullWhen(true, nameof(_newSolutionWithoutRenamedDocument))]
+        [MemberNotNullWhen(true, nameof(_renamedDocument))]
+        [MemberNotNullWhen(true, nameof(OldSolution))]
+        [MemberNotNullWhen(true, nameof(NewSolution))]
+        [MemberNotNullWhen(true, nameof(ReplacementTextValid))]
+        public bool IsSuccessful { get; }
+
         public readonly string? ErrorMessage;
 
-        private readonly Solution _newSolutionWithoutRenamedDocument;
-        private readonly (DocumentId documentId, string newName) _renamedDocument;
+        private readonly Solution? _newSolutionWithoutRenamedDocument;
+        private readonly (DocumentId documentId, string newName)? _renamedDocument;
 
-        public readonly Solution OldSolution;
+        public readonly Solution? OldSolution;
 
         /// <summary>
         /// The final solution snapshot.  Including any renamed documents.
         /// </summary>
-        public readonly Solution NewSolution;
+        public readonly Solution? NewSolution;
 
-        public readonly bool ReplacementTextValid;
+        public readonly bool? ReplacementTextValid;
 
         /// <summary>
         /// The list of all document ids of documents that have been touched for this rename operation.
@@ -37,10 +51,22 @@ namespace Microsoft.CodeAnalysis.Rename
         private readonly ImmutableDictionary<DocumentId, ImmutableArray<ComplexifiedSpan>> _documentToComplexifiedSpansMap;
         private readonly ImmutableDictionary<DocumentId, ImmutableArray<RelatedLocation>> _documentToRelatedLocationsMap;
 
-#nullable disable warnings
-        public ConflictResolution(string errorMessage) : this()
-            => ErrorMessage = errorMessage;
-#nullable enable warnings
+        public ConflictResolution(string errorMessage)
+        {
+            IsSuccessful = false;
+            ErrorMessage = errorMessage;
+
+            _newSolutionWithoutRenamedDocument = null;
+            _renamedDocument = null;
+            OldSolution = null;
+            NewSolution = null;
+            ReplacementTextValid = null;
+            DocumentIds = ImmutableArray<DocumentId>.Empty;
+            RelatedLocations = ImmutableArray<RelatedLocation>.Empty;
+            _documentToModifiedSpansMap = ImmutableDictionary<DocumentId, ImmutableArray<(TextSpan oldSpan, TextSpan newSpan)>>.Empty;
+            _documentToComplexifiedSpansMap = ImmutableDictionary<DocumentId, ImmutableArray<ComplexifiedSpan>>.Empty;
+            _documentToRelatedLocationsMap = ImmutableDictionary<DocumentId, ImmutableArray<RelatedLocation>>.Empty;
+        }
 
         public ConflictResolution(
             Solution oldSolution,
@@ -52,7 +78,9 @@ namespace Microsoft.CodeAnalysis.Rename
             ImmutableDictionary<DocumentId, ImmutableArray<ComplexifiedSpan>> documentToComplexifiedSpansMap,
             ImmutableDictionary<DocumentId, ImmutableArray<RelatedLocation>> documentToRelatedLocationsMap)
         {
+            IsSuccessful = true;
             ErrorMessage = null;
+
             OldSolution = oldSolution;
             _newSolutionWithoutRenamedDocument = newSolutionWithoutRenamedDocument;
             ReplacementTextValid = replacementTextValid;
@@ -63,9 +91,9 @@ namespace Microsoft.CodeAnalysis.Rename
             _documentToComplexifiedSpansMap = documentToComplexifiedSpansMap;
             _documentToRelatedLocationsMap = documentToRelatedLocationsMap;
 
-            NewSolution = _renamedDocument.documentId == null
+            NewSolution = _renamedDocument.Value.documentId == null
                 ? _newSolutionWithoutRenamedDocument
-                : _newSolutionWithoutRenamedDocument.WithDocumentName(_renamedDocument.documentId, _renamedDocument.newName);
+                : _newSolutionWithoutRenamedDocument.WithDocumentName(_renamedDocument.Value.documentId, _renamedDocument.Value.newName);
         }
 
         public ImmutableArray<(TextSpan oldSpan, TextSpan newSpan)> GetComplexifiedSpans(DocumentId documentId)
