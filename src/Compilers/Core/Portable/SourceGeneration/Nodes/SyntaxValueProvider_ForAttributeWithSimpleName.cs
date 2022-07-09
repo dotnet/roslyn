@@ -39,7 +39,11 @@ public partial struct SyntaxValueProvider
     /// <c>context.SyntaxProvider.CreateSyntaxProviderForAttribute(nameof(CLSCompliantAttribute), (node, c) => node is ClassDeclarationSyntax)</c>
     /// will find the <c>C</c> class.
     /// </summary>
-    internal IncrementalValuesProvider<SyntaxNode> ForAttributeWithSimpleName(
+    /// <remarks>
+    /// Note: a 'Values'-provider of arrays are returned.  Each array provides all the matching nodes from a single <see
+    /// cref="SyntaxTree"/>.
+    /// </remarks>
+    internal IncrementalValuesProvider<(SyntaxTree tree, ImmutableArray<SyntaxNode> matches)> ForAttributeWithSimpleName(
         string simpleName,
         Func<SyntaxNode, CancellationToken, bool> predicate)
     {
@@ -103,13 +107,10 @@ public partial struct SyntaxValueProvider
             .Combine(allUpGlobalAliasesProvider)
             .WithTrackingName("compilationUnitAndGlobalAliases_ForAttribute");
 
-        // For each pair of compilation unit + global aliases, walk the compilation unit 
-        var result = syntaxTreeAndGlobalAliasesProvider
-            .SelectMany((globalAliasesAndCompilationUnit, cancellationToken) => GetMatchingNodes(
-                syntaxHelper, globalAliasesAndCompilationUnit.Right, globalAliasesAndCompilationUnit.Left, simpleName, predicate, cancellationToken))
-            .WithTrackingName("result_ForAttribute");
-
-        return result;
+        return syntaxTreeAndGlobalAliasesProvider.Select(
+            (tuple, c) => (tuple.Left, GetMatchingNodes(syntaxHelper, tuple.Right, tuple.Left, simpleName, predicate, c)))
+            .Where(tuple => tuple.Item2.Length > 0)
+            .WithTrackingName("result_ForAttributeInternal");
 
         static GlobalAliases getGlobalAliasesInCompilationUnit(
             ISyntaxHelper syntaxHelper,
