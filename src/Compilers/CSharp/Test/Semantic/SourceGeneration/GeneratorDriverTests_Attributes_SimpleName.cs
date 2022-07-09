@@ -1153,11 +1153,17 @@ class C { }
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
 
-        driver = driver.RunGenerators(compilation.ReplaceSyntaxTree(
-            compilation.SyntaxTrees.Last(),
-            compilation.SyntaxTrees.Last().WithChangedText(SourceText.From(@"
-class C { }
-"))));
+        //while (true)
+        //{
+            compilation = compilation.ReplaceSyntaxTree(
+                compilation.SyntaxTrees.Last(),
+                compilation.SyntaxTrees.Last().WithChangedText(SourceText.From(@"
+    class C { }
+    ")));
+
+            driver = driver.RunGenerators(compilation);
+        //}
+
         runResult = driver.GetRunResult().Results[0];
 
         Assert.Collection(runResult.TrackedSteps["individualFileGlobalAliases_ForAttribute"],
