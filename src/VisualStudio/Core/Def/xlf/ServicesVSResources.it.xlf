@@ -1122,6 +1122,11 @@
         <target state="translated">Preferisci funzioni locali statiche</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_trailing_comma">
+        <source>Prefer trailing comma</source>
+        <target state="new">Prefer trailing comma</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_top_level_statements">
         <source>Prefer top-level statements</source>
         <target state="translated">Preferisci istruzioni di primo livello</target>

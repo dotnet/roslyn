@@ -61,5 +61,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
             return node is not LocalDeclarationStatementSyntax localDecl ||
                 localDecl.UsingKeyword == default;
         }
+
+        protected override bool PreferTrailingComma(SyntaxNodeAnalysisContext context)
+        {
+            return context.GetCSharpAnalyzerOptions().PreferTrailingComma.Value;
+        }
     }
 }

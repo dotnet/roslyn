@@ -1159,6 +1159,26 @@ class Customer
 }}
 ";
 
+        private static readonly string s_preferTrailingComma = $@"
+//[
+    // {ServicesVSResources.Prefer_colon}
+    enum E
+    {{
+        A,
+        B,
+    }}
+//]
+//[
+    // {ServicesVSResources.Over_colon}
+    enum E
+    {{
+        A,
+        B
+    }}
+//]
+}}
+";
+
         private static readonly string s_preferIsNullOverReferenceEquals = $@"
 using System;
 
@@ -2155,6 +2175,8 @@ class C2
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferRangeOperator, ServicesVSResources.Prefer_range_operator, s_preferRangeOperator, s_preferRangeOperator, this, optionStore, expressionPreferencesGroupTitle));
 
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferTupleSwap, ServicesVSResources.Prefer_tuple_swap, s_preferTupleSwap, s_preferTupleSwap, this, optionStore, expressionPreferencesGroupTitle));
+
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferTrailingComma, ServicesVSResources.Prefer_trailing_comma, s_preferTrailingComma, s_preferTrailingComma, this, optionStore, expressionPreferencesGroupTitle));
 
             AddExpressionBodyOptions(optionStore, expressionPreferencesGroupTitle);
             AddUnusedValueOptions(optionStore, expressionPreferencesGroupTitle);

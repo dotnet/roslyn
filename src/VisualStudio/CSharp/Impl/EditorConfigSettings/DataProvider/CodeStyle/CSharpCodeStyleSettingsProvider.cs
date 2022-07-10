@@ -153,6 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.Da
             yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.ImplicitObjectCreationWhenTypeIsApparent, description: CSharpVSResources.Prefer_implicit_object_creation_when_type_is_apparent, editorConfigOptions, visualStudioOptions, updaterService, FileName);
             yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferTupleSwap, description: ServicesVSResources.Prefer_tuple_swap, editorConfigOptions, visualStudioOptions, updaterService, FileName);
             yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferUtf8StringLiterals, description: ServicesVSResources.Prefer_Utf8_string_literals, editorConfigOptions, visualStudioOptions, updaterService, FileName);
+            yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferTrailingComma, description: ServicesVSResources.Prefer_trailing_comma, editorConfigOptions, visualStudioOptions, updaterService, FileName);
         }
 
         private IEnumerable<CodeStyleSetting> GetPatternMatchingCodeStyleOptions(AnalyzerConfigOptions editorConfigOptions, OptionSet visualStudioOptions, OptionUpdater updaterService)

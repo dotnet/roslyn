@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -25,22 +26,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             var member = GenerateEnumMemberDeclaration(enumMember, destination, info, cancellationToken);
 
-            if (members.Count == 0)
-            {
-                members.Add(member);
-            }
-            else if (members.LastOrDefault().Kind() == SyntaxKind.CommaToken)
-            {
-                members.Add(member);
-                members.Add(SyntaxFactory.Token(SyntaxKind.CommaToken));
-            }
-            else
+            if (members.Count > 0 && !members[^1].IsKind(SyntaxKind.CommaToken))
             {
                 var lastMember = members.Last();
                 var trailingTrivia = lastMember.GetTrailingTrivia();
                 members[members.Count - 1] = lastMember.WithTrailingTrivia();
                 members.Add(SyntaxFactory.Token(SyntaxKind.CommaToken).WithTrailingTrivia(trailingTrivia));
-                members.Add(member);
+            }
+
+            members.Add(member);
+
+            if (info.Options.PreferTrailingComma.Value)
+            {
+                members.Add(SyntaxFactory.Token(SyntaxKind.CommaToken));
             }
 
             return destination.EnsureOpenAndCloseBraceTokens()

@@ -46,6 +46,7 @@ internal sealed class CSharpCodeGenerationOptions : CodeGenerationOptions, IEqua
     [DataMember] public CodeStyleOption2<ExpressionBodyPreference> PreferExpressionBodiedLambdas { get; init; } = s_whenPossibleWithSilentEnforcement;
     [DataMember] public CodeStyleOption2<bool> PreferStaticLocalFunction { get; init; } = s_trueWithSuggestionEnforcement;
     [DataMember] public CodeStyleOption2<NamespaceDeclarationPreference> NamespaceDeclarations { get; init; } = s_blockedScopedWithSilentEnforcement;
+    [DataMember] public CodeStyleOption2<bool> PreferTrailingComma { get; init; } = s_trueWithSuggestionEnforcement;
 
     public override bool Equals(object? obj)
         => Equals(obj as CSharpCodeGenerationOptions);
@@ -62,7 +63,8 @@ internal sealed class CSharpCodeGenerationOptions : CodeGenerationOptions, IEqua
            PreferExpressionBodiedLocalFunctions.Equals(other.PreferExpressionBodiedLocalFunctions) &&
            PreferExpressionBodiedLambdas.Equals(other.PreferExpressionBodiedLambdas) &&
            PreferStaticLocalFunction.Equals(other.PreferStaticLocalFunction) &&
-           NamespaceDeclarations.Equals(other.NamespaceDeclarations);
+           NamespaceDeclarations.Equals(other.NamespaceDeclarations) &&
+           PreferTrailingComma.Equals(other.PreferTrailingComma);
 
     public override int GetHashCode()
         => Hash.Combine(Common,
@@ -75,7 +77,8 @@ internal sealed class CSharpCodeGenerationOptions : CodeGenerationOptions, IEqua
            Hash.Combine(PreferExpressionBodiedLocalFunctions,
            Hash.Combine(PreferExpressionBodiedLambdas,
            Hash.Combine(PreferStaticLocalFunction,
-           Hash.Combine(NamespaceDeclarations, 0)))))))))));
+           Hash.Combine(NamespaceDeclarations,
+           Hash.Combine(PreferTrailingComma, 0))))))))))));
 
 #if !CODE_STYLE
     public override CodeGenerationContextInfo GetInfo(CodeGenerationContext context, ParseOptions parseOptions)
@@ -101,7 +104,8 @@ internal static class CSharpCodeGenerationOptionsProviders
             PreferExpressionBodiedLocalFunctions = options.GetEditorConfigOption(CSharpCodeStyleOptions.PreferExpressionBodiedLocalFunctions, fallbackOptions.PreferExpressionBodiedLocalFunctions),
             PreferExpressionBodiedLambdas = options.GetEditorConfigOption(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, fallbackOptions.PreferExpressionBodiedLambdas),
             PreferStaticLocalFunction = options.GetEditorConfigOption(CSharpCodeStyleOptions.PreferStaticLocalFunction, fallbackOptions.PreferStaticLocalFunction),
-            NamespaceDeclarations = options.GetEditorConfigOption(CSharpCodeStyleOptions.NamespaceDeclarations, fallbackOptions.NamespaceDeclarations)
+            NamespaceDeclarations = options.GetEditorConfigOption(CSharpCodeStyleOptions.NamespaceDeclarations, fallbackOptions.NamespaceDeclarations),
+            PreferTrailingComma = options.GetEditorConfigOption(CSharpCodeStyleOptions.PreferTrailingComma, fallbackOptions.PreferTrailingComma),
         };
     }
 }

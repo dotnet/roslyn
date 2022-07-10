@@ -31,6 +31,8 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         where TExpressionStatementSyntax : TStatementSyntax
         where TVariableDeclaratorSyntax : SyntaxNode
     {
+        internal const string PreferTrailingCommaKey = nameof(PreferTrailingCommaKey);
+
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
@@ -45,6 +47,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
         protected abstract ISyntaxFacts GetSyntaxFacts();
         protected abstract bool AreCollectionInitializersSupported(Compilation compilation);
+        protected abstract bool PreferTrailingComma(SyntaxNodeAnalysisContext context);
 
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterCompilationStartAction(OnCompilationStart);
@@ -107,12 +110,18 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
             var locations = ImmutableArray.Create(objectCreationExpression.GetLocation());
 
+            var properties = ImmutableDictionary<string, string?>.Empty;
+            if (PreferTrailingComma(context))
+            {
+                properties = properties.Add(nameof(PreferTrailingCommaKey), "");
+            }
+
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 objectCreationExpression.GetFirstToken().GetLocation(),
                 option.Notification.Severity,
                 additionalLocations: locations,
-                properties: null));
+                properties: properties));
 
             FadeOutCode(context, matches.Value, locations);
         }

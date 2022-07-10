@@ -93,8 +93,8 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
                 var statement = objectCreation.FirstAncestorOrSelf<TStatementSyntax>();
                 Contract.ThrowIfNull(statement);
-
-                var newStatement = GetNewStatement(statement, objectCreation, matches.Value)
+                const string key = AbstractUseCollectionInitializerDiagnosticAnalyzer<TSyntaxKind, TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TVariableDeclaratorSyntax>.PreferTrailingCommaKey;
+                var newStatement = GetNewStatement(statement, objectCreation, matches.Value, addTrailingComma: diagnostics[0].Properties.ContainsKey(key))
                     .WithAdditionalAnnotations(Formatter.Annotation);
 
                 var subEditor = new SyntaxEditor(currentRoot, services);
@@ -113,6 +113,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
         protected abstract TStatementSyntax GetNewStatement(
             TStatementSyntax statement, TObjectCreationExpressionSyntax objectCreation,
-            ImmutableArray<TExpressionStatementSyntax> matches);
+            ImmutableArray<TExpressionStatementSyntax> matches,
+            bool addTrailingComma);
     }
 }

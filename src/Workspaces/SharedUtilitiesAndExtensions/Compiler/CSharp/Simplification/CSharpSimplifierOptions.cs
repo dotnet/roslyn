@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         [DataMember] public CodeStyleOption2<bool> AllowEmbeddedStatementsOnSameLine { get; init; } = s_trueWithSilentEnforcement;
         [DataMember] public CodeStyleOption2<PreferBracesPreference> PreferBraces { get; init; } = s_defaultPreferBraces;
         [DataMember] public CodeStyleOption2<bool> PreferThrowExpression { get; init; } = s_trueWithSuggestionEnforcement;
+        [DataMember] public CodeStyleOption2<bool> PreferTrailingComma { get; init; } = s_trueWithSuggestionEnforcement;
 
         public override bool Equals(object? obj)
             => Equals(obj as CSharpSimplifierOptions);
@@ -50,7 +51,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                PreferParameterNullChecking.Equals(other.PreferParameterNullChecking) &&
                AllowEmbeddedStatementsOnSameLine.Equals(other.AllowEmbeddedStatementsOnSameLine) &&
                PreferBraces.Equals(other.PreferBraces) &&
-               PreferThrowExpression.Equals(other.PreferThrowExpression);
+               PreferThrowExpression.Equals(other.PreferThrowExpression) &&
+               PreferTrailingComma.Equals(other.PreferTrailingComma);
 
         public override int GetHashCode()
             => Hash.Combine(VarForBuiltInTypes,
@@ -60,7 +62,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                Hash.Combine(PreferParameterNullChecking,
                Hash.Combine(AllowEmbeddedStatementsOnSameLine,
                Hash.Combine(PreferBraces,
-               Hash.Combine(PreferThrowExpression, 0))))))));
+               Hash.Combine(PreferThrowExpression,
+               Hash.Combine(PreferTrailingComma, 0)))))))));
     }
 
     internal static class CSharpSimplifierOptionsProviders
@@ -78,7 +81,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 PreferSimpleDefaultExpression = options.GetEditorConfigOption(CSharpCodeStyleOptions.PreferSimpleDefaultExpression, fallbackOptions.PreferSimpleDefaultExpression),
                 AllowEmbeddedStatementsOnSameLine = options.GetEditorConfigOption(CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, fallbackOptions.AllowEmbeddedStatementsOnSameLine),
                 PreferBraces = options.GetEditorConfigOption(CSharpCodeStyleOptions.PreferBraces, fallbackOptions.PreferBraces),
-                PreferThrowExpression = options.GetEditorConfigOption(CSharpCodeStyleOptions.PreferThrowExpression, fallbackOptions.PreferThrowExpression)
+                PreferThrowExpression = options.GetEditorConfigOption(CSharpCodeStyleOptions.PreferThrowExpression, fallbackOptions.PreferThrowExpression),
+                PreferTrailingComma = options.GetEditorConfigOption(CSharpCodeStyleOptions.PreferTrailingComma, fallbackOptions.PreferTrailingComma),
             };
         }
     }

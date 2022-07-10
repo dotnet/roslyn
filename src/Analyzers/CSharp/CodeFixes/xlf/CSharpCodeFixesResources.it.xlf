@@ -17,6 +17,11 @@
         <target state="translated">Aggiungi 'this.'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_trailing_comma">
+        <source>Add trailing comma</source>
+        <target state="new">Add trailing comma</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Assign_to_0">
         <source>Assign to '{0}'</source>
         <target state="translated">Assegna a '{0}'</target>

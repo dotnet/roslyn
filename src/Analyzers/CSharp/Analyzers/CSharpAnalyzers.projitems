@@ -34,6 +34,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)NewLines\ConstructorInitializerPlacement\ConstructorInitializerPlacementDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NewLines\MultipleBlankLines\CSharpMultipleBlankLinesDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MatchFolderAndNamespace\CSharpMatchFolderAndNamespaceDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PreferTrailingComma\PreferTrailingCommaDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveRedundantEquality\CSharpRemoveRedundantEqualityDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryDiscardDesignation\CSharpRemoveUnnecessaryDiscardDesignationDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryLambdaExpression\CSharpRemoveUnnecessaryLambdaExpressionDiagnosticAnalyzer.cs" />

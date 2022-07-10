@@ -383,4 +383,7 @@
   <data name="Remove_redundant_nullable_directive" xml:space="preserve">
     <value>Remove redundant nullable directive</value>
   </data>
+  <data name="Missing_trailing_comma" xml:space="preserve">
+    <value>Missing trailing comma</value>
+  </data>
 </root>

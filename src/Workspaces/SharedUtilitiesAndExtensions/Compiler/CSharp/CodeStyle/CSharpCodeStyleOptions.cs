@@ -334,6 +334,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             "csharp_style_prefer_method_group_conversion",
             "TextEditor.CSharp.Specific.PreferMethodGroupConversion");
 
+        public static readonly Option2<CodeStyleOption2<bool>> PreferTrailingComma = CreateOption(
+            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferTrailingComma),
+            defaultValue: s_trueWithSilentEnforcement,
+            "csharp_style_prefer_trailing_comma",
+            $"TextEditor.CSharp.Specific.{nameof(PreferTrailingComma)}");
+
         public static readonly Option2<CodeStyleOption2<bool>> PreferTopLevelStatements = CreateOption(
             CSharpCodeStyleOptionGroups.CodeBlockPreferences, nameof(PreferTopLevelStatements),
             CSharpSyntaxFormattingOptions.Default.PreferTopLevelStatements,

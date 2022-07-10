@@ -38,5 +38,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
         Protected Overrides Function IsValidContainingStatement(node As StatementSyntax) As Boolean
             Return True
         End Function
+
+        Protected Overrides Function PreferTrailingComma(context As SyntaxNodeAnalysisContext) As Boolean
+            Return False
+        End Function
     End Class
 End Namespace

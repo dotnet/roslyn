@@ -1949,6 +1949,9 @@ Additional information: {1}</value>
   <data name="Prefer_top_level_statements" xml:space="preserve">
     <value>Prefer top-level statements</value>
   </data>
+  <data name="Prefer_trailing_comma" xml:space="preserve">
+    <value>Prefer trailing comma</value>
+  </data>
   <data name="_0_1" xml:space="preserve">
     <value>{0} ({1})</value>
     <comment>Used to show a symbol name, followed by the project name it came from</comment>

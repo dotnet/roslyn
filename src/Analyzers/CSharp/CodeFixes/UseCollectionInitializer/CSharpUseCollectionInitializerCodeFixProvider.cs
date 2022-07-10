@@ -38,24 +38,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
         protected override StatementSyntax GetNewStatement(
             StatementSyntax statement,
             BaseObjectCreationExpressionSyntax objectCreation,
-            ImmutableArray<ExpressionStatementSyntax> matches)
+            ImmutableArray<ExpressionStatementSyntax> matches,
+            bool addTrailingComma)
         {
             return statement.ReplaceNode(
                 objectCreation,
-                GetNewObjectCreation(objectCreation, matches));
+                GetNewObjectCreation(objectCreation, matches, addTrailingComma));
         }
 
         private static BaseObjectCreationExpressionSyntax GetNewObjectCreation(
             BaseObjectCreationExpressionSyntax objectCreation,
-            ImmutableArray<ExpressionStatementSyntax> matches)
+            ImmutableArray<ExpressionStatementSyntax> matches,
+            bool addTrailingComma)
         {
             return UseInitializerHelpers.GetNewObjectCreation(
-                objectCreation, CreateExpressions(objectCreation, matches));
+                objectCreation, CreateExpressions(objectCreation, matches, addTrailingComma));
         }
 
         private static SeparatedSyntaxList<ExpressionSyntax> CreateExpressions(
             BaseObjectCreationExpressionSyntax objectCreation,
-            ImmutableArray<ExpressionStatementSyntax> matches)
+            ImmutableArray<ExpressionStatementSyntax> matches,
+            bool addTrailingComma)
         {
             using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
 
@@ -72,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                     .WithoutTrivia()
                     .WithPrependedLeadingTrivia(newTrivia);
 
-                if (i < matches.Length - 1)
+                if (i < matches.Length - 1 || addTrailingComma)
                 {
                     nodesAndTokens.Add(newExpression);
                     var commaToken = SyntaxFactory.Token(SyntaxKind.CommaToken)

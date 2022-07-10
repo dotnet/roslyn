@@ -29,6 +29,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)NewLines\MultipleBlankLines\MultipleBlankLinesTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MatchFolderAndNamespace\CSharpMatchFolderAndNamespaceTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Nullable\CSharpDeclareAsNullableCodeFixTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PreferTrailingComma\PreferTrailingCommaTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryCast\RemoveUnnecessaryCastTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryCast\RemoveUnnecessaryCastTests_FixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryDiscardDesignation\RemoveUnnecessaryDiscardDesignationTests.cs" />

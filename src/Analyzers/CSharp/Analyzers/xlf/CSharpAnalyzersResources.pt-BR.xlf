@@ -87,6 +87,11 @@
         <target state="translated">Diretiva using em local incorreto</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Missing_trailing_comma">
+        <source>Missing trailing comma</source>
+        <target state="new">Missing trailing comma</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Move_misplaced_using_directives">
         <source>Move misplaced using directives</source>
         <target state="translated">Mover diretivas using no local incorreto</target>

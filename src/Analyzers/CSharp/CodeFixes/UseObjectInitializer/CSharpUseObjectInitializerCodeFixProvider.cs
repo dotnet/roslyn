@@ -32,24 +32,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
 
         protected override StatementSyntax GetNewStatement(
             StatementSyntax statement, BaseObjectCreationExpressionSyntax objectCreation,
-            ImmutableArray<Match<ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, ExpressionStatementSyntax>> matches)
+            ImmutableArray<Match<ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, ExpressionStatementSyntax>> matches,
+            bool addTrailingComma)
         {
             return statement.ReplaceNode(
                 objectCreation,
-                GetNewObjectCreation(objectCreation, matches));
+                GetNewObjectCreation(objectCreation, matches, addTrailingComma));
         }
 
         private static BaseObjectCreationExpressionSyntax GetNewObjectCreation(
             BaseObjectCreationExpressionSyntax objectCreation,
-            ImmutableArray<Match<ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, ExpressionStatementSyntax>> matches)
+            ImmutableArray<Match<ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, ExpressionStatementSyntax>> matches,
+            bool addTrailingComma)
         {
             return UseInitializerHelpers.GetNewObjectCreation(
-                objectCreation, CreateExpressions(objectCreation, matches));
+                objectCreation, CreateExpressions(objectCreation, matches, addTrailingComma));
         }
 
         private static SeparatedSyntaxList<ExpressionSyntax> CreateExpressions(
                 BaseObjectCreationExpressionSyntax objectCreation,
-                ImmutableArray<Match<ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, ExpressionStatementSyntax>> matches)
+                ImmutableArray<Match<ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, ExpressionStatementSyntax>> matches,
+                bool addTrailingComma)
         {
             using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
 
@@ -67,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
                 var newAssignment = assignment.WithLeft(
                     match.MemberAccessExpression.Name.WithLeadingTrivia(newTrivia));
 
-                if (i < matches.Length - 1)
+                if (i < matches.Length - 1 || addTrailingComma)
                 {
                     nodesAndTokens.Add(newAssignment);
                     var commaToken = SyntaxFactory.Token(SyntaxKind.CommaToken)
