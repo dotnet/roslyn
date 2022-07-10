@@ -10502,11 +10502,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="translated">GetDeclarationName вызывается для узла объявления, который может содержать множество операторов объявления переменных.</target>
         <note />
       </trans-unit>
-      <trans-unit id="TreeNotPartOfCompilation">
-        <source>tree not part of compilation</source>
-        <target state="translated">дерево не является частью компиляции</target>
-        <note />
-      </trans-unit>
       <trans-unit id="PositionIsNotWithinSyntax">
         <source>Position is not within syntax tree with full span {0}</source>
         <target state="translated">Позиция не находится в пределах синтаксического дерева с полным диапазоном {0}.</target>

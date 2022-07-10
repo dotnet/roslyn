@@ -16,13 +16,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             private readonly ConflictResolution _conflicts;
 
             public InlineRenameReplacementInfo(ConflictResolution conflicts)
-                => _conflicts = conflicts;
+            {
+                Contract.ThrowIfFalse(conflicts.IsSuccessful);
+                _conflicts = conflicts;
+            }
 
             public IEnumerable<DocumentId> DocumentIds => _conflicts.DocumentIds;
 
-            public Solution NewSolution => _conflicts.NewSolution;
+            public Solution NewSolution => _conflicts.NewSolution!;
 
-            public bool ReplacementTextValid => _conflicts.ReplacementTextValid;
+            public bool ReplacementTextValid => _conflicts.ReplacementTextValid!.Value;
 
             public IEnumerable<InlineRenameReplacement> GetReplacements(DocumentId documentId)
             {

@@ -7,6 +7,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -4042,6 +4043,27 @@ class C
                 //         _ = "b"u8 + new C();
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, expression).WithArguments("+", "System.ReadOnlySpan<byte>", "C").WithLocation(7, 13)
                 );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly)), WorkItem(62361, "https://github.com/dotnet/roslyn/issues/62361")]
+        public void DeeplyNestedConcatenation()
+        {
+            var longConcat = new StringBuilder();
+            for (int i = 0; i < 800; i++)
+            {
+                longConcat.Append(""" "a"u8 + """);
+            }
+
+            var source = $$"""
+System.Console.Write(X.Y.Length);
+
+class X
+{
+    public static System.ReadOnlySpan<byte> Y => {{longConcat}} "a"u8;
+}
+""";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+            CompileAndVerify(comp, expectedOutput: "801", verify: Verification.Fails).VerifyDiagnostics();
         }
     }
 }
