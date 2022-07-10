@@ -547,7 +547,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// This method can generate diagnostics for few cases where we have an invalid target specifier and the parser hasn't generated the necessary diagnostics.
         /// It should not perform any bind operations as it can lead to an attribute binding cycle.
         /// </remarks>
-        internal ImmutableArray<AttributeSyntax> GetAttributesToBind(
+        private ImmutableArray<AttributeSyntax> GetAttributesToBind(
             OneOrMany<SyntaxList<AttributeListSyntax>> attributeDeclarationSyntaxLists,
             AttributeLocation symbolPart,
             BindingDiagnosticBag diagnostics,
