@@ -694,5 +694,49 @@ class C
     }
 }");
         }
+
+        [WorkItem(62473, "https://github.com/dotnet/roslyn/issues/62473")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestPointerCannotUseCoalesceAssignment()
+        {
+            // The purpose of this test is to keep track of whether the language
+            // allows ??= for pointers in future. It should be kept in 'Preview'.
+            // If the test failed because language added support and this is no longer
+            // an error. The behavior for test 'TestPointer' below should be updated as well to suggest ??=
+            // Note that, when ??= is supported for pointers, the analyzer should check the language version which supports it.
+            await TestMissingAsync("""
+                unsafe class Program
+                {
+                    private static void Main()
+                    {
+                        byte* ptr = null;
+                        {|CS0019:ptr ??= Get()|};
+                    }
+
+                    static byte* Get() => null;
+                }
+                """, LanguageVersion.Preview);
+        }
+
+        [WorkItem(62473, "https://github.com/dotnet/roslyn/issues/62473")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestPointer()
+        {
+            await TestMissingAsync("""
+                unsafe class Program
+                {
+                    private static void Main()
+                    {
+                        byte* ptr = null;
+                        if (ptr is null)
+                        {
+                            ptr = Get();
+                        }
+                    }
+
+                    static byte* Get() => null;
+                }
+                """, LanguageVersion.Preview);
+        }
     }
 }

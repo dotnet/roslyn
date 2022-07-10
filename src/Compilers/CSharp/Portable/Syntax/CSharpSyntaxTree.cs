@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(HasCompilationUnitRoot);
 
-                return Options.Kind == SourceCodeKind.Script && GetCompilationUnitRoot().GetReferenceDirectives().Count > 0;
+                return Options.Kind == SourceCodeKind.Script && GetCompilationUnitRoot().HasReferenceDirectives;
             }
         }
 
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (Options.Kind == SourceCodeKind.Script)
                 {
                     var compilationUnitRoot = GetCompilationUnitRoot();
-                    return compilationUnitRoot.GetReferenceDirectives().Count > 0 || compilationUnitRoot.GetLoadDirectives().Count > 0;
+                    return compilationUnitRoot.HasReferenceDirectives || compilationUnitRoot.HasLoadDirectives;
                 }
 
                 return false;

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp
 {
     internal static class OmniSharpRenamer
     {
-        public readonly record struct RenameResult(Solution Solution, string? ErrorMessage);
+        public readonly record struct RenameResult(Solution? Solution, string? ErrorMessage);
 
         public static async Task<RenameResult> RenameSymbolAsync(
             Solution solution,
