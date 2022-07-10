@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Classification
             array.Add(info.SyntaxKinds.StringLiteralToken);
             array.Add(info.SyntaxKinds.InterpolatedStringTextToken);
 
-            array.AsRef().AddIfNotNull(info.SyntaxKinds.UTF8StringLiteralToken);
+            array.AsRef().AddIfNotNull(info.SyntaxKinds.Utf8StringLiteralToken);
 
             _supportedKinds = array.ToImmutableAndClear();
         }

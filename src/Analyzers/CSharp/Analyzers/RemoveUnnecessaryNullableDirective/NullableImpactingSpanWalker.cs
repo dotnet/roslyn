@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.RemoveUnnecessaryNullableDirective
@@ -66,6 +67,60 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.RemoveUnnecessaryNullableDirec
             return false;
         }
 
+        private static bool IsLanguageRestrictedToNonNullForm(TypeSyntax node)
+        {
+            // Simplify syntax checks by walking up qualified names to an equivalent parent node.
+            node = WalkUpCurrentQualifiedName(node);
+
+            if (node.IsParentKind(SyntaxKind.QualifiedName, out QualifiedNameSyntax? qualifiedName)
+                && qualifiedName.Left == node)
+            {
+                // Cannot dot off a nullable reference type
+                return true;
+            }
+
+            if (node.IsParentKind(SyntaxKind.UsingDirective))
+            {
+                // Using directives cannot directly reference a nullable reference type
+                return true;
+            }
+
+            if (node.IsParentKind(SyntaxKind.SimpleBaseType))
+            {
+                // Cannot derive directly from a nullable reference type
+                return true;
+            }
+
+            if (node.IsParentKind(SyntaxKind.NamespaceDeclaration, SyntaxKind.FileScopedNamespaceDeclaration))
+            {
+                // Namespace names cannot be nullable reference types
+                return true;
+            }
+
+            if (node.IsParentKind(SyntaxKind.NameEquals) && node.Parent.IsParentKind(SyntaxKind.UsingDirective))
+            {
+                // This is the alias or the target type of a using alias directive, neither of which can be nullable
+                //
+                //   using CustomException = System.Exception;
+                //         ^^^^^^^^^^^^^^^   ^^^^^^^^^^^^^^^^
+                return true;
+            }
+
+            return false;
+
+            // If this is Y in X.Y, walk up to X.Y
+            static TypeSyntax WalkUpCurrentQualifiedName(TypeSyntax node)
+            {
+                while (node.IsParentKind(SyntaxKind.QualifiedName, out QualifiedNameSyntax? qualifiedName)
+                    && qualifiedName.Right == node)
+                {
+                    node = qualifiedName;
+                }
+
+                return node;
+            }
+        }
+
         public void Dispose()
         {
         }
@@ -75,7 +130,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.RemoveUnnecessaryNullableDirec
             if (IsIgnored(node))
                 return;
 
-            if (node is TypeSyntax typeSyntax)
+            if (node is TypeSyntax typeSyntax
+                && !IsLanguageRestrictedToNonNullForm(typeSyntax))
             {
                 if (typeSyntax.IsVar)
                     return;
@@ -93,7 +149,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.RemoveUnnecessaryNullableDirec
                 }
 
                 var symbolInfo = _semanticModel.GetSymbolInfo(typeSyntax, _cancellationToken);
-                if (symbolInfo.Symbol is INamedTypeSymbol { IsValueType: true, IsGenericType: false })
+                if (symbolInfo.Symbol.IsKind(SymbolKind.Namespace))
+                {
+                    // Namespaces cannot be nullable
+                    return;
+                }
+                else if (symbolInfo.Symbol is INamedTypeSymbol { IsValueType: true, IsGenericType: false })
                 {
                     return;
                 }

@@ -322,10 +322,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
         private void DisposeVisualStudioServices()
         {
-            if (_workspace != null)
-            {
-                _workspace.Services.GetRequiredService<VisualStudioMetadataReferenceManager>().DisconnectFromVisualStudioNativeServices();
-            }
+            _workspace?.Services.GetRequiredService<VisualStudioMetadataReferenceManager>().DisconnectFromVisualStudioNativeServices();
         }
 
         private async Task LoadAnalyzerNodeComponentsAsync(CancellationToken cancellationToken)

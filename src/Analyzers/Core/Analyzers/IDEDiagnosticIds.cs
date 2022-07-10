@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string ForEachCastDiagnosticId = "IDE0220";
 
-        public const string UseUTF8StringLiteralDiagnosticId = "IDE0230";
+        public const string UseUtf8StringLiteralDiagnosticId = "IDE0230";
 
         public const string RemoveRedundantNullableDirectiveDiagnosticId = "IDE0240";
         public const string RemoveUnnecessaryNullableDirectiveDiagnosticId = "IDE0241";

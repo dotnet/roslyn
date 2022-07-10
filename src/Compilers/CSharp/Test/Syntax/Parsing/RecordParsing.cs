@@ -12,14 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public sealed class RecordParsingTests : ParsingTests
     {
-        private SyntaxTree UsingTree(string text, CSharpParseOptions? options, params DiagnosticDescription[] expectedErrors)
-        {
-            var tree = SyntaxFactory.ParseSyntaxTree(text, options);
-            UsingNode(text, tree.GetCompilationUnitRoot(), expectedErrors);
-            return tree;
-        }
-
-        private SyntaxTree UsingTree(string text, params DiagnosticDescription[] expectedErrors)
+        private new SyntaxTree UsingTree(string text, params DiagnosticDescription[] expectedErrors)
             => UsingTree(text, TestOptions.Regular9, expectedErrors);
 
         private new void UsingExpression(string text, params DiagnosticDescription[] expectedErrors)
@@ -3894,6 +3887,68 @@ class C(int X, int Y)
                         N(SyntaxKind.RecordKeyword);
                         N(SyntaxKind.StructKeyword);
                         N(SyntaxKind.IdentifierToken, "S");
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.EndOfFileToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs)]
+        public void RecordParsing_Ref()
+        {
+            var text = "ref record R;";
+            UsingTree(text, options: TestOptions.RegularPreview);
+
+            verifyParsedAsRecord();
+
+            UsingTree(text, options: TestOptions.Regular8,
+                // (1,1): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // ref record R;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "ref record R;").WithArguments("top-level statements", "9.0").WithLocation(1, 1));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.RefType);
+                            {
+                                N(SyntaxKind.RefKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "record");
+                                }
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "R");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
+            UsingTree(text, options: TestOptions.Regular9);
+
+            verifyParsedAsRecord();
+
+            void verifyParsedAsRecord()
+            {
+                N(SyntaxKind.CompilationUnit);
+                {
+                    N(SyntaxKind.RecordDeclaration);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.RecordKeyword);
+                        N(SyntaxKind.IdentifierToken, "R");
                         N(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.EndOfFileToken);

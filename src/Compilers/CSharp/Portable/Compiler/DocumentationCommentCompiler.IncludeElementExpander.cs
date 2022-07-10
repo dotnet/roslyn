@@ -536,7 +536,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     "Why are we processing a documentation comment that is not attached to a member declaration?");
 
                 var nameDiagnostics = BindingDiagnosticBag.GetInstance(_diagnostics);
-                Binder binder = MakeNameBinder(isParameter, isTypeParameterRef, _memberSymbol, _compilation);
+                Binder binder = MakeNameBinder(isParameter, isTypeParameterRef, _memberSymbol, _compilation, originatingSyntax.SyntaxTree);
                 DocumentationCommentCompiler.BindName(attrSyntax, binder, _memberSymbol, ref _documentedParameters, ref _documentedTypeParameters, nameDiagnostics);
                 RecordBindingDiagnostics(nameDiagnostics, sourceLocation); // Respects DocumentationMode.
                 nameDiagnostics.Free();
@@ -545,9 +545,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // NOTE: We're not sharing code with the BinderFactory visitor, because we already have the
             // member symbol in hand, which makes things much easier.
-            private static Binder MakeNameBinder(bool isParameter, bool isTypeParameterRef, Symbol memberSymbol, CSharpCompilation compilation)
+            private static Binder MakeNameBinder(bool isParameter, bool isTypeParameterRef, Symbol memberSymbol, CSharpCompilation compilation, SyntaxTree syntaxTree)
             {
-                Binder binder = new BuckStopsHereBinder(compilation);
+                Binder binder = new BuckStopsHereBinder(compilation, syntaxTree);
 
                 // All binders should have a containing symbol.
                 Symbol containingSymbol = memberSymbol.ContainingSymbol;

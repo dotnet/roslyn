@@ -7,6 +7,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -181,9 +182,9 @@ class C
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics(
-                // (6,13): error CS9100: The input string cannot be converted into the equivalent UTF8 byte representation. Unable to translate Unicode character \\uD801 at index 6 to specified code page.
+                // (6,13): error CS9100: The input string cannot be converted into the equivalent UTF-8 byte representation. Unable to translate Unicode character \\uD801 at index 6 to specified code page.
                 //         _ = "hello \uD801\uD802"u8;
-                Diagnostic(ErrorCode.ERR_CannotBeConvertedToUTF8, @"""hello \uD801\uD802""u8").WithArguments(@"Unable to translate Unicode character \\uD801 at index 6 to specified code page.").WithLocation(6, 13)
+                Diagnostic(ErrorCode.ERR_CannotBeConvertedToUtf8, @"""hello \uD801\uD802""u8").WithArguments(@"Unable to translate Unicode character \\uD801 at index 6 to specified code page.").WithLocation(6, 13)
                 );
         }
 
@@ -205,10 +206,10 @@ class C
             comp.VerifyEmitDiagnostics(
                 // (7,13): error CS9026: The input string cannot be converted into the equivalent UTF-8 byte representation. Unable to translate Unicode character \\uD83D at index 0 to specified code page.
                 //         _ = "\uD83D"u8 + "\uDE00"u8;
-                Diagnostic(ErrorCode.ERR_CannotBeConvertedToUTF8, @"""\uD83D""u8").WithArguments(@"Unable to translate Unicode character \\uD83D at index 0 to specified code page.").WithLocation(7, 13),
+                Diagnostic(ErrorCode.ERR_CannotBeConvertedToUtf8, @"""\uD83D""u8").WithArguments(@"Unable to translate Unicode character \\uD83D at index 0 to specified code page.").WithLocation(7, 13),
                 // (7,26): error CS9026: The input string cannot be converted into the equivalent UTF-8 byte representation. Unable to translate Unicode character \\uDE00 at index 0 to specified code page.
                 //         _ = "\uD83D"u8 + "\uDE00"u8;
-                Diagnostic(ErrorCode.ERR_CannotBeConvertedToUTF8, @"""\uDE00""u8").WithArguments(@"Unable to translate Unicode character \\uDE00 at index 0 to specified code page.").WithLocation(7, 26)
+                Diagnostic(ErrorCode.ERR_CannotBeConvertedToUtf8, @"""\uDE00""u8").WithArguments(@"Unable to translate Unicode character \\uDE00 at index 0 to specified code page.").WithLocation(7, 26)
                 );
         }
 
@@ -1446,7 +1447,7 @@ class C
         [ConditionalTheory(typeof(CoreClrOnly))]
         [InlineData("u8")]
         [InlineData("U8")]
-        public void UTF8StringLiteral_01(string suffix)
+        public void Utf8StringLiteral_01(string suffix)
         {
             var source = @"
 using System;
@@ -1499,7 +1500,7 @@ class C
         [ConditionalTheory(typeof(CoreClrOnly))]
         [InlineData("u8")]
         [InlineData("U8")]
-        public void UTF8StringLiteral_02(string suffix)
+        public void Utf8StringLiteral_02(string suffix)
         {
             var source = @"
 using System;
@@ -1552,7 +1553,7 @@ class C
         [ConditionalTheory(typeof(CoreClrOnly))]
         [InlineData("u8")]
         [InlineData("U8")]
-        public void UTF8StringLiteral_03(string suffix)
+        public void Utf8StringLiteral_03(string suffix)
         {
             var source = @"
 using System;
@@ -1608,7 +1609,7 @@ class C
         [ConditionalTheory(typeof(CoreClrOnly))]
         [InlineData("u8")]
         [InlineData("U8")]
-        public void UTF8StringLiteral_04(string suffix)
+        public void Utf8StringLiteral_04(string suffix)
         {
             var source = @"
 using System;
@@ -1674,7 +1675,7 @@ class C
         [ConditionalTheory(typeof(CoreClrOnly))]
         [InlineData("u8")]
         [InlineData("U8")]
-        public void UTF8StringLiteral_01_InPlaceCtorCall(string suffix)
+        public void Utf8StringLiteral_01_InPlaceCtorCall(string suffix)
         {
             var source = @"
 using System;
@@ -2455,7 +2456,7 @@ class C
 
 
 
-    [UTF8(""3""U8)]
+    [Utf8(""3""U8)]
     static void M03(){}
 
 
@@ -2464,23 +2465,23 @@ class C
 
 
 
-    [UTF8((byte[])""3""U8)]
+    [Utf8((byte[])""3""U8)]
     static void M06(){}
 }
 
-public class UTF8Attribute : System.Attribute
+public class Utf8Attribute : System.Attribute
 {
-    public UTF8Attribute(byte[] x) {}
+    public Utf8Attribute(byte[] x) {}
 }
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
 
             comp.VerifyEmitDiagnostics(
                 // (13,11): error CS1503: Argument 1: cannot convert from 'System.ReadOnlySpan<byte>' to 'byte[]'
-                //     [UTF8("3"U8)]
+                //     [Utf8("3"U8)]
                 Diagnostic(ErrorCode.ERR_BadArgType, @"""3""U8").WithArguments("1", "System.ReadOnlySpan<byte>", "byte[]").WithLocation(13, 11),
                 // (22,11): error CS0030: Cannot convert type 'System.ReadOnlySpan<byte>' to 'byte[]'
-                //     [UTF8((byte[])"3"U8)]
+                //     [Utf8((byte[])"3"U8)]
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, @"(byte[])""3""U8").WithArguments("System.ReadOnlySpan<byte>", "byte[]").WithLocation(22, 11)
                 );
         }
@@ -2500,7 +2501,7 @@ class C
 
 
 
-    [UTF8(""3""U8)]
+    [Utf8(""3""U8)]
     static void M03(){}
 
 
@@ -2509,26 +2510,26 @@ class C
 
 
 
-    [UTF8((Span<byte>)""3""U8)]
+    [Utf8((Span<byte>)""3""U8)]
     static void M06(){}
 }
 
-public class UTF8Attribute : System.Attribute
+public class Utf8Attribute : System.Attribute
 {
-    public UTF8Attribute(Span<byte> x) {}
+    public Utf8Attribute(Span<byte> x) {}
 }
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
 
             comp.VerifyEmitDiagnostics(
                 // (13,11): error CS1503: Argument 1: cannot convert from 'System.ReadOnlySpan<byte>' to 'System.Span<byte>'
-                //     [UTF8("3"U8)]
+                //     [Utf8("3"U8)]
                 Diagnostic(ErrorCode.ERR_BadArgType, @"""3""U8").WithArguments("1", "System.ReadOnlySpan<byte>", "System.Span<byte>").WithLocation(13, 11),
                 // (22,6): error CS0181: Attribute constructor parameter 'x' has type 'Span<byte>', which is not a valid attribute parameter type
-                //     [UTF8((Span<byte>)"3"U8)]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "UTF8").WithArguments("x", "System.Span<byte>").WithLocation(22, 6),
+                //     [Utf8((Span<byte>)"3"U8)]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Utf8").WithArguments("x", "System.Span<byte>").WithLocation(22, 6),
                 // (22,11): error CS0030: Cannot convert type 'System.ReadOnlySpan<byte>' to 'System.Span<byte>'
-                //     [UTF8((Span<byte>)"3"U8)]
+                //     [Utf8((Span<byte>)"3"U8)]
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, @"(Span<byte>)""3""U8").WithArguments("System.ReadOnlySpan<byte>", "System.Span<byte>").WithLocation(22, 11)
                 );
         }
@@ -2548,7 +2549,7 @@ class C
 
 
 
-    [UTF8(""3""U8)]
+    [Utf8(""3""U8)]
     static void M03(){}
 
 
@@ -2557,24 +2558,24 @@ class C
 
 
 
-    [UTF8((ReadOnlySpan<byte>)""3""U8)]
+    [Utf8((ReadOnlySpan<byte>)""3""U8)]
     static void M06(){}
 }
 
-public class UTF8Attribute : System.Attribute
+public class Utf8Attribute : System.Attribute
 {
-    public UTF8Attribute(ReadOnlySpan<byte> x) {}
+    public Utf8Attribute(ReadOnlySpan<byte> x) {}
 }
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
 
             comp.VerifyEmitDiagnostics(
                 // (13,6): error CS0181: Attribute constructor parameter 'x' has type 'ReadOnlySpan<byte>', which is not a valid attribute parameter type
-                //     [UTF8("3"U8)]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "UTF8").WithArguments("x", "System.ReadOnlySpan<byte>").WithLocation(13, 6),
+                //     [Utf8("3"U8)]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Utf8").WithArguments("x", "System.ReadOnlySpan<byte>").WithLocation(13, 6),
                 // (22,6): error CS0181: Attribute constructor parameter 'x' has type 'ReadOnlySpan<byte>', which is not a valid attribute parameter type
-                //     [UTF8((ReadOnlySpan<byte>)"3"U8)]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "UTF8").WithArguments("x", "System.ReadOnlySpan<byte>").WithLocation(22, 6)
+                //     [Utf8((ReadOnlySpan<byte>)"3"U8)]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Utf8").WithArguments("x", "System.ReadOnlySpan<byte>").WithLocation(22, 6)
                 );
         }
 
@@ -3918,7 +3919,7 @@ class C
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (7,13): error CS9047: Operator '+' cannot be applied to operands of type 'ReadOnlySpan<byte>' and 'ReadOnlySpan<byte>' that are not UTF8 byte representations
+                // (7,13): error CS9047: Operator '+' cannot be applied to operands of type 'ReadOnlySpan<byte>' and 'ReadOnlySpan<byte>' that are not UTF-8 byte representations
                 //         _ = ReadOnlySpan<byte>.Empty + ReadOnlySpan<byte>.Empty;
                 Diagnostic(ErrorCode.ERR_BadBinaryReadOnlySpanConcatenation, expression).WithArguments("+", "System.ReadOnlySpan<byte>", "System.ReadOnlySpan<byte>").WithLocation(7, 13)
                 );
@@ -4042,6 +4043,27 @@ class C
                 //         _ = "b"u8 + new C();
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, expression).WithArguments("+", "System.ReadOnlySpan<byte>", "C").WithLocation(7, 13)
                 );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly)), WorkItem(62361, "https://github.com/dotnet/roslyn/issues/62361")]
+        public void DeeplyNestedConcatenation()
+        {
+            var longConcat = new StringBuilder();
+            for (int i = 0; i < 800; i++)
+            {
+                longConcat.Append(""" "a"u8 + """);
+            }
+
+            var source = $$"""
+System.Console.Write(X.Y.Length);
+
+class X
+{
+    public static System.ReadOnlySpan<byte> Y => {{longConcat}} "a"u8;
+}
+""";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+            CompileAndVerify(comp, expectedOutput: "801", verify: Verification.Fails).VerifyDiagnostics();
         }
     }
 }

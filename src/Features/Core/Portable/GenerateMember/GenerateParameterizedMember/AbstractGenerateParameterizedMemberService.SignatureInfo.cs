@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             private IDictionary<ITypeSymbol, ITypeParameterSymbol> GetTypeArgumentToTypeParameterMap(
                 CancellationToken cancellationToken)
             {
-                return _typeArgumentToTypeParameterMap ?? (_typeArgumentToTypeParameterMap = CreateTypeArgumentToTypeParameterMap(cancellationToken));
+                return _typeArgumentToTypeParameterMap ??= CreateTypeArgumentToTypeParameterMap(cancellationToken);
             }
 
             private IDictionary<ITypeSymbol, ITypeParameterSymbol> CreateTypeArgumentToTypeParameterMap(

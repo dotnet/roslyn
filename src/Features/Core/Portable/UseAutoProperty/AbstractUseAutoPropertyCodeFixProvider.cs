@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 nonConflictSymbols: ImmutableHashSet.Create<ISymbol>(propertySymbol),
                 cancellationToken).ConfigureAwait(false);
 
-            Contract.ThrowIfTrue(resolution.ErrorMessage != null);
+            Contract.ThrowIfFalse(resolution.IsSuccessful);
 
             solution = resolution.NewSolution;
 

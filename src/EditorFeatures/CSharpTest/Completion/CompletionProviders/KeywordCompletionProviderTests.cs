@@ -684,5 +684,151 @@ $@"class C
 
             await VerifyItemIsAbsentAsync(markup, "required");
         }
+
+        [Fact]
+        public async Task SuggestFileOnTypes()
+        {
+            var markup = $$"""
+                $$ class C { }
+                """;
+
+            await VerifyItemExistsAsync(markup, "file");
+        }
+
+        [Fact]
+        public async Task DoNotSuggestFileAfterFile()
+        {
+            var markup = $$"""
+                file $$
+                """;
+
+            await VerifyItemIsAbsentAsync(markup, "file");
+        }
+
+        [Fact]
+        public async Task SuggestFileAfterReadonly()
+        {
+            // e.g. 'readonly file struct X { }'
+            var markup = $$"""
+                readonly $$
+                """;
+
+            await VerifyItemExistsAsync(markup, "file");
+        }
+
+        [Fact]
+        public async Task SuggestFileBeforeFileType()
+        {
+            var markup = $$"""
+                $$
+
+                file class C { }
+                """;
+
+            // it might seem like we want to prevent 'file file class',
+            // but it's likely the user is declaring a file type above an existing file type here.
+            await VerifyItemExistsAsync(markup, "file");
+        }
+
+        [Fact]
+        public async Task SuggestFileBeforeDelegate()
+        {
+            var markup = $$"""
+                $$ delegate
+                """;
+
+            await VerifyItemExistsAsync(markup, "file");
+        }
+
+        [Fact]
+        public async Task DoNotSuggestFileOnNestedTypes()
+        {
+            var markup = $$"""
+                class Outer
+                {
+                    $$ class C { }
+                }
+                """;
+
+            await VerifyItemIsAbsentAsync(markup, "file");
+        }
+
+        [Fact]
+        public async Task DoNotSuggestFileOnNonTypeMembers()
+        {
+            var markup = $$"""
+                class C
+                {
+                    $$
+                }
+                """;
+
+            await VerifyItemIsAbsentAsync(markup, "file");
+        }
+
+        [Theory]
+        [InlineData("public")]
+        [InlineData("internal")]
+        [InlineData("protected")]
+        [InlineData("private")]
+        public async Task DoNotSuggestFileAfterFilteredKeywords(string keyword)
+        {
+            var markup = $$"""
+                {{keyword}} $$
+                """;
+
+            await VerifyItemIsAbsentAsync(markup, "file");
+        }
+
+        [Theory]
+        [InlineData("public")]
+        [InlineData("internal")]
+        [InlineData("protected")]
+        [InlineData("private")]
+        public async Task DoNotSuggestFilteredKeywordsAfterFile(string keyword)
+        {
+            var markup = $$"""
+                file $$
+                """;
+
+            await VerifyItemIsAbsentAsync(markup, keyword);
+        }
+
+        [Fact]
+        public async Task SuggestFileInFileScopedNamespace()
+        {
+            var markup = $$"""
+                namespace NS;
+
+                $$
+                """;
+
+            await VerifyItemExistsAsync(markup, "file");
+        }
+
+        [Fact]
+        public async Task SuggestFileInNamespace()
+        {
+            var markup = $$"""
+                namespace NS
+                {
+                    $$
+                }
+                """;
+
+            await VerifyItemExistsAsync(markup, "file");
+        }
+
+        [Fact]
+        public async Task SuggestFileAfterClass()
+        {
+            var markup = $$"""
+                file class C { }
+
+                $$
+                """;
+
+            await VerifyItemExistsAsync(markup, "file");
+        }
     }
 }

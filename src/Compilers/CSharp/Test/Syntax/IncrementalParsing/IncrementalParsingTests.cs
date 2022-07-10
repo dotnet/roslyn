@@ -3257,6 +3257,43 @@ if (b) { }
             WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
         }
 
+        [Fact]
+        [WorkItem(62126, "https://github.com/dotnet/roslyn/issues/62126")]
+        public void StartAttributeOnABlock()
+        {
+            var source = @"
+using System;
+
+switch (getVirtualKey())
+{
+	case VirtualKey.Up or VirtualKey.Down or VirtualKey.Left or VirtualKey.Right:
+	{
+
+	}
+}
+
+// A local function to simulate get operation.
+static VirtualKey getVirtualKey() => VirtualKey.Up;
+
+
+enum VirtualKey
+{
+	Up,
+	Down,
+	Left,
+	Right
+}
+";
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var text = tree.GetText();
+            var span = new TextSpan(start: source.IndexOf(":") + 1, length: 0);
+            var change = new TextChange(span, "[");
+            text = text.WithChanges(change);
+            tree = tree.WithChangedText(text);
+            var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());
+            WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
+        }
+
         #endregion
 
         #region Helper functions

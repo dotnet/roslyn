@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis
                 _comparer = comparer;
                 _key = key;
                 _filterTable = table.GetStateTableOrEmpty<SyntaxNode>(_owner._filterKey).ToBuilder(stepName: null, trackIncrementalSteps);
-                _transformTable = table.GetStateTableOrEmpty<T>(_key).ToBuilder(_name, trackIncrementalSteps);
+                _transformTable = table.GetStateTableOrEmpty<T>(_key).ToBuilder(_name, trackIncrementalSteps, _comparer);
             }
 
             public void SaveStateAndFree(StateTableStore.Builder tables)
@@ -69,12 +69,10 @@ namespace Microsoft.CodeAnalysis
                 if (state == EntryState.Removed)
                 {
                     // mark both syntax *and* transform nodes removed
-                    if (_filterTable.TryRemoveEntries(TimeSpan.Zero, noInputStepsStepInfo, out ImmutableArray<SyntaxNode> removedNodes))
+                    if (_filterTable.TryRemoveEntries(TimeSpan.Zero, noInputStepsStepInfo, out var removedNodes))
                     {
-                        for (int i = 0; i < removedNodes.Length; i++)
-                        {
+                        for (int i = 0; i < removedNodes.Count; i++)
                             _transformTable.TryRemoveEntries(TimeSpan.Zero, noInputStepsStepInfo);
-                        }
                     }
                 }
                 else
@@ -82,15 +80,15 @@ namespace Microsoft.CodeAnalysis
                     Debug.Assert(model is object);
 
                     // get the syntax nodes from cache, or a syntax walk using the filter
-                    if (state != EntryState.Cached || !_filterTable.TryUseCachedEntries(TimeSpan.Zero, noInputStepsStepInfo, out ImmutableArray<SyntaxNode> nodes))
+                    if (state != EntryState.Cached || !_filterTable.TryUseCachedEntries(TimeSpan.Zero, noInputStepsStepInfo, out NodeStateTable<SyntaxNode>.TableEntry entry))
                     {
                         var stopwatch = SharedStopwatch.StartNew();
-                        nodes = getFilteredNodes(root.Value, _owner._filterFunc, cancellationToken);
-                        _filterTable.AddEntries(nodes, state, stopwatch.Elapsed, noInputStepsStepInfo, state);
+                        var nodes = getFilteredNodes(root.Value, _owner._filterFunc, cancellationToken);
+                        entry = _filterTable.AddEntries(nodes, state, stopwatch.Elapsed, noInputStepsStepInfo, state);
                     }
 
                     // now, using the obtained syntax nodes, run the transform
-                    foreach (SyntaxNode node in nodes)
+                    foreach (SyntaxNode node in entry)
                     {
                         var stopwatch = SharedStopwatch.StartNew();
                         var value = new GeneratorSyntaxContext(node, model, _owner._syntaxHelper);
