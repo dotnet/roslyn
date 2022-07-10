@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return new FailureInlineRenameInfo(EditorFeaturesResources.You_must_rename_an_identifier);
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
+            var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
 
             var tokenRenameInfo = RenameUtilities.GetTokenRenameInfo(semanticFacts, semanticModel, triggerToken, cancellationToken);
 

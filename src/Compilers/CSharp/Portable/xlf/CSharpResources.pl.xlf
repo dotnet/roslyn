@@ -10502,11 +10502,6 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
         <target state="translated">Wywołano metodę GetDeclarationName dla węzła deklaracji, który może zawierać wiele deklaratorów zmiennych.</target>
         <note />
       </trans-unit>
-      <trans-unit id="TreeNotPartOfCompilation">
-        <source>tree not part of compilation</source>
-        <target state="translated">drzewo nie jest częścią kompilacji</target>
-        <note />
-      </trans-unit>
       <trans-unit id="PositionIsNotWithinSyntax">
         <source>Position is not within syntax tree with full span {0}</source>
         <target state="translated">Pozycja nie znajduje się w drzewie składni o pełnym zasięgu {0}</target>

@@ -21,16 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         public SyntaxTreeTests(ITestOutputHelper output) : base(output) { }
 
-        protected SyntaxTree UsingTree(string text, CSharpParseOptions options, params DiagnosticDescription[] expectedErrors)
-        {
-            var tree = base.UsingTree(text, options);
-
-            var actualErrors = tree.GetDiagnostics();
-            actualErrors.Verify(expectedErrors);
-
-            return tree;
-        }
-
         // Diagnostic options on syntax trees are now obsolete
 #pragma warning disable CS0618
         [Fact]
@@ -271,7 +261,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void GlobalUsingDirective_02()
         {
             var test = "global using ns1;";
-
             UsingTree(test, TestOptions.Regular9,
                 // (1,1): error CS8773: Feature 'global using directive' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // global using ns1;

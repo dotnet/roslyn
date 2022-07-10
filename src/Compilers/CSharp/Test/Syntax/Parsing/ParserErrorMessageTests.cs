@@ -5710,8 +5710,7 @@ public class C
             var text =
 @"[One Two] // error: missing comma
 class TestClass { }";
-            var tree = UsingTree(text);
-            tree.GetDiagnostics().Verify(
+            var tree = UsingTree(text,
                 // (1,6): error CS1003: Syntax error, ',' expected
                 // [One Two] // error: missing comma
                 Diagnostic(ErrorCode.ERR_SyntaxError, "Two").WithArguments(",").WithLocation(1, 6)

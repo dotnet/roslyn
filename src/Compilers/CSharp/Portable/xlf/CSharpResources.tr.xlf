@@ -10502,11 +10502,6 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
         <target state="translated">Birden çok değişken bildirimcisi içerebilecek bir bildirim düğümü için GetDeclarationName çağrıldı.</target>
         <note />
       </trans-unit>
-      <trans-unit id="TreeNotPartOfCompilation">
-        <source>tree not part of compilation</source>
-        <target state="translated">ağaç derlemenin parçası değildir</target>
-        <note />
-      </trans-unit>
       <trans-unit id="PositionIsNotWithinSyntax">
         <source>Position is not within syntax tree with full span {0}</source>
         <target state="translated">Konum, tam kapsam {0} ile sözdizimi ağacı içinde değil</target>
