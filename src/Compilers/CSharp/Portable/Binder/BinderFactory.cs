@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // more than 50 items added before getting collected.
             _binderCache = new ConcurrentCache<BinderCacheKey, Binder>(50);
 
-            _buckStopsHereBinder = new BuckStopsHereBinder(compilation);
+            _buckStopsHereBinder = new BuckStopsHereBinder(compilation, syntaxTree);
         }
 
         internal SyntaxTree SyntaxTree

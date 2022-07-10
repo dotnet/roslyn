@@ -212,7 +212,7 @@
       is expected by the NET SDK used in the Workspace.MSBuild UnitTests. In order to test against the same verion of NuGet
       as our configured SDK, we must set the version to be the same.
      -->
-    <NuGetCommonVersion>6.3.0-preview.1.32</NuGetCommonVersion>
+    <NuGetCommonVersion>6.3.0-preview.2.73</NuGetCommonVersion>
     <NuGetConfigurationVersion>$(NuGetCommonVersion)</NuGetConfigurationVersion>
     <NuGetFrameworksVersion>$(NuGetCommonVersion)</NuGetFrameworksVersion>
     <NuGetPackagingVersion>$(NuGetCommonVersion)</NuGetPackagingVersion>
@@ -304,5 +304,9 @@
     -->
     <UsingToolMicrosoftNetCompilers Condition="'$(BootstrapBuildPath)' == ''">true</UsingToolMicrosoftNetCompilers>
     <UseVSTestRunner>true</UseVSTestRunner>
+  </PropertyGroup>
+  <PropertyGroup>
+    <!-- We should try to keep this version in sync with the version of app-local runtime in VS. -->
+    <MicrosoftNetCoreAppPackagesVersion>6.0.6</MicrosoftNetCoreAppPackagesVersion>
   </PropertyGroup>
 </Project>

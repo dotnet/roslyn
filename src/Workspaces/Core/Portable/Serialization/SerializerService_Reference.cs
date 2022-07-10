@@ -496,7 +496,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                 unsafe
                 {
                     metadata = ModuleMetadata.CreateFromMetadata(
-                        (IntPtr)unmanagedStream.PositionPointer, (int)unmanagedStream.Length, unmanagedStream, disposeOwner: true);
+                        (IntPtr)unmanagedStream.PositionPointer, (int)unmanagedStream.Length, unmanagedStream.Dispose);
                     lifeTimeObject = null;
                     return;
                 }

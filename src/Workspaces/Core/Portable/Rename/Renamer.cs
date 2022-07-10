@@ -54,12 +54,16 @@ namespace Microsoft.CodeAnalysis.Rename
 
             var resolution = await RenameSymbolAsync(solution, symbol, newName, options, CodeActionOptions.DefaultProvider, nonConflictSymbols: null, cancellationToken).ConfigureAwait(false);
 
-            // This is a public entry-point.  So if rename failed to resolve conflicts, we report that back to caller as
-            // an exception.
-            if (resolution.ErrorMessage != null)
+            if (resolution.IsSuccessful)
+            {
+                return resolution.NewSolution;
+            }
+            else
+            {
+                // This is a public entry-point.  So if rename failed to resolve conflicts, we report that back to caller as
+                // an exception.
                 throw new ArgumentException(resolution.ErrorMessage);
-
-            return resolution.NewSolution;
+            }
         }
 
         [Obsolete("Use overload taking RenameOptions")]
