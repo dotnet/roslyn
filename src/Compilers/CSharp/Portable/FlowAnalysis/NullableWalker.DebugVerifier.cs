@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //    _snapshotManager.VerifyNode(node);
                 //}
 
-                if (node is BoundExpression { Kind: not BoundKind.Attribute } expr )
+                if (node is BoundExpression expr)
                 {
                     return VisitExpressionWithStackGuard(ref _recursionDepth, expr);
                 }

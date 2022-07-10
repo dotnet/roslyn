@@ -1049,8 +1049,6 @@
     <Field Name="Symbol" Type="LocalFunctionSymbol"/>
     <Field Name="BlockBody" Type="BoundBlock?"/>
     <Field Name="ExpressionBody" Type="BoundBlock?"/>
-    <Field Name="BoundAttributes" Type="ImmutableArray&lt;BoundAttribute&gt;" Null="allow" />
-    <Field Name="ReturnBoundAttributes" Type="ImmutableArray&lt;BoundAttribute&gt;" Null="allow" />
   </Node>
 
   <Node Name="BoundNoOpStatement" Base="BoundStatement">
