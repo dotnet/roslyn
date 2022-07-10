@@ -1554,7 +1554,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private void EnsureAttributesAreBound()
         {
             if ((_lazySourceAttributesBag == null || !_lazySourceAttributesBag.IsSealed) &&
-                LoadAndValidateAttributes(OneOrMany.Create(GetAttributeDeclarations()), ref _lazySourceAttributesBag, out _))
+                LoadAndValidateAttributes(OneOrMany.Create(GetAttributeDeclarations()), ref _lazySourceAttributesBag))
             {
                 _state.NotePartComplete(CompletionPart.Attributes);
             }
@@ -1662,7 +1662,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _ => throw ExceptionUtilities.UnexpectedValue(attribute)
             };
 
-            LoadAndValidateAttributes(OneOrMany.Create(GetAttributeDeclarations()), ref attributesBag, out _, attributeMatchesOpt: attributeMatches);
+            LoadAndValidateAttributes(OneOrMany.Create(GetAttributeDeclarations()), ref attributesBag, attributeMatchesOpt: attributeMatches);
 
             return (CommonAssemblyWellKnownAttributeData?)attributesBag?.DecodedWellKnownAttributeData;
 
@@ -1713,7 +1713,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 attributesBag = null;
                 LoadAndValidateAttributes(
-                    OneOrMany.Create(GetAttributeDeclarations()), ref attributesBag, out _,
+                    OneOrMany.Create(GetAttributeDeclarations()), ref attributesBag,
                     attributeMatchesOpt: this.IsPossibleForwardedTypesAttribute,
                     beforeAttributePartBound: BeforePossibleForwardedTypesAttributePartBound,
                     afterAttributePartBound: AfterPossibleForwardedTypesAttributePartBound);

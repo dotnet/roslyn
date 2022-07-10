@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private CustomAttributesBag<CSharpAttributeData> GetAttributesBag()
         {
             if ((_lazyCustomAttributesBag == null || !_lazyCustomAttributesBag.IsSealed) &&
-                LoadAndValidateAttributes(OneOrMany.Create(this.AttributeDeclarationSyntaxList), ref _lazyCustomAttributesBag, out _))
+                LoadAndValidateAttributes(OneOrMany.Create(this.AttributeDeclarationSyntaxList), ref _lazyCustomAttributesBag))
             {
                 DeclaringCompilation.SymbolDeclaredEvent(this);
                 var wasCompletedThisThread = _state.NotePartComplete(CompletionPart.Attributes);

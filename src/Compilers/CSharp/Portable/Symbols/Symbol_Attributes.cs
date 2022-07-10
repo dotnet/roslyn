@@ -252,6 +252,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
+
+        internal bool LoadAndValidateAttributes(
+            OneOrMany<SyntaxList<AttributeListSyntax>> attributesSyntaxLists,
+            ref CustomAttributesBag<CSharpAttributeData>? lazyCustomAttributesBag,
+            AttributeLocation symbolPart = AttributeLocation.None,
+            bool earlyDecodingOnly = false,
+            Binder? binderOpt = null,
+            Func<AttributeSyntax, bool>? attributeMatchesOpt = null,
+            Action<AttributeSyntax>? beforeAttributePartBound = null,
+            Action<AttributeSyntax>? afterAttributePartBound = null)
+                => LoadAndValidateAttributes(
+                    attributesSyntaxLists, lazyCustomAttributesBag, out _, symbolPart, earlyDecodingOnly, binderOpt, attributeMatchesOpt, beforeAttributePartBound, afterAttributePartBound);
+
         /// <summary>
         /// This method does the following set of operations in the specified order:
         /// (1) GetAttributesToBind: Merge attributes from the given attributesSyntaxLists and filter out attributes by attribute target.
