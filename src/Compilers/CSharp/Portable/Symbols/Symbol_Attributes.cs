@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.PostDecodeWellKnownAttributes(attributeData, attributesToBind, diagnostics, symbolPart, wellKnownAttributeData);
 
-            removeObsoleteDiagnosticsForForwardedTypes(boundAttributes, attributesToBind, ref diagnostics);
+            removeObsoleteDiagnosticsForForwardedTypes(attributeData, attributesToBind, ref diagnostics);
             Debug.Assert(diagnostics.DiagnosticBag is not null);
 
             // Store attributes into the bag.
