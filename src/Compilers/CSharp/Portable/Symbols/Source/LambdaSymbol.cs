@@ -285,6 +285,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 parameter.ForceComplete(locationOpt: null, cancellationToken: default);
             }
 
+            boundAttributes = default;
+            returnBoundAttributes = default;
+
             var bag = _lazyCustomAttributesBag;
             if (bag == null || bag.IsSealed)
             {

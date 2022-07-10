@@ -3639,7 +3639,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected void VisitAttributes(BoundLambda boundLambda)
         {
             VisitAttributes(boundLambda.BoundAttributes);
-            VisitAttributes(boundLocalFunction.ReturnBoundAttributes);
+            VisitAttributes(boundLambda.ReturnBoundAttributes);
         }
         #endregion visitors
     }

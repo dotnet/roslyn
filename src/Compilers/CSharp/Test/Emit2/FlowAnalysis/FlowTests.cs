@@ -5560,6 +5560,25 @@ class C
         }
 
         [Fact]
+        public void TestUnusedLocalConstant()
+        {
+            var compilation = CreateCompilation(@"
+public class C
+{
+    public int P
+    {
+        get
+        {
+            const int X = 5;
+            return 0;
+        }
+    }
+}
+");
+            compilation.VerifyDiagnostics();
+        }
+
+        [Fact]
         [WorkItem(60645, "https://github.com/dotnet/roslyn/issues/60645")]
         public void TestLocalConstantIsUsedInLambdaAttribute()
         {
@@ -5571,6 +5590,7 @@ public class C
         get
         {
             const int X = 5;
+            const int Y = 5;
             var f = [My(X)] () => 0;
             return f();
         }
@@ -5582,7 +5602,10 @@ public class MyAttribute : System.Attribute
     public MyAttribute(int i) { }
 }
 ");
-            compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics(
+                // (9,23): warning CS0219: The variable 'Y' is assigned but its value is never used
+                //             const int Y = 5;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "Y").WithArguments("Y").WithLocation(9, 23));
         }
 
         [Fact]
