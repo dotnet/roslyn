@@ -282,7 +282,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 bagCreatedOnThisThread = LoadAndValidateAttributes(
                     declarations,
                     ref lazyCustomAttributesBag,
-                    out _,
                     symbolPart,
                     binderOpt: OuterBinder);
             }

@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Called even if there are no attributes.
         /// </summary>
         /// <remarks>
-        /// This method is called by the binder from <see cref="LoadAndValidateAttributes"/> after it has finished binding attributes on the symbol,
+        /// This method is called by the binder from LoadAndValidateAttributes after it has finished binding attributes on the symbol,
         /// has executed <see cref="DecodeWellKnownAttribute"/> for attributes applied on the symbol and has stored the decoded data in the
         /// lazyCustomAttributesBag on the symbol. Bound attributes haven't been stored on the bag yet.
         /// 
