@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Action<AttributeSyntax>? beforeAttributePartBound = null,
             Action<AttributeSyntax>? afterAttributePartBound = null)
                 => LoadAndValidateAttributes(
-                    attributesSyntaxLists, lazyCustomAttributesBag, out _, symbolPart, earlyDecodingOnly, binderOpt, attributeMatchesOpt, beforeAttributePartBound, afterAttributePartBound);
+                    attributesSyntaxLists, ref lazyCustomAttributesBag, out _, symbolPart, earlyDecodingOnly, binderOpt, attributeMatchesOpt, beforeAttributePartBound, afterAttributePartBound);
 
         /// <summary>
         /// This method does the following set of operations in the specified order:
