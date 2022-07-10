@@ -5560,25 +5560,6 @@ class C
         }
 
         [Fact]
-        public void TestUnusedLocalConstant()
-        {
-            var compilation = CreateCompilation(@"
-public class C
-{
-    public int P
-    {
-        get
-        {
-            const int X = 5;
-            return 0;
-        }
-    }
-}
-");
-            compilation.VerifyDiagnostics();
-        }
-
-        [Fact]
         [WorkItem(60645, "https://github.com/dotnet/roslyn/issues/60645")]
         public void TestLocalConstantIsUsedInLambdaAttribute()
         {
