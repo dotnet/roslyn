@@ -39,6 +39,73 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         }
 
         [Fact]
+        public void Constructor_Delete()
+        {
+            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
+                .AddGeneration(
+                    source: $$"""
+                        class C
+                        {
+                            public C()
+                            {
+                            }
+
+                            public C(int x)
+                            {
+                            }
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C");
+                        g.VerifyMethodDefNames(".ctor", ".ctor");
+                        g.VerifyMemberRefNames(/*CompilationRelaxationsAttribute.*/".ctor", /*RuntimeCompatibilityAttribute.*/".ctor", /*Object.*/".ctor", /*DebuggableAttribute*/".ctor");
+                    })
+
+                .AddGeneration(
+                    source: """
+                        class C
+                        {
+                            public C()
+                            {
+                            }
+                        }
+                        """,
+                    edits: new[] {
+                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.FirstOrDefault(c => c.Parameters.Length == 1), newSymbolProvider: c => c.GetMember("C")),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames();
+                        g.VerifyMethodDefNames(".ctor");
+                        g.VerifyMemberRefNames(/* MissingMethodException */ ".ctor");
+                        g.VerifyEncLogDefinitions(new[]
+                        {
+                            Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Param, EditAndContinueOperation.Default)
+                        });
+                        g.VerifyEncMapDefinitions(new[]
+                        {
+                            Handle(2, TableIndex.MethodDef),
+                            Handle(1, TableIndex.Param)
+                        });
+
+                        var expectedIL = """
+                            {
+                              // Code size        6 (0x6)
+                              .maxstack  8
+                              IL_0000:  newobj     0x0A000005
+                              IL_0005:  throw
+                            }
+                            """;
+
+                        // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
+                        g.VerifyIL(expectedIL);
+                    })
+                .Verify();
+        }
+
+        [Fact]
         public void Diagnostics_Nullable()
         {
             var source0 = @"
@@ -2914,6 +2981,136 @@ class C
         }
 
         [Fact]
+        public void Property_Delete()
+        {
+            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
+                .AddGeneration(
+                    source: $$"""
+                        class C
+                        {
+                            public string P { get; set; }
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C");
+                        g.VerifyMethodDefNames("get_P", "set_P", ".ctor");
+                        g.VerifyMemberRefNames(/*CompilationRelaxationsAttribute.*/".ctor", /*RuntimeCompatibilityAttribute.*/".ctor", /*Object.*/".ctor", /*DebuggableAttribute*/".ctor", ".ctor", ".ctor");
+                    })
+
+                .AddGeneration(
+                    source: """
+                        class C
+                        {
+                        }
+                        """,
+                    edits: new[] {
+                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.get_P"), newSymbolProvider: c => c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.set_P"), newSymbolProvider: c => c.GetMember("C")),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames();
+                        g.VerifyMethodDefNames("get_P", "set_P");
+                        g.VerifyMemberRefNames(/* MissingMethodException */ ".ctor", ".ctor");
+                        g.VerifyEncLogDefinitions(new[]
+                        {
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
+                        });
+                        g.VerifyEncMapDefinitions(new[]
+                        {
+                            Handle(1, TableIndex.MethodDef),
+                            Handle(2, TableIndex.MethodDef),
+                            Handle(1, TableIndex.Param),
+                            Handle(1, TableIndex.CustomAttribute),
+                            Handle(7, TableIndex.CustomAttribute)
+                        });
+
+                        var expectedIL = """
+                            {
+                              // Code size        6 (0x6)
+                              .maxstack  8
+                              IL_0000:  newobj     0x0A000008
+                              IL_0005:  throw
+                            }
+                            """;
+
+                        // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
+                        g.VerifyIL(expectedIL);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void Indexer_Delete()
+        {
+            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
+                .AddGeneration(
+                    source: $$"""
+                        class C
+                        {
+                            public int this[int x] { get { return 1; } set { } }
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C");
+                        g.VerifyMethodDefNames("get_Item", "set_Item", ".ctor");
+                        g.VerifyMemberRefNames(/*CompilationRelaxationsAttribute.*/".ctor", /*RuntimeCompatibilityAttribute.*/".ctor", /*Object.*/".ctor", /*DebuggableAttribute*/".ctor", ".ctor");
+                    })
+
+                .AddGeneration(
+                    source: """
+                        class C
+                        {
+                        }
+                        """,
+                    edits: new[] {
+                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.get_Item"), newSymbolProvider: c => c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.set_Item"), newSymbolProvider: c => c.GetMember("C")),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames();
+                        g.VerifyMethodDefNames("get_Item", "set_Item");
+                        g.VerifyMemberRefNames(/* MissingMethodException */ ".ctor");
+                        g.VerifyEncLogDefinitions(new[]
+                        {
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.Param, EditAndContinueOperation.Default),
+                        });
+                        g.VerifyEncMapDefinitions(new[]
+                        {
+                            Handle(1, TableIndex.MethodDef),
+                            Handle(2, TableIndex.MethodDef),
+                            Handle(1, TableIndex.Param),
+                            Handle(2, TableIndex.Param),
+                            Handle(3, TableIndex.Param),
+                        });
+
+                        var expectedIL = """
+                            {
+                              // Code size        6 (0x6)
+                              .maxstack  8
+                              IL_0000:  newobj     0x0A000006
+                              IL_0005:  throw
+                            }
+                            """;
+
+                        // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
+                        g.VerifyIL(expectedIL);
+                    })
+                .Verify();
+        }
+
+        [Fact]
         public void Event_Add()
         {
             var source0 = @"
@@ -3050,6 +3247,73 @@ class C
                 Handle(2, TableIndex.Event),
                 Handle(3, TableIndex.MethodSemantics),
                 Handle(4, TableIndex.MethodSemantics));
+        }
+
+        [Fact]
+        public void Event_Delete()
+        {
+            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
+                .AddGeneration(
+                    source: $$"""
+                        class C
+                        {
+                            public event System.EventHandler E;
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C");
+                        g.VerifyMethodDefNames("add_E", "remove_E", ".ctor");
+                        g.VerifyMemberRefNames(/*CompilationRelaxationsAttribute.*/".ctor", /*RuntimeCompatibilityAttribute.*/".ctor", /*Object.*/".ctor", /*DebuggableAttribute*/".ctor", ".ctor", "Combine", "CompareExchange", "Remove", ".ctor");
+                    })
+
+                .AddGeneration(
+                    source: """
+                        class C
+                        {
+                        }
+                        """,
+                    edits: new[] {
+                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.add_E"), newSymbolProvider: c => c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.remove_E"), newSymbolProvider: c => c.GetMember("C")),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames();
+                        g.VerifyMethodDefNames("add_E", "remove_E");
+                        g.VerifyMemberRefNames(/* MissingMethodException */ ".ctor", ".ctor");
+                        g.VerifyEncLogDefinitions(new[]
+                        {
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
+                        });
+                        g.VerifyEncMapDefinitions(new[]
+                        {
+                            Handle(1, TableIndex.MethodDef),
+                            Handle(2, TableIndex.MethodDef),
+                            Handle(1, TableIndex.Param),
+                            Handle(2, TableIndex.Param),
+                            Handle(1, TableIndex.CustomAttribute),
+                            Handle(7, TableIndex.CustomAttribute)
+                        });
+
+                        var expectedIL = """
+                            {
+                              // Code size        6 (0x6)
+                              .maxstack  8
+                              IL_0000:  newobj     0x0A00000B
+                              IL_0005:  throw
+                            }
+                            """;
+
+                        // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
+                        g.VerifyIL(expectedIL);
+                    })
+                .Verify();
         }
 
         [WorkItem(1175704, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1175704")]
@@ -9431,6 +9695,64 @@ public interface IB
   IL_0018:  nop
   IL_0019:  ret
 }");
+        }
+
+        [Fact]
+        public void Operator_Delete()
+        {
+            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
+                .AddGeneration(
+                    source: $$"""
+                        class C
+                        {
+                            public static bool operator !(C c) => true;
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C");
+                        g.VerifyMethodDefNames("op_LogicalNot", ".ctor");
+                        g.VerifyMemberRefNames(/*CompilationRelaxationsAttribute.*/".ctor", /*RuntimeCompatibilityAttribute.*/".ctor", /*Object.*/".ctor", /*DebuggableAttribute*/".ctor");
+                    })
+
+                .AddGeneration(
+                    source: """
+                        class C
+                        {
+                        }
+                        """,
+                    edits: new[] {
+                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.op_LogicalNot"), newSymbolProvider: c => c.GetMember("C")),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames();
+                        g.VerifyMethodDefNames("op_LogicalNot");
+                        g.VerifyMemberRefNames(/* MissingMethodException */ ".ctor");
+                        g.VerifyEncLogDefinitions(new[]
+                        {
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                        });
+                        g.VerifyEncMapDefinitions(new[]
+                        {
+                            Handle(1, TableIndex.MethodDef),
+                            Handle(1, TableIndex.Param),
+                        });
+
+                        var expectedIL = """
+                            {
+                              // Code size        6 (0x6)
+                              .maxstack  8
+                              IL_0000:  newobj     0x0A000005
+                              IL_0005:  throw
+                            }
+                            """;
+
+                        // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
+                        g.VerifyIL(expectedIL);
+                    })
+                .Verify();
         }
 
         /// <summary>
