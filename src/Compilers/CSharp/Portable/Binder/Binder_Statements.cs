@@ -585,12 +585,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(blockBody != null || expressionBody != null || (localSymbol.IsExtern && localSymbol.IsStatic) || hasErrors);
 
-            localSymbol.GetDeclarationDiagnostics(diagnostics);
+            localSymbol.GetDeclarationDiagnostics(out var boundAttributes, out var returnBoundAttributes, diagnostics);
 
             Symbol.CheckForBlockAndExpressionBody(
                 node.Body, node.ExpressionBody, node, diagnostics);
 
-            return new BoundLocalFunctionStatement(node, localSymbol, blockBody, expressionBody, hasErrors);
+            return new BoundLocalFunctionStatement(node, localSymbol, blockBody, expressionBody, boundAttributes, returnBoundAttributes, hasErrors);
 
             BoundBlock runAnalysis(BoundBlock block, BindingDiagnosticBag blockDiagnostics)
             {

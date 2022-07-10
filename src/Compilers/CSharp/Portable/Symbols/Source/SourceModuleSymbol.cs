@@ -458,7 +458,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (_lazyCustomAttributesBag == null || !_lazyCustomAttributesBag.IsSealed)
             {
                 var mergedAttributes = ((SourceAssemblySymbol)this.ContainingAssembly).GetAttributeDeclarations();
-                if (LoadAndValidateAttributes(OneOrMany.Create(mergedAttributes), ref _lazyCustomAttributesBag))
+                if (LoadAndValidateAttributes(OneOrMany.Create(mergedAttributes), ref _lazyCustomAttributesBag, out _))
                 {
                     var completed = _state.NotePartComplete(CompletionPart.Attributes);
                     Debug.Assert(completed);

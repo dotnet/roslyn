@@ -2116,10 +2116,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.State = this.State.Reachable ? this.State.Clone() : ReachableBottomState();
 
+            VisitAttributes(node);
+
             if (!node.WasCompilerGenerated) EnterParameters(node.Symbol.Parameters);
             var oldPending2 = SavePending();
-
-            VisitAttributes(node.Symbol);
 
             VisitAlways(node.Body);
             RestorePending(oldPending2); // process any forward branches within the lambda body

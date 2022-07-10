@@ -3207,8 +3207,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundLocalFunctionStatement : BoundStatement
     {
-        public BoundLocalFunctionStatement(SyntaxNode syntax, LocalFunctionSymbol symbol, BoundBlock? blockBody, BoundBlock? expressionBody, bool hasErrors = false)
-            : base(BoundKind.LocalFunctionStatement, syntax, hasErrors || blockBody.HasErrors() || expressionBody.HasErrors())
+        public BoundLocalFunctionStatement(SyntaxNode syntax, LocalFunctionSymbol symbol, BoundBlock? blockBody, BoundBlock? expressionBody, ImmutableArray<BoundAttribute> boundAttributes, ImmutableArray<BoundAttribute> returnBoundAttributes, bool hasErrors = false)
+            : base(BoundKind.LocalFunctionStatement, syntax, hasErrors || blockBody.HasErrors() || expressionBody.HasErrors() || boundAttributes.HasErrors() || returnBoundAttributes.HasErrors())
         {
 
             RoslynDebug.Assert(symbol is object, "Field 'symbol' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -3216,20 +3216,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Symbol = symbol;
             this.BlockBody = blockBody;
             this.ExpressionBody = expressionBody;
+            this.BoundAttributes = boundAttributes;
+            this.ReturnBoundAttributes = returnBoundAttributes;
         }
 
         public LocalFunctionSymbol Symbol { get; }
         public BoundBlock? BlockBody { get; }
         public BoundBlock? ExpressionBody { get; }
+        public ImmutableArray<BoundAttribute> BoundAttributes { get; }
+        public ImmutableArray<BoundAttribute> ReturnBoundAttributes { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitLocalFunctionStatement(this);
 
-        public BoundLocalFunctionStatement Update(LocalFunctionSymbol symbol, BoundBlock? blockBody, BoundBlock? expressionBody)
+        public BoundLocalFunctionStatement Update(LocalFunctionSymbol symbol, BoundBlock? blockBody, BoundBlock? expressionBody, ImmutableArray<BoundAttribute> boundAttributes, ImmutableArray<BoundAttribute> returnBoundAttributes)
         {
-            if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(symbol, this.Symbol) || blockBody != this.BlockBody || expressionBody != this.ExpressionBody)
+            if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(symbol, this.Symbol) || blockBody != this.BlockBody || expressionBody != this.ExpressionBody || boundAttributes != this.BoundAttributes || returnBoundAttributes != this.ReturnBoundAttributes)
             {
-                var result = new BoundLocalFunctionStatement(this.Syntax, symbol, blockBody, expressionBody, this.HasErrors);
+                var result = new BoundLocalFunctionStatement(this.Syntax, symbol, blockBody, expressionBody, boundAttributes, returnBoundAttributes, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -9515,6 +9519,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             this.Visit(node.BlockBody);
             this.Visit(node.ExpressionBody);
+            this.VisitList(node.BoundAttributes);
+            this.VisitList(node.ReturnBoundAttributes);
             return null;
         }
         public override BoundNode? VisitNoOpStatement(BoundNoOpStatement node) => null;
@@ -10659,7 +10665,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundBlock? blockBody = (BoundBlock?)this.Visit(node.BlockBody);
             BoundBlock? expressionBody = (BoundBlock?)this.Visit(node.ExpressionBody);
-            return node.Update(node.Symbol, blockBody, expressionBody);
+            ImmutableArray<BoundAttribute> boundAttributes = this.VisitList(node.BoundAttributes);
+            ImmutableArray<BoundAttribute> returnBoundAttributes = this.VisitList(node.ReturnBoundAttributes);
+            return node.Update(node.Symbol, blockBody, expressionBody, boundAttributes, returnBoundAttributes);
         }
         public override BoundNode? VisitNoOpStatement(BoundNoOpStatement node) => node;
         public override BoundNode? VisitReturnStatement(BoundReturnStatement node)
@@ -12575,7 +12583,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             LocalFunctionSymbol symbol = GetUpdatedSymbol(node, node.Symbol);
             BoundBlock? blockBody = (BoundBlock?)this.Visit(node.BlockBody);
             BoundBlock? expressionBody = (BoundBlock?)this.Visit(node.ExpressionBody);
-            return node.Update(symbol, blockBody, expressionBody);
+            ImmutableArray<BoundAttribute> boundAttributes = this.VisitList(node.BoundAttributes);
+            ImmutableArray<BoundAttribute> returnBoundAttributes = this.VisitList(node.ReturnBoundAttributes);
+            return node.Update(symbol, blockBody, expressionBody, boundAttributes, returnBoundAttributes);
         }
 
         public override BoundNode? VisitSwitchStatement(BoundSwitchStatement node)
@@ -14807,6 +14817,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("symbol", node.Symbol, null),
             new TreeDumperNode("blockBody", null, new TreeDumperNode[] { Visit(node.BlockBody, null) }),
             new TreeDumperNode("expressionBody", null, new TreeDumperNode[] { Visit(node.ExpressionBody, null) }),
+            new TreeDumperNode("boundAttributes", null, node.BoundAttributes.IsDefault ? Array.Empty<TreeDumperNode>() : from x in node.BoundAttributes select Visit(x, null)),
+            new TreeDumperNode("returnBoundAttributes", null, node.ReturnBoundAttributes.IsDefault ? Array.Empty<TreeDumperNode>() : from x in node.ReturnBoundAttributes select Visit(x, null)),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );

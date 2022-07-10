@@ -285,10 +285,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="attributeMatchesOpt">If specified, only load attributes that match this predicate, and any diagnostics produced will be dropped.</param>
         /// <param name="beforeAttributePartBound">If specified, invoked before any part of the attribute syntax is bound.</param>
         /// <param name="afterAttributePartBound">If specified, invoked after any part of the attribute syntax is bound.</param>
+        /// <param name="boundAttributes">Contains the BoundAttributes, only if <paramref name="earlyDecodingOnly"/> is false and <paramref name="attributeMatchesOpt"/> is null</param>
         /// <returns>Flag indicating whether lazyCustomAttributes were stored on this thread. Caller should check for this flag and perform NotePartComplete if true.</returns>
         internal bool LoadAndValidateAttributes(
             OneOrMany<SyntaxList<AttributeListSyntax>> attributesSyntaxLists,
             ref CustomAttributesBag<CSharpAttributeData>? lazyCustomAttributesBag,
+            out ImmutableArray<BoundAttribute> boundAttributes,
             AttributeLocation symbolPart = AttributeLocation.None,
             bool earlyDecodingOnly = false,
             Binder? binderOpt = null,
@@ -306,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int totalAttributesCount = attributesToBind.Length;
             Debug.Assert(!attributesToBind.IsDefault);
 
-            ImmutableArray<CSharpAttributeData> boundAttributes;
+            ImmutableArray<CSharpAttributeData> attributeData;
             WellKnownAttributeData? wellKnownAttributeData;
 
             if (totalAttributesCount != 0)
@@ -357,18 +359,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (earlyDecodingOnly)
                 {
                     diagnostics.Free(); //NOTE: dropped.
+                    boundAttributes = default;
                     return false;
                 }
 
                 // Bind attributes.
                 Binder.GetAttributes(binders, attributesToBind, boundAttributeTypes, attributeDataArray, boundAttributeArray, beforeAttributePartBound, afterAttributePartBound, diagnostics);
-                boundAttributes = attributeDataArray.AsImmutableOrNull();
+                attributeData = attributeDataArray.AsImmutableOrNull();
+                boundAttributes = boundAttributeArray.AsImmutableOrNull();
 
                 // All attributes must be bound by now.
-                Debug.Assert(!boundAttributes.Any(static (attr) => attr == null));
+                Debug.Assert(!attributeData.Any(static (attr) => attr == null));
 
                 // Validate attribute usage and Decode remaining well-known attributes.
-                wellKnownAttributeData = this.ValidateAttributeUsageAndDecodeWellKnownAttributes(binders, attributesToBind, boundAttributes, diagnostics, symbolPart);
+                wellKnownAttributeData = this.ValidateAttributeUsageAndDecodeWellKnownAttributes(binders, attributesToBind, attributeData, diagnostics, symbolPart);
 
                 // Store data decoded from remaining well-known attributes.
                 // TODO: what if this succeeds on another thread but not this thread?
@@ -377,26 +381,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (earlyDecodingOnly)
             {
                 diagnostics.Free(); //NOTE: dropped.
+                boundAttributes = default;
                 return false;
             }
             else
             {
-                boundAttributes = ImmutableArray<CSharpAttributeData>.Empty;
+                attributeData = ImmutableArray<CSharpAttributeData>.Empty;
+                boundAttributes = ImmutableArray<BoundAttribute>.Empty;
                 boundAttributeArray = null;
                 wellKnownAttributeData = null;
                 Interlocked.CompareExchange(ref lazyCustomAttributesBag, CustomAttributesBag<CSharpAttributeData>.WithEmptyData(), null);
                 this.PostEarlyDecodeWellKnownAttributeTypes();
             }
 
-            this.PostDecodeWellKnownAttributes(boundAttributes, attributesToBind, diagnostics, symbolPart, wellKnownAttributeData);
+            this.PostDecodeWellKnownAttributes(attributeData, attributesToBind, diagnostics, symbolPart, wellKnownAttributeData);
 
             // Store attributes into the bag.
             bool lazyAttributesStoredOnThisThread = false;
-            if (lazyCustomAttributesBag.SetAttributes(boundAttributes))
+            if (lazyCustomAttributesBag.SetAttributes(attributeData))
             {
                 if (attributeMatchesOpt is null)
                 {
-                    this.RecordPresenceOfBadAttributes(boundAttributes);
+                    this.RecordPresenceOfBadAttributes(attributeData);
 
                     if (totalAttributesCount != 0)
                     {

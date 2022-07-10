@@ -3622,19 +3622,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             Join(ref this.State, ref afterBlock);
         }
 
-        protected void VisitAttributes(SourceMethodSymbolWithAttributes methodSymbolWithAttributes)
+        private void VisitAttributes(ImmutableArray<BoundAttribute> boundAttributes)
         {
-            ImmutableArray<BoundAttribute> boundAttributes = methodSymbolWithAttributes.GetBoundAttributes();
             foreach (var attribute in boundAttributes)
             {
                 VisitAttribute(attribute);
             }
+        }
 
-            ImmutableArray<BoundAttribute> returnBoundAttributes = methodSymbolWithAttributes.GetReturnBoundAttributes();
-            foreach (var attribute in returnBoundAttributes)
-            {
-                VisitAttribute(attribute);
-            }
+        protected void VisitAttributes(BoundLocalFunctionStatement boundLocalFunction)
+        {
+            VisitAttributes(boundLocalFunction.BoundAttributes);
+            VisitAttributes(boundLocalFunction.ReturnBoundAttributes);
+        }
+
+        protected void VisitAttributes(BoundLambda boundLambda)
+        {
+            VisitAttributes(boundLambda.BoundAttributes);
+            VisitAttributes(boundLocalFunction.ReturnBoundAttributes);
         }
         #endregion visitors
     }

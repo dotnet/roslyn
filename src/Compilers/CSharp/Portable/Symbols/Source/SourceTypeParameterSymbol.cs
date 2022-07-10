@@ -185,6 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     lazyAttributesStored = LoadAndValidateAttributes(
                         OneOrMany.Create(this.MergedAttributeDeclarationSyntaxLists),
                         ref _lazyCustomAttributesBag,
+                        out _,
                         binderOpt: (ContainingSymbol as LocalFunctionSymbol)?.WithTypeParametersBinder);
                 }
                 else

@@ -834,7 +834,7 @@ next:;
                 return bag;
             }
 
-            if (LoadAndValidateAttributes(OneOrMany.Create(this.GetAttributeDeclarations()), ref _lazyCustomAttributesBag))
+            if (LoadAndValidateAttributes(OneOrMany.Create(this.GetAttributeDeclarations()), ref _lazyCustomAttributesBag, out _))
             {
                 var completed = state.NotePartComplete(CompletionPart.Attributes);
                 Debug.Assert(completed);

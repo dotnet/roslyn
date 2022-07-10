@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
+using System.Xml.Linq;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -112,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal LocalFunctionStatementSyntax Syntax => (LocalFunctionStatementSyntax)syntaxReferenceOpt.GetSyntax();
 
-        internal void GetDeclarationDiagnostics(BindingDiagnosticBag addTo)
+        internal void GetDeclarationDiagnostics(out ImmutableArray<BoundAttribute> boundAttributes, out ImmutableArray<BoundAttribute> returnBoundAttributes, BindingDiagnosticBag addTo)
         {
             // Force complete type parameters
             foreach (var typeParam in _typeParameters)
@@ -131,8 +132,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             ComputeReturnType();
 
-            GetAttributes();
-            GetReturnTypeAttributes();
+            boundAttributes = default;
+            returnBoundAttributes = default;
+
+            var bag = _lazyCustomAttributesBag;
+            if (bag == null || bag.IsSealed)
+            {
+                LoadAndValidateAttributes(
+                    GetAttributeDeclarations(),
+                    ref _lazyCustomAttributesBag,
+                    boundAttributes: out boundAttributes,
+                    AttributeLocation.None,
+                    binderOpt: OuterBinder);
+            }
+
+            var returnBag = _lazyReturnTypeCustomAttributesBag;
+            if (returnBag == null || returnBag.IsSealed)
+            {
+                LoadAndValidateAttributes(
+                    GetReturnTypeAttributeDeclarations(),
+                    ref _lazyReturnTypeCustomAttributesBag,
+                    boundAttributes: out returnBoundAttributes,
+                    AttributeLocation.Return,
+                    binderOpt: OuterBinder);
+            }
 
             AsyncMethodChecks(_declarationDiagnostics);
 

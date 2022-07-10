@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // always use the real attribute bag of this symbol and modify LoadAndValidateAttributes to
                     // handle partially filled bags.
                     CustomAttributesBag<CSharpAttributeData>? temp = null;
-                    LoadAndValidateAttributes(OneOrMany.Create(indexerNameAttributeLists), ref temp, earlyDecodingOnly: true);
+                    LoadAndValidateAttributes(OneOrMany.Create(indexerNameAttributeLists), ref temp, out _, earlyDecodingOnly: true);
                     if (temp != null)
                     {
                         Debug.Assert(temp.IsEarlyDecodedWellKnownAttributeDataComputed);
@@ -1065,7 +1065,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // The property is responsible for completion of the backing field
             _ = BackingField?.GetAttributes();
 
-            if (LoadAndValidateAttributes(OneOrMany.Create(AttributeDeclarationSyntaxList), ref _lazyCustomAttributesBag))
+            if (LoadAndValidateAttributes(OneOrMany.Create(AttributeDeclarationSyntaxList), ref _lazyCustomAttributesBag, out _))
             {
                 var completed = _state.NotePartComplete(CompletionPart.Attributes);
                 Debug.Assert(completed);

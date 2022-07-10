@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (localFunc.Symbol.IsExtern)
             {
-                VisitAttributes(localFunc.Symbol);
+                VisitAttributes(localFunc);
 
                 // an extern local function is not permitted to have a body and thus shouldn't be flow analyzed.
                 return null;
@@ -79,6 +79,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var savedState = this.State;
             this.State = this.TopState();
+
+           VisitAttributes(localFunc);
 
             Optional<TLocalState> savedNonMonotonicState = NonMonotonicState;
             if (_nonMonotonicTransfer)
@@ -103,8 +105,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 PendingBranches.Add(new PendingBranch(null, this.State, null));
             }
-
-            VisitAttributes(localFuncSymbol);
 
             VisitAlways(localFunc.Body);
             RestorePending(oldPending2); // process any forward branches within the lambda body

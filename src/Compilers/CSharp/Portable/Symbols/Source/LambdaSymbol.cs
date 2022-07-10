@@ -278,15 +278,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 default;
         }
 
-        internal void GetDeclarationDiagnostics(BindingDiagnosticBag addTo)
+        internal void GetDeclarationDiagnostics(out ImmutableArray<BoundAttribute> boundAttributes, out ImmutableArray<BoundAttribute> returnBoundAttributes, BindingDiagnosticBag addTo)
         {
             foreach (var parameter in _parameters)
             {
                 parameter.ForceComplete(locationOpt: null, cancellationToken: default);
             }
 
-            GetAttributes();
-            GetReturnTypeAttributes();
+            var bag = _lazyCustomAttributesBag;
+            if (bag == null || bag.IsSealed)
+            {
+                LoadAndValidateAttributes(
+                    GetAttributeDeclarations(),
+                    ref _lazyCustomAttributesBag,
+                    boundAttributes: out boundAttributes,
+                    AttributeLocation.None,
+                    binderOpt: OuterBinder);
+            }
+
+            var returnBag = _lazyReturnTypeCustomAttributesBag;
+            if (returnBag == null || returnBag.IsSealed)
+            {
+                LoadAndValidateAttributes(
+                    GetReturnTypeAttributeDeclarations(),
+                    ref _lazyReturnTypeCustomAttributesBag,
+                    boundAttributes: out returnBoundAttributes,
+                    AttributeLocation.Return,
+                    binderOpt: OuterBinder);
+            }
 
             AsyncMethodChecks(verifyReturnType: HasExplicitReturnType, DiagnosticLocation, _declarationDiagnostics);
             if (!HasExplicitReturnType && this.HasAsyncMethodBuilderAttribute(out _))

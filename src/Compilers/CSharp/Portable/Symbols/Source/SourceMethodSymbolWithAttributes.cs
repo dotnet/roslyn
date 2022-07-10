@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal abstract class SourceMethodSymbolWithAttributes : SourceMethodSymbol, IAttributeTargetSymbol
     {
-        private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
-        private CustomAttributesBag<CSharpAttributeData> _lazyReturnTypeCustomAttributesBag;
+        protected CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
+        protected CustomAttributesBag<CSharpAttributeData> _lazyReturnTypeCustomAttributesBag;
 
         // some symbols may not have a syntax (e.g. lambdas, synthesized event accessors)
         protected readonly SyntaxReference syntaxReferenceOpt;
@@ -282,6 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 bagCreatedOnThisThread = LoadAndValidateAttributes(
                     declarations,
                     ref lazyCustomAttributesBag,
+                    out _,
                     symbolPart,
                     binderOpt: OuterBinder);
             }
@@ -1271,45 +1272,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return result;
             }
         }
-
-        private ImmutableArray<BoundAttribute> GetBoundAttributes(OneOrMany<SyntaxList<AttributeListSyntax>> declarations, AttributeLocation symbolPart)
-        {
-            var compilation = this.DeclaringCompilation;
-
-            ImmutableArray<AttributeSyntax> attributesToBind = this.GetAttributesToBind(declarations, symbolPart, BindingDiagnosticBag.Discarded, compilation, null, OuterBinder, out ImmutableArray<Binder> binders);
-            int totalAttributesCount = attributesToBind.Length;
-            Debug.Assert(!attributesToBind.IsDefault);
-
-            if (totalAttributesCount != 0)
-            {
-                Debug.Assert(!binders.IsDefault);
-                Debug.Assert(binders.Length == attributesToBind.Length);
-
-                // Bind the attribute types and then early decode them.
-                var attributeTypesBuilder = new NamedTypeSymbol[totalAttributesCount];
-
-                Binder.BindAttributeTypes(binders, attributesToBind, this, attributeTypesBuilder, null, null, BindingDiagnosticBag.Discarded);
-
-                ImmutableArray<NamedTypeSymbol> boundAttributeTypes = attributeTypesBuilder.AsImmutableOrNull();
-
-                // Bind the attribute in two stages - early and normal.
-                var attributeDataArray = new CSharpAttributeData[totalAttributesCount];
-                var boundAttributeArray = new BoundAttribute[totalAttributesCount];
-
-                // Early bind and decode some well-known attributes.
-                EarlyWellKnownAttributeData? earlyData = this.EarlyDecodeWellKnownAttributes(binders, boundAttributeTypes, attributesToBind, symbolPart, attributeDataArray, boundAttributeArray);
-                Debug.Assert(!attributeDataArray.Contains((attr) => attr != null && attr.HasErrors));
-
-                // Bind attributes.
-                Binder.GetAttributes(binders, attributesToBind, boundAttributeTypes, attributeDataArray, boundAttributeArray, null, null, BindingDiagnosticBag.Discarded);
-                return boundAttributeArray.ToImmutableArray();
-            }
-
-            return ImmutableArray<BoundAttribute>.Empty;
-        }
-
-        internal ImmutableArray<BoundAttribute> GetBoundAttributes() => GetBoundAttributes(GetAttributeDeclarations(), AttributeLocation.None);
-
-        internal ImmutableArray<BoundAttribute> GetReturnBoundAttributes() => GetBoundAttributes(GetReturnTypeAttributeDeclarations(), AttributeLocation.Return);
     }
 }

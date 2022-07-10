@@ -71,15 +71,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         public MessageID MessageID { get { return Syntax.Kind() == SyntaxKind.AnonymousMethodExpression ? MessageID.IDS_AnonMethod : MessageID.IDS_Lambda; } }
 
         internal InferredLambdaReturnType InferredReturnType { get; }
+        internal ImmutableArray<BoundAttribute> BoundAttributes { get; }
+        internal ImmutableArray<BoundAttribute> ReturnBoundAttributes { get; }
 
         MethodSymbol IBoundLambdaOrFunction.Symbol { get { return Symbol; } }
 
         SyntaxNode IBoundLambdaOrFunction.Syntax { get { return Syntax; } }
 
-        public BoundLambda(SyntaxNode syntax, UnboundLambda unboundLambda, BoundBlock body, ImmutableBindingDiagnostic<AssemblySymbol> diagnostics, Binder binder, TypeSymbol? delegateType, InferredLambdaReturnType inferredReturnType)
+        public BoundLambda(SyntaxNode syntax, UnboundLambda unboundLambda, BoundBlock body, ImmutableBindingDiagnostic<AssemblySymbol> diagnostics, Binder binder, TypeSymbol? delegateType, InferredLambdaReturnType inferredReturnType, ImmutableArray<BoundAttribute> boundAttributes, ImmutableArray<BoundAttribute> returnBoundAttributes)
             : this(syntax, unboundLambda.WithNoCache(), (LambdaSymbol)binder.ContainingMemberOrLambda!, body, diagnostics, binder, delegateType)
         {
             InferredReturnType = inferredReturnType;
+            BoundAttributes = boundAttributes;
+            ReturnBoundAttributes = returnBoundAttributes;
 
             Debug.Assert(
                 syntax.IsAnonymousFunction() ||                                                                 // lambda expressions
@@ -705,7 +709,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 block = BindLambdaBody(lambdaSymbol, lambdaBodyBinder, diagnostics);
             }
 
-            lambdaSymbol.GetDeclarationDiagnostics(diagnostics);
+            lambdaSymbol.GetDeclarationDiagnostics(out var boundAttributes, out var returnBoundAttributes, diagnostics);
 
             if (lambdaSymbol.RefKind == CodeAnalysis.RefKind.RefReadOnly)
             {
@@ -762,7 +766,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var result = new BoundLambda(_unboundLambda.Syntax, _unboundLambda, block, diagnostics.ToReadOnlyAndFree(), lambdaBodyBinder, delegateType, inferredReturnType: default)
+            var result = new BoundLambda(_unboundLambda.Syntax, _unboundLambda, block, diagnostics.ToReadOnlyAndFree(), lambdaBodyBinder, delegateType, inferredReturnType: default, boundAttributes, returnBoundAttributes)
             { WasCompilerGenerated = _unboundLambda.WasCompilerGenerated };
 
             return result;
@@ -823,7 +827,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<RefKind> parameterRefKinds)
         {
             bool hasExplicitReturnType = HasExplicitReturnType(out var refKind, out var returnType);
-            (var lambdaSymbol, var block, var lambdaBodyBinder, var diagnostics) = BindWithParameterAndReturnType(parameterTypes, parameterRefKinds, returnType, refKind);
+            (var lambdaSymbol, var block, var lambdaBodyBinder, var diagnostics) = BindWithParameterAndReturnType(parameterTypes, parameterRefKinds, returnType, refKind, out var boundAttributes, out var returnBoundAttributes);
             InferredLambdaReturnType inferredReturnType;
             if (hasExplicitReturnType)
             {
@@ -864,7 +868,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.ToReadOnlyAndFree(),
                 lambdaBodyBinder,
                 delegateType,
-                inferredReturnType)
+                inferredReturnType,
+                boundAttributes,
+                returnBoundAttributes)
             { WasCompilerGenerated = _unboundLambda.WasCompilerGenerated };
 
             if (!hasExplicitReturnType)
@@ -879,7 +885,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<TypeWithAnnotations> parameterTypes,
             ImmutableArray<RefKind> parameterRefKinds,
             TypeWithAnnotations returnType,
-            RefKind refKind)
+            RefKind refKind,
+            out ImmutableArray<BoundAttribute> boundAttributes,
+            out ImmutableArray<BoundAttribute> returnBoundAttributes)
         {
             var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, _unboundLambda.WithDependencies);
             var lambdaSymbol = CreateLambdaSymbol(Binder.ContainingMemberOrLambda!,
@@ -889,7 +897,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                   refKind);
             var lambdaBodyBinder = new ExecutableCodeBinder(_unboundLambda.Syntax, lambdaSymbol, GetWithParametersBinder(lambdaSymbol, Binder));
             var block = BindLambdaBody(lambdaSymbol, lambdaBodyBinder, diagnostics);
-            lambdaSymbol.GetDeclarationDiagnostics(diagnostics);
+            lambdaSymbol.GetDeclarationDiagnostics(out boundAttributes, out returnBoundAttributes, diagnostics);
             return (lambdaSymbol, block, lambdaBodyBinder, diagnostics);
         }
 
@@ -1106,7 +1114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            (var lambdaSymbol, var block, var lambdaBodyBinder, var diagnostics) = BindWithParameterAndReturnType(parameterTypes, parameterRefKinds, returnType, refKind);
+            (var lambdaSymbol, var block, var lambdaBodyBinder, var diagnostics) = BindWithParameterAndReturnType(parameterTypes, parameterRefKinds, returnType, refKind, out var boundAttributes, out var returnBoundAttributes);
             return new BoundLambda(
                 _unboundLambda.Syntax,
                 _unboundLambda,
@@ -1122,7 +1130,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     returnType,
                     inferredFromFunctionType: inferredReturnType.InferredFromFunctionType,
                     ImmutableArray<DiagnosticInfo>.Empty,
-                    ImmutableArray<AssemblySymbol>.Empty))
+                    ImmutableArray<AssemblySymbol>.Empty),
+                boundAttributes,
+                returnBoundAttributes)
             { WasCompilerGenerated = _unboundLambda.WasCompilerGenerated };
         }
 
