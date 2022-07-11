@@ -3855,6 +3855,56 @@ End Class";
 
         #endregion // RS1033 (DefineDiagnosticDescriptionCorrectlyRule)
 
+        [Fact, WorkItem(6035, "https://github.com/dotnet/roslyn-analyzers/issues/6035")]
+        public async Task VerifyFieldReferenceForFieldDefinedInSeparateFile()
+        {
+            var file1 = @"
+using System;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
+
+[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+class MyAnalyzer : DiagnosticAnalyzer
+{
+    private static readonly DiagnosticDescriptor descriptor =
+        {|#0:new DiagnosticDescriptor(HelperType.Id, HelperType.Title, HelperType.Message, HelperType.Category, DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """")|};
+
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+    {
+        get
+        {
+            return ImmutableArray.Create(descriptor);
+        }
+    }
+
+    public override void Initialize(AnalysisContext context)
+    {
+    }
+}";
+
+            var file2 = @"
+public class HelperType
+{
+    public const string Id = ""Id"";
+    public const string Title = ""Title"";
+    public const string Message = ""Message"";
+    public const string Category = ""Category"";
+}";
+
+            var expected = new[] { GetRS1007ExpectedDiagnostic(0) };
+            var test = new VerifyCS.Test
+            {
+                TestState = { Sources = { file1, file2 } },
+                ReferenceAssemblies = AdditionalMetadataReferences.Default,
+                TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck
+            };
+
+            test.SolutionTransforms.Add(WithoutEnableReleaseTrackingWarning);
+            test.ExpectedDiagnostics.AddRange(expected);
+            await test.RunAsync();
+        }
+
         #region Helpers
 
         /// <summary>

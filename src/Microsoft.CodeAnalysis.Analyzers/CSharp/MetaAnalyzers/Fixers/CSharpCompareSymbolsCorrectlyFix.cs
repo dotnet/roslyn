@@ -4,6 +4,7 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers.Fixers
 {
@@ -12,5 +13,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers.Fixers
     {
         protected override SyntaxNode CreateConditionalAccessExpression(SyntaxNode expression, SyntaxNode whenNotNull)
             => SyntaxFactory.ConditionalAccessExpression((ExpressionSyntax)expression, (ExpressionSyntax)whenNotNull);
+
+        protected override SyntaxNode GetExpression(IInvocationOperation invocationOperation)
+            => ((InvocationExpressionSyntax)invocationOperation.Syntax).Expression;
     }
 }
