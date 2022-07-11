@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig
         /// they will get no diagnostics.  When not enabled we don't show the failure box (failure will still be recorded in the task status center)
         /// as the failure is not catastrophic.
         /// </summary>
-        public override bool ShowNotificationOnInitializeFailed => GlobalOptions.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode);
+        public override bool ShowNotificationOnInitializeFailed => true;
 
         public override WellKnownLspServerKinds ServerKind => WellKnownLspServerKinds.EditorConfigLspServer;
     }
