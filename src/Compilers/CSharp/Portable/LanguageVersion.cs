@@ -23,32 +23,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// C# language version 3
-        /// </summary>
-        /// <remarks> 
+        /// <para>
         /// Features: LINQ.
-        /// </remarks>
+        /// </para>
+        /// </summary>
         CSharp3 = 3,
 
         /// <summary>
         /// C# language version 4
-        /// </summary>
-        /// <remarks> 
+        /// <para>
         /// Features: dynamic.
-        /// </remarks>
+        /// </para>        
+        /// </summary>        
         CSharp4 = 4,
 
         /// <summary>
         /// C# language version 5
-        /// </summary>
-        /// <remarks> 
+        /// <para>
         /// Features: async, caller info attributes.
-        /// </remarks>
+        /// </para>        
+        /// </summary> 
         CSharp5 = 5,
 
         /// <summary>
         /// C# language version 6
-        /// </summary>
-        /// <remarks>
         /// <para>Features:</para>
         /// <list type="bullet">
         /// <item><description>Using of a static class</description></item>
@@ -61,13 +59,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <item><description>nameof operator</description></item>
         /// <item><description>Dictionary initializer</description></item>
         /// </list>
-        /// </remarks>
+        /// </summary>
         CSharp6 = 6,
 
         /// <summary>
         /// C# language version 7.0
-        /// </summary>
-        /// <remarks>
         /// <para>Features:</para>
         /// <list type="bullet">
         /// <item><description>Out variables</description></item>
@@ -82,13 +78,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <item><description>More expression-bodied members</description></item>
         /// <item><description>Throw expressions</description></item>
         /// </list>
-        /// </remarks>
+        /// </summary>
         CSharp7 = 7,
 
         /// <summary>
         /// C# language version 7.1
-        /// </summary>
-        /// <remarks>
         /// <para>Features:</para>
         /// <list type="bullet">
         /// <item><description>Async Main</description></item>
@@ -96,13 +90,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <item><description>Inferred tuple element names</description></item>
         /// <item><description>Pattern-matching with generics</description></item>
         /// </list>
-        /// </remarks>
+        /// </summary>
         CSharp7_1 = 701,
 
         /// <summary>
         /// C# language version 7.2
-        /// </summary>
-        /// <remarks>
         /// <para>Features:</para>
         /// <list type="bullet">
         /// <item><description>Ref readonly</description></item>
@@ -113,13 +105,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <item><description>Digit separators after base specifier</description></item>
         /// <item><description>Non-trailing named arguments</description></item>
         /// </list>
-        /// </remarks>
+        /// </summary>
         CSharp7_2 = 702,
 
         /// <summary>
         /// C# language version 7.3
-        /// </summary>
-        /// <remarks>
         /// <para>Features:</para>
         /// <list type="bullet">
         /// <item><description>Indexing fixed fields does not require pinning</description></item>
@@ -134,13 +124,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <item><description>Improved overload candidates</description></item>
         /// <item><description>New compiler options (-publicsign and -pathmap)</description></item>
         /// </list>
-        /// </remarks>
+        /// </summary>
         CSharp7_3 = 703,
 
         /// <summary>
         /// C# language version 8.0
-        /// </summary>
-        /// <remarks>
         /// <para>Features:</para>
         /// <list type="bullet">
         /// <item><description>Readonly members</description></item>
@@ -158,13 +146,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <item><description>Stackalloc in nested expressions</description></item>
         /// <item><description>Enhancement of interpolated verbatim strings</description></item>
         /// </list>
-        /// </remarks>
+        /// </summary>
         CSharp8 = 800,
 
         /// <summary>
         /// C# language version 9.0
-        /// </summary>
-        /// <remarks>
         /// <para>Features:</para>
         /// <list type="bullet">
         /// <item><description>Records</description></item>
@@ -184,13 +170,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <item><description>Module initializers</description></item>
         /// <item><description>New features for partial methods</description></item>
         /// </list>
-        /// </remarks>
+        /// </summary>
         CSharp9 = 900,
 
         /// <summary>
         /// C# language version 10.0
-        /// </summary>
-        /// <remarks>
         /// <para>Features:</para>
         /// <list type="bullet">
         /// <item><description>Record structs</description></item>
@@ -204,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <item><description>Source Generator v2 APIs</description></item>
         /// <item><description>Method-level AsyncMethodBuilder</description></item>
         /// </list>
-        /// </remarks>
+        /// </summary>
         CSharp10 = 1000,
 
         /// <summary>
@@ -307,10 +291,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Usages of TestOptions.RegularNext and LanguageVersionFacts.CSharpNext
         /// will be replaced with TestOptions.RegularN and LanguageVersion.CSharpN when language version N is introduced.
-        /// </summary>
-        /// <remarks>
+        /// <para>
         /// Corresponds to Microsoft.CodeAnalysis.CSharp.Shared.Extensions.LanguageVersionExtensions.CSharpNext.
-        /// </remarks>
+        /// </para>
+        /// </summary>
         internal const LanguageVersion CSharpNext = LanguageVersion.Preview;
 
         /// <summary>
