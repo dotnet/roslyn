@@ -7,9 +7,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.SourceGeneration;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -398,6 +400,44 @@ namespace Microsoft.CodeAnalysis
         internal virtual bool SupportsLocations
         {
             get { return this.HasCompilationUnitRoot; }
+        }
+
+        private SyntaxTreeInfo? _syntaxTreeInfo;
+
+        internal SyntaxTreeInfo GetTreeInfo(ISyntaxHelper syntaxHelper, CancellationToken cancellationToken)
+        {
+            if (_syntaxTreeInfo is null)
+            {
+                Interlocked.CompareExchange(ref _syntaxTreeInfo, ComputeTreeInfo(syntaxHelper, cancellationToken), comparand: null);
+            }
+
+            return _syntaxTreeInfo;
+        }
+
+        private SyntaxTreeInfo ComputeTreeInfo(ISyntaxHelper syntaxHelper, CancellationToken cancellationToken)
+        {
+            var root = this.GetRoot(cancellationToken);
+            var containsGlobalAliases = syntaxHelper.ContainsGlobalAliases(root);
+            var containsAttributeList = ContainsAttributeList(root.Green, syntaxHelper.AttributeListKind);
+
+            return new SyntaxTreeInfo(this, containsGlobalAliases, containsAttributeList);
+        }
+
+        private static bool ContainsAttributeList(GreenNode node, int attributeListKind)
+        {
+            if (node.RawKind == attributeListKind)
+                return true;
+
+            foreach (var child in node.ChildNodesAndTokens())
+            {
+                if (node.IsToken)
+                    return false;
+
+                if (ContainsAttributeList(child, attributeListKind))
+                    return true;
+            }
+
+            return false;
         }
     }
 }

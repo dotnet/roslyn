@@ -19,14 +19,14 @@ namespace Microsoft.CodeAnalysis;
 
 using Aliases = ArrayBuilder<(string aliasName, string symbolName)>;
 
+/// <summary>
+/// Information computed about a particular tree.  Cached so we don't repeatedly recompute this important
+/// information each time the incremental pipeline is rerun.
+/// </summary>
+internal record SyntaxTreeInfo(SyntaxTree Tree, bool ContainsGlobalAliases, bool ContainsAttributeList);
+
 public partial struct SyntaxValueProvider
 {
-    /// <summary>
-    /// Information computed about a particular tree.  Cached so we don't repeatedly recompute this important
-    /// information each time the incremental pipeline is rerun.
-    /// </summary>
-    private record SyntaxTreeInfo(SyntaxTree Tree, bool ContainsGlobalAliases, bool ContainsAttributeList);
-
     /// <summary>
     /// Caching of syntax-tree to the info we've computed about it.  Used because compilations will have thousands of
     /// trees, and the incremental pipeline will get called back for *all* of them each time a compilation changes.  We
@@ -36,7 +36,7 @@ public partial struct SyntaxValueProvider
     /// the number of *relevant syntax trees*. This can lead to huge memory churn keeping track of a high number of
     /// trees, most of which are not going to be relevant.
     /// </summary>
-    private static readonly ConditionalWeakTable<SyntaxTree, SyntaxTreeInfo> s_treeToInfo = new ConditionalWeakTable<SyntaxTree, SyntaxTreeInfo>();
+    // private static readonly ConditionalWeakTable<SyntaxTree, SyntaxTreeInfo> s_treeToInfo = new ConditionalWeakTable<SyntaxTree, SyntaxTreeInfo>();
 
     private static readonly ObjectPool<Stack<string>> s_stackPool = new ObjectPool<Stack<string>>(static () => new Stack<string>());
 
@@ -80,7 +80,7 @@ public partial struct SyntaxValueProvider
                 var count = 0;
                 foreach (var tree in compilation.SyntaxTrees)
                 {
-                    var info = GetTreeInfo(tree, syntaxHelper, cancellationToken);
+                    var info = tree.GetTreeInfo(syntaxHelper, cancellationToken);
                     if (info.ContainsGlobalAliases || info.ContainsAttributeList)
                         count++;
                 }
@@ -89,7 +89,7 @@ public partial struct SyntaxValueProvider
 
                 foreach (var tree in compilation.SyntaxTrees)
                 {
-                    var info = GetTreeInfo(tree, syntaxHelper, cancellationToken);
+                    var info = tree.GetTreeInfo(syntaxHelper, cancellationToken);
                     if (info.ContainsGlobalAliases || info.ContainsAttributeList)
                         builder.Add(info);
                 }
@@ -155,24 +155,24 @@ public partial struct SyntaxValueProvider
         }
     }
 
-    private static SyntaxTreeInfo GetTreeInfo(
-        SyntaxTree tree, ISyntaxHelper syntaxHelper, CancellationToken cancellationToken)
-    {
-        // prevent captures for the case where the item is in the tree.
-        return s_treeToInfo.TryGetValue(tree, out var info)
-            ? info
-            : computeTreeInfo();
+    //private static SyntaxTreeInfo GetTreeInfo(
+    //    SyntaxTree tree, ISyntaxHelper syntaxHelper, CancellationToken cancellationToken)
+    //{
+    //    // prevent captures for the case where the item is in the tree.
+    //    return s_treeToInfo.TryGetValue(tree, out var info)
+    //        ? info
+    //        : computeTreeInfo();
 
-        SyntaxTreeInfo computeTreeInfo()
-        {
-            var root = tree.GetRoot(cancellationToken);
-            var containsGlobalAliases = syntaxHelper.ContainsGlobalAliases(root);
-            var containsAttributeList = ContainsAttributeList(root.Green, syntaxHelper.AttributeListKind);
+    //    SyntaxTreeInfo computeTreeInfo()
+    //    {
+    //        var root = tree.GetRoot(cancellationToken);
+    //        var containsGlobalAliases = syntaxHelper.ContainsGlobalAliases(root);
+    //        var containsAttributeList = ContainsAttributeList(root.Green, syntaxHelper.AttributeListKind);
 
-            var info = new SyntaxTreeInfo(tree, containsGlobalAliases, containsAttributeList);
-            return s_treeToInfo.GetValue(tree, _ => info);
-        }
-    }
+    //        var info = new SyntaxTreeInfo(tree, containsGlobalAliases, containsAttributeList);
+    //        return s_treeToInfo.GetValue(tree, _ => info);
+    //    }
+    //}
 
     private static ImmutableArray<SyntaxNode> GetMatchingNodes(
         ISyntaxHelper syntaxHelper,
