@@ -40,6 +40,9 @@ public partial struct SyntaxValueProvider
 
     private static readonly ObjectPool<Stack<string>> s_stackPool = new ObjectPool<Stack<string>>(static () => new Stack<string>());
 
+    //private static readonly ObjectPool<ImmutableArray<SyntaxTreeInfo>.Builder> s_treeInfoArrayPool
+    //    = new ObjectPool<ImmutableArray<SyntaxTreeInfo>.Builder>(static () => ImmutableArray.CreateBuilder<SyntaxTreeInfo>());
+
     /// <summary>
     /// Returns all syntax nodes of that match <paramref name="predicate"/> if that node has an attribute on it that
     /// could possibly bind to the provided <paramref name="simpleName"/>. <paramref name="simpleName"/> should be the
@@ -72,9 +75,27 @@ public partial struct SyntaxValueProvider
         // changed. CreateSyntaxProvider will have to rerun all incremental nodes since it passes along the
         // SemanticModel, and that model is updated whenever any tree changes (since it is tied to the compilation).
         var syntaxTreesProvider = _context.CompilationProvider
-            .SelectMany((compilation, cancellationToken) => compilation.SyntaxTrees
-                .Select(tree => GetTreeInfo(tree, syntaxHelper, cancellationToken))
-                .Where(info => info.ContainsGlobalAliases || info.ContainsAttributeList))
+            .SelectMany((compilation, cancellationToken) =>
+            {
+                var count = 0;
+                foreach (var tree in compilation.SyntaxTrees)
+                {
+                    var info = GetTreeInfo(tree, syntaxHelper, cancellationToken);
+                    if (info.ContainsGlobalAliases || info.ContainsAttributeList)
+                        count++;
+                }
+
+                var builder = ImmutableArray.CreateBuilder<SyntaxTreeInfo>(count);
+
+                foreach (var tree in compilation.SyntaxTrees)
+                {
+                    var info = GetTreeInfo(tree, syntaxHelper, cancellationToken);
+                    if (info.ContainsGlobalAliases || info.ContainsAttributeList)
+                        builder.Add(info);
+                }
+
+                return builder.MoveToImmutable();
+            })
             .WithTrackingName("compilationUnit_ForAttribute");
 
         // Create a provider that provides (and updates) the global aliases for any particular file when it is edited.
