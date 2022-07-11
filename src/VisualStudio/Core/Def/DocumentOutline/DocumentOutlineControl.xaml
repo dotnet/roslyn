@@ -75,11 +75,11 @@
                 <ColumnDefinition Width="28" />
                 <ColumnDefinition Width="28" />
             </Grid.ColumnDefinitions>
-            <Button Grid.Column="0" Click="CollapseAll" ToolTip="{x:Static self:DocumentOutlineStrings.Document_Outline_Expand_All}">
-                <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.CollapseAll}" />
-            </Button>
-            <Button Grid.Column="1" Click="ExpandAll" ToolTip="{x:Static self:DocumentOutlineStrings.Document_Outline_Collapse_All}">
+            <Button Grid.Column="0" Click="ExpandAll" ToolTip="{x:Static self:DocumentOutlineStrings.Document_Outline_Collapse_All}">
                 <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.ExpandAll}" />
+            </Button>
+            <Button Grid.Column="1" Click="CollapseAll" ToolTip="{x:Static self:DocumentOutlineStrings.Document_Outline_Expand_All}">
+                <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.CollapseAll}" />
             </Button>
             <Button Grid.Column="2" Click="SortByName" ToolTip="{x:Static self:DocumentOutlineStrings.Document_Outline_Sort_Name}">
                 <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.SortAscending}" />
