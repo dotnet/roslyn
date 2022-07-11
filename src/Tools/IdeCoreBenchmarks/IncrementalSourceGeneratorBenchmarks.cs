@@ -171,7 +171,9 @@ namespace IdeCoreBenchmarks
             var totalIncrementalTime = TimeSpan.Zero;
             for (var i = 0; i < 50000; i++)
             {
-                var changedText = sourceText.WithChanges(new TextChange(sourceText.Lines[0].Span, $"// added text{i}"));
+                var newText = $"// added text{i}";
+
+                var changedText = sourceText.WithChanges(new TextChange(new TextSpan(0, newText.Length), newText));
                 var changedTree = syntaxTree.WithChangedText(changedText);
                 compilation = compilation.ReplaceSyntaxTree(syntaxTree, changedTree);
                 sourceText = changedText;

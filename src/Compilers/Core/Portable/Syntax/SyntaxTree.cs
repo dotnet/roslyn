@@ -428,9 +428,13 @@ namespace Microsoft.CodeAnalysis
             if (node.RawKind == attributeListKind)
                 return true;
 
-            foreach (var child in node.ChildNodesAndTokens())
+            for (int i = 0, n = node.SlotCount; i < n; i++)
             {
-                if (node.IsToken)
+                var child = node.GetSlot(i);
+                if (child is null)
+                    continue;
+
+                if (child.IsToken)
                     return false;
 
                 if (ContainsAttributeList(child, attributeListKind))
