@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     // 3) Properties with a backing field (auto-generated properties)
                     if (!propertyReference.Arguments.IsEmpty ||
                         propertyReference.Property.IsReadOnly ||
-                        propertyReference.Property.IsPropertyWithBackingField())
+                        propertyReference.Property.IsPropertyWithBackingField(out _))
                     {
                         symbol = propertyReference.Property;
                         indices = !propertyReference.Arguments.IsEmpty ?

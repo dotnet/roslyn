@@ -104,6 +104,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                     return defaultValue;
                 }
 
+                // Special case: MemoryStream doesn't need to be disposed. Subclasses *might* need to be disposed, but that is the less common case, and the common case is a huge source of noisy warnings.
+                if (MemoryStreamNamedType != null &&
+                    instanceType.Equals(MemoryStreamNamedType))
+                {
+                    return defaultValue;
+                }
+
                 // Handle user option for additional excluded types
                 if (DataFlowAnalysisContext.IsConfiguredToSkipAnalysis(instanceType))
                 {

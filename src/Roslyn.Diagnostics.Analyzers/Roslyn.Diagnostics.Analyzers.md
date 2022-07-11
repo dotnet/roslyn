@@ -36,18 +36,6 @@ Invoke the correct property to ensure correct use site diagnostics
 |CodeFix|False|
 ---
 
-## RS0005: Do not use generic 'CodeAction.Create' to create 'CodeAction'
-
-Do not use generic 'CodeAction.Create' to create 'CodeAction'
-
-|Item|Value|
-|-|-|
-|Category|RoslynDiagnosticsPerformance|
-|Enabled|True|
-|Severity|Warning|
-|CodeFix|False|
----
-
 ## RS0006: Do not mix attributes from different versions of MEF
 
 Do not mix attributes from different versions of MEF.

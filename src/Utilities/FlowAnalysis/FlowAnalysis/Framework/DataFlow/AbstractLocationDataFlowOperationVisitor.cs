@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected override void EscapeValueForParameterOnExit(IParameterSymbol parameter, AnalysisEntity analysisEntity)
         {
-            Debug.Assert(Equals(analysisEntity.Symbol, parameter));
+            Debug.Assert(SymbolEqualityComparer.Default.Equals(analysisEntity.Symbol, parameter));
             var escapedLocationsForParameter = GetEscapedLocations(analysisEntity);
             if (!escapedLocationsForParameter.IsEmpty)
             {

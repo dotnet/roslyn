@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Public Class BasicRegisterActionAnalyzer
-        Inherits RegisterActionAnalyzer(Of ClassBlockSyntax, InvocationExpressionSyntax, ArgumentSyntax, SyntaxKind)
+        Inherits RegisterActionAnalyzer(Of InvocationExpressionSyntax, ArgumentSyntax, SyntaxKind)
 
         Private Const BasicSyntaxKindFullName As String = "Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"
         Private Const CSharpSyntaxKindFullName As String = "Microsoft.CodeAnalysis.CSharp.SyntaxKind"

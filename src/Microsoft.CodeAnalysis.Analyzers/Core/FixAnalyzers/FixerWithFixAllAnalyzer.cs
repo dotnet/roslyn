@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                     {
                         AnalyzeFixerWithFixAll(fixer, context);
                     }
-                    else if (fixer.BaseType != null && fixer.BaseType.Equals(_codeFixProviderSymbol))
+                    else if (SymbolEqualityComparer.Default.Equals(fixer.BaseType, _codeFixProviderSymbol))
                     {
                         Diagnostic diagnostic = fixer.CreateDiagnostic(OverrideGetFixAllProviderRule, fixer.Name);
                         context.ReportDiagnostic(diagnostic);
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                 {
                     foreach (INamedTypeSymbol type in fixer.GetBaseTypesAndThis())
                     {
-                        if (!type.Equals(_codeFixProviderSymbol))
+                        if (!SymbolEqualityComparer.Default.Equals(type, _codeFixProviderSymbol))
                         {
                             IMethodSymbol getFixAllProviderMethod = type.GetMembers(GetFixAllProviderMethodName).OfType<IMethodSymbol>().FirstOrDefault();
                             if (getFixAllProviderMethod != null && getFixAllProviderMethod.IsOverride)
@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
 
                     foreach (var argument in invocation.Arguments)
                     {
-                        if (argument.Parameter.Equals(param))
+                        if (SymbolEqualityComparer.Default.Equals(argument.Parameter, param))
                         {
                             return argument.Value.ConstantValue.HasValue && argument.Value.ConstantValue.Value == null;
                         }
@@ -289,32 +289,28 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
 
                 void AnalyzeFixerWithFixAll(INamedTypeSymbol fixer, CompilationAnalysisContext context)
                 {
-                    if (_codeActionCreateInvocations != null)
+                    if (_codeActionCreateInvocations != null
+                        && _codeActionCreateInvocations.TryGetValue(fixer, out HashSet<IInvocationOperation> invocations))
                     {
-                        if (_codeActionCreateInvocations.TryGetValue(fixer, out HashSet<IInvocationOperation> invocations))
+                        foreach (IInvocationOperation invocation in invocations)
                         {
-                            foreach (IInvocationOperation invocation in invocations)
+                            if (IsViolatingCodeActionCreateInvocation(invocation))
                             {
-                                if (IsViolatingCodeActionCreateInvocation(invocation))
-                                {
-                                    Diagnostic diagnostic = invocation.CreateDiagnostic(CreateCodeActionEquivalenceKeyRule, EquivalenceKeyParameterName);
-                                    context.ReportDiagnostic(diagnostic);
-                                }
+                                Diagnostic diagnostic = invocation.CreateDiagnostic(CreateCodeActionEquivalenceKeyRule, EquivalenceKeyParameterName);
+                                context.ReportDiagnostic(diagnostic);
                             }
                         }
                     }
 
-                    if (_codeActionObjectCreations != null)
+                    if (_codeActionObjectCreations != null
+                        && _codeActionObjectCreations.TryGetValue(fixer, out HashSet<IObjectCreationOperation> objectCreations))
                     {
-                        if (_codeActionObjectCreations.TryGetValue(fixer, out HashSet<IObjectCreationOperation> objectCreations))
+                        foreach (IObjectCreationOperation objectCreation in objectCreations)
                         {
-                            foreach (IObjectCreationOperation objectCreation in objectCreations)
+                            if (IsViolatingCodeActionObjectCreation(objectCreation))
                             {
-                                if (IsViolatingCodeActionObjectCreation(objectCreation))
-                                {
-                                    Diagnostic diagnostic = objectCreation.CreateDiagnostic(OverrideCodeActionEquivalenceKeyRule, objectCreation.Constructor.ContainingType, EquivalenceKeyPropertyName);
-                                    context.ReportDiagnostic(diagnostic);
-                                }
+                                Diagnostic diagnostic = objectCreation.CreateDiagnostic(OverrideCodeActionEquivalenceKeyRule, objectCreation.Constructor.ContainingType, EquivalenceKeyPropertyName);
+                                context.ReportDiagnostic(diagnostic);
                             }
                         }
                     }
@@ -327,13 +323,13 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                     // Local functions
                     bool IsCodeActionWithOverriddenEquivalenceKey(INamedTypeSymbol namedType)
                     {
-                        if (namedType == null || namedType.Equals(_codeActionSymbol))
+                        if (SymbolEqualityComparer.Default.Equals(namedType, _codeActionSymbol))
                         {
                             return false;
                         }
 
                         // We are already tracking CodeActions with equivalence key in this compilation.
-                        if (namedType.ContainingAssembly.Equals(_sourceAssembly))
+                        if (SymbolEqualityComparer.Default.Equals(namedType.ContainingAssembly, _sourceAssembly))
                         {
                             return _codeActionsWithEquivalenceKey != null && _codeActionsWithEquivalenceKey.Contains(namedType);
                         }

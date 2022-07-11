@@ -137,13 +137,13 @@ namespace Analyzer.Utilities
 
             if (balance == -2)
             {
-                rotated = currentNode.Right!.Balance < 0 ?
+                rotated = currentNode.Right!.Balance <= 0 ?
                     LeftSimple(currentNode) :
                     LeftComplex(currentNode);
             }
             else if (balance == 2)
             {
-                rotated = currentNode.Left!.Balance > 0 ?
+                rotated = currentNode.Left!.Balance >= 0 ?
                     RightSimple(currentNode) :
                     RightComplex(currentNode);
             }
@@ -665,17 +665,17 @@ namespace Analyzer.Utilities
                     _current = curr;
                     _next = curr.Next;
 
-                    PushIfNotNull(curr.Left);
-                    PushIfNotNull(curr.Right);
+                    PushIfNotNull(_stack, curr.Left);
+                    PushIfNotNull(_stack, curr.Right);
 
                     return true;
-                }
 
-                private void PushIfNotNull(AvlNode? child)
-                {
-                    if (child != null)
+                    static void PushIfNotNull(Stack<AvlNode> stack, AvlNode? child)
                     {
-                        _stack!.Push(child);
+                        if (child != null)
+                        {
+                            stack.Push(child);
+                        }
                     }
                 }
             }
@@ -783,17 +783,17 @@ namespace Analyzer.Utilities
                     _current = curr;
                     _next = curr.Next;
 
-                    PushIfNotNull(curr.Left);
-                    PushIfNotNull(curr.Right);
+                    PushIfNotNull(_stack, curr.Left);
+                    PushIfNotNull(_stack, curr.Right);
 
                     return true;
-                }
 
-                private void PushIfNotNull(AvlNode? child)
-                {
-                    if (child != null)
+                    static void PushIfNotNull(Stack<AvlNode> stack, AvlNode? child)
                     {
-                        _stack!.Push(child);
+                        if (child != null)
+                        {
+                            stack.Push(child);
+                        }
                     }
                 }
             }
@@ -889,17 +889,17 @@ namespace Analyzer.Utilities
                 _current = curr;
                 _next = curr.Next;
 
-                PushIfNotNull(curr.Left);
-                PushIfNotNull(curr.Right);
+                PushIfNotNull(_stack, curr.Left);
+                PushIfNotNull(_stack, curr.Right);
 
                 return true;
-            }
 
-            private void PushIfNotNull(AvlNode? child)
-            {
-                if (child != null)
+                static void PushIfNotNull(Stack<AvlNode> stack, AvlNode? child)
                 {
-                    _stack!.Push(child);
+                    if (child != null)
+                    {
+                        stack.Push(child);
+                    }
                 }
             }
         }

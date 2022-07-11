@@ -30,7 +30,7 @@ namespace Text.Analyzers
         private static readonly SourceTextValueProvider<CodeAnalysisDictionary> s_dicDictionaryProvider = new(ParseDicDictionary);
         private static readonly CodeAnalysisDictionary s_mainDictionary = GetMainDictionary();
 
-        internal static DiagnosticDescriptor FileParseRule = DiagnosticDescriptorHelper.Create(
+        internal static readonly DiagnosticDescriptor FileParseRule = DiagnosticDescriptorHelper.Create(
             RuleId,
             s_localizableTitle,
             CreateLocalizableResourceString(nameof(IdentifiersShouldBeSpelledCorrectlyFileParse)),
@@ -40,7 +40,7 @@ namespace Text.Analyzers
             isPortedFxCopRule: true,
             isDataflowRule: false);
 
-        internal static DiagnosticDescriptor AssemblyRule = DiagnosticDescriptorHelper.Create(
+        internal static readonly DiagnosticDescriptor AssemblyRule = DiagnosticDescriptorHelper.Create(
             RuleId,
             s_localizableTitle,
             CreateLocalizableResourceString(nameof(IdentifiersShouldBeSpelledCorrectlyMessageAssembly)),
@@ -50,7 +50,7 @@ namespace Text.Analyzers
             isPortedFxCopRule: true,
             isDataflowRule: false);
 
-        internal static DiagnosticDescriptor NamespaceRule = DiagnosticDescriptorHelper.Create(
+        internal static readonly DiagnosticDescriptor NamespaceRule = DiagnosticDescriptorHelper.Create(
             RuleId,
             s_localizableTitle,
             CreateLocalizableResourceString(nameof(IdentifiersShouldBeSpelledCorrectlyMessageNamespace)),
@@ -60,7 +60,7 @@ namespace Text.Analyzers
             isPortedFxCopRule: true,
             isDataflowRule: false);
 
-        internal static DiagnosticDescriptor TypeRule = DiagnosticDescriptorHelper.Create(
+        internal static readonly DiagnosticDescriptor TypeRule = DiagnosticDescriptorHelper.Create(
             RuleId,
             s_localizableTitle,
             CreateLocalizableResourceString(nameof(IdentifiersShouldBeSpelledCorrectlyMessageType)),
@@ -70,7 +70,7 @@ namespace Text.Analyzers
             isPortedFxCopRule: true,
             isDataflowRule: false);
 
-        internal static DiagnosticDescriptor VariableRule = DiagnosticDescriptorHelper.Create(
+        internal static readonly DiagnosticDescriptor VariableRule = DiagnosticDescriptorHelper.Create(
             RuleId,
             s_localizableTitle,
             CreateLocalizableResourceString(nameof(IdentifiersShouldBeSpelledCorrectlyMessageVariable)),
@@ -80,7 +80,7 @@ namespace Text.Analyzers
             isPortedFxCopRule: true,
             isDataflowRule: false);
 
-        internal static DiagnosticDescriptor MemberRule = DiagnosticDescriptorHelper.Create(
+        internal static readonly DiagnosticDescriptor MemberRule = DiagnosticDescriptorHelper.Create(
             RuleId,
             s_localizableTitle,
             CreateLocalizableResourceString(nameof(IdentifiersShouldBeSpelledCorrectlyMessageMember)),
@@ -90,7 +90,7 @@ namespace Text.Analyzers
             isPortedFxCopRule: true,
             isDataflowRule: false);
 
-        internal static DiagnosticDescriptor MemberParameterRule = DiagnosticDescriptorHelper.Create(
+        internal static readonly DiagnosticDescriptor MemberParameterRule = DiagnosticDescriptorHelper.Create(
             RuleId,
             s_localizableTitle,
             CreateLocalizableResourceString(nameof(IdentifiersShouldBeSpelledCorrectlyMessageMemberParameter)),
@@ -100,7 +100,7 @@ namespace Text.Analyzers
             isPortedFxCopRule: true,
             isDataflowRule: false);
 
-        internal static DiagnosticDescriptor DelegateParameterRule = DiagnosticDescriptorHelper.Create(
+        internal static readonly DiagnosticDescriptor DelegateParameterRule = DiagnosticDescriptorHelper.Create(
             RuleId,
             s_localizableTitle,
             CreateLocalizableResourceString(nameof(IdentifiersShouldBeSpelledCorrectlyMessageDelegateParameter)),
@@ -110,7 +110,7 @@ namespace Text.Analyzers
             isPortedFxCopRule: true,
             isDataflowRule: false);
 
-        internal static DiagnosticDescriptor TypeTypeParameterRule = DiagnosticDescriptorHelper.Create(
+        internal static readonly DiagnosticDescriptor TypeTypeParameterRule = DiagnosticDescriptorHelper.Create(
             RuleId,
             s_localizableTitle,
             CreateLocalizableResourceString(nameof(IdentifiersShouldBeSpelledCorrectlyMessageTypeTypeParameter)),
@@ -120,7 +120,7 @@ namespace Text.Analyzers
             isPortedFxCopRule: true,
             isDataflowRule: false);
 
-        internal static DiagnosticDescriptor MethodTypeParameterRule = DiagnosticDescriptorHelper.Create(
+        internal static readonly DiagnosticDescriptor MethodTypeParameterRule = DiagnosticDescriptorHelper.Create(
             RuleId,
             s_localizableTitle,
             CreateLocalizableResourceString(nameof(IdentifiersShouldBeSpelledCorrectlyMessageMethodTypeParameter)),
@@ -130,7 +130,7 @@ namespace Text.Analyzers
             isPortedFxCopRule: true,
             isDataflowRule: false);
 
-        internal static DiagnosticDescriptor AssemblyMoreMeaningfulNameRule = DiagnosticDescriptorHelper.Create(
+        internal static readonly DiagnosticDescriptor AssemblyMoreMeaningfulNameRule = DiagnosticDescriptorHelper.Create(
             RuleId,
             s_localizableTitle,
             CreateLocalizableResourceString(nameof(IdentifiersShouldBeSpelledCorrectlyMessageAssemblyMoreMeaningfulName)),
@@ -140,7 +140,7 @@ namespace Text.Analyzers
             isPortedFxCopRule: true,
             isDataflowRule: false);
 
-        internal static DiagnosticDescriptor NamespaceMoreMeaningfulNameRule = DiagnosticDescriptorHelper.Create(
+        internal static readonly DiagnosticDescriptor NamespaceMoreMeaningfulNameRule = DiagnosticDescriptorHelper.Create(
             RuleId,
             s_localizableTitle,
             CreateLocalizableResourceString(nameof(IdentifiersShouldBeSpelledCorrectlyMessageNamespaceMoreMeaningfulName)),
@@ -150,7 +150,7 @@ namespace Text.Analyzers
             isPortedFxCopRule: true,
             isDataflowRule: false);
 
-        internal static DiagnosticDescriptor TypeMoreMeaningfulNameRule = DiagnosticDescriptorHelper.Create(
+        internal static readonly DiagnosticDescriptor TypeMoreMeaningfulNameRule = DiagnosticDescriptorHelper.Create(
             RuleId,
             s_localizableTitle,
             CreateLocalizableResourceString(nameof(IdentifiersShouldBeSpelledCorrectlyMessageTypeMoreMeaningfulName)),
@@ -160,7 +160,7 @@ namespace Text.Analyzers
             isPortedFxCopRule: true,
             isDataflowRule: false);
 
-        internal static DiagnosticDescriptor MemberMoreMeaningfulNameRule = DiagnosticDescriptorHelper.Create(
+        internal static readonly DiagnosticDescriptor MemberMoreMeaningfulNameRule = DiagnosticDescriptorHelper.Create(
             RuleId,
             s_localizableTitle,
             CreateLocalizableResourceString(nameof(IdentifiersShouldBeSpelledCorrectlyMessageMemberMoreMeaningfulName)),
@@ -170,7 +170,7 @@ namespace Text.Analyzers
             isPortedFxCopRule: true,
             isDataflowRule: false);
 
-        internal static DiagnosticDescriptor MemberParameterMoreMeaningfulNameRule = DiagnosticDescriptorHelper.Create(
+        internal static readonly DiagnosticDescriptor MemberParameterMoreMeaningfulNameRule = DiagnosticDescriptorHelper.Create(
             RuleId,
             s_localizableTitle,
             CreateLocalizableResourceString(nameof(IdentifiersShouldBeSpelledCorrectlyMessageMemberParameterMoreMeaningfulName)),
@@ -180,7 +180,7 @@ namespace Text.Analyzers
             isPortedFxCopRule: true,
             isDataflowRule: false);
 
-        internal static DiagnosticDescriptor DelegateParameterMoreMeaningfulNameRule = DiagnosticDescriptorHelper.Create(
+        internal static readonly DiagnosticDescriptor DelegateParameterMoreMeaningfulNameRule = DiagnosticDescriptorHelper.Create(
             RuleId,
             s_localizableTitle,
             CreateLocalizableResourceString(nameof(IdentifiersShouldBeSpelledCorrectlyMessageDelegateParameterMoreMeaningfulName)),
@@ -190,7 +190,7 @@ namespace Text.Analyzers
             isPortedFxCopRule: true,
             isDataflowRule: false);
 
-        internal static DiagnosticDescriptor TypeTypeParameterMoreMeaningfulNameRule = DiagnosticDescriptorHelper.Create(
+        internal static readonly DiagnosticDescriptor TypeTypeParameterMoreMeaningfulNameRule = DiagnosticDescriptorHelper.Create(
             RuleId,
             s_localizableTitle,
             CreateLocalizableResourceString(nameof(IdentifiersShouldBeSpelledCorrectlyMessageTypeTypeParameterMoreMeaningfulName)),
@@ -200,7 +200,7 @@ namespace Text.Analyzers
             isPortedFxCopRule: true,
             isDataflowRule: false);
 
-        internal static DiagnosticDescriptor MethodTypeParameterMoreMeaningfulNameRule = DiagnosticDescriptorHelper.Create(
+        internal static readonly DiagnosticDescriptor MethodTypeParameterMoreMeaningfulNameRule = DiagnosticDescriptorHelper.Create(
             RuleId,
             s_localizableTitle,
             CreateLocalizableResourceString(nameof(IdentifiersShouldBeSpelledCorrectlyMessageMethodTypeParameterMoreMeaningfulName)),

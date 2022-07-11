@@ -26,7 +26,7 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
     {
         internal const string OptSuffix = "Opt";
 
-        internal static DiagnosticDescriptor Rule = new(
+        internal static readonly DiagnosticDescriptor Rule = new(
             RoslynDiagnosticIds.AvoidOptSuffixForNullableEnableCodeRuleId,
             CreateLocalizableResourceString(nameof(AvoidOptSuffixForNullableEnableCodeTitle)),
             CreateLocalizableResourceString(nameof(AvoidOptSuffixForNullableEnableCodeMessage)),

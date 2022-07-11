@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyCodeFix">
         <source>Use a 'SymbolEqualityComparer' for symbol comparison</source>
-        <target state="needs-review-translation">正確比較符號</target>
+        <target state="translated">使用 'SymbolEqualityComparer' 進行符號比較</target>
         <note />
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyDescription">
@@ -34,12 +34,12 @@
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyMessage">
         <source>Use 'SymbolEqualityComparer' when comparing symbols</source>
-        <target state="needs-review-translation">正確比較符號</target>
+        <target state="translated">比較符號時，請使用 'SymbolEqualityComparer'</target>
         <note />
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyTitle">
         <source>Symbols should be compared for equality</source>
-        <target state="needs-review-translation">正確比較符號</target>
+        <target state="translated">應比較符號是否相等</target>
         <note />
       </trans-unit>
       <trans-unit id="ConfigureGeneratedCodeAnalysisFix">

@@ -94,27 +94,27 @@
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageMemberMoreMeaningfulName">
         <source>Consider providing a more meaningful name than member name '{0}'</source>
-        <target state="translated">Подберите более значимое имя для элемента {0}.</target>
+        <target state="translated">Подберите более значимое имя для элемента "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageMemberParameterMoreMeaningfulName">
         <source>In method '{0}', consider providing a more meaningful name than parameter name '{1}'</source>
-        <target state="translated">В методе {0} подберите более значимое имя для параметра {1}.</target>
+        <target state="translated">В методе "{0}" подберите более значимое имя для параметра "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageDelegateParameterMoreMeaningfulName">
         <source>In delegate '{0}', consider providing a more meaningful name than parameter name '{1}'</source>
-        <target state="translated">В делегате {0} подберите более значимое имя для параметра {1}.</target>
+        <target state="translated">В делегате "{0}" подберите более значимое имя для параметра "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageTypeTypeParameterMoreMeaningfulName">
         <source>On type '{0}', consider providing a more meaningful name than generic type parameter name '{1}'</source>
-        <target state="translated">В типе {0} подберите более значимое имя для параметра универсального типа {1}.</target>
+        <target state="translated">В типе "{0}" подберите более значимое имя для параметра универсального типа "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageMethodTypeParameterMoreMeaningfulName">
         <source>On method '{0}', consider providing a more meaningful name than generic type parameter name '{1}'</source>
-        <target state="translated">В методе {0} подберите более значимое имя для параметра универсального типа {1}.</target>
+        <target state="translated">В методе "{0}" подберите более значимое имя для параметра универсального типа "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="CategoryNaming">

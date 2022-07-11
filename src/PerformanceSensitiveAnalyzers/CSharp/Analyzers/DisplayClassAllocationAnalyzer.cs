@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
         public const string ClosureCaptureRuleId = "HAA0302";
         public const string LambaOrAnonymousMethodInGenericMethodRuleId = "HAA0303";
 
-        internal static DiagnosticDescriptor ClosureDriverRule = new(
+        internal static readonly DiagnosticDescriptor ClosureDriverRule = new(
             ClosureDriverRuleId,
             CreateLocalizableResourceString(nameof(ClosureDriverRuleTitle)),
             CreateLocalizableResourceString(nameof(ClosureDriverRuleMessage)),
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        internal static DiagnosticDescriptor ClosureCaptureRule = new(
+        internal static readonly DiagnosticDescriptor ClosureCaptureRule = new(
             ClosureCaptureRuleId,
             CreateLocalizableResourceString(nameof(ClosureCaptureRuleTitle)),
             CreateLocalizableResourceString(nameof(ClosureCaptureRuleMessage)),
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        internal static DiagnosticDescriptor LambaOrAnonymousMethodInGenericMethodRule = new(
+        internal static readonly DiagnosticDescriptor LambaOrAnonymousMethodInGenericMethodRule = new(
             LambaOrAnonymousMethodInGenericMethodRuleId,
             CreateLocalizableResourceString(nameof(LambaOrAnonymousMethodInGenericMethodRuleTitle)),
             CreateLocalizableResourceString(nameof(LambaOrAnonymousMethodInGenericMethodRuleMessage)),
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(ClosureCaptureRule, ClosureDriverRule, LambaOrAnonymousMethodInGenericMethodRule);
 
-        protected override ImmutableArray<SyntaxKind> Expressions => ImmutableArray.Create(SyntaxKind.ParenthesizedLambdaExpression, SyntaxKind.SimpleLambdaExpression, SyntaxKind.AnonymousMethodExpression);
+        protected override ImmutableArray<SyntaxKind> Expressions { get; } = ImmutableArray.Create(SyntaxKind.ParenthesizedLambdaExpression, SyntaxKind.SimpleLambdaExpression, SyntaxKind.AnonymousMethodExpression);
 
         private static readonly object[] EmptyMessageArgs = Array.Empty<object>();
 

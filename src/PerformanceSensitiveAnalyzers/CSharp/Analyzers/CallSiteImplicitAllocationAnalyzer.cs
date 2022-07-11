@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
         public const string ParamsParameterRuleId = "HAA0101";
         public const string ValueTypeNonOverridenCallRuleId = "HAA0102";
 
-        internal static DiagnosticDescriptor ParamsParameterRule = new(
+        internal static readonly DiagnosticDescriptor ParamsParameterRule = new(
             ParamsParameterRuleId,
             CreateLocalizableResourceString(nameof(ParamsParameterRuleTitle)),
             CreateLocalizableResourceString(nameof(ParamsParameterRuleMessage)),
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        internal static DiagnosticDescriptor ValueTypeNonOverridenCallRule = new(
+        internal static readonly DiagnosticDescriptor ValueTypeNonOverridenCallRule = new(
             ValueTypeNonOverridenCallRuleId,
             CreateLocalizableResourceString(nameof(ValueTypeNonOverridenCallRuleTitle)),
             CreateLocalizableResourceString(nameof(ValueTypeNonOverridenCallRuleMessage)),
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(ParamsParameterRule, ValueTypeNonOverridenCallRule);
 
-        protected override ImmutableArray<SyntaxKind> Expressions => ImmutableArray.Create(SyntaxKind.InvocationExpression);
+        protected override ImmutableArray<SyntaxKind> Expressions { get; } = ImmutableArray.Create(SyntaxKind.InvocationExpression);
 
         protected override void AnalyzeNode(SyntaxNodeAnalysisContext context, in PerformanceSensitiveInfo info)
         {

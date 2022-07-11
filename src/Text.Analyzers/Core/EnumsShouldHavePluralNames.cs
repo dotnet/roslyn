@@ -24,7 +24,7 @@ namespace Text.Analyzers
     {
         internal const string RuleId_Plural = "CA1714";
 
-        internal static DiagnosticDescriptor Rule_CA1714 =
+        internal static readonly DiagnosticDescriptor Rule_CA1714 =
             DiagnosticDescriptorHelper.Create(
                 RuleId_Plural,
                 CreateLocalizableResourceString(nameof(FlagsEnumsShouldHavePluralNamesTitle)),
@@ -37,7 +37,7 @@ namespace Text.Analyzers
 
         internal const string RuleId_NoPlural = "CA1717";
 
-        internal static DiagnosticDescriptor Rule_CA1717 =
+        internal static readonly DiagnosticDescriptor Rule_CA1717 =
             DiagnosticDescriptorHelper.Create(
                 RuleId_NoPlural,
                 CreateLocalizableResourceString(nameof(OnlyFlagsEnumsShouldHavePluralNamesTitle)),

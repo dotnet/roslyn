@@ -174,7 +174,7 @@
       </trans-unit>
       <trans-unit id="RemoveDeletedApiDescription">
         <source>When removing a public type or member, put that entry in PublicAPI.Unshipped.txt with '*REMOVED*' prefix. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</source>
-        <target state="needs-review-translation">Quand vous supprimez un type ou un membre public, l'entrée correspondante dans PublicAPI.txt doit également être supprimée. Cela attire l'attention sur les changements apportés à l'API dans les revues de code et l'historique du contrôle de code source. De plus, cela permet d'éviter les changements cassants.</target>
+        <target state="translated">Lorsque vous supprimez un type ou un membre public, placez cette entrée dans PublicAPI.Unshipped.txt avec le préfixe « *REMOVED* ». Cela permet d'attirer l'attention sur les modifications de l'API dans les revues de code et l'historique du contrôle de la source, et d'éviter les modifications de rupture.</target>
         <note>{Locked="*REMOVED*"}</note>
       </trans-unit>
       <trans-unit id="RemoveDeletedApiMessage">

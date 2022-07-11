@@ -258,6 +258,7 @@ Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DataFlowOperationVisitor<TAnalysisD
 Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>.WellKnownTypeProvider.get -> Analyzer.Utilities.WellKnownTypeProvider!
 Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>.ExceptionNamedType.get -> Microsoft.CodeAnalysis.INamedTypeSymbol?
 Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>.TaskNamedType.get -> Microsoft.CodeAnalysis.INamedTypeSymbol?
+Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>.MemoryStreamNamedType.get -> Microsoft.CodeAnalysis.INamedTypeSymbol?
 Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>.InterlockedNamedType.get -> Microsoft.CodeAnalysis.INamedTypeSymbol?
 Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>.ContractNamedType.get -> Microsoft.CodeAnalysis.INamedTypeSymbol?
 Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>.IDisposableNamedType.get -> Microsoft.CodeAnalysis.INamedTypeSymbol?

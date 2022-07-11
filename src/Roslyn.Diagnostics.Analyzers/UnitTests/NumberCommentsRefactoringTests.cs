@@ -219,23 +219,5 @@ class C // 1
 
             await VerifyCS.VerifyRefactoringAsync(source, fixedSource);
         }
-
-        [Fact]
-        public async Task LastLineIsAnalyzedAsync()
-        {
-            const string source = @"
-public class C
-{
-    string s = @""[||]class D { } //"";
-}";
-
-            const string fixedSource = @"
-public class C
-{
-    string s = @""class D { } // 1"";
-}";
-
-            await VerifyCS.VerifyRefactoringAsync(source, fixedSource);
-        }
     }
 }

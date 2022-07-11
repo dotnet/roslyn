@@ -5,28 +5,10 @@
     {
       "tool": {
         "name": "Roslyn.Diagnostics.Analyzers",
-        "version": "3.3.3",
+        "version": "3.3.4",
         "language": "en-US"
       },
       "rules": {
-        "RS0005": {
-          "id": "RS0005",
-          "shortDescription": "Do not use generic 'CodeAction.Create' to create 'CodeAction'",
-          "fullDescription": "Do not use generic 'CodeAction.Create' to create 'CodeAction'",
-          "defaultLevel": "warning",
-          "properties": {
-            "category": "RoslynDiagnosticsPerformance",
-            "isEnabledByDefault": true,
-            "typeName": "CodeActionCreateAnalyzer",
-            "languages": [
-              "C#",
-              "Visual Basic"
-            ],
-            "tags": [
-              "Telemetry"
-            ]
-          }
-        },
         "RS0006": {
           "id": "RS0006",
           "shortDescription": "Do not mix attributes from different versions of MEF",
@@ -175,7 +157,7 @@
     {
       "tool": {
         "name": "Roslyn.Diagnostics.CSharp.Analyzers",
-        "version": "3.3.3",
+        "version": "3.3.4",
         "language": "en-US"
       },
       "rules": {
@@ -287,7 +269,7 @@
     {
       "tool": {
         "name": "Roslyn.Diagnostics.VisualBasic.Analyzers",
-        "version": "3.3.3",
+        "version": "3.3.4",
         "language": "en-US"
       },
       "rules": {
