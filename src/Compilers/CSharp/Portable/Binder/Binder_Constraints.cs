@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (constraintType.Type.HasFileLocalTypes())
             {
-                // if the containing symbol of the constraint is a member, we need to ensure the nearest containing type is a file type.
+                // if the containing symbol of the constraint is a member, we need to ensure the nearest containing type is a file-local type.
                 var possibleFileType = containingSymbol switch
                 {
                     TypeSymbol typeSymbol => typeSymbol,

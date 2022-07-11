@@ -7122,19 +7122,19 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>'{2}' cannot satisfy the 'new()' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.</value>
   </data>
   <data name="ERR_FileTypeDisallowedInSignature" xml:space="preserve">
-    <value>File type '{0}' cannot be used in a member signature in non-file type '{1}'.</value>
+    <value>File-local type '{0}' cannot be used in a member signature in non-file-local type '{1}'.</value>
   </data>
   <data name="ERR_FileTypeNoExplicitAccessibility" xml:space="preserve">
-    <value>File type '{0}' cannot use accessibility modifiers.</value>
+    <value>File-local type '{0}' cannot use accessibility modifiers.</value>
   </data>
   <data name="ERR_FileTypeBase" xml:space="preserve">
-    <value>File type '{0}' cannot be used as a base type of non-file type '{1}'.</value>
+    <value>File-local type '{0}' cannot be used as a base type of non-file-local type '{1}'.</value>
   </data>
   <data name="ERR_FileTypeNested" xml:space="preserve">
-    <value>File type '{0}' must be defined in a top level type; '{0}' is a nested type.</value>
+    <value>File-local type '{0}' must be defined in a top level type; '{0}' is a nested type.</value>
   </data>
   <data name="ERR_GlobalUsingStaticFileType" xml:space="preserve">
-    <value>File type '{0}' cannot be used in a 'global using static' directive.</value>
+    <value>File-local type '{0}' cannot be used in a 'global using static' directive.</value>
   </data>
   <data name="ERR_FileTypeNameDisallowed" xml:space="preserve">
     <value>Types and aliases cannot be named 'file'.</value>

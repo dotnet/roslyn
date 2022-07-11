@@ -402,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             static bool isFileLocalTypeInSeparateFileFrom(SourceNamedTypeSymbol possibleFileLocalType, SourceNamedTypeSymbol otherSymbol)
             {
-                if (!possibleFileLocalType.IsFile)
+                if (!possibleFileLocalType.IsFileLocal)
                 {
                     return false;
                 }
