@@ -52,9 +52,10 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         private readonly AsyncBatchingWorkQueue<bool, DocumentSymbolModel?> _updateUIModelQueue;
 
         /// <summary>
-        /// Queue to batch up work to do to highlight the currently selected symbol node and update the UI.
+        /// Queue to batch up work to do to highlight the currently selected symbol node, expand/collapse nodes,
+        /// then update the UI.
         /// </summary>
-        private readonly AsyncBatchingWorkQueue _highlightNodeAndUpdateUIQueue;
+        private readonly AsyncBatchingWorkQueue<ExpansionOption> _highlightAndExpandNodesQueue;
 
         /// <summary>
         /// Queue to batch up work to do to select code in the editor based on the current caret position.
@@ -97,7 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 asyncListener,
                 cancellationToken);
 
-            _highlightNodeAndUpdateUIQueue = new AsyncBatchingWorkQueue(
+            _highlightAndExpandNodesQueue = new AsyncBatchingWorkQueue<ExpansionOption>(
                 DelayTimeSpan.NearImmediate,
                 HightlightNodeAsync,
                 asyncListener,
@@ -181,17 +182,17 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         private void Caret_PositionChanged(object sender, CaretPositionChangedEventArgs e)
         {
             if (!e.NewPosition.Equals(e.OldPosition))
-                StartHightlightNodeTask();
+                StartHightlightNodeTask(ExpansionOption.NoChange);
         }
 
         private void ExpandAll(object sender, RoutedEventArgs e)
         {
-            DocumentOutlineHelper.SetIsExpanded((IEnumerable<DocumentSymbolItem>)symbolTree.ItemsSource, true);
+            StartHightlightNodeTask(ExpansionOption.Expand);
         }
 
         private void CollapseAll(object sender, RoutedEventArgs e)
         {
-            DocumentOutlineHelper.SetIsExpanded((IEnumerable<DocumentSymbolItem>)symbolTree.ItemsSource, false);
+            StartHightlightNodeTask(ExpansionOption.Collapse);
         }
 
         private void Search(object sender, EventArgs e)

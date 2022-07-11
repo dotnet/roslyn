@@ -144,12 +144,12 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
-        public static void SetIsExpanded(IEnumerable<DocumentSymbolItem> documentSymbolItems, bool isExpanded)
+        public static void SetIsExpanded(ImmutableArray<DocumentSymbolItem> documentSymbolItems, ExpansionOption expansionOption)
         {
             foreach (var documentSymbolItem in documentSymbolItems)
             {
-                documentSymbolItem.IsExpanded = isExpanded;
-                SetIsExpanded(documentSymbolItem.Children, isExpanded);
+                documentSymbolItem.IsExpanded = expansionOption is ExpansionOption.Expand;
+                SetIsExpanded(documentSymbolItem.Children, expansionOption);
             }
         }
 

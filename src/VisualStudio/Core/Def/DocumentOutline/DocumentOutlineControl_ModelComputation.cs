@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -135,24 +137,28 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             updatedDocumentSymbolItems = DocumentOutlineHelper.Sort(updatedDocumentSymbolItems, SortOption, cancellationToken);
 
-            StartHightlightNodeTask();
+            StartHightlightNodeTask(ExpansionOption.NoChange);
 
             return new DocumentSymbolModel(updatedDocumentSymbolItems, model.OriginalSnapshot);
         }
 
         /// <summary>
-        /// Starts a new task to highlight the symbol node corresponding to the current caret position in the editor then updates the UI.
+        /// Starts a new task to highlight the symbol node corresponding to the current caret position in the editor, expand/collapse
+        /// nodes (if applicable), and updates the UI.
         /// </summary>
-        private void StartHightlightNodeTask()
+        private void StartHightlightNodeTask(ExpansionOption expansionOption)
         {
-            _highlightNodeAndUpdateUIQueue.AddWork();
+            _highlightAndExpandNodesQueue.AddWork(expansionOption);
         }
 
         /// <summary>
-        /// Highlights the symbol node corresponding to the current caret position in the editor then updates the UI.
+        /// Highlights the symbol node corresponding to the current caret position in the editor, expands/collapses nodes, then updates the UI.
         /// </summary>
-        private async ValueTask HightlightNodeAsync(CancellationToken cancellationToken)
+        private async ValueTask HightlightNodeAsync(ImmutableSegmentedList<ExpansionOption> expansionOption, CancellationToken cancellationToken)
         {
+            if (expansionOption.IsDefault || expansionOption.IsEmpty)
+                return;
+
             var model = await _updateUIModelQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
             if (model is null)
                 return;
@@ -187,6 +193,10 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             if (symbolToSelect is not null)
                 symbolToSelect.IsSelected = true;
+
+            var expansion = expansionOption.First();
+            if (expansion is not ExpansionOption.NoChange)
+                DocumentOutlineHelper.SetIsExpanded(model.DocumentSymbolItems, expansion);
 
             symbolTree.ItemsSource = model.DocumentSymbolItems;
         }
