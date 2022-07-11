@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
     internal partial class CPSProjectFactory : IWorkspaceProjectContextFactory
     {
         private static readonly ImmutableArray<string> s_evaluationPropertyNames
-            = ImmutableArray.Create(PropertyName_MSBuildProjectFullPath, PropertyName_TargetPath, PropertyName_AssemblyName);
+            = ImmutableArray.Create(BuildPropertyNames.MSBuildProjectFullPath, BuildPropertyNames.TargetPath, BuildPropertyNames.AssemblyName);
 
         private static readonly ImmutableArray<string> s_evaluationItemTypes
             = ImmutableArray<string>.Empty;
