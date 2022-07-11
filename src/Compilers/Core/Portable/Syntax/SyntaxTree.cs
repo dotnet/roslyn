@@ -399,5 +399,22 @@ namespace Microsoft.CodeAnalysis
         {
             get { return this.HasCompilationUnitRoot; }
         }
+
+        private SyntaxTreeInfo? _syntaxTreeInfo;
+
+        internal SyntaxTreeInfo GetInfo(
+            ISyntaxHelper syntaxHelper, CancellationToken cancellationToken)
+        {
+            if (_syntaxTreeInfo is null)
+            {
+                var root = this.GetRoot(cancellationToken);
+                Interlocked.CompareExchange(
+                    ref _syntaxTreeInfo,
+                    new SyntaxTreeInfo(this, syntaxHelper.ContainsGlobalAliases(root), syntaxHelper.ContainsAttributeList(root)),
+                    comparand: null);
+            }
+
+            return _syntaxTreeInfo;
+        }
     }
 }
