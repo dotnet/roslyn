@@ -36,9 +36,9 @@ public partial struct SyntaxValueProvider
     /// the number of *relevant syntax trees*. This can lead to huge memory churn keeping track of a high number of
     /// trees, most of which are not going to be relevant.
     /// </summary>
-    private static readonly ConditionalWeakTable<SyntaxTree, SyntaxTreeInfo> s_treeToInfo = new();
+    private static readonly ConditionalWeakTable<SyntaxTree, SyntaxTreeInfo> s_treeToInfo = new ConditionalWeakTable<SyntaxTree, SyntaxTreeInfo>();
 
-    private static readonly ObjectPool<Stack<string>> s_stackPool = new(static () => new());
+    private static readonly ObjectPool<Stack<string>> s_stackPool = new ObjectPool<Stack<string>>(static _ => new Stack<string>());
 
     /// <summary>
     /// Returns all syntax nodes of that match <paramref name="predicate"/> if that node has an attribute on it that
