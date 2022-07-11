@@ -194,7 +194,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// <summary>
         /// Starts a new task to select code when a symbol node is clicked.
         /// </summary>
-        private void StartJumpToContent(DocumentSymbolItem symbol)
+        private void StartJumpToContentTask(DocumentSymbolItem symbol)
         {
             _jumpToContentQueue.AddWork(symbol);
         }

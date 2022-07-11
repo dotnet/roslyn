@@ -223,7 +223,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         private void JumpToContent(object sender, EventArgs e)
         {
             if (sender is StackPanel panel && panel.DataContext is DocumentSymbolItem symbol)
-                StartJumpToContent(symbol);
+                StartJumpToContentTask(symbol);
         }
     }
 }
