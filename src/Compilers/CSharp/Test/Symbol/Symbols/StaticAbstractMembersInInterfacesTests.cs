@@ -9187,7 +9187,6 @@ class Test
                 }
                 else
                 {
- 
                     compilation2.VerifyDiagnostics(
                         // (6,13): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
                         //         _ = ++x;

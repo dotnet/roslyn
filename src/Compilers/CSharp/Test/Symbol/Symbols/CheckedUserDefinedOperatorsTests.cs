@@ -1213,7 +1213,7 @@ class C
 
             compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.Regular10.WithDocumentationMode(DocumentationMode.Diagnose));
             compilation.VerifyDiagnostics( // (3,20): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator checked true(C)'
-                // /// See <see cref="operator checked true(C)"/>.
+                                           // /// See <see cref="operator checked true(C)"/>.
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "operator checked " + op + "(C)").WithArguments("operator checked " + op + "(C)").WithLocation(3, 20),
                 // (3,29): warning CS1658: Feature 'checked user-defined operators' is not available in C# 10.0. Please use language version 11.0 or greater.. See also error CS8936.
                 // /// See <see cref="operator checked true(C)"/>.
@@ -1697,7 +1697,7 @@ class C
             Assert.Equal(expectedSymbol, actualSymbol);
 
             compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.Regular10.WithDocumentationMode(DocumentationMode.Diagnose));
- 
+
             compilation.VerifyDiagnostics(
                 // (3,20): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator checked +'
                 // /// See <see cref="operator checked +"/>.
