@@ -129,8 +129,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         int IVsCodeWindowEvents.OnNewView(IVsTextView pView)
         {
             ThreadingContext.ThrowIfNotOnUIThread();
-            StartTrackingView(pView);
-            return VSConstants.S_OK;
+            return StartTrackingView(pView);
         }
 
         private int StartTrackingView(IVsTextView textView)
