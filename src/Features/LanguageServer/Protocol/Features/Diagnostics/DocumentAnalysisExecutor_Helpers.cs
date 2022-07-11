@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 case AnalyzerLoadFailureEventArgs.FailureErrorCode.ReferencesNewerCompiler:
                     id = GetLanguageSpecificId(language, WRN_AnalyzerReferencesNewerCompilerId, WRN_AnalyzerReferencesNewerCompilerIdCS, WRN_AnalyzerReferencesNewerCompilerIdVB);
-                    message = string.Format(FeaturesResources.The_assembly_0_references_compiler_version_1_newer_than_2, fullPath, e.ReferencedCompilerVersion);
+                    message = string.Format(FeaturesResources.The_assembly_0_references_compiler_version_1_newer_than_2, fullPath, e.ReferencedCompilerVersion, typeof(AnalyzerLoadFailureEventArgs).Assembly.GetName().Version);
                     break;
 
                 default:
