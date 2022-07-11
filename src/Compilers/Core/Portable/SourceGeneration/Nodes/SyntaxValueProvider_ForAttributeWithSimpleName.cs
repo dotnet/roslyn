@@ -334,10 +334,12 @@ public partial struct SyntaxValueProvider
         if (node.RawKind == attributeListKind)
             return true;
 
-        foreach (var child in node.ChildNodesAndTokens())
+        for (int i = 0, n = node.SlotCount; i < n; i++)
         {
-            if (node.IsToken)
-                return false;
+            var child = node.GetSlot(i);
+
+            if (child is null || child.IsToken)
+                continue;
 
             if (ContainsAttributeList(child, attributeListKind))
                 return true;
