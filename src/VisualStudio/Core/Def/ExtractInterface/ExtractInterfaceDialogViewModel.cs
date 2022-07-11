@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls;
-using Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
@@ -30,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
             INotificationService notificationService,
             string defaultInterfaceName,
             List<string> conflictingTypeNames,
-            ImmutableArray<PullMemberUpSymbolViewModel> memberViewModels,
+            ImmutableArray<LanguageServices.Utilities.MemberSymbolViewModel> memberViewModels,
             string defaultNamespace,
             string generatedNameTypeParameterSuffix,
             string languageName)
@@ -76,17 +75,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
         private void SendFailureNotification(string message)
             => _notificationService.SendNotification(message, severity: NotificationSeverity.Information);
 
-        public ImmutableArray<PullMemberUpSymbolViewModel> MemberContainers => MemberSelectionViewModel.Members;
+        public ImmutableArray<LanguageServices.Utilities.MemberSymbolViewModel> MemberContainers => MemberSelectionViewModel.Members;
 
         public NewTypeDestinationSelectionViewModel DestinationViewModel { get; internal set; }
 
         public MemberSelectionViewModel MemberSelectionViewModel { get; }
-
-        internal class MemberSymbolViewModel : SymbolViewModel<ISymbol>
-        {
-            public MemberSymbolViewModel(ISymbol symbol, IGlyphService glyphService) : base(symbol, glyphService)
-            {
-            }
-        }
     }
 }

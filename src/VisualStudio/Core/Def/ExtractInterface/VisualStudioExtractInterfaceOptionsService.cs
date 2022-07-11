@@ -23,6 +23,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls;
 using Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog;
+using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
@@ -60,9 +61,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
 
             var memberViewModels = extractableMembers
                 .SelectAsArray(member =>
-                    new PullMemberUpSymbolViewModel(member, _glyphService)
+                    new MemberSymbolViewModel(member, _glyphService)
                     {
-                        IsChecked = false,
+                        IsChecked = true,
                         MakeAbstract = false,
                         IsMakeAbstractCheckable = false,
                         IsCheckable = true

@@ -302,7 +302,7 @@ public class $$MyClass
                 Dim extractableMembers = DirectCast(symbol, INamedTypeSymbol).GetMembers().Where(Function(s) Not (TypeOf s Is IMethodSymbol) OrElse DirectCast(s, IMethodSymbol).MethodKind <> MethodKind.Constructor)
 
                 Dim memberViewModels = extractableMembers.Select(Function(member As ISymbol)
-                                                                     Return New Implementation.PullMemberUp.MainDialog.PullMemberUpSymbolViewModel(member, Nothing)
+                                                                     Return New Implementation.PullMemberUp.MainDialog.MemberSymbolViewModel(member, Nothing)
                                                                  End Function)
 
                 Return New ExtractInterfaceDialogViewModel(

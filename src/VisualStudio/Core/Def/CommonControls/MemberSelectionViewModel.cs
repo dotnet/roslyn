@@ -12,8 +12,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
@@ -23,11 +23,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls
     {
         private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
         private readonly ImmutableDictionary<ISymbol, Task<ImmutableArray<ISymbol>>> _symbolToDependentsMap;
-        private readonly ImmutableDictionary<ISymbol, PullMemberUpSymbolViewModel> _symbolToMemberViewMap;
+        private readonly ImmutableDictionary<ISymbol, MemberSymbolViewModel> _symbolToMemberViewMap;
 
         public MemberSelectionViewModel(
             IUIThreadOperationExecutor uiThreadOperationExecutor,
-            ImmutableArray<PullMemberUpSymbolViewModel> members,
+            ImmutableArray<MemberSymbolViewModel> members,
             ImmutableDictionary<ISymbol, Task<ImmutableArray<ISymbol>>> dependentsMap,
             TypeKind destinationTypeKind = TypeKind.Class,
             bool showDependentsButton = true,
@@ -48,10 +48,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls
         public bool ShowCheckDependentsButton { get; }
         public bool ShowPublicButton { get; }
         public bool ShowMakeAbstract => _members.Any(m => m.IsMakeAbstractCheckable);
-        public ImmutableArray<PullMemberUpSymbolViewModel> CheckedMembers => Members.WhereAsArray(m => m.IsChecked && m.IsCheckable);
+        public ImmutableArray<MemberSymbolViewModel> CheckedMembers => Members.WhereAsArray(m => m.IsChecked && m.IsCheckable);
 
-        private ImmutableArray<PullMemberUpSymbolViewModel> _members;
-        public ImmutableArray<PullMemberUpSymbolViewModel> Members
+        private ImmutableArray<MemberSymbolViewModel> _members;
+        public ImmutableArray<MemberSymbolViewModel> Members
         {
             get => _members;
             set
@@ -81,13 +81,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls
 
         private void MemberPropertyChangedHandler(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(PullMemberUpSymbolViewModel.IsChecked))
+            if (e.PropertyName == nameof(MemberSymbolViewModel.IsChecked))
             {
                 // Hook the CheckedMembers property change to each individual member checked status change
                 NotifyPropertyChanged(nameof(CheckedMembers));
             }
 
-            if (e.PropertyName == nameof(PullMemberUpSymbolViewModel.IsMakeAbstractCheckable))
+            if (e.PropertyName == nameof(MemberSymbolViewModel.IsMakeAbstractCheckable))
             {
                 NotifyPropertyChanged(nameof(ShowMakeAbstract));
             }
@@ -159,7 +159,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls
             }
         }
 
-        private static void SelectMembers(ImmutableArray<PullMemberUpSymbolViewModel> members, bool isChecked = true)
+        private static void SelectMembers(ImmutableArray<MemberSymbolViewModel> members, bool isChecked = true)
         {
             foreach (var member in members.Where(viewModel => viewModel.IsCheckable))
             {
