@@ -95,12 +95,12 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
             return cpsProject;
         }
 
-        public static async Task<CPSProject> CreateNonCompilableProjectAsync(TestEnvironment environment, string projectName, string projectFilePath)
+        public static async Task<CPSProject> CreateNonCompilableProjectAsync(TestEnvironment environment, string projectName, string projectFilePath, string targetPath)
         {
             var hierarchy = environment.CreateHierarchy(projectName, projectBinPath: null, projectRefPath: null, projectCapabilities: "");
             var cpsProjectFactory = environment.ExportProvider.GetExportedValue<IWorkspaceProjectContextFactory>();
 
-            var data = new TestEvaluationData(NoCompilationConstants.LanguageName, projectFilePath, targetPath: "", assemblyName: "");
+            var data = new TestEvaluationData(NoCompilationConstants.LanguageName, projectFilePath, targetPath, assemblyName: "");
 
             return (CPSProject)await cpsProjectFactory.CreateProjectContextAsync(
                 Guid.NewGuid(),
