@@ -319,6 +319,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 #endif
 
+        public override BoundNode VisitAttribute(BoundAttribute node)
+        {
+            foreach (var argument in node.ConstructorArguments)
+            {
+                VisitRvalue(argument);
+            }
+
+            foreach (var namedArgument in node.NamedArguments)
+            {
+                VisitAssignmentOperator(namedArgument);
+            }
+
+            return base.VisitAttribute(node);
+        }
+
         protected override bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()
         {
             return _convertInsufficientExecutionStackExceptionToCancelledByStackGuardException;

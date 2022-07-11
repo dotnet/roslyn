@@ -894,16 +894,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitAttribute(BoundAttribute node)
         {
-            foreach (var argument in node.ConstructorArguments)
-            {
-                VisitRvalue(argument);
-            }
-
-            foreach (var namedArgument in node.NamedArguments)
-            {
-                VisitAssignmentOperator(namedArgument);
-            }
-
+            // No flow analysis is ever done in attributes (or their arguments).
             return null;
         }
 
