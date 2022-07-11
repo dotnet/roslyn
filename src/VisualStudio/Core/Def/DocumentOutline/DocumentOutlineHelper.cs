@@ -28,6 +28,10 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// Given an array of all Document Symbols in a document, returns an array containing the 
         /// top-level Document Symbols and their nested children.
         /// </summary>
+        /// <remarks>
+        /// As of right now, the LSP document symbol request only returns 2 levels of nesting, so
+        /// we nest the symbols first before converting the DocumentSymbols to DocumentSymbolItems.
+        /// </remarks>
         public static DocumentSymbol[] GetNestedDocumentSymbols(DocumentSymbol[]? documentSymbols)
         {
             if (documentSymbols is null || documentSymbols.Length == 0)
