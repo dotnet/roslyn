@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(!RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__NumericIntPtr));
                 if ((object)CorLibrary == this)
                 {
-                    FailFast.Assert(!_lazyRuntimeSupportsNumericIntPtr.HasValue()); // TODO2
+                    Debug.Assert(!_lazyRuntimeSupportsNumericIntPtr.HasValue());
                     _lazyRuntimeSupportsNumericIntPtr = value.ToThreeState();
                     return;
                 }
