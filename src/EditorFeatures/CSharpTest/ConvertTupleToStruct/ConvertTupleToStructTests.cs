@@ -2322,9 +2322,9 @@ internal struct NewStruct
     // /0/Test0.cs(13,16): error CS0102: The type 'NewStruct' already contains a definition for 'a'
     DiagnosticResult.CompilerError("CS0102").WithSpan(13, 16, 13, 17).WithArguments("NewStruct", "a"),
     // /0/Test0.cs(15,12): error CS0171: Field 'NewStruct.a' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
-    DiagnosticResult.CompilerError("CS0171").WithSpan(15, 12, 15, 21).WithArguments("NewStruct.a", "preview"),
+    DiagnosticResult.CompilerError("CS0171").WithSpan(15, 12, 15, 21).WithArguments("NewStruct.a", "11.0"),
     // /0/Test0.cs(15,12): error CS0171: Field 'NewStruct.a' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
-    DiagnosticResult.CompilerError("CS0171").WithSpan(15, 12, 15, 21).WithArguments("NewStruct.a", "preview"),
+    DiagnosticResult.CompilerError("CS0171").WithSpan(15, 12, 15, 21).WithArguments("NewStruct.a", "11.0"),
     // /0/Test0.cs(15,33): error CS0100: The parameter name 'a' is a duplicate
     DiagnosticResult.CompilerError("CS0100").WithSpan(15, 33, 15, 34).WithArguments("a"),
     // /0/Test0.cs(17,14): error CS0229: Ambiguity between 'NewStruct.a' and 'NewStruct.a'
