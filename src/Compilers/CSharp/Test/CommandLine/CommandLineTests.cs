@@ -1615,7 +1615,7 @@ class C
         [InlineData("iso1")]
         [InlineData("8.1")]
         [InlineData("10.1")]
-        [InlineData("11")]
+        [InlineData("12")]
         [InlineData("1000")]
         public void LangVersion_BadVersion(string value)
         {
