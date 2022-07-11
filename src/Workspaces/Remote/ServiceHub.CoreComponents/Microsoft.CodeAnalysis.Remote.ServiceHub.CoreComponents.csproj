@@ -34,19 +34,29 @@
   <Target Name="LocateCrossgenTargets" DependsOnTargets="Publish">
     <ItemGroup>
       <!-- Find all Roslyn assemblies that we want to crossgen -->
-      <_ProjectReferenceAssemblies Include="@(_ResolvedProjectReferencePaths->'%(FileName)%(Extension)')" />
+      <_R2RAssemblies Include="@(_ResolvedProjectReferencePaths->'%(FileName)%(Extension)')" />
+      <!-- Also crossgen a few assemblies we don't own but insert into VS -->
+      <_R2RAssemblies Include="Microsoft.ServiceHub.Framework.dll" />
+      <_R2RAssemblies Include="Microsoft.VisualStudio.Composition.dll" />
+      <_R2RAssemblies Include="Microsoft.VisualStudio.Telemetry.dll" />
+      <_R2RAssemblies Include="Microsoft.VisualStudio.Threading.dll" />
+      <_R2RAssemblies Include="MessagePack.dll" />
+      <_R2RAssemblies Include="Nerdback.Streams.dll" />
+      <_R2RAssemblies Include="Newtonsoft.Json.dll" />
+      <_R2RAssemblies Include="SQLitePCLRaw.batteries_v2.dll" />
+      <_R2RAssemblies Include="StreamJsonRpc.dll" />
       <!-- Find all assemblies (including Roslyn and all dependencies) from the actual published location -->
       <_AllPublishedAssemblyPaths Include="$(PublishDir)\**\*.dll" Exclude="$(PublishDir)\**\*.resources.dll" />
       <_AllPublishedAssemblies Include="@(_AllPublishedAssemblyPaths->'%(FileName)%(Extension)')" >
         <_FullFilePath>%(FullPath)</_FullFilePath>
       </_AllPublishedAssemblies>
       <!-- Get all non-Roslyn assemblies as a subset of all published ones, we don't crossgen those -->
-      <_NoR2RAssemblies Include="@(_AllPublishedAssemblies)" Exclude="@(_ProjectReferenceAssemblies)" >
+      <_NoR2RAssemblies Include="@(_AllPublishedAssemblies)" Exclude="@(_R2RAssemblies)" >
         <_FullFilePath>%(_AllPublishedAssemblies._FullFilePath)</_FullFilePath>
       </_NoR2RAssemblies>
       <_NoR2RAssemblyPaths Include="@(_NoR2RAssemblies->'%(_FullFilePath)')" />
       <!-- Now we get all Roslyn assemblies in the publish folder -->
-      <_RoslynAssemblyPaths Include="@(_AllPublishedAssemblyPaths)" Exclude="@(_NoR2RAssemblyPaths)" />
+      <_R2RAssemblyPaths Include="@(_AllPublishedAssemblyPaths)" Exclude="@(_NoR2RAssemblyPaths)" />
     </ItemGroup>
     
     <PropertyGroup>
@@ -54,8 +64,8 @@
       <OriginalAssemblyFolder>$(CrossgenWorkFolder)OriginalAssemblies\</OriginalAssemblyFolder>
     </PropertyGroup>   
 
-     <Message Text="Moving Files @(_RoslynAssemblyPaths)"/>
-     <Move SourceFiles="@(_RoslynAssemblyPaths)" DestinationFolder="$(OriginalAssemblyFolder)">
+     <Message Text="Moving Files @(_R2RAssemblyPaths)"/>
+     <Move SourceFiles="@(_R2RAssemblyPaths)" DestinationFolder="$(OriginalAssemblyFolder)">
        <Output 
           TaskParameter="DestinationFiles"
           ItemName="_FilesWritten"/>
@@ -65,11 +75,9 @@
       <_CrossgenTargetPaths Include="$(OriginalAssemblyFolder)\*.dll" />
       <_RoslynDependencies Include="@(_CrossgenTargetPaths)" />
     </ItemGroup>
-
   </Target>
 
-  <Target Name="CompileReadyToRun" DependsOnTargets="LocateCrossgenTargets;LocateDependencies" Outputs="%(_CrossgenTargetPaths.FullPath)">  
-    
+  <Target Name="CompileReadyToRun" DependsOnTargets="LocateCrossgenTargets;LocateDependencies" Outputs="%(_CrossgenTargetPaths.FullPath)">    
     <PropertyGroup>    
       <_Crossgen2Path>$(PkgMicrosoft_NETCore_App_crossgen2_win-x64)\tools\crossgen2.dll</_Crossgen2Path>
       <_R2ROptimizeAssemblyPath>%(_CrossgenTargetPaths.FullPath)</_R2ROptimizeAssemblyPath>
@@ -96,7 +104,6 @@
     </Exec>
     <Message Text="$(_Crossgen2Output)" />             
     <Error Text="Crossgen2 failed with exit code $(_Crossgen2ErrorCode)." Condition="'$(_Crossgen2ErrorCode)' != '0'" />
-
   </Target>
 
   <Target Name="LocateDependencies" DependsOnTargets="Publish">

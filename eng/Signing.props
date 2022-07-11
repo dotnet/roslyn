@@ -41,5 +41,12 @@
     <FileSignInfo Include="Nerdbank.Streams.dll" CertificateName="3PartySHA2" />
     <FileSignInfo Include="Newtonsoft.Json.dll" CertificateName="3PartySHA2" />
     <FileSignInfo Include="Validation.dll" CertificateName="3PartySHA2" />
+
+    <!-- Sign VS dlls we crossgen'd and included in the vsix for our .NET remote host with Microsoft cert -->
+    <FileSignInfo Include="Microsoft.ServiceHub.Framework.dll" CertificateName="MicrosoftSHA2" />
+    <FileSignInfo Include="Microsoft.VisualStudio.Composition.dll" CertificateName="MicrosoftSHA2" />
+    <FileSignInfo Include="Microsoft.VisualStudio.Telemetry.dll" CertificateName="MicrosoftSHA2" />
+    <FileSignInfo Include="Microsoft.VisualStudio.Threading.dll" CertificateName="MicrosoftSHA2" />
+    <FileSignInfo Include="StreamJsonRpc.dll" CertificateName="MicrosoftSHA2" />
   </ItemGroup>
 </Project>
