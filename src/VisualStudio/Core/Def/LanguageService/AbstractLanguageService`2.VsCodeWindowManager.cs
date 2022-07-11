@@ -269,6 +269,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 _documentOutlineViewHost?.Dispose();
                 _documentOutlineViewHost = null;
 
+                _documentOutlineCts?.Cancel();
                 _documentOutlineCts?.Dispose();
                 _documentOutlineCts = null;
 
