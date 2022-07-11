@@ -1551,8 +1551,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     switch (isPatternOperation.Pattern.Kind)
                     {
                         case OperationKind.DeclarationPattern:
-                            // Set predicated null/non-null value for declared pattern variable, i.e. for 'd' in "c is D d".
-                            predicateValueKind = SetValueForIsNullComparisonOperator(isPatternOperation.Pattern, equals: FlowBranchConditionKind == ControlFlowConditionKind.WhenFalse, targetAnalysisData: targetAnalysisData);
+                            if (!((IDeclarationPatternOperation)isPatternOperation.Pattern).MatchesNull)
+                            {
+                                // Set predicated null/non-null value for declared pattern variable, i.e. for 'd' in "c is D d".
+                                predicateValueKind = SetValueForIsNullComparisonOperator(isPatternOperation.Pattern, equals: FlowBranchConditionKind == ControlFlowConditionKind.WhenFalse, targetAnalysisData: targetAnalysisData);
+                            }
 
                             // Also set the predicated value for pattern value for true branch, i.e. for 'c' in "c is D d".
                             goto case OperationKind.DiscardPattern;

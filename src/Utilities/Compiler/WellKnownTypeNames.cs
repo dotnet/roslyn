@@ -131,9 +131,12 @@ namespace Analyzer.Utilities
         public const string SystemCollectionsGenericIReadOnlySet1 = "System.Collections.Generic.IReadOnlySet`1";
         public const string SystemCollectionsGenericISet1 = "System.Collections.Generic.ISet`1";
         public const string SystemCollectionsGenericKeyNotFoundException = "System.Collections.Generic.KeyNotFoundException";
+        public const string SystemCollectionsGenericLinkedList1 = "System.Collections.Generic.LinkedList`1";
         public const string SystemCollectionsGenericList1 = "System.Collections.Generic.List`1";
+        public const string SystemCollectionsGenericPriorityQueue2 = "System.Collections.Generic.PriorityQueue`2";
         public const string SystemCollectionsGenericQueue1 = "System.Collections.Generic.Queue`1";
         public const string SystemCollectionsGenericStack1 = "System.Collections.Generic.Stack`1";
+        public const string SystemCollectionsGenericSortedSet1 = "System.Collections.Generic.SortedSet`1";
         public const string SystemCollectionsICollection = "System.Collections.ICollection";
         public const string SystemCollectionsIDictionary = "System.Collections.IDictionary";
         public const string SystemCollectionsIEnumerable = "System.Collections.IEnumerable";
@@ -141,17 +144,22 @@ namespace Analyzer.Utilities
         public const string SystemCollectionsIHashCodeProvider = "System.Collections.IHashCodeProvider";
         public const string SystemCollectionsIList = "System.Collections.IList";
         public const string SystemCollectionsImmutableIImmutableDictionary2 = "System.Collections.Immutable.IImmutableDictionary`2";
+        public const string SystemCollectionsImmutableIImmutableList = "System.Collections.Immutable.IImmutableList";
         public const string SystemCollectionsImmutableIImmutableList1 = "System.Collections.Immutable.IImmutableList`1";
+        public const string SystemCollectionsImmutableImmutableList = "System.Collections.Immutable.ImmutableList";
         public const string SystemCollectionsImmutableIImmutableQueue1 = "System.Collections.Immutable.IImmutableQueue`1";
         public const string SystemCollectionsImmutableIImmutableSet1 = "System.Collections.Immutable.IImmutableSet`1";
         public const string SystemCollectionsImmutableIImmutableStack1 = "System.Collections.Immutable.IImmutableStack`1";
+        public const string SystemCollectionsImmutableImmutableArray = "System.Collections.Immutable.ImmutableArray";
         public const string SystemCollectionsImmutableImmutableArray1 = "System.Collections.Immutable.ImmutableArray`1";
         public const string SystemCollectionsImmutableImmutableDictionary = "System.Collections.Immutable.ImmutableDictionary";
         public const string SystemCollectionsImmutableImmutableDictionary2 = "System.Collections.Immutable.ImmutableDictionary`2";
         public const string SystemCollectionsImmutableImmutableHashSet = "System.Collections.Immutable.ImmutableHashSet";
         public const string SystemCollectionsImmutableImmutableHashSet1 = "System.Collections.Immutable.ImmutableHashSet`1";
         public const string SystemCollectionsImmutableImmutableList1 = "System.Collections.Immutable.ImmutableList`1";
+        public const string SystemCollectionsImmutableImmutableSortedDictionary = "System.Collections.Immutable.ImmutableSortedDictionary";
         public const string SystemCollectionsImmutableImmutableSortedDictionary2 = "System.Collections.Immutable.ImmutableSortedDictionary`2";
+        public const string SystemCollectionsImmutableImmutableSortedSet = "System.Collections.Immutable.ImmutableSortedSet";
         public const string SystemCollectionsImmutableImmutableSortedSet1 = "System.Collections.Immutable.ImmutableSortedSet`1";
         public const string SystemCollectionsObjectModelReadOnlyCollection1 = "System.Collections.ObjectModel.ReadOnlyCollection`1";
         public const string SystemCollectionsObjectModelReadOnlyDictionary2 = "System.Collections.ObjectModel.ReadOnlyDictionary`2";
@@ -240,6 +248,7 @@ namespace Analyzer.Utilities
         public const string SystemIProgress1 = "System.IProgress`1";
         public const string SystemLinqEnumerable = "System.Linq.Enumerable";
         public const string SystemLinqExpressionsExpression1 = "System.Linq.Expressions.Expression`1";
+        public const string SystemLinqIOrderedEnumerable1 = "System.Linq.IOrderedEnumerable`1";
         public const string SystemLinqQueryable = "System.Linq.Queryable";
         public const string SystemMarshalByRefObject = "System.MarshalByRefObject";
         public const string SystemMemory1 = "System.Memory`1";
@@ -280,6 +289,7 @@ namespace Analyzer.Utilities
         public const string SystemRuntimeCompilerServicesCompilerGeneratedAttribute = "System.Runtime.CompilerServices.CompilerGeneratedAttribute";
         public const string SystemRuntimeCompilerServicesConfiguredAsyncDisposable = "System.Runtime.CompilerServices.ConfiguredAsyncDisposable";
         public const string SystemRuntimeCompilerServicesConfiguredValueTaskAwaitable1 = "System.Runtime.CompilerServices.ConfiguredValueTaskAwaitable`1";
+        public const string SystemRuntimeCompilerServicesDisableRuntimeMarshallingAttribute = "System.Runtime.CompilerServices.DisableRuntimeMarshallingAttribute";
         public const string SystemRuntimeCompilerServicesICriticalNotifyCompletion = "System.Runtime.CompilerServices.ICriticalNotifyCompletion";
         public const string SystemRuntimeCompilerServicesINotifyCompletion = "System.Runtime.CompilerServices.INotifyCompletion";
         public const string SystemRuntimeCompilerServicesInternalsVisibleToAttribute = "System.Runtime.CompilerServices.InternalsVisibleToAttribute";
@@ -292,6 +302,7 @@ namespace Analyzer.Utilities
         public const string SystemRuntimeExceptionServicesHandleProcessCorruptedStateExceptionsAttribute = "System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute";
         public const string SystemRuntimeInteropServicesCharSet = "System.Runtime.InteropServices.CharSet";
         public const string SystemRuntimeInteropServicesCoClassAttribute = "System.Runtime.InteropServices.CoClassAttribute";
+        public const string SystemRuntimeInteropServicesComImportAttribute = "System.Runtime.InteropServices.ComImportAttribute";
         public const string SystemRuntimeInteropServicesComSourceInterfacesAttribute = "System.Runtime.InteropServices.ComSourceInterfacesAttribute";
         public const string SystemRuntimeInteropServicesComVisibleAttribute = "System.Runtime.InteropServices.ComVisibleAttribute";
         public const string SystemRuntimeInteropServicesDefaultDllImportSearchPathsAttribute = "System.Runtime.InteropServices.DefaultDllImportSearchPathsAttribute";
@@ -300,12 +311,15 @@ namespace Analyzer.Utilities
         public const string SystemRuntimeInteropServicesFieldOffsetAttribute = "System.Runtime.InteropServices.FieldOffsetAttribute";
         public const string SystemRuntimeInteropServicesGCHandle = "System.Runtime.InteropServices.GCHandle";
         public const string SystemRuntimeInteropServicesHandleRef = "System.Runtime.InteropServices.HandleRef";
+        public const string SystemRuntimeInteropServicesLCIDConversionAttribute = "System.Runtime.InteropServices.LCIDConversionAttribute";
+        public const string SystemRuntimeInteropServicesMarshal = "System.Runtime.InteropServices.Marshal";
         public const string SystemRuntimeInteropServicesMarshalAsAttribute = "System.Runtime.InteropServices.MarshalAsAttribute";
         public const string SystemRuntimeInteropServicesOSPlatform = "System.Runtime.InteropServices.OSPlatform";
         public const string SystemRuntimeInteropServicesOutAttribute = "System.Runtime.InteropServices.OutAttribute";
         public const string SystemRuntimeInteropServicesRuntimeInformation = "System.Runtime.InteropServices.RuntimeInformation";
         public const string SystemRuntimeInteropServicesSafeHandle = "System.Runtime.InteropServices.SafeHandle";
         public const string SystemRuntimeInteropServicesStructLayoutAttribute = "System.Runtime.InteropServices.StructLayoutAttribute";
+        public const string SystemRuntimeInteropServicesUnmanagedFunctionPoitnerAttribute = "System.Runtime.InteropServices.UnmanagedFunctionPointerAttribute";
         public const string SystemRuntimeInteropServicesUnmanagedType = "System.Runtime.InteropServices.UnmanagedType";
         public const string SystemRuntimeSerializationDataContractAttribute = "System.Runtime.Serialization.DataContractAttribute";
         public const string SystemRuntimeSerializationDataContractSerializer = "System.Runtime.Serialization.DataContractSerializer";
@@ -370,6 +384,7 @@ namespace Analyzer.Utilities
         public const string SystemTextEncoding = "System.Text.Encoding";
         public const string SystemTextRegularExpressionsRegex = "System.Text.RegularExpressions.Regex";
         public const string SystemTextStringBuilder = "System.Text.StringBuilder";
+        public const string SystemThreadStaticAttribute = "System.ThreadStaticAttribute";
         public const string SystemThreadingCancellationToken = "System.Threading.CancellationToken";
         public const string SystemThreadingInterlocked = "System.Threading.Interlocked";
         public const string SystemThreadingMonitor = "System.Threading.Monitor";
@@ -561,7 +576,11 @@ namespace Analyzer.Utilities
         public const string SystemXmlXslXslTransform = "System.Xml.Xsl.XslTransform";
         public const string SystemXmlXslXsltSettings = "System.Xml.Xsl.XsltSettings";
         public const string XunitAssert = "Xunit.Assert";
+        public const string XunitCombinatorialDataAttribute = "Xunit.CombinatorialDataAttribute";
+        public const string XunitCombinatorialRangeAttribute = "Xunit.CombinatorialRangeAttribute";
         public const string XunitFactAttribute = "Xunit.FactAttribute";
+        public const string XunitSdkDataAttribute = "Xunit.Sdk.DataAttribute";
         public const string XunitTraitAttribute = "Xunit.TraitAttribute";
+
     }
 }
