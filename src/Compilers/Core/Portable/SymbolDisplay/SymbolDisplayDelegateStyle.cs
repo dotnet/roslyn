@@ -23,8 +23,7 @@ namespace Microsoft.CodeAnalysis
         NameAndParameters = 1,
 
         /// <summary>
-        /// Shows the name and the signature of the delegate (e.g. "void SomeDelegate(int x)").  
-        /// </summary>
+        /// Shows the name and the signature of the delegate (e.g. "void SomeDelegate(int x)").
         /// <para>
         /// The format of the signature will be determined by the other flags passed.
         /// </para>

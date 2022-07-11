@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Includes the modifiers of the member. For example, "static readonly" in C# or "Shared ReadOnly" in Visual Basic.
-        
         /// <para>
         /// Accessibility modifiers are controlled separately by <see cref="IncludeAccessibility"/>.
         /// </para>
