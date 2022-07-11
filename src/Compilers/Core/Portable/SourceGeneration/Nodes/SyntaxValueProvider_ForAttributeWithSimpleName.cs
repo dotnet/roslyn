@@ -38,7 +38,7 @@ public partial struct SyntaxValueProvider
     /// </summary>
     private static readonly ConditionalWeakTable<SyntaxTree, SyntaxTreeInfo> s_treeToInfo = new ConditionalWeakTable<SyntaxTree, SyntaxTreeInfo>();
 
-    private static readonly ObjectPool<Stack<string>> s_stackPool = new ObjectPool<Stack<string>>(static _ => new Stack<string>());
+    private static readonly ObjectPool<Stack<string>> s_stackPool = new ObjectPool<Stack<string>>(static () => new Stack<string>());
 
     /// <summary>
     /// Returns all syntax nodes of that match <paramref name="predicate"/> if that node has an attribute on it that
