@@ -342,8 +342,7 @@ function GetCompilerTestAssembliesIncludePaths() {
 }
 
 function GetCompilerEndToEndTestAssemblyExclusion() {
-  $assemblies += " --exclude '^Microsoft\.CodeAnalysis\.CSharp\.EndToEnd\.UnitTests$'"
-  return $assemblies
+  return " --exclude '^Microsoft\.CodeAnalysis\.CSharp\.EndToEnd\.UnitTests$'"
 }
 
 # Core function for running our unit / integration tests tests
