@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Text;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -14,10 +14,14 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -67,24 +71,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 (type.BaseType?.SpecialType != SpecialType.System_ValueType && type.BaseType?.SpecialType != SpecialType.System_Object) ||
                 // records can't be static and so if the class is static we probably shouldn't convert it
                 type.IsStatic ||
-                // since we can't have any classes inherit this one, if a class is abstract it probably is inherited
-                // by a non-record type, so we should fail
-                type.IsAbstract)
+                // records can't be abstract
+                type.IsAbstract ||
+                // make sure that there is at least one positional parameter we can introduce
+                !type.GetMembers().Any(ShouldConvertProperty, type))
             {
                 return;
             }
 
-            var changedDoc = await TryConvertToRecordAsync(document, type, classDeclaration, context.Options, cancellationToken).ConfigureAwait(false);
             context.RegisterRefactoring(CodeAction.Create(
                 "placeholder title",
-                cancellationToken => TryConvertToRecordAsync(document, type, classDeclaration, context.Options, cancellationToken),
+                cancellationToken => ConvertToRecordAsync(document, type, classDeclaration, context.Options, cancellationToken),
                 "placeholder key"));
         }
 
-        private static async Task<Document> TryConvertToRecordAsync(
+        private static async Task<Document> ConvertToRecordAsync(
             Document document,
             INamedTypeSymbol originalType,
-            SyntaxNode originalDeclarationNode,
+            TypeDeclarationSyntax originalDeclarationNode,
             CleanCodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
@@ -94,12 +98,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                     selector: m => CodeGenerationSymbolFactory.CreateParameterSymbol(m.GetMemberType()!, m.Name));
 
             // remove properties and any constructor with the same params
-            var membersToKeep = originalType.GetMembers()
-                .WhereAsArray(member =>
-                    !(ShouldConvertProperty(member, originalType) ||
-                     (member is IMethodSymbol method &&
-                        method.IsConstructor() &&
-                        method.Parameters.Equals(propertiesToAddAsParams))));
+            var membersToKeep = GetModifiedMembers(originalType, propertiesToAddAsParams);
+
+            var changedTypeDeclaration = SyntaxFactory.RecordDeclaration(
+                originalDeclarationNode.GetAttributeLists(),
+                originalDeclarationNode.GetModifiers(),
+                SyntaxFactory.Token(SyntaxKind.RecordKeyword),
+                originalDeclarationNode.Identifier,
+                originalDeclarationNode.TypeParameterList,
+                SyntaxFactory.ParameterList(propertiesToAddAsParams),
+                // TODO: inheritance
+                default,
+                originalDeclarationNode.ConstraintClauses,
+                originalDeclarationNode.Members)
 
             var changedRecordType = CodeGenerationSymbolFactory.CreateNamedTypeSymbol(
                 originalType.GetAttributes(),
@@ -146,19 +157,154 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             return changedDocument;
         }
 
-        private static bool ShouldConvertProperty(ISymbol member, INamedTypeSymbol containingType)
+        private static bool ShouldConvertProperty(MemberDeclarationSyntax member, INamedTypeSymbol containingType)
         {
-            if (member is not IPropertySymbol property)
+            if (member is not PropertyDeclarationSyntax property)
             {
                 return false;
             }
 
-            var propAccessibility = property.DeclaredAccessibility;
+            var propModifiers = property.Modifiers.SelectAsArray(m => m.Kind());
+            if (propAccessibility.Contains(SyntaxKind.PrivateKeyword) ||
+                propAccessibility.Contains(SyntaxKind.ProtectedKeyword))
+            {
+                return false;
+            }
+
             var typeAccessibility = containingType.DeclaredAccessibility;
-            return !(propAccessibility == Accessibility.Private ||
-                propAccessibility == Accessibility.Protected ||
-                (typeAccessibility == Accessibility.Public && propAccessibility == Accessibility.Internal) ||
-                property.IsWriteOnly);
+            if (typeAccessibility == Accessibility.Public && propAccessibility.Contains(SyntaxKind.InternalKeyword))
+            {
+                return false;
+            }
+
+            // for class records and readonly struct records, properties should be get; init; only
+            // for non-readonly structs, they should be get; set;
+            // neither should have bodies (as it indicates more complex functionality)
+            var correctAccessors = default(SyntaxList<AccessorDeclarationSyntax>);
+            if (containingType.TypeKind == TypeKind.Class || containingType.IsReadOnly)
+            {
+                correctAccessors = new SyntaxList(SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration), SyntaxFactory.AccessorDeclaration(SyntaxKind.InitAccessorDeclaration));
+            }
+            else
+            {
+                correctAccessors = new SyntaxList(SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration), SyntaxFactory.AccessorDeclaration(SyntaxKind.SetAccessorDeclaration));
+            }
+            
+            var accessors = property.AccessorList.Accessors;
+            if (!accessors.Equals(correctAccesors))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private static ImmutableArray<SyntaxNode> GetStatements(IMethodSymbol method)
+        {
+            var declaringReference = method.DeclaringSyntaxReferences.FirstOrDefault();
+            var root = await declaringReference.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+            var declarationNode = root.FindNode(declaringReference.Span) as BaseMethodDeclarationSyntax;
+            // TODO: probably need more checks to make sure this works for all cases
+            // for now just assert not null
+            Contract.ThrowIfNull(declarationNode);
+
+            // 3 major cases:
+            // 1. No body (abstract method, default property method, etc) -> empty list
+            // 2. Expression Body -> arrow clause syntax is the only element
+            // 3. Block Body -> all statements
+            var statements = ImmutableArray<SyntaxNode>.Empty;
+            var expressionBody = declarationNode.GetExpressionBody();
+            if (expressionBody != null)
+            {
+                statements = ImmutableArray.Create<SyntaxNode>(expressionBody);
+            }
+            else
+            {
+                var blockBody = declarationNode.Body;
+                if (blockBody != null)
+                {
+                    statements = ImmutableArray.Create<SyntaxNode>(blockBody.Statements);
+                }
+            }
+
+            return statements;
+        }
+
+        private static ImmutableArray<ISymbol> GetModifiedMembers(
+            INamedTypeSymbol originalType,
+            ImmutableArray<IParameterSymbol> positionalParams,
+            CancellationToken cancellationToken)
+        {
+            var oldMembers = originalType.GetMembers();
+            // for operators == and !=, we want to delete both if there niether mention an Equals method
+            var shouldDeleteEqualityOperators = false;
+            
+            using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var modifiedMembers);
+            for (var member in oldMembers)
+            {
+                if (!member.IsNonImplicitAndFromSource() ||
+                    ShouldConvertProperty(member))
+                {
+                    // remove properties that we turn to positional parameters
+                    continue;
+                }
+
+                if (member is IMethodSymbol method)
+                {
+                    if (method.IsConstructor())
+                    {
+                        // remove the constructor with the same parameter types in the same order as the positional parameters
+                        if (method.Parameters.SelectAsArray(p => p.Type).Equals(positionalParams.SelectAsArray(p => p.Type)))
+                        {
+                            continue;
+                        }
+
+                        // TODO: Can potentially refactor statements which initialize properties with a simple exression (not using local variables) to be moved into the this args
+                        var thisArgs = positionalParams.SelectAsArray(_ => SyntaxFactory.LiteralExpression(SyntaxKind.DefaultLiteralExpression))
+
+                        var modifiedConstructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
+                            method.GetAttributes(),
+                            method.DeclaredAccessibility,
+                            method.GetSymbolModifiers(),
+                            method.Name,
+                            method.Parameters,
+                            statements: statements,
+                            thisConstructorArguments: thisArgs);
+
+                        modifiedMembers.Add(modifiedConstructor);
+                        continue;
+                    }
+
+                    var op = method.GetPredefinedOperator();
+                    if (op == PredefinedOperator.Equality || op == PredefinedOperator.Inequality)
+                    {
+                        // TODO: search for an equals method call
+                        // right now just assume we didn't find one so we keep the original method
+                        modifiedMembers.Add(method);
+                        continue;
+                    }
+
+                    if (method.Name("PrintMembers") &&
+                        method.ReturnType == SpecialType.System_Boolean &&
+                        method.Parameters.IsSingle() &&
+                        method.Parameters.First().Type.Name.Equals("StringBuilder"))
+                    {
+                        // make sure it has the correct accessibility, otherwise change
+                        if (originalType.TypeKind == TypeKind.Class)
+                        {
+                            if (method.DeclaredAccessibility == Accessibility.Protected)
+                            {
+                                modifiedMembers.Add(method);
+                            }
+                            else
+                            {
+                                modifiedMembers.Add(CodeGenerationSymbolFactory.CreateMethodSymbol(method, accessibility: Accessibility.Protected));
+                            }
+                            continue;
+                        }
+                    }
+                }
+            }
         }
     }
 }
