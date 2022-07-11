@@ -22,8 +22,8 @@ using Aliases = ArrayBuilder<(string aliasName, string symbolName)>;
 public partial struct SyntaxValueProvider
 {
     /// <summary>
-    /// Information computed about a particular tree.  Cached so we don't repeated recompute this important information
-    /// each time the incremental pipeline is rerun.
+    /// Information computed about a particular tree.  Cached so we don't repeatedly recompute this important
+    /// information each time the incremental pipeline is rerun.
     /// </summary>
     private record SyntaxTreeInfo(SyntaxTree Tree, bool ContainsGlobalAliases, bool ContainsAttributeList);
 
