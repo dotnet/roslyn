@@ -54,6 +54,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node;
         }
 
+        public override BoundNode VisitAttribute(BoundAttribute node)
+        {
+            return null;
+        }
+
         private void MakeSlots(ImmutableArray<ParameterSymbol> parameters)
         {
             // assign slots to the parameters

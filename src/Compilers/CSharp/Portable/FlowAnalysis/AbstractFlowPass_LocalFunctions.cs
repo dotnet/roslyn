@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var savedState = this.State;
             this.State = this.TopState();
 
-           VisitAttributes(localFunc);
+            VisitAttributes(localFunc);
 
             Optional<TLocalState> savedNonMonotonicState = NonMonotonicState;
             if (_nonMonotonicTransfer)

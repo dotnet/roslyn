@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var namedArgument in node.NamedArguments)
             {
-                VisitAssignmentOperator(namedArgument);
+                VisitRvalue(namedArgument.Right);
             }
 
             return base.VisitAttribute(node);
