@@ -103,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 var serviceBroker = brokeredServiceContainer.GetFullAccessServiceBroker();
 
                 var configuration =
-                    (_globalOptions.GetOption(RemoteHostOptions.OOPCoreClrFeatureFlag) ? RemoteProcessConfiguration.Core : 0) |
+                    RemoteProcessConfiguration.Core |
                     (_globalOptions.GetOption(RemoteHostOptions.OOPServerGCFeatureFlag) ? RemoteProcessConfiguration.ServerGC : 0) |
                     (_globalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler) ? RemoteProcessConfiguration.EnableSolutionCrawler : 0);
 
