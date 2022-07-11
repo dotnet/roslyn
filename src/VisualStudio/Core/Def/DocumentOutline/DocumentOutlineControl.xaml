@@ -51,13 +51,13 @@
             <Style TargetType="TreeView" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTreeViewStyleKey}}" >
                 <Setter Property="BorderThickness" Value="0" />
                 <Setter Property="Padding" Value="0, 5, 0, 0" />
-                <Setter Property="FontFamily" Value="Segoe UI" />
-                <Setter Property="FontSize" Value="12" />
+                <Setter Property="FontFamily" Value="{StaticResource {x:Static vsshell:VsFonts.CaptionFontFamilyKey}}" />
+                <Setter Property="FontSize" Value="{StaticResource {x:Static vsshell:VsFonts.CaptionFontSizeKey}}" />
             </Style>
 
             <Style TargetType="TextBox" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTextBoxStyleKey}}" >
-                <Setter Property="FontFamily" Value="Segoe UI" />
-                <Setter Property="FontSize" Value="12" />
+                <Setter Property="FontFamily" Value="{StaticResource {x:Static vsshell:VsFonts.CaptionFontFamilyKey}}" />
+                <Setter Property="FontSize" Value="{StaticResource {x:Static vsshell:VsFonts.CaptionFontSizeKey}}" />
             </Style>
         </ResourceDictionary>
     </UserControl.Resources>
@@ -97,13 +97,16 @@
                     <Setter Property="Background" Value="{StaticResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}" />
                     <Setter Property="Foreground" Value="LightGray" />
                     <Setter Property="Padding" Value="3, 0, 0, 0" />
-                    <Setter Property="FontFamily" Value="Segoe UI" />
-                    <Setter Property="FontSize" Value="12" />
+                    <Setter Property="FontFamily" Value="{StaticResource {x:Static vsshell:VsFonts.CaptionFontFamilyKey}}" />
+                    <Setter Property="FontSize" Value="{StaticResource {x:Static vsshell:VsFonts.CaptionFontSizeKey}}" />
                     <Setter Property="CaretBrush" Value="White" />
                     <Style.Resources>
                         <VisualBrush x:Key="CueBannerBrush" AlignmentX="Left" AlignmentY="Center" Stretch="None">
                             <VisualBrush.Visual>
-                                <Label Content="{x:Static self:DocumentOutlineStrings.Document_Outline_Search}" Foreground="LightGray" FontFamily="Segoe UI" FontSize="12" />
+                                <Label Content="{x:Static self:DocumentOutlineStrings.Document_Outline_Search}"
+                                       Foreground="LightGray"
+                                       FontFamily="{StaticResource {x:Static vsshell:VsFonts.CaptionFontFamilyKey}}"
+                                       FontSize="{StaticResource {x:Static vsshell:VsFonts.CaptionFontSizeKey}}" />
                             </VisualBrush.Visual>
                         </VisualBrush>
                     </Style.Resources>
