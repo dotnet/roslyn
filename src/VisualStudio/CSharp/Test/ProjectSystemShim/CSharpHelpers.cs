@@ -22,6 +22,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.CPS;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework;
 using Microsoft.VisualStudio.Shell.Interop;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
@@ -79,14 +80,14 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
         {
             var hierarchy = environment.CreateHierarchy(projectName, binOutputPath, projectRefPath: null, "CSharp");
             var cpsProjectFactory = environment.ExportProvider.GetExportedValue<IWorkspaceProjectContextFactory>();
+
+            var data = new TestEvaluationData(LanguageNames.CSharp, projectFilePath, binOutputPath, assemblyName: "");
+
             var cpsProject = (CPSProject)await cpsProjectFactory.CreateProjectContextAsync(
-                LanguageNames.CSharp,
-                projectName,
-                projectFilePath,
                 projectGuid,
+                projectName,
+                data,
                 hierarchy,
-                binOutputPath,
-                assemblyName: null,
                 CancellationToken.None);
 
             cpsProject.SetOptions(ImmutableArray.Create(commandLineArguments));
@@ -96,17 +97,16 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
 
         public static async Task<CPSProject> CreateNonCompilableProjectAsync(TestEnvironment environment, string projectName, string projectFilePath)
         {
-            var hierarchy = environment.CreateHierarchy(projectName, projectBinPath: null, projectRefPath: null, "");
+            var hierarchy = environment.CreateHierarchy(projectName, projectBinPath: null, projectRefPath: null, projectCapabilities: "");
             var cpsProjectFactory = environment.ExportProvider.GetExportedValue<IWorkspaceProjectContextFactory>();
 
+            var data = new TestEvaluationData(NoCompilationConstants.LanguageName, projectFilePath, targetPath: "", assemblyName: "");
+
             return (CPSProject)await cpsProjectFactory.CreateProjectContextAsync(
-                NoCompilationConstants.LanguageName,
-                projectName,
-                projectFilePath,
                 Guid.NewGuid(),
+                projectName,
+                data,
                 hierarchy,
-                binOutputPath: null,
-                assemblyName: null,
                 CancellationToken.None);
         }
 
