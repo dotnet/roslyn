@@ -177,7 +177,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             if (document == null)
             {
-                FatalError.ReportAndPropagate(new InvalidOperationException("Failed to get file path for a contained document"));
+                FatalError.ReportAndPropagate(new InvalidOperationException("Failed to get an ITextDocument for a contained document"));
             }
 
             return document?.FilePath ?? string.Empty;
