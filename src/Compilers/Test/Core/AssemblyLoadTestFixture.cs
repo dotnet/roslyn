@@ -396,7 +396,7 @@ public class Class1
 using System;
 using System.Reflection;
 
-[assembly: AssemblyVersionAttribute(""42.42.42.42"")]
+[assembly: AssemblyVersionAttribute(""2.0.0.0"")]
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
