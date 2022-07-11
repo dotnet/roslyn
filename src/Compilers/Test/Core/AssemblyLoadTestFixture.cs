@@ -131,7 +131,7 @@ namespace Delta
 
             Delta1 = GenerateDll("Delta", _directory, Delta1Source);
             var delta1Reference = MetadataReference.CreateFromFile(Delta1.Path);
-            DeltaPublicSigned1 = GenerateDll("DeltaPublicSigned", _directory.CreateDirectory("Delta1PublicSigned"), Delta1Source, publicSign: true);
+            DeltaPublicSigned1 = GenerateDll("DeltaPublicSigned", _directory.CreateDirectory("Delta1PublicSigned"), Delta1Source, publicKeyOpt: SigningTestHelpers.PublicKey);
 
             const string GammaSource = @"
 using System.Text;
@@ -210,7 +210,7 @@ namespace Delta
             var v2Directory = _directory.CreateDirectory("Version2");
             Delta2 = GenerateDll("Delta", v2Directory, Delta2Source);
             var v2PublicSignedDirectory = _directory.CreateDirectory("Version2PublicSigned");
-            DeltaPublicSigned2 = GenerateDll("DeltaPublicSigned", v2PublicSignedDirectory, Delta2Source, publicSign: true);
+            DeltaPublicSigned2 = GenerateDll("DeltaPublicSigned", v2PublicSignedDirectory, Delta2Source, publicKeyOpt: SigningTestHelpers.PublicKey);
 
             var delta2Reference = MetadataReference.CreateFromFile(Delta2.Path);
 
@@ -392,7 +392,7 @@ public class Class1
 
 
             var analyzerWithFakeCompilerDependencyDirectory = _directory.CreateDirectory("AnalyzerWithFakeCompilerDependency");
-            var fakeCompilerAssembly = GenerateDll("Microsoft.CodeAnalysis", analyzerWithFakeCompilerDependencyDirectory, @"
+            var fakeCompilerAssembly = GenerateDll("Microsoft.CodeAnalysis", analyzerWithFakeCompilerDependencyDirectory, publicKeyOpt: typeof(SyntaxNode).Assembly.GetName().GetPublicKey()?.ToImmutableArray() ?? default, csSource: @"
 using System;
 using System.Reflection;
 
@@ -421,7 +421,7 @@ public class Analyzer : DiagnosticAnalyzer
 
 
             var analyzerWithLaterFakeCompileDirectory = _directory.CreateDirectory("AnalyzerWithLaterFakeCompilerDependency");
-            var laterFakeCompilerAssembly = GenerateDll("Microsoft.CodeAnalysis", analyzerWithLaterFakeCompileDirectory, @"
+            var laterFakeCompilerAssembly = GenerateDll("Microsoft.CodeAnalysis", analyzerWithLaterFakeCompileDirectory, publicKeyOpt: typeof(SyntaxNode).Assembly.GetName().GetPublicKey()?.ToImmutableArray() ?? default, csSource: @"
 using System;
 using System.Reflection;
 
@@ -451,16 +451,16 @@ public class Analyzer : DiagnosticAnalyzer
 
         private static TempFile GenerateDll(string assemblyName, TempDirectory directory, string csSource, params MetadataReference[] additionalReferences)
         {
-            return GenerateDll(assemblyName, directory, csSource, publicSign: false, additionalReferences);
+            return GenerateDll(assemblyName, directory, csSource, publicKeyOpt: default, additionalReferences);
         }
 
-        private static TempFile GenerateDll(string assemblyName, TempDirectory directory, string csSource, bool publicSign, params MetadataReference[] additionalReferences)
+        private static TempFile GenerateDll(string assemblyName, TempDirectory directory, string csSource, ImmutableArray<byte> publicKeyOpt, params MetadataReference[] additionalReferences)
         {
             CSharpCompilationOptions options = new(OutputKind.DynamicallyLinkedLibrary, warningLevel: Diagnostic.MaxWarningLevel);
 
-            if (publicSign)
+            if (!publicKeyOpt.IsDefault)
             {
-                options = options.WithPublicSign(true).WithCryptoPublicKey(SigningTestHelpers.PublicKey);
+                options = options.WithPublicSign(true).WithCryptoPublicKey(publicKeyOpt);
             }
 
             var analyzerDependencyCompilation = CSharpCompilation.Create(
