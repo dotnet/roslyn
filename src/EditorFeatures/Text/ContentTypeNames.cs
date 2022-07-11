@@ -16,5 +16,6 @@ namespace Microsoft.CodeAnalysis.Editor
         public const string TypeScriptContentTypeName = "TypeScript";
         public const string FSharpContentType = "F#";
         public const string FSharpSignatureHelpContentType = "F# Signature Help";
+        public const string EditorConfigContentType = "EditorConfig";
     }
 }

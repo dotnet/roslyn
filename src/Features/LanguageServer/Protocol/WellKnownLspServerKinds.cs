@@ -43,6 +43,11 @@ internal enum WellKnownLspServerKinds
     RoslynTypeScriptLspServer,
 
     /// <summary>
+    /// LSP server for EditorConfig files.
+    /// </summary>
+    EditorConfigLspServer,
+
+    /// <summary>
     /// Flag representing any LSP server - used by <see cref="ExportLspServiceFactoryAttribute"/>
     /// to specify that something applies to any LSP server.
     /// </summary>
@@ -64,6 +69,7 @@ internal static class WellKnownLspServerExtensions
             WellKnownLspServerKinds.XamlLspServer => "XAML Language Server Client (Experimental)",
             WellKnownLspServerKinds.XamlLspServerDisableUX => "XAML Language Server Client for LiveShare and Codespaces",
             WellKnownLspServerKinds.RoslynTypeScriptLspServer => "Roslyn TypeScript Language Server Client",
+            WellKnownLspServerKinds.EditorConfigLspServer => "Editor Config Language Server Client",
             _ => throw ExceptionUtilities.UnexpectedValue(server),
         };
     }
@@ -91,6 +97,9 @@ internal static class WellKnownLspServerExtensions
             WellKnownLspServerKinds.XamlLspServerDisableUX => "XamlInProcLanguageClientDisableUX",
 
             WellKnownLspServerKinds.RoslynTypeScriptLspServer => "RoslynTypeScriptLspServer",
+
+            WellKnownLspServerKinds.EditorConfigLspServer => "EditorConfigLspServer",
+
             _ => throw ExceptionUtilities.UnexpectedValue(server),
         };
     }
@@ -106,6 +115,7 @@ internal static class WellKnownLspServerExtensions
             WellKnownLspServerKinds.XamlLspServer => "XamlLspLanguages",
             WellKnownLspServerKinds.XamlLspServerDisableUX => "XamlLspLanguages",
             WellKnownLspServerKinds.RoslynTypeScriptLspServer => ProtocolConstants.TypeScriptLanguageContract,
+            WellKnownLspServerKinds.EditorConfigLspServer => ProtocolConstants.EditorConfigLanguageContract,
             _ => throw ExceptionUtilities.UnexpectedValue(server),
         };
     }

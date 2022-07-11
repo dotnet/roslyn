@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis.ExternalAccess.EditorConfig;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.ContentTypes
@@ -18,5 +19,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ContentTypes
         [Name(ContentTypeNames.RoslynContentType)]
         [BaseDefinition("code")]
         public static readonly ContentTypeDefinition RoslynContentTypeDefinition;
+
+        [Export]
+        [Name(ContentTypeNames.EditorConfigContentType)]
+        [BaseDefinition("text")]
+        [BaseDefinition("code-languageserver-preview")]
+        public static readonly ContentTypeDefinition EditorConfigContentTypeDefinition;
+
+        [Export]
+        [FileExtension(".editorconfig")]
+        [ContentType(ContentTypeNames.EditorConfigContentType)]
+        internal static FileExtensionToContentTypeDefinition RoslynEditorConfigFileExtensionToContentTypeDefinition;
     }
 }
