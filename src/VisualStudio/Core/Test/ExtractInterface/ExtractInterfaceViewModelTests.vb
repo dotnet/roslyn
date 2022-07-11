@@ -15,6 +15,7 @@ Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterface
 Imports Roslyn.Test.Utilities
+Imports Microsoft.VisualStudio.LanguageServices.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ExtractInterface
     <[UseExportProvider]>
@@ -302,7 +303,7 @@ public class $$MyClass
                 Dim extractableMembers = DirectCast(symbol, INamedTypeSymbol).GetMembers().Where(Function(s) Not (TypeOf s Is IMethodSymbol) OrElse DirectCast(s, IMethodSymbol).MethodKind <> MethodKind.Constructor)
 
                 Dim memberViewModels = extractableMembers.Select(Function(member As ISymbol)
-                                                                     Return New Implementation.PullMemberUp.MainDialog.MemberSymbolViewModel(member, Nothing)
+                                                                     Return New MemberSymbolViewModel(member, Nothing)
                                                                  End Function)
 
                 Return New ExtractInterfaceDialogViewModel(

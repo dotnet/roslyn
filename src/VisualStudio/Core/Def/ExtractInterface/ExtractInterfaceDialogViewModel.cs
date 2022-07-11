@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
@@ -75,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
         private void SendFailureNotification(string message)
             => _notificationService.SendNotification(message, severity: NotificationSeverity.Information);
 
-        public ImmutableArray<LanguageServices.Utilities.MemberSymbolViewModel> MemberContainers => MemberSelectionViewModel.Members;
+        public ImmutableArray<MemberSymbolViewModel> MemberContainers => MemberSelectionViewModel.Members;
 
         public NewTypeDestinationSelectionViewModel DestinationViewModel { get; internal set; }
 
