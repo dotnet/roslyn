@@ -166,7 +166,6 @@
     <MicrosoftVisualStudioLiveShareLanguageServicesGuestVersion>3.0.6</MicrosoftVisualStudioLiveShareLanguageServicesGuestVersion>
     <MicrosoftVisualStudioLiveShareWebEditorsVersion>3.0.8</MicrosoftVisualStudioLiveShareWebEditorsVersion>
     <MicrosoftVisualStudioPlatformVSEditorVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioPlatformVSEditorVersion>
-    <MicrosoftVisualStudioLanguageServerClientImplementation>17.3.37-preview</MicrosoftVisualStudioLanguageServerClientImplementation>
     <MicrosoftVisualStudioProgressionCodeSchemaVersion>15.8.27812-alpha</MicrosoftVisualStudioProgressionCodeSchemaVersion>
     <MicrosoftVisualStudioProgressionCommonVersion>15.8.27812-alpha</MicrosoftVisualStudioProgressionCommonVersion>
     <MicrosoftVisualStudioProgressionInterfacesVersion>15.8.27812-alpha</MicrosoftVisualStudioProgressionInterfacesVersion>

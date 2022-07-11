@@ -59,7 +59,7 @@
         
         The fix for this is tracked internally by https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1542016
     -->
-    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Client.Implementation" Version="$(MicrosoftVisualStudioLanguageServerClientImplementation)" ExcludeAssets="all" GeneratePathProperty="true" />
+    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Client.Implementation" Version="$(MicrosoftVisualStudioLanguageServerClientImplementationVersion)" ExcludeAssets="all" GeneratePathProperty="true" />
     <Reference Include="$(PkgMicrosoft_VisualStudio_LanguageServer_Client_Implementation)\lib\net472\Microsoft.VisualStudio.LanguageServer.Client.Implementation.dll">
       <Private>true</Private>
     </Reference>
