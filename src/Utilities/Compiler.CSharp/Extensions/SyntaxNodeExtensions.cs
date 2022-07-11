@@ -2,6 +2,7 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace Analyzer.Utilities.Extensions
 {
@@ -9,9 +10,8 @@ namespace Analyzer.Utilities.Extensions
     {
         public static SyntaxNode WalkDownParentheses(this SyntaxNode node)
         {
-            const int parenthesizedExpressionRawKind = 8632;
             SyntaxNode current = node;
-            while (current.RawKind == parenthesizedExpressionRawKind && current.ChildNodes().FirstOrDefault() is SyntaxNode expression)
+            while (current.IsKind(SyntaxKind.ParenthesizedExpression) && current.ChildNodes().FirstOrDefault() is SyntaxNode expression)
             {
                 current = expression;
             }

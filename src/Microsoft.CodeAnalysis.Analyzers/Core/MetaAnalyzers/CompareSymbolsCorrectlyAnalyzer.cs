@@ -347,6 +347,6 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         }
 
         public static bool UseSymbolEqualityComparer(Compilation compilation)
-        => compilation.GetOrCreateTypeByMetadataName(SymbolEqualityComparerName) is object;
+            => compilation.GetOrCreateTypeByMetadataName(SymbolEqualityComparerName) is object;
     }
 }

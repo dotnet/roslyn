@@ -296,6 +296,7 @@ namespace Analyzer.Utilities
         public const string SystemRuntimeExceptionServicesHandleProcessCorruptedStateExceptionsAttribute = "System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute";
         public const string SystemRuntimeInteropServicesCharSet = "System.Runtime.InteropServices.CharSet";
         public const string SystemRuntimeInteropServicesCoClassAttribute = "System.Runtime.InteropServices.CoClassAttribute";
+        public const string SystemRuntimeInteropServicesComImportAttribute = "System.Runtime.InteropServices.ComImportAttribute";
         public const string SystemRuntimeInteropServicesComSourceInterfacesAttribute = "System.Runtime.InteropServices.ComSourceInterfacesAttribute";
         public const string SystemRuntimeInteropServicesComVisibleAttribute = "System.Runtime.InteropServices.ComVisibleAttribute";
         public const string SystemRuntimeInteropServicesDefaultDllImportSearchPathsAttribute = "System.Runtime.InteropServices.DefaultDllImportSearchPathsAttribute";

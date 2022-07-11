@@ -764,6 +764,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 fieldReferenceOperation.Syntax.SyntaxTree == argumentValueOperation.Syntax.SyntaxTree &&
                 fieldReferenceOperation.Field.DeclaringSyntaxReferences.Length == 1 &&
                 fieldReferenceOperation.Field.DeclaringSyntaxReferences[0].GetSyntax() is { } fieldDeclaration &&
+                fieldDeclaration.SyntaxTree == argumentValueOperation.Syntax.SyntaxTree &&
                 GetFieldInitializer(fieldDeclaration, argumentValueOperation.SemanticModel) is { } fieldInitializer &&
                 fieldInitializer.Value.WalkDownConversion() is ILiteralOperation fieldInitializerLiteral)
             {
