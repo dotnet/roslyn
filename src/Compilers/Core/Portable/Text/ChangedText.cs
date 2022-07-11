@@ -78,6 +78,12 @@ namespace Microsoft.CodeAnalysis.Text
             // clean up 
             private void Clean()
             {
+                if (this.Previous?.Previous != null)
+                {
+                    this.Previous.Previous = null;
+                }
+                return;
+
                 // look for last info in the chain that still has reference to old text
                 ChangeInfo? lastInfo = this;
                 for (ChangeInfo? info = this; info != null; info = info.Previous)

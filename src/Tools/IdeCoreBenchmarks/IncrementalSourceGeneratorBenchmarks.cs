@@ -95,8 +95,8 @@ namespace IdeCoreBenchmarks
             var solution = _workspace.OpenSolutionAsync(_solutionPath, progress: null, CancellationToken.None).Result;
             Console.WriteLine("Finished opening roslyn: " + (DateTime.Now - start));
 
-            foreach (var diag in _workspace.Diagnostics)
-                Console.WriteLine(diag);
+            //foreach (var diag in _workspace.Diagnostics)
+            //    Console.WriteLine(diag);
             return Task.CompletedTask;
         }
 
@@ -145,14 +145,11 @@ namespace IdeCoreBenchmarks
             GeneratorDriver driver = CSharpGeneratorDriver.Create(
                new ISourceGenerator[] { generator }, parseOptions: CSharpParseOptions.Default);
 
-            foreach (var proj in _workspace.CurrentSolution.Projects)
-            {
-                Console.WriteLine(proj.Name);
-            }
+            //foreach (var proj in _workspace.CurrentSolution.Projects)
+            //    Console.WriteLine(proj.Name);
 
             var project = _workspace.CurrentSolution.Projects.Single(
-                p => p.Name == "Microsoft.CodeAnalysis.Workspaces(netstandard2.0)" ||
-                     p.Name == "Microsoft.CodeAnalysis.Workspaces");
+                p => p.Name == "Microsoft.CodeAnalysis.Workspaces(netstandard2.0)");
 
             var start = DateTime.Now;
             Console.WriteLine("Getting compilation: " + project.Name);
