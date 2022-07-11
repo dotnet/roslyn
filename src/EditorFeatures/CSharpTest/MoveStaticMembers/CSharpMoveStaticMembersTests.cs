@@ -3242,7 +3242,7 @@ namespace TestNs1
 {
     public class Class1
     {
-        [|{|CS1519:publicc|} static int TestField = 0;|]
+        [|publicc {|CS1585:static|} int TestField = 0;|]
     }
 }";
             await new Test("", ImmutableArray<string>.Empty, "")
