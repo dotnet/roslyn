@@ -22,10 +22,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
     [Export(typeof(IWorkspaceProjectContextFactory))]
     internal partial class CPSProjectFactory : IWorkspaceProjectContextFactory
     {
-        private const string PropertyName_MSBuildProjectFullPath = "MSBuildProjectFullPath";
-        private const string PropertyName_TargetPath = "TargetPath";
-        private const string PropertyName_AssemblyName = "AssemblyName";
-
         private static readonly ImmutableArray<string> s_evaluationPropertyNames
             = ImmutableArray.Create(PropertyName_MSBuildProjectFullPath, PropertyName_TargetPath, PropertyName_AssemblyName);
 
@@ -36,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         private readonly VisualStudioProjectFactory _projectFactory;
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly IProjectCodeModelFactory _projectCodeModelFactory;
-        private readonly Shell.IAsyncServiceProvider _serviceProvider;
+        private readonly IAsyncServiceProvider _serviceProvider;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -64,11 +60,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             => CreateProjectContextAsync(
                 languageName: data.LanguageName,
                 projectUniqueName: uniqueName,
-                projectFilePath: data.GetRequiredPropertyValue(PropertyName_MSBuildProjectFullPath),
+                projectFilePath: data.GetRequiredPropertyValue(BuildPropertyNames.MSBuildProjectFullPath),
                 projectGuid: id,
                 hierarchy: hostObject,
-                binOutputPath: data.GetRequiredPropertyValue(PropertyName_TargetPath),
-                assemblyName: data.GetPropertyValue(PropertyName_AssemblyName),
+                binOutputPath: data.GetRequiredPropertyValue(BuildPropertyNames.TargetPath),
+                assemblyName: data.GetPropertyValue(BuildPropertyNames.AssemblyName),
                 cancellationToken);
 
         public async Task<IWorkspaceProjectContext> CreateProjectContextAsync(
