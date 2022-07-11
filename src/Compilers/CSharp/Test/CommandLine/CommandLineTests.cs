@@ -1666,7 +1666,6 @@ class C
         [Fact]
         public void LanguageVersionAdded_Canary()
         {
-            // TODO2
             // When a new version is added, this test will break. This list must be checked:
             // - update the "UpgradeProject" codefixer
             // - update all the tests that call this canary
