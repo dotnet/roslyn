@@ -4515,9 +4515,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="InvalidGetDeclarationNameMultipleDeclarators" xml:space="preserve">
     <value>Called GetDeclarationName for a declaration node that can possibly contain multiple variable declarators.</value>
   </data>
-  <data name="TreeNotPartOfCompilation" xml:space="preserve">
-    <value>tree not part of compilation</value>
-  </data>
   <data name="PositionIsNotWithinSyntax" xml:space="preserve">
     <value>Position is not within syntax tree with full span {0}</value>
   </data>

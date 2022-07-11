@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -79,11 +77,11 @@ namespace Microsoft.CodeAnalysis.Rename
             if (IsSymbolDefinedInsideMethod(symbol))
             {
                 // if the symbol was declared inside of a method, don't check for conflicts in non-renamed documents.
-                return renameLocations.Select(l => solution.GetDocument(l.DocumentId));
+                return renameLocations.Select(l => solution.GetRequiredDocument(l.DocumentId));
             }
             else
             {
-                var documentsOfRenameSymbolDeclaration = symbol.Locations.Where(l => l.IsInSource).Select(l => solution.GetDocument(l.SourceTree));
+                var documentsOfRenameSymbolDeclaration = symbol.Locations.Where(l => l.IsInSource).Select(l => solution.GetRequiredDocument(l.SourceTree!));
                 var projectIdsOfRenameSymbolDeclaration =
                     documentsOfRenameSymbolDeclaration.SelectMany(d => d.GetLinkedDocumentIds())
                     .Concat(documentsOfRenameSymbolDeclaration.First().Id)
@@ -94,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 {
                     var isSubset = renameLocations.Select(l => l.DocumentId.ProjectId).Distinct().Except(projectIdsOfRenameSymbolDeclaration).IsEmpty();
                     Contract.ThrowIfFalse(isSubset);
-                    return projectIdsOfRenameSymbolDeclaration.SelectMany(p => solution.GetProject(p).Documents);
+                    return projectIdsOfRenameSymbolDeclaration.SelectMany(p => solution.GetRequiredProject(p).Documents);
                 }
                 else
                 {
@@ -102,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Rename
                     // the rename symbol.  Other projects should not be affected by the rename.
                     var relevantProjects = projectIdsOfRenameSymbolDeclaration.Concat(projectIdsOfRenameSymbolDeclaration.SelectMany(p =>
                        solution.GetProjectDependencyGraph().GetProjectsThatDirectlyDependOnThisProject(p))).Distinct();
-                    return relevantProjects.SelectMany(p => solution.GetProject(p).Documents);
+                    return relevantProjects.SelectMany(p => solution.GetRequiredProject(p).Documents);
                 }
             }
         }

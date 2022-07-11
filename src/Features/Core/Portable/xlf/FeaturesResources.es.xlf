@@ -587,7 +587,7 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       </trans-unit>
       <trans-unit id="Could_not_find_implementation_of_symbol_0">
         <source>Could not find implementation of symbol '{0}'</source>
-        <target state="new">Could not find implementation of symbol '{0}'</target>
+        <target state="translated">No se pudo encontrar la implementación del símbolo '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Create_and_assign_field_0">
@@ -737,7 +737,7 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       </trans-unit>
       <trans-unit id="Fixing_0">
         <source>Fixing '{0}'</source>
-        <target state="new">Fixing '{0}'</target>
+        <target state="translated">Corrigiendo '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_document">
@@ -2537,7 +2537,7 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
       </trans-unit>
       <trans-unit id="Replace_conditional_expression_with_statements">
         <source>Replace conditional expression with statements</source>
-        <target state="new">Replace conditional expression with statements</target>
+        <target state="translated">Reemplazar expresión condicional con instrucciones</target>
         <note />
       </trans-unit>
       <trans-unit id="Required">

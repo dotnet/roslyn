@@ -96,11 +96,6 @@ Possible workarounds are:
 
 1. Rename the type parameter or parameter to avoid shadowing the name from outer scope.
 1. Use a string literal instead of the `nameof` operator.
-1. Downgrade the `<LangVersion>` element to 9.0 or earlier.
-
-Note: The break will also apply to C# 10 and earlier when .NET 7 ships, but is
-currently scoped down to users of LangVer=preview.  
-Tracked by https://github.com/dotnet/roslyn/issues/60640
 
 ## Cannot return an out parameter by reference
 

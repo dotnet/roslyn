@@ -124,7 +124,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadAbstractEqualityOperatorSignature">
         <source>One of the parameters of an equality, or inequality operator declared in interface '{0}' must be a type parameter on '{0}' constrained to '{0}'</source>
-        <target state="new">One of the parameters of an equality, or inequality operator declared in interface '{0}' must be a type parameter on '{0}' constrained to '{0}'</target>
+        <target state="translated">Jeden z parametrów operatora równości lub nierówności zadeklarowanego w interfejsie „{0}” musi być parametrem typu w przypadku „{0}” ograniczonego do „{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractIncDecRetType">
@@ -154,7 +154,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadBinaryReadOnlySpanConcatenation">
         <source>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF-8 byte representations</source>
-        <target state="new">Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF-8 byte representations</target>
+        <target state="translated">Nie można zastosować operatora „{0}” do argumentów operacji typu „{1}” i „{2}”, które nie są reprezentacjami bajtów UTF-8</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadCallerArgumentExpressionParamWithoutDefaultValue">
@@ -234,7 +234,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotBeConvertedToUtf8">
         <source>The input string cannot be converted into the equivalent UTF-8 byte representation. {0}</source>
-        <target state="new">The input string cannot be converted into the equivalent UTF-8 byte representation. {0}</target>
+        <target state="translated">Nie można przekonwertować ciągu wejściowego na równoważną reprezentację bajtową UTF-8. {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotBeMadeNullable">
@@ -449,7 +449,7 @@
       </trans-unit>
       <trans-unit id="ERR_EscapeVariable">
         <source>Cannot use variable '{0}' in this context because it may expose referenced variables outside of their declaration scope</source>
-        <target state="new">Cannot use variable '{0}' in this context because it may expose referenced variables outside of their declaration scope</target>
+        <target state="translated">Nie można używać zmiennej „{0}” w tym kontekście, ponieważ może uwidaczniać odwoływane zmienne poza ich zakresem deklaracji</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitImplementationOfOperatorsMustBeStatic">
@@ -524,7 +524,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsUtf8StringLiterals">
         <source>An expression tree may not contain UTF-8 string conversion or literal.</source>
-        <target state="new">An expression tree may not contain UTF-8 string conversion or literal.</target>
+        <target state="translated">Drzewo wyrażenia nie może zawierać konwersji ciągu UTF-8 ani literału.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsWithExpression">
@@ -609,7 +609,7 @@
       </trans-unit>
       <trans-unit id="ERR_FixedFieldMustNotBeRef">
         <source>A fixed field must not be a ref field.</source>
-        <target state="new">A fixed field must not be a ref field.</target>
+        <target state="translated">Pole stałe nie może być polem referencyjnym.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ForEachMissingMemberWrongAsync">
@@ -639,7 +639,7 @@
       </trans-unit>
       <trans-unit id="ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers">
         <source>The interface '{0}' cannot be used as type argument. Static member '{1}' does not have a most specific implementation in the interface.</source>
-        <target state="new">The interface '{0}' cannot be used as type argument. Static member '{1}' does not have a most specific implementation in the interface.</target>
+        <target state="translated">Interfejs „{0}” nie może być używany jako argument typu. Składowa statyczna „{1}” nie ma najbardziej specyficznej implementacji w interfejsie.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GlobalUsingInNamespace">
@@ -689,7 +689,7 @@
       </trans-unit>
       <trans-unit id="ERR_ImplicitImplementationOfInaccessibleInterfaceMember">
         <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement an inaccessible member.</source>
-        <target state="new">'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement an inaccessible member.</target>
+        <target state="translated">Element „{0}” nie implementuje składowej interfejsu „{1}”. Element „{2}” nie może jawnie implementować niedostępnej składowej.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitIndexIndexerWithName">
@@ -869,7 +869,7 @@
       </trans-unit>
       <trans-unit id="ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember">
         <source>'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</source>
-        <target state="new">'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</target>
+        <target state="translated">Element „{0}” nie może implementować składowej interfejsu „{1}” w typie „{2}”, ponieważ funkcja „{3}” nie jest dostępna w języku C# {4}. Użyj wersji języka „{5}” lub nowszej.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LineContainsDifferentWhitespace">
@@ -894,7 +894,7 @@
       </trans-unit>
       <trans-unit id="ERR_LineSpanDirectiveRequiresSpace">
         <source>The #line span directive requires space before the first parenthesis, before the character offset, and before the file name</source>
-        <target state="new">The #line span directive requires space before the first parenthesis, before the character offset, and before the file name</target>
+        <target state="translated">Dyrektywa zakresu #line wymaga spacji przed pierwszym nawiasem, przed przesunięciem znaku i przed nazwą pliku</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ListPatternRequiresLength">
@@ -1254,12 +1254,12 @@
       </trans-unit>
       <trans-unit id="ERR_RefFieldCannotReferToRefStruct">
         <source>A ref field cannot refer to a ref struct.</source>
-        <target state="new">A ref field cannot refer to a ref struct.</target>
+        <target state="translated">Pole referencyjne nie może odwoływać się do struktury referencyjnej.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefLocalOrParamExpected">
         <source>The left-hand side of a ref assignment must be a ref variable.</source>
-        <target state="needs-review-translation">Lewa strona przypisania odwołania musi być odwołaniem lokalnym lub parametrem.</target>
+        <target state="translated">Lewa strona przypisania referencyjnego musi być zmienną referencyjną.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningPropertiesCannotBeRequired">
@@ -1344,27 +1344,27 @@
       </trans-unit>
       <trans-unit id="ERR_ScopedMismatchInParameterOfOverrideOrImplementation">
         <source>The 'scoped' modifier of parameter '{0}' doesn't match overridden or implemented member.</source>
-        <target state="new">The 'scoped' modifier of parameter '{0}' doesn't match overridden or implemented member.</target>
+        <target state="translated">Modyfikator „scoped” parametru „{0}” nie jest zgodny z przesłoniętą lub zaimplementowaną składową.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedMismatchInParameterOfPartial">
         <source>The 'scoped' modifier of parameter '{0}' doesn't match partial method declaration.</source>
-        <target state="new">The 'scoped' modifier of parameter '{0}' doesn't match partial method declaration.</target>
+        <target state="translated">Modyfikator „scoped” parametru „{0}” nie jest zgodny z częściową deklaracją metody.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedMismatchInParameterOfTarget">
         <source>The 'scoped' modifier of parameter '{0}' doesn't match target '{1}'.</source>
-        <target state="new">The 'scoped' modifier of parameter '{0}' doesn't match target '{1}'.</target>
+        <target state="translated">Modyfikator „scoped” 'parametru „{0}” nie jest zgodny z 'elementem docelowym „{1}”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedRefAndRefStructOnly">
         <source>The 'scoped' modifier can be used for refs and ref struct values only.</source>
-        <target state="new">The 'scoped' modifier can be used for refs and ref struct values only.</target>
+        <target state="translated">Modyfikator „scoped" może być używany tylko w przypadku odwołań i wartości struktury referencyjnej.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers">
         <source>Required members are not allowed on the top level of a script or submission.</source>
-        <target state="new">Required members are not allowed on the top level of a script or submission.</target>
+        <target state="translated">Wymagane składowe są niedozwolone na najwyższym poziomie skryptu lub żądania przesłania.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SealedAPIInRecord">
@@ -1704,7 +1704,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureRefFields">
         <source>ref fields</source>
-        <target state="new">ref fields</target>
+        <target state="translated">pola referencyjne</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRelaxedShiftOperator">
@@ -1734,7 +1734,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureUtf8StringLiterals">
         <source>UTF-8 string literals</source>
-        <target state="new">UTF-8 string literals</target>
+        <target state="translated">Literały ciągu UTF-8</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureWithOnAnonymousTypes">
@@ -6587,7 +6587,7 @@ Jeśli taka klasa zostanie użyta jako klasa bazowa i klasa pochodna definiuje d
       </trans-unit>
       <trans-unit id="ERR_LookupInTypeVariable">
         <source>Cannot do non-virtual member lookup in '{0}' because it is a type parameter</source>
-        <target state="needs-review-translation">Nie można wyszukać składowej w elemencie „{0}”, ponieważ to jest parametr typu</target>
+        <target state="translated">Nie można wyszukać składowej innej niż wirtualna w elemencie „{0}”, ponieważ to jest parametr typu</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadConstraintType">
@@ -10502,11 +10502,6 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
         <target state="translated">Wywołano metodę GetDeclarationName dla węzła deklaracji, który może zawierać wiele deklaratorów zmiennych.</target>
         <note />
       </trans-unit>
-      <trans-unit id="TreeNotPartOfCompilation">
-        <source>tree not part of compilation</source>
-        <target state="translated">drzewo nie jest częścią kompilacji</target>
-        <note />
-      </trans-unit>
       <trans-unit id="PositionIsNotWithinSyntax">
         <source>Position is not within syntax tree with full span {0}</source>
         <target state="translated">Pozycja nie znajduje się w drzewie składni o pełnym zasięgu {0}</target>
@@ -11134,7 +11129,7 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
       </trans-unit>
       <trans-unit id="ERR_RefReturnParameter">
         <source>Cannot return a parameter by reference '{0}' because it is not a ref parameter</source>
-        <target state="needs-review-translation">Nie można zwrócić parametru „{0}” przez referencję, ponieważ to nie jest parametr ref ani out</target>
+        <target state="translated">Nie można zwrócić parametru przez referencję „{0}”, ponieważ to nie jest parametr referencyjny</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnParameter2">
@@ -11754,7 +11749,7 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
       </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainConversionOrEqualityOperators">
         <source>Conversion, equality, or inequality operators declared in interfaces must be abstract or virtual</source>
-        <target state="needs-review-translation">Operatory konwersji, równości lub nierówności zadeklarowane w interfejsach muszą być abstrakcyjne</target>
+        <target state="translated">Operatory konwersji, równości lub nierówności zadeklarowane w interfejsach muszą być abstrakcyjne lub wirtualne</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">

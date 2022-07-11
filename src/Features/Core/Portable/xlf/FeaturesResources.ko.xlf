@@ -587,7 +587,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Could_not_find_implementation_of_symbol_0">
         <source>Could not find implementation of symbol '{0}'</source>
-        <target state="new">Could not find implementation of symbol '{0}'</target>
+        <target state="translated">'{0}' 기호의 구현을 찾을 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Create_and_assign_field_0">
@@ -737,7 +737,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Fixing_0">
         <source>Fixing '{0}'</source>
-        <target state="new">Fixing '{0}'</target>
+        <target state="translated">'{0}' 수정 중</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_document">
@@ -2537,7 +2537,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Replace_conditional_expression_with_statements">
         <source>Replace conditional expression with statements</source>
-        <target state="new">Replace conditional expression with statements</target>
+        <target state="translated">조건식을 명령문으로 바꾸기</target>
         <note />
       </trans-unit>
       <trans-unit id="Required">

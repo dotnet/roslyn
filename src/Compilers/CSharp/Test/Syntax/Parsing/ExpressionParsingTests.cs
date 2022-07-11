@@ -2671,7 +2671,7 @@ class C
     }
 }
 ";
-            ParseAndValidate(text,
+            UsingTree(text,
                 // (6,14): error CS1001: Identifier expected
                 //         Task.
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(6, 14),
@@ -2679,7 +2679,6 @@ class C
                 //         Task.
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 14));
 
-            UsingTree(text);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -2769,7 +2768,7 @@ class C
     }
 }
 ";
-            ParseAndValidate(text,
+            UsingTree(text,
                 // (6,14): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
                 //         Task.await Task.Delay();
                 Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(6, 14),
@@ -2780,7 +2779,6 @@ class C
                 //         Task.await Task.Delay();
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "Delay").WithLocation(6, 25));
 
-            UsingTree(text);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -2866,12 +2864,11 @@ class C
     }
 }
 ";
-            ParseAndValidate(text,
+            UsingTree(text,
                 // (7,9): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
                 //         await Task;
                 Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(7, 9));
 
-            UsingTree(text);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -2941,12 +2938,11 @@ class C
     }
 }
 ";
-            ParseAndValidate(text,
+            UsingTree(text,
                 // (7,9): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
                 //         await Task = 1;
                 Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(7, 9));
 
-            UsingTree(text);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -3024,12 +3020,11 @@ class C
     }
 }
 ";
-            ParseAndValidate(text,
+            UsingTree(text,
                 // (7,9): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
                 //         await Task, Task2;
                 Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(7, 9));
 
-            UsingTree(text);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -3104,12 +3099,11 @@ class C
     }
 }
 ";
-            ParseAndValidate(text,
+            UsingTree(text,
                 // (7,9): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
                 //         await Task();
                 Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(7, 9));
 
-            UsingTree(text);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -3178,12 +3172,11 @@ class C
     }
 }
 ";
-            ParseAndValidate(text,
+            UsingTree(text,
                 // (7,9): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
                 //         await Task<T>();
                 Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(7, 9));
 
-            UsingTree(text);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -3261,7 +3254,7 @@ class C
     }
 }
 ";
-            ParseAndValidate(text,
+            UsingTree(text,
                 // (6,14): error CS1001: Identifier expected
                 //         Task.
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(6, 14),
@@ -3269,7 +3262,6 @@ class C
                 //         Task.
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 14));
 
-            UsingTree(text);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -3816,8 +3808,7 @@ class C
     }
 }
 ";
-            var tree = UsingTree(text);
-            tree.GetDiagnostics().Verify(
+            var tree = UsingTree(text,
                 // (7,30): error CS1525: Invalid expression term '<<'
                 //         var j = e is a < i > << 2;
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "<<").WithArguments("<<").WithLocation(7, 30)
@@ -3922,8 +3913,7 @@ class C
     }
 }
 ";
-            var tree = UsingTree(text);
-            tree.GetDiagnostics().Verify(
+            var tree = UsingTree(text,
                 // (7,31): error CS1525: Invalid expression term '>'
                 //         var j = e is a < i >>>> 2;
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(7, 31)
@@ -5808,7 +5798,7 @@ select t";
         [WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
         public void AttributeArgument_BadRef()
         {
-            UsingTree("class C { [Attr(ref)] void M() { } }").GetDiagnostics().Verify(
+            UsingTree("class C { [Attr(ref)] void M() { } }",
                 // (1,17): error CS1525: Invalid expression term 'ref'
                 // class C { [Attr(ref)] void M() { } }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(1, 17),
