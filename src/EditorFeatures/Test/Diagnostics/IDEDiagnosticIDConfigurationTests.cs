@@ -864,7 +864,7 @@ csharp_prefer_simple_default_expression = true
 No editorconfig based code style option
 
 # IDE0036, PreferredModifierOrder
-csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,required,volatile,async
+csharp_preferred_modifier_order = public,private,protected,internal,file,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,required,volatile,async
 
 # IDE0037, PreferInferredTupleNames
 dotnet_style_prefer_inferred_tuple_names = true

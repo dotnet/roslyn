@@ -465,5 +465,20 @@ static internal class C2
                 }
                 """);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        public async Task TestFileClass()
+        {
+            await TestInRegularAndScriptAsync("""
+                [|abstract file|] class C
+                {
+                }
+                """,
+                """
+                file abstract class C
+                {
+                }
+                """);
+        }
     }
 }

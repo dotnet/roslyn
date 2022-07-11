@@ -19,6 +19,7 @@ internal sealed class CSharpIdeCodeStyleOptions : IdeCodeStyleOptions, IEquatabl
 {
     private static readonly ImmutableArray<SyntaxKind> s_preferredModifierOrderDefault = ImmutableArray.Create(
         SyntaxKind.PublicKeyword, SyntaxKind.PrivateKeyword, SyntaxKind.ProtectedKeyword, SyntaxKind.InternalKeyword,
+        SyntaxKind.FileKeyword,
         SyntaxKind.StaticKeyword,
         SyntaxKind.ExternKeyword,
         SyntaxKind.NewKeyword,
