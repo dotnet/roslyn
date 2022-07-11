@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -18,16 +17,12 @@ using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Diagnosers;
 using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MSBuild;
-using Microsoft.CodeAnalysis.NavigateTo;
-using Microsoft.CodeAnalysis.Storage;
-using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace IdeCoreBenchmarks
 {
@@ -82,6 +77,8 @@ namespace IdeCoreBenchmarks
                 .Add(typeof(FindReferencesBenchmarks).Assembly);
             var services = MefHostServices.Create(assemblies);
 
+            // var services = MefHostServices.Create(EditorTestCompositions.Editor.Assemblies);
+
             _workspace = MSBuildWorkspace.Create(new Dictionary<string, string>
                 {
                     // Use the latest language version to force the full set of available analyzers to run on the project.
@@ -98,8 +95,8 @@ namespace IdeCoreBenchmarks
             var solution = _workspace.OpenSolutionAsync(_solutionPath, progress: null, CancellationToken.None).Result;
             Console.WriteLine("Finished opening roslyn: " + (DateTime.Now - start));
 
-            //foreach (var diag in _workspace.Diagnostics)
-            //    Console.WriteLine(diag);
+            foreach (var diag in _workspace.Diagnostics)
+                Console.WriteLine(diag);
             return Task.CompletedTask;
         }
 
@@ -148,12 +145,14 @@ namespace IdeCoreBenchmarks
             GeneratorDriver driver = CSharpGeneratorDriver.Create(
                new ISourceGenerator[] { generator }, parseOptions: CSharpParseOptions.Default);
 
-            //foreach (var proj in _workspace.CurrentSolution.Projects)
-            //{
-            //    Console.WriteLine(proj.Name);
-            //}
+            foreach (var proj in _workspace.CurrentSolution.Projects)
+            {
+                Console.WriteLine(proj.Name);
+            }
 
-            var project = _workspace.CurrentSolution.Projects.Single(p => p.Name == "Microsoft.CodeAnalysis.Workspaces(netstandard2.0)");
+            var project = _workspace.CurrentSolution.Projects.Single(
+                p => p.Name == "Microsoft.CodeAnalysis.Workspaces(netstandard2.0)" ||
+                     p.Name == "Microsoft.CodeAnalysis.Workspaces");
 
             var start = DateTime.Now;
             Console.WriteLine("Getting compilation: " + project.Name);
@@ -175,9 +174,10 @@ namespace IdeCoreBenchmarks
             var totalIncrementalTime = TimeSpan.Zero;
             for (var i = 0; i < 50000; i++)
             {
-                var changedText = sourceText.WithChanges(new TextChange(new TextSpan(0, 0), $"// added text{i}\r\n"));
+                var changedText = sourceText.WithChanges(new TextChange(sourceText.Lines[0].Span, $"// added text{i}"));
                 var changedTree = syntaxTree.WithChangedText(changedText);
                 compilation = compilation.ReplaceSyntaxTree(syntaxTree, changedTree);
+                sourceText = changedText;
                 syntaxTree = changedTree;
 
                 start = DateTime.Now;

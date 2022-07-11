@@ -22,8 +22,8 @@ using Aliases = ArrayBuilder<(string aliasName, string symbolName)>;
 public partial struct SyntaxValueProvider
 {
     /// <summary>
-    /// Information computed about a particular tree.  Cached so we don't repeated recompute this important information
-    /// each time the incremental pipeline is rerun.
+    /// Information computed about a particular tree.  Cached so we don't repeatedly recompute this important
+    /// information each time the incremental pipeline is rerun.
     /// </summary>
     private record SyntaxTreeInfo(SyntaxTree Tree, bool ContainsGlobalAliases, bool ContainsAttributeList);
 
@@ -36,9 +36,12 @@ public partial struct SyntaxValueProvider
     /// the number of *relevant syntax trees*. This can lead to huge memory churn keeping track of a high number of
     /// trees, most of which are not going to be relevant.
     /// </summary>
-    private static readonly ConditionalWeakTable<SyntaxTree, SyntaxTreeInfo> s_treeToInfo = new();
+    private static readonly ConditionalWeakTable<SyntaxTree, SyntaxTreeInfo> s_treeToInfo = new ConditionalWeakTable<SyntaxTree, SyntaxTreeInfo>();
 
-    private static readonly ObjectPool<Stack<string>> s_stackPool = new(static () => new());
+    private static readonly ObjectPool<Stack<string>> s_stackPool = new ObjectPool<Stack<string>>(static () => new Stack<string>());
+
+    //private static readonly ObjectPool<ImmutableArray<SyntaxTreeInfo>.Builder> s_treeInfoArrayPool
+    //    = new ObjectPool<ImmutableArray<SyntaxTreeInfo>.Builder>(static () => ImmutableArray.CreateBuilder<SyntaxTreeInfo>());
 
     /// <summary>
     /// Returns all syntax nodes of that match <paramref name="predicate"/> if that node has an attribute on it that
@@ -74,28 +77,24 @@ public partial struct SyntaxValueProvider
         var syntaxTreesProvider = _context.CompilationProvider
             .SelectMany((compilation, cancellationToken) =>
             {
-                return compilation.CommonSyntaxTrees
-                    .Select(t => GetTreeInfo(t, syntaxHelper, cancellationToken))
-                    .Where(t => t.ContainsGlobalAliases || t.ContainsAttributeList)
-                    .ToImmutableArray();
-                //var count = 0;
-                //foreach (var tree in compilation.CommonSyntaxTrees)
-                //{
-                //    var info = GetTreeInfo(tree, syntaxHelper, cancellationToken);
-                //    if (info.ContainsGlobalAliases || info.ContainsAttributeList)
-                //        count++;
-                //}
+                var count = 0;
+                foreach (var tree in compilation.SyntaxTrees)
+                {
+                    var info = GetTreeInfo(tree, syntaxHelper, cancellationToken);
+                    if (info.ContainsGlobalAliases || info.ContainsAttributeList)
+                        count++;
+                }
 
-                //var result = ArrayBuilder<SyntaxTreeInfo>.GetInstance(count);
+                var builder = ImmutableArray.CreateBuilder<SyntaxTreeInfo>(count);
 
-                //foreach (var tree in compilation.CommonSyntaxTrees)
-                //{
-                //    var info = GetTreeInfo(tree, syntaxHelper, cancellationToken);
-                //    if (info.ContainsGlobalAliases || info.ContainsAttributeList)
-                //        result.Add(info);
-                //}
+                foreach (var tree in compilation.SyntaxTrees)
+                {
+                    var info = GetTreeInfo(tree, syntaxHelper, cancellationToken);
+                    if (info.ContainsGlobalAliases || info.ContainsAttributeList)
+                        builder.Add(info);
+                }
 
-                //return result.ToImmutableAndFree();
+                return builder.MoveToImmutable();
             })
             .WithTrackingName("compilationUnit_ForAttribute");
 
