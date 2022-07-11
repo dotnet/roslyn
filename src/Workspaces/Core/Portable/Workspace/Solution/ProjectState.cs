@@ -485,13 +485,17 @@ namespace Microsoft.CodeAnalysis
                         {
                             value = key switch
                             {
-                                "indent_style" => _service.UseSpacesForWhitespace(text) ? "space" : "tab",
-                                "tab_width" => _service.GetTabSize(text).ToString(),
-                                "indent_size" => _service.GetIndentSize(text).ToString(),
+                                "indent_style" => _service.UseSpacesForWhitespace(text) switch { true => "space", false => "tab", null => null },
+                                "tab_width" => _service.GetTabSize(text)?.ToString(),
+                                "indent_size" => _service.GetIndentSize(text)?.ToString(),
                                 _ => throw ExceptionUtilities.UnexpectedValue(key)
                             };
 
-                            return true;
+                            // Note that the document might have been closed and the buffer released by the time we get here.
+                            if (value != null)
+                            {
+                                return true;
+                            }
                         }
                         catch (Exception e) when (FatalError.ReportAndCatch(e))
                         {
