@@ -233,6 +233,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 return VSConstants.S_OK;
             }
 
+            // We expect GetOutline to be called every time a new code window is created.
             int IVsDocOutlineProvider.GetOutline(out IntPtr phwnd, out IOleCommandTarget? ppCmdTarget)
             {
                 var languageServiceBroker = _languageService.Package.ComponentModel.GetService<ILanguageServiceBrokerShim>();
@@ -244,6 +245,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
                 threadingContext.ThrowIfNotOnUIThread();
 
+                // Overwrite the existing host with a new Document Outline for this code window.
                 _documentOutlineViewHost = new ElementHost
                 {
                     Dock = DockStyle.Fill,
