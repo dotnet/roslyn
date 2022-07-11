@@ -57,11 +57,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public readonly Document? Document;
 
         /// <summary>
-        /// The document that the request is for, if applicable. This comes from the <see cref="TextDocumentIdentifier"/> returned from the handler itself via a call to <see cref="IRequestHandler{RequestType, ResponseType}.GetTextDocumentIdentifier(RequestType)"/>.
-        /// </summary>
-        public readonly TextDocument? TextDocument;
-
-        /// <summary>
         /// The languages supported by the server making the request.
         /// </summary>
         public readonly ImmutableArray<string> SupportedLanguages;
@@ -79,7 +74,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             ClientCapabilities clientCapabilities,
             WellKnownLspServerKinds serverKind,
             Document? document,
-            TextDocument? textDocument,
             IDocumentChangeTracker documentChangeTracker,
             ImmutableDictionary<Uri, SourceText> trackedDocuments,
             ImmutableArray<string> supportedLanguages,
@@ -87,7 +81,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             CancellationToken queueCancellationToken)
         {
             Document = document;
-            TextDocument = textDocument;
             Solution = solution;
             ClientCapabilities = clientCapabilities;
             ServerKind = serverKind;
@@ -125,24 +118,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             if (!requiresLSPSolution)
             {
                 return new RequestContext(
-                    solution: null, logger: logger, clientCapabilities: clientCapabilities, serverKind: serverKind, document: null, textDocument: null,
+                    solution: null, logger: logger, clientCapabilities: clientCapabilities, serverKind: serverKind, document: null,
                     documentChangeTracker: documentChangeTracker, trackedDocuments: trackedDocuments, supportedLanguages: supportedLanguages, lspServices: lspServices,
                     queueCancellationToken: queueCancellationToken);
             }
 
             Solution? workspaceSolution;
             Document? document = null;
-            TextDocument? additionalDocument = null;
             if (textDocument is not null)
             {
                 // we were given a request associated with a document.  Find the corresponding roslyn document for this. 
                 // There are certain cases where we may be asked for a document that does not exist (for example a document is removed)
                 // For example, document pull diagnostics can ask us after removal to clear diagnostics for a document.
                 document = await lspWorkspaceManager.GetLspDocumentAsync(textDocument, requestCancellationToken).ConfigureAwait(false);
-                additionalDocument = await lspWorkspaceManager.GetLspAnalyzerConfigDocumentAsync(textDocument, requestCancellationToken).ConfigureAwait(false);
             }
 
-            workspaceSolution = document?.Project.Solution ?? additionalDocument?.Project.Solution ?? await lspWorkspaceManager.TryGetHostLspSolutionAsync(requestCancellationToken).ConfigureAwait(false);
+            workspaceSolution = document?.Project.Solution ?? await lspWorkspaceManager.TryGetHostLspSolutionAsync(requestCancellationToken).ConfigureAwait(false);
 
             if (workspaceSolution == null)
             {
@@ -156,7 +147,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 clientCapabilities,
                 serverKind,
                 document,
-                additionalDocument,
                 documentChangeTracker,
                 trackedDocuments,
                 supportedLanguages,

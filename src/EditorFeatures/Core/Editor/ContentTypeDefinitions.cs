@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis.ExternalAccess.EditorConfig;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.ContentTypes

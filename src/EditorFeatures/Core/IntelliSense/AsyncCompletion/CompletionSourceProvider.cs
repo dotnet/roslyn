@@ -19,8 +19,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
     [Export(typeof(IAsyncCompletionSourceProvider))]
     [Name("Roslyn Completion Source Provider")]
     [ContentType(ContentTypeNames.RoslynContentType)]
-    [ContentType("text")]
-    [ContentType("code")]
     internal class CompletionSourceProvider : IAsyncCompletionSourceProvider
     {
         private readonly IThreadingContext _threadingContext;

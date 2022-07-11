@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Api;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Options;
@@ -23,7 +22,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig
 {
     /// <summary>
-    /// Language client to handle TS LSP requests.
+    /// Language client to handle .editorconfig LSP requests.
     /// Allows us to move features to LSP without being blocked by TS as well
     /// as ensures that TS LSP features use correct solution snapshots.
     /// </summary>
@@ -32,12 +31,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig
     [Export(typeof(EditorConfigInProcLanguageClient))]
     internal class EditorConfigInProcLanguageClient : AbstractInProcLanguageClient
     {
-        private readonly IEditorConfigCapabilitiesProvider? _editorConfigCapabilitiesProvider;
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
         public EditorConfigInProcLanguageClient(
-            [Import(AllowDefault = true)] IEditorConfigCapabilitiesProvider? editorConfigCapabilitiesProvider,
             EditorConfigLspServiceProvider lspServiceProvider,
             IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider,
@@ -45,28 +41,20 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig
             IThreadingContext threadingContext)
             : base(lspServiceProvider, globalOptions, listenerProvider, lspLoggerFactory, threadingContext)
         {
-            _editorConfigCapabilitiesProvider = editorConfigCapabilitiesProvider;
         }
 
-        protected override ImmutableArray<string> SupportedLanguages => ImmutableArray.Create(StringConstants.EditorConfigLanguageName);
+        protected override ImmutableArray<string> SupportedLanguages => ImmutableArray.Create(ProtocolConstants.EditorConfigLanguageName);
 
         public override ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {
-            var serverCapabilities = GetEditorConfigServerCapabilities(clientCapabilities);
-
-            serverCapabilities.TextDocumentSync = new TextDocumentSyncOptions
+            var serverCapabilities = new ServerCapabilities
             {
-                Change = TextDocumentSyncKind.Incremental,
-                OpenClose = true,
+                TextDocumentSync = new TextDocumentSyncOptions
+                {
+                    OpenClose = true,
+                    Change = TextDocumentSyncKind.Incremental,
+                }
             };
-
-            serverCapabilities.ProjectContextProvider = true;
-
-            var isPullDiagnostics = GlobalOptions.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode);
-            if (isPullDiagnostics)
-            {
-                serverCapabilities.SupportsDiagnosticRequests = true;
-            }
 
             return serverCapabilities;
         }
@@ -79,21 +67,5 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig
         public override bool ShowNotificationOnInitializeFailed => GlobalOptions.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode);
 
         public override WellKnownLspServerKinds ServerKind => WellKnownLspServerKinds.EditorConfigLspServer;
-
-        private VSInternalServerCapabilities GetEditorConfigServerCapabilities(ClientCapabilities clientCapabilities)
-        {
-            if (_editorConfigCapabilitiesProvider != null)
-            {
-                var serializedClientCapabilities = JsonConvert.SerializeObject(clientCapabilities);
-                var serializedServerCapabilities = _editorConfigCapabilitiesProvider.GetServerCapabilities(serializedClientCapabilities);
-                var editorConfigServerCapabilities = JsonConvert.DeserializeObject<VSInternalServerCapabilities>(serializedServerCapabilities);
-                Contract.ThrowIfNull(editorConfigServerCapabilities);
-                return editorConfigServerCapabilities;
-            }
-            else
-            {
-                return new VSInternalServerCapabilities();
-            }
-        }
     }
 }

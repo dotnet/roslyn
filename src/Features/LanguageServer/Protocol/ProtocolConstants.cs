@@ -17,5 +17,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public const string TypeScriptLanguageContract = "TypeScriptLspLanguage";
 
         public const string EditorConfigLanguageContract = "EditorConfigLspLanguage";
+
+        public const string EditorConfigLanguageName = "EditorConfig";
     }
 }

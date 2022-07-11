@@ -42,16 +42,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return documents;
         }
 
-        public static ImmutableArray<AnalyzerConfigDocument> GetAnalyzerConfigDocuments(this Solution solution, Uri documentUri)
-        {
-            var documentIds = GetDocumentIds(solution, documentUri);
-
-            // We don't call GetRequiredDocument here as the id could be referring to an additional document.
-            var additionalDocuments = documentIds.Select(solution.GetAnalyzerConfigDocument).WhereNotNull().ToImmutableArray();
-            var x = additionalDocuments;
-            return additionalDocuments;
-        }
-
         public static ImmutableArray<DocumentId> GetDocumentIds(this Solution solution, Uri documentUri)
         {
             // TODO: we need to normalize this. but for now, we check both absolute and local path
