@@ -75,10 +75,10 @@
                 <ColumnDefinition Width="28" />
                 <ColumnDefinition Width="28" />
             </Grid.ColumnDefinitions>
-            <Button Grid.Column="0" Click="ExpandAll" ToolTip="{x:Static self:DocumentOutlineStrings.Document_Outline_Collapse_All}">
+            <Button Grid.Column="0" Click="ExpandAll" ToolTip="{x:Static self:DocumentOutlineStrings.Document_Outline_Expand_All}">
                 <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.ExpandAll}" />
             </Button>
-            <Button Grid.Column="1" Click="CollapseAll" ToolTip="{x:Static self:DocumentOutlineStrings.Document_Outline_Expand_All}">
+            <Button Grid.Column="1" Click="CollapseAll" ToolTip="{x:Static self:DocumentOutlineStrings.Document_Outline_Collapse_All}">
                 <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.CollapseAll}" />
             </Button>
             <Button Grid.Column="2" Click="SortByName" ToolTip="{x:Static self:DocumentOutlineStrings.Document_Outline_Sort_Name}">
@@ -95,16 +95,16 @@
             <TextBox.Style>
                 <Style TargetType="TextBox">
                     <Setter Property="Background" Value="{StaticResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}" />
-                    <Setter Property="Foreground" Value="LightGray" />
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowTextKey}}" />
                     <Setter Property="Padding" Value="3, 0, 0, 0" />
                     <Setter Property="FontFamily" Value="{StaticResource {x:Static vsshell:VsFonts.CaptionFontFamilyKey}}" />
                     <Setter Property="FontSize" Value="{StaticResource {x:Static vsshell:VsFonts.CaptionFontSizeKey}}" />
-                    <Setter Property="CaretBrush" Value="White" />
+                    <Setter Property="CaretBrush" Value="{StaticResource {x:Static vsui:HeaderColors.DefaultTextBrushKey}}" />
                     <Style.Resources>
                         <VisualBrush x:Key="CueBannerBrush" AlignmentX="Left" AlignmentY="Center" Stretch="None">
                             <VisualBrush.Visual>
                                 <Label Content="{x:Static self:DocumentOutlineStrings.Document_Outline_Search}"
-                                       Foreground="LightGray"
+                                       Foreground="{DynamicResource {x:Static vsshell:VsBrushes.TitleBarInactiveTextKey}}"
                                        FontFamily="{StaticResource {x:Static vsshell:VsFonts.CaptionFontFamilyKey}}"
                                        FontSize="{StaticResource {x:Static vsshell:VsFonts.CaptionFontSizeKey}}" />
                             </VisualBrush.Visual>
@@ -129,9 +129,11 @@
                 <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}"
                      Color="{StaticResource {x:Static vsshell:VsColors.ThreeDHighlightKey}}" />
                 <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}"
-                     Color="{DynamicResource {x:Static SystemColors.HighlightTextColorKey}}"/>
+                     Color="{DynamicResource {x:Static vsshell:VsColors.ButtonTextKey}}"/>
                 <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}"
                      Color="{StaticResource {x:Static vsshell:VsColors.ThreeDHighlightKey}}" />
+                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}"
+                     Color="{DynamicResource {x:Static vsshell:VsColors.ButtonTextKey}}"/>
             </TreeView.Resources>
             <TreeView.ItemContainerStyle>
                 <Style TargetType="TreeViewItem" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTreeViewItemStyleKey}}">
