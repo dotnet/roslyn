@@ -11,14 +11,6 @@
     <ReleaseTrackingOptOut>true</ReleaseTrackingOptOut>
   </PropertyGroup>
 
-  <Choose>
-    <When Condition="'$(TargetFramework)' == 'netstandard1.3'">
-      <PropertyGroup>
-        <PackageTargetFallback>portable-net45+win8</PackageTargetFallback>
-      </PropertyGroup>
-    </When>
-  </Choose>
-
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests" />
   </ItemGroup>
