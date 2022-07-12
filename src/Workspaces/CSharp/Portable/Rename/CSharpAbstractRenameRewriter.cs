@@ -175,5 +175,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     node is TypeConstraintSyntax ||
                     node is BaseTypeSyntax);
         }
+
+        protected static bool IsPropertyAccessorNameConflict(SyntaxToken token, string replacementText)
+            => IsGetPropertyAccessorNameConflict(token, replacementText)
+            || IsSetPropertyAccessorNameConflict(token, replacementText)
+            || IsInitPropertyAccessorNameConflict(token, replacementText);
+
+        protected static bool IsGetPropertyAccessorNameConflict(SyntaxToken token, string replacementText)
+            => token.IsKind(SyntaxKind.GetKeyword)
+            && IsNameConflictWithProperty("get", token.Parent as AccessorDeclarationSyntax, replacementText);
+
+        protected static bool IsSetPropertyAccessorNameConflict(SyntaxToken token, string replacementText)
+            => token.IsKind(SyntaxKind.SetKeyword)
+            && IsNameConflictWithProperty("set", token.Parent as AccessorDeclarationSyntax, replacementText);
+
+        protected static bool IsInitPropertyAccessorNameConflict(SyntaxToken token, string replacementText)
+            => token.IsKind(SyntaxKind.InitKeyword)
+            // using "set" here is intentional. The compiler generates set_PropName for both set and init accessors.
+            && IsNameConflictWithProperty("set", token.Parent as AccessorDeclarationSyntax, replacementText);
+
+        protected static bool IsNameConflictWithProperty(string prefix, AccessorDeclarationSyntax? accessor, string replacementText)
+            => accessor?.Parent?.Parent is PropertyDeclarationSyntax property   // 3 null checks in one: accessor -> accessor list -> property declaration
+            && replacementText.Equals(prefix + "_" + property.Identifier.Text, StringComparison.Ordinal);
+
+        protected static bool IsPossiblyDestructorConflict(SyntaxToken token, string replacementText)
+        {
+            return replacementText == "Finalize" &&
+                token.IsKind(SyntaxKind.IdentifierToken) &&
+                token.Parent.IsKind(SyntaxKind.DestructorDeclaration);
+        }
+
     }
 }

@@ -6,22 +6,24 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Rename
 {
-    internal class MutipleSymbolRenameRewriter : CSharpAbstractRenameRewriter
+    internal class MultipleSymbolRenameRewriter : CSharpAbstractRenameRewriter
     {
-        public MutipleSymbolRenameRewriter(
-            Document document,
-            Solution solution,
-            ISet<TextSpan> conflictLocations,
-            SemanticModel semanticModel,
-            RenamedSpansTracker renameSpansTracker,
-            AnnotationTable<RenameAnnotation> renameAnnotations,
-            CancellationToken cancellationToken) : base(document, solution, conflictLocations, semanticModel, renameSpansTracker, renameAnnotations, cancellationToken)
+        public MultipleSymbolRenameRewriter(
+            RenameRewriterParametersNextGen parameters)
+            : base(parameters.Document,
+                  parameters.OriginalSolution,
+                  parameters.ConflictLocationSpans,
+                  parameters.SemanticModel,
+                  parameters.RenameSpansTracker,
+                  parameters.RenameAnnotations,
+                  parameters.CancellationToken)
         {
         }
     }

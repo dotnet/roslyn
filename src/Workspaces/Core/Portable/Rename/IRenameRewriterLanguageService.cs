@@ -125,6 +125,7 @@ namespace Microsoft.CodeAnalysis.Rename
     internal abstract class AbstractRenameRewriterLanguageService : IRenameRewriterLanguageService
     {
         public abstract SyntaxNode AnnotateAndRename(RenameRewriterParameters parameters);
+        public abstract SyntaxNode AnnotateAndRename(RenameRewriterParametersNextGen parameters);
         public abstract Task<ImmutableArray<Location>> ComputeDeclarationConflictsAsync(string replacementText, ISymbol renamedSymbol, ISymbol renameSymbol, IEnumerable<ISymbol> referencedSymbols, Solution baseSolution, Solution newSolution, IDictionary<Location, Location> reverseMappedLocations, CancellationToken cancellationToken);
         public abstract Task<ImmutableArray<Location>> ComputeImplicitReferenceConflictsAsync(ISymbol renameSymbol, ISymbol renamedSymbol, IEnumerable<ReferenceLocation> implicitReferenceLocations, CancellationToken cancellationToken);
         public abstract ImmutableArray<Location> ComputePossibleImplicitUsageConflicts(ISymbol renamedSymbol, SemanticModel semanticModel, Location originalDeclarationLocation, int newDeclarationLocationStartingPosition, CancellationToken cancellationToken);
@@ -150,11 +151,6 @@ namespace Microsoft.CodeAnalysis.Rename
                     conflicts.AddRange(conflictingParameter.Locations);
                 }
             }
-        }
-
-        public SyntaxNode AnnotateAndRename(RenameRewriterParametersNextGen parameters)
-        {
-            throw new NotImplementedException();
         }
     }
 }
