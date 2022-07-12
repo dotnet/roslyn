@@ -43,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// <summary>
         /// Creates the UI model.
         /// </summary>
-        private async ValueTask<DocumentSymbolModel?> ComputeUIModelAsync(ImmutableSegmentedList<bool> unused, CancellationToken cancellationToken)
+        private async ValueTask<DocumentSymbolModel?> ComputeUIModelAsync(ImmutableSegmentedList<bool> _, CancellationToken cancellationToken)
         {
             // Jump to the UI thread to get the currently active text view.
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -112,7 +112,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// <summary>
         /// Filters and sorts the UI model.
         /// </summary>
-        private async ValueTask<DocumentSymbolModel?> UpdateUIAsync(ImmutableSegmentedList<bool> unused, CancellationToken cancellationToken)
+        private async ValueTask<DocumentSymbolModel?> UpdateUIAsync(ImmutableSegmentedList<bool> _, CancellationToken cancellationToken)
         {
             var model = await _computeUIModelQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
             if (model is null)
