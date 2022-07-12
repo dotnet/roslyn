@@ -21,7 +21,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp;
-using Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog;
+using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
@@ -58,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractClass
 
             var memberViewModels = membersInType
                 .SelectAsArray(member =>
-                    new PullMemberUpSymbolViewModel(member, _glyphService)
+                    new MemberSymbolViewModel(member, _glyphService)
                     {
                         // The member(s) user selected will be checked at the beginning.
                         IsChecked = selectedMembers.Any(SymbolEquivalenceComparer.Instance.Equals, member),
