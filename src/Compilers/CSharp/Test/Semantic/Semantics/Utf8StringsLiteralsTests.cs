@@ -270,7 +270,7 @@ class C
 }
 ");
 
-            comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular11);
 
             CompileAndVerify(comp, expectedOutput: @"
 -1
@@ -1483,7 +1483,7 @@ class C
 }
 ");
 
-            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular11);
 
             CompileAndVerify(comp, expectedOutput: @"
 { 0x63 0x61 0x74 }
@@ -1491,9 +1491,9 @@ class C
 
             comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (15,42): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (15,42): error CS8936: Feature 'UTF-8 string literals' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     static ReadOnlySpan<byte> Test3() => "cat"u8;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""cat""" + suffix).WithArguments("UTF-8 string literals").WithLocation(15, 42)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, @"""cat""" + suffix).WithArguments("UTF-8 string literals", "11.0").WithLocation(15, 42)
                 );
         }
 
@@ -1536,7 +1536,7 @@ class C
 }
 ");
 
-            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular11);
 
             CompileAndVerify(comp, expectedOutput: @"
 { 0x63 0x61 0x74 }
@@ -1544,9 +1544,9 @@ class C
 
             comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (15,42): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     static ReadOnlySpan<byte> Test3() => "cat"u8;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"@""cat""" + suffix).WithArguments("UTF-8 string literals").WithLocation(15, 42)
+                // (15,42): error CS8936: Feature 'UTF-8 string literals' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     static ReadOnlySpan<byte> Test3() => @"cat"u8;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, @"@""cat""" + suffix).WithArguments("UTF-8 string literals", "11.0").WithLocation(15, 42)
                 );
         }
 
@@ -1589,7 +1589,7 @@ class C
 }
 ");
 
-            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular11);
 
             CompileAndVerify(comp, expectedOutput: @"
 { 0x63 0x61 0x74 }
@@ -1597,12 +1597,12 @@ class C
 
             comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (15,42): error CS8652: The feature 'raw string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     static ReadOnlySpan<byte> Test3() => """cat"""u8;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""""cat""""""" + suffix).WithArguments("raw string literals").WithLocation(15, 42),
-                // (15,42): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     static ReadOnlySpan<byte> Test3() => """cat"""u8;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""""cat""""""" + suffix).WithArguments("UTF-8 string literals").WithLocation(15, 42)
+                // (15,42): error CS8936: Feature 'raw string literals' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     static ReadOnlySpan<byte> Test3() => """cat"""U8;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, @"""""""cat""""""" + suffix).WithArguments("raw string literals", "11.0").WithLocation(15, 42),
+                // (15,42): error CS8936: Feature 'UTF-8 string literals' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     static ReadOnlySpan<byte> Test3() => """cat"""U8;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, @"""""""cat""""""" + suffix).WithArguments("UTF-8 string literals", "11.0").WithLocation(15, 42)
                 );
         }
 
@@ -1651,7 +1651,7 @@ class C
 }
 ");
 
-            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular11);
 
             CompileAndVerify(comp, expectedOutput: @"
 { 0x63 0x61 0x74 }
@@ -1659,16 +1659,16 @@ class C
 
             comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (19,42): error CS8652: The feature 'raw string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (19,42): error CS8936: Feature 'raw string literals' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     static ReadOnlySpan<byte> Test3() => """
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""""
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, @"""""""
   cat
-  """"""" + suffix).WithArguments("raw string literals").WithLocation(19, 42),
-                // (19,42): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+  """"""" + suffix).WithArguments("raw string literals", "11.0").WithLocation(19, 42),
+                // (19,42): error CS8936: Feature 'UTF-8 string literals' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     static ReadOnlySpan<byte> Test3() => """
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""""
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, @"""""""
   cat
-  """"""" + suffix).WithArguments("UTF-8 string literals").WithLocation(19, 42)
+  """"""" + suffix).WithArguments("UTF-8 string literals", "11.0").WithLocation(19, 42)
                 );
         }
 

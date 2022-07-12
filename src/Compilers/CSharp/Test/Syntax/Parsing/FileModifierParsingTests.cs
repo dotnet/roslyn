@@ -569,9 +569,9 @@ public class FileModifierParsingTests : ParsingTests
             options: TestOptions.Regular10,
             expectedBindingDiagnostics: new[]
             {
-                // (1,12): error CS8652: The feature 'file types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,12): error CS8936: Feature 'file types' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // file class C { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "C").WithArguments("file types").WithLocation(1, 12)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "C").WithArguments("file types", "11.0").WithLocation(1, 12)
             });
         N(SyntaxKind.CompilationUnit);
         {
@@ -1520,7 +1520,7 @@ public class FileModifierParsingTests : ParsingTests
 
     [Theory]
     [InlineData(LanguageVersion.CSharp10)]
-    [InlineData(LanguageVersionFacts.CSharpNext)]
+    [InlineData(LanguageVersion.CSharp11)]
     public void TypeNamedFile_02(LanguageVersion languageVersion)
     {
         UsingNode($$"""
@@ -1932,7 +1932,7 @@ public class FileModifierParsingTests : ParsingTests
     }
 
     [Fact]
-    public void MethodNamedRecord_01_CSharpNext()
+    public void MethodNamedRecord_01_CSharp11()
     {
         UsingNode("""
             class C
@@ -2028,7 +2028,7 @@ public class FileModifierParsingTests : ParsingTests
     }
 
     [Fact]
-    public void MethodNamedRecord_02_CSharpNext()
+    public void MethodNamedRecord_02_CSharp11()
     {
         UsingNode("""
             class C
@@ -2127,7 +2127,7 @@ public class FileModifierParsingTests : ParsingTests
     }
 
     [Fact]
-    public void FileRecord_01_CSharpNext()
+    public void FileRecord_01_CSharp11()
     {
         UsingNode("""
             class C
@@ -2225,7 +2225,7 @@ public class FileModifierParsingTests : ParsingTests
     }
 
     [Fact]
-    public void FileRecord_02_CSharpNext()
+    public void FileRecord_02_CSharp11()
     {
         UsingNode("""
             class C
@@ -2320,7 +2320,7 @@ public class FileModifierParsingTests : ParsingTests
     }
 
     [Fact]
-    public void FileRecord_03_CSharpNext()
+    public void FileRecord_03_CSharp11()
     {
         UsingNode("""
             class C
@@ -2357,7 +2357,7 @@ public class FileModifierParsingTests : ParsingTests
     }
 
     [Fact]
-    public void FileRecord_04_CSharpNext()
+    public void FileRecord_04_CSharp11()
     {
         UsingNode("""
             file record X();
@@ -2509,7 +2509,7 @@ public class FileModifierParsingTests : ParsingTests
 
     [Theory]
     [InlineData(LanguageVersion.CSharp10)]
-    [InlineData(LanguageVersionFacts.CSharpNext)]
+    [InlineData(LanguageVersion.CSharp11)]
     public void TopLevelVariable_01(LanguageVersion languageVersion)
     {
         UsingNode("""
@@ -2553,7 +2553,7 @@ public class FileModifierParsingTests : ParsingTests
 
     [Theory]
     [InlineData(LanguageVersion.CSharp10)]
-    [InlineData(LanguageVersionFacts.CSharpNext)]
+    [InlineData(LanguageVersion.CSharp11)]
     public void TopLevelVariable_02(LanguageVersion languageVersion)
     {
         UsingNode("""
@@ -2593,7 +2593,7 @@ public class FileModifierParsingTests : ParsingTests
 
     [Theory]
     [InlineData(LanguageVersion.CSharp10)]
-    [InlineData(LanguageVersionFacts.CSharpNext)]
+    [InlineData(LanguageVersion.CSharp11)]
     public void TopLevelVariable_03(LanguageVersion languageVersion)
     {
         UsingNode("""
