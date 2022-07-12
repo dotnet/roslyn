@@ -11743,5 +11743,1261 @@ class Program
                 //     ref readonly R F3() => ref this;
                 Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this").WithLocation(5, 32));
         }
+
+        [Fact]
+        public void RefInitializer_LangVer()
+        {
+            var source = @"
+int x = 42;
+var r = new R() { field = ref x };
+
+ref struct R
+{
+    public ref int field;
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (7,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     public ref int field;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref int").WithArguments("ref fields", "11.0").WithLocation(7, 12)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_LangVer_FromMetadata()
+        {
+            var lib_cs = @"
+public ref struct R
+{
+    public ref int field;
+}
+";
+            var source = @"
+int x = 42;
+var r = new R() { field = ref x }; // 1
+
+R r2 = default;
+_ = r2 with { field = ref x }; // 2
+";
+            var lib = CreateCompilation(lib_cs, parseOptions: TestOptions.Regular11);
+
+            var comp = CreateCompilation(source, references: new[] { lib.EmitToImageReference() }, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (3,19): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                // var r = new R() { field = ref x }; // 1
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "field").WithArguments("ref fields", "11.0").WithLocation(3, 19),
+                // (6,15): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                // _ = r2 with { field = ref x }; // 2
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "field").WithArguments("ref fields", "11.0").WithLocation(6, 15)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer()
+        {
+            var source = @"
+public class C
+{
+    public static void Main()
+    {
+        int x = 42;
+        var r = new R() { field = ref x };
+        System.Console.Write(r.ToString());
+    }
+}
+
+ref struct R
+{
+    public ref int field;
+    public override string ToString()
+    {
+        return field.ToString();
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("42"));
+            verifier.VerifyIL("C.Main",
+"""
+{
+  // Code size       40 (0x28)
+  .maxstack  2
+  .locals init (int V_0, //x
+                R V_1, //r
+                R V_2)
+  IL_0000:  ldc.i4.s   42
+  IL_0002:  stloc.0
+  IL_0003:  ldloca.s   V_2
+  IL_0005:  initobj    "R"
+  IL_000b:  ldloc.2
+  IL_000c:  ldfld      "ref int R.field"
+  IL_0011:  ldloc.0
+  IL_0012:  stind.i4
+  IL_0013:  ldloc.2
+  IL_0014:  stloc.1
+  IL_0015:  ldloca.s   V_1
+  IL_0017:  constrained. "R"
+  IL_001d:  callvirt   "string object.ToString()"
+  IL_0022:  call       "void System.Console.Write(string)"
+  IL_0027:  ret
+}
+""");
+        }
+
+        [Fact]
+        public void RefInitializer_RHSMustBeDefinitelyAssigned()
+        {
+            // The right operand must be definitely assigned at the point of the ref assignment.
+            var source = @"
+int x;
+var r = new R() { field = ref x };
+
+ref struct R
+{
+    public ref int field;
+    public override string ToString()
+    {
+        return field.ToString();
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics(
+                // (3,31): error CS0165: Use of unassigned local variable 'x'
+                // var r = new R() { field = ref x };
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(3, 31)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_RHSTypeMustMatch()
+        {
+            // The right operand must be an expression that yields an lvalue designating a value of the same type as the left operand.
+            var source = @"
+object x = null;
+var r = new R() { field = ref x };
+
+ref struct R
+{
+    public ref int field;
+    public override string ToString()
+    {
+        return field.ToString();
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics(
+                // (3,31): error CS8173: The expression must be of type 'int' because it is being assigned by reference
+                // var r = new R() { field = ref x };
+                Diagnostic(ErrorCode.ERR_RefAssignmentMustHaveIdentityConversion, "x").WithArguments("int").WithLocation(3, 31)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_StaticRefField()
+        {
+            var source = @"
+int x = 0;
+var r = new R() { field = ref x };
+
+ref struct R
+{
+    public static ref int field;
+    public override string ToString()
+    {
+        return field.ToString();
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics(
+                // (3,19): error CS1914: Static field or property 'R.field' cannot be assigned in an object initializer
+                // var r = new R() { field = ref x };
+                Diagnostic(ErrorCode.ERR_StaticMemberInObjectInitializer, "field").WithArguments("R.field").WithLocation(3, 19),
+                // (7,27): error CS0106: The modifier 'static' is not valid for this item
+                //     public static ref int field;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "field").WithArguments("static").WithLocation(7, 27)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_VarInvocationReserved()
+        {
+            var source = @"
+var r = new R() { field = ref var() };
+
+ref struct R
+{
+    public ref int field;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (2,31): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
+                // var r = new R() { field = ref var() };
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var()").WithLocation(2, 31),
+                // (2,31): error CS0103: The name 'var' does not exist in the current context
+                // var r = new R() { field = ref var() };
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(2, 31)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_ReadonlyRefField()
+        {
+            var source = @"
+int x = 42;
+var r = new R() { field = ref x };
+
+ref struct R
+{
+    public readonly ref int field;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,19): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                // var r = new R() { field = ref x };
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(3, 19)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_RefReadonlyField()
+        {
+            var source = @"
+int x = 42;
+var r = new R() { field = ref x };
+
+ref struct R
+{
+    public ref readonly int field;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void RefInitializer_RefReadonlyValue_Field()
+        {
+            // If the left operand is a writeable ref (i.e. it designates anything other than a `ref readonly` local or  `in` parameter), then the right operand must be a writeable lvalue.
+            var source = @"
+class C
+{
+    ref readonly int Value() => throw null;
+
+    void M()
+    {
+        var r = new R() { field = ref Value() };
+    }
+}
+
+ref struct R
+{
+    public ref int field;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,39): error CS8331: Cannot assign to method 'C.Value()' because it is a readonly variable
+                //         var r = new R() { field = ref Value() };
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "Value()").WithArguments("method", "C.Value()").WithLocation(8, 39)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_RefReadonlyValue_GetOnlyProperty()
+        {
+            var source = @"
+class C
+{
+    ref readonly int Value() => throw null;
+
+    void M()
+    {
+        var r = new R() { Property = ref Value() };
+    }
+}
+
+ref struct R
+{
+    public ref int Property { get => throw null; }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,27): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                //         var r = new R() { Property = ref Value() };
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "Property").WithLocation(8, 27)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_RefReadonlyValue_Property()
+        {
+            var source = @"
+class C
+{
+    ref readonly int Value() => throw null;
+
+    void M()
+    {
+        var r = new R() { Property = ref Value() };
+    }
+}
+
+ref struct R
+{
+    public ref int Property { get => throw null; set => throw null; }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,27): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                //         var r = new R() { Property = ref Value() };
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "Property").WithLocation(8, 27),
+                // (14,50): error CS8147: Properties which return by reference cannot have set accessors
+                //     public ref int Property { get => throw null; set => throw null; }
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithLocation(14, 50)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_RefReadonlyValue_Indexer()
+        {
+            var source = @"
+var r = new R() { [0] = ref Value() }; // 1
+
+R r2 = default;
+r2[0] = ref Value(); // 2
+
+ref readonly int Value() => throw null;
+
+ref struct R
+{
+    public ref int this[int i] { get => throw null; }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (2,19): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // var r = new R() { [0] = ref Value() }; // 1
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "[0]").WithLocation(2, 19),
+                // (5,1): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // r2[0] = ref Value(); // 2
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "r2[0]").WithLocation(5, 1)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_Indexer()
+        {
+            var source = @"
+var r = new R() { [0] = ref Value() }; // 1
+
+R r2 = default;
+r2[0] = ref Value(); // 2
+
+ref int Value() => throw null;
+
+ref struct R
+{
+    public ref int this[int i] { get => throw null; }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (2,19): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // var r = new R() { [0] = ref Value() }; // 1
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "[0]").WithLocation(2, 19),
+                // (5,1): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // r2[0] = ref Value(); // 2
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "r2[0]").WithLocation(5, 1)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_ValueMustReferToLocation()
+        {
+            var source = @"
+class C
+{
+    int Value() => throw null;
+
+    void M()
+    {
+        var r = new R() { field = ref Value() };
+    }
+}
+
+ref struct R
+{
+    public ref int field;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,39): error CS1510: A ref or out value must be an assignable variable
+                //         var r = new R() { field = ref Value() };
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "Value()").WithLocation(8, 39)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_RefReadonlyField_RefReadonlyValue()
+        {
+            var source = @"
+class C
+{
+    ref readonly int Value() => throw null;
+
+    void M()
+    {
+        var r = new R() { field = ref Value() };
+    }
+}
+
+ref struct R
+{
+    public ref readonly int field;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void RefInitializer_OnInterface_Field()
+        {
+            var source = @"
+class C
+{
+    void M<T>() where T : I, new()
+    {
+        int x = 42;
+        var t = new T() { field = ref x };
+    }
+}
+interface I
+{
+    public ref int field;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (12,20): error CS0525: Interfaces cannot contain instance fields
+                //     public ref int field;
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "field").WithLocation(12, 20),
+                // (12,20): error CS9059: A ref field can only be declared in a ref struct.
+                //     public ref int field;
+                Diagnostic(ErrorCode.ERR_RefFieldInNonRefStruct, "field").WithLocation(12, 20)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_OnInterface_Property()
+        {
+            var source = @"
+class C
+{
+    void M<T>() where T : I, new()
+    {
+        int x = 42;
+        var t = new T() { Property = ref x };
+    }
+}
+
+interface I
+{
+    public ref int Property { get; }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,27): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                //         var t = new T() { Property = ref x };
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "Property").WithLocation(7, 27)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_Collection()
+        {
+            var source = @"
+using System.Collections;
+
+int x = 42;
+int y = 43;
+var r = new R() { ref x, ref y };
+
+struct R : IEnumerable
+{
+    public void Add(ref int x) => throw null;
+    public IEnumerator GetEnumerator() => throw null;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,5): warning CS0219: The variable 'x' is assigned but its value is never used
+                // int x = 42;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(4, 5),
+                // (5,5): warning CS0219: The variable 'y' is assigned but its value is never used
+                // int y = 43;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y").WithLocation(5, 5),
+                // (6,19): error CS1073: Unexpected token 'ref'
+                // var r = new R() { ref x, ref y };
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(6, 19),
+                // (6,26): error CS1073: Unexpected token 'ref'
+                // var r = new R() { ref x, ref y };
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(6, 26)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_OnNonRefField()
+        {
+            var source = @"
+int x = 42;
+var r = new R() { field = ref x }; // 1
+
+R r2 = default;
+r2.field = ref x; // 2
+
+ref struct R
+{
+    public int field;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,19): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // var r = new R() { field = ref x }; // 1
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "field").WithLocation(3, 19),
+                // (6,1): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // r2.field = ref x; // 2
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "r2.field").WithLocation(6, 1)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_OnNonRefProperty()
+        {
+            var source = @"
+int x = 42;
+var r = new R() { Property = ref x }; // 1
+
+R r2 = default;
+r2.Property = ref x; // 2
+
+ref struct R
+{
+    public int Property { get; set; }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,19): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // var r = new R() { Property = ref x }; // 1
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "Property").WithLocation(3, 19),
+                // (6,1): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // r2.Property = ref x; // 2
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "r2.Property").WithLocation(6, 1)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_OnNonRefIndexer()
+        {
+            var source = @"
+int x = 42;
+var r = new R() { [0] = ref x }; // 1
+
+R r2 = default;
+r2[0] = ref x; // 2
+
+ref struct R
+{
+    public int this[int i] { get => throw null; set => throw null; }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,19): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // var r = new R() { [0] = ref x }; // 1
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "[0]").WithLocation(3, 19),
+                // (6,1): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // r2[0] = ref x; // 2
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "r2[0]").WithLocation(6, 1)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_OnArray()
+        {
+            var source = @"
+public ref struct C
+{
+    C M()
+    {
+        int x = 0;
+        var c = new C { array = { [0] = ref x } }; // 1
+        return c;
+    }
+
+    void M2()
+    {
+        int x = 0;
+        C c2 = new C();
+        c2.array[0] = ref x; // 2
+    }
+
+    public int[] array;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,35): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                //         var c = new C { array = { [0] = ref x } }; // 1
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "[0]").WithLocation(7, 35),
+                // (15,9): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                //         c2.array[0] = ref x; // 2
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "c2.array[0]").WithLocation(15, 9)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_OnPointer()
+        {
+            var source = @"
+public unsafe class C
+{
+    public int* pointer;
+
+    C M()
+    {
+        int x = 0;
+        var c = new C { pointer = { [0] = ref x } }; // 1
+        return c;
+    }
+
+    void M2()
+    {
+        int x = 0;
+        C c2 = new C();
+        c2.pointer[0] = ref x; // 2
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (9,37): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                //         var c = new C { pointer = { [0] = ref x } }; // 1
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "[0]").WithLocation(9, 37),
+                // (17,9): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                //         c2.pointer[0] = ref x; // 2
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "c2.pointer[0]").WithLocation(17, 9)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_OnEvent()
+        {
+            var source = @"
+int x = 42;
+var r = new C { a = ref x }; // 1
+
+C c = default;
+c.a = ref x; // 2
+
+class C
+{
+    public event System.Action a;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,17): error CS0070: The event 'C.a' can only appear on the left hand side of += or -= (except when used from within the type 'C')
+                // var r = new C { a = ref x }; // 1
+                Diagnostic(ErrorCode.ERR_BadEventUsage, "a").WithArguments("C.a", "C").WithLocation(3, 17),
+                // (6,3): error CS0070: The event 'C.a' can only appear on the left hand side of += or -= (except when used from within the type 'C')
+                // c.a = ref x; // 2
+                Diagnostic(ErrorCode.ERR_BadEventUsage, "a").WithArguments("C.a", "C").WithLocation(6, 3)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_OnMethodGroup()
+        {
+            var source = @"
+int x = 42;
+var r = new C { F = ref x }; // 1
+
+C c = default;
+c.F = ref x; // 2
+
+class C
+{
+    public void F() { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,17): error CS1913: Member 'F' cannot be initialized. It is not a field or property.
+                // var r = new C { F = ref x }; // 1
+                Diagnostic(ErrorCode.ERR_MemberCannotBeInitialized, "F").WithArguments("F").WithLocation(3, 17),
+                // (6,1): error CS1656: Cannot assign to 'F' because it is a 'method group'
+                // c.F = ref x; // 2
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "c.F").WithArguments("F", "method group").WithLocation(6, 1)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_Nested()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        int x = 42;
+        var r = new Container { item = { field = ref x } };
+        System.Console.Write(r.item.field);
+    }
+}
+ref struct Container
+{
+    public Item item;
+}
+ref struct Item
+{
+    public ref int field;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("42"));
+            verifier.VerifyIL("C.M", @"
+{
+  // Code size       42 (0x2a)
+  .maxstack  2
+  .locals init (int V_0, //x
+                Container V_1)
+  IL_0000:  ldc.i4.s   42
+  IL_0002:  stloc.0
+  IL_0003:  ldloca.s   V_1
+  IL_0005:  initobj    ""Container""
+  IL_000b:  ldloc.1
+  IL_000c:  ldfld      ""Item Container.item""
+  IL_0011:  ldfld      ""ref int Item.field""
+  IL_0016:  ldloc.0
+  IL_0017:  stind.i4
+  IL_0018:  ldloc.1
+  IL_0019:  ldfld      ""Item Container.item""
+  IL_001e:  ldfld      ""ref int Item.field""
+  IL_0023:  ldind.i4
+  IL_0024:  call       ""void System.Console.Write(int)""
+  IL_0029:  ret
+}
+");
+        }
+
+        [Fact]
+        public void RefInitializer_Nullability()
+        {
+            var source = @"
+#nullable enable
+
+S<object> x1 = default;
+S<object?> x2 = default;
+
+_ = new R<object> { field = ref x1 };
+_ = new R<object> { field = ref x2 }; // 1
+_ = new R<object?> { field = ref x1 }; // 2
+_ = new R<object?> { field = ref x2 };
+
+_ = new R<object>() with { field = ref x1 };
+_ = new R<object>() with { field = ref x2 }; // 3
+_ = new R<object?>() with { field = ref x1 }; // 4
+_ = new R<object?>() with { field = ref x2 };
+
+struct S<T> { }
+ref struct R<T>
+{
+    public ref S<T> field;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,33): warning CS8619: Nullability of reference types in value of type 'S<object?>' doesn't match target type 'S<object>'.
+                // _ = new R<object> { field = ref x2 }; // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x2").WithArguments("S<object?>", "S<object>").WithLocation(8, 33),
+                // (9,34): warning CS8619: Nullability of reference types in value of type 'S<object>' doesn't match target type 'S<object?>'.
+                // _ = new R<object?> { field = ref x1 }; // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x1").WithArguments("S<object>", "S<object?>").WithLocation(9, 34),
+                // (13,40): warning CS8619: Nullability of reference types in value of type 'S<object?>' doesn't match target type 'S<object>'.
+                // _ = new R<object>() with { field = ref x2 }; // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x2").WithArguments("S<object?>", "S<object>").WithLocation(13, 40),
+                // (14,41): warning CS8619: Nullability of reference types in value of type 'S<object>' doesn't match target type 'S<object?>'.
+                // _ = new R<object?>() with { field = ref x1 }; // 4
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x1").WithArguments("S<object>", "S<object?>").WithLocation(14, 41)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_RefOnNestedInitializer()
+        {
+            var source = @"
+int x = 42;
+var r = new R { field = ref { item = 42 } }; // 1
+
+struct S
+{
+    public int item;
+}
+ref struct R
+{
+    public ref S field;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (2,5): warning CS0219: The variable 'x' is assigned but its value is never used
+                // int x = 42;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(2, 5),
+                // (3,29): error CS1525: Invalid expression term '{'
+                // var r = new R { field = ref { item = 42 } }; // 1
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "{").WithArguments("{").WithLocation(3, 29),
+                // (3,29): error CS1003: Syntax error, ',' expected
+                // var r = new R { field = ref { item = 42 } }; // 1
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(3, 29),
+                // (3,29): error CS0747: Invalid initializer member declarator
+                // var r = new R { field = ref { item = 42 } }; // 1
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "{ item = 42 }").WithLocation(3, 29),
+                // (3,31): error CS0103: The name 'item' does not exist in the current context
+                // var r = new R { field = ref { item = 42 } }; // 1
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "item").WithArguments("item").WithLocation(3, 31)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_DynamicField()
+        {
+            var source = @"
+int x = 42;
+var r = new S { D = { field = ref x } }; // 1
+
+S s = default;
+s.D.field = ref x; // 2
+
+struct S
+{
+    public dynamic D;
+}
+ref struct R
+{
+    public ref int field;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,23): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // var r = new S { D = { field = ref x } }; // 1
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "field").WithLocation(3, 23),
+                // (6,1): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // s.D.field = ref x; // 2
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "s.D.field").WithLocation(6, 1),
+                // (14,20): warning CS0649: Field 'R.field' is never assigned to, and will always have its default value 0
+                //     public ref int field;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("R.field", "0").WithLocation(14, 20)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_DynamicInstance()
+        {
+            var source = @"
+int x = 42;
+var r = new dynamic { field = ref x }; // 1
+
+dynamic r2 = null;
+r2.field = ref x; // 2
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,13): error CS8386: Invalid object creation
+                // var r = new dynamic { field = ref x }; // 1
+                Diagnostic(ErrorCode.ERR_InvalidObjectCreation, "dynamic").WithLocation(3, 13),
+                // (3,23): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // var r = new dynamic { field = ref x }; // 1
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "field").WithLocation(3, 23),
+                // (6,1): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // r2.field = ref x; // 2
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "r2.field").WithLocation(6, 1)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_DynamicIndexer()
+        {
+            var source = @"
+int x = 42;
+var r = new S { D = { [0] = ref x } }; // 1
+
+S s = default;
+s.D[0] = ref x; // 2
+
+struct S
+{
+    public dynamic D;
+}
+ref struct R
+{
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,23): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // var r = new S { D = { [0] = ref x } }; // 1
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "[0]").WithLocation(3, 23),
+                // (6,1): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // s.D[0] = ref x; // 2
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "s.D[0]").WithLocation(6, 1)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_DynamicIndexer_Nested()
+        {
+            var source = @"
+dynamic x = 1;
+int i = 42;
+var a = new A() { [y: x, x: x] = { X = ref i } }; // 1
+
+A a2 = null;
+a2[y: x, x: x].X = ref i; // 2
+
+public class A
+{
+    public dynamic this[int x, int y] { get => throw null; }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,36): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // var a = new A() { [y: x, x: x] = { X = ref i } }; // 1
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "X").WithLocation(4, 36),
+                // (7,1): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // a2[y: x, x: x].X = ref i; // 2
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "a2[y: x, x: x].X").WithLocation(7, 1)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_Escape()
+        {
+            var source = @"
+public class C
+{
+    public static R M1()
+    {
+        int x = 42;
+        var r = new R { field = ref x };
+        return r; // 1
+    }
+    public static R M2(ref int x)
+    {
+        var r = new R { field = ref x };
+        return r;
+    }
+    public static R M3()
+    {
+        R r = default;
+        {
+            int x = 42;
+            r = new R { field = ref x }; // 2
+        }
+        return r;
+    }
+    public static R M4()
+    {
+        R r = default;
+        int x = 42;
+        {
+            r = new R { field = ref x }; // 3
+        }
+        return r;
+    }
+    public static void M5(ref R r)
+    {
+        int x = 42;
+        r = new R { field = ref x }; // 4
+    }
+}
+
+public ref struct R
+{
+    public ref int field;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,16): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
+                //         return r; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(8, 16),
+                // (20,25): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+                //             r = new R { field = ref x }; // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "field = ref x").WithArguments("x").WithLocation(20, 25),
+                // (29,25): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+                //             r = new R { field = ref x }; // 3
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "field = ref x").WithArguments("x").WithLocation(29, 25),
+                // (36,21): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+                //         r = new R { field = ref x }; // 4
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "field = ref x").WithArguments("x").WithLocation(36, 21)
+                );
+
+            source = @"
+public class C
+{
+    public static R M1()
+    {
+        int x = 42;
+        var r = new R(ref x);
+        return r; // 1
+    }
+    public static R M2(ref int x)
+    {
+        var r = new R(ref x);
+        return r;
+    }
+    public static R M3()
+    {
+        R r = default;
+        {
+            int x = 42;
+            r = new R(ref x); // 2
+        }
+        return r;
+    }
+    public static R M4()
+    {
+        R r = default;
+        int x = 42;
+        {
+            r = new R(ref x); // 3
+        }
+        return r;
+    }
+    public static void M5(ref R r)
+    {
+        int x = 42;
+        r = new R(ref x); // 4
+    }
+}
+
+public ref struct R
+{
+    public ref int field;
+    public R(ref int i) { }
+}
+";
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,16): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
+                //         return r; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(8, 16),
+                // (20,17): error CS8347: Cannot use a result of 'R.R(ref int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //             r = new R(ref x); // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(ref x)").WithArguments("R.R(ref int)", "i").WithLocation(20, 17),
+                // (20,27): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+                //             r = new R(ref x); // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "x").WithArguments("x").WithLocation(20, 27),
+                // (29,17): error CS8347: Cannot use a result of 'R.R(ref int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //             r = new R(ref x); // 3
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(ref x)").WithArguments("R.R(ref int)", "i").WithLocation(29, 17),
+                // (29,27): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+                //             r = new R(ref x); // 3
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "x").WithArguments("x").WithLocation(29, 27),
+                // (36,13): error CS8347: Cannot use a result of 'R.R(ref int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         r = new R(ref x); // 4
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(ref x)").WithArguments("R.R(ref int)", "i").WithLocation(36, 13),
+                // (36,23): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+                //         r = new R(ref x); // 4
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "x").WithArguments("x").WithLocation(36, 23)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_Escape_Nested()
+        {
+            var source = @"
+class C
+{
+    public static Container M3()
+    {
+        Container r = default;
+        {
+            int x = 42;
+            var r = new Container { item = { field = ref x } }; // 1
+        }
+        return r;
+    }
+    public static Container M4()
+    {
+        Container r = default;
+        int x = 42;
+        {
+            r = new Container { item = { field = ref x } }; // 2
+        }
+        return r;
+    }
+    public static void M5(ref Container r)
+    {
+        int x = 42;
+        r = new Container { item = { field = ref x } }; // 3
+    }
+}
+ref struct Container
+{
+    public Item item;
+}
+ref struct Item
+{
+    public ref int field;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,17): error CS0136: A local or parameter named 'r' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             var r = new Container { item = { field = ref x } }; // 1
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "r").WithArguments("r").WithLocation(9, 17),
+                // (18,42): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+                //             r = new Container { item = { field = ref x } }; // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "field = ref x").WithArguments("x").WithLocation(18, 42),
+                // (25,38): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+                //         r = new Container { item = { field = ref x } }; // 3
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "field = ref x").WithArguments("x").WithLocation(25, 38)
+                );
+        }
+
+        [Fact]
+        public void RefWith()
+        {
+            var source = @"
+public class C
+{
+    public static void Main()
+    {
+        int x = 42;
+        var r = new R() with { field = ref x };
+        System.Console.Write(r.ToString());
+    }
+}
+
+ref struct R
+{
+    public ref int field;
+    public override string ToString()
+    {
+        return field.ToString();
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("42"));
+            verifier.VerifyIL("C.Main",
+"""
+{
+  // Code size       40 (0x28)
+  .maxstack  2
+  .locals init (int V_0, //x
+                R V_1, //r
+                R V_2)
+  IL_0000:  ldc.i4.s   42
+  IL_0002:  stloc.0
+  IL_0003:  ldloca.s   V_2
+  IL_0005:  initobj    "R"
+  IL_000b:  ldloc.2
+  IL_000c:  ldfld      "ref int R.field"
+  IL_0011:  ldloc.0
+  IL_0012:  stind.i4
+  IL_0013:  ldloc.2
+  IL_0014:  stloc.1
+  IL_0015:  ldloca.s   V_1
+  IL_0017:  constrained. "R"
+  IL_001d:  callvirt   "string object.ToString()"
+  IL_0022:  call       "void System.Console.Write(string)"
+  IL_0027:  ret
+}
+""");
+        }
+
+        [Fact]
+        public void RefWith_Escape()
+        {
+            var source = @"
+public class C
+{
+    public static R M1()
+    {
+        int x = 42;
+        var r = new R() with { field = ref x };
+        return r; // 1
+    }
+    public static R M2(ref int x)
+    {
+        var r = new R() with { field = ref x };
+        return r;
+    }
+    public static R M3()
+    {
+        R r = default;
+        {
+            int x = 42;
+            r = new R() with { field = ref x }; // 2
+        }
+        return r;
+    }
+    public static R M4()
+    {
+        R r = default;
+        int x = 42;
+        {
+            r = new R() with { field = ref x }; // 3
+        }
+        return r;
+    }
+    public static void M5(ref R r)
+    {
+        int x = 42;
+        r = new R() with { field = ref x }; // 4
+    }
+}
+
+public ref struct R
+{
+    public ref int field;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,16): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
+                //         return r; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(8, 16),
+                // (20,32): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+                //             r = new R() with { field = ref x }; // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "field = ref x").WithArguments("x").WithLocation(20, 32),
+                // (29,32): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+                //             r = new R() with { field = ref x }; // 3
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "field = ref x").WithArguments("x").WithLocation(29, 32),
+                // (36,28): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+                //         r = new R() with { field = ref x }; // 4
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "field = ref x").WithArguments("x").WithLocation(36, 28)
+                );
+        }
     }
 }
