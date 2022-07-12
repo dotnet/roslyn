@@ -8241,26 +8241,15 @@ done:;
 
             if (IsDeclarationModifier(tk)) // treat `const int x = 2;` as a local variable declaration
             {
-                // For `using static` is only legal as a using-directive not a using-local-declaration.
-                return tk != SyntaxKind.StaticKeyword;
+                if (tk != SyntaxKind.StaticKeyword) // For `static` we still need to make sure we have a typed identifier after it, because `using static type;` is a valid using directive.
+                {
+                    return true;
+                }
             }
             else if (SyntaxFacts.IsPredefinedType(tk))
             {
                 return true;
             }
-
-            if (tk == SyntaxKind.IdentifierToken &&
-                PeekToken(2).Kind == SyntaxKind.EqualsToken)
-            {
-                // `using X =`
-                // this is always a using directive.
-                return false;
-            }
-
-            // using-directives are going to be much more common at the top level of a file/namespace than
-            // using-statements.  So do quick syntactic checks before the expensive speculative parse below.
-            if (isDefinitelyUsingDirective())
-                return false;
 
             var resetPoint = this.GetResetPoint();
             try
@@ -8280,29 +8269,6 @@ done:;
             {
                 this.Reset(ref resetPoint);
                 this.Release(ref resetPoint);
-            }
-
-            bool isDefinitelyUsingDirective()
-            {
-                // look for the incredibly common `using X.Y.Z;` syntax
-
-                var index = 1;
-                while (this.PeekToken(index).Kind == SyntaxKind.IdentifierToken)
-                {
-                    var nextKind = this.PeekToken(index + 1).Kind;
-                    if (nextKind == SyntaxKind.SemicolonToken)
-                        return true;
-
-                    if (nextKind == SyntaxKind.DotToken)
-                    {
-                        index += 2;
-                        continue;
-                    }
-
-                    break;
-                }
-
-                return false;
             }
         }
 
