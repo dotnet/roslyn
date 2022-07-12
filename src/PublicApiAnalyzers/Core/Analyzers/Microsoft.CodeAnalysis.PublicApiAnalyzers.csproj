@@ -10,14 +10,6 @@
     <MicrosoftCodeAnalysisVersion>1.2.1</MicrosoftCodeAnalysisVersion>
   </PropertyGroup>
 
-  <Choose>
-    <When Condition="'$(TargetFramework)' == 'netstandard1.3'">
-      <PropertyGroup>
-        <PackageTargetFallback>portable-net45+win8</PackageTargetFallback>
-      </PropertyGroup>
-    </When>
-  </Choose>
-
   <ItemGroup>
     <Compile Include="..\..\..\Roslyn.Diagnostics.Analyzers\Core\RoslynDiagnosticIds.cs" Link="RoslynDiagnosticIds.cs" />
   </ItemGroup>
