@@ -151,5 +151,10 @@ namespace Microsoft.CodeAnalysis.Rename
                 }
             }
         }
+
+        public SyntaxNode AnnotateAndRename(RenameRewriterParametersNextGen parameters)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
