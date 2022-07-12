@@ -90,7 +90,10 @@ internal class PRFinder
 
         foreach (var commit in commitLog)
         {
-            host.ShouldSkip(commit, ref mergePRFound);
+            if (host.ShouldSkip(commit, ref mergePRFound))
+            {
+                continue;
+            }
 
             var wasMergeCommit = host.TryParseMergeInfo(commit, out var prNumber, out var comment);
 
