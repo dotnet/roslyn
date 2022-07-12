@@ -167,7 +167,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             Logger.Log(sortOption switch
             {
                 SortOption.Name => FunctionId.DocumentOutline_SortByName,
-                SortOption.Order => FunctionId.DocumentOutline_SortByOrder,
+                SortOption.Location => FunctionId.DocumentOutline_SortByOrder,
                 SortOption.Type => FunctionId.DocumentOutline_SortByType,
                 _ => throw new NotImplementedException(),
             });
@@ -185,7 +185,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 var sortedDocumentSymbolItems = sortOption switch
                 {
                     SortOption.Name => documentSymbolItems.Sort((x, y) => x.Name.CompareTo(y.Name)),
-                    SortOption.Order => documentSymbolItems.Sort((x, y) =>
+                    SortOption.Location => documentSymbolItems.Sort((x, y) =>
                     {
                         if (x.StartPosition.Line == y.StartPosition.Line)
                             return x.StartPosition.Character - y.StartPosition.Character;

@@ -7,7 +7,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
     internal enum SortOption
     {
         Name,
-        Order,
+        Location,
         Type
     }
 }

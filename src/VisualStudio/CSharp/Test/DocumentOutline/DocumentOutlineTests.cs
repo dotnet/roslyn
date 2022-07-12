@@ -80,7 +80,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
         public void TestSortByOrder()
         {
             var sortedByOrder = DocumentOutlineHelper.Sort(
-                DocumentOutlineHelper.GetDocumentSymbolItems(GetDocumentSymbols()), SortOption.Order, CancellationToken.None);
+                DocumentOutlineHelper.GetDocumentSymbolItems(GetDocumentSymbols()), SortOption.Location, CancellationToken.None);
 
             CheckSortedByOrder(sortedByOrder);
             foreach (var documentSymbolItem in sortedByOrder)

@@ -82,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             EditorAdaptersFactoryService = editorAdaptersFactoryService;
             CodeWindow = codeWindow;
             ComEventSink.Advise<IVsCodeWindowEvents>(codeWindow, this);
-            SortOption = SortOption.Order;
+            SortOption = SortOption.Location;
 
             _computeUIModelQueue = new AsyncBatchingWorkQueue<bool, DocumentSymbolModel?>(
                 DelayTimeSpan.Short,
@@ -207,7 +207,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
         private void SortByOrder(object sender, EventArgs e)
         {
-            SortOption = SortOption.Order;
+            SortOption = SortOption.Location;
             StartUpdateUIModelTask();
         }
 
