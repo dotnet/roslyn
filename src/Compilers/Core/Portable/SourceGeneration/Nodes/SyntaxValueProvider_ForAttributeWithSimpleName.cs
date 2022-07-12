@@ -15,11 +15,16 @@ namespace Microsoft.CodeAnalysis;
 
 using Aliases = ArrayBuilder<(string aliasName, string symbolName)>;
 
-/// <summary>
-/// Information computed about a particular tree.  Cached so we don't repeatedly recompute this important
-/// information each time the incremental pipeline is rerun.
-/// </summary>
-internal record SourceGeneratorSyntaxTreeInfo(SyntaxTree Tree, bool ContainsGlobalAliases, bool ContainsAttributeList);
+[Flags]
+internal enum SourceGeneratorSyntaxTreeInfo
+{
+    NotComputedYet,
+    None = 1 << 0,
+    ContainsGlobalAliases = 1 << 1,
+    ContainsAttributeList = 1 << 2,
+
+    ContainsGlobalAliasesOrAttributeList = ContainsGlobalAliases | ContainsAttributeList,
+}
 
 public partial struct SyntaxValueProvider
 {
@@ -62,7 +67,7 @@ public partial struct SyntaxValueProvider
 
         // Create a provider that provides (and updates) the global aliases for any particular file when it is edited.
         var individualFileGlobalAliasesProvider = syntaxTreesProvider
-            .Where((info, _) => info.ContainsGlobalAliases)
+            .Where((info, _) => info.Info.HasFlag(SourceGeneratorSyntaxTreeInfo.ContainsGlobalAliases))
             .Select((info, cancellationToken) => getGlobalAliasesInCompilationUnit(syntaxHelper, info.Tree.GetRoot(cancellationToken)))
             .WithTrackingName("individualFileGlobalAliases_ForAttribute");
 
@@ -95,7 +100,7 @@ public partial struct SyntaxValueProvider
         // Combine the two providers so that we reanalyze every file if the global aliases change, or we reanalyze a
         // particular file when it's compilation unit changes.
         var syntaxTreeAndGlobalAliasesProvider = syntaxTreesProvider
-            .Where((info, _) => info.ContainsAttributeList)
+            .Where((info, _) => info.Info.HasFlag(SourceGeneratorSyntaxTreeInfo.ContainsAttributeList))
             .Combine(allUpGlobalAliasesProvider)
             .WithTrackingName("compilationUnitAndGlobalAliases_ForAttribute");
 
@@ -117,7 +122,7 @@ public partial struct SyntaxValueProvider
         }
     }
 
-    private static ImmutableArray<SourceGeneratorSyntaxTreeInfo> GetSourceGeneratorInfo(
+    private static ImmutableArray<(SyntaxTree Tree, SourceGeneratorSyntaxTreeInfo Info)> GetSourceGeneratorInfo(
         ISyntaxHelper syntaxHelper, Compilation compilation, CancellationToken cancellationToken)
     {
         // Get the count up front so we can allocate without waste.
@@ -126,18 +131,18 @@ public partial struct SyntaxValueProvider
         {
             cancellationToken.ThrowIfCancellationRequested();
             var info = tree.GetSourceGeneratorInfo(syntaxHelper, cancellationToken);
-            if (info.ContainsGlobalAliases || info.ContainsAttributeList)
+            if ((info & SourceGeneratorSyntaxTreeInfo.ContainsGlobalAliasesOrAttributeList) != 0)
                 count++;
         }
 
-        var builder = ImmutableArray.CreateBuilder<SourceGeneratorSyntaxTreeInfo>(count);
+        var builder = ImmutableArray.CreateBuilder<(SyntaxTree Tree, SourceGeneratorSyntaxTreeInfo Info)>(count);
 
         // Iterate again.  This will be free as the values from before will already be cached on the syntax tree.
         foreach (var tree in compilation.CommonSyntaxTrees)
         {
             var info = tree.GetSourceGeneratorInfo(syntaxHelper, cancellationToken);
-            if (info.ContainsGlobalAliases || info.ContainsAttributeList)
-                builder.Add(info);
+            if ((info & SourceGeneratorSyntaxTreeInfo.ContainsGlobalAliasesOrAttributeList) != 0)
+                builder.Add((tree, info));
         }
 
         return builder.MoveToImmutable();

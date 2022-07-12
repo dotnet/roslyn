@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis
         /// generation framework to compute and cache data once against a tree so it does not have to go back to source
         /// for untouched trees when other trees in the compilation are modified.
         /// </summary>
-        private SourceGeneratorSyntaxTreeInfo? _sourceGeneratorInfo;
+        private SourceGeneratorSyntaxTreeInfo _sourceGeneratorInfo = SourceGeneratorSyntaxTreeInfo.NotComputedYet;
 
         /// <summary>
         /// Gets the text of the source document asynchronously.
@@ -410,13 +410,19 @@ namespace Microsoft.CodeAnalysis
         internal SourceGeneratorSyntaxTreeInfo GetSourceGeneratorInfo(
             ISyntaxHelper syntaxHelper, CancellationToken cancellationToken)
         {
-            if (_sourceGeneratorInfo is null)
+            if (_sourceGeneratorInfo is SourceGeneratorSyntaxTreeInfo.NotComputedYet)
             {
                 var root = this.GetRoot(cancellationToken);
-                Interlocked.CompareExchange(
-                    ref _sourceGeneratorInfo,
-                    new SourceGeneratorSyntaxTreeInfo(this, syntaxHelper.ContainsGlobalAliases(root), syntaxHelper.ContainsAttributeList(root)),
-                    comparand: null);
+
+                var result = SourceGeneratorSyntaxTreeInfo.None;
+
+                if (syntaxHelper.ContainsGlobalAliases(root))
+                    result |= SourceGeneratorSyntaxTreeInfo.ContainsGlobalAliases;
+
+                if (syntaxHelper.ContainsAttributeList(root))
+                    result |= SourceGeneratorSyntaxTreeInfo.ContainsAttributeList;
+
+                _sourceGeneratorInfo = result;
             }
 
             return _sourceGeneratorInfo;
