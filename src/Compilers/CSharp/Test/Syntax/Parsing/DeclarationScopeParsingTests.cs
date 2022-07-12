@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 ref scoped F2() => default;
 scoped F3() { }
 ref scoped F4() { }";
-            UsingCompilationRoot(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1099,7 +1099,7 @@ ref scoped F4() { }";
         ref readonly scoped c;
     }
 }";
-            UsingCompilationRoot(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1206,7 +1206,7 @@ ref scoped F4() { }";
     }}
 }}
 ";
-            UsingCompilationRoot(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1349,7 +1349,7 @@ ref scoped F4() { }";
 scoped ref int b;
 ref scoped int c;
 ";
-            UsingCompilationRoot(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1433,7 +1433,7 @@ ref scoped int c;
 ref readonly scoped S b;
 scoped ref readonly scoped S c;
 ";
-            UsingCompilationRoot(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1524,7 +1524,7 @@ scoped ref readonly scoped S c;
 @"scoped a;
 ref scoped b;
 ";
-            UsingCompilationRoot(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1583,7 +1583,7 @@ ref scoped b;
 ref scoped.nested b;
 ref readonly scoped.nested c;
 ";
-            UsingCompilationRoot(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1691,7 +1691,7 @@ scoped ref readonly scoped c;
 ref scoped scoped d;
 ref readonly scoped scoped e;
 ";
-            UsingCompilationRoot(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1823,7 +1823,7 @@ ref readonly scoped scoped e;
 scoped ref var b;
 ref scoped var c;
 ";
-            UsingCompilationRoot(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1907,7 +1907,7 @@ ref scoped var c;
 ref readonly scoped var b;
 scoped ref readonly scoped var c;
 ";
-            UsingCompilationRoot(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1998,7 +1998,7 @@ scoped ref readonly scoped var c;
 @"scoped var;
 ref scoped var;
 ";
-            UsingCompilationRoot(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2053,7 +2053,7 @@ ref scoped var;
             string source =
 @"ref scoped readonly S a;
 ";
-            UsingCompilationRoot(source, TestOptions.RegularNext,
+            UsingTree(source, TestOptions.RegularNext,
                 // (1,12): error CS1585: Member modifier 'readonly' must precede the member type and name
                 // ref scoped readonly S a;
                 Diagnostic(ErrorCode.ERR_BadModifierLocation, "readonly").WithArguments("readonly").WithLocation(1, 12),
@@ -2105,7 +2105,7 @@ ref scoped var;
 @"scoped scoped int a;
 scoped scoped var b;
 ";
-            UsingCompilationRoot(source, TestOptions.RegularNext,
+            UsingTree(source, TestOptions.RegularNext,
                 // (1,15): error CS1003: Syntax error, ',' expected
                 // scoped scoped int a;
                 Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(",").WithLocation(1, 15),
@@ -2283,7 +2283,7 @@ scoped scoped var b;
 @"scoped struct A { }
 scoped ref struct B { }
 ";
-            UsingCompilationRoot(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2317,7 +2317,7 @@ scoped ref struct B { }
 scoped readonly record struct B;
 readonly scoped record struct C();
 ";
-            UsingCompilationRoot(source, TestOptions.RegularNext);
+            UsingTree(source, TestOptions.RegularNext);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2363,7 +2363,7 @@ readonly scoped record struct C();
             string source =
 @"delegate scoped int A();
 ";
-            UsingCompilationRoot(source, TestOptions.RegularNext,
+            UsingTree(source, TestOptions.RegularNext,
                 // (1,17): error CS1001: Identifier expected
                 // delegate scoped int A();
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "int").WithLocation(1, 17),
@@ -2446,7 +2446,7 @@ readonly scoped record struct C();
             string source =
 @"delegate scoped A();
 ";
-            UsingCompilationRoot(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2478,7 +2478,7 @@ readonly scoped record struct C();
             string source =
 @"delegate ref scoped int B();
 ";
-            UsingCompilationRoot(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2515,7 +2515,7 @@ readonly scoped record struct C();
             string source =
 @"delegate ref scoped B();
 ";
-            UsingCompilationRoot(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2552,7 +2552,7 @@ readonly scoped record struct C();
 @"[A] scoped struct A { }
 [A, B] scoped ref struct B { }
 ";
-            UsingCompilationRoot(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2624,7 +2624,7 @@ readonly scoped record struct C();
         scoped = true;
     }
 }";
-            UsingCompilationRoot(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2699,7 +2699,7 @@ readonly scoped record struct C();
 @"bool scoped;
 scoped = true;
 ";
-            UsingCompilationRoot(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
 
             N(SyntaxKind.CompilationUnit);
             {

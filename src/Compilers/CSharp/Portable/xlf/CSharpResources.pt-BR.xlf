@@ -10502,11 +10502,6 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
         <target state="translated">GetDeclarationName chamado para um nó de declaração que possivelmente pode conter múltiplos declaradores variáveis.</target>
         <note />
       </trans-unit>
-      <trans-unit id="TreeNotPartOfCompilation">
-        <source>tree not part of compilation</source>
-        <target state="translated">árvore não faz parte da compilação</target>
-        <note />
-      </trans-unit>
       <trans-unit id="PositionIsNotWithinSyntax">
         <source>Position is not within syntax tree with full span {0}</source>
         <target state="translated">Posição não está dentro da árvore de sintaxe com intervalo total {0}</target>
