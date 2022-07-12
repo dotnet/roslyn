@@ -341,12 +341,8 @@ function GetCompilerTestAssembliesIncludePaths() {
   return $assemblies
 }
 
-function GetCompilerEndToEndTestAssemblyExclusion() {
-  return " --exclude '^Microsoft\.CodeAnalysis\.CSharp\.EndToEnd\.UnitTests$'"
-}
-
 # Core function for running our unit / integration tests tests
-function TestUsingRunTests([bool]$testCompilerEndToEndOnly) {
+function TestUsingRunTests() {
 
   # Tests need to locate .NET Core SDK
   $dotnet = InitializeDotNetCli
@@ -388,34 +384,21 @@ function TestUsingRunTests([bool]$testCompilerEndToEndOnly) {
   if ($testCoreClr) {
     $args += " --tfm net6.0"
     $args += " --timeout 90"
-
-    if ($testCompilerEndToEndOnly) {
-      $args += " --include '^Microsoft\.CodeAnalysis\.CSharp\.EndToEnd\.UnitTests$'"
-    } elseif ($testCompilerOnly) {
+    if ($testCompilerOnly) {
       $args += GetCompilerTestAssembliesIncludePaths
-      #EndToEnd tests are run separately below
-      $args += GetCompilerEndToEndTestAssemblyExclusion
     } else {
       $args += " --tfm net6.0-windows"
       $args += " --include '\.UnitTests'"
-      #EndToEnd tests are run separately below
-      $args += GetCompilerEndToEndTestAssemblyExclusion
     }
   }
   elseif ($testDesktop -or ($testIOperation -and -not $testCoreClr)) {
     $args += " --tfm net472"
     $args += " --timeout 90"
 
-    if ($testCompilerEndToEndOnly) {
-      $args += " --include '^Microsoft\.CodeAnalysis\.CSharp\.EndToEnd\.UnitTests$'"
-    } elseif ($testCompilerOnly) {
+    if ($testCompilerOnly) {
       $args += GetCompilerTestAssembliesIncludePaths
-      #EndToEnd tests are run separately below
-      $args += GetCompilerEndToEndTestAssemblyExclusion
     } else {
       $args += " --include '\.UnitTests'"
-      #EndToEnd tests are run separately below
-      $args += GetCompilerEndToEndTestAssemblyExclusion
     }
 
     if ($testArch -ne "x86") {
@@ -505,11 +488,6 @@ function TestUsingRunTests([bool]$testCompilerEndToEndOnly) {
         }
       }
     }
-  }
-
-  # Run the compiler end-to-end tests separately to increase their isolation
-  if (($testCoreClr -or $testDesktop) -and -not $testCompilerEndToEndOnly) {
-    TestUsingRunTests($true)
   }
 }
 
@@ -760,7 +738,7 @@ try {
   try
   {
     if ($testDesktop -or $testVsi -or $testIOperation -or $testCoreClr) {
-      TestUsingRunTests($false)
+      TestUsingRunTests
     }
   }
   catch
