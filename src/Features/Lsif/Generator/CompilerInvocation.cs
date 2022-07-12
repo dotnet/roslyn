@@ -35,7 +35,11 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
         {
             var invocationInfo = JsonConvert.DeserializeObject<CompilerInvocationInfo>(jsonContents);
             Assumes.Present(invocationInfo);
+            return await CreateFromInvocationInfoAsync(invocationInfo);
+        }
 
+        public static async Task<CompilerInvocation> CreateFromInvocationInfoAsync(CompilerInvocationInfo invocationInfo)
+        {
             // We will use a Workspace to simplify the creation of the compilation, but will be careful not to return the Workspace instance from this class.
             // We will still provide the language services which are used by the generator itself, but we don't tie it to a Workspace object so we can
             // run this as an in-proc source generator if one day desired.
@@ -180,7 +184,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
         /// <summary>
         /// A simple data class that represents the schema for JSON serialization.
         /// </summary>
-        private sealed class CompilerInvocationInfo
+        public sealed class CompilerInvocationInfo
         {
 #nullable disable // this class is used for deserialization by Newtonsoft.Json, so we don't really need warnings about this class itself
 

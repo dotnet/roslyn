@@ -746,11 +746,12 @@ public class FileModifierTests : CSharpTestBase
                 static void Main()
                 {
                     C.M();
+                    global::C.M();
                 }
             }
             """;
 
-        var verifier = CompileAndVerify(new[] { source1 + main, source2 }, expectedOutput: "1");
+        var verifier = CompileAndVerify(new[] { source1 + main, source2 }, expectedOutput: "11");
         var comp = (CSharpCompilation)verifier.Compilation;
         var cs = comp.GetMembers("C");
         var tree = comp.SyntaxTrees[0];
@@ -758,7 +759,7 @@ public class FileModifierTests : CSharpTestBase
         Assert.Equal(firstMetadataName, expectedSymbol.MetadataName);
         verify();
 
-        verifier = CompileAndVerify(new[] { source1, source2 + main }, expectedOutput: "2");
+        verifier = CompileAndVerify(new[] { source1, source2 + main }, expectedOutput: "22");
         comp = (CSharpCompilation)verifier.Compilation;
         cs = comp.GetMembers("C");
         tree = comp.SyntaxTrees[1];
@@ -1423,6 +1424,142 @@ public class FileModifierTests : CSharpTestBase
             var info = model.GetTypeInfo(cReference);
             Assert.Equal(expectedSymbol.GetPublicSymbol(), info.Type);
         }
+    }
+
+    [Theory]
+    [InlineData("file ")]
+    [InlineData("")]
+    public void Duplication_13(string fileModifier)
+    {
+        var userCode = """
+            using System;
+
+            UserCode.Print();
+
+            partial class UserCode
+            {
+                public static partial void Print();
+
+                private class C
+                {
+                    public static void M() => Console.Write("Program.cs");
+                }
+            }
+            """;
+
+        // A source generator must assume that partial classes and namespaces may bring user-defined types into scope.
+        // Therefore, generators should reference types they introduce with a `global::`-qualified name.
+        var generatedCode = $$"""
+            using System;
+
+            partial class UserCode
+            {
+                public static partial void Print()
+                {
+                    global::C.M(); // binds to 'class C'/'file class C' from global namespace
+                    C.M(); // binds to class 'UserCode.C'
+                }
+            }
+
+            {{fileModifier}}class C
+            {
+                public static void M() => Console.Write("OtherFile.cs");
+            }
+            """;
+
+        var verifier = CompileAndVerify(new[] { userCode, generatedCode }, expectedOutput: "OtherFile.csProgram.cs");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Theory]
+    [InlineData("file ")]
+    [InlineData("")]
+    public void Duplication_14(string fileModifier)
+    {
+        var userCode = """
+            using System;
+            using UserNamespace;
+
+            GeneratedClass.Print();
+
+            namespace UserNamespace
+            {
+                class C
+                {
+                    public static void M() => Console.Write("Program.cs");
+                }
+            }
+            """;
+
+        // A source generator must assume that partial classes and namespaces may bring user-defined types into scope.
+        // Therefore, generators should reference types they introduce with a `global::`-qualified name.
+        var generatedCode = $$"""
+            using System;
+
+            namespace UserNamespace
+            {
+                class GeneratedClass
+                {
+                    public static void Print()
+                    {
+                        global::C.M(); // binds to 'class C'/'file class C' from global namespace
+                        C.M(); // binds to class 'UserNamespace.C'
+                    }
+                }
+            }
+
+            {{fileModifier}}class C
+            {
+                public static void M() => Console.Write("OtherFile.cs");
+            }
+            """;
+
+        var verifier = CompileAndVerify(new[] { userCode, generatedCode }, expectedOutput: "OtherFile.csProgram.cs");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Duplication_15()
+    {
+        var userCode = """
+            using System;
+            using UserNamespace;
+
+            GeneratedClass.Print();
+
+            namespace UserNamespace
+            {
+                class C
+                {
+                    public static void M() => Console.Write("Program.cs");
+                }
+            }
+            """;
+
+        // Generators can also mitigate the "nearer scope" problem by ensuring no namespace or partial class scopes lie between the declaration and usage of a file type.
+        var generatedCode = $$"""
+            using System;
+
+            namespace UserNamespace
+            {
+                class GeneratedClass
+                {
+                    public static void Print()
+                    {
+                        C.M(); // binds to 'UserNamespace.C@OtherFile'
+                    }
+                }
+
+                file class C
+                {
+                    public static void M() => Console.Write("OtherFile.cs");
+                }
+            }
+
+            """;
+
+        var verifier = CompileAndVerify(new[] { userCode, generatedCode }, expectedOutput: "OtherFile.cs");
+        verifier.VerifyDiagnostics();
     }
 
     [Fact]
