@@ -150,6 +150,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
                     Documents.Add(document);
                 }
+
+                foreach (var document in project.AnalyzerConfigDocuments)
+                {
+                    Assert.True(document.IsLinkFile || documentFilePaths.Add(document.FilePath));
+
+                    AnalyzerConfigDocuments.Add(document);
+                }
             }
 
             var submissions = CreateSubmissions(workspaceElement.Elements(SubmissionElementName), ExportProvider);
