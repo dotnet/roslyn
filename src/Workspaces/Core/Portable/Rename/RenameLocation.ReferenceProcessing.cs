@@ -602,6 +602,26 @@ namespace Microsoft.CodeAnalysis.Rename
                     return stringBuilder.ToString();
                 }
             }
+
+            internal static string ReplaceMatchingSubStrings(
+                string originalString,
+                int containingTokenOrTriviaStart,
+                ImmutableSortedDictionary<TextSpan, string> subSpanToReplacementText)
+            {
+                var stringBuilder = new StringBuilder();
+                var startOffset = 0;
+                foreach (var (textSpan, replacementString) in subSpanToReplacementText)
+                {
+                    var matchedSpanStart = textSpan.Start - containingTokenOrTriviaStart;
+                    var offset = matchedSpanStart - startOffset;
+                    stringBuilder.Append(originalString.Substring(startOffset, offset));
+                    stringBuilder.Append(replacementString);
+                    startOffset += offset + textSpan.Length;
+                }
+
+                stringBuilder.Append(originalString.Substring(startOffset));
+                return stringBuilder.ToString();
+            }
         }
     }
 }

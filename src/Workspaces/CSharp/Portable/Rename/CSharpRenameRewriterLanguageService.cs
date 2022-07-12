@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
         public override SyntaxNode AnnotateAndRename(RenameRewriterParametersNextGen parameters)
         {
-            var renameAnnotationRewriter = new MultipleSymbolRenameRewriter(parameters);
+            var renameAnnotationRewriter = new MultipleSymbolsRenameRewriter(parameters);
             return renameAnnotationRewriter.Visit(parameters.SyntaxRoot)!;
         }
 
@@ -87,21 +87,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             private readonly ImmutableDictionary<TextSpan, ImmutableSortedSet<TextSpan>?> _stringAndCommentTextSpans;
 
             private int _isProcessingTrivia;
-
-            private void AddModifiedSpan(TextSpan oldSpan, TextSpan newSpan)
-            {
-                newSpan = new TextSpan(oldSpan.Start, newSpan.Length);
-
-                if (!_isProcessingComplexifiedSpans)
-                {
-                    _renameSpansTracker.AddModifiedSpan(_documentId, oldSpan, newSpan);
-                }
-                else
-                {
-                    RoslynDebug.Assert(_modifiedSubSpans != null);
-                    _modifiedSubSpans.Add((oldSpan, newSpan));
-                }
-            }
 
             public RenameRewriter(RenameRewriterParameters parameters)
                 : base(parameters.Document,
@@ -329,12 +314,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                         symbols = SpecializedCollections.SingletonEnumerable(symbolInfo.Symbol);
                     }
 
-                    var renameDeclarationLocations =
-                                                                                ConflictResolver.CreateDeclarationLocationAnnotationsAsync(
-                                                                                    _solution,
-                                                                                    symbols,
-                                                                                    _cancellationToken)
-                                                                                        .WaitAndGetResult_CanCallOnBackground(_cancellationToken);
+                    var renameDeclarationLocations = ConflictResolver.CreateDeclarationLocationAnnotationsAsync(
+                        _solution,
+                        symbols,
+                        _cancellationToken).WaitAndGetResult_CanCallOnBackground(_cancellationToken);
 
                     var renameAnnotation = new RenameActionAnnotation(
                                                 identifierToken.Span,

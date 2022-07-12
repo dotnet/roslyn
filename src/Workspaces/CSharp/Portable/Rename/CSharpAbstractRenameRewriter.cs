@@ -28,18 +28,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
         protected readonly RenamedSpansTracker _renameSpansTracker;
         protected readonly ISimplificationService _simplificationService;
         protected readonly ISemanticFactsService _semanticFactsService;
+        protected readonly ISyntaxFactsService _syntaxFactsService;
         protected readonly HashSet<SyntaxToken> _annotatedIdentifierTokens = new();
         protected readonly HashSet<InvocationExpressionSyntax> _invocationExpressionsNeedingConflictChecks = new();
 
         protected readonly AnnotationTable<RenameAnnotation> _renameAnnotations;
 
-        protected bool AnnotateForComplexification
-        {
-            get
-            {
-                return _skipRenameForComplexification > 0 && !_isProcessingComplexifiedSpans;
-            }
-        }
+        protected bool AnnotateForComplexification => _skipRenameForComplexification > 0 && !_isProcessingComplexifiedSpans;
 
         protected List<(TextSpan oldSpan, TextSpan newSpan)>? _modifiedSubSpans;
         protected bool _isProcessingComplexifiedSpans;
@@ -65,6 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
             _simplificationService = document.GetRequiredLanguageService<ISimplificationService>();
             _semanticFactsService = document.GetRequiredLanguageService<ISemanticFactsService>();
+            _syntaxFactsService = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             _annotatedIdentifierTokens = new();
             _invocationExpressionsNeedingConflictChecks = new();
@@ -176,6 +172,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     node is BaseTypeSyntax);
         }
 
+        protected void AddModifiedSpan(TextSpan oldSpan, TextSpan newSpan)
+        {
+            newSpan = new TextSpan(oldSpan.Start, newSpan.Length);
+
+            if (!_isProcessingComplexifiedSpans)
+            {
+                _renameSpansTracker.AddModifiedSpan(_documentId, oldSpan, newSpan);
+            }
+            else
+            {
+                RoslynDebug.Assert(_modifiedSubSpans != null);
+                _modifiedSubSpans.Add((oldSpan, newSpan));
+            }
+        }
+
         protected static bool IsPropertyAccessorNameConflict(SyntaxToken token, string replacementText)
             => IsGetPropertyAccessorNameConflict(token, replacementText)
             || IsSetPropertyAccessorNameConflict(token, replacementText)
@@ -204,6 +215,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 token.IsKind(SyntaxKind.IdentifierToken) &&
                 token.Parent.IsKind(SyntaxKind.DestructorDeclaration);
         }
-
     }
 }
