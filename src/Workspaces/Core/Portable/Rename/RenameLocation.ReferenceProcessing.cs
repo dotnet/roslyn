@@ -439,7 +439,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 return results;
             }
 
-            internal static async Task<ImmutableArray<RenameLocation>> GetRenamableLocationsInStringsAndCommentsAsync(
+            internal static async Task<(ImmutableArray<RenameLocation> strings, ImmutableArray<RenameLocation> comments)> GetRenamableLocationsInStringsAndCommentsAsync(
                 ISymbol originalSymbol,
                 Solution solution,
                 ISet<RenameLocation> renameLocations,
@@ -448,84 +448,74 @@ namespace Microsoft.CodeAnalysis.Rename
                 CancellationToken cancellationToken)
             {
                 if (!renameInStrings && !renameInComments)
-                    return ImmutableArray<RenameLocation>.Empty;
+                    return default;
 
                 var renameText = originalSymbol.Name;
 
-                using var _ = ArrayBuilder<RenameLocation>.GetInstance(out var stringAndCommentRenameLocationsBuilder);
+                using var _1 = ArrayBuilder<RenameLocation>.GetInstance(out var stringLocations);
+                using var _2 = ArrayBuilder<RenameLocation>.GetInstance(out var commentLocations);
 
                 foreach (var documentsGroupedByLanguage in RenameUtilities.GetDocumentsAffectedByRename(originalSymbol, solution, renameLocations).GroupBy(d => d.Project.Language))
                 {
-                    var languageName = documentsGroupedByLanguage.Key;
-                    var syntaxFactsLanguageService = solution.Workspace.Services.GetLanguageServices(languageName).GetRequiredService<ISyntaxFactsService>();
-                    var renameRewriterLanguageService = solution.Workspace.Services.GetLanguageServices(languageName).GetRequiredService<IRenameRewriterLanguageService>();
+                    var syntaxFactsLanguageService = solution.Workspace.Services.GetLanguageServices(documentsGroupedByLanguage.Key).GetService<ISyntaxFactsService>();
 
-                    foreach (var document in documentsGroupedByLanguage)
+                    if (syntaxFactsLanguageService != null)
                     {
-                        await AddStringAndCommentLocationsAsync(
-                            document,
-                            renameText,
-                            syntaxFactsLanguageService,
-                            renameRewriterLanguageService,
-                            renameInStrings: renameInStrings,
-                            renameInComments: renameInComments,
-                            stringAndCommentRenameLocationsBuilder,
-                            cancellationToken).ConfigureAwait(false);
-                    }
-                }
-
-                return stringAndCommentRenameLocationsBuilder.ToImmutableArray();
-            }
-
-            private static async Task AddStringAndCommentLocationsAsync(
-                Document document,
-                string renameText,
-                ISyntaxFactsService syntaxFactsService,
-                IRenameRewriterLanguageService renameRewriterLanguageService,
-                bool renameInStrings,
-                bool renameInComments,
-                ArrayBuilder<RenameLocation> stringAndCommentRenameLocationsBuilder,
-                CancellationToken cancellationToken)
-            {
-                var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var renameTextLength = renameText.Length;
-
-                using var _1 = ArrayBuilder<(string rawText, TextSpan containingSpan)>.GetInstance(out var tokensOrTriviaToCheck);
-                // 1. Check all the tokens to rename in string, and the tokens in DocumentationCommentTrivia to rename in comments.
-                foreach (var token in root.DescendantTokens(descendIntoTrivia: renameInComments))
-                {
-                    if (token.Span.Length < renameTextLength)
-                    {
-                        continue;
-                    }
-
-                    if (renameInStrings && syntaxFactsService.IsStringLiteralOrInterpolatedStringLiteral(token)
-                        || renameInComments && renameRewriterLanguageService.IsRenamableTokenInComment(token))
-                    {
-                        tokensOrTriviaToCheck.Add((rawText: token.ToString(), containingSpan: token.Span));
-                    }
-                }
-
-                // 2. Check all the trivia if rename in comments.
-                if (renameInComments)
-                {
-                    foreach (var trivia in root.DescendantTrivia(descendIntoTrivia: true))
-                    {
-                        if (trivia.Span.Length >= renameTextLength)
+                        foreach (var document in documentsGroupedByLanguage)
                         {
-                            tokensOrTriviaToCheck.Add((rawText: trivia.ToString(), containingSpan: trivia.Span));
+                            if (renameInStrings)
+                            {
+                                await AddLocationsToRenameInStringsAsync(
+                                    document, renameText, syntaxFactsLanguageService,
+                                    stringLocations, cancellationToken).ConfigureAwait(false);
+                            }
+
+                            if (renameInComments)
+                            {
+                                await AddLocationsToRenameInCommentsAsync(document, renameText, commentLocations, cancellationToken).ConfigureAwait(false);
+                            }
                         }
                     }
                 }
 
-                if (tokensOrTriviaToCheck.Count > 0)
+                return (renameInStrings ? stringLocations.ToImmutable() : default,
+                        renameInComments ? commentLocations.ToImmutable() : default);
+            }
+
+            private static async Task AddLocationsToRenameInStringsAsync(
+                Document document, string renameText, ISyntaxFactsService syntaxFactsService,
+                ArrayBuilder<RenameLocation> renameLocations, CancellationToken cancellationToken)
+            {
+                var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var renameTextLength = renameText.Length;
+
+                var renameStringsAndPositions = root
+                    .DescendantTokens()
+                    .Where(t => syntaxFactsService.IsStringLiteralOrInterpolatedStringLiteral(t) && t.Span.Length >= renameTextLength)
+                    .Select(t => Tuple.Create(t.ToString(), t.Span.Start, t.Span));
+
+                if (renameStringsAndPositions.Any())
                 {
-                    AddLocationsToRenameInStringsAndComments(
-                        document,
-                        root.SyntaxTree,
-                        renameText,
-                        tokensOrTriviaToCheck.ToImmutableArray(),
-                        stringAndCommentRenameLocationsBuilder);
+                    AddLocationsToRenameInStringsAndComments(document, root.SyntaxTree, renameText,
+                        renameStringsAndPositions, renameLocations);
+                }
+            }
+
+            private static async Task AddLocationsToRenameInCommentsAsync(
+                Document document, string renameText, ArrayBuilder<RenameLocation> renameLocations, CancellationToken cancellationToken)
+            {
+                var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var renameTextLength = renameText.Length;
+
+                var renameStringsAndPositions = root
+                    .DescendantTrivia(descendIntoTrivia: true)
+                    .Where(t => t.Span.Length >= renameTextLength)
+                    .Select(t => Tuple.Create(t.ToString(), t.Span.Start, t.Token.Span));
+
+                if (renameStringsAndPositions.Any())
+                {
+                    AddLocationsToRenameInStringsAndComments(document, root.SyntaxTree, renameText,
+                        renameStringsAndPositions, renameLocations);
                 }
             }
 
@@ -533,14 +523,18 @@ namespace Microsoft.CodeAnalysis.Rename
                 Document document,
                 SyntaxTree tree,
                 string renameText,
-                ImmutableArray<(string rawText, TextSpan containingSpan)> renameStringsAndPositions,
+                IEnumerable<Tuple<string, int, TextSpan>> renameStringsAndPositions,
                 ArrayBuilder<RenameLocation> renameLocations)
             {
                 var regex = GetRegexForMatch(renameText);
-                foreach (var (rawText, containingSpan) in renameStringsAndPositions)
+                foreach (var renameStringAndPosition in renameStringsAndPositions)
                 {
-                    var renameStringPosition = containingSpan.Start;
-                    var matches = regex.Matches(rawText);
+                    var renameString = renameStringAndPosition.Item1;
+                    var renameStringPosition = renameStringAndPosition.Item2;
+                    var containingSpan = renameStringAndPosition.Item3;
+
+                    var matches = regex.Matches(renameString);
+
                     foreach (Match? match in matches)
                     {
                         if (match == null)
@@ -560,26 +554,6 @@ namespace Microsoft.CodeAnalysis.Rename
             {
                 var matchString = string.Format(@"\b{0}\b", matchText);
                 return new Regex(matchString, RegexOptions.CultureInvariant);
-            }
-
-            internal static string ReplaceMatchingSubStrings(
-                string originalString,
-                int containingTokenOrTriviaStart,
-                ImmutableSortedDictionary<TextSpan, string> subSpanToReplacementText)
-            {
-                var stringBuilder = new StringBuilder();
-                var startOffset = 0;
-                foreach (var (textSpan, replacementString) in subSpanToReplacementText)
-                {
-                    var matchedSpanStart = textSpan.Start - containingTokenOrTriviaStart;
-                    var offset = matchedSpanStart - startOffset;
-                    stringBuilder.Append(originalString.Substring(startOffset, offset));
-                    stringBuilder.Append(replacementString);
-                    startOffset += offset + textSpan.Length;
-                }
-
-                stringBuilder.Append(originalString.Substring(startOffset));
-                return stringBuilder.ToString();
             }
 
             internal static string ReplaceMatchingSubStrings(

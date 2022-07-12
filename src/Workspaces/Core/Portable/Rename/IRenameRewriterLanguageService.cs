@@ -120,11 +120,6 @@ namespace Microsoft.CodeAnalysis.Rename
         /// <param name="token">The token to get the complexification target for.</param>
         /// <returns></returns>
         SyntaxNode? GetExpansionTargetForLocation(SyntaxToken token);
-
-        /// <summary>
-        /// Indicate if the token is renameable in structure comment.
-        /// </summary>
-        bool IsRenamableTokenInComment(SyntaxToken token);
     }
 
     internal abstract class AbstractRenameRewriterLanguageService : IRenameRewriterLanguageService
