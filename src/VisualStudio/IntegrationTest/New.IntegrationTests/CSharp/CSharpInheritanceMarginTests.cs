@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
+using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
 using WindowsInput.Native;

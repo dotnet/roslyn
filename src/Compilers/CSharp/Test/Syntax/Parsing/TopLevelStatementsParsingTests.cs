@@ -17,16 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         public TopLevelStatementsParsingTests(ITestOutputHelper output) : base(output) { }
 
-        private SyntaxTree UsingTree(string text, params DiagnosticDescription[] expectedErrors)
-        {
-            var tree = base.UsingTree(text);
-
-            var actualErrors = tree.GetDiagnostics();
-            actualErrors.Verify(expectedErrors);
-
-            return tree;
-        }
-
         [Fact]
         public void InsertOpenBraceBeforeCodes()
         {

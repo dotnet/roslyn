@@ -4515,9 +4515,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="InvalidGetDeclarationNameMultipleDeclarators" xml:space="preserve">
     <value>Called GetDeclarationName for a declaration node that can possibly contain multiple variable declarators.</value>
   </data>
-  <data name="TreeNotPartOfCompilation" xml:space="preserve">
-    <value>tree not part of compilation</value>
-  </data>
   <data name="PositionIsNotWithinSyntax" xml:space="preserve">
     <value>Position is not within syntax tree with full span {0}</value>
   </data>
@@ -7124,6 +7121,24 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_NewConstraintCannotHaveRequiredMembers" xml:space="preserve">
     <value>'{2}' cannot satisfy the 'new()' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.</value>
   </data>
+  <data name="ERR_FileTypeDisallowedInSignature" xml:space="preserve">
+    <value>File type '{0}' cannot be used in a member signature in non-file type '{1}'.</value>
+  </data>
+  <data name="ERR_FileTypeNoExplicitAccessibility" xml:space="preserve">
+    <value>File type '{0}' cannot use accessibility modifiers.</value>
+  </data>
+  <data name="ERR_FileTypeBase" xml:space="preserve">
+    <value>File type '{0}' cannot be used as a base type of non-file type '{1}'.</value>
+  </data>
+  <data name="ERR_FileTypeNested" xml:space="preserve">
+    <value>File type '{0}' must be defined in a top level type; '{0}' is a nested type.</value>
+  </data>
+  <data name="ERR_GlobalUsingStaticFileType" xml:space="preserve">
+    <value>File type '{0}' cannot be used in a 'global using static' directive.</value>
+  </data>
+  <data name="ERR_FileTypeNameDisallowed" xml:space="preserve">
+    <value>Types and aliases cannot be named 'file'.</value>
+  </data>
   <data name="IDS_FeatureUnsignedRightShift" xml:space="preserve">
     <value>unsigned right shift</value>
   </data>
@@ -7156,5 +7171,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_BadBinaryReadOnlySpanConcatenation" xml:space="preserve">
     <value>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF-8 byte representations</value>
+  </data>
+  <data name="IDS_FeatureFileTypes" xml:space="preserve">
+    <value>file types</value>
   </data>
 </root>

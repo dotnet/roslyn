@@ -16,6 +16,9 @@ namespace Microsoft.CodeAnalysis
                 visitor.WriteSymbolKey(symbol.ContainingSymbol);
                 visitor.WriteString(symbol.Name);
                 visitor.WriteInteger(symbol.Arity);
+                visitor.WriteString(symbol.IsFile
+                    ? symbol.DeclaringSyntaxReferences[0].SyntaxTree.FilePath
+                    : null);
                 visitor.WriteBoolean(symbol.IsUnboundGenericType);
 
                 if (!symbol.Equals(symbol.ConstructedFrom) && !symbol.IsUnboundGenericType)
@@ -33,7 +36,9 @@ namespace Microsoft.CodeAnalysis
                 var containingSymbolResolution = reader.ReadSymbolKey(out var containingSymbolFailureReason);
                 var name = reader.ReadRequiredString();
                 var arity = reader.ReadInteger();
+                var filePath = reader.ReadString();
                 var isUnboundGenericType = reader.ReadBoolean();
+
                 using var typeArguments = reader.ReadSymbolKeyArray<ITypeSymbol>(out var typeArgumentsFailureReason);
 
                 if (containingSymbolFailureReason != null)
@@ -61,7 +66,7 @@ namespace Microsoft.CodeAnalysis
                 foreach (var nsOrType in containingSymbolResolution.OfType<INamespaceOrTypeSymbol>())
                 {
                     Resolve(
-                        result, nsOrType, name, arity,
+                        result, nsOrType, name, arity, filePath,
                         isUnboundGenericType, typeArgumentArray);
                 }
 
@@ -73,11 +78,28 @@ namespace Microsoft.CodeAnalysis
                 INamespaceOrTypeSymbol container,
                 string name,
                 int arity,
+                string? filePath,
                 bool isUnboundGenericType,
                 ITypeSymbol[] typeArguments)
             {
                 foreach (var type in container.GetTypeMembers(name, arity))
                 {
+                    // if this is a 'file' type, then only resolve to a file-type from this same file
+                    if (filePath != null)
+                    {
+                        if (!type.IsFile ||
+                            // note: if we found 'IsFile' returned true, we can assume DeclaringSyntaxReferences is non-empty.
+                            type.DeclaringSyntaxReferences[0].SyntaxTree.FilePath != filePath)
+                        {
+                            continue;
+                        }
+                    }
+                    else if (type.IsFile)
+                    {
+                        // since this key lacks a file path it can't match against a 'file' type
+                        continue;
+                    }
+
                     var currentType = typeArguments.Length > 0 ? type.Construct(typeArguments) : type;
                     currentType = isUnboundGenericType ? currentType.ConstructUnboundGenericType() : currentType;
 

@@ -35,7 +35,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
                 Return VisualStudioMoveStaticMembersOptionsService.GetViewModel(
                     workspaceDoc,
                     memberSymbol.ContainingType,
-                    memberSymbol,
+                    ImmutableArray.Create(memberSymbol),
                     New LinkedList(Of INamedTypeSymbol),
                     Nothing,
                     workspace.GetService(Of IUIThreadOperationExecutor))

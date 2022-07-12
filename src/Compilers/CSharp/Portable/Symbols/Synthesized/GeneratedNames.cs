@@ -494,5 +494,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return "<p" + StringExtensions.GetNumeral(ordinal) + ">";
         }
+
+        internal static string MakeFileIdentifier(string filePath, int ordinal)
+        {
+            var pooledBuilder = PooledStringBuilder.GetInstance();
+            var sb = pooledBuilder.Builder;
+            sb.Append('<');
+            AppendFileName(filePath, sb);
+            sb.Append('>');
+            sb.Append((char)GeneratedNameKind.FileType);
+            sb.Append(ordinal);
+            sb.Append("__");
+            return pooledBuilder.ToStringAndFree();
+        }
+
+        internal static void AppendFileName(string? filePath, StringBuilder sb)
+        {
+            var fileName = FileNameUtilities.GetFileName(filePath, includeExtension: false);
+            if (fileName is null)
+            {
+                return;
+            }
+
+            foreach (var ch in fileName)
+            {
+                sb.Append(ch switch
+                {
+                    >= 'a' and <= 'z' => ch,
+                    >= 'A' and <= 'Z' => ch,
+                    >= '0' and <= '9' => ch,
+                    _ => '_'
+                });
+            }
+        }
     }
 }
