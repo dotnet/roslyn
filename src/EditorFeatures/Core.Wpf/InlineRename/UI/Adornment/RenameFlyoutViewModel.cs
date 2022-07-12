@@ -19,14 +19,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     internal class RenameFlyoutViewModel : INotifyPropertyChanged, IDisposable
     {
         private readonly InlineRenameSession _session;
+        private readonly bool _registerOleComponent;
         private OleComponent? _oleComponent;
         private bool _disposedValue;
         private bool _isReplacementTextValid = true;
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        public RenameFlyoutViewModel(InlineRenameSession session)
+        public RenameFlyoutViewModel(InlineRenameSession session, bool registerOleComponent = true)
         {
             _session = session;
+            _registerOleComponent = registerOleComponent;
             _session.ReplacementTextChanged += OnReplacementTextChanged;
             _session.ReplacementsComputed += OnReplacementsComputed;
             ComputeRenameFile();
@@ -45,6 +47,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
             }
         }
+
+        public InlineRenameSession Session => _session;
 
         public bool AllowFileRename => _session.FileRenameInfo == InlineRenameFileRenameInfo.Allowed && _isReplacementTextValid;
         public bool ShowFileRename => _session.FileRenameInfo != InlineRenameFileRenameInfo.NotAllowed;
@@ -128,6 +132,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public bool IsRenameOverloadsEditable
             => !_session.MustRenameOverloads;
 
+        public bool IsRenameOverloadsVisible
+            => _session.HasRenameOverloads;
+
         public void Submit()
         {
             _session.Commit();
@@ -152,6 +159,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         /// </summary>
         public void RegisterOleComponent()
         {
+            // In unit testing we won't have an OleComponentManager available, so 
+            // calls to OleComponent.CreateHostedComponent will throw
+            if (!_registerOleComponent)
+            {
+                return;
+            }
+
             Debug.Assert(_oleComponent is null);
 
             _oleComponent = OleComponent.CreateHostedComponent("Microsoft CodeAnalysis Inline Rename");
