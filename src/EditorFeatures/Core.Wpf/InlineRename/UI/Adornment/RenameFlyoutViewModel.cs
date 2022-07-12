@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private bool _isReplacementTextValid = true;
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        public RenameFlyoutViewModel(InlineRenameSession session, bool registerOleComponent = true)
+        public RenameFlyoutViewModel(InlineRenameSession session, bool registerOleComponent)
         {
             _session = session;
             _registerOleComponent = registerOleComponent;

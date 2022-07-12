@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     }
 
                     var adornment = new RenameFlyout(
-                        (RenameFlyoutViewModel)s_createdViewModels.GetValue(_renameService.ActiveSession, session => new RenameFlyoutViewModel(session)),
+                        (RenameFlyoutViewModel)s_createdViewModels.GetValue(_renameService.ActiveSession, session => new RenameFlyoutViewModel(session, registerOleComponent: true)),
                         _textView);
 
                     _adornmentLayer.AddAdornment(
