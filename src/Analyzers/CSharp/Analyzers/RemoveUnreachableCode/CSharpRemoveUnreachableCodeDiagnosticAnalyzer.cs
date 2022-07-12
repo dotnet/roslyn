@@ -40,7 +40,6 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
 
         private void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
         {
-            var fadeCode = context.GetIdeAnalyzerOptions().FadeOutUnreachableCode;
             var semanticModel = context.SemanticModel;
             var cancellationToken = context.CancellationToken;
 
@@ -63,13 +62,13 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
 
                 if (diagnostic.Id == CS0162)
                 {
-                    ProcessUnreachableDiagnostic(context, root, diagnostic.Location.SourceSpan, fadeCode);
+                    ProcessUnreachableDiagnostic(context, root, diagnostic.Location.SourceSpan);
                 }
             }
         }
 
         private void ProcessUnreachableDiagnostic(
-            SemanticModelAnalysisContext context, SyntaxNode root, TextSpan sourceSpan, bool fadeOutCode)
+            SemanticModelAnalysisContext context, SyntaxNode root, TextSpan sourceSpan)
         {
             var node = root.FindNode(sourceSpan);
 
@@ -114,35 +113,23 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
             // statement in this group.
             var additionalLocations = ImmutableArray.Create(firstStatementLocation);
 
-            if (fadeOutCode)
-            {
-                context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
-                    Descriptor,
-                    firstStatementLocation,
-                    ReportDiagnostic.Default,
-                    additionalLocations: ImmutableArray<Location>.Empty,
-                    additionalUnnecessaryLocations: additionalLocations));
-            }
-            else
-            {
-                context.ReportDiagnostic(
-                    Diagnostic.Create(Descriptor, firstStatementLocation, additionalLocations));
-            }
+            context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+                Descriptor,
+                firstStatementLocation,
+                ReportDiagnostic.Default,
+                additionalLocations: ImmutableArray<Location>.Empty,
+                additionalUnnecessaryLocations: additionalLocations));
 
             var sections = RemoveUnreachableCodeHelpers.GetSubsequentUnreachableSections(firstUnreachableStatement);
             foreach (var section in sections)
             {
                 var span = TextSpan.FromBounds(section[0].FullSpan.Start, section.Last().FullSpan.End);
                 var location = root.SyntaxTree.GetLocation(span);
-                var additionalUnnecessaryLocations = ImmutableArray<Location>.Empty;
 
                 // Mark subsequent sections as being 'cascaded'.  We don't need to actually process them
                 // when doing a fix-all as they'll be scooped up when we process the fix for the first
                 // section.
-                if (fadeOutCode)
-                {
-                    additionalUnnecessaryLocations = ImmutableArray.Create(location);
-                }
+                var additionalUnnecessaryLocations = ImmutableArray.Create(location);
 
                 context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
                     Descriptor,

@@ -111,10 +111,6 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         {
             var syntaxTree = context.Node.SyntaxTree;
 
-            var fadeOutCode = context.GetIdeAnalyzerOptions().FadeOutComplexObjectInitialization;
-            if (!fadeOutCode)
-                return;
-
             var syntaxFacts = GetSyntaxFacts();
 
             foreach (var match in matches)
