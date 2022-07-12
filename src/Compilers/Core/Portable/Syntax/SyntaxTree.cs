@@ -103,6 +103,13 @@ namespace Microsoft.CodeAnalysis
         public abstract Encoding? Encoding { get; }
 
         /// <summary>
+        /// Useful information about this tree that is stored for source-generator scenarios.  Allows the incremental
+        /// generation framework to compute and cache data once against a tree so it does not have to go back to source
+        /// for untouched trees when other trees in the compilation are modified.
+        /// </summary>
+        private SourceGeneratorSyntaxTreeInfo? _sourceGeneratorInfo;
+
+        /// <summary>
         /// Gets the text of the source document asynchronously.
         /// </summary>
         /// <remarks>
@@ -400,21 +407,19 @@ namespace Microsoft.CodeAnalysis
             get { return this.HasCompilationUnitRoot; }
         }
 
-        private SyntaxTreeInfo? _syntaxTreeInfo;
-
-        internal SyntaxTreeInfo GetInfo(
+        internal SourceGeneratorSyntaxTreeInfo GetSourceGeneratorInfo(
             ISyntaxHelper syntaxHelper, CancellationToken cancellationToken)
         {
-            if (_syntaxTreeInfo is null)
+            if (_sourceGeneratorInfo is null)
             {
                 var root = this.GetRoot(cancellationToken);
                 Interlocked.CompareExchange(
-                    ref _syntaxTreeInfo,
-                    new SyntaxTreeInfo(this, syntaxHelper.ContainsGlobalAliases(root), syntaxHelper.ContainsAttributeList(root)),
+                    ref _sourceGeneratorInfo,
+                    new SourceGeneratorSyntaxTreeInfo(this, syntaxHelper.ContainsGlobalAliases(root), syntaxHelper.ContainsAttributeList(root)),
                     comparand: null);
             }
 
-            return _syntaxTreeInfo;
+            return _sourceGeneratorInfo;
         }
     }
 }

@@ -24,7 +24,7 @@ using Aliases = ArrayBuilder<(string aliasName, string symbolName)>;
 /// Information computed about a particular tree.  Cached so we don't repeatedly recompute this important
 /// information each time the incremental pipeline is rerun.
 /// </summary>
-internal record SyntaxTreeInfo(SyntaxTree Tree, bool ContainsGlobalAliases, bool ContainsAttributeList);
+internal record SourceGeneratorSyntaxTreeInfo(SyntaxTree Tree, bool ContainsGlobalAliases, bool ContainsAttributeList);
 
 public partial struct SyntaxValueProvider
 {
@@ -62,27 +62,7 @@ public partial struct SyntaxValueProvider
         // changed. CreateSyntaxProvider will have to rerun all incremental nodes since it passes along the
         // SemanticModel, and that model is updated whenever any tree changes (since it is tied to the compilation).
         var syntaxTreesProvider = _context.CompilationProvider
-            .SelectMany((compilation, cancellationToken) =>
-            {
-                var count = 0;
-                foreach (var tree in compilation.CommonSyntaxTrees)
-                {
-                    var info = tree.GetInfo(syntaxHelper, cancellationToken);
-                    if (info.ContainsGlobalAliases || info.ContainsAttributeList)
-                        count++;
-                }
-
-                var builder = ImmutableArray.CreateBuilder<SyntaxTreeInfo>(count);
-
-                foreach (var tree in compilation.CommonSyntaxTrees)
-                {
-                    var info = tree.GetInfo(syntaxHelper, cancellationToken);
-                    if (info.ContainsGlobalAliases || info.ContainsAttributeList)
-                        builder.Add(info);
-                }
-
-                return builder.MoveToImmutable();
-            })
+            .SelectMany((compilation, cancellationToken) => GetSourceGeneratorInfo(syntaxHelper, compilation, cancellationToken))
             .WithTrackingName("compilationUnit_ForAttribute");
 
         // Create a provider that provides (and updates) the global aliases for any particular file when it is edited.
@@ -140,6 +120,32 @@ public partial struct SyntaxValueProvider
 
             return GlobalAliases.Create(globalAliases.ToImmutableAndFree());
         }
+    }
+
+    private static ImmutableArray<SourceGeneratorSyntaxTreeInfo> GetSourceGeneratorInfo(
+        ISyntaxHelper syntaxHelper, Compilation compilation, CancellationToken cancellationToken)
+    {
+        // Get the count up front so we can allocate without waste.
+        var count = 0;
+        foreach (var tree in compilation.CommonSyntaxTrees)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var info = tree.GetSourceGeneratorInfo(syntaxHelper, cancellationToken);
+            if (info.ContainsGlobalAliases || info.ContainsAttributeList)
+                count++;
+        }
+
+        var builder = ImmutableArray.CreateBuilder<SourceGeneratorSyntaxTreeInfo>(count);
+
+        // Iterate again.  This will be free as the values from before will already be cached on the syntax tree.
+        foreach (var tree in compilation.CommonSyntaxTrees)
+        {
+            var info = tree.GetSourceGeneratorInfo(syntaxHelper, cancellationToken);
+            if (info.ContainsGlobalAliases || info.ContainsAttributeList)
+                builder.Add(info);
+        }
+
+        return builder.MoveToImmutable();
     }
 
     private static ImmutableArray<SyntaxNode> GetMatchingNodes(
