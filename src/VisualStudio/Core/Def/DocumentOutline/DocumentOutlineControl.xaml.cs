@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         private readonly IVsCodeWindow CodeWindow;
 
         /// <summary>
-        /// The type of sorting to be applied to the UI model in <see cref="UpdateUIAsync"/>.
+        /// The type of sorting to be applied to the UI model in <see cref="UpdateDataModelAsync"/>.
         /// </summary>
         private SortOption SortOption { get; set; }
 
@@ -44,12 +44,12 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// Queue to batch up work to do to compute the UI model. Used so we can batch up a lot of events 
         /// and only fetch the model once for every batch.
         /// </summary>
-        private readonly AsyncBatchingWorkQueue<bool, DocumentSymbolModel?> _computeUIModelQueue;
+        private readonly AsyncBatchingWorkQueue<bool, DocumentSymbolModel?> _computeDataModelQueue;
 
         /// <summary>
         /// Queue to batch up work to do to update the UI model.
         /// </summary>
-        private readonly AsyncBatchingWorkQueue<bool, DocumentSymbolModel?> _updateUIModelQueue;
+        private readonly AsyncBatchingWorkQueue<bool, DocumentSymbolModel?> _updateDataModelQueue;
 
         /// <summary>
         /// Queue to batch up work to do to highlight the currently selected symbol node, expand/collapse nodes,
@@ -84,16 +84,16 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             ComEventSink.Advise<IVsCodeWindowEvents>(codeWindow, this);
             SortOption = SortOption.Location;
 
-            _computeUIModelQueue = new AsyncBatchingWorkQueue<bool, DocumentSymbolModel?>(
+            _computeDataModelQueue = new AsyncBatchingWorkQueue<bool, DocumentSymbolModel?>(
                 DelayTimeSpan.Short,
-                ComputeUIModelAsync,
+                ComputeDataModelAsync,
                 EqualityComparer<bool>.Default,
                 asyncListener,
                 cancellationToken);
 
-            _updateUIModelQueue = new AsyncBatchingWorkQueue<bool, DocumentSymbolModel?>(
+            _updateDataModelQueue = new AsyncBatchingWorkQueue<bool, DocumentSymbolModel?>(
                 DelayTimeSpan.NearImmediate,
-                UpdateUIAsync,
+                UpdateDataModelAsync,
                 EqualityComparer<bool>.Default,
                 asyncListener,
                 cancellationToken);
@@ -123,7 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                     Debug.Fail("StartTrackingView failed during DocumentOutlineControl initialization.");
             }
 
-            StartComputeUIModelTask();
+            StartComputeDataModelTask();
         }
 
         int IVsCodeWindowEvents.OnNewView(IVsTextView pView)
@@ -173,7 +173,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// On text buffer change, obtain an updated UI model and update the view.
         /// </summary>
         private void TextBuffer_Changed(object sender, TextContentChangedEventArgs e)
-            => StartComputeUIModelTask();
+            => StartComputeDataModelTask();
 
         /// <summary>
         /// On caret position change in a text view, highlight the corresponding symbol node in the window.
@@ -196,25 +196,25 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
         private void Search(object sender, EventArgs e)
         {
-            StartUpdateUIModelTask();
+            StartUpdateDataModelTask();
         }
 
         private void SortByName(object sender, EventArgs e)
         {
             SortOption = SortOption.Name;
-            StartUpdateUIModelTask();
+            StartUpdateDataModelTask();
         }
 
         private void SortByOrder(object sender, EventArgs e)
         {
             SortOption = SortOption.Location;
-            StartUpdateUIModelTask();
+            StartUpdateDataModelTask();
         }
 
         private void SortByType(object sender, EventArgs e)
         {
             SortOption = SortOption.Type;
-            StartUpdateUIModelTask();
+            StartUpdateDataModelTask();
         }
 
         /// <summary>

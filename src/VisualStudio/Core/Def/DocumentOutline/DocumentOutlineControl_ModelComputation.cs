@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -32,18 +31,18 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         }
 
         /// <summary>
-        /// Starts a new task to compute the UI model.
+        /// Starts a new task to compute the data model.
         /// </summary>
-        private void StartComputeUIModelTask()
+        private void StartComputeDataModelTask()
         {
             // 'true' value is unused.  this just signals to the queue that we have work to do.
-            _computeUIModelQueue.AddWork(true);
+            _computeDataModelQueue.AddWork(true);
         }
 
         /// <summary>
-        /// Creates the UI model.
+        /// Creates the data model.
         /// </summary>
-        private async ValueTask<DocumentSymbolModel?> ComputeUIModelAsync(ImmutableSegmentedList<bool> _, CancellationToken cancellationToken)
+        private async ValueTask<DocumentSymbolModel?> ComputeDataModelAsync(ImmutableSegmentedList<bool> _, CancellationToken cancellationToken)
         {
             // Jump to the UI thread to get the currently active text view.
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -63,14 +62,14 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             // that fetching and processing the document model is not done on the UI thread.
             await TaskScheduler.Default;
 
-            var model = await ComputeUIModelAsync().ConfigureAwait(false);
+            var model = await ComputeDataModelAsync().ConfigureAwait(false);
 
             if (model is not null)
-                StartUpdateUIModelTask();
+                StartUpdateDataModelTask();
 
             return model;
 
-            async Task<DocumentSymbolModel?> ComputeUIModelAsync()
+            async Task<DocumentSymbolModel?> ComputeDataModelAsync()
             {
                 var response = await DocumentOutlineHelper.DocumentSymbolsRequestAsync(
                     textBuffer, LanguageServiceBroker, filePath, cancellationToken).ConfigureAwait(false);
@@ -91,7 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             {
                 ThreadingContext.ThrowIfNotOnUIThread();
                 if (EditorAdaptersFactoryService.GetBufferAdapter(textBuffer) is IPersistFileFormat persistFileFormat &&
-                    ErrorHandler.Succeeded(persistFileFormat.GetCurFile(out var filePath, out _)))
+                    ErrorHandler.Succeeded(persistFileFormat.GetCurFile(out var filePath, out var _)))
                 {
                     return filePath;
                 }
@@ -103,18 +102,18 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// <summary>
         /// Starts a new task to update the UI model.
         /// </summary>
-        private void StartUpdateUIModelTask()
+        private void StartUpdateDataModelTask()
         {
             // 'true' value is unused.  this just signals to the queue that we have work to do.
-            _updateUIModelQueue.AddWork(true);
+            _updateDataModelQueue.AddWork(true);
         }
 
         /// <summary>
-        /// Filters and sorts the UI model.
+        /// Filters and sorts the data model.
         /// </summary>
-        private async ValueTask<DocumentSymbolModel?> UpdateUIAsync(ImmutableSegmentedList<bool> _, CancellationToken cancellationToken)
+        private async ValueTask<DocumentSymbolModel?> UpdateDataModelAsync(ImmutableSegmentedList<bool> _, CancellationToken cancellationToken)
         {
-            var model = await _computeUIModelQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
+            var model = await _computeDataModelQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
             if (model is null)
                 return null;
 
@@ -127,7 +126,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             if (activeTextView is null)
                 return null;
 
-            // Switch to the threadpool to filter and sort the DocumentSymbolItems.
+            // Switch to the threadpool to filter and sort the data model.
             await TaskScheduler.Default;
 
             var updatedDocumentSymbolItems = model.DocumentSymbolItems;
@@ -159,7 +158,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             if (expansionOption.IsDefault || expansionOption.IsEmpty)
                 return;
 
-            var model = await _updateUIModelQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
+            var model = await _updateDataModelQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
             if (model is null)
                 return;
 
@@ -217,7 +216,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             if (symbol.IsDefault || symbol.IsEmpty)
                 return;
 
-            var model = await _computeUIModelQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
+            var model = await _computeDataModelQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
             if (model is null)
                 return;
 
