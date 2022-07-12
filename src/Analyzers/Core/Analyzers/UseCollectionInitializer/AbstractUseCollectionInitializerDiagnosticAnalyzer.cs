@@ -123,11 +123,6 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             ImmutableArray<Location> locations)
         {
             var syntaxTree = context.Node.SyntaxTree;
-
-            var fadeOutCode = context.GetIdeAnalyzerOptions().FadeOutComplexCollectionInitialization;
-            if (!fadeOutCode)
-                return;
-
             var syntaxFacts = GetSyntaxFacts();
 
             foreach (var match in matches)

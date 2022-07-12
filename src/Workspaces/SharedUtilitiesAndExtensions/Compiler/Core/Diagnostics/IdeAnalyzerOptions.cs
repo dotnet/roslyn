@@ -19,13 +19,6 @@ internal sealed record class IdeAnalyzerOptions
     private static readonly CodeStyleOption2<bool> s_defaultPreferSystemHashCode =
         new(value: true, notification: NotificationOption2.Suggestion);
 
-    public static readonly IdeAnalyzerOptions CodeStyleDefault = new()
-    {
-        CrashOnAnalyzerException = false,
-        FadeOutUnusedImports = false,
-        FadeOutUnreachableCode = false
-    };
-
     public static readonly IdeAnalyzerOptions CommonDefault = new();
 
     [DataMember] public bool CrashOnAnalyzerException { get; init; } = false;
