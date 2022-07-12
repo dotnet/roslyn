@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef {{
                 TestState =
                 {
                     Sources = { source },
-                    AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
+                    AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
                 },
             }.RunAsync();
         }
@@ -78,7 +78,7 @@ End Namespace
                 TestState =
                 {
                     Sources = { source },
-                    AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
+                    AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
                 },
             }.RunAsync();
         }
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef {{
                 TestState =
                 {
                     Sources = { source },
-                    AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
+                    AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
                     ExpectedDiagnostics = { VerifyCS.Diagnostic().WithSpan(9, 6, 9, 73).WithArguments("C") },
                 },
                 FixedState =
@@ -189,7 +189,7 @@ End Namespace
                 TestState =
                 {
                     Sources = { source },
-                    AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
+                    AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
                     ExpectedDiagnostics = { VerifyVB.Diagnostic().WithSpan(9, 6, 9, 66).WithArguments("C") },
                 },
                 FixedState =
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef {{
                 TestState =
                 {
                     Sources = { source },
-                    AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
+                    AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
                     ExpectedDiagnostics = { VerifyCS.Diagnostic().WithSpan(7, 6, 7, 26).WithArguments("C") },
                 },
                 FixedState =
@@ -301,7 +301,7 @@ End Namespace
                 TestState =
                 {
                     Sources = { source },
-                    AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
+                    AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
                     ExpectedDiagnostics = { VerifyVB.Diagnostic().WithSpan(7, 6, 7, 26).WithArguments("C") },
                 },
                 FixedState =
@@ -350,7 +350,7 @@ class C {{
                 TestState =
                 {
                     Sources = { source, helperSource },
-                    AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
+                    AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
                     ExpectedDiagnostics = { VerifyCS.Diagnostic().WithSpan(6, 6, 6, 26).WithArguments("C") },
                 },
                 FixedState =
@@ -406,7 +406,7 @@ End Namespace
                 TestState =
                 {
                     Sources = { source },
-                    AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
+                    AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
                     ExpectedDiagnostics = { VerifyVB.Diagnostic().WithSpan(6, 6, 6, 26).WithArguments("C") },
                 },
                 FixedState =
@@ -462,7 +462,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef {{
                 TestState =
                 {
                     Sources = { source },
-                    AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
+                    AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
                     ExpectedDiagnostics = { VerifyCS.Diagnostic().WithSpan(8, 6, 8, 14).WithArguments("C") },
                 },
                 FixedState =
@@ -520,7 +520,7 @@ End Namespace
                 TestState =
                 {
                     Sources = { source },
-                    AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
+                    AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
                     ExpectedDiagnostics = { VerifyVB.Diagnostic().WithSpan(8, 6, 8, 14).WithArguments("C") },
                 },
                 FixedState =
@@ -577,7 +577,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef {{
                 TestState =
                 {
                     Sources = { source },
-                    AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
+                    AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
                     ExpectedDiagnostics = { VerifyCS.Diagnostic().WithSpan(9, 6, 9, 59).WithArguments("C") },
                 },
                 FixedState =
@@ -636,7 +636,7 @@ End Namespace
                 TestState =
                 {
                     Sources = { source },
-                    AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
+                    AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
                     ExpectedDiagnostics = { VerifyVB.Diagnostic().WithSpan(9, 6, 9, 59).WithArguments("C") },
                 },
                 FixedState =
@@ -692,7 +692,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef {{
                 TestState =
                 {
                     Sources = { source },
-                    AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
+                    AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
                     ExpectedDiagnostics = { VerifyCS.Diagnostic().WithSpan(8, 6, 8, 35).WithArguments("C") },
                 },
                 FixedState =
@@ -752,7 +752,7 @@ End Namespace
                 TestState =
                 {
                     Sources = { source },
-                    AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
+                    AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
                     ExpectedDiagnostics = { VerifyVB.Diagnostic().WithSpan(8, 6, 8, 35).WithArguments("C") },
                 },
                 FixedState =
