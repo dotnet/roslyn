@@ -27,13 +27,13 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
     /// </summary>
     internal partial class DocumentOutlineControl : UserControl, IVsCodeWindowEvents
     {
-        private ILanguageServiceBrokerShim LanguageServiceBroker { get; }
+        private readonly ILanguageServiceBrokerShim LanguageServiceBroker;
 
-        private IThreadingContext ThreadingContext { get; }
+        private readonly IThreadingContext ThreadingContext;
 
-        private IVsEditorAdaptersFactoryService EditorAdaptersFactoryService { get; }
+        private readonly IVsEditorAdaptersFactoryService EditorAdaptersFactoryService;
 
-        private IVsCodeWindow CodeWindow { get; }
+        private readonly IVsCodeWindow CodeWindow;
 
         /// <summary>
         /// The type of sorting to be applied to the UI model in <see cref="UpdateUIAsync"/>.
