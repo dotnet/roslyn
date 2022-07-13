@@ -37,19 +37,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public static ImmutableArray<Document> GetDocuments(this Solution solution, Uri documentUri)
         {
-            var documentIds = GetDocumentIds(solution, documentUri);
-
-            // We don't call GetRequiredDocument here as the id could be referring to an additional document.
-            var documents = documentIds.Select(solution.GetDocument).WhereNotNull().ToImmutableArray();
-            return documents;
+            return solution.GetTextDocuments<Document>(documentUri);
         }
 
-        public static ImmutableArray<TextDocument> GetTextDocuments(this Solution solution, Uri documentUri)
+        public static ImmutableArray<T> GetTextDocuments<T>(this Solution solution, Uri documentUri) where T : TextDocument
         {
             var documentIds = GetDocumentIds(solution, documentUri);
 
             // We don't call GetRequiredDocument here as the id could be referring to an additional document.
-            var textDocuments = documentIds.Select(solution.GetTextDocument).WhereNotNull().ToImmutableArray();
+            var textDocuments = documentIds.Select(id => solution.GetTextDocument(id) as T).WhereNotNull().ToImmutableArray();
             return textDocuments;
         }
 
@@ -81,35 +77,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public static Document FindDocumentInProjectContext(this ImmutableArray<Document> documents, TextDocumentIdentifier documentIdentifier)
         {
-            if (documents.Length > 1)
-            {
-                // We have more than one document; try to find the one that matches the right context
-                if (documentIdentifier is VSTextDocumentIdentifier vsDocumentIdentifier && vsDocumentIdentifier.ProjectContext != null)
-                {
-                    var projectId = ProtocolConversions.ProjectContextToProjectId(vsDocumentIdentifier.ProjectContext);
-                    var matchingDocument = documents.FirstOrDefault(d => d.Project.Id == projectId);
-
-                    if (matchingDocument != null)
-                    {
-                        return matchingDocument;
-                    }
-                }
-                else
-                {
-                    // We were not passed a project context.  This can happen when the LSP powered NavBar is not enabled.
-                    // This branch should be removed when we're using the LSP based navbar in all scenarios.
-
-                    var solution = documents.First().Project.Solution;
-                    // Lookup which of the linked documents is currently active in the workspace.
-                    var documentIdInCurrentContext = solution.Workspace.GetDocumentIdInCurrentContext(documents.First().Id);
-                    return solution.GetRequiredDocument(documentIdInCurrentContext);
-                }
-            }
-
-            // We either have only one document or have multiple, but none of them  matched our context. In the
-            // latter case, we'll just return the first one arbitrarily since this might just be some temporary mis-sync
-            // of client and server state.
-            return documents[0];
+            return documents.FindTextDocumentInProjectContext<Document>(documentIdentifier);
         }
 
         public static T FindTextDocumentInProjectContext<T>(this ImmutableArray<T> documents, TextDocumentIdentifier documentIdentifier) where T : TextDocument
@@ -136,7 +104,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                     // Lookup which of the linked documents is currently active in the workspace.
                     var documentIdInCurrentContext = solution.Workspace.GetDocumentIdInCurrentContext(documents.First().Id);
 
-                    return solution.GetRequiredTextDocument(documentIdInCurrentContext) as T ?? throw new NullReferenceException();
+                    return (T)solution.GetRequiredTextDocument(documentIdInCurrentContext);
                 }
             }
 
