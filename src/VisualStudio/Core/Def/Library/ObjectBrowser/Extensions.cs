@@ -7,6 +7,7 @@
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -98,14 +99,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
         public static bool IsVenus(this Project project)
         {
-            if (project.Solution.Workspace is not VisualStudioWorkspaceImpl workspace)
+            if (project.Solution.Workspace is not VisualStudioWorkspaceImpl)
             {
                 return false;
             }
 
             foreach (var documentId in project.DocumentIds)
             {
-                if (workspace.TryGetContainedDocument(documentId) != null)
+                if (ContainedDocument.TryGetContainedDocument(documentId) != null)
                 {
                     return true;
                 }

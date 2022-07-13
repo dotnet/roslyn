@@ -240,7 +240,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 // If we're inside an Venus code nugget, we need to map the span to the surface buffer.
                 // Otherwise, we'll just use the original span.
                 var mappedSpan = await span.MapSpanFromSecondaryBufferToPrimaryBufferAsync(
-                    _threadingContext, solution.Workspace, document.Id, cancellationToken).ConfigureAwait(false);
+                    _threadingContext, document.Id, cancellationToken).ConfigureAwait(false);
                 if (mappedSpan != null)
                     span = mappedSpan.Value;
 
