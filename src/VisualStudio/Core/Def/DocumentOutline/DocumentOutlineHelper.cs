@@ -198,13 +198,13 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 switch (sortOption)
                 {
                     case SortOption.Name:
-                        sortedDocumentSymbols.Sort((x, y) => x.Name.CompareTo(y.Name));
+                        sortedDocumentSymbols.Sort(static (x, y) => x.Name.CompareTo(y.Name));
                         break;
                     case SortOption.Location:
-                        sortedDocumentSymbols.Sort((x, y) => x.RangeSpan.Start - y.RangeSpan.Start);
+                        sortedDocumentSymbols.Sort(static (x, y) => x.RangeSpan.Start - y.RangeSpan.Start);
                         break;
                     case SortOption.Type:
-                        sortedDocumentSymbols.Sort((x, y) =>
+                        sortedDocumentSymbols.Sort(static (x, y) =>
                         {
                             if (x.SymbolKind == y.SymbolKind)
                                 return x.Name.CompareTo(y.Name);
