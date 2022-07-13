@@ -27,13 +27,13 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
     /// </summary>
     internal partial class DocumentOutlineControl : UserControl, IVsCodeWindowEvents
     {
-        private readonly ILanguageServiceBrokerShim LanguageServiceBroker;
+        private readonly ILanguageServiceBrokerShim _languageServiceBroker;
 
-        private readonly IThreadingContext ThreadingContext;
+        private readonly IThreadingContext _threadingContext;
 
-        private readonly IVsEditorAdaptersFactoryService EditorAdaptersFactoryService;
+        private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
 
-        private readonly IVsCodeWindow CodeWindow;
+        private readonly IVsCodeWindow _codeWindow;
 
         private SortOption _sortOption;
 
@@ -44,12 +44,12 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         {
             get
             {
-                ThreadingContext.ThrowIfNotOnUIThread();
+                _threadingContext.ThrowIfNotOnUIThread();
                 return _sortOption;
             }
             set
             {
-                ThreadingContext.ThrowIfNotOnUIThread();
+                _threadingContext.ThrowIfNotOnUIThread();
                 _sortOption = value;
             }
         }
@@ -91,10 +91,10 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         {
             InitializeComponent();
 
-            LanguageServiceBroker = languageServiceBroker;
-            ThreadingContext = threadingContext;
-            EditorAdaptersFactoryService = editorAdaptersFactoryService;
-            CodeWindow = codeWindow;
+            _languageServiceBroker = languageServiceBroker;
+            _threadingContext = threadingContext;
+            _editorAdaptersFactoryService = editorAdaptersFactoryService;
+            _codeWindow = codeWindow;
             ComEventSink.Advise<IVsCodeWindowEvents>(codeWindow, this);
             SortOption = SortOption.Location;
 
@@ -142,15 +142,15 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
         int IVsCodeWindowEvents.OnNewView(IVsTextView pView)
         {
-            ThreadingContext.ThrowIfNotOnUIThread();
+            _threadingContext.ThrowIfNotOnUIThread();
             return StartTrackingView(pView);
         }
 
         private int StartTrackingView(IVsTextView textView)
         {
-            ThreadingContext.ThrowIfNotOnUIThread();
+            _threadingContext.ThrowIfNotOnUIThread();
 
-            var wpfTextView = EditorAdaptersFactoryService.GetWpfTextView(textView);
+            var wpfTextView = _editorAdaptersFactoryService.GetWpfTextView(textView);
             if (wpfTextView is null)
                 return VSConstants.E_FAIL;
 
@@ -167,7 +167,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
         int IVsCodeWindowEvents.OnCloseView(IVsTextView pView)
         {
-            ThreadingContext.ThrowIfNotOnUIThread();
+            _threadingContext.ThrowIfNotOnUIThread();
 
             if (_trackedTextViews.TryGetValue(pView, out var view))
             {

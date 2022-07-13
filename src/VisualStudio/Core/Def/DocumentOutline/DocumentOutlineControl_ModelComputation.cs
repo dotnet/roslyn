@@ -22,12 +22,12 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
     {
         private IWpfTextView? GetLastActiveIWpfTextView()
         {
-            ThreadingContext.ThrowIfNotOnUIThread();
+            _threadingContext.ThrowIfNotOnUIThread();
 
-            if (ErrorHandler.Failed(CodeWindow.GetLastActiveView(out var textView)))
+            if (ErrorHandler.Failed(_codeWindow.GetLastActiveView(out var textView)))
                 return null;
 
-            return EditorAdaptersFactoryService.GetWpfTextView(textView);
+            return _editorAdaptersFactoryService.GetWpfTextView(textView);
         }
 
         /// <summary>
@@ -45,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         private async ValueTask<DocumentSymbolDataModel?> ComputeDataModelAsync(ImmutableSegmentedList<bool> _, CancellationToken cancellationToken)
         {
             // Jump to the UI thread to get the currently active text view.
-            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var activeTextView = GetLastActiveIWpfTextView();
             if (activeTextView is null)
@@ -72,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             async Task<DocumentSymbolDataModel?> ComputeDataModelAsync()
             {
                 var response = await DocumentOutlineHelper.DocumentSymbolsRequestAsync(
-                    textBuffer, LanguageServiceBroker, filePath, cancellationToken).ConfigureAwait(false);
+                    textBuffer, _languageServiceBroker, filePath, cancellationToken).ConfigureAwait(false);
 
                 if (response is null)
                     return null;
@@ -88,8 +88,8 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             string? GetFilePath()
             {
-                ThreadingContext.ThrowIfNotOnUIThread();
-                if (EditorAdaptersFactoryService.GetBufferAdapter(textBuffer) is IPersistFileFormat persistFileFormat &&
+                _threadingContext.ThrowIfNotOnUIThread();
+                if (_editorAdaptersFactoryService.GetBufferAdapter(textBuffer) is IPersistFileFormat persistFileFormat &&
                     ErrorHandler.Succeeded(persistFileFormat.GetCurFile(out var filePath, out var _)))
                 {
                     return filePath;
@@ -118,7 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 return null;
 
             // Switch to the UI thread to get the current search query and sort option.
-            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var searchQuery = SearchBox.Text;
             var sortOption = SortOption;
@@ -157,7 +157,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 return;
 
             // Switch to the UI thread to get the current caret point and latest active text view.
-            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var activeTextView = GetLastActiveIWpfTextView();
             if (activeTextView is null)
@@ -176,7 +176,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             var symbolToSelect = DocumentOutlineHelper.GetDocumentNodeToSelect(documentSymbolUIItems, model.OriginalSnapshot, caretPoint.Value);
 
             // Switch to the UI thread to update the view.
-            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             // Unselects the currently selected symbol. This is required in case the current caret position is not in range of any symbols
             // (symbolToSelect will be null) so that no symbols in the tree are highlighted.
@@ -211,7 +211,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 return;
 
             // Switch to the UI thread to update the latest active text view.
-            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var activeTextView = GetLastActiveIWpfTextView();
             if (activeTextView is null)
