@@ -62,15 +62,17 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             // that fetching and processing the document model is not done on the UI thread.
             await TaskScheduler.Default;
 
-            var model = await ComputeDataModelAsync().ConfigureAwait(false);
+            var model = await ComputeDataModelAsync(cancellationToken).ConfigureAwait(false);
 
             if (model is not null)
                 StartUpdateDataModelTask();
 
             return model;
 
-            async Task<DocumentSymbolDataModel?> ComputeDataModelAsync()
+            async Task<DocumentSymbolDataModel?> ComputeDataModelAsync(CancellationToken cancellationToken)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var response = await DocumentOutlineHelper.DocumentSymbolsRequestAsync(
                     textBuffer, _languageServiceBroker, filePath, cancellationToken).ConfigureAwait(false);
 
