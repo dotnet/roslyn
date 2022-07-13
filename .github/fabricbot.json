@@ -996,6 +996,101 @@
         "taskName": "Approve PRs to release branches that are approved by InfraSwat"
       },
       "disabled": true
+    },
+    {
+      "taskType": "trigger",
+      "capabilityId": "IssueResponder",
+      "subCapability": "PullRequestResponder",
+      "version": "1.0",
+      "config": {
+        "conditions": {
+          "operator": "and",
+          "operands": [
+            {
+              "name": "prMatchesPattern",
+              "parameters": {
+                "matchRegex": ".*/PublicAPI\\.(Shipped|Unshipped)\\.txt"
+              }
+            },
+            {
+              "operator": "not",
+              "operands": [
+                {
+                  "name": "isActivitySender",
+                  "parameters": {
+                    "user": "dotnet-bot"
+                  }
+                }
+              ]
+            },
+            {
+              "operator": "or",
+              "operands": [
+                {
+                  "name": "isAction",
+                  "parameters": {
+                    "action": "opened"
+                  }
+                },
+                {
+                  "name": "isAction",
+                  "parameters": {
+                    "action": "synchronize"
+                  }
+                }
+              ]
+            },
+            {
+              "operator": "and",
+              "operands": [
+                {
+                  "operator": "not",
+                  "operands": [
+                    {
+                      "name": "hasLabel",
+                      "parameters": {
+                        "label": "api-approved"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "operator": "not",
+                  "operands": [
+                    {
+                      "name": "hasLabel",
+                      "parameters": {
+                        "label": "Needs API Review"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "eventType": "pull_request",
+        "eventNames": [
+          "pull_request",
+          "issues",
+          "project_card"
+        ],
+        "taskName": "Adds \"Needs API Review\" on PRs that touch public APIs",
+        "actions": [
+          {
+            "name": "addLabel",
+            "parameters": {
+              "label": "Needs API Review"
+            }
+          },
+          {
+            "name": "addReply",
+            "parameters": {
+              "comment": "This PR modifies public API files. Please follow the instructions at https://github.com/dotnet/roslyn/blob/main/docs/contributing/API%20Review%20Process.md for ensuring all public APIs are reviewed before merging."
+            }
+          }
+        ]
+      }
     }
   ],
   "userGroups": []
