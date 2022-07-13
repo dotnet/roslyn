@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -76,6 +77,9 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 var response = await DocumentOutlineHelper.DocumentSymbolsRequestAsync(
                     textBuffer, _languageServiceBroker, filePath, cancellationToken).ConfigureAwait(false);
 
+                // If there is no matching LSP server registered the client will return null here - e.g. wrong content type on the buffer, the
+                // server totally failed to start, server doesn't support the right capabilities. For C# we might know it's a bug if we get a null
+                // response here, but we don't know that in general for all languages.
                 if (response is null)
                     return null;
 
