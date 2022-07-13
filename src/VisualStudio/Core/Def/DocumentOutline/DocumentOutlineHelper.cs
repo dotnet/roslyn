@@ -233,8 +233,9 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             foreach (var documentSymbol in documentSymbolItems)
             {
+                var filteredChildren = Search(documentSymbol.Children, pattern, cancellationToken);
                 if (SearchNodeTree(documentSymbol, patternMatcher, cancellationToken))
-                    documentSymbols.Add(documentSymbol);
+                    documentSymbols.Add(new DocumentSymbolData(documentSymbol, filteredChildren));
             }
 
             return documentSymbols.ToImmutable();
