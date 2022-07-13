@@ -4,9 +4,10 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
+    <GenerateReadyToRun Condition="'$(GenerateReadyToRun)' == '' and '$(Configuration)' == 'Release' and '$(OfficialBuild)' == 'true'">true</GenerateReadyToRun>
     <MicrosoftNETCoreAppRuntimewinx64Version>$(MicrosoftNetCoreAppPackagesVersion)</MicrosoftNETCoreAppRuntimewinx64Version>
     <MicrosoftWindowsDesktopAppRuntimewinx64Version>$(MicrosoftNetCoreAppPackagesVersion)</MicrosoftWindowsDesktopAppRuntimewinx64Version>
-    <MicrosoftNETCoreAppcrossgen2winx64Version>$(MicrosoftNetCoreAppPackagesVersion)</MicrosoftNETCoreAppcrossgen2winx64Version>
+    <MicrosoftNETCoreAppcrossgen2winx64Version>$(MicrosoftNetCoreAppPackagesVersion)</MicrosoftNETCoreAppcrossgen2winx64Version>    
     <!--
     The purpose of this project is to include all dependecies of Microsoft.CodeAnalysis.Remote.ServiceHub and C# and VB features layer targeting .Net Core.
     -->
@@ -28,7 +29,7 @@
     -->
     <PackageReference Include="Microsoft.NETCore.App.Runtime.win-x64" Version="$(MicrosoftNETCoreAppRuntimewinx64Version)" ExcludeAssets="all" PrivateAssets="all" GeneratePathProperty="true" />
     <PackageReference Include="Microsoft.WindowsDesktop.App.Runtime.win-x64" Version="$(MicrosoftWindowsDesktopAppRuntimewinx64Version)" ExcludeAssets="all" PrivateAssets="all" GeneratePathProperty="true" />
-    <PackageReference Include="Microsoft.NETCore.App.crossgen2.win-x64" Version="$(MicrosoftNETCoreAppcrossgen2winx64Version)" ExcludeAssets="all" PrivateAssets="all" GeneratePathProperty="true" />
+    <PackageReference Include="Microsoft.NETCore.App.crossgen2.win-x64" Version="$(MicrosoftNETCoreAppcrossgen2winx64Version)" Condition="'$(GenerateReadyToRun)' == 'true'" ExcludeAssets="all" PrivateAssets="all" GeneratePathProperty="true" />
   </ItemGroup>
 
   <Target Name="LocateCrossgenTargets" DependsOnTargets="Publish">
@@ -67,18 +68,20 @@
       <CrossgenWorkDir>$(PublishDir)\CrossGen\</CrossgenWorkDir>
       <OriginalAssemblyFolder>$(CrossgenWorkDir)OriginalAssemblies\</OriginalAssemblyFolder>
     </PropertyGroup>   
+  </Target>
 
+  <Target Name="PrepareCrossgenTargets" DependsOnTargets="LocateCrossgenTargets" Condition="'$(GenerateReadyToRun)' == 'true'">
     <Move SourceFiles="@(_R2RAssemblyPaths)" DestinationFolder="$(OriginalAssemblyFolder)">
       <Output TaskParameter="DestinationFiles" ItemName="_FilesWritten" />
     </Move>
-
     <ItemGroup>
       <_CrossgenTargetPaths Include="$(OriginalAssemblyFolder)\*.dll" />
-      <_RoslynDependencies Include="@(_CrossgenTargetPaths)" />
+      <_CrossgenTargetsAsDependencies Include="@(_CrossgenTargetPaths)" />
+      <_NonCrossgenTargetsAsDependencies Include="@(_NonRuntimeAssembliesInPublishFolder)" Exclude="@(_R2RAssemblyPaths)" />
     </ItemGroup>
   </Target>
 
-  <Target Name="CompileReadyToRun" DependsOnTargets="LocateCrossgenTargets;LocateDependencies" Outputs="%(_CrossgenTargetPaths.FullPath)">    
+  <Target Name="CompileReadyToRun" DependsOnTargets="LocateDependencies;PrepareCrossgenTargets"  Condition="'$(GenerateReadyToRun)' == 'true'" Outputs="%(_CrossgenTargetPaths.FullPath)">    
     <PropertyGroup>    
       <_Crossgen2Path>$(PkgMicrosoft_NETCore_App_crossgen2_win-x64)\tools\crossgen2.dll</_Crossgen2Path>
       <_R2ROptimizeAssemblyPath>%(_CrossgenTargetPaths.FullPath)</_R2ROptimizeAssemblyPath>
@@ -91,8 +94,8 @@
       <_RspFileLines Include="--targetarch:x64" />
       <_RspFileLines Include="--optimize" />
       <_RspFileLines Include="@(_RuntimeLibraries->'--reference:%(FullPath)')" />
-      <_RspFileLines Include="@(_RoslynDependencies->'--reference:%(FullPath)')" />
-      <_RspFileLines Include="@(_NonRuntimeAssembliesInPublishFolder->'--reference:%(FullPath)')" Exclude="@(_RoslynDependencies)"/>
+      <_RspFileLines Include="@(_CrossgenTargetsAsDependencies->'--reference:%(FullPath)')" />
+      <_RspFileLines Include="@(_NonCrossgenTargetsAsDependencies->'--reference:%(FullPath)')" />
     </ItemGroup>
 
     <WriteLinesToFile File="$(_RspFilePath)" Lines="" Overwrite="true" />
@@ -118,7 +121,9 @@
     </ItemGroup>
   </Target>
 
-  <Target Name="PublishProjectOutputGroup" DependsOnTargets="CompileReadyToRun" Returns="@(_PublishedFiles)">
+  <Target Name="BeforePublishProjectOutputGroup" DependsOnTargets="LocateDependencies;LocateCrossgenTargets" />
+
+  <Target Name="PublishProjectOutputGroup" DependsOnTargets="BeforePublishProjectOutputGroup;CompileReadyToRun" Returns="@(_PublishedFiles)">
     <ItemGroup>
       <_ExcludedFiles Include="$(PublishDir)**\Microsoft.CodeAnalysis.Remote.ServiceHub.CoreComponents.*" />
       <_ExcludedFiles Include="$(PublishDir)**\*.pdb" />
