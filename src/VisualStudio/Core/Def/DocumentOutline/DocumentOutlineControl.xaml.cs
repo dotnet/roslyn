@@ -194,7 +194,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             StartHightlightNodeTask(ExpansionOption.Collapse);
         }
 
-        private void Search(object sender, EventArgs e)
+        private void SearchBox_TextChanged(object sender, EventArgs e)
         {
             StartUpdateDataModelTask();
         }
