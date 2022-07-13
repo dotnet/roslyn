@@ -182,10 +182,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
 
         public void Dispose()
         {
-            if (_completionDisabledToken != null)
-            {
-                _completionDisabledToken.Dispose();
-            }
+            _completionDisabledToken?.Dispose();
 
             RemoveContext();
         }

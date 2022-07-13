@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public bool IsWriteOnly => this.GetMethod == null && this.SetMethod != null;
 
-        public bool IsRequired => Modifiers.IsRequired;
+        public bool IsRequired => Modifiers.IsRequired && !IsIndexer;
 
         public new IPropertySymbol OriginalDefinition => this;
 

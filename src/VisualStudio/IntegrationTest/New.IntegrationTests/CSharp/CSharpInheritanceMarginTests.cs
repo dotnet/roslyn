@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
+using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
 using WindowsInput.Native;
@@ -120,7 +121,7 @@ class Implementation : IEnumerable
             Assert.Equal(WorkspaceKind.MetadataAsSource, document.Project.Solution.Workspace.Kind);
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/62286")]
         public async Task TestNavigateToDifferentProjects()
         {
             await TestServices.InheritanceMargin.EnableOptionsAsync(LanguageNames.CSharp, cancellationToken: HangMitigatingCancellationToken);

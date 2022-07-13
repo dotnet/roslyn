@@ -12,14 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public sealed class RecordParsingTests : ParsingTests
     {
-        private SyntaxTree UsingTree(string text, CSharpParseOptions? options, params DiagnosticDescription[] expectedErrors)
-        {
-            var tree = SyntaxFactory.ParseSyntaxTree(text, options);
-            UsingNode(text, tree.GetCompilationUnitRoot(), expectedErrors);
-            return tree;
-        }
-
-        private SyntaxTree UsingTree(string text, params DiagnosticDescription[] expectedErrors)
+        private new SyntaxTree UsingTree(string text, params DiagnosticDescription[] expectedErrors)
             => UsingTree(text, TestOptions.Regular9, expectedErrors);
 
         private new void UsingExpression(string text, params DiagnosticDescription[] expectedErrors)

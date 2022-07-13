@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             var documentSyntax = ParsedDocument.CreateSynchronously(document, cancellationToken);
             var text = documentSyntax.Text;
             var root = documentSyntax.Root;
-            var formattingOptions = document.GetSyntaxFormattingOptionsAsync(GlobalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
+            var formattingOptions = textBuffer.GetSyntaxFormattingOptions(EditorOptionsService, document.Project.LanguageServices, explicitFormat: true);
 
             var ts = selections.Single();
             var start = text.Lines[ts.iStartLine].Start + ts.iStartIndex;

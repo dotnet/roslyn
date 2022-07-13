@@ -13,8 +13,9 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EndToEnd
 {
+    [TestCaseOrderer("XUnit.Project.Orderers.AlphabeticalOrderer", "XUnit.Project")]
     public class EndToEndTests : EmitMetadataTestBase
     {
         /// <summary>

@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         break;
 
                     case WorkspaceChangeKind.SolutionCleared:
-                        EnqueueFullSolutionEvent(args.OldSolution, InvocationReasons.DocumentRemoved, eventName);
+                        EnqueueFullSolutionEvent(args.OldSolution, InvocationReasons.SolutionRemoved, eventName);
                         break;
 
                     case WorkspaceChangeKind.ProjectAdded:

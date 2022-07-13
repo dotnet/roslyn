@@ -113,7 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         public static string GetEventHandlerMemberId(Document document, string className, string objectTypeName, string nameOfEvent, string eventHandlerName, CancellationToken cancellationToken)
         {
             var nameAndId = GetCompatibleEventHandlers(document, className, objectTypeName, nameOfEvent, cancellationToken).SingleOrDefault(pair => pair.Item1 == eventHandlerName);
-            return nameAndId == null ? null : nameAndId.Item2;
+            return nameAndId?.Item2;
         }
 
         /// <summary>

@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             var resolution = await initialLocations.Filter(filter).ResolveConflictsAsync(
                 finalName, nonConflictSymbols: null, cancellationToken).ConfigureAwait(false);
 
-            Contract.ThrowIfTrue(resolution.ErrorMessage != null);
+            Contract.ThrowIfFalse(resolution.IsSuccessful);
 
             return resolution.NewSolution;
         }

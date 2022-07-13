@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -1358,6 +1359,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static bool IsPartial(this TypeSymbol type)
         {
             return type is SourceNamedTypeSymbol { IsPartial: true };
+        }
+
+        public static bool IsFileTypeOrUsesFileTypes(this TypeSymbol type)
+        {
+            var foundType = type.VisitType(predicate: (type, _, _) => type is SourceMemberContainerTypeSymbol { IsFile: true }, arg: (object?)null);
+            return foundType is not null;
+        }
+
+        internal static string? AssociatedFileIdentifier(this NamedTypeSymbol type)
+        {
+            if (type.AssociatedSyntaxTree is not SyntaxTree tree)
+            {
+                return null;
+            }
+            var ordinal = type.DeclaringCompilation.GetSyntaxTreeOrdinal(tree);
+            return GeneratedNames.MakeFileIdentifier(tree.FilePath, ordinal);
         }
 
         public static bool IsPointerType(this TypeSymbol type)
