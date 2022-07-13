@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected void TypeChecks(TypeSymbol type, BindingDiagnosticBag diagnostics)
         {
-            if (type.IsFileTypeOrUsesFileTypes() && !ContainingType.IsFileTypeOrUsesFileTypes())
+            if (type.HasFileLocalTypes() && !ContainingType.HasFileLocalTypes())
             {
                 diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, this.ErrorLocation, type, ContainingType);
             }

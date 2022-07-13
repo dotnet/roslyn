@@ -1308,14 +1308,14 @@ symIsHidden:;
 
         private bool IsInScopeOfAssociatedSyntaxTree(Symbol symbol)
         {
-            while (symbol is not null and not SourceMemberContainerTypeSymbol { IsFile: true })
+            while (symbol is not null and not SourceMemberContainerTypeSymbol { IsFileLocal: true })
             {
                 symbol = symbol.ContainingType;
             }
 
             if (symbol is null)
             {
-                // the passed-in symbol was not contained in a file type.
+                // the passed-in symbol was not contained in a file-local type.
                 return true;
             }
 
