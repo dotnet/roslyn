@@ -268,7 +268,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             ITextSnapshot originalSnapshot,
             SnapshotPoint currentCaretPoint)
         {
-            var originalSnapshotPoint = currentCaretPoint.TranslateTo(originalSnapshot, PointTrackingMode.Negative);
+            var originalCaretPoint = currentCaretPoint.TranslateTo(originalSnapshot, PointTrackingMode.Negative);
 
             return GetNodeToSelect(documentSymbolItems, null);
 
@@ -287,7 +287,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             {
                 foreach (var symbol in documentSymbolItems)
                 {
-                    if (symbol.RangeSpan.IntersectsWith(originalSnapshotPoint))
+                    if (symbol.RangeSpan.IntersectsWith(originalCaretPoint))
                         return symbol;
                 }
 

@@ -155,9 +155,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// </summary>
         private async ValueTask HightlightNodeAsync(ImmutableSegmentedList<ExpansionOption> expansionOption, CancellationToken cancellationToken)
         {
-            if (expansionOption.IsDefault || expansionOption.IsEmpty)
-                return;
-
             var model = await _updateDataModelQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
             if (model is null)
                 return;
@@ -172,8 +169,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             var caretPoint = activeTextView.GetCaretPoint(activeTextView.TextBuffer);
             if (!caretPoint.HasValue)
                 return;
-
-            //var currentSnapshot = activeTextView.TextSnapshot;
 
             // Switch to the threadpool to determine which node is currently selected and which node to select (if they exist).
             await TaskScheduler.Default;
@@ -214,9 +209,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// </summary>
         private async ValueTask JumpToContentAsync(ImmutableSegmentedList<DocumentSymbolUIItem> symbol, CancellationToken cancellationToken)
         {
-            if (symbol.IsDefault || symbol.IsEmpty)
-                return;
-
             var model = await _computeDataModelQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
             if (model is null)
                 return;
