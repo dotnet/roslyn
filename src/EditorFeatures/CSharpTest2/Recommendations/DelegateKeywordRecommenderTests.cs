@@ -451,5 +451,12 @@ class C
             await VerifyAbsenceAsync($@"
 {typeKind} Test : $$");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInBaseEnumContext()
+        {
+            await VerifyAbsenceAsync(@"
+enum MyEnum : $$");
+        }
     }
 }

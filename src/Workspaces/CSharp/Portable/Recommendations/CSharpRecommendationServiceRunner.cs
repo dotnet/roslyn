@@ -32,7 +32,8 @@ internal partial class CSharpRecommendationService
         public override RecommendedSymbols GetRecommendedSymbols()
         {
             if (_context.IsInNonUserCode ||
-                _context.IsPreProcessorDirectiveContext)
+                _context.IsPreProcessorDirectiveContext ||
+                _context.IsBaseEnumContext)
             {
                 return default;
             }

@@ -45,6 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                    && !context.IsConstantExpressionContext
                    && !context.IsGenericConstraintContext
                    && !context.IsInheritanceContext
+                   && !context.IsBaseEnumContext
                    && !context.LeftToken.IsTopLevelOfUsingAliasDirective();
         }
 

@@ -3023,11 +3023,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                    targetToken.Parent is QualifiedNameSyntax { Parent: BaseTypeSyntax };
         }
 
+        public static bool IsBaseEnumContext(this SyntaxTree syntaxTree, SyntaxToken targetToken)
+        {
+            // We don't care about qualified names, generics or whatever else, because in base list of enum can only contain one item of byte, short etc.
+            return targetToken.GetAncestor<BaseListSyntax>() is { Parent: EnumDeclarationSyntax };
+        }
+
         public static bool IsBaseInterfaceContext(this SyntaxTree syntaxTree, SyntaxToken targetToken)
         {
             // The first part of condition checks for non-written base type, e.g. "class C : $$" or "class C : Base, $$"
             // The second one checks quilified name cases, e.g. "class C : System.$$"
-            return (targetToken.IsKind(SyntaxKind.ColonToken, SyntaxKind.CommaToken) && targetToken.Parent is BaseListSyntax) ||
+            return (targetToken.IsKind(SyntaxKind.ColonToken, SyntaxKind.CommaToken) && targetToken.Parent is BaseListSyntax { Parent: not EnumDeclarationSyntax }) ||
                     targetToken.Parent is QualifiedNameSyntax { Parent: BaseTypeSyntax };
         }
 

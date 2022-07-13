@@ -2282,6 +2282,17 @@ record B : MyNameSpace.My$$Recorrd<>";
             await VerifyItemIsAbsentAsync(markup, "MyStruct");
         }
 
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("")]
+        [InlineData("MyNameSpace.")]
+        public async Task BaseListEnum(string quialification)
+        {
+            await VerifyNoItemsExistAsync($@"
+namespace MyNameSpace;
+
+enum MyEnum : {quialification}$$");
+        }
+
         #endregion
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

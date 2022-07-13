@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public readonly TypeDeclarationSyntax? ContainingTypeDeclaration;
         public readonly BaseTypeDeclarationSyntax? ContainingTypeOrEnumDeclaration;
 
+        public readonly bool IsBaseEnumContext;
         public readonly bool IsCatchFilterContext;
         public readonly bool IsConstantExpressionContext;
         public readonly bool IsCrefContext;
@@ -62,6 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             bool isAttributeNameContext,
             bool isAwaitKeywordContext,
             bool isBaseClassContext,
+            bool isBaseEnumContext,
             bool isBaseInterfaceContext,
             bool isBaseRecordContext,
             bool isCatchFilterContext,
@@ -148,6 +150,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                   declarationOfInheritingSymbol: declarationOfInheritingSymbol,
                   cancellationToken)
         {
+            this.IsBaseEnumContext = isBaseEnumContext;
+
             this.ContainingTypeDeclaration = containingTypeDeclaration;
             this.ContainingTypeOrEnumDeclaration = containingTypeOrEnumDeclaration;
 
@@ -256,6 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 isAttributeNameContext: syntaxTree.IsAttributeNameContext(position, cancellationToken),
                 isAwaitKeywordContext: ComputeIsAwaitKeywordContext(position, leftToken, targetToken, isGlobalStatementContext, isAnyExpressionContext, isStatementContext),
                 isBaseClassContext: syntaxTree.IsBaseClassContext(targetToken),
+                isBaseEnumContext: syntaxTree.IsBaseEnumContext(targetToken),
                 isBaseInterfaceContext: syntaxTree.IsBaseInterfaceContext(targetToken),
                 isBaseRecordContext: syntaxTree.IsBaseRecordContext(targetToken),
                 isCatchFilterContext: syntaxTree.IsCatchFilterContext(position, leftToken),
