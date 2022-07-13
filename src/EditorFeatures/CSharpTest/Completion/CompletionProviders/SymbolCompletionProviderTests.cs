@@ -6966,14 +6966,15 @@ class Program : $$
 
             var referencedCode = @"
 [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-public class Goo
+public struct Goo
 {
 }";
+            // struct is not valid completion for class inheritance, so we expect 0 symbols here
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
                 referencedCode: referencedCode,
                 item: "Goo",
-                expectedSymbolsSameSolution: 1,
+                expectedSymbolsSameSolution: 0,
                 expectedSymbolsMetadataReference: 0,
                 sourceLanguage: LanguageNames.CSharp,
                 referencedLanguage: LanguageNames.CSharp);
@@ -7008,6 +7009,7 @@ public struct Goo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
+        [WorkItem(62013, "https://github.com/dotnet/roslyn/pull/62013")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_Struct_BrowsableStateAlways_DeriveFrom()
         {
@@ -7018,15 +7020,16 @@ class Program : $$
 
             var referencedCode = @"
 [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Always)]
-public class Goo
+public struct Goo
 {
 }";
+            // struct is not valid completion for class inheritance, so we expect 0 symbols here
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
                 referencedCode: referencedCode,
                 item: "Goo",
-                expectedSymbolsSameSolution: 1,
-                expectedSymbolsMetadataReference: 1,
+                expectedSymbolsSameSolution: 0,
+                expectedSymbolsMetadataReference: 0,
                 sourceLanguage: LanguageNames.CSharp,
                 referencedLanguage: LanguageNames.CSharp);
         }
@@ -7073,6 +7076,7 @@ public struct Goo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
+        [WorkItem(62013, "https://github.com/dotnet/roslyn/pull/62013")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_Struct_BrowsableStateAdvanced_DeriveFrom()
         {
@@ -7083,33 +7087,36 @@ class Program : $$
 
             var referencedCode = @"
 [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Advanced)]
-public class Goo
+public struct Goo
 {
 }";
             HideAdvancedMembers = false;
 
+            // struct is not valid completion for class inheritance, so we expect 0 symbols here
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
                 referencedCode: referencedCode,
                 item: "Goo",
-                expectedSymbolsSameSolution: 1,
-                expectedSymbolsMetadataReference: 1,
+                expectedSymbolsSameSolution: 0,
+                expectedSymbolsMetadataReference: 0,
                 sourceLanguage: LanguageNames.CSharp,
                 referencedLanguage: LanguageNames.CSharp);
 
             HideAdvancedMembers = true;
 
+            // struct is not valid completion for class inheritance, so we expect 0 symbols here
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
                 referencedCode: referencedCode,
                 item: "Goo",
-                expectedSymbolsSameSolution: 1,
+                expectedSymbolsSameSolution: 0,
                 expectedSymbolsMetadataReference: 0,
                 sourceLanguage: LanguageNames.CSharp,
                 referencedLanguage: LanguageNames.CSharp);
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
+        [WorkItem(62013, "https://github.com/dotnet/roslyn/pull/62013")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_Enum_BrowsableStateNever()
         {
