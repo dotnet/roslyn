@@ -716,6 +716,7 @@ class Program
             AssertEx.Equal(expectedReferences, fieldReferences.ToTestDisplayStrings());
         }
 
+        [WorkItem(62596, "https://github.com/dotnet/roslyn/issues/62596")]
         [Theory]
         [InlineData("class")]
         [InlineData("struct")]
