@@ -59,12 +59,12 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
         /// <summary>
         /// Queue to batch up work to do to compute the data model. Used so we can batch up a lot of events 
-        /// and only fetch the model once for every batch.
+        /// and only fetch the model once for every batch. The bool parameter is unused.
         /// </summary>
         private readonly AsyncBatchingWorkQueue<bool, DocumentSymbolDataModel?> _computeDataModelQueue;
 
         /// <summary>
-        /// Queue to batch up work to do to filter and sort the data model.
+        /// Queue to batch up work to do to filter and sort the data model. The bool parameter is unused.
         /// </summary>
         private readonly AsyncBatchingWorkQueue<bool, DocumentSymbolDataModel?> _filterAndSortDataModelQueue;
 
@@ -187,7 +187,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         }
 
         /// <summary>
-        /// On text buffer change, obtain an updated data model.
+        /// On text buffer change, start computing the data model.
         /// </summary>
         private void TextBuffer_Changed(object sender, TextContentChangedEventArgs e)
             => StartComputeDataModelTask();
