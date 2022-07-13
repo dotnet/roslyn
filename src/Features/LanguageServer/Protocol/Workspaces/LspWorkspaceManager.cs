@@ -198,10 +198,10 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         // Find the matching document from the LSP solutions.
         foreach (var (lspSolution, isForked) in lspSolutions)
         {
-            var additionalDocuments = lspSolution.GetTextDocuments<T>(uri);
-            if (additionalDocuments.Any())
+            var textDocuments = lspSolution.GetTextDocuments<T>(uri);
+            if (textDocuments.Any())
             {
-                var document = additionalDocuments.FindTextDocumentInProjectContext(textDocumentIdentifier);
+                var document = textDocuments.FindTextDocumentInProjectContext(textDocumentIdentifier);
 
                 // Record metadata on how we got this document.
                 var workspaceKind = document.Project.Solution.Workspace.Kind;
