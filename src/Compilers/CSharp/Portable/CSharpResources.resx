@@ -6769,6 +6769,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_RefFieldCannotReferToRefStruct" xml:space="preserve">
     <value>A ref field cannot refer to a ref struct.</value>
   </data>
+  <data name="ERR_RefFieldInNonRefStruct" xml:space="preserve">
+    <value>A ref field can only be declared in a ref struct.</value>
+  </data>
 
   <data name="WRN_UseDefViolationPropertySupportedVersion" xml:space="preserve">
     <value>Auto-implemented property '{0}' is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</value>
