@@ -5,6 +5,7 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 using Microsoft.CodeAnalysis;
@@ -12,25 +13,24 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.DocumentOutline;
+using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageServiceBrokerShim;
 using Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
-using Microsoft.VisualStudio.Editor;
-using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageServiceBrokerShim;
-using System.Threading;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
     internal abstract partial class AbstractLanguageService<TPackage, TLanguageService>
     {
-        internal class VsCodeWindowManager : IVsCodeWindowManager, IVsCodeWindowEvents, IVsDocOutlineProvider, IVsDocOutlineProvider2
+        internal class VsCodeWindowManager : IVsCodeWindowManager, IVsCodeWindowEvents, IVsDocOutlineProvider
         {
             private readonly TLanguageService _languageService;
             private readonly IVsCodeWindow _codeWindow;
@@ -284,12 +284,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             int IVsDocOutlineProvider.OnOutlineStateChange(uint dwMask, uint dwState)
             {
-                return VSConstants.S_OK;
-            }
-
-            int IVsDocOutlineProvider2.TranslateAccelerator(MSG[] lpMsg)
-            {
-                // We shouldn't need to do any translation here
                 return VSConstants.S_OK;
             }
         }
