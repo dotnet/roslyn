@@ -269,7 +269,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             SnapshotPoint currentCaretPoint)
         {
             var originalCaretPoint = currentCaretPoint.TranslateTo(originalSnapshot, PointTrackingMode.Negative);
-
             return GetNodeToSelect(documentSymbolItems, null);
 
             DocumentSymbolUIItem? GetNodeToSelect(ImmutableArray<DocumentSymbolUIItem> documentSymbols, DocumentSymbolUIItem? parent)
@@ -300,21 +299,16 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// </summary>
         public static DocumentSymbolUIItem? GetCurrentlySelectedNode(ImmutableArray<DocumentSymbolUIItem> documentSymbolItems)
         {
-            // Creates a flat list of all the symbol nodes in the tree.
-            var nodeList = documentSymbolItems.AsEnumerable();
-            foreach (var symbol in documentSymbolItems)
+            foreach (var item in documentSymbolItems)
             {
-                nodeList = nodeList.Concat(Descendants(symbol));
-            }
+                if (item.IsSelected)
+                    return item;
 
-            // Returns which node is selected, if it exists.
-            return nodeList.FirstOrDefault(node => node.IsSelected);
-
-            // Returns a flat list of all the descendants of a node.
-            static IEnumerable<DocumentSymbolUIItem> Descendants(DocumentSymbolUIItem node)
-            {
-                return node.Children.Concat(node.Children.SelectMany(n => Descendants(n)));
+                var selectedChild = GetCurrentlySelectedNode(item.Children);
+                if (selectedChild != null)
+                    return selectedChild;
             }
+            return null;
         }
     }
 }
