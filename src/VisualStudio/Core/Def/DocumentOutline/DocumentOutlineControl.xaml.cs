@@ -44,12 +44,12 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// Queue to batch up work to do to compute the UI model. Used so we can batch up a lot of events 
         /// and only fetch the model once for every batch.
         /// </summary>
-        private readonly AsyncBatchingWorkQueue<bool, DocumentSymbolModel?> _computeDataModelQueue;
+        private readonly AsyncBatchingWorkQueue<bool, DocumentSymbolDataModel?> _computeDataModelQueue;
 
         /// <summary>
         /// Queue to batch up work to do to update the UI model.
         /// </summary>
-        private readonly AsyncBatchingWorkQueue<bool, DocumentSymbolModel?> _updateDataModelQueue;
+        private readonly AsyncBatchingWorkQueue<bool, DocumentSymbolDataModel?> _updateDataModelQueue;
 
         /// <summary>
         /// Queue to batch up work to do to highlight the currently selected symbol node, expand/collapse nodes,
@@ -60,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// <summary>
         /// Queue to batch up work to do to select code in the editor based on the current caret position.
         /// </summary>
-        private readonly AsyncBatchingWorkQueue<DocumentSymbolItem> _jumpToContentQueue;
+        private readonly AsyncBatchingWorkQueue<DocumentSymbolUIItem> _jumpToContentQueue;
 
         /// <summary>
         /// Keeps track of the current primary and secondary text views. Should only be accessed by the UI thread.
@@ -84,14 +84,14 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             ComEventSink.Advise<IVsCodeWindowEvents>(codeWindow, this);
             SortOption = SortOption.Location;
 
-            _computeDataModelQueue = new AsyncBatchingWorkQueue<bool, DocumentSymbolModel?>(
+            _computeDataModelQueue = new AsyncBatchingWorkQueue<bool, DocumentSymbolDataModel?>(
                 DelayTimeSpan.Short,
                 ComputeDataModelAsync,
                 EqualityComparer<bool>.Default,
                 asyncListener,
                 cancellationToken);
 
-            _updateDataModelQueue = new AsyncBatchingWorkQueue<bool, DocumentSymbolModel?>(
+            _updateDataModelQueue = new AsyncBatchingWorkQueue<bool, DocumentSymbolDataModel?>(
                 DelayTimeSpan.NearImmediate,
                 UpdateDataModelAsync,
                 EqualityComparer<bool>.Default,
@@ -104,7 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 asyncListener,
                 cancellationToken);
 
-            _jumpToContentQueue = new AsyncBatchingWorkQueue<DocumentSymbolItem>(
+            _jumpToContentQueue = new AsyncBatchingWorkQueue<DocumentSymbolUIItem>(
                 DelayTimeSpan.NearImmediate,
                 JumpToContentAsync,
                 asyncListener,
@@ -222,7 +222,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// </summary>
         private void JumpToContent(object sender, EventArgs e)
         {
-            if (sender is StackPanel panel && panel.DataContext is DocumentSymbolItem symbol)
+            if (sender is StackPanel panel && panel.DataContext is DocumentSymbolUIItem symbol)
                 StartJumpToContentTask(symbol);
         }
     }

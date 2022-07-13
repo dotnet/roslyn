@@ -14,17 +14,17 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
     using SymbolKind = LanguageServer.Protocol.SymbolKind;
 
-    internal class DocumentSymbolItem : INotifyPropertyChanged
+    internal class DocumentSymbolUIItem : INotifyPropertyChanged
     {
         private bool _isSelected;
         private bool _isExpanded;
 
         public string Name { get; }
 
-        public ImmutableArray<DocumentSymbolItem> Children { get; set; }
+        public ImmutableArray<DocumentSymbolUIItem> Children { get; set; }
 
-        public Position StartPosition { get; }
-        public Position EndPosition { get; }
+        public SnapshotSpan RangeSpan { get; }
+        public SnapshotSpan SelectionRangeSpan { get; }
 
         public SymbolKind SymbolKind { get; }
         public ImageMoniker ImageMoniker { get; }
@@ -54,16 +54,16 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             }
         }
 
-        public DocumentSymbolItem(DocumentSymbol documentSymbol)
+        public DocumentSymbolUIItem(DocumentSymbolData documentSymbolData)
         {
-            this.Name = documentSymbol.Name;
-            this.Children = ImmutableArray<DocumentSymbolItem>.Empty;
-            this.SymbolKind = documentSymbol.Kind;
-            this.ImageMoniker = GetImageMoniker(documentSymbol.Kind);
+            this.Name = documentSymbolData.Name;
+            this.Children = ImmutableArray<DocumentSymbolUIItem>.Empty;
+            this.SymbolKind = documentSymbolData.SymbolKind;
+            this.ImageMoniker = GetImageMoniker(documentSymbolData.SymbolKind);
             this.IsExpanded = true;
             this.IsSelected = false;
-            this.StartPosition = documentSymbol.Range.Start;
-            this.EndPosition = documentSymbol.Range.End;
+            this.RangeSpan = documentSymbolData.RangeSpan;
+            this.SelectionRangeSpan = documentSymbolData.SelectionRangeSpan;
         }
 
         private void NotifyPropertyChanged([CallerMemberName] string? propertyName = null)

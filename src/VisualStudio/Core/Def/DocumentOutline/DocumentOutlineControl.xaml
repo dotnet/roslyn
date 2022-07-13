@@ -120,7 +120,7 @@
         </TextBox>
         <TreeView Grid.Row="2" Name="symbolTree">
             <TreeView.Resources>
-                <HierarchicalDataTemplate DataType="{x:Type self:DocumentSymbolItem}" ItemsSource="{Binding Children}">
+                <HierarchicalDataTemplate DataType="{x:Type self:DocumentSymbolUIItem}" ItemsSource="{Binding Children}">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" MouseDown="JumpToContent">
                         <imaging:CrispImage Moniker="{Binding ImageMoniker}" Margin="0, 0, 5, 0" />
                         <TextBlock Text="{Binding Name}" />

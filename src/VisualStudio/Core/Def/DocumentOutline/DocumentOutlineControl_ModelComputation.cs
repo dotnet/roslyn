@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// <summary>
         /// Creates the data model.
         /// </summary>
-        private async ValueTask<DocumentSymbolModel?> ComputeDataModelAsync(ImmutableSegmentedList<bool> _, CancellationToken cancellationToken)
+        private async ValueTask<DocumentSymbolDataModel?> ComputeDataModelAsync(ImmutableSegmentedList<bool> _, CancellationToken cancellationToken)
         {
             // Jump to the UI thread to get the currently active text view.
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -69,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             return model;
 
-            async Task<DocumentSymbolModel?> ComputeDataModelAsync()
+            async Task<DocumentSymbolDataModel?> ComputeDataModelAsync()
             {
                 var response = await DocumentOutlineHelper.DocumentSymbolsRequestAsync(
                     textBuffer, LanguageServiceBroker, filePath, cancellationToken).ConfigureAwait(false);
@@ -82,8 +82,8 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                     return null;
 
                 var documentSymbols = DocumentOutlineHelper.GetNestedDocumentSymbols(responseBody);
-                var documentSymbolItems = DocumentOutlineHelper.GetDocumentSymbolItems(documentSymbols);
-                return new DocumentSymbolModel(documentSymbolItems, originalSnapshot);
+                var documentSymbolData = DocumentOutlineHelper.GetDocumentSymbolData(documentSymbols, originalSnapshot);
+                return new DocumentSymbolDataModel(documentSymbolData, originalSnapshot);
             }
 
             string? GetFilePath()
@@ -111,7 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// <summary>
         /// Filters and sorts the data model.
         /// </summary>
-        private async ValueTask<DocumentSymbolModel?> UpdateDataModelAsync(ImmutableSegmentedList<bool> _, CancellationToken cancellationToken)
+        private async ValueTask<DocumentSymbolDataModel?> UpdateDataModelAsync(ImmutableSegmentedList<bool> _, CancellationToken cancellationToken)
         {
             var model = await _computeDataModelQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
             if (model is null)
@@ -129,16 +129,16 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             // Switch to the threadpool to filter and sort the data model.
             await TaskScheduler.Default;
 
-            var updatedDocumentSymbolItems = model.DocumentSymbolItems;
+            var updatedDocumentSymbolData = model.DocumentSymbolData;
 
             if (!string.IsNullOrWhiteSpace(searchQuery))
-                updatedDocumentSymbolItems = DocumentOutlineHelper.Search(updatedDocumentSymbolItems, searchQuery, cancellationToken);
+                updatedDocumentSymbolData = DocumentOutlineHelper.Search(updatedDocumentSymbolData, searchQuery, cancellationToken);
 
-            updatedDocumentSymbolItems = DocumentOutlineHelper.Sort(updatedDocumentSymbolItems, SortOption, cancellationToken);
+            updatedDocumentSymbolData = DocumentOutlineHelper.Sort(updatedDocumentSymbolData, SortOption, cancellationToken);
 
             StartHightlightNodeTask(ExpansionOption.NoChange);
 
-            return new DocumentSymbolModel(updatedDocumentSymbolItems, model.OriginalSnapshot);
+            return new DocumentSymbolDataModel(updatedDocumentSymbolData, model.OriginalSnapshot);
         }
 
         /// <summary>
@@ -173,37 +173,38 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             if (!caretPoint.HasValue)
                 return;
 
-            var currentSnapshot = activeTextView.TextSnapshot;
-            var caretPosition = caretPoint.Value.Position;
+            //var currentSnapshot = activeTextView.TextSnapshot;
 
             // Switch to the threadpool to determine which node is currently selected and which node to select (if they exist).
             await TaskScheduler.Default;
 
-            var currentlySelectedSymbol = DocumentOutlineHelper.GetCurrentlySelectedNode(model.DocumentSymbolItems);
-            var symbolToSelect = DocumentOutlineHelper.GetDocumentNodeToSelect(model.DocumentSymbolItems, model.OriginalSnapshot, currentSnapshot, caretPosition);
+            var documentSymbolUIItems = DocumentOutlineHelper.GetDocumentSymbolUIItems(model.DocumentSymbolData);
+
+            //var currentlySelectedSymbol = DocumentOutlineHelper.GetCurrentlySelectedNode(documentSymbolUIItems);
+            var symbolToSelect = DocumentOutlineHelper.GetDocumentNodeToSelect(documentSymbolUIItems, model.OriginalSnapshot, caretPoint.Value);
 
             // Switch to the UI thread to update the view.
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             // Unselects the currently selected symbol. This is required in case the current caret position is not in range of any symbols
             // (symbolToSelect will be null) so that no symbols in the tree are highlighted.
-            if (currentlySelectedSymbol is not null)
-                currentlySelectedSymbol.IsSelected = false;
+            /*if (currentlySelectedSymbol is not null)
+                currentlySelectedSymbol.IsSelected = false;*/
 
             if (symbolToSelect is not null)
                 symbolToSelect.IsSelected = true;
 
             var expansion = expansionOption.First();
             if (expansion is not ExpansionOption.NoChange)
-                DocumentOutlineHelper.SetIsExpanded(model.DocumentSymbolItems, expansion);
+                DocumentOutlineHelper.SetIsExpanded(documentSymbolUIItems, expansion);
 
-            symbolTree.ItemsSource = model.DocumentSymbolItems;
+            symbolTree.ItemsSource = documentSymbolUIItems;
         }
 
         /// <summary>
         /// Starts a new task to select code when a symbol node is clicked.
         /// </summary>
-        private void StartJumpToContentTask(DocumentSymbolItem symbol)
+        private void StartJumpToContentTask(DocumentSymbolUIItem symbol)
         {
             _jumpToContentQueue.AddWork(symbol);
         }
@@ -211,7 +212,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// <summary>
         /// Given a DocumentSymbolItem, moves the caret to its position in the latest active text view.
         /// </summary>
-        private async ValueTask JumpToContentAsync(ImmutableSegmentedList<DocumentSymbolItem> symbol, CancellationToken cancellationToken)
+        private async ValueTask JumpToContentAsync(ImmutableSegmentedList<DocumentSymbolUIItem> symbol, CancellationToken cancellationToken)
         {
             if (symbol.IsDefault || symbol.IsEmpty)
                 return;
@@ -235,11 +236,12 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             // Prevents us from being permanently unsubscribed if an exception is thrown while updating the text view selection.
             try
             {
-                // Get the original position of the start of the line of the symbol.
-                var originalPosition = model.OriginalSnapshot.GetLineFromLineNumber(symbol.First().StartPosition.Line).Start.Position;
+                // Get the original position of the start of the symbol.
+                var originalPosition = symbol.First().SelectionRangeSpan.Start.Position;
 
                 // Map this position to a span in the current textview.
                 var originalSpan = new SnapshotSpan(model.OriginalSnapshot, Span.FromBounds(originalPosition, originalPosition));
+
                 var currentSpan = originalSpan.TranslateTo(activeTextView.TextSnapshot, SpanTrackingMode.EdgeExclusive);
 
                 // Set the active text view selection to this span.

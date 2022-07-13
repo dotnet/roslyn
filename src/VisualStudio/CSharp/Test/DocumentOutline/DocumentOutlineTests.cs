@@ -15,7 +15,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
 {
     public class DocumentOutlineTests
     {
-        private const int NumParentNodes = 3;
+        /*private const int NumParentNodes = 3;
         private const int NumChildNodes = 3;
 
         // Mocks a nested DocumentSymbol[] returned from an LSP document symbol request
@@ -63,13 +63,13 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
         public void TestSortByName()
         {
             var sortedByName = DocumentOutlineHelper.Sort(
-                DocumentOutlineHelper.GetDocumentSymbolItems(GetDocumentSymbols()), SortOption.Name, CancellationToken.None);
+                DocumentOutlineHelper.GetDocumentSymbolData(GetDocumentSymbols()), SortOption.Name, CancellationToken.None);
 
             CheckSortedByName(sortedByName);
             foreach (var documentSymbolItem in sortedByName)
                 CheckSortedByName(documentSymbolItem.Children);
 
-            static void CheckSortedByName(ImmutableArray<DocumentSymbolItem> sortedByName)
+            static void CheckSortedByName(ImmutableArray<DocumentSymbolUIItem> sortedByName)
             {
                 for (var i = 0; i < sortedByName.Length - 1; i++)
                     Assert.True(StringComparer.Ordinal.Compare(sortedByName[i].Name, sortedByName[i + 1].Name) <= 0);
@@ -80,13 +80,13 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
         public void TestSortByOrder()
         {
             var sortedByOrder = DocumentOutlineHelper.Sort(
-                DocumentOutlineHelper.GetDocumentSymbolItems(GetDocumentSymbols()), SortOption.Location, CancellationToken.None);
+                DocumentOutlineHelper.GetDocumentSymbolData(GetDocumentSymbols()), SortOption.Location, CancellationToken.None);
 
             CheckSortedByOrder(sortedByOrder);
             foreach (var documentSymbolItem in sortedByOrder)
                 CheckSortedByOrder(documentSymbolItem.Children);
 
-            static void CheckSortedByOrder(ImmutableArray<DocumentSymbolItem> sortedByOrder)
+            static void CheckSortedByOrder(ImmutableArray<DocumentSymbolUIItem> sortedByOrder)
             {
                 for (var i = 0; i < sortedByOrder.Length - 1; i++)
                 {
@@ -101,13 +101,13 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
         public void TestSortByType()
         {
             var sortedByType = DocumentOutlineHelper.Sort(
-                DocumentOutlineHelper.GetDocumentSymbolItems(GetDocumentSymbols()), SortOption.Type, CancellationToken.None);
+                DocumentOutlineHelper.GetDocumentSymbolData(GetDocumentSymbols()), SortOption.Type, CancellationToken.None);
 
             CheckSortedByType(sortedByType);
             foreach (var documentSymbolItem in sortedByType)
                 CheckSortedByType(documentSymbolItem.Children);
 
-            static void CheckSortedByType(ImmutableArray<DocumentSymbolItem> sortedByType)
+            static void CheckSortedByType(ImmutableArray<DocumentSymbolUIItem> sortedByType)
             {
                 for (var i = 0; i < sortedByType.Length - 1; i++)
                 {
@@ -123,11 +123,11 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
         [Fact]
         public void TestSearch()
         {
-            var documentSymbolModels = DocumentOutlineHelper.GetDocumentSymbolItems(GetDocumentSymbols());
+            var documentSymbolModels = DocumentOutlineHelper.GetDocumentSymbolData(GetDocumentSymbols());
 
             Assert.Equal(2, DocumentOutlineHelper.Search(documentSymbolModels, "Class", CancellationToken.None).Length);
             Assert.Equal(1, DocumentOutlineHelper.Search(documentSymbolModels, "Field", CancellationToken.None).Length);
             Assert.Empty(DocumentOutlineHelper.Search(documentSymbolModels, "Banana", CancellationToken.None));
-        }
+        }*/
     }
 }

@@ -96,25 +96,40 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         }
 
         /// <summary>
-        /// Converts an array of type DocumentSymbol to an array of type DocumentSymbolItem.
+        /// Converts an array of type DocumentSymbol to an immutable array of type DocumentSymbolData.
         /// </summary>
-        public static ImmutableArray<DocumentSymbolItem> GetDocumentSymbolItems(DocumentSymbol[] documentSymbols)
+        public static ImmutableArray<DocumentSymbolData> GetDocumentSymbolData(DocumentSymbol[] documentSymbols, ITextSnapshot originalSnapshot)
         {
-            var documentSymbolItems = ArrayBuilder<DocumentSymbolItem>.GetInstance();
-            if (documentSymbols.Length == 0)
-            {
-                return documentSymbolItems.ToImmutableAndFree();
-            }
+            var documentSymbolItems = ArrayBuilder<DocumentSymbolData>.GetInstance();
 
             foreach (var documentSymbol in documentSymbols)
             {
-                var documentSymbolItem = new DocumentSymbolItem(documentSymbol);
+                var documentSymbolItem = new DocumentSymbolData(documentSymbol, originalSnapshot);
+
                 if (documentSymbol.Children is not null)
-                    documentSymbolItem.Children = GetDocumentSymbolItems(documentSymbol.Children);
+                    documentSymbolItem.Children = GetDocumentSymbolData(documentSymbol.Children, originalSnapshot);
+
                 documentSymbolItems.Add(documentSymbolItem);
             }
 
-            return documentSymbolItems.ToImmutableAndFree();
+            return documentSymbolItems.ToImmutable();
+        }
+
+        public static ImmutableArray<DocumentSymbolUIItem> GetDocumentSymbolUIItems(ImmutableArray<DocumentSymbolData> documentSymbolData)
+        {
+            var documentSymbolItems = ArrayBuilder<DocumentSymbolUIItem>.GetInstance();
+
+            foreach (var documentSymbol in documentSymbolData)
+            {
+                var documentSymbolItem = new DocumentSymbolUIItem(documentSymbol);
+
+                if (!documentSymbol.Children.IsEmpty)
+                    documentSymbolItem.Children = GetDocumentSymbolUIItems(documentSymbol.Children);
+
+                documentSymbolItems.Add(documentSymbolItem);
+            }
+
+            return documentSymbolItems.ToImmutable();
         }
 
         public static async Task<JToken?> DocumentSymbolsRequestAsync(
@@ -144,7 +159,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
-        public static void SetIsExpanded(ImmutableArray<DocumentSymbolItem> documentSymbolItems, ExpansionOption expansionOption)
+        public static void SetIsExpanded(ImmutableArray<DocumentSymbolUIItem> documentSymbolItems, ExpansionOption expansionOption)
         {
             foreach (var documentSymbolItem in documentSymbolItems)
             {
@@ -156,8 +171,8 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// <summary>
         /// Sorts and returns an immutable array of DocumentSymbolItem based on a SortOption.
         /// </summary>
-        public static ImmutableArray<DocumentSymbolItem> Sort(
-            ImmutableArray<DocumentSymbolItem> documentSymbolItems,
+        public static ImmutableArray<DocumentSymbolData> Sort(
+            ImmutableArray<DocumentSymbolData> documentSymbolItems,
             SortOption sortOption,
             CancellationToken cancellationToken)
         {
@@ -174,8 +189,8 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             return SortDocumentSymbolItems(documentSymbolItems, sortOption, cancellationToken);
 
-            static ImmutableArray<DocumentSymbolItem> SortDocumentSymbolItems(
-                ImmutableArray<DocumentSymbolItem> documentSymbolItems,
+            static ImmutableArray<DocumentSymbolData> SortDocumentSymbolItems(
+                ImmutableArray<DocumentSymbolData> documentSymbolItems,
                 SortOption sortOption,
                 CancellationToken cancellationToken)
             {
@@ -185,13 +200,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 var sortedDocumentSymbolItems = sortOption switch
                 {
                     SortOption.Name => documentSymbolItems.Sort((x, y) => x.Name.CompareTo(y.Name)),
-                    SortOption.Location => documentSymbolItems.Sort((x, y) =>
-                    {
-                        if (x.StartPosition.Line == y.StartPosition.Line)
-                            return x.StartPosition.Character - y.StartPosition.Character;
-
-                        return x.StartPosition.Line - y.StartPosition.Line;
-                    }),
+                    SortOption.Location => documentSymbolItems.Sort((x, y) => x.RangeSpan.Start - y.RangeSpan.Start),
                     SortOption.Type => documentSymbolItems.Sort((x, y) =>
                     {
                         if (x.SymbolKind == y.SymbolKind)
@@ -215,14 +224,14 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// <summary>
         /// Returns an immutable array of DocumentSymbolItem such that each node or one of its descendants matches the given pattern.
         /// </summary>
-        public static ImmutableArray<DocumentSymbolItem> Search(
-            ImmutableArray<DocumentSymbolItem> documentSymbolItems,
+        public static ImmutableArray<DocumentSymbolData> Search(
+            ImmutableArray<DocumentSymbolData> documentSymbolItems,
             string pattern,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var documentSymbols = ArrayBuilder<DocumentSymbolItem>.GetInstance();
+            var documentSymbols = ArrayBuilder<DocumentSymbolData>.GetInstance();
             var patternMatcher = PatternMatcher.CreatePatternMatcher(pattern, includeMatchedSpans: false, allowFuzzyMatching: true);
 
             foreach (var documentSymbol in documentSymbolItems)
@@ -231,10 +240,10 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                     documentSymbols.Add(documentSymbol);
             }
 
-            return documentSymbols.ToImmutableAndFree();
+            return documentSymbols.ToImmutable();
 
             // Returns true if the name of one of the tree nodes results in a pattern match.
-            static bool SearchNodeTree(DocumentSymbolItem tree, PatternMatcher patternMatcher, CancellationToken cancellationToken)
+            static bool SearchNodeTree(DocumentSymbolData tree, PatternMatcher patternMatcher, CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -254,15 +263,16 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// <summary>
         /// Returns the Document Symbol node that is currently selected by the caret in the editor if it exists.
         /// </summary>
-        public static DocumentSymbolItem? GetDocumentNodeToSelect(
-            ImmutableArray<DocumentSymbolItem> documentSymbolItems,
+        public static DocumentSymbolUIItem? GetDocumentNodeToSelect(
+            ImmutableArray<DocumentSymbolUIItem> documentSymbolItems,
             ITextSnapshot originalSnapshot,
-            ITextSnapshot currentSnapshot,
-            int caretPosition)
+            SnapshotPoint currentCaretPoint)
         {
+            var originalSnapshotPoint = currentCaretPoint.TranslateTo(originalSnapshot, PointTrackingMode.Negative);
+
             return GetNodeToSelect(documentSymbolItems, null);
 
-            DocumentSymbolItem? GetNodeToSelect(ImmutableArray<DocumentSymbolItem> documentSymbols, DocumentSymbolItem? parent)
+            DocumentSymbolUIItem? GetNodeToSelect(ImmutableArray<DocumentSymbolUIItem> documentSymbols, DocumentSymbolUIItem? parent)
             {
                 var selectedSymbol = GetNodeSelectedByCaret(documentSymbols);
 
@@ -273,17 +283,11 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             }
 
             // Returns a DocumentSymbolItem if the current caret position is in its range and null otherwise.
-            DocumentSymbolItem? GetNodeSelectedByCaret(ImmutableArray<DocumentSymbolItem> documentSymbolItems)
+            DocumentSymbolUIItem? GetNodeSelectedByCaret(ImmutableArray<DocumentSymbolUIItem> documentSymbolItems)
             {
                 foreach (var symbol in documentSymbolItems)
                 {
-                    var originalStartPosition = originalSnapshot.GetLineFromLineNumber(symbol.StartPosition.Line).Start.Position + symbol.StartPosition.Character;
-                    var originalEndPosition = originalSnapshot.GetLineFromLineNumber(symbol.EndPosition.Line).Start.Position + symbol.EndPosition.Character;
-
-                    var originalSpan = new SnapshotSpan(originalSnapshot, Span.FromBounds(originalStartPosition, originalEndPosition));
-                    var currentSpan = originalSpan.TranslateTo(currentSnapshot, SpanTrackingMode.EdgeExclusive);
-
-                    if (currentSpan.IntersectsWith(caretPosition))
+                    if (symbol.RangeSpan.IntersectsWith(originalSnapshotPoint))
                         return symbol;
                 }
 
@@ -294,7 +298,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// <summary>
         /// Returns the Document Symbol node that is currently selected in the Document Outline window if it exists.
         /// </summary>
-        public static DocumentSymbolItem? GetCurrentlySelectedNode(ImmutableArray<DocumentSymbolItem> documentSymbolItems)
+        public static DocumentSymbolUIItem? GetCurrentlySelectedNode(ImmutableArray<DocumentSymbolUIItem> documentSymbolItems)
         {
             // Creates a flat list of all the symbol nodes in the tree.
             var nodeList = documentSymbolItems.AsEnumerable();
@@ -307,7 +311,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             return nodeList.FirstOrDefault(node => node.IsSelected);
 
             // Returns a flat list of all the descendants of a node.
-            static IEnumerable<DocumentSymbolItem> Descendants(DocumentSymbolItem node)
+            static IEnumerable<DocumentSymbolUIItem> Descendants(DocumentSymbolUIItem node)
             {
                 return node.Children.Concat(node.Children.SelectMany(n => Descendants(n)));
             }
