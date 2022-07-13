@@ -16,8 +16,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         TildeToken = 8193,
         /// <summary>Represents <c>!</c> token.</summary>
         ExclamationToken = 8194,
-        /// <summary>Represents <c>$</c> token.</summary>
-        /// <remarks>This is a debugger special punctuation and not related to string interpolation.</remarks>
+        /// <summary>Represents <c>$</c> token.
+        /// <para>
+        /// This is a debugger special punctuation and not related to string interpolation.
+        /// </para>
+        /// </summary>
         DollarToken = 8195,
         /// <summary>Represents <c>%</c> token.</summary>
         PercentToken = 8196,
@@ -476,11 +479,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         VarKeyword = 8490,
         /// <summary>Represents <c>_</c> token.</summary>
         UnderscoreToken = 8491,
-        /// <summary>Represents that nothing was specified as a type argument.</summary>
-        /// <remarks>For example <c>Dictionary&lt;,&gt;</c> which has <see cref="OmittedTypeArgumentToken"/> as a child of <see cref="T:Microsoft.CodeAnalysis.CSharp.Syntax.OmittedTypeArgumentSyntax"/> before and after the <see cref="CommaToken"/>.</remarks>
+        /// <summary>Represents that nothing was specified as a type argument.
+        /// <para>For example <c>Dictionary&lt;,&gt;</c> which has <see cref="OmittedTypeArgumentToken"/> as a child of
+        /// <see cref="T:Microsoft.CodeAnalysis.CSharp.Syntax.OmittedTypeArgumentSyntax"/> before and after the <see cref="CommaToken"/>.
+        /// </para>
+        /// </summary>
         OmittedTypeArgumentToken = 8492,
-        /// <summary>Represents that nothing was specified as an array size.</summary>
-        /// <remarks>For example <c>int[,]</c> which has <see cref="OmittedArraySizeExpressionToken"/> as a child of <see cref="T:Microsoft.CodeAnalysis.CSharp.Syntax.OmittedArraySizeExpressionSyntax"/> before and after the <see cref="CommaToken"/>.</remarks>
+        /// <summary>Represents that nothing was specified as an array size.
+        /// <para>For example <c>int[,]</c> which has <see cref="OmittedArraySizeExpressionToken"/> as a child of
+        /// <see cref="T:Microsoft.CodeAnalysis.CSharp.Syntax.OmittedArraySizeExpressionSyntax"/> before and after the <see cref="CommaToken"/>.
+        /// </para>
+        /// </summary>
         OmittedArraySizeExpressionToken = 8493,
         /// <summary>Represents a token that comes after the end of a directive such as <c>#endif</c>.</summary>
         EndOfDirectiveToken = 8494,

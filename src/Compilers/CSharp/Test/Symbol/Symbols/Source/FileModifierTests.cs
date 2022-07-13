@@ -24,9 +24,9 @@ public class FileModifierTests : CSharpTestBase
 
         var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
         comp.VerifyDiagnostics(
-            // (1,12): error CS8652: The feature 'file types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,12): error CS8936: Feature 'file types' is not available in C# 10.0. Please use language version 11.0 or greater.
             // file class C { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "C").WithArguments("file types").WithLocation(1, 12));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "C").WithArguments("file types", "11.0").WithLocation(1, 12));
 
         comp = CreateCompilation(source);
         comp.VerifyDiagnostics();
@@ -44,9 +44,9 @@ public class FileModifierTests : CSharpTestBase
 
         var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
         comp.VerifyDiagnostics(
-            // (3,16): error CS8652: The feature 'file types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (3,16): error CS8936: Feature 'file types' is not available in C# 10.0. Please use language version 11.0 or greater.
             //     file class C { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "C").WithArguments("file types").WithLocation(3, 16),
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "C").WithArguments("file types", "11.0").WithLocation(3, 16),
             // (3,16): error CS9054: File type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
             //     file class C { }
             Diagnostic(ErrorCode.ERR_FileTypeNested, "C").WithArguments("Outer.C").WithLocation(3, 16));
@@ -70,9 +70,9 @@ public class FileModifierTests : CSharpTestBase
 
         var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
         comp.VerifyDiagnostics(
-            // (1,12): error CS8652: The feature 'file types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,12): error CS8936: Feature 'file types' is not available in C# 10.0. Please use language version 11.0 or greater.
             // file class Outer
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "Outer").WithArguments("file types").WithLocation(1, 12));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "Outer").WithArguments("file types", "11.0").WithLocation(1, 12));
         verify();
 
         comp = CreateCompilation(source);
@@ -103,12 +103,12 @@ public class FileModifierTests : CSharpTestBase
 
         var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
         comp.VerifyDiagnostics(
-            // (1,12): error CS8652: The feature 'file types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,12): error CS8936: Feature 'file types' is not available in C# 10.0. Please use language version 11.0 or greater.
             // file class Outer
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "Outer").WithArguments("file types").WithLocation(1, 12),
-            // (3,16): error CS8652: The feature 'file types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "Outer").WithArguments("file types", "11.0").WithLocation(1, 12),
+            // (3,16): error CS8936: Feature 'file types' is not available in C# 10.0. Please use language version 11.0 or greater.
             //     file class C { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "C").WithArguments("file types").WithLocation(3, 16),
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "C").WithArguments("file types", "11.0").WithLocation(3, 16),
             // (3,16): error CS9054: File type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
             //     file class C { }
             Diagnostic(ErrorCode.ERR_FileTypeNested, "C").WithArguments("Outer.C").WithLocation(3, 16));
