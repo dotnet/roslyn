@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+﻿sues// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -137,6 +137,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 return false;
             }
 
+            if (property.Initializer != null || property.ExpressionBody != null)
+            {
+                return false;
+            }
+
             var propAccessibility = CSharpAccessibilityFacts.Instance.GetAccessibility(member);
 
             // more restrictive than internal (protected, private, private protected, or unspecified (private by default))
@@ -162,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 return false;
             }
 
-            if (containingType.TypeKind == TypeKind.Class || containingType.IsSealed)
+            if (containingType.TypeKind == TypeKind.Class || containingType.IsReadOnly)
             {
                 if (!accessors.Any(a => a.Kind() == SyntaxKind.InitAccessorDeclaration))
                 {
@@ -239,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
 
                 if (member is MethodDeclarationSyntax method)
                 {
-                    // TODO: Ensure the single param is an ArrayBuilder
+                    // TODO: Ensure the single param is an StringBuilder
                     if (method.Identifier.Text == "PrintMembers" &&
                         method.ReturnType == SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.BoolKeyword)) &&
                         method.ParameterList.Parameters.IsSingle())
@@ -256,12 +261,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                             // ensure private member
                             modifiedMembers.Add(method.WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword))));
                         }
+
                         continue;
                     }
                 }
                 // any other members we didn't change or modify we just keep
                 modifiedMembers.Add(member);
             }
+
             return modifiedMembers.ToImmutable();
         }
     }
