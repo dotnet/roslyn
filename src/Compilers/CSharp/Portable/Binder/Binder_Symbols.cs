@@ -1818,7 +1818,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (best.IsFromFile && !secondBest.IsFromFile)
                         {
-                            // a lookup of a file type is "better" than a lookup of a non-file type; no need to further diagnose
+                            // a lookup of a file-local type is "better" than a lookup of a non-file-local type; no need to further diagnose
                             // https://github.com/dotnet/roslyn/issues/62331
                             // some "single symbol" diagnostics are missed here for similar reasons
                             // that make us miss diagnostics when reporting WRN_SameFullNameThisAggAgg.
@@ -2300,7 +2300,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static BestSymbolLocation GetLocation(CSharpCompilation compilation, Symbol symbol)
         {
-            if (symbol is SourceMemberContainerTypeSymbol { IsFile: true })
+            if (symbol is SourceMemberContainerTypeSymbol { IsFileLocal: true })
             {
                 return BestSymbolLocation.FromFile;
             }
