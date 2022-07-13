@@ -323,20 +323,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
 
         Private Shared Function InsertEndTextAndUpdateCaretPosition(
             view As ITextView,
-            subjectBuffer As ITextBuffer,
             insertPosition As Integer,
             caretPosition As Integer,
-            endText As String
+            endText As String,
+            cancellationToken As CancellationToken
         ) As Boolean
 
-            Dim document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges()
+            Dim document = view.TextSnapshot.GetOpenDocumentInCurrentContextWithChanges()
             If document Is Nothing Then
                 Return False
             End If
 
-            subjectBuffer.ApplyChange(New TextChange(New TextSpan(insertPosition, 0), endText))
+            document.Project.Solution.Workspace.ApplyTextChanges(
+                document.Id, SpecializedCollections.SingletonEnumerable(
+                    New TextChange(New TextSpan(insertPosition, 0), endText)), cancellationToken)
 
-            Dim caretPosAfterEdit = New SnapshotPoint(subjectBuffer.CurrentSnapshot, caretPosition)
+            Dim caretPosAfterEdit = New SnapshotPoint(view.TextSnapshot, caretPosition)
 
             view.TryMoveCaretToAndEnsureVisible(caretPosAfterEdit)
 
@@ -367,7 +369,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
                 End If
 
                 Dim endText = "]]>"
-                Return InsertEndTextAndUpdateCaretPosition(textView, subjectBuffer, state.CaretPosition, state.TokenToLeft.Span.End, endText)
+                Return InsertEndTextAndUpdateCaretPosition(textView, state.CaretPosition, state.TokenToLeft.Span.End, endText, cancellationToken)
             End Using
         End Function
 
@@ -395,7 +397,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
                 End If
 
                 Dim endText = "-->"
-                Return InsertEndTextAndUpdateCaretPosition(textView, subjectBuffer, state.CaretPosition, state.TokenToLeft.Span.End, endText)
+                Return InsertEndTextAndUpdateCaretPosition(textView, state.CaretPosition, state.TokenToLeft.Span.End, endText, cancellationToken)
             End Using
         End Function
 
@@ -423,7 +425,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
                 End If
 
                 Dim endTagText = "</" & xmlStartElement.Name.ToString & ">"
-                Return InsertEndTextAndUpdateCaretPosition(textView, subjectBuffer, state.CaretPosition, state.TokenToLeft.Span.End, endTagText)
+                Return InsertEndTextAndUpdateCaretPosition(textView, state.CaretPosition, state.TokenToLeft.Span.End, endTagText, cancellationToken)
             End Using
         End Function
 
@@ -447,7 +449,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
                 End If
 
                 Dim endText = "  %>" ' NOTE: two spaces are inserted. The caret will be moved between them
-                Return InsertEndTextAndUpdateCaretPosition(textView, subjectBuffer, state.CaretPosition, state.TokenToLeft.Span.End + 1, endText)
+                Return InsertEndTextAndUpdateCaretPosition(textView, state.CaretPosition, state.TokenToLeft.Span.End + 1, endText, cancellationToken)
             End Using
         End Function
 
@@ -476,7 +478,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
                 End If
 
                 Dim endText = "?>"
-                Return InsertEndTextAndUpdateCaretPosition(textView, subjectBuffer, state.CaretPosition, state.TokenToLeft.Span.End, endText)
+                Return InsertEndTextAndUpdateCaretPosition(textView, state.CaretPosition, state.TokenToLeft.Span.End, endText, cancellationToken)
             End Using
         End Function
 
