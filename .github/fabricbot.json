@@ -996,6 +996,46 @@
         "taskName": "Approve PRs to release branches that are approved by InfraSwat"
       },
       "disabled": true
+    },
+    {
+      "taskType": "trigger",
+      "capabilityId": "IssueResponder",
+      "subCapability": "PullRequestResponder",
+      "version": "1.0",
+      "config": {
+        "conditions": {
+          "operator": "and",
+          "operands": [
+            {
+              "name": "prMatchesPattern",
+              "parameters": {
+                "matchRegex": ".*/PublicAPI\\.(Shipped|Unshipped)\\.txt"
+              }
+            }
+          ]
+        },
+        "eventType": "pull_request",
+        "eventNames": [
+          "pull_request",
+          "issues",
+          "project_card"
+        ],
+        "taskName": "Adds \"Needs Design Review\" on PRs that touch public APIs",
+        "actions": [
+          {
+            "name": "addLabel",
+            "parameters": {
+              "label": "Need Design Review"
+            }
+          },
+          {
+            "name": "addReply",
+            "parameters": {
+              "comment": "This PR modifies public API files. Please follow the instructions at https://github.com/dotnet/roslyn/blob/main/docs/contributing/API%20Review%20Process.md for ensuring all public APIs are reviewed before merging."
+            }
+          }
+        ]
+      }
     }
   ],
   "userGroups": []
