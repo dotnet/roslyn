@@ -1031,12 +1031,12 @@
           "issues",
           "project_card"
         ],
-        "taskName": "Adds \"Needs Design Review\" on PRs that touch public APIs",
+        "taskName": "Adds \"Needs API Review\" on PRs that touch public APIs",
         "actions": [
           {
             "name": "addLabel",
             "parameters": {
-              "label": "Need Design Review"
+              "label": "Need API Review"
             }
           },
           {
