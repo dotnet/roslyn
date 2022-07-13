@@ -133,7 +133,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             updatedDocumentSymbolData = DocumentOutlineHelper.Sort(updatedDocumentSymbolData, sortOption, cancellationToken);
 
-            StartHightlightNodeTask(ExpansionOption.NoChange);
+            StartDetermineHighlightedItemAndPresentItemsTask(ExpansionOption.NoChange);
 
             return new DocumentSymbolDataModel(updatedDocumentSymbolData, model.OriginalSnapshot);
         }
@@ -142,15 +142,15 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// Starts a new task to highlight the symbol node corresponding to the current caret position in the editor, expand/collapse
         /// nodes (if applicable), and updates the UI.
         /// </summary>
-        private void StartHightlightNodeTask(ExpansionOption expansionOption)
+        private void StartDetermineHighlightedItemAndPresentItemsTask(ExpansionOption expansionOption)
         {
-            _highlightAndExpandNodesQueue.AddWork(expansionOption);
+            _determineHighlightAndPresentItemsQueue.AddWork(expansionOption);
         }
 
         /// <summary>
         /// Highlights the symbol node corresponding to the current caret position in the editor, expands/collapses nodes, then updates the UI.
         /// </summary>
-        private async ValueTask HightlightNodeAsync(ImmutableSegmentedList<ExpansionOption> expansionOption, CancellationToken cancellationToken)
+        private async ValueTask DetermineHighlightedItemAndPresentItemsAsync(ImmutableSegmentedList<ExpansionOption> expansionOption, CancellationToken cancellationToken)
         {
             var model = await _updateDataModelQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
             if (model is null)

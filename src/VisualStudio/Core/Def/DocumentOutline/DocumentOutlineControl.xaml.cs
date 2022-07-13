@@ -69,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// Queue to batch up work to do to highlight the currently selected symbol node, expand/collapse nodes,
         /// then update the UI.
         /// </summary>
-        private readonly AsyncBatchingWorkQueue<ExpansionOption> _highlightAndExpandNodesQueue;
+        private readonly AsyncBatchingWorkQueue<ExpansionOption> _determineHighlightAndPresentItemsQueue;
 
         /// <summary>
         /// Queue to batch up work to do to select code in the editor based on the current caret position.
@@ -112,9 +112,9 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 asyncListener,
                 cancellationToken);
 
-            _highlightAndExpandNodesQueue = new AsyncBatchingWorkQueue<ExpansionOption>(
+            _determineHighlightAndPresentItemsQueue = new AsyncBatchingWorkQueue<ExpansionOption>(
                 DelayTimeSpan.NearImmediate,
-                HightlightNodeAsync,
+                DetermineHighlightedItemAndPresentItemsAsync,
                 asyncListener,
                 cancellationToken);
 
@@ -195,14 +195,14 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         private void Caret_PositionChanged(object sender, CaretPositionChangedEventArgs e)
         {
             if (!e.NewPosition.Equals(e.OldPosition))
-                StartHightlightNodeTask(ExpansionOption.NoChange);
+                StartDetermineHighlightedItemAndPresentItemsTask(ExpansionOption.NoChange);
         }
 
         private void ExpandAll(object sender, RoutedEventArgs e)
-            => StartHightlightNodeTask(ExpansionOption.Expand);
+            => StartDetermineHighlightedItemAndPresentItemsTask(ExpansionOption.Expand);
 
         private void CollapseAll(object sender, RoutedEventArgs e)
-            => StartHightlightNodeTask(ExpansionOption.Collapse);
+            => StartDetermineHighlightedItemAndPresentItemsTask(ExpansionOption.Collapse);
 
         private void SearchBox_TextChanged(object sender, EventArgs e)
             => StartUpdateDataModelTask();
