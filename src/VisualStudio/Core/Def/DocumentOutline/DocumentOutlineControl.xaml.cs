@@ -35,10 +35,24 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
         private readonly IVsCodeWindow CodeWindow;
 
+        private SortOption _sortOption;
+
         /// <summary>
         /// The type of sorting to be applied to the UI model in <see cref="UpdateDataModelAsync"/>.
         /// </summary>
-        private SortOption SortOption { get; set; }
+        private SortOption SortOption
+        {
+            get
+            {
+                ThreadingContext.ThrowIfNotOnUIThread();
+                return _sortOption;
+            }
+            set
+            {
+                ThreadingContext.ThrowIfNotOnUIThread();
+                _sortOption = value;
+            }
+        }
 
         /// <summary>
         /// Queue to batch up work to do to compute the UI model. Used so we can batch up a lot of events 
@@ -185,35 +199,27 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         }
 
         private void ExpandAll(object sender, RoutedEventArgs e)
-        {
-            StartHightlightNodeTask(ExpansionOption.Expand);
-        }
+            => StartHightlightNodeTask(ExpansionOption.Expand);
 
         private void CollapseAll(object sender, RoutedEventArgs e)
-        {
-            StartHightlightNodeTask(ExpansionOption.Collapse);
-        }
+            => StartHightlightNodeTask(ExpansionOption.Collapse);
 
         private void SearchBox_TextChanged(object sender, EventArgs e)
-        {
-            StartUpdateDataModelTask();
-        }
+            => StartUpdateDataModelTask();
 
         private void SortByName(object sender, EventArgs e)
-        {
-            SortOption = SortOption.Name;
-            StartUpdateDataModelTask();
-        }
+            => UpdateSortOptionAndDataModel(SortOption.Name);
 
         private void SortByOrder(object sender, EventArgs e)
-        {
-            SortOption = SortOption.Location;
-            StartUpdateDataModelTask();
-        }
+            => UpdateSortOptionAndDataModel(SortOption.Location);
 
         private void SortByType(object sender, EventArgs e)
+            => UpdateSortOptionAndDataModel(SortOption.Type);
+
+        private void UpdateSortOptionAndDataModel(SortOption sortOption)
         {
-            SortOption = SortOption.Type;
+
+            SortOption = sortOption;
             StartUpdateDataModelTask();
         }
 

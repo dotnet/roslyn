@@ -117,7 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             if (model is null)
                 return null;
 
-            // Switch to the UI thread to get the current search query and latest active text view.
+            // Switch to the UI thread to get the current search query, sort option, and latest active text view.
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var searchQuery = SearchBox.Text;
@@ -125,6 +125,8 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             var activeTextView = GetLastActiveIWpfTextView();
             if (activeTextView is null)
                 return null;
+
+            var sortOption = SortOption;
 
             // Switch to the threadpool to filter and sort the data model.
             await TaskScheduler.Default;
@@ -134,7 +136,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             if (!string.IsNullOrWhiteSpace(searchQuery))
                 updatedDocumentSymbolData = DocumentOutlineHelper.Search(updatedDocumentSymbolData, searchQuery, cancellationToken);
 
-            updatedDocumentSymbolData = DocumentOutlineHelper.Sort(updatedDocumentSymbolData, SortOption, cancellationToken);
+            updatedDocumentSymbolData = DocumentOutlineHelper.Sort(updatedDocumentSymbolData, sortOption, cancellationToken);
 
             StartHightlightNodeTask(ExpansionOption.NoChange);
 
