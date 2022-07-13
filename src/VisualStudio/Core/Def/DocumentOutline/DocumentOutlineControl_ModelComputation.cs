@@ -120,7 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             // Switch to the UI thread to get the current search query and latest active text view.
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            var searchQuery = searchBox.Text;
+            var searchQuery = SearchBox.Text;
 
             var activeTextView = GetLastActiveIWpfTextView();
             if (activeTextView is null)
@@ -193,7 +193,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             if (expansion is not ExpansionOption.NoChange)
                 DocumentOutlineHelper.SetIsExpanded(documentSymbolUIItems, expansion);
 
-            symbolTree.ItemsSource = documentSymbolUIItems;
+            SymbolTree.ItemsSource = documentSymbolUIItems;
         }
 
         /// <summary>

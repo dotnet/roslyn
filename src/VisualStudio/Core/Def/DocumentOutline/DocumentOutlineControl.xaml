@@ -61,7 +61,7 @@
             </Style>
         </ResourceDictionary>
     </UserControl.Resources>
-    <Grid Name="myGrid">
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="30" />
             <RowDefinition Height="23" />
@@ -91,7 +91,7 @@
                 <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.SortByType}" />
             </Button>
         </Grid>
-        <TextBox Grid.Row="1" x:Name="searchBox" TextChanged="SearchBox_TextChanged" VerticalContentAlignment="Center">
+        <TextBox Grid.Row="1" x:Name="SearchBox" TextChanged="SearchBox_TextChanged" VerticalContentAlignment="Center">
             <TextBox.Style>
                 <Style TargetType="TextBox">
                     <Setter Property="Background" Value="{StaticResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}" />
@@ -118,7 +118,7 @@
                 </Style>
             </TextBox.Style>
         </TextBox>
-        <TreeView Grid.Row="2" Name="symbolTree">
+        <TreeView Grid.Row="2" Name="SymbolTree">
             <TreeView.Resources>
                 <HierarchicalDataTemplate DataType="{x:Type self:DocumentSymbolUIItem}" ItemsSource="{Binding Children}">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" MouseDown="JumpToContent">
