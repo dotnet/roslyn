@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
-    internal class DocumentSymbolDataModel
+    internal sealed class DocumentSymbolDataModel
     {
         public ImmutableArray<DocumentSymbolData> DocumentSymbolData { get; }
         public ITextSnapshot OriginalSnapshot { get; }

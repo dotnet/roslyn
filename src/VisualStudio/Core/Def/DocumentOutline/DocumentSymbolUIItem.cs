@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
     using SymbolKind = LanguageServer.Protocol.SymbolKind;
 
-    internal class DocumentSymbolUIItem : INotifyPropertyChanged
+    internal sealed class DocumentSymbolUIItem : INotifyPropertyChanged
     {
         private bool _isSelected;
         private bool _isExpanded;

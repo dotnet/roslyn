@@ -14,16 +14,16 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
     using SymbolKind = LanguageServer.Protocol.SymbolKind;
 
-    internal class DocumentSymbolData
+    internal sealed class DocumentSymbolData
     {
         public string Name { get; }
 
         public ImmutableArray<DocumentSymbolData> Children { get; set; }
 
+        public SymbolKind SymbolKind { get; }
+
         public SnapshotSpan RangeSpan { get; }
         public SnapshotSpan SelectionRangeSpan { get; }
-
-        public SymbolKind SymbolKind { get; }
 
         public DocumentSymbolData(DocumentSymbol documentSymbol, ITextSnapshot originalSnapshot)
         {
