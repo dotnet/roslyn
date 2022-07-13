@@ -117,15 +117,10 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             if (model is null)
                 return null;
 
-            // Switch to the UI thread to get the current search query, sort option, and latest active text view.
+            // Switch to the UI thread to get the current search query and sort option.
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var searchQuery = SearchBox.Text;
-
-            var activeTextView = GetLastActiveIWpfTextView();
-            if (activeTextView is null)
-                return null;
-
             var sortOption = SortOption;
 
             // Switch to the threadpool to filter and sort the data model.
