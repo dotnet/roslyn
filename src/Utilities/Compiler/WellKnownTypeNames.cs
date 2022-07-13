@@ -126,7 +126,10 @@ namespace Analyzer.Utilities
         public const string SystemCollectionsGenericIEqualityComparer1 = "System.Collections.Generic.IEqualityComparer`1";
         public const string SystemCollectionsGenericIList1 = "System.Collections.Generic.IList`1";
         public const string SystemCollectionsGenericIReadOnlyCollection1 = "System.Collections.Generic.IReadOnlyCollection`1";
+        public const string SystemCollectionsGenericIReadOnlyDictionary2 = "System.Collections.Generic.IReadOnlyDictionary`2";
         public const string SystemCollectionsGenericIReadOnlyList1 = "System.Collections.Generic.IReadOnlyList`1";
+        public const string SystemCollectionsGenericIReadOnlySet1 = "System.Collections.Generic.IReadOnlySet`1";
+        public const string SystemCollectionsGenericISet1 = "System.Collections.Generic.ISet`1";
         public const string SystemCollectionsGenericKeyNotFoundException = "System.Collections.Generic.KeyNotFoundException";
         public const string SystemCollectionsGenericLinkedList1 = "System.Collections.Generic.LinkedList`1";
         public const string SystemCollectionsGenericList1 = "System.Collections.Generic.List`1";
@@ -135,6 +138,7 @@ namespace Analyzer.Utilities
         public const string SystemCollectionsGenericStack1 = "System.Collections.Generic.Stack`1";
         public const string SystemCollectionsGenericSortedSet1 = "System.Collections.Generic.SortedSet`1";
         public const string SystemCollectionsICollection = "System.Collections.ICollection";
+        public const string SystemCollectionsIDictionary = "System.Collections.IDictionary";
         public const string SystemCollectionsIEnumerable = "System.Collections.IEnumerable";
         public const string SystemCollectionsIEnumerator = "System.Collections.IEnumerator";
         public const string SystemCollectionsIHashCodeProvider = "System.Collections.IHashCodeProvider";
@@ -160,7 +164,9 @@ namespace Analyzer.Utilities
         public const string SystemCollectionsObjectModelReadOnlyCollection1 = "System.Collections.ObjectModel.ReadOnlyCollection`1";
         public const string SystemCollectionsObjectModelReadOnlyDictionary2 = "System.Collections.ObjectModel.ReadOnlyDictionary`2";
         public const string SystemCollectionsObjectModelReadOnlyObservableCollection1 = "System.Collections.ObjectModel.ReadOnlyObservableCollection`1";
+        public const string SystemCollectionsQueue = "System.Collections.Queue";
         public const string SystemCollectionsSpecializedNameValueCollection = "System.Collections.Specialized.NameValueCollection";
+        public const string SystemCollectionsStack = "System.Collections.Stack";
         public const string SystemComponentModelComponent = "System.ComponentModel.Component";
         public const string SystemComponentModelCompositionExportAttribute = "System.ComponentModel.Composition.ExportAttribute";
         public const string SystemComponentModelCompositionImportingConstructorAttribute = "System.ComponentModel.Composition.ImportingConstructorAttribute";
@@ -364,6 +370,8 @@ namespace Analyzer.Utilities
         public const string SystemSecurityCryptographyX509CertificatesX509Certificate2 = "System.Security.Cryptography.X509Certificates.X509Certificate2";
         public const string SystemSecurityCryptographyX509CertificatesX509Chain = "System.Security.Cryptography.X509Certificates.X509Chain";
         public const string SystemSecurityCryptographyX509CertificatesX509Store = "System.Security.Cryptography.X509Certificates.X509Store";
+        public const string SystemSecurityIPermission = "System.Security.IPermission";
+        public const string SystemSecurityPolicyIMembershipCondition = "System.Security.Policy.IMembershipCondition";
         public const string SystemSerializableAttribute = "System.SerializableAttribute";
         public const string SystemServiceModelMessageContractAttribute = "System.ServiceModel.MessageContractAttribute";
         public const string SystemServiceModelOperationContractAttribute = "System.ServiceModel.OperationContractAttribute";
