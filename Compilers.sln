@@ -160,6 +160,8 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "VbcCommandLine", "src\Compi
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "vbc-arm64", "src\Compilers\VisualBasic\vbc\arm64\vbc-arm64.csproj", "{48C93F90-8776-4847-96D8-127B896D6C80}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.CSharp.EndToEnd.UnitTests", "src\Compilers\CSharp\Test\EndToEnd\Microsoft.CodeAnalysis.CSharp.EndToEnd.UnitTests.csproj", "{F3D9264A-7CAE-4265-AF48-0C863301F51E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -410,6 +412,10 @@ Global
 		{48C93F90-8776-4847-96D8-127B896D6C80}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{48C93F90-8776-4847-96D8-127B896D6C80}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{48C93F90-8776-4847-96D8-127B896D6C80}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F3D9264A-7CAE-4265-AF48-0C863301F51E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F3D9264A-7CAE-4265-AF48-0C863301F51E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F3D9264A-7CAE-4265-AF48-0C863301F51E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F3D9264A-7CAE-4265-AF48-0C863301F51E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -484,6 +490,7 @@ Global
 		{869E3B79-4E91-45FD-BA37-56DBD2F34721} = {E35DA3D1-16C0-4318-9187-6B664F12A870}
 		{810B02AD-2EA5-4422-88AC-B71B8AB0DF0B} = {C65C6143-BED3-46E6-869E-9F0BE6E84C37}
 		{48C93F90-8776-4847-96D8-127B896D6C80} = {C65C6143-BED3-46E6-869E-9F0BE6E84C37}
+		{F3D9264A-7CAE-4265-AF48-0C863301F51E} = {32A48625-F0AD-419D-828B-A50BDABA38EA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6F599E08-A9EA-4FAA-897F-5D824B0210E6}
