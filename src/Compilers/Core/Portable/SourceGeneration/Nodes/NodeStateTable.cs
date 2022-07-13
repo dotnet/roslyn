@@ -629,18 +629,19 @@ namespace Microsoft.CodeAnalysis
                     Debug.Assert(_items.Count == _requestedCapacity);
                     Debug.Assert(_states == null || _states.Count == _requestedCapacity);
 
-                    var states = _states?.ToImmutableAndFree() ?? GetSingleArray(_currentState.Value);
-
+                    OneOrMany<T> items;
                     if (_items.Count == 1)
                     {
                         var item = _items[0];
                         _items.Free();
-                        return new TableEntry(OneOrMany.Create(item), states);
+                        items = OneOrMany.Create(item);
                     }
                     else
                     {
-                        return new TableEntry(OneOrMany.Create(_items.ToImmutableAndFree()), states);
+                        items = OneOrMany.Create(_items.ToImmutableAndFree());
                     }
+
+                    return new TableEntry(items, _states?.ToImmutableAndFree() ?? GetSingleArray(_currentState.Value));
                 }
             }
         }

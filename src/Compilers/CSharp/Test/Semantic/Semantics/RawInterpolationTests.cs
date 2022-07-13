@@ -1266,9 +1266,9 @@ class C
 
 
         CreateCompilation(text, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5)).VerifyDiagnostics(
-            // (6,24): error CS8652: The feature 'raw string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (6,24): error CS8026: Feature 'raw string literals' is not available in C# 5. Please use language version 11.0 or greater.
             //         string other = """world""";
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""""world""""""").WithArguments("raw string literals").WithLocation(6, 24),
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, @"""""""world""""""").WithArguments("raw string literals", "11.0").WithLocation(6, 24),
             // (7,16): error CS8026: Feature 'interpolated strings' is not available in C# 5. Please use language version 6 or greater.
             //         return $"""hello + {other}""";
             Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, @"$""""""hello + {other}""""""").WithArguments("interpolated strings", "6").WithLocation(7, 16));
