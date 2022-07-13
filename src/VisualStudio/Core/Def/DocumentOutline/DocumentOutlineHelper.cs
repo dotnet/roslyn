@@ -100,19 +100,14 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// </summary>
         public static ImmutableArray<DocumentSymbolData> GetDocumentSymbolData(DocumentSymbol[] documentSymbols, ITextSnapshot originalSnapshot)
         {
-            var documentSymbolItems = ArrayBuilder<DocumentSymbolData>.GetInstance();
-
+            var documentSymbolData = ArrayBuilder<DocumentSymbolData>.GetInstance();
             foreach (var documentSymbol in documentSymbols)
             {
-                var documentSymbolItem = new DocumentSymbolData(documentSymbol, originalSnapshot);
-
-                if (documentSymbol.Children is not null)
-                    documentSymbolItem.Children = GetDocumentSymbolData(documentSymbol.Children, originalSnapshot);
-
-                documentSymbolItems.Add(documentSymbolItem);
+                var children = GetDocumentSymbolData(documentSymbol.Children ?? Array.Empty<DocumentSymbol>(), originalSnapshot);
+                documentSymbolData.Add(new DocumentSymbolData(documentSymbol, originalSnapshot, children));
             }
 
-            return documentSymbolItems.ToImmutable();
+            return documentSymbolData.ToImmutable();
         }
 
         public static ImmutableArray<DocumentSymbolUIItem> GetDocumentSymbolUIItems(ImmutableArray<DocumentSymbolData> documentSymbolData)
@@ -169,7 +164,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// Sorts and returns an immutable array of DocumentSymbolItem based on a SortOption.
         /// </summary>
         public static ImmutableArray<DocumentSymbolData> Sort(
-            ImmutableArray<DocumentSymbolData> documentSymbolItems,
+            ImmutableArray<DocumentSymbolData> documentSymbolData,
             SortOption sortOption,
             CancellationToken cancellationToken)
         {
@@ -184,37 +179,42 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 _ => throw new NotImplementedException(),
             });
 
-            return SortDocumentSymbolItems(documentSymbolItems, sortOption, cancellationToken);
+            return SortDocumentSymbolData(documentSymbolData, sortOption, cancellationToken);
 
-            static ImmutableArray<DocumentSymbolData> SortDocumentSymbolItems(
-                ImmutableArray<DocumentSymbolData> documentSymbolItems,
+            static ImmutableArray<DocumentSymbolData> SortDocumentSymbolData(
+                ImmutableArray<DocumentSymbolData> documentSymbolData,
                 SortOption sortOption,
                 CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                // Sort the top-level DocumentSymbolItems
-                var sortedDocumentSymbolItems = sortOption switch
+                var sortedDocumentSymbols = ArrayBuilder<DocumentSymbolData>.GetInstance();
+                foreach (var documentSymbol in documentSymbolData)
                 {
-                    SortOption.Name => documentSymbolItems.Sort((x, y) => x.Name.CompareTo(y.Name)),
-                    SortOption.Location => documentSymbolItems.Sort((x, y) => x.RangeSpan.Start - y.RangeSpan.Start),
-                    SortOption.Type => documentSymbolItems.Sort((x, y) =>
-                    {
-                        if (x.SymbolKind == y.SymbolKind)
-                            return x.Name.CompareTo(y.Name);
-
-                        return x.SymbolKind - y.SymbolKind;
-                    }),
-                    _ => throw new NotImplementedException()
-                };
-
-                // Recursively sort descendant DocumentSymbolItems
-                foreach (var documentSymbolItem in sortedDocumentSymbolItems)
-                {
-                    documentSymbolItem.Children = SortDocumentSymbolItems(documentSymbolItem.Children, sortOption, cancellationToken);
+                    var sortedChildren = SortDocumentSymbolData(documentSymbol.Children, sortOption, cancellationToken);
+                    sortedDocumentSymbols.Add(new DocumentSymbolData(documentSymbol, sortedChildren));
                 }
 
-                return sortedDocumentSymbolItems;
+                switch (sortOption)
+                {
+                    case SortOption.Name:
+                        sortedDocumentSymbols.Sort((x, y) => x.Name.CompareTo(y.Name));
+                        break;
+                    case SortOption.Location:
+                        sortedDocumentSymbols.Sort((x, y) => x.RangeSpan.Start - y.RangeSpan.Start);
+                        break;
+                    case SortOption.Type:
+                        sortedDocumentSymbols.Sort((x, y) =>
+                        {
+                            if (x.SymbolKind == y.SymbolKind)
+                                return x.Name.CompareTo(y.Name);
+
+                            return x.SymbolKind - y.SymbolKind;
+                        });
+                        break;
+                }
+
+                return sortedDocumentSymbols.ToImmutable();
             }
         }
 

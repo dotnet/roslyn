@@ -17,29 +17,35 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
     internal sealed class DocumentSymbolData
     {
         public string Name { get; }
-
-        public ImmutableArray<DocumentSymbolData> Children { get; set; }
-
         public SymbolKind SymbolKind { get; }
-
         public SnapshotSpan RangeSpan { get; }
         public SnapshotSpan SelectionRangeSpan { get; }
+        public ImmutableArray<DocumentSymbolData> Children { get; }
 
-        public DocumentSymbolData(DocumentSymbol documentSymbol, ITextSnapshot originalSnapshot)
+        public DocumentSymbolData(DocumentSymbol documentSymbol, ITextSnapshot originalSnapshot, ImmutableArray<DocumentSymbolData> children)
         {
-            this.Name = documentSymbol.Name;
-            this.Children = ImmutableArray<DocumentSymbolData>.Empty;
-            this.SymbolKind = documentSymbol.Kind;
-            this.RangeSpan = GetSymbolRangeSpan(documentSymbol.Range, originalSnapshot);
-            this.SelectionRangeSpan = GetSymbolRangeSpan(documentSymbol.SelectionRange, originalSnapshot);
+            Name = documentSymbol.Name;
+            SymbolKind = documentSymbol.Kind;
+            RangeSpan = GetSymbolRangeSpan(documentSymbol.Range);
+            SelectionRangeSpan = GetSymbolRangeSpan(documentSymbol.SelectionRange);
+            Children = children;
+
+            SnapshotSpan GetSymbolRangeSpan(Range symbolRange)
+            {
+                var originalStartPosition = originalSnapshot.GetLineFromLineNumber(symbolRange.Start.Line).Start.Position + symbolRange.Start.Character;
+                var originalEndPosition = originalSnapshot.GetLineFromLineNumber(symbolRange.End.Line).Start.Position + symbolRange.End.Character;
+
+                return new SnapshotSpan(originalSnapshot, Span.FromBounds(originalStartPosition, originalEndPosition));
+            }
         }
 
-        private static SnapshotSpan GetSymbolRangeSpan(Range symbolRange, ITextSnapshot originalSnapshot)
+        public DocumentSymbolData(DocumentSymbolData documentSymbolData, ImmutableArray<DocumentSymbolData> children)
         {
-            var originalStartPosition = originalSnapshot.GetLineFromLineNumber(symbolRange.Start.Line).Start.Position + symbolRange.Start.Character;
-            var originalEndPosition = originalSnapshot.GetLineFromLineNumber(symbolRange.End.Line).Start.Position + symbolRange.End.Character;
-
-            return new SnapshotSpan(originalSnapshot, Span.FromBounds(originalStartPosition, originalEndPosition));
+            Name = documentSymbolData.Name;
+            SymbolKind = documentSymbolData.SymbolKind;
+            RangeSpan = documentSymbolData.RangeSpan;
+            SelectionRangeSpan = documentSymbolData.SelectionRangeSpan;
+            Children = children;
         }
     }
 }
