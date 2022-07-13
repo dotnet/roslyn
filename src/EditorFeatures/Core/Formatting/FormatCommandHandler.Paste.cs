@@ -55,9 +55,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return;
             }
 
-            var subjectBuffer = args.SubjectBuffer;
-
-            var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
                 return;
@@ -88,16 +86,16 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             var trackingSpan = caretPosition.Value.Snapshot.CreateTrackingSpan(caretPosition.Value.Position, 0, SpanTrackingMode.EdgeInclusive);
-            var span = trackingSpan.GetSpan(subjectBuffer.CurrentSnapshot).Span.ToTextSpan();
+            var span = trackingSpan.GetSpan(args.SubjectBuffer.CurrentSnapshot).Span.ToTextSpan();
 
             // Note: C# always completes synchronously, TypeScript is async
-            var changes = formattingService.GetFormattingChangesOnPasteAsync(document, subjectBuffer, span, cancellationToken).WaitAndGetResult(cancellationToken);
+            var changes = formattingService.GetFormattingChangesOnPasteAsync(document, args.SubjectBuffer, span, cancellationToken).WaitAndGetResult(cancellationToken);
             if (changes.IsEmpty)
             {
                 return;
             }
 
-            subjectBuffer.ApplyChanges(changes);
+            solution.Workspace.ApplyTextChanges(document.Id, changes, cancellationToken);
         }
     }
 }
