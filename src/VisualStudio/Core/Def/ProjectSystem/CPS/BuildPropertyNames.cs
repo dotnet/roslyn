@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
+
 namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 
 /// <summary>
@@ -29,8 +31,8 @@ internal static class BuildPropertyNames
     public const string CommandLineArgsForDesignTimeEvaluation = nameof(CommandLineArgsForDesignTimeEvaluation);
 
     public static readonly ImmutableArray<string> InitialEvaluationPropertyNames = ImmutableArray.Create(
-        BuildPropertyNames.MSBuildProjectFullPath,
-        BuildPropertyNames.TargetPath,
-        BuildPropertyNames.AssemblyName,
-        BuildPropertyNames.CommandLineArgsForDesignTimeEvaluation);
+        MSBuildProjectFullPath,
+        TargetPath,
+        AssemblyName,
+        CommandLineArgsForDesignTimeEvaluation);
 }
