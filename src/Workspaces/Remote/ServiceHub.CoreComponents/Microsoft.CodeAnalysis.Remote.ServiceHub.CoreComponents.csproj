@@ -66,18 +66,18 @@
     
     <PropertyGroup>
       <CrossgenWorkDir>$(PublishDir)\CrossGen\</CrossgenWorkDir>
-      <OriginalAssemblyFolder>$(CrossgenWorkDir)OriginalAssemblies\</OriginalAssemblyFolder>
+      <OriginalAssemblyDir>$(CrossgenWorkDir)OriginalAssemblies\</OriginalAssemblyDir>
     </PropertyGroup>   
   </Target>
 
   <Target Name="PrepareCrossgenTargets" DependsOnTargets="LocateCrossgenTargets" Condition="'$(GenerateReadyToRun)' == 'true'">
-    <Move SourceFiles="@(_R2RAssemblyPaths)" DestinationFolder="$(OriginalAssemblyFolder)">
+    <Move SourceFiles="@(_R2RAssemblyPaths)" DestinationFolder="$(OriginalAssemblyDir)">
       <Output TaskParameter="DestinationFiles" ItemName="_FilesWritten" />
     </Move>
     <ItemGroup>
-      <_CrossgenTargetPaths Include="$(OriginalAssemblyFolder)\*.dll" />
+      <_CrossgenTargetPaths Include="$(OriginalAssemblyDir)*.dll" />
       <_CrossgenTargetsAsDependencies Include="@(_CrossgenTargetPaths)" />
-      <_NonCrossgenTargetsAsDependencies Include="@(_NonRuntimeAssembliesInPublishFolder)" Exclude="@(_R2RAssemblyPaths)" />
+      <_NonCrossgenTargetsAsDependencies Include="@(_NonRuntimeAssembliesInPublishDir)" Exclude="@(_R2RAssemblyPaths)" />
     </ItemGroup>
   </Target>
 
@@ -114,10 +114,10 @@
       <_RuntimeLibraries Include="$(PkgMicrosoft_NETCore_App_Runtime_win-x64)\runtimes\win-x64\**\*.dll" />
       <_WinRuntimeLibraries Include="$(PkgMicrosoft_WindowsDesktop_App_Runtime_win-x64)\runtimes\win-x64\**\*.dll" />
 
-      <_RuntimeLibrariesInPublishFolder Include="@(_RuntimeLibraries->'$(PublishDir)\%(FileName)%(Extension)')" />
-      <_RuntimeLibrariesInPublishFolder Include="@(_WinRuntimeLibraries->'$(PublishDir)\%(FileName)%(Extension)')" />
+      <_RuntimeLibrariesInPublishDir Include="@(_RuntimeLibraries->'$(PublishDir)\%(FileName)%(Extension)')" />
+      <_RuntimeLibrariesInPublishDir Include="@(_WinRuntimeLibraries->'$(PublishDir)\%(FileName)%(Extension)')" />
 
-      <_NonRuntimeAssembliesInPublishFolder Include="$(PublishDir)\*.dll" Exclude="@(_RuntimeLibrariesInPublishFolder)" />
+      <_NonRuntimeAssembliesInPublishDir Include="$(PublishDir)\*.dll" Exclude="@(_RuntimeLibrariesInPublishDir)" />
     </ItemGroup>
   </Target>
 
@@ -136,7 +136,7 @@
         However, we can't safely exclude shared dependencies from ServiceHub host folder: we might be referencing
         a higher version, or back-compat might not be guaranteed in the version shipped by host.
       -->
-      <_ExcludedFiles Include="@(_RuntimeLibrariesInPublishFolder)" />
+      <_ExcludedFiles Include="@(_RuntimeLibrariesInPublishDir)" />
     </ItemGroup>
     <ItemGroup>
       <!-- Need to include and then update items (https://github.com/microsoft/msbuild/issues/1053) -->
