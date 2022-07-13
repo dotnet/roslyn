@@ -170,7 +170,17 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     /// </summary>
     public async Task<Document?> GetLspDocumentAsync(TextDocumentIdentifier textDocumentIdentifier, CancellationToken cancellationToken)
     {
-        return await GetLspTextDocumentAsync<Document>(textDocumentIdentifier, cancellationToken).ConfigureAwait(false);
+        var uri = textDocumentIdentifier.Uri;
+        var document = await GetLspTextDocumentAsync<Document>(textDocumentIdentifier, cancellationToken).ConfigureAwait(false);
+
+        if (document == null)
+        {
+            // Add the document to our loose files workspace if its open.
+            var miscDocument = _trackedDocuments.ContainsKey(uri) ? _lspMiscellaneousFilesWorkspace?.AddMiscellaneousDocument(uri, _trackedDocuments[uri], _logger) : null;
+            return miscDocument;
+        }
+
+        return document;
     }
 
     /// <summary>
@@ -199,7 +209,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
                 _requestTelemetryLogger.UpdateUsedForkedSolutionCounter(isForked);
                 _logger.TraceInformation($"{document.FilePath} found in workspace {workspaceKind}");
 
-                return document as T;
+                return (T)document;
             }
         }
 
@@ -208,9 +218,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         _logger.TraceError($"Could not find '{uri}'.  Searched {searchedWorkspaceKinds}");
         _requestTelemetryLogger.UpdateFindDocumentTelemetryData(success: false, workspaceKind: null);
 
-        // Add the document to our loose files workspace if its open.
-        var miscDocument = _trackedDocuments.ContainsKey(uri) ? _lspMiscellaneousFilesWorkspace?.AddMiscellaneousDocument(uri, _trackedDocuments[uri], _logger) : null;
-        return miscDocument as T;
+        return null;
     }
 
     /// <summary>
