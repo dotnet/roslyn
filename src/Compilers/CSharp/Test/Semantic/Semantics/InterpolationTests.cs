@@ -15991,5 +15991,46 @@ class C
                 //         return $"hello + {other}";
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, @"$""hello + {other}""").WithArguments("interpolated strings", "6").WithLocation(7, 16));
         }
+
+        [Fact, WorkItem(1566008, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1566008")]
+        public void InterpolatedStringInForeach_HasErrors()
+        {
+            var text = """
+                int i = 1;
+                /*<bind>*/foreach (($"{i}") in new int[0]) {}/*</bind>*/
+                """;
+
+            var comp = CreateCompilation(text).VerifyDiagnostics(
+                // (1,5): warning CS0219: The variable 'i' is assigned but its value is never used
+                // int i = 1;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i").WithArguments("i").WithLocation(1, 5),
+                // (2,29): error CS0230: Type and identifier are both required in a foreach statement
+                // /*<bind>*/foreach (($"{i}") in new int[0]) {}/*</bind>*/
+                Diagnostic(ErrorCode.ERR_BadForeachDecl, "in").WithLocation(2, 29)
+            );
+
+            VerifyOperationTreeForTest<ForEachVariableStatementSyntax>(comp, expectedOperationTree: """
+                IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'foreach (($ ...  int[0]) {}')
+                  LoopControlVariable:
+                    IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i}""')
+                      Parts(1):
+                          IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i}')
+                            Expression:
+                              ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+                            Alignment:
+                              null
+                            FormatString:
+                              null
+                  Collection:
+                    IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[]) (Syntax: 'new int[0]')
+                      Dimension Sizes(1):
+                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+                      Initializer:
+                        null
+                  Body:
+                    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{}')
+                  NextVariables(0)
+                """);
+        }
     }
 }
