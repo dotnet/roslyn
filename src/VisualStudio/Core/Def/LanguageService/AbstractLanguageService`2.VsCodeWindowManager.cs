@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             private IDisposable? _navigationBarController;
             private IVsDropdownBarClient? _dropdownBarClient;
             private ElementHost? _documentOutlineViewHost;
-            private CancellationTokenSource? _documentOutlineCts;
+            private CancellationTokenSource? _documentOutlineTokenSource;
 
             public VsCodeWindowManager(TLanguageService languageService, IVsCodeWindow codeWindow)
             {
@@ -241,7 +241,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 var asyncListenerProvider = _languageService.Package.ComponentModel.GetService<IAsynchronousOperationListenerProvider>();
                 var asyncListener = asyncListenerProvider.GetListener(FeatureAttribute.DocumentOutline);
                 var editorAdaptersFactoryService = _languageService.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
-                _documentOutlineCts = new CancellationTokenSource();
+                _documentOutlineTokenSource = new CancellationTokenSource();
 
                 threadingContext.ThrowIfNotOnUIThread();
 
@@ -250,7 +250,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 {
                     Dock = DockStyle.Fill,
                     Child = new DocumentOutlineControl(
-                        languageServiceBroker, threadingContext, asyncListener, editorAdaptersFactoryService, _codeWindow, _documentOutlineCts.Token)
+                        languageServiceBroker, threadingContext, asyncListener, editorAdaptersFactoryService, _codeWindow, _documentOutlineTokenSource.Token)
                 };
 
                 phwnd = _documentOutlineViewHost.Handle;
@@ -266,12 +266,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 var threadingContext = _languageService.Package.ComponentModel.GetService<IThreadingContext>();
                 threadingContext.ThrowIfNotOnUIThread();
 
+                _documentOutlineTokenSource?.Cancel();
+                _documentOutlineTokenSource?.Dispose();
+                _documentOutlineTokenSource = null;
+
                 _documentOutlineViewHost?.Dispose();
                 _documentOutlineViewHost = null;
-
-                _documentOutlineCts?.Cancel();
-                _documentOutlineCts?.Dispose();
-                _documentOutlineCts = null;
 
                 return VSConstants.S_OK;
             }
