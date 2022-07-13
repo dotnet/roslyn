@@ -8349,11 +8349,11 @@ class C
 ";
             var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (5,57): error CS8652: The feature 'pattern matching ReadOnly/Span<char> on constant string' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,57): error CS8936: Feature 'pattern matching ReadOnly/Span<char> on constant string' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     static bool M(ReadOnlySpan<char> chars) => chars is "";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""").WithArguments("pattern matching ReadOnly/Span<char> on constant string").WithLocation(5, 57));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, @"""""").WithArguments("pattern matching ReadOnly/Span<char> on constant string", "11.0").WithLocation(5, 57));
 
-            comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"True
@@ -8391,11 +8391,11 @@ class C
 ";
             var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (4,63): error CS8652: The feature 'pattern matching ReadOnly/Span<char> on constant string' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,63): error CS8936: Feature 'pattern matching ReadOnly/Span<char> on constant string' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     static bool M(ReadOnlySpan<char> chars) => chars switch { "" => true, _ => false };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""").WithArguments("pattern matching ReadOnly/Span<char> on constant string").WithLocation(4, 63));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, @"""""").WithArguments("pattern matching ReadOnly/Span<char> on constant string", "11.0").WithLocation(4, 63));
 
-            comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"True
@@ -9703,11 +9703,11 @@ class C
 ";
             var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (5,49): error CS8652: The feature 'pattern matching ReadOnly/Span<char> on constant string' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,49): error CS8936: Feature 'pattern matching ReadOnly/Span<char> on constant string' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     static bool M(Span<char> chars) => chars is "";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""").WithArguments("pattern matching ReadOnly/Span<char> on constant string").WithLocation(5, 49));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, @"""""").WithArguments("pattern matching ReadOnly/Span<char> on constant string", "11.0").WithLocation(5, 49));
 
-            comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"True
@@ -9744,11 +9744,11 @@ class C
 ";
             var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (5,55): error CS8652: The feature 'pattern matching ReadOnly/Span<char> on constant string' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,55): error CS8936: Feature 'pattern matching ReadOnly/Span<char> on constant string' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     static bool M(Span<char> chars) => chars switch { "" => true, _ => false };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""").WithArguments("pattern matching ReadOnly/Span<char> on constant string").WithLocation(5, 55));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, @"""""").WithArguments("pattern matching ReadOnly/Span<char> on constant string", "11.0").WithLocation(5, 55));
 
-            comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"True
@@ -10066,7 +10066,7 @@ class Program
     static bool F1<T>(ReadOnlySpan<T> span) => span is """";
     static bool F2<T>(Span<T> span) => span is """";
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
                 // (4,56): error CS8121: An expression of type 'ReadOnlySpan<T>' cannot be handled by a pattern of type 'string'.
                 //     static bool F1<T>(ReadOnlySpan<T> span) => span is "";
@@ -10097,7 +10097,7 @@ class Program
         F(new Span<int>(new int[] { '1', '2', '3' }));
     }
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics(
                 // (5,56): error CS8121: An expression of type 'ReadOnlySpan<T>' cannot be handled by a pattern of type 'ReadOnlySpan<char>'.
                 //     static bool F1<T>(ReadOnlySpan<T> span) => span is ReadOnlySpan<char> _;
@@ -10117,7 +10117,7 @@ class Program
     static bool F1<T>(ReadOnlySpan<T> span) => span is ReadOnlySpan<char> and ""ABC"";
     static bool F2<T>(Span<T> span) => span is Span<char> and ""123"";
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics(
                 // (4,56): error CS8121: An expression of type 'ReadOnlySpan<T>' cannot be handled by a pattern of type 'ReadOnlySpan<char>'.
                 //     static bool F1<T>(ReadOnlySpan<T> span) => span is ReadOnlySpan<char> and "ABC";
@@ -10139,7 +10139,7 @@ class Program
     static bool F3<T>(ValueType v) => v is ReadOnlySpan<char> _;
     static bool F4<T>(ValueType v) => v is Span<char> _;
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics(
                 // (4,41): error CS8121: An expression of type 'object' cannot be handled by a pattern of type 'ReadOnlySpan<char>'.
                 //     static bool F1<T>(object o) => o is ReadOnlySpan<char> _;
@@ -10167,7 +10167,7 @@ class Program
     static bool F3<T>(ValueType v) => v is ReadOnlySpan<char> and ""ABC"";
     static bool F4<T>(ValueType v) => v is Span<char> and ""123"";
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics(
                 // (4,41): error CS8121: An expression of type 'object' cannot be handled by a pattern of type 'ReadOnlySpan<char>'.
                 //     static bool F1<T>(object o) => o is ReadOnlySpan<char> and "ABC";
@@ -10194,7 +10194,7 @@ class Program
     static bool F1(ReadOnlySpan<char> span) => span is $""{123}"";
     static bool F2(Span<char> span) => span is $""{n}"";
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics(
                 // (5,56): error CS0150: A constant value is expected
                 //     static bool F1(ReadOnlySpan<char> span) => span is $"{123}";
@@ -10225,7 +10225,7 @@ class Program
         F(""123"".ToArray());
     }
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput:
 @"(True, False)
@@ -10243,7 +10243,7 @@ class Program
     static bool F1(ReadOnlySpan<char> span, bool b) => span is (b ? """" : ""ABC"");
     static bool F2(Span<char> span, bool b) => span is (b ? """" : ""123"");
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics(
                 // (4,65): error CS0150: A constant value is expected
                 //     static bool F1(ReadOnlySpan<char> span, bool b) => span is (b ? "" : "ABC");
@@ -10273,7 +10273,7 @@ class Program
         F(""123"".ToArray());
     }
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput:
 @"(True, False)
@@ -10291,7 +10291,7 @@ class Program
     static bool F1(ReadOnlySpan<char> span, bool b) => span is b switch { true => """", false => ""ABC"" };
     static bool F2(Span<char> span, bool b) => span is b switch { false => """", true => ""123"" };
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics(
                 // (4,64): error CS0150: A constant value is expected
                 //     static bool F1(ReadOnlySpan<char> span, bool b) => span is b switch { true => "", false => "ABC" };
@@ -10315,7 +10315,7 @@ class Program
         Expression<Func<bool>> e2 = () => new Span<char>(null) is ""ABC"";
     }
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics(
                 // (7,43): error CS8122: An expression tree may not contain an 'is' pattern-matching operator.
                 //         Expression<Func<bool>> e1 = () => new ReadOnlySpan<char>(null) is "123";
@@ -10345,7 +10345,7 @@ class Program
         Expression<Func<bool>> e2 = () => new Span<char>(null) switch { ""ABC"" => true, _ => false };
     }
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics(
                 // (7,43): error CS8514: An expression tree may not contain a switch expression.
                 //         Expression<Func<bool>> e1 = () => new ReadOnlySpan<char>(null) switch { "123" => true, _ => false };
@@ -10401,7 +10401,7 @@ class Program
         };
     }
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics(
                 // (8,13): error CS9013: A string 'null' constant is not supported as a pattern for 'ReadOnlySpan<char>'. Use an empty string instead.
                 //             (string)null => 0,
@@ -10672,7 +10672,7 @@ class Program
         };
     }
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"0
@@ -10852,7 +10852,7 @@ class Program
     static bool F1(ReadOnlySpan<char> span) => span is ""123"";
     static bool F2(Span<char> span) => span is ""ABC"";
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics();
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -10876,7 +10876,7 @@ class Program
     static bool F1(ReadOnlySpan<char> span) => span is ""123"" and var r;
     static bool F2(Span<char> span) => span is ""ABC"" and var s;
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics();
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -10897,7 +10897,7 @@ class Program
         return span is ""123"";
     }
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics();
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -10954,7 +10954,7 @@ class Program
         return span is ""ABC"";
     }
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics();
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
