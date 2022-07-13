@@ -7,8 +7,10 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection.Metadata;
+using System.Security.Policy;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -42,13 +44,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return documents;
         }
 
-        public static ImmutableArray<AnalyzerConfigDocument> GetAnalyzerConfigDocuments(this Solution solution, Uri documentUri)
+        public static ImmutableArray<TextDocument> GetTextDocuments(this Solution solution, Uri documentUri)
         {
             var documentIds = GetDocumentIds(solution, documentUri);
 
             // We don't call GetRequiredDocument here as the id could be referring to an additional document.
-            var additionalDocuments = documentIds.Select(solution.GetAnalyzerConfigDocument).WhereNotNull().ToImmutableArray();
-            return additionalDocuments;
+            var textDocuments = documentIds.Select(solution.GetTextDocument).WhereNotNull().ToImmutableArray();
+            return textDocuments;
         }
 
         public static ImmutableArray<DocumentId> GetDocumentIds(this Solution solution, Uri documentUri)
@@ -110,7 +112,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return documents[0];
         }
 
-        public static TextDocument FindAnalyzerConfigDocumentInProjectContext(this ImmutableArray<AnalyzerConfigDocument> documents, TextDocumentIdentifier documentIdentifier)
+        public static T FindTextDocumentInProjectContext<T>(this ImmutableArray<T> documents, TextDocumentIdentifier documentIdentifier) where T : TextDocument
         {
             if (documents.Length > 1)
             {
@@ -133,7 +135,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                     var solution = documents.First().Project.Solution;
                     // Lookup which of the linked documents is currently active in the workspace.
                     var documentIdInCurrentContext = solution.Workspace.GetDocumentIdInCurrentContext(documents.First().Id);
-                    return solution.GetRequiredAnalyzerConfigDocument(documentIdInCurrentContext);
+
+                    return solution.GetRequiredTextDocument(documentIdInCurrentContext) as T ?? throw new NullReferenceException();
                 }
             }
 

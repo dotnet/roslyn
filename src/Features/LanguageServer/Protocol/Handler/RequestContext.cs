@@ -138,8 +138,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 // we were given a request associated with a document.  Find the corresponding roslyn document for this. 
                 // There are certain cases where we may be asked for a document that does not exist (for example a document is removed)
                 // For example, document pull diagnostics can ask us after removal to clear diagnostics for a document.
-                document = await lspWorkspaceManager.GetLspDocumentAsync(textDocument, requestCancellationToken).ConfigureAwait(false);
-                additionalDocument = await lspWorkspaceManager.GetLspAnalyzerConfigDocumentAsync(textDocument, requestCancellationToken).ConfigureAwait(false);
+                document = await lspWorkspaceManager.GetLspTextDocumentAsync<Document>(textDocument, requestCancellationToken).ConfigureAwait(false);
+                additionalDocument = await lspWorkspaceManager.GetLspTextDocumentAsync<AnalyzerConfigDocument>(textDocument, requestCancellationToken).ConfigureAwait(false);
             }
 
             workspaceSolution = document?.Project.Solution ?? additionalDocument?.Project.Solution ?? await lspWorkspaceManager.TryGetHostLspSolutionAsync(requestCancellationToken).ConfigureAwait(false);

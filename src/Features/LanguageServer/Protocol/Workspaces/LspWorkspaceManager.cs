@@ -208,7 +208,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     /// 
     /// This is always called serially in the <see cref="RequestExecutionQueue"/> when creating the <see cref="RequestContext"/>.
     /// </summary>
-    public async Task<TextDocument?> GetLspAnalyzerConfigDocumentAsync(TextDocumentIdentifier textDocumentIdentifier, CancellationToken cancellationToken)
+    public async Task<T?> GetLspTextDocumentAsync<T>(TextDocumentIdentifier textDocumentIdentifier, CancellationToken cancellationToken) where T : TextDocument
     {
         var uri = textDocumentIdentifier.Uri;
 
@@ -218,10 +218,10 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         // Find the matching document from the LSP solutions.
         foreach (var (lspSolution, isForked) in lspSolutions)
         {
-            var additionalDocuments = lspSolution.GetAnalyzerConfigDocuments(uri);
+            var additionalDocuments = lspSolution.GetTextDocuments(uri);
             if (additionalDocuments.Any())
             {
-                var document = additionalDocuments.FindAnalyzerConfigDocumentInProjectContext(textDocumentIdentifier);
+                var document = additionalDocuments.FindTextDocumentInProjectContext(textDocumentIdentifier);
 
                 // Record metadata on how we got this document.
                 var workspaceKind = document.Project.Solution.Workspace.Kind;
@@ -229,7 +229,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
                 _requestTelemetryLogger.UpdateUsedForkedSolutionCounter(isForked);
                 _logger.TraceInformation($"{document.FilePath} found in workspace {workspaceKind}");
 
-                return document;
+                return document as T;
             }
         }
 
@@ -240,7 +240,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
         // Add the document to our loose files workspace if its open.
         var miscDocument = _trackedDocuments.ContainsKey(uri) ? _lspMiscellaneousFilesWorkspace?.AddMiscellaneousDocument(uri, _trackedDocuments[uri], _logger) : null;
-        return miscDocument;
+        return miscDocument as T;
     }
 
     /// <summary>
