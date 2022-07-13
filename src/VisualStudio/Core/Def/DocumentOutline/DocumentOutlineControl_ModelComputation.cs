@@ -65,6 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             var model = await ComputeDataModelAsync(cancellationToken).ConfigureAwait(false);
 
+            // The model can be null if the LSP document symbol request returns a null response.
             if (model is not null)
                 StartUpdateDataModelTask();
 
