@@ -287,8 +287,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 {
                     _indentCaretOnCommit = true;
 
-                    var formattingOptions = SubjectBuffer.GetLineFormattingOptions(EditorOptionsService, explicitFormat: false);
-                    _indentDepth = lineText.GetColumnFromLineOffset(lineText.Length, formattingOptions.TabSize);
+                    var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                    if (document != null)
+                    {
+                        var formattingOptions = document.GetLineFormattingOptionsAsync(EditorOptionsService.GlobalOptions, CancellationToken.None).AsTask().WaitAndGetResult(CancellationToken.None);
+                        _indentDepth = lineText.GetColumnFromLineOffset(lineText.Length, formattingOptions.TabSize);
+                    }
+                    else
+                    {
+                        // If we don't have a document, then just guess the typical default TabSize value.
+                        _indentDepth = lineText.GetColumnFromLineOffset(lineText.Length, tabSize: 4);
+                    }
 
                     SubjectBuffer.Delete(new Span(line.Start.Position, line.Length));
                     _ = SubjectBuffer.CurrentSnapshot.GetSpan(new Span(line.Start.Position, 0));
@@ -1057,15 +1066,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return;
             }
 
-            var documentWithImports = SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var documentWithImports = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (documentWithImports == null)
             {
                 return;
             }
 
-            var languageServices = documentWithImports.Project.LanguageServices;
-            var addImportOptions = SubjectBuffer.GetAddImportPlacementOptions(EditorOptionsService, languageServices, documentWithImports.AllowImportsInHiddenRegions());
-            var formattingOptions = SubjectBuffer.GetSyntaxFormattingOptions(EditorOptionsService, languageServices, explicitFormat: false);
+            var addImportOptions = documentWithImports.GetAddImportPlacementOptionsAsync(EditorOptionsService.GlobalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
+            var formattingOptions = documentWithImports.GetSyntaxFormattingOptionsAsync(EditorOptionsService.GlobalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
 
             documentWithImports = AddImports(documentWithImports, addImportOptions, formattingOptions, position, snippetNode, cancellationToken);
             AddReferences(documentWithImports.Project, snippetNode);
