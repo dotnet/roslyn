@@ -1011,6 +1011,17 @@
               "parameters": {
                 "matchRegex": ".*/PublicAPI\\.(Shipped|Unshipped)\\.txt"
               }
+            },
+            {
+              "operator": "not",
+              "operands": [
+                {
+                  "name": "isActivitySender",
+                  "parameters": {
+                    "user": "dotnet-bot"
+                  }
+                }
+              ]
             }
           ]
         },
