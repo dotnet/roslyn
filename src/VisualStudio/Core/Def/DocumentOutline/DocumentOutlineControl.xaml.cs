@@ -40,6 +40,9 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// <summary>
         /// The type of sorting to be applied to the data model in <see cref="FilterAndSortDataModelAsync"/>.
         /// </summary>
+        /// <remarks>
+        /// It is only safe to read/mutate SortOption from the UI thread.
+        /// </remarks>
         private SortOption SortOption
         {
             get
