@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.Rename
     internal record RenameSymbolContext(
         int Priority,
         RenameAnnotation RenamableSymbolDeclarationAnnotation,
+        Location? RenamableDeclarationLocation,
         string ReplacementText,
         string OriginalText,
         ICollection<string> PossibleNameConflicts,
