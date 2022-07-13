@@ -67,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             // The model can be null if the LSP document symbol request returns a null response.
             if (model is not null)
-                StartUpdateDataModelTask();
+                StartFilterAndSortDataModelTask();
 
             return model;
 
@@ -107,18 +107,18 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         }
 
         /// <summary>
-        /// Starts a new task to update the UI model.
+        /// Starts a new task to filter and sort the data model.
         /// </summary>
-        private void StartUpdateDataModelTask()
+        private void StartFilterAndSortDataModelTask()
         {
             // 'true' value is unused.  this just signals to the queue that we have work to do.
-            _updateDataModelQueue.AddWork(true);
+            _filterAndSortDataModelQueue.AddWork(true);
         }
 
         /// <summary>
         /// Filters and sorts the data model.
         /// </summary>
-        private async ValueTask<DocumentSymbolDataModel?> UpdateDataModelAsync(ImmutableSegmentedList<bool> _, CancellationToken cancellationToken)
+        private async ValueTask<DocumentSymbolDataModel?> FilterAndSortDataModelAsync(ImmutableSegmentedList<bool> _, CancellationToken cancellationToken)
         {
             var model = await _computeDataModelQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
             if (model is null)
@@ -159,7 +159,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// </summary>
         private async ValueTask DetermineHighlightedItemAndPresentItemsAsync(ImmutableSegmentedList<ExpansionOption> expansionOption, CancellationToken cancellationToken)
         {
-            var model = await _updateDataModelQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
+            var model = await _filterAndSortDataModelQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
             if (model is null)
                 return;
 

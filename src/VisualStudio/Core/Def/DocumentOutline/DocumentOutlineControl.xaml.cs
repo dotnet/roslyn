@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         private SortOption _sortOption;
 
         /// <summary>
-        /// The type of sorting to be applied to the UI model in <see cref="UpdateDataModelAsync"/>.
+        /// The type of sorting to be applied to the data model in <see cref="FilterAndSortDataModelAsync"/>.
         /// </summary>
         private SortOption SortOption
         {
@@ -55,15 +55,15 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         }
 
         /// <summary>
-        /// Queue to batch up work to do to compute the UI model. Used so we can batch up a lot of events 
+        /// Queue to batch up work to do to compute the data model. Used so we can batch up a lot of events 
         /// and only fetch the model once for every batch.
         /// </summary>
         private readonly AsyncBatchingWorkQueue<bool, DocumentSymbolDataModel?> _computeDataModelQueue;
 
         /// <summary>
-        /// Queue to batch up work to do to update the UI model.
+        /// Queue to batch up work to do to filter and sort the data model.
         /// </summary>
-        private readonly AsyncBatchingWorkQueue<bool, DocumentSymbolDataModel?> _updateDataModelQueue;
+        private readonly AsyncBatchingWorkQueue<bool, DocumentSymbolDataModel?> _filterAndSortDataModelQueue;
 
         /// <summary>
         /// Queue to batch up work to do to highlight the currently selected symbol node, expand/collapse nodes,
@@ -105,9 +105,9 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 asyncListener,
                 cancellationToken);
 
-            _updateDataModelQueue = new AsyncBatchingWorkQueue<bool, DocumentSymbolDataModel?>(
+            _filterAndSortDataModelQueue = new AsyncBatchingWorkQueue<bool, DocumentSymbolDataModel?>(
                 DelayTimeSpan.NearImmediate,
-                UpdateDataModelAsync,
+                FilterAndSortDataModelAsync,
                 EqualityComparer<bool>.Default,
                 asyncListener,
                 cancellationToken);
@@ -184,7 +184,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         }
 
         /// <summary>
-        /// On text buffer change, obtain an updated UI model and update the view.
+        /// On text buffer change, obtain an updated data model.
         /// </summary>
         private void TextBuffer_Changed(object sender, TextContentChangedEventArgs e)
             => StartComputeDataModelTask();
@@ -205,7 +205,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             => StartDetermineHighlightedItemAndPresentItemsTask(ExpansionOption.Collapse);
 
         private void SearchBox_TextChanged(object sender, EventArgs e)
-            => StartUpdateDataModelTask();
+            => StartFilterAndSortDataModelTask();
 
         private void SortByName(object sender, EventArgs e)
             => UpdateSortOptionAndDataModel(SortOption.Name);
@@ -220,7 +220,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         {
 
             SortOption = sortOption;
-            StartUpdateDataModelTask();
+            StartFilterAndSortDataModelTask();
         }
 
         /// <summary>
