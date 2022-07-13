@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override bool IsCaseSensitive
             => true;
 
-        public override int AttributeListKind
+        protected override int AttributeListKind
             => (int)SyntaxKind.AttributeList;
 
         public override bool IsValidIdentifier(string name)
