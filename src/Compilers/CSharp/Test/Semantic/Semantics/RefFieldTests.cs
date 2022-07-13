@@ -716,6 +716,36 @@ class Program
             AssertEx.Equal(expectedReferences, fieldReferences.ToTestDisplayStrings());
         }
 
+        [Theory]
+        [InlineData("class")]
+        [InlineData("struct")]
+        [InlineData("record")]
+        [InlineData("record struct")]
+        public void NonRefStructContainer(string type)
+        {
+            var source =
+$@"#pragma warning disable 169
+{type} R
+{{
+    ref int F;
+}}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyEmitDiagnostics(
+                // (4,5): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     ref int F;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref int").WithArguments("ref fields", "11.0").WithLocation(4, 5),
+                // (4,13): error CS9059: A ref field can only be declared in a ref struct.
+                //     ref int F;
+                Diagnostic(ErrorCode.ERR_RefFieldInNonRefStruct, "F").WithLocation(4, 13));
+
+            comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (4,13): error CS9059: A ref field can only be declared in a ref struct.
+                //     ref int F;
+                Diagnostic(ErrorCode.ERR_RefFieldInNonRefStruct, "F").WithLocation(4, 13));
+        }
+
         /// <summary>
         /// Determination of enum underlying type should ignore ref fields
         /// and fields with required custom modifiers.
