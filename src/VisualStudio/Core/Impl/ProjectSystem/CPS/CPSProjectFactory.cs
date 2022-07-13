@@ -22,12 +22,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
     [Export(typeof(IWorkspaceProjectContextFactory))]
     internal partial class CPSProjectFactory : IWorkspaceProjectContextFactory
     {
-        private static readonly ImmutableArray<string> s_evaluationPropertyNames
-            = ImmutableArray.Create(BuildPropertyNames.MSBuildProjectFullPath, BuildPropertyNames.TargetPath, BuildPropertyNames.AssemblyName);
-
-        private static readonly ImmutableArray<string> s_evaluationItemTypes
-            = ImmutableArray<string>.Empty;
-
         private readonly IThreadingContext _threadingContext;
         private readonly VisualStudioProjectFactory _projectFactory;
         private readonly VisualStudioWorkspaceImpl _workspace;
@@ -51,19 +45,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         }
 
         public ImmutableArray<string> EvaluationPropertyNames
-            => s_evaluationPropertyNames;
+            => BuildPropertyNames.InitialEvaluationPropertyNames;
 
-        public ImmutableArray<string> EvaluationItemTypes
-            => s_evaluationItemTypes;
-
-        public Task<IWorkspaceProjectContext> CreateProjectContextAsync(Guid id, string uniqueName, EvaluationData data, object? hostObject, CancellationToken cancellationToken)
+        public Task<IWorkspaceProjectContext> CreateProjectContextAsync(Guid id, string uniqueName, string languageName, EvaluationData data, object? hostObject, CancellationToken cancellationToken)
             => CreateProjectContextAsync(
-                languageName: data.LanguageName,
+                languageName: languageName,
                 projectUniqueName: uniqueName,
-                projectFilePath: data.GetRequiredPropertyValue(BuildPropertyNames.MSBuildProjectFullPath),
+                projectFilePath: data.GetRequiredPropertyAbsolutePathValue(BuildPropertyNames.MSBuildProjectFullPath),
                 projectGuid: id,
                 hierarchy: hostObject,
-                binOutputPath: data.GetRequiredPropertyValue(BuildPropertyNames.TargetPath),
+                binOutputPath: data.GetRequiredPropertyAbsolutePathValue(BuildPropertyNames.TargetPath),
                 assemblyName: data.GetPropertyValue(BuildPropertyNames.AssemblyName),
                 cancellationToken);
 

@@ -71,8 +71,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
         /// </summary>
         void RemoveAnalyzerConfigFile(string filePath);
 
-        void SetRuleSetFile(string filePath);
-
         void StartBatch();
         ValueTask EndBatchAsync();
 

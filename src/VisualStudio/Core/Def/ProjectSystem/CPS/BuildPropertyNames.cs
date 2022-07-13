@@ -9,16 +9,28 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 /// </summary>
 internal static class BuildPropertyNames
 {
-    // All supported properties can be found in dotnet/project-system repo
-    // https://github.com/dotnet/project-system/blob/main/src/Microsoft.VisualStudio.ProjectSystem.Managed/ProjectSystem/Rules/LanguageService.xaml
+    // Properties received whenever a project is updated.
+    //
+    // Supported properties can be found in dotnet/project-system repo
+    // https://github.com/dotnet/project-system/blob/main/src/Microsoft.VisualStudio.ProjectSystem.Managed/ProjectSystem/Rules/LanguageService.xaml.
 
     public const string RootNamespace = nameof(RootNamespace);
     public const string MaxSupportedLangVersion = nameof(MaxSupportedLangVersion);
     public const string RunAnalyzers = nameof(RunAnalyzers);
     public const string RunAnalyzersDuringLiveAnalysis = nameof(RunAnalyzersDuringLiveAnalysis);
     public const string TemporaryDependencyNodeTargetIdentifier = nameof(TemporaryDependencyNodeTargetIdentifier);
-    public const string TargetPath = nameof(TargetPath);
     public const string TargetRefPath = nameof(TargetRefPath);
+
+    // Properties requested at project creation time.
+
     public const string MSBuildProjectFullPath = nameof(MSBuildProjectFullPath);
+    public const string TargetPath = nameof(TargetPath);
     public const string AssemblyName = nameof(AssemblyName);
+    public const string CommandLineArgsForDesignTimeEvaluation = nameof(CommandLineArgsForDesignTimeEvaluation);
+
+    public static readonly ImmutableArray<string> InitialEvaluationPropertyNames = ImmutableArray.Create(
+        BuildPropertyNames.MSBuildProjectFullPath,
+        BuildPropertyNames.TargetPath,
+        BuildPropertyNames.AssemblyName,
+        BuildPropertyNames.CommandLineArgsForDesignTimeEvaluation);
 }

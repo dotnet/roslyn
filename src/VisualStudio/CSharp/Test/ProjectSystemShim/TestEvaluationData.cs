@@ -11,14 +11,12 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim;
 
 internal sealed class TestEvaluationData : EvaluationData
 {
-    public override string LanguageName { get; }
     public string ProjectFilePath { get; }
     public string TargetPath { get; }
     public string AssemblyName { get; }
 
-    public TestEvaluationData(string languageName, string projectFilePath, string targetPath, string assemblyName) 
+    public TestEvaluationData(string projectFilePath, string targetPath, string assemblyName) 
     {
-        LanguageName = languageName;
         ProjectFilePath = projectFilePath;
         TargetPath = targetPath;
         AssemblyName = assemblyName;

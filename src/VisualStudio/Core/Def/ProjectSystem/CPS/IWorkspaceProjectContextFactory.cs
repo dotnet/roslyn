@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
 {
@@ -59,23 +60,16 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
         /// <param name="data">Providers access to msbuild evaluation data for the project.</param>
         /// <param name="hostObject">The IVsHierarchy for the project; this is used to track linked files across multiple projects when determining contexts.</param>
         /// <exception cref="InvalidOperationException">A required property or item is not present in <see cref="EvaluationData"/> or has invalid value.</exception>
-        Task<IWorkspaceProjectContext> CreateProjectContextAsync(Guid id, string uniqueName, EvaluationData data, object? hostObject, CancellationToken cancellationToken);
+        Task<IWorkspaceProjectContext> CreateProjectContextAsync(Guid id, string uniqueName, string languageName, EvaluationData data, object? hostObject, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Names of msbuild properties whose values that <see cref="CreateProjectContextAsync(Guid, string, EvaluationData, object?, CancellationToken)"/> will receive via <see cref="EvaluationData"/>.
+        /// Names of msbuild properties whose values that <see cref="CreateProjectContextAsync(Guid, string, string, EvaluationData, object?, CancellationToken)"/> will receive via <see cref="EvaluationData"/>.
         /// </summary>
         ImmutableArray<string> EvaluationPropertyNames { get; }
-
-        /// <summary>
-        /// Types of msbuild items whose values and metadata that <see cref="CreateProjectContextAsync(Guid, string, EvaluationData, object?, CancellationToken)"/> will receive via <see cref="EvaluationData"/>.
-        /// </summary>
-        ImmutableArray<string> EvaluationItemTypes { get; }
     }
 
     internal abstract class EvaluationData
     {
-        public abstract string LanguageName { get; }
-
         /// <summary>
         /// Returns the value of property of the specified <paramref name="name"/>.
         /// </summary>
@@ -87,17 +81,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
         /// </exception>
         public abstract string GetPropertyValue(string name);
 
-        /// <summary>
-        /// Returns all items of the specified <paramref name="itemType"/>.
-        /// </summary>
-        /// <returns>
-        /// Returns empty if no items of the specified type are defined.
-        /// </returns>
-        /// <exception cref="ArgumentException">
-        /// The <paramref name="itemType"/> is not listed in <see cref="IWorkspaceProjectContextFactory.EvaluationItemTypes"/>
-        /// </exception>
-        public abstract IEnumerable<EvaluationItem> GetItems(string itemType);
-
         public string GetRequiredPropertyValue(string name)
         {
             var value = GetPropertyValue(name);
@@ -107,29 +90,15 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
 
             return value!;
         }
+
+        public string GetRequiredPropertyAbsolutePathValue(string name)
+        {
+            var value = GetPropertyValue(name);
+
+            if (!PathUtilities.IsAbsolute(value))
+                throw new InvalidOperationException($"Property '{name}' is required to be an absolute path, but the value is '{value}'.");
+
+            return value;
+        }
     }
-
-    /// <summary>
-    /// Represents metadata of an evaluated msbuild item.
-    /// </summary>
-    internal abstract class EvaluationItemMetadata
-    {
-        /// <summary>
-        /// The value of metadata of the specified <paramref name="name"/>.
-        /// </summary>
-        /// <returns>Empty if the metadata has no value.</returns>
-        public abstract string GetMetadataValue(string name);
-
-        /// <summary>
-        /// Names of all metadata of the item.
-        /// </summary>
-        public abstract IEnumerable<string> MetadataNames { get; }
-    }
-
-    /// <summary>
-    /// Represents evaluated msbuild item.
-    /// </summary>
-    /// <param name="Value">ItemSpec of the item.</param>
-    /// <param name="Metadata">Metadata.</param>
-    internal readonly record struct EvaluationItem(string Value, EvaluationItemMetadata Metadata);
 }

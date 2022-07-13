@@ -81,11 +81,12 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
             var hierarchy = environment.CreateHierarchy(projectName, binOutputPath, projectRefPath: null, "CSharp");
             var cpsProjectFactory = environment.ExportProvider.GetExportedValue<IWorkspaceProjectContextFactory>();
 
-            var data = new TestEvaluationData(LanguageNames.CSharp, projectFilePath, binOutputPath, assemblyName: "");
+            var data = new TestEvaluationData(projectFilePath, binOutputPath, assemblyName: "");
 
             var cpsProject = (CPSProject)await cpsProjectFactory.CreateProjectContextAsync(
                 projectGuid,
                 projectName,
+                LanguageNames.CSharp,
                 data,
                 hierarchy,
                 CancellationToken.None);
@@ -100,11 +101,12 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
             var hierarchy = environment.CreateHierarchy(projectName, projectBinPath: null, projectRefPath: null, projectCapabilities: "");
             var cpsProjectFactory = environment.ExportProvider.GetExportedValue<IWorkspaceProjectContextFactory>();
 
-            var data = new TestEvaluationData(NoCompilationConstants.LanguageName, projectFilePath, targetPath, assemblyName: "");
+            var data = new TestEvaluationData(projectFilePath, targetPath, assemblyName: "");
 
             return (CPSProject)await cpsProjectFactory.CreateProjectContextAsync(
                 Guid.NewGuid(),
                 projectName,
+                NoCompilationConstants.LanguageName,
                 data,
                 hierarchy,
                 CancellationToken.None);

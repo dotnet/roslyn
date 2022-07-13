@@ -32,6 +32,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         private readonly IProjectCodeModel _projectCodeModel;
         private readonly Lazy<ProjectExternalErrorReporter?> _externalErrorReporter;
 
+        private readonly ConcurrentQueue<VisualStudioProject.BatchScope> _batchScopes = new();
+
         public string DisplayName
         {
             get => _visualStudioProject.DisplayName;
@@ -256,13 +258,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 
         public void RemoveDynamicFile(string filePath)
             => _visualStudioProject.RemoveDynamicSourceFile(filePath);
-
-        public void SetRuleSetFile(string filePath)
-        {
-            // This is now a no-op: we also receive the rule set file through SetOptions, and we'll just use that one
-        }
-
-        private readonly ConcurrentQueue<VisualStudioProject.BatchScope> _batchScopes = new ConcurrentQueue<VisualStudioProject.BatchScope>();
 
         public void StartBatch()
             => _batchScopes.Enqueue(_visualStudioProject.CreateBatchScope());
