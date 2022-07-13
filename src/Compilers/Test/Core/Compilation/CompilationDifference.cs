@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             [CallerFilePath] string callerPath = null)
         {
             string actualIL = ILDelta.GetMethodIL();
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, escapeQuotes: true, expectedValueSourcePath: callerPath, expectedValueSourceLine: callerLine);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, escapeQuotes: false, expectedValueSourcePath: callerPath, expectedValueSourceLine: callerLine);
         }
 
         public void VerifyLocalSignature(
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             string actualIL = ILBuilderVisualizer.ILBuilderToString(ilBuilder, mapLocal ?? ToLocalInfo, sequencePointMarkers);
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, escapeQuotes: true, expectedValueSourcePath: callerPath, expectedValueSourceLine: callerLine);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, escapeQuotes: false, expectedValueSourcePath: callerPath, expectedValueSourceLine: callerLine);
         }
 
         internal string GetMethodIL(string qualifiedMethodName)

@@ -6730,9 +6730,9 @@ public class C
         throw null;
     }
 }").VerifyDiagnostics(
-                // (10,24): error CS8352: Cannot use local 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                // (10,24): error CS8352: Cannot use variable 'inner' in this context because it may expose referenced variables outside of their declaration scope
                 //             return ref inner[5];
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "inner").WithArguments("inner").WithLocation(10, 24));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "inner").WithArguments("inner").WithLocation(10, 24));
         }
 
         [Fact]
@@ -6758,9 +6758,9 @@ public class C
                 // (8,13): warning CS8794: An expression of type 'Span<int>' always matches the provided pattern.
                 //         if (outer is ({} and var x) and Span<int> inner)
                 Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is ({} and var x) and Span<int> inner").WithArguments("System.Span<int>").WithLocation(8, 13),
-                // (10,24): error CS8352: Cannot use local 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                // (10,24): error CS8352: Cannot use variable 'inner' in this context because it may expose referenced variables outside of their declaration scope
                 //             return ref inner[5];
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "inner").WithArguments("inner").WithLocation(10, 24)
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "inner").WithArguments("inner").WithLocation(10, 24)
                 );
         }
 
@@ -6786,9 +6786,9 @@ public class C
         throw null;
     }
 }").VerifyDiagnostics(
-                // (12,28): error CS8352: Cannot use local 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                // (12,28): error CS8352: Cannot use variable 'inner' in this context because it may expose referenced variables outside of their declaration scope
                 //                 return ref inner[5];
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "inner").WithArguments("inner").WithLocation(12, 28));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "inner").WithArguments("inner").WithLocation(12, 28));
         }
 
         [Fact]
@@ -6813,9 +6813,9 @@ public class C
         throw null;
     }
 }").VerifyDiagnostics(
-                // (12,28): error CS8352: Cannot use local 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                // (12,28): error CS8352: Cannot use variable 'inner' in this context because it may expose referenced variables outside of their declaration scope
                 //                 return ref inner[5];
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "inner").WithArguments("inner").WithLocation(12, 28));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "inner").WithArguments("inner").WithLocation(12, 28));
         }
 
         [Fact]
@@ -6890,27 +6890,27 @@ public class C
     }
 }
 ").VerifyDiagnostics(
-                // (16,42): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                // (16,42): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //             case { Prop: var x }: return x; // error 1
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(16, 42),
-                // (24,40): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(16, 42),
+                // (24,40): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //             case { Prop: R x }: return x; // error 2
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(24, 40),
-                // (32,41): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(24, 40),
+                // (32,41): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //             case (var x, var y): return x; // error 3
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(32, 41),
-                // (40,37): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(32, 41),
+                // (40,37): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //             case (R x, R y): return x; // error 4
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(40, 37),
-                // (48,37): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(40, 37),
+                // (48,37): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //             case var (x, y): return x; // error 5
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(48, 37),
-                // (56,32): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(48, 37),
+                // (56,32): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //             case { } x: return x; // error 6
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(56, 32),
-                // (64,35): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(56, 32),
+                // (64,35): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //             case (_, _) x: return x; // error 7
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(64, 35)
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(64, 35)
                 );
         }
 
@@ -6986,27 +6986,27 @@ public class C
     }
 }
 ").VerifyDiagnostics(
-                // (16,76): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                // (16,76): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //             case var _ and {} and { Prop: var _ and {} and var x }: return x; // error 1
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(16, 76),
-                // (24,74): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(16, 76),
+                // (24,74): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //             case var _ and {} and { Prop: var _ and {} and R x }: return x; // error 2
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(24, 74),
-                // (32,92): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(24, 74),
+                // (32,92): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //             case var _ and {} and (var _ and {} and var x, var _ and {} and var y): return x; // error 3
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(32, 92),
-                // (40,88): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(32, 92),
+                // (40,88): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //             case var _ and {} and (var _ and {} and R x, var _ and {} and R y): return x; // error 4
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(40, 88),
-                // (48,54): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(40, 88),
+                // (48,54): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //             case var _ and {} and var (x, y): return x; // error 5
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(48, 54),
-                // (56,49): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(48, 54),
+                // (56,49): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //             case var _ and {} and { } x: return x; // error 6
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(56, 49),
-                // (64,86): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(56, 49),
+                // (64,86): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //             case var _ and {} and (var _ and {} and _, var _ and {} and _) x: return x; // error 7
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(64, 86)
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(64, 86)
                 );
         }
 
@@ -7068,27 +7068,27 @@ public class C
     }
 }
 ").VerifyDiagnostics(
-                // (14,46): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                // (14,46): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         if (outer is { Prop: var x }) return x; // error 1
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(14, 46),
-                // (20,44): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(14, 46),
+                // (20,44): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         if (outer is { Prop: R x }) return x; // error 2
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(20, 44),
-                // (26,45): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(20, 44),
+                // (26,45): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         if (outer is (var x, var y)) return x; // error 3
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(26, 45),
-                // (32,41): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(26, 45),
+                // (32,41): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         if (outer is (R x, R y)) return x; // error 4
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(32, 41),
-                // (38,41): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(32, 41),
+                // (38,41): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         if (outer is var (x, y)) return x; // error 5
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(38, 41),
-                // (44,36): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(38, 41),
+                // (44,36): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         if (outer is { } x) return x; // error 6
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(44, 36),
-                // (50,39): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(44, 36),
+                // (50,39): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         if (outer is (_, _) x) return x; // error 7
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(50, 39)
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(50, 39)
                 );
         }
 
@@ -7152,45 +7152,45 @@ public class C
 ").VerifyDiagnostics(
                 //         if (outer is var _ and {} and { Prop: var _ and {} and var x }) return x; // error 1
                 Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is var _ and {} and { Prop: var _ and {} and var x }").WithArguments("R").WithLocation(14, 13),
-                // (14,80): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                // (14,80): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         if (outer is var _ and {} and { Prop: var _ and {} and var x }) return x; // error 1
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(14, 80),
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(14, 80),
                 // (20,13): warning CS8794: An expression of type 'R' always matches the provided pattern.
                 //         if (outer is var _ and {} and { Prop: var _ and {} and R x }) return x; // error 2
                 Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is var _ and {} and { Prop: var _ and {} and R x }").WithArguments("R").WithLocation(20, 13),
-                // (20,78): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                // (20,78): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         if (outer is var _ and {} and { Prop: var _ and {} and R x }) return x; // error 2
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(20, 78),
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(20, 78),
                 // (26,13): warning CS8794: An expression of type 'R' always matches the provided pattern.
                 //         if (outer is var _ and {} and (var _ and {} and var x, var _ and {} and var y)) return x; // error 3
                 Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is var _ and {} and (var _ and {} and var x, var _ and {} and var y)").WithArguments("R").WithLocation(26, 13),
-                // (26,96): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                // (26,96): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         if (outer is var _ and {} and (var _ and {} and var x, var _ and {} and var y)) return x; // error 3
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(26, 96),
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(26, 96),
                 // (32,13): warning CS8794: An expression of type 'R' always matches the provided pattern.
                 //         if (outer is var _ and {} and (var _ and {} and R x, var _ and {} and R y)) return x; // error 4
                 Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is var _ and {} and (var _ and {} and R x, var _ and {} and R y)").WithArguments("R").WithLocation(32, 13),
-                // (32,92): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                // (32,92): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         if (outer is var _ and {} and (var _ and {} and R x, var _ and {} and R y)) return x; // error 4
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(32, 92),
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(32, 92),
                 // (38,13): warning CS8794: An expression of type 'R' always matches the provided pattern.
                 //         if (outer is var _ and {} and var (x, y)) return x; // error 5
                 Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is var _ and {} and var (x, y)").WithArguments("R").WithLocation(38, 13),
-                // (38,58): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                // (38,58): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         if (outer is var _ and {} and var (x, y)) return x; // error 5
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(38, 58),
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(38, 58),
                 // (44,13): warning CS8794: An expression of type 'R' always matches the provided pattern.
                 //         if (outer is var _ and {} and { } x) return x; // error 6
                 Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is var _ and {} and { } x").WithArguments("R").WithLocation(44, 13),
-                // (44,53): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                // (44,53): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         if (outer is var _ and {} and { } x) return x; // error 6
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(44, 53),
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(44, 53),
                 // (50,13): warning CS8794: An expression of type 'R' always matches the provided pattern.
                 //         if (outer is var _ and {} and (_, _) x) return x; // error 7
                 Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is var _ and {} and (_, _) x").WithArguments("R").WithLocation(50, 13),
-                // (50,56): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                // (50,56): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         if (outer is var _ and {} and (_, _) x) return x; // error 7
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(50, 56)
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(50, 56)
                 );
         }
 
@@ -7226,12 +7226,12 @@ public class C
         if (outer is { RProp: { SProp: var rs1 }}) s = rs1; // OK
     }
 }").VerifyDiagnostics(
-                // (19,52): error CS8352: Cannot use local 'rr0' in this context because it may expose referenced variables outside of their declaration scope
+                // (19,52): error CS8352: Cannot use variable 'rr0' in this context because it may expose referenced variables outside of their declaration scope
                 //         if (outer is { RProp.RProp: var rr0 }) r = rr0; // error
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "rr0").WithArguments("rr0").WithLocation(19, 52),
-                // (23,56): error CS8352: Cannot use local 'rr1' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "rr0").WithArguments("rr0").WithLocation(19, 52),
+                // (23,56): error CS8352: Cannot use variable 'rr1' in this context because it may expose referenced variables outside of their declaration scope
                 //         if (outer is { RProp: { RProp: var rr1 }}) r = rr1; // error
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "rr1").WithArguments("rr1").WithLocation(23, 56));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "rr1").WithArguments("rr1").WithLocation(23, 56));
         }
 
         [Fact]
@@ -8349,11 +8349,11 @@ class C
 ";
             var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (5,57): error CS8652: The feature 'pattern matching ReadOnly/Span<char> on constant string' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,57): error CS8936: Feature 'pattern matching ReadOnly/Span<char> on constant string' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     static bool M(ReadOnlySpan<char> chars) => chars is "";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""").WithArguments("pattern matching ReadOnly/Span<char> on constant string").WithLocation(5, 57));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, @"""""").WithArguments("pattern matching ReadOnly/Span<char> on constant string", "11.0").WithLocation(5, 57));
 
-            comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"True
@@ -8391,11 +8391,11 @@ class C
 ";
             var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (4,63): error CS8652: The feature 'pattern matching ReadOnly/Span<char> on constant string' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,63): error CS8936: Feature 'pattern matching ReadOnly/Span<char> on constant string' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     static bool M(ReadOnlySpan<char> chars) => chars switch { "" => true, _ => false };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""").WithArguments("pattern matching ReadOnly/Span<char> on constant string").WithLocation(4, 63));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, @"""""").WithArguments("pattern matching ReadOnly/Span<char> on constant string", "11.0").WithLocation(4, 63));
 
-            comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"True
@@ -9703,11 +9703,11 @@ class C
 ";
             var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (5,49): error CS8652: The feature 'pattern matching ReadOnly/Span<char> on constant string' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,49): error CS8936: Feature 'pattern matching ReadOnly/Span<char> on constant string' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     static bool M(Span<char> chars) => chars is "";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""").WithArguments("pattern matching ReadOnly/Span<char> on constant string").WithLocation(5, 49));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, @"""""").WithArguments("pattern matching ReadOnly/Span<char> on constant string", "11.0").WithLocation(5, 49));
 
-            comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"True
@@ -9744,11 +9744,11 @@ class C
 ";
             var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (5,55): error CS8652: The feature 'pattern matching ReadOnly/Span<char> on constant string' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,55): error CS8936: Feature 'pattern matching ReadOnly/Span<char> on constant string' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     static bool M(Span<char> chars) => chars switch { "" => true, _ => false };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""").WithArguments("pattern matching ReadOnly/Span<char> on constant string").WithLocation(5, 55));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, @"""""").WithArguments("pattern matching ReadOnly/Span<char> on constant string", "11.0").WithLocation(5, 55));
 
-            comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"True
@@ -10066,7 +10066,7 @@ class Program
     static bool F1<T>(ReadOnlySpan<T> span) => span is """";
     static bool F2<T>(Span<T> span) => span is """";
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
                 // (4,56): error CS8121: An expression of type 'ReadOnlySpan<T>' cannot be handled by a pattern of type 'string'.
                 //     static bool F1<T>(ReadOnlySpan<T> span) => span is "";
@@ -10097,7 +10097,7 @@ class Program
         F(new Span<int>(new int[] { '1', '2', '3' }));
     }
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics(
                 // (5,56): error CS8121: An expression of type 'ReadOnlySpan<T>' cannot be handled by a pattern of type 'ReadOnlySpan<char>'.
                 //     static bool F1<T>(ReadOnlySpan<T> span) => span is ReadOnlySpan<char> _;
@@ -10117,7 +10117,7 @@ class Program
     static bool F1<T>(ReadOnlySpan<T> span) => span is ReadOnlySpan<char> and ""ABC"";
     static bool F2<T>(Span<T> span) => span is Span<char> and ""123"";
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics(
                 // (4,56): error CS8121: An expression of type 'ReadOnlySpan<T>' cannot be handled by a pattern of type 'ReadOnlySpan<char>'.
                 //     static bool F1<T>(ReadOnlySpan<T> span) => span is ReadOnlySpan<char> and "ABC";
@@ -10139,7 +10139,7 @@ class Program
     static bool F3<T>(ValueType v) => v is ReadOnlySpan<char> _;
     static bool F4<T>(ValueType v) => v is Span<char> _;
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics(
                 // (4,41): error CS8121: An expression of type 'object' cannot be handled by a pattern of type 'ReadOnlySpan<char>'.
                 //     static bool F1<T>(object o) => o is ReadOnlySpan<char> _;
@@ -10167,7 +10167,7 @@ class Program
     static bool F3<T>(ValueType v) => v is ReadOnlySpan<char> and ""ABC"";
     static bool F4<T>(ValueType v) => v is Span<char> and ""123"";
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics(
                 // (4,41): error CS8121: An expression of type 'object' cannot be handled by a pattern of type 'ReadOnlySpan<char>'.
                 //     static bool F1<T>(object o) => o is ReadOnlySpan<char> and "ABC";
@@ -10194,7 +10194,7 @@ class Program
     static bool F1(ReadOnlySpan<char> span) => span is $""{123}"";
     static bool F2(Span<char> span) => span is $""{n}"";
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics(
                 // (5,56): error CS0150: A constant value is expected
                 //     static bool F1(ReadOnlySpan<char> span) => span is $"{123}";
@@ -10225,7 +10225,7 @@ class Program
         F(""123"".ToArray());
     }
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput:
 @"(True, False)
@@ -10243,7 +10243,7 @@ class Program
     static bool F1(ReadOnlySpan<char> span, bool b) => span is (b ? """" : ""ABC"");
     static bool F2(Span<char> span, bool b) => span is (b ? """" : ""123"");
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics(
                 // (4,65): error CS0150: A constant value is expected
                 //     static bool F1(ReadOnlySpan<char> span, bool b) => span is (b ? "" : "ABC");
@@ -10273,7 +10273,7 @@ class Program
         F(""123"".ToArray());
     }
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput:
 @"(True, False)
@@ -10291,7 +10291,7 @@ class Program
     static bool F1(ReadOnlySpan<char> span, bool b) => span is b switch { true => """", false => ""ABC"" };
     static bool F2(Span<char> span, bool b) => span is b switch { false => """", true => ""123"" };
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics(
                 // (4,64): error CS0150: A constant value is expected
                 //     static bool F1(ReadOnlySpan<char> span, bool b) => span is b switch { true => "", false => "ABC" };
@@ -10315,7 +10315,7 @@ class Program
         Expression<Func<bool>> e2 = () => new Span<char>(null) is ""ABC"";
     }
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics(
                 // (7,43): error CS8122: An expression tree may not contain an 'is' pattern-matching operator.
                 //         Expression<Func<bool>> e1 = () => new ReadOnlySpan<char>(null) is "123";
@@ -10345,7 +10345,7 @@ class Program
         Expression<Func<bool>> e2 = () => new Span<char>(null) switch { ""ABC"" => true, _ => false };
     }
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics(
                 // (7,43): error CS8514: An expression tree may not contain a switch expression.
                 //         Expression<Func<bool>> e1 = () => new ReadOnlySpan<char>(null) switch { "123" => true, _ => false };
@@ -10401,7 +10401,7 @@ class Program
         };
     }
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics(
                 // (8,13): error CS9013: A string 'null' constant is not supported as a pattern for 'ReadOnlySpan<char>'. Use an empty string instead.
                 //             (string)null => 0,
@@ -10672,7 +10672,7 @@ class Program
         };
     }
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"0
@@ -10852,7 +10852,7 @@ class Program
     static bool F1(ReadOnlySpan<char> span) => span is ""123"";
     static bool F2(Span<char> span) => span is ""ABC"";
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics();
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -10876,7 +10876,7 @@ class Program
     static bool F1(ReadOnlySpan<char> span) => span is ""123"" and var r;
     static bool F2(Span<char> span) => span is ""ABC"" and var s;
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics();
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -10897,7 +10897,7 @@ class Program
         return span is ""123"";
     }
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics();
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -10954,7 +10954,7 @@ class Program
         return span is ""ABC"";
     }
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics();
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);

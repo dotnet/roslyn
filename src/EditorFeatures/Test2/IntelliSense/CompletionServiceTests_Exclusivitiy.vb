@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Function
 
         Friend Class TestCompletionService
-            Inherits CompletionServiceWithProviders
+            Inherits CompletionService
 
             Public Sub New(workspace As Workspace)
                 MyBase.New(workspace)

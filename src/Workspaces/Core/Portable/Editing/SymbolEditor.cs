@@ -131,12 +131,9 @@ namespace Microsoft.CodeAnalysis.Editing
 
         private ImmutableArray<ProjectId> GetProjectsForAssembly(IAssemblySymbol assembly)
         {
-            if (_assemblyNameToProjectIdMap == null)
-            {
-                _assemblyNameToProjectIdMap = _originalSolution.Projects
+            _assemblyNameToProjectIdMap ??= _originalSolution.Projects
                     .ToLookup(p => p.AssemblyName, p => p.Id)
                     .ToImmutableDictionary(g => g.Key, g => ImmutableArray.CreateRange(g));
-            }
 
             if (!_assemblyNameToProjectIdMap.TryGetValue(assembly.Name, out var projectIds))
             {

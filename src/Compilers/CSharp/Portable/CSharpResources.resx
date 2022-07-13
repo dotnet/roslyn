@@ -4515,9 +4515,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="InvalidGetDeclarationNameMultipleDeclarators" xml:space="preserve">
     <value>Called GetDeclarationName for a declaration node that can possibly contain multiple variable declarators.</value>
   </data>
-  <data name="TreeNotPartOfCompilation" xml:space="preserve">
-    <value>tree not part of compilation</value>
-  </data>
   <data name="PositionIsNotWithinSyntax" xml:space="preserve">
     <value>Position is not within syntax tree with full span {0}</value>
   </data>
@@ -5069,7 +5066,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Fields of static readonly field '{0}' cannot be returned by writable reference</value>
   </data>
   <data name="ERR_RefReturnParameter" xml:space="preserve">
-    <value>Cannot return a parameter by reference '{0}' because it is not a ref or out parameter</value>
+    <value>Cannot return a parameter by reference '{0}' because it is not a ref parameter</value>
   </data>
   <data name="ERR_RefReturnParameter2" xml:space="preserve">
     <value>Cannot return by reference a member of parameter '{0}' because it is not a ref or out parameter</value>
@@ -5086,8 +5083,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_EscapeOther" xml:space="preserve">
     <value>Expression cannot be used in this context because it may indirectly expose variables outside of their declaration scope</value>
   </data>
-  <data name="ERR_EscapeLocal" xml:space="preserve">
-    <value>Cannot use local '{0}' in this context because it may expose referenced variables outside of their declaration scope</value>
+  <data name="ERR_EscapeVariable" xml:space="preserve">
+    <value>Cannot use variable '{0}' in this context because it may expose referenced variables outside of their declaration scope</value>
   </data>
   <data name="ERR_EscapeCall" xml:space="preserve">
     <value>Cannot use a result of '{0}' in this context because it may expose variables referenced by parameter '{1}' outside of their declaration scope</value>
@@ -5783,7 +5780,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Tuple types used as operands of an == or != operator must have matching cardinalities. But this operator has tuple types of cardinality {0} on the left and {1} on the right.</value>
   </data>
   <data name="ERR_RefLocalOrParamExpected" xml:space="preserve">
-    <value>The left-hand side of a ref assignment must be a ref local or parameter.</value>
+    <value>The left-hand side of a ref assignment must be a ref variable.</value>
   </data>
   <data name="ERR_RefAssignNarrower" xml:space="preserve">
     <value>Cannot ref-assign '{1}' to '{0}' because '{1}' has a narrower escape scope than '{0}'.</value>
@@ -6436,6 +6433,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_FeatureNotAvailableInVersion10" xml:space="preserve">
     <value>Feature '{0}' is not available in C# 10.0. Please use language version {1} or greater.</value>
   </data>
+  <data name="ERR_FeatureNotAvailableInVersion11" xml:space="preserve">
+    <value>Feature '{0}' is not available in C# 11.0. Please use language version {1} or greater.</value>
+  </data>
   <data name="ERR_UnexpectedArgumentList" xml:space="preserve">
     <value>Unexpected argument list.</value>
   </data>
@@ -6621,6 +6621,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureStructFieldInitializers" xml:space="preserve">
     <value>struct field initializers</value>
   </data>
+  <data name="IDS_FeatureRefFields" xml:space="preserve">
+    <value>ref fields</value>
+  </data>
   <data name="IDS_FeatureVarianceSafetyForStaticInterfaceMembers" xml:space="preserve">
     <value>variance safety for static interface members</value>
   </data>
@@ -6747,6 +6750,24 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_ListPatternRequiresLength" xml:space="preserve">
     <value>List patterns may not be used for a value of type '{0}'. No suitable 'Length' or 'Count' property was found.</value>
+  </data>
+  <data name="ERR_ScopedRefAndRefStructOnly" xml:space="preserve">
+    <value>The 'scoped' modifier can be used for refs and ref struct values only.</value>
+  </data>
+  <data name="ERR_ScopedMismatchInParameterOfOverrideOrImplementation" xml:space="preserve">
+    <value>The 'scoped' modifier of parameter '{0}' doesn't match overridden or implemented member.</value>
+  </data>
+  <data name="ERR_ScopedMismatchInParameterOfTarget" xml:space="preserve">
+    <value>The 'scoped' modifier of parameter '{0}' doesn't match target '{1}'.</value>
+  </data>
+  <data name="ERR_ScopedMismatchInParameterOfPartial" xml:space="preserve">
+    <value>The 'scoped' modifier of parameter '{0}' doesn't match partial method declaration.</value>
+  </data>
+  <data name="ERR_FixedFieldMustNotBeRef" xml:space="preserve">
+    <value>A fixed field must not be a ref field.</value>
+  </data>
+  <data name="ERR_RefFieldCannotReferToRefStruct" xml:space="preserve">
+    <value>A ref field cannot refer to a ref struct.</value>
   </data>
 
   <data name="WRN_UseDefViolationPropertySupportedVersion" xml:space="preserve">
@@ -7088,13 +7109,13 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_CheckedOperatorNeedsMatch" xml:space="preserve">
     <value>The operator '{0}' requires a matching non-checked version of the operator to also be defined</value>
   </data>
-  <data name="ERR_CannotBeConvertedToUTF8" xml:space="preserve">
+  <data name="ERR_CannotBeConvertedToUtf8" xml:space="preserve">
     <value>The input string cannot be converted into the equivalent UTF-8 byte representation. {0}</value>
   </data>
-  <data name="IDS_FeatureUTF8StringLiterals" xml:space="preserve">
+  <data name="IDS_FeatureUtf8StringLiterals" xml:space="preserve">
     <value>UTF-8 string literals</value>
   </data>
-  <data name="ERR_ExpressionTreeContainsUTF8StringLiterals" xml:space="preserve">
+  <data name="ERR_ExpressionTreeContainsUtf8StringLiterals" xml:space="preserve">
     <value>An expression tree may not contain UTF-8 string conversion or literal.</value>
   </data>
   <data name="ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers" xml:space="preserve">
@@ -7102,6 +7123,24 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_NewConstraintCannotHaveRequiredMembers" xml:space="preserve">
     <value>'{2}' cannot satisfy the 'new()' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.</value>
+  </data>
+  <data name="ERR_FileTypeDisallowedInSignature" xml:space="preserve">
+    <value>File type '{0}' cannot be used in a member signature in non-file type '{1}'.</value>
+  </data>
+  <data name="ERR_FileTypeNoExplicitAccessibility" xml:space="preserve">
+    <value>File type '{0}' cannot use accessibility modifiers.</value>
+  </data>
+  <data name="ERR_FileTypeBase" xml:space="preserve">
+    <value>File type '{0}' cannot be used as a base type of non-file type '{1}'.</value>
+  </data>
+  <data name="ERR_FileTypeNested" xml:space="preserve">
+    <value>File type '{0}' must be defined in a top level type; '{0}' is a nested type.</value>
+  </data>
+  <data name="ERR_GlobalUsingStaticFileType" xml:space="preserve">
+    <value>File type '{0}' cannot be used in a 'global using static' directive.</value>
+  </data>
+  <data name="ERR_FileTypeNameDisallowed" xml:space="preserve">
+    <value>Types and aliases cannot be named 'file'.</value>
   </data>
   <data name="IDS_FeatureUnsignedRightShift" xml:space="preserve">
     <value>unsigned right shift</value>
@@ -7132,5 +7171,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_BadAbstractEqualityOperatorSignature" xml:space="preserve">
     <value>One of the parameters of an equality, or inequality operator declared in interface '{0}' must be a type parameter on '{0}' constrained to '{0}'</value>
+  </data>
+  <data name="ERR_BadBinaryReadOnlySpanConcatenation" xml:space="preserve">
+    <value>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF-8 byte representations</value>
+  </data>
+  <data name="IDS_FeatureFileTypes" xml:space="preserve">
+    <value>file types</value>
   </data>
 </root>

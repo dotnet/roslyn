@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Transactions;
@@ -20,7 +21,24 @@ using Aliases = ArrayBuilder<(string aliasName, string symbolName)>;
 
 public partial struct SyntaxValueProvider
 {
-    private static readonly ObjectPool<Stack<string>> s_stackPool = new(static () => new());
+    /// <summary>
+    /// Information computed about a particular tree.  Cached so we don't repeatedly recompute this important
+    /// information each time the incremental pipeline is rerun.
+    /// </summary>
+    private record SyntaxTreeInfo(SyntaxTree Tree, bool ContainsGlobalAliases, bool ContainsAttributeList);
+
+    /// <summary>
+    /// Caching of syntax-tree to the info we've computed about it.  Used because compilations will have thousands of
+    /// trees, and the incremental pipeline will get called back for *all* of them each time a compilation changes.  We
+    /// do not want to continually recompute this data over and over again each time that happens given that normally
+    /// only one tree will be different.  We also do not want to create an IncrementalValuesProvider that yield this
+    /// information as that will mean we have a node in the tree that scales with the number of *all syntax trees*, not
+    /// the number of *relevant syntax trees*. This can lead to huge memory churn keeping track of a high number of
+    /// trees, most of which are not going to be relevant.
+    /// </summary>
+    private static readonly ConditionalWeakTable<SyntaxTree, SyntaxTreeInfo> s_treeToInfo = new ConditionalWeakTable<SyntaxTree, SyntaxTreeInfo>();
+
+    private static readonly ObjectPool<Stack<string>> s_stackPool = new ObjectPool<Stack<string>>(static () => new Stack<string>());
 
     /// <summary>
     /// Returns all syntax nodes of that match <paramref name="predicate"/> if that node has an attribute on it that
@@ -39,16 +57,31 @@ public partial struct SyntaxValueProvider
     /// <c>context.SyntaxProvider.CreateSyntaxProviderForAttribute(nameof(CLSCompliantAttribute), (node, c) => node is ClassDeclarationSyntax)</c>
     /// will find the <c>C</c> class.
     /// </summary>
-    internal IncrementalValuesProvider<SyntaxNode> ForAttributeWithSimpleName(
+    /// <remarks>
+    /// Note: a 'Values'-provider of arrays are returned.  Each array provides all the matching nodes from a single <see
+    /// cref="SyntaxTree"/>.
+    /// </remarks>
+    internal IncrementalValuesProvider<(SyntaxTree tree, ImmutableArray<SyntaxNode> matches)> ForAttributeWithSimpleName(
         string simpleName,
         Func<SyntaxNode, CancellationToken, bool> predicate)
     {
         var syntaxHelper = _context.SyntaxHelper;
 
+        // Create a provider over all the syntax trees in the compilation.  This is better than CreateSyntaxProvider as
+        // using SyntaxTrees is purely syntax and will not update the incremental node for a tree when another tree is
+        // changed. CreateSyntaxProvider will have to rerun all incremental nodes since it passes along the
+        // SemanticModel, and that model is updated whenever any tree changes (since it is tied to the compilation).
+        var syntaxTreesProvider = _context.CompilationProvider
+            .SelectMany((compilation, cancellationToken) => compilation.SyntaxTrees
+                .Select(tree => GetTreeInfo(tree, syntaxHelper, cancellationToken))
+                .Where(info => info.ContainsGlobalAliases || info.ContainsAttributeList))
+            .WithTrackingName("compilationUnit_ForAttribute");
+
         // Create a provider that provides (and updates) the global aliases for any particular file when it is edited.
-        var individualFileGlobalAliasesProvider = this.CreateSyntaxProvider(
-            static (n, _) => n is ICompilationUnitSyntax,
-            static (context, _) => getGlobalAliasesInCompilationUnit(context.SyntaxHelper, context.Node)).WithTrackingName("individualFileGlobalAliases_ForAttribute");
+        var individualFileGlobalAliasesProvider = syntaxTreesProvider
+            .Where((info, _) => info.ContainsGlobalAliases)
+            .Select((info, cancellationToken) => getGlobalAliasesInCompilationUnit(syntaxHelper, info.Tree.GetRoot(cancellationToken)))
+            .WithTrackingName("individualFileGlobalAliases_ForAttribute");
 
         // Create an aggregated view of all global aliases across all files.  This should only update when an individual
         // file changes its global aliases or a file is added / removed from the compilation
@@ -58,7 +91,7 @@ public partial struct SyntaxValueProvider
             .WithTrackingName("collectedGlobalAliases_ForAttribute");
 
         var allUpGlobalAliasesProvider = collectedGlobalAliasesProvider
-            .Select(static (arrays, _) => GlobalAliases.Create(arrays.SelectMany(a => a.AliasAndSymbolNames).ToImmutableArray()))
+            .Select(static (arrays, _) => GlobalAliases.Create(arrays))
             .WithTrackingName("allUpGlobalAliases_ForAttribute");
 
         // Regenerate our data if the compilation options changed.  VB can supply global aliases with compilation options,
@@ -76,24 +109,17 @@ public partial struct SyntaxValueProvider
             .Select((tuple, _) => GlobalAliases.Concat(tuple.Left, tuple.Right))
             .WithTrackingName("allUpIncludingCompilationGlobalAliases_ForAttribute");
 
-        // Create a syntax provider for every compilation unit.
-        var compilationUnitProvider = this.CreateSyntaxProvider(
-            static (n, _) => n is ICompilationUnitSyntax,
-            static (context, _) => context.Node).WithTrackingName("compilationUnit_ForAttribute");
-
         // Combine the two providers so that we reanalyze every file if the global aliases change, or we reanalyze a
         // particular file when it's compilation unit changes.
-        var compilationUnitAndGlobalAliasesProvider = compilationUnitProvider
+        var syntaxTreeAndGlobalAliasesProvider = syntaxTreesProvider
+            .Where((info, _) => info.ContainsAttributeList)
             .Combine(allUpGlobalAliasesProvider)
             .WithTrackingName("compilationUnitAndGlobalAliases_ForAttribute");
 
-        // For each pair of compilation unit + global aliases, walk the compilation unit 
-        var result = compilationUnitAndGlobalAliasesProvider
-            .SelectMany((globalAliasesAndCompilationUnit, cancellationToken) => GetMatchingNodes(
-                syntaxHelper, globalAliasesAndCompilationUnit.Right, globalAliasesAndCompilationUnit.Left, simpleName, predicate, cancellationToken))
-            .WithTrackingName("result_ForAttribute");
-
-        return result;
+        return syntaxTreeAndGlobalAliasesProvider
+            .Select((tuple, c) => (tuple.Left.Tree, GetMatchingNodes(syntaxHelper, tuple.Right, tuple.Left.Tree, simpleName, predicate, c)))
+            .Where(tuple => tuple.Item2.Length > 0)
+            .WithTrackingName("result_ForAttributeInternal");
 
         static GlobalAliases getGlobalAliasesInCompilationUnit(
             ISyntaxHelper syntaxHelper,
@@ -102,21 +128,43 @@ public partial struct SyntaxValueProvider
             Debug.Assert(compilationUnit is ICompilationUnitSyntax);
             var globalAliases = Aliases.GetInstance();
 
-            syntaxHelper.AddAliases(compilationUnit, globalAliases, global: true);
+            syntaxHelper.AddAliases(compilationUnit.Green, globalAliases, global: true);
 
             return GlobalAliases.Create(globalAliases.ToImmutableAndFree());
+        }
+    }
+
+    private static SyntaxTreeInfo GetTreeInfo(
+        SyntaxTree tree, ISyntaxHelper syntaxHelper, CancellationToken cancellationToken)
+    {
+        // prevent captures for the case where the item is in the tree.
+        return s_treeToInfo.TryGetValue(tree, out var info)
+            ? info
+            : computeTreeInfo();
+
+        SyntaxTreeInfo computeTreeInfo()
+        {
+            var root = tree.GetRoot(cancellationToken);
+            var containsGlobalAliases = syntaxHelper.ContainsGlobalAliases(root);
+            var containsAttributeList = ContainsAttributeList(root.Green, syntaxHelper.AttributeListKind);
+
+            var info = new SyntaxTreeInfo(tree, containsGlobalAliases, containsAttributeList);
+            return s_treeToInfo.GetValue(tree, _ => info);
         }
     }
 
     private static ImmutableArray<SyntaxNode> GetMatchingNodes(
         ISyntaxHelper syntaxHelper,
         GlobalAliases globalAliases,
-        SyntaxNode compilationUnit,
+        SyntaxTree syntaxTree,
         string name,
         Func<SyntaxNode, CancellationToken, bool> predicate,
         CancellationToken cancellationToken)
     {
+        var compilationUnit = syntaxTree.GetRoot(cancellationToken);
         Debug.Assert(compilationUnit is ICompilationUnitSyntax);
+
+        Debug.Assert(ContainsAttributeList(compilationUnit.Green, syntaxHelper.AttributeListKind));
 
         var isCaseSensitive = syntaxHelper.IsCaseSensitive;
         var comparison = isCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
@@ -154,14 +202,14 @@ public partial struct SyntaxValueProvider
 
             if (node is ICompilationUnitSyntax)
             {
-                syntaxHelper.AddAliases(node, localAliases, global: false);
+                syntaxHelper.AddAliases(node.Green, localAliases, global: false);
 
                 recurseChildren(node);
             }
             else if (syntaxHelper.IsAnyNamespaceBlock(node))
             {
                 var localAliasCount = localAliases.Count;
-                syntaxHelper.AddAliases(node, localAliases, global: false);
+                syntaxHelper.AddAliases(node.Green, localAliases, global: false);
 
                 recurseChildren(node);
 
@@ -174,8 +222,7 @@ public partial struct SyntaxValueProvider
                 {
                     // Have to lookup both with the name in the attribute, as well as adding the 'Attribute' suffix.
                     // e.g. if there is [X] then we have to lookup with X and with XAttribute.
-                    var simpleAttributeName = syntaxHelper.GetUnqualifiedIdentifierOfName(
-                        syntaxHelper.GetNameOfAttribute(attribute)).ValueText;
+                    var simpleAttributeName = syntaxHelper.GetUnqualifiedIdentifierOfName(syntaxHelper.GetNameOfAttribute(attribute));
                     if (matchesAttributeName(simpleAttributeName, withAttributeSuffix: false) ||
                         matchesAttributeName(simpleAttributeName, withAttributeSuffix: true))
                     {
@@ -280,5 +327,24 @@ public partial struct SyntaxValueProvider
             seenNames.Pop();
             return false;
         }
+    }
+
+    private static bool ContainsAttributeList(GreenNode node, int attributeListKind)
+    {
+        if (node.RawKind == attributeListKind)
+            return true;
+
+        for (int i = 0, n = node.SlotCount; i < n; i++)
+        {
+            var child = node.GetSlot(i);
+
+            if (child is null || child.IsToken)
+                continue;
+
+            if (ContainsAttributeList(child, attributeListKind))
+                return true;
+        }
+
+        return false;
     }
 }

@@ -1953,7 +1953,7 @@ Additional information: {1}</value>
     <value>{0} ({1})</value>
     <comment>Used to show a symbol name, followed by the project name it came from</comment>
   </data>
-  <data name="Prefer_UTF8_string_literals" xml:space="preserve">
+  <data name="Prefer_Utf8_string_literals" xml:space="preserve">
     <value>Prefer UTF-8 string literals</value>
   </data>
   <data name="Collapse_regions_on_file_open" xml:space="preserve">

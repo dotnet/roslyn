@@ -159,12 +159,9 @@ namespace Microsoft.CodeAnalysis.Storage
                 _currentPersistentStorageSolutionId = null;
             }
 
-            if (storage != null)
-            {
-                // Dispose storage outside of the lock. Note this only removes our reference count; clients who are still
-                // using this will still be holding a reference count.
-                storage.Dispose();
-            }
+            // Dispose storage outside of the lock. Note this only removes our reference count; clients who are still
+            // using this will still be holding a reference count.
+            storage?.Dispose();
         }
 
         internal TestAccessor GetTestAccessor()

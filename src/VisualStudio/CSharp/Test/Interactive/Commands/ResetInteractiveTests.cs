@@ -21,6 +21,7 @@ using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.Utilities;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
 {
@@ -82,13 +83,13 @@ namespace ResetInteractiveTestsDocument
             testHost.Evaluator.OnExecute += executeSubmission;
 
             var uiThreadOperationExecutor = workspace.GetService<IUIThreadOperationExecutor>();
-            var editorOptionsFactoryService = workspace.GetService<IEditorOptionsFactoryService>();
-            var editorOptions = editorOptionsFactoryService.GetOptions(testHost.Window.CurrentLanguageBuffer);
+            var editorOptionsService = workspace.GetService<EditorOptionsService>();
+            var editorOptions = editorOptionsService.Factory.GetOptions(testHost.Window.CurrentLanguageBuffer);
             var newLineCharacter = editorOptions.GetNewLineCharacter();
 
             var resetInteractive = new TestResetInteractive(
                 uiThreadOperationExecutor,
-                editorOptionsFactoryService,
+                editorOptionsService,
                 CreateReplReferenceCommand,
                 CreateImport,
                 buildSucceeds: buildSucceeds)

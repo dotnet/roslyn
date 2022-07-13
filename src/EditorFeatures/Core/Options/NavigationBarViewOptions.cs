@@ -15,6 +15,6 @@ namespace Microsoft.CodeAnalysis.Editor.Options
     {
         private const string FeatureName = "NavigationBarOptions";
 
-        public static readonly PerLanguageOption<bool> ShowNavigationBar = new(FeatureName, nameof(ShowNavigationBar), defaultValue: true);
+        public static readonly PerLanguageOption2<bool> ShowNavigationBar = new(FeatureName, "ShowNavigationBar", defaultValue: true);
     }
 }

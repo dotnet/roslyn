@@ -479,6 +479,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public abstract override string Name { get; }
 
+#nullable enable
         /// <summary>
         /// Return the name including the metadata arity suffix.
         /// </summary>
@@ -486,14 +487,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return MangleName ? MetadataHelpers.ComposeAritySuffixedMetadataName(Name, Arity) : Name;
+                var fileIdentifier = this.AssociatedFileIdentifier();
+                // If we have a fileIdentifier, the type will definitely use CLS arity encoding for nonzero arity.
+                Debug.Assert(!(fileIdentifier != null && !MangleName && Arity > 0));
+                return fileIdentifier != null || MangleName
+                    ? MetadataHelpers.ComposeAritySuffixedMetadataName(Name, Arity, fileIdentifier)
+                    : Name;
             }
         }
+
+        /// <summary>
+        /// If this type is a file type, returns the syntax tree where this type is visible. Otherwise, returns null.
+        /// </summary>
+        internal abstract SyntaxTree? AssociatedSyntaxTree { get; }
+#nullable disable
 
         /// <summary>
         /// Should the name returned by Name property be mangled with [`arity] suffix in order to get metadata name.
         /// Must return False for a type with Arity == 0.
         /// </summary>
+        /// <remarks>
+        /// Some types with Arity > 0 still have MangleName == false. For example, EENamedTypeSymbol.
+        /// Note that other differences between source names and metadata names exist and are not controlled by this property,
+        /// such as the 'AssociatedFileIdentifier' prefix for file types.
+        /// </remarks>
         internal abstract bool MangleName
         {
             // Intentionally no default implementation to force consideration of appropriate implementation for each new subclass
@@ -577,17 +594,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private bool TryCalculateRequiredMembers(ref ImmutableSegmentedDictionary<string, Symbol>.Builder? requiredMembersBuilder)
         {
             var lazyRequiredMembers = _lazyRequiredMembers;
-            if (_lazyRequiredMembers == RequiredMembersErrorSentinel)
+            if (lazyRequiredMembers == RequiredMembersErrorSentinel)
             {
-                if (lazyRequiredMembers.IsDefault)
-                {
-                    return false;
-                }
-                else
-                {
-                    requiredMembersBuilder = lazyRequiredMembers.ToBuilder();
-                    return true;
-                }
+                return false;
             }
 
             if (BaseTypeNoUseSiteDiagnostics?.TryCalculateRequiredMembers(ref requiredMembersBuilder) == false)
@@ -613,6 +622,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         // This is only permitted if the member is an override of a required member from a base type, and is required itself.
                         if (!member.IsRequired()
+                            || member.Kind == SymbolKind.Field
                             || member.GetOverriddenMember() is not { } overriddenMember
                             || !overriddenMember.Equals(requiredMembersBuilder[member.Name], TypeCompareKind.ConsiderEverything))
                         {

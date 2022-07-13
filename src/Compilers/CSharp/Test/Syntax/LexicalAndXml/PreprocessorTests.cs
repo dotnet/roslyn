@@ -3223,9 +3223,9 @@ class A { }
         [Theory]
         [InlineData(LanguageVersion.CSharp4, "4")]
         [InlineData(LanguageVersion.CSharp9, "9.0")]
-        [InlineData(LanguageVersion.Latest, "latest (10.0)")]
-        [InlineData(LanguageVersion.LatestMajor, "latestmajor (10.0)")]
-        [InlineData(LanguageVersion.Default, "default (10.0)")]
+        [InlineData(LanguageVersion.Latest, "latest (11.0)")]
+        [InlineData(LanguageVersion.LatestMajor, "latestmajor (11.0)")]
+        [InlineData(LanguageVersion.Default, "default (11.0)")]
         [InlineData(LanguageVersion.Preview, "preview")]
         public void TestErrorWithVersion(LanguageVersion version, string expectedLanguageVersion)
         {

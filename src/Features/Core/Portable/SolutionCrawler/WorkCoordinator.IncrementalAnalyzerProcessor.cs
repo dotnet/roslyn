@@ -42,11 +42,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 // NOTE: IDiagnosticAnalyzerService can be null in test environment.
                 private readonly Lazy<IDiagnosticAnalyzerService?> _lazyDiagnosticAnalyzerService;
 
-                /// <summary>
-                /// The keys in this are either a string or a (string, Guid) tuple. See <see cref="SolutionCrawlerLogger.LogIncrementalAnalyzerProcessorStatistics"/>
-                /// for what is writing this out.
-                /// </summary>
-                private CountLogAggregator<object> _logAggregator = new();
+                private LogAggregator _logAggregator = new();
 
                 public IncrementalAnalyzerProcessor(
                     IAsynchronousOperationListener listener,
@@ -154,7 +150,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     => _registration.Workspace.GetOpenDocumentIds();
 
                 private void ResetLogAggregator()
-                    => _logAggregator = new CountLogAggregator<object>();
+                    => _logAggregator = new LogAggregator();
 
                 private void ReportPendingWorkItemCount()
                 {

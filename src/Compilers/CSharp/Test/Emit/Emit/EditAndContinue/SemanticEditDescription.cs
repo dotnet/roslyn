@@ -11,13 +11,16 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
     {
         public readonly SemanticEditKind Kind;
         public readonly Func<Compilation, ISymbol> SymbolProvider;
+        public readonly Func<Compilation, ISymbol> NewSymbolProvider;
 
         public SemanticEditDescription(
             SemanticEditKind kind,
-            Func<Compilation, ISymbol> symbolProvider)
+            Func<Compilation, ISymbol> symbolProvider,
+            Func<Compilation, ISymbol>? newSymbolProvider = null)
         {
             Kind = kind;
             SymbolProvider = symbolProvider;
+            NewSymbolProvider = newSymbolProvider ?? symbolProvider;
         }
     }
 }

@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Tags;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
-    internal abstract partial class CommonCompletionService : CompletionServiceWithProviders
+    internal abstract partial class CommonCompletionService : CompletionService
     {
         protected CommonCompletionService(Workspace workspace)
             : base(workspace)

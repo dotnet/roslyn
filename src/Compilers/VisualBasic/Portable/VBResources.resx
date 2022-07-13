@@ -5226,7 +5226,7 @@
                                   (mscorlib.dll).
 -subsystemversion:&lt;version&gt;       Specify subsystem version of the output PE.
                                   version:&lt;number&gt;[.&lt;number&gt;]
--utf8output[+|-]                  Emit compiler output in UTF8 character
+-utf8output[+|-]                  Emit compiler output in UTF-8 character
                                   encoding.
 @&lt;file&gt;                           Insert command-line settings from a text file
 -vbruntime[+|-|*]                 Compile with/without the default Visual Basic

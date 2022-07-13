@@ -53,6 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         protected bool? ForceExpandedCompletionIndexCreation { get; set; }
         protected bool? HideAdvancedMembers { get; set; }
         protected bool? ShowNameSuggestions { get; set; }
+        protected bool? ShowNewSnippetExperience { get; set; }
 
         protected AbstractCompletionProviderTests()
         {
@@ -84,6 +85,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             if (ShowNameSuggestions.HasValue)
                 options = options with { ShowNameSuggestions = ShowNameSuggestions.Value };
 
+            if (ShowNewSnippetExperience.HasValue)
+                options = options with { ShowNewSnippetExperience = ShowNewSnippetExperience.Value };
+
             return options;
         }
 
@@ -104,17 +108,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             return !service.GetMemberBodySpanForSpeculativeBinding(node).IsEmpty;
         }
 
-        internal virtual CompletionServiceWithProviders GetCompletionService(Project project)
+        internal virtual CompletionService GetCompletionService(Project project)
         {
             var completionService = project.LanguageServices.GetRequiredService<CompletionService>();
-
-            var completionServiceWithProviders = Assert.IsAssignableFrom<CompletionServiceWithProviders>(completionService);
-
-            var completionProviders = ((IMefHostExportProvider)project.Solution.Workspace.Services.HostServices).GetExports<CompletionProvider>();
+            var completionProviders = completionService.GetImportedProviders();
             var completionProvider = Assert.Single(completionProviders).Value;
             Assert.IsType(GetCompletionProviderType(), completionProvider);
 
-            return completionServiceWithProviders;
+            return completionService;
         }
 
         internal static ImmutableHashSet<string> GetRoles(Document document)
@@ -485,7 +486,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         }
 
         private async Task VerifyCustomCommitWorkerAsync(
-            CompletionServiceWithProviders service,
+            CompletionService service,
             Document document,
             RoslynCompletion.CompletionItem completionItem,
             string codeBeforeCommit,

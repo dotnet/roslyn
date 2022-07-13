@@ -258,15 +258,15 @@ class C
         var comp = CreateCompilationWithRequiredMembers(code, parseOptions: TestOptions.Regular10);
 
         comp.VerifyDiagnostics(
-            // (5,27): error CS8652: The feature 'required members' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (5,27): error CS8936: Feature 'required members' is not available in C# 10.0. Please use language version 11.0 or greater.
             //     internal required int Field;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "Field").WithArguments("required members").WithLocation(5, 27),
-            // (6,27): error CS8652: The feature 'required members' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "Field").WithArguments("required members", "11.0").WithLocation(5, 27),
+            // (6,27): error CS8936: Feature 'required members' is not available in C# 10.0. Please use language version 11.0 or greater.
             //     internal required int Prop { get; set; }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "Prop").WithArguments("required members").WithLocation(6, 27)
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "Prop").WithArguments("required members", "11.0").WithLocation(6, 27)
         );
 
-        comp = CreateCompilationWithRequiredMembers(code, parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilationWithRequiredMembers(code, parseOptions: TestOptions.Regular11);
         comp.VerifyDiagnostics();
     }
 
@@ -335,7 +335,7 @@ namespace N8
     class required<T> {}
 }
 ";
-        var comp = CreateCompilationWithRequiredMembers(code, parseOptions: use10 ? TestOptions.Regular10 : TestOptions.RegularNext);
+        var comp = CreateCompilationWithRequiredMembers(code, parseOptions: use10 ? TestOptions.Regular10 : TestOptions.Regular11);
 
         comp.VerifyDiagnostics(
             use10 ?
@@ -396,7 +396,7 @@ namespace N8
         );
 
         code = code.Replace("required", "@required");
-        comp = CreateCompilationWithRequiredMembers(code, parseOptions: use10 ? TestOptions.Regular10 : TestOptions.RegularNext);
+        comp = CreateCompilationWithRequiredMembers(code, parseOptions: use10 ? TestOptions.Regular10 : TestOptions.Regular11);
         comp.VerifyDiagnostics();
     }
 
@@ -4685,5 +4685,132 @@ public class Derived : Base
             // public required int Prop { get; set; }
             Diagnostic(ErrorCode.ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers, "Prop").WithLocation(2, 21)
         );
+    }
+
+    [Fact, WorkItem(62062, "https://github.com/dotnet/roslyn/issues/62062")]
+    public void DuplicateRequiredMembers_Fields()
+    {
+        var comp = CreateCompilationWithRequiredMembers("""
+            public class C
+            {
+                public required int Test;
+                public required int Test;
+                public required int Test;
+                public required int Test;
+                public required int Test;
+                public required int Test;
+            
+                public void M()
+                {
+                    C c = new C { T = 42 };
+                }
+            }
+            """);
+
+        comp.VerifyDiagnostics(
+            // (4,25): error CS0102: The type 'C' already contains a definition for 'Test'
+            //     public required int Test;
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Test").WithArguments("C", "Test").WithLocation(4, 25),
+            // (5,25): error CS0102: The type 'C' already contains a definition for 'Test'
+            //     public required int Test;
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Test").WithArguments("C", "Test").WithLocation(5, 25),
+            // (6,25): error CS0102: The type 'C' already contains a definition for 'Test'
+            //     public required int Test;
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Test").WithArguments("C", "Test").WithLocation(6, 25),
+            // (7,25): error CS0102: The type 'C' already contains a definition for 'Test'
+            //     public required int Test;
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Test").WithArguments("C", "Test").WithLocation(7, 25),
+            // (8,25): error CS0102: The type 'C' already contains a definition for 'Test'
+            //     public required int Test;
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Test").WithArguments("C", "Test").WithLocation(8, 25),
+            // (12,23): error CS0117: 'C' does not contain a definition for 'T'
+            //         C c = new C { T = 42 };
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "T").WithArguments("C", "T").WithLocation(12, 23)
+        );
+    }
+
+    [Fact, WorkItem(62062, "https://github.com/dotnet/roslyn/issues/62062")]
+    public void DuplicateRequiredMembers_Properties()
+    {
+        var comp = CreateCompilationWithRequiredMembers("""
+            public class C
+            {
+                public required int Test { get; set; }
+                public required int Test { get; set; }
+                public required int Test { get; set; }
+                public required int Test { get; set; }
+                public required int Test { get; set; }
+                public required int Test { get; set; }
+            
+                public void M()
+                {
+                    C c = new C { T = 42 };
+                }
+            }
+            """);
+
+        comp.VerifyDiagnostics(
+            // (4,25): error CS0102: The type 'C' already contains a definition for 'Test'
+            //     public required int Test;
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Test").WithArguments("C", "Test").WithLocation(4, 25),
+            // (5,25): error CS0102: The type 'C' already contains a definition for 'Test'
+            //     public required int Test;
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Test").WithArguments("C", "Test").WithLocation(5, 25),
+            // (6,25): error CS0102: The type 'C' already contains a definition for 'Test'
+            //     public required int Test;
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Test").WithArguments("C", "Test").WithLocation(6, 25),
+            // (7,25): error CS0102: The type 'C' already contains a definition for 'Test'
+            //     public required int Test;
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Test").WithArguments("C", "Test").WithLocation(7, 25),
+            // (8,25): error CS0102: The type 'C' already contains a definition for 'Test'
+            //     public required int Test;
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Test").WithArguments("C", "Test").WithLocation(8, 25),
+            // (12,23): error CS0117: 'C' does not contain a definition for 'T'
+            //         C c = new C { T = 42 };
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "T").WithArguments("C", "T").WithLocation(12, 23)
+        );
+    }
+
+    [Fact, WorkItem(62062, "https://github.com/dotnet/roslyn/issues/62062")]
+    public void DuplicateRequiredMembers_Mixed01()
+    {
+        var comp = CreateCompilationWithRequiredMembers("""
+            class C
+            {
+                public required int Test { get; set; }
+                public required int Test;
+            }
+            """);
+
+        comp.VerifyDiagnostics(
+            // (4,25): error CS0102: The type 'C' already contains a definition for 'Test'
+            //     public required int Test;
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Test").WithArguments("C", "Test").WithLocation(4, 25),
+            // (4,25): warning CS0649: Field 'C.Test' is never assigned to, and will always have its default value 0
+            //     public required int Test;
+            Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Test").WithArguments("C.Test", "0").WithLocation(4, 25)
+        );
+    }
+
+    [Fact, WorkItem(62062, "https://github.com/dotnet/roslyn/issues/62062")]
+    public void DuplicateRequiredMembers_Mixed02()
+    {
+        var comp = CreateCompilationWithRequiredMembers("""
+            class C
+            {
+                public required int Test;
+                public required int Test { get; set; }
+            }
+            """);
+
+        comp.VerifyDiagnostics(
+            // (3,25): warning CS0649: Field 'C.Test' is never assigned to, and will always have its default value 0
+            //     public required int Test;
+            Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Test").WithArguments("C.Test", "0").WithLocation(3, 25),
+            // (4,25): error CS0102: The type 'C' already contains a definition for 'Test'
+            //     public required int Test { get; set; }
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Test").WithArguments("C", "Test").WithLocation(4, 25)
+        );
+
     }
 }

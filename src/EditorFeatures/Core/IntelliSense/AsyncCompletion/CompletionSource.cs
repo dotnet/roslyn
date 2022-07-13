@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
             finally
             {
-                AsyncCompletionLogger.LogSourceInitializationTicksDataPoint(stopwatch.Elapsed);
+                AsyncCompletionLogger.LogSourceInitializationTicksDataPoint((int)stopwatch.Elapsed.TotalMilliseconds);
             }
         }
 
@@ -179,12 +179,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var roslynTrigger = Helpers.GetRoslynTrigger(trigger, triggerLocation);
 
             // The completion service decides that user may want a completion.
-            if (completionService.ShouldTriggerCompletion(document.Project, document.Project.LanguageServices, sourceText, triggerLocation.Position, roslynTrigger, options, document.Project.Solution.Options))
-            {
-                return true;
-            }
-
-            return false;
+            return completionService.ShouldTriggerCompletion(
+                document.Project, document.Project.LanguageServices, sourceText, triggerLocation.Position, roslynTrigger, options, document.Project.Solution.Options, _roles);
         }
 
         private bool TryInvokeSnippetCompletion(
@@ -311,7 +307,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                         // There could be a race around the usage of this stopwatch, I ignored it since we just need a rough idea:
                         // we always log the time even if the stopwatch's not started regardless of whether expand items are included intially
                         // (that number can be obtained via another property.)
-                        AsyncCompletionLogger.LogAdditionalTicksToCompleteDelayedImportCompletionDataPoint(stopwatch.Elapsed);
+                        AsyncCompletionLogger.LogAdditionalTicksToCompleteDelayedImportCompletionDataPoint((int)stopwatch.ElapsedMilliseconds);
 
                         return result;
                     }, cancellationToken);
@@ -346,7 +342,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
             finally
             {
-                AsyncCompletionLogger.LogSourceGetContextTicksDataPoint(totalStopWatch.Elapsed, isCanceled: cancellationToken.IsCancellationRequested);
+                AsyncCompletionLogger.LogSourceGetContextTicksDataPoint((int)totalStopWatch.Elapsed.TotalMilliseconds, isCanceled: cancellationToken.IsCancellationRequested);
             }
 
             static VSCompletionContext CombineCompletionContext(VSCompletionContext context1, VSCompletionContext context2)

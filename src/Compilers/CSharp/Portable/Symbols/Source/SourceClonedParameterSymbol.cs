@@ -58,6 +58,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal sealed override DeclarationScope Scope => _originalParam.Scope;
+
         internal override ConstantValue ExplicitDefaultConstantValue
         {
             get

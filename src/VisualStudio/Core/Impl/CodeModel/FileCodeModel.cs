@@ -656,10 +656,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             var codeElement = ComAggregate.TryGetManagedObject<AbstractCodeElement>(element);
 
-            if (codeElement == null)
-            {
-                codeElement = ComAggregate.TryGetManagedObject<AbstractCodeElement>(this.CodeElements.Item(element));
-            }
+            codeElement ??= ComAggregate.TryGetManagedObject<AbstractCodeElement>(this.CodeElements.Item(element));
 
             if (codeElement == null)
             {
@@ -840,10 +837,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             if (_codeElementTable.TryGetValue(globalNodeKey.NodeKey, out var element))
             {
                 var keyedElement = ComAggregate.GetManagedObject<AbstractKeyedCodeElement>(element);
-                if (keyedElement != null)
-                {
-                    keyedElement.ReacquireNodeKey(globalNodeKey.Path, default);
-                }
+                keyedElement?.ReacquireNodeKey(globalNodeKey.Path, default);
             }
         }
     }

@@ -163,11 +163,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                     lastSelectionOrDefault = items.Items.FirstOrDefault(i => DisplayPartsMatch(i, currentModel.SelectedItem));
                 }
 
-                if (lastSelectionOrDefault == null)
-                {
-                    // Otherwise, just pick the first item we have.
-                    lastSelectionOrDefault = items.Items.First();
-                }
+                // Otherwise, just pick the first item we have.
+                lastSelectionOrDefault ??= items.Items.First();
 
                 return lastSelectionOrDefault;
             }

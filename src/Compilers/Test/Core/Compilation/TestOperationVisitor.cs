@@ -520,6 +520,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.NotNull(operation.TargetMethod);
             var isVirtual = operation.IsVirtual;
 
+            AssertConstrainedToType(operation.TargetMethod, operation.ConstrainedToType);
+            if (operation.ConstrainedToType is not null)
+            {
+                Assert.True(isVirtual);
+            }
+
             IEnumerable<IOperation> children;
             if (operation.Instance != null)
             {
@@ -628,6 +634,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private void VisitMemberReference(IMemberReferenceOperation operation, IEnumerable<IOperation> additionalChildren)
         {
             Assert.NotNull(operation.Member);
+            AssertConstrainedToType(operation.Member, operation.ConstrainedToType);
 
             IEnumerable<IOperation> children;
 
@@ -655,6 +662,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             Assert.Equal(OperationKind.FieldReference, operation.Kind);
             VisitMemberReference(operation);
+            Assert.Null(operation.ConstrainedToType);
 
             Assert.Same(operation.Member, operation.Field);
             var isDeclaration = operation.IsDeclaration;
@@ -667,6 +675,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             Assert.Same(operation.Member, operation.Method);
             var isVirtual = operation.IsVirtual;
+
+            if (operation.ConstrainedToType is not null)
+            {
+                Assert.True(isVirtual);
+            }
         }
 
         public override void VisitPropertyReference(IPropertyReferenceOperation operation)
@@ -720,6 +733,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var isLifted = operation.IsLifted;
             var isChecked = operation.IsChecked;
 
+            AssertConstrainedToType(operatorMethod, operation.ConstrainedToType);
             Assert.Same(operation.Operand, operation.ChildOperations.Single());
         }
 
@@ -733,6 +747,25 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var isLifted = operation.IsLifted;
             var isChecked = operation.IsChecked;
             var isCompareText = operation.IsCompareText;
+            var constrainedToType = operation.ConstrainedToType;
+
+            if (binaryOperationKind is BinaryOperatorKind.ConditionalAnd or BinaryOperatorKind.ConditionalOr)
+            {
+                if ((operatorMethod is null || !operatorMethod.IsStatic || (!operatorMethod.IsVirtual && !operatorMethod.IsAbstract)) &&
+                    (unaryOperatorMethod is null || !unaryOperatorMethod.IsStatic || (!unaryOperatorMethod.IsVirtual && !unaryOperatorMethod.IsAbstract)))
+                {
+                    Assert.Null(constrainedToType);
+                }
+                else if (constrainedToType is not null) // In error cases we might not have the type parameter
+                {
+                    Assert.IsAssignableFrom<ITypeParameterSymbol>(constrainedToType);
+                }
+            }
+            else
+            {
+                Assert.Null(unaryOperatorMethod);
+                AssertConstrainedToType(operatorMethod, constrainedToType);
+            }
 
             AssertEx.Equal(new[] { operation.LeftOperand, operation.RightOperand }, operation.ChildOperations);
         }
@@ -754,6 +787,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var isChecked = operation.IsChecked;
             var isTryCast = operation.IsTryCast;
 
+            AssertConstrainedToType(operatorMethod, operation.ConstrainedToType);
+
             switch (operation.Language)
             {
                 case LanguageNames.CSharp:
@@ -770,6 +805,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             Assert.Same(operation.Operand, operation.ChildOperations.Single());
+        }
+
+        private static void AssertConstrainedToType(ISymbol member, ITypeSymbol constrainedToType)
+        {
+            if (member is null || !member.IsStatic || (!member.IsVirtual && !member.IsAbstract))
+            {
+                Assert.Null(constrainedToType);
+            }
+            else if (constrainedToType is not null) // In error cases we might not have the type parameter
+            {
+                Assert.IsAssignableFrom<ITypeParameterSymbol>(constrainedToType);
+            }
         }
 
         public override void VisitConditional(IConditionalOperation operation)
@@ -868,9 +915,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Empty(operation.ChildOperations);
         }
 
-        public override void VisitUTF8String(IUTF8StringOperation operation)
+        public override void VisitUtf8String(IUtf8StringOperation operation)
         {
-            Assert.Equal(OperationKind.UTF8String, operation.Kind);
+            Assert.Equal(OperationKind.Utf8String, operation.Kind);
             Assert.Empty(operation.ChildOperations);
             Assert.NotNull(operation.Value);
         }
@@ -1079,6 +1126,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             var isLifted = operation.IsLifted;
             var isChecked = operation.IsChecked;
+            AssertConstrainedToType(operatorMethod, operation.ConstrainedToType);
             VisitAssignment(operation);
         }
 
@@ -1090,6 +1138,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var isLifted = operation.IsLifted;
             var isChecked = operation.IsChecked;
 
+            AssertConstrainedToType(operatorMethod, operation.ConstrainedToType);
             Assert.Same(operation.Target, operation.ChildOperations.Single());
         }
 

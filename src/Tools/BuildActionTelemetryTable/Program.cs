@@ -257,7 +257,7 @@ namespace BuildActionTelemetryTable
             { "Microsoft.CodeAnalysis.CSharp.UsePatternMatching.CSharpUseNotPatternCodeFixProvider", "Use Pattern Matching: Use Not Pattern" },
             { "Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement.UseSimpleUsingStatementCodeFixProvider", "Use Simple Using Statement" },
             { "Microsoft.CodeAnalysis.CSharp.UseTupleSwap.CSharpUseTupleSwapCodeFixProvider", "Use Tuple Swap" },
-            { "Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral.UseUTF8StringLiteralCodeFixProvider", "Use UTF 8 String Literal" },
+            { "Microsoft.CodeAnalysis.CSharp.UseUtf8StringLiteral.UseUtf8StringLiteralCodeFixProvider", "Use UTF-8 String Literal" },
             { "Microsoft.CodeAnalysis.CSharp.Wrapping.CSharpWrappingCodeRefactoringProvider", "Wrapping (Refactoring)" },
             { "Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes.CSharpAddDocCommentNodesCodeFixProvider", "Add Doc Comment Nodes" },
             { "Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes.CSharpRemoveDocCommentNodeCodeFixProvider", "Remove Doc Comment Node" },

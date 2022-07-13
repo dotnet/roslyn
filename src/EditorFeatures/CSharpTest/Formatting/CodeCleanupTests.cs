@@ -33,6 +33,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
@@ -562,9 +563,9 @@ namespace A
 
         [Theory]
         [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
-        [InlineData(LanguageNames.CSharp, 36)]
-        [InlineData(LanguageNames.VisualBasic, 70)]
-        public void VerifyAllCodeStyleFixersAreSupportedByCodeCleanup(string language, int expectedNumberOfUnsupportedDiagnosticIds)
+        [InlineData(LanguageNames.CSharp)]
+        [InlineData(LanguageNames.VisualBasic)]
+        public void VerifyAllCodeStyleFixersAreSupportedByCodeCleanup(string language)
         {
             var supportedDiagnostics = GetSupportedDiagnosticIdsForCodeCleanupService(language);
 
@@ -574,6 +575,15 @@ namespace A
             // Exact Number of Unsupported Diagnostic Ids
             var ideDiagnosticIds = typeof(IDEDiagnosticIds).GetFields().Select(f => f.GetValue(f) as string).ToArray();
             var unsupportedDiagnosticIds = ideDiagnosticIds.Except(supportedDiagnostics).ToArray();
+
+            var expectedNumberOfUnsupportedDiagnosticIds =
+                language switch
+                {
+                    LanguageNames.CSharp => 36,
+                    LanguageNames.VisualBasic => 72,
+                    _ => throw ExceptionUtilities.UnexpectedValue(language),
+                };
+
             Assert.Equal(expectedNumberOfUnsupportedDiagnosticIds, unsupportedDiagnosticIds.Length);
         }
 

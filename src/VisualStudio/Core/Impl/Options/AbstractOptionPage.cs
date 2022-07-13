@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Linq;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
@@ -31,16 +32,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 var componentModel = (IComponentModel)this.Site.GetService(typeof(SComponentModel));
                 var workspace = componentModel.GetService<VisualStudioWorkspace>();
                 s_optionService = workspace.Services.GetService<ILegacyWorkspaceOptionService>();
-                s_optionStore = new OptionStore(new SolutionOptionSet(s_optionService), s_optionService.GlobalOptions.GetRegisteredOptions());
+                s_optionStore = new OptionStore(new SolutionOptionSet(s_optionService), Enumerable.Empty<IOption>());
             }
 
-            if (pageControl == null)
-            {
-                // Use a single option store for all option pages so that changes are accumulated
-                // together and, in the case of the same option appearing on two pages, the changes
-                // are kept in sync.
-                pageControl = CreateOptionPage(this.Site, s_optionStore);
-            }
+            // Use a single option store for all option pages so that changes are accumulated
+            // together and, in the case of the same option appearing on two pages, the changes
+            // are kept in sync.
+            pageControl ??= CreateOptionPage(this.Site, s_optionStore);
         }
 
         protected override System.Windows.UIElement Child
@@ -60,7 +58,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             {
                 // Reset the option store to the current state of the options.
                 s_optionStore.SetOptions(new SolutionOptionSet(s_optionService));
-                s_optionStore.SetRegisteredOptions(s_optionService.GlobalOptions.GetRegisteredOptions());
 
                 s_needsToUpdateOptionStore = false;
             }
@@ -128,12 +125,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _needsLoadOnNextActivate = true;
         }
 
+        protected override void SearchStringChanged(string searchString)
+        {
+            pageControl.OnSearch(searchString);
+        }
+
         protected override void OnClosed(EventArgs e)
         {
             base.OnClosed(e);
 
             if (pageControl != null)
             {
+                // Clear the search because we don't recreate controls
+                pageControl.OnSearch(string.Empty);
                 pageControl.Close();
             }
         }

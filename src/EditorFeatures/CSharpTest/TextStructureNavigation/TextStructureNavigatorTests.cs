@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
-        public void UTF8String()
+        public void Utf8String()
         {
             AssertExtent(
                 @"class Test { private string s1 = {|Significant:$$""|} () test  ""u8; }");
@@ -405,7 +405,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
-        public void TestUTF8RawStringDelimeter()
+        public void TestUtf8RawStringDelimeter()
         {
             AssertExtent(
                 @"string s = """"""

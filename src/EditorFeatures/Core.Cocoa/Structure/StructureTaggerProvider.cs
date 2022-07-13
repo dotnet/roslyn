@@ -26,12 +26,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public StructureTaggerProvider(
             IThreadingContext threadingContext,
-            IEditorOptionsFactoryService editorOptionsFactoryService,
+            EditorOptionsService editorOptionsService,
             IProjectionBufferFactoryService projectionBufferFactoryService,
-            IGlobalOptionService globalOptions,
             [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, editorOptionsFactoryService, projectionBufferFactoryService, globalOptions, visibilityTracker, listenerProvider)
+            : base(threadingContext, editorOptionsService, projectionBufferFactoryService, visibilityTracker, listenerProvider)
         {
         }
 

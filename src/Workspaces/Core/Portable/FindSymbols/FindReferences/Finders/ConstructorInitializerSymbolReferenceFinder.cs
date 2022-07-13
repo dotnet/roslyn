@@ -30,9 +30,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             {
                 var index = await SyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
                 if (index.ContainsBaseConstructorInitializer)
-                {
                     return true;
-                }
 
                 if (index.ProbablyContainsIdentifier(name))
                 {
@@ -65,12 +63,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             }
 
             return await FindReferencesInTokensAsync(
-                 methodSymbol,
-                 state,
-                 tokens,
-                 TokensMatch,
-                 methodSymbol.ContainingType.Name,
-                 cancellationToken).ConfigureAwait(false);
+                 methodSymbol, state, tokens, TokensMatch, methodSymbol.ContainingType.Name, cancellationToken).ConfigureAwait(false);
 
             // local functions
             static bool TokensMatch(

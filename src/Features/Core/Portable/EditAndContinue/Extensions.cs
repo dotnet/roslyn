@@ -75,6 +75,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public static bool SupportsEditAndContinue(this TextDocumentState documentState)
             => !documentState.Attributes.DesignTimeOnly &&
                documentState is not DocumentState or DocumentState { SupportsSyntaxTree: true } &&
-               (PathUtilities.IsAbsolute(documentState.FilePath) || documentState is SourceGeneratedDocumentState);
+               (PathUtilities.IsAbsolute(documentState.FilePath) || documentState is SourceGeneratedDocumentState { FilePath: not null });
     }
 }

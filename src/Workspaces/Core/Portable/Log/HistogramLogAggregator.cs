@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     /// <summary>
     /// Defines a log aggregator to create a histogram
     /// </summary>
-    internal sealed class HistogramLogAggregator<TKey> : AbstractLogAggregator<TKey, HistogramLogAggregator<TKey>.HistogramCounter>
+    internal sealed class HistogramLogAggregator : AbstractLogAggregator<HistogramLogAggregator.HistogramCounter>
     {
         private readonly int _bucketSize;
         private readonly int _maxBucketValue;
@@ -32,19 +32,13 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         protected override HistogramCounter CreateCounter()
             => new(_bucketSize, _maxBucketValue, _bucketCount);
 
-        public void IncreaseCount(TKey key, int value)
+        public void IncreaseCount(object key, decimal value)
         {
             var counter = GetCounter(key);
             counter.IncreaseCount(value);
         }
 
-        public void LogTime(TKey key, TimeSpan timeSpan)
-        {
-            var counter = GetCounter(key);
-            counter.IncreaseCount((int)timeSpan.TotalMilliseconds);
-        }
-
-        public HistogramCounter? GetValue(TKey key)
+        public HistogramCounter? GetValue(object key)
         {
             TryGetCounter(key, out var counter);
             return counter;
@@ -68,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 _buckets = new int[BucketCount];
             }
 
-            public void IncreaseCount(int value)
+            public void IncreaseCount(decimal value)
             {
                 var bucket = GetBucket(value);
                 _buckets[bucket]++;
@@ -92,9 +86,9 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 return pooledStringBuilder.ToStringAndFree();
             }
 
-            private int GetBucket(int value)
+            private int GetBucket(decimal value)
             {
-                var bucket = value / BucketSize;
+                var bucket = (int)Math.Floor(value / BucketSize);
                 if (bucket >= BucketCount)
                 {
                     bucket = BucketCount - 1;

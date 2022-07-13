@@ -2,18 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Threading;
-using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
     internal sealed class LabelSymbolReferenceFinder : AbstractMemberScopedReferenceFinder<ILabelSymbol>
     {
-        protected override Func<FindReferencesDocumentState, SyntaxToken, string, CancellationToken, bool> GetTokensMatchFunction()
+        protected override bool TokensMatch(FindReferencesDocumentState state, SyntaxToken token, string name)
         {
             // Labels in VB can actually be numeric literals.  Wacky.
-            return static (state, token, name, _) => IdentifiersMatch(state.SyntaxFacts, name, token) || state.SyntaxFacts.IsLiteral(token);
+            return IdentifiersMatch(state.SyntaxFacts, name, token) || state.SyntaxFacts.IsLiteral(token);
         }
     }
 }

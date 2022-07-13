@@ -33,9 +33,11 @@ namespace Microsoft.CodeAnalysis
             _name = name;
         }
 
-        public IIncrementalGeneratorNode<TOutput> WithComparer(IEqualityComparer<TOutput> comparer) => new TransformNode<TInput, TOutput>(_sourceNode, _func, comparer, _name);
+        public IIncrementalGeneratorNode<TOutput> WithComparer(IEqualityComparer<TOutput> comparer)
+            => new TransformNode<TInput, TOutput>(_sourceNode, _func, comparer, _name);
 
-        public IIncrementalGeneratorNode<TOutput> WithTrackingName(string name) => new TransformNode<TInput, TOutput>(_sourceNode, _func, _comparer, name);
+        public IIncrementalGeneratorNode<TOutput> WithTrackingName(string name)
+            => new TransformNode<TInput, TOutput>(_sourceNode, _func, _comparer, name);
 
         public NodeStateTable<TOutput> UpdateStateTable(DriverStateTable.Builder builder, NodeStateTable<TOutput> previousTable, CancellationToken cancellationToken)
         {
@@ -45,7 +47,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (builder.DriverState.TrackIncrementalSteps)
                 {
-                    return previousTable.CreateCachedTableWithUpdatedSteps(sourceTable, _name);
+                    return previousTable.CreateCachedTableWithUpdatedSteps(sourceTable, _name, _comparer);
                 }
                 return previousTable;
             }
@@ -56,7 +58,8 @@ namespace Microsoft.CodeAnalysis
             // - Added: perform transform and add
             // - Modified: perform transform and do element wise comparison with previous results
 
-            var newTable = builder.CreateTableBuilder(previousTable, _name);
+            var totalEntryItemCount = sourceTable.GetTotalEntryItemCount();
+            var newTable = builder.CreateTableBuilder(previousTable, _name, _comparer, totalEntryItemCount);
 
             foreach (var entry in sourceTable)
             {
@@ -77,6 +80,9 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
             }
+
+            // Can't assert anything about the count of items.  _func may have produced a different amount of items if
+            // it's not a 1:1 function.
             return newTable.ToImmutableAndFree();
         }
 

@@ -506,7 +506,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public async Task TestUTF8String1()
+        public async Task TestUtf8String1()
         {
             var code = @"public class C { string s = $$""Goo""u8; }";
             var expected = @"public class C { string s = ""Goo[|""u8|]; }";
@@ -515,7 +515,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public async Task TestUTF8String2()
+        public async Task TestUtf8String2()
         {
             var code = @"public class C { string s = ""$$Goo""u8; }";
             var expected = @"public class C { string s = ""Goo[|""u8|]; }";
@@ -524,7 +524,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public async Task TestUTF8String3()
+        public async Task TestUtf8String3()
         {
             var code = @"public class C { string s = ""Goo$$""u8; }";
             var expected = @"public class C { string s = [|""|]Goo""u8; }";
@@ -533,7 +533,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public async Task TestUTF8String4()
+        public async Task TestUtf8String4()
         {
             var code = @"public class C { string s = ""Goo""$$u8; }";
             var expected = @"public class C { string s = [|""|]Goo""u8; }";
@@ -542,7 +542,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public async Task TestUTF8String5()
+        public async Task TestUtf8String5()
         {
             var code = @"public class C { string s = ""Goo""u$$8; }";
             var expected = @"public class C { string s = [|""|]Goo""u8; }";
@@ -551,7 +551,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public async Task TestUTF8String6()
+        public async Task TestUtf8String6()
         {
             var code = @"public class C { string s = ""Goo""u8$$; }";
             var expected = @"public class C { string s = [|""|]Goo""u8; }";
@@ -560,7 +560,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public async Task TestVerbatimUTF8String1()
+        public async Task TestVerbatimUtf8String1()
         {
             var code = @"public class C { string s = $$@""Goo""u8; }";
             var expected = @"public class C { string s = @""Goo[|""u8|]; }";
@@ -569,7 +569,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public async Task TestVerbatimUTF8String2()
+        public async Task TestVerbatimUtf8String2()
         {
             var code = @"public class C { string s = @$$""Goo""u8; }";
             var expected = @"public class C { string s = @""Goo[|""u8|]; }";
@@ -578,7 +578,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public async Task TestVerbatimUTF8String3()
+        public async Task TestVerbatimUtf8String3()
         {
             var code = @"public class C { string s = @""$$Goo""u8; }";
             var expected = @"public class C { string s = @""Goo[|""u8|]; }";
@@ -587,7 +587,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public async Task TestVerbatimUTF8String4()
+        public async Task TestVerbatimUtf8String4()
         {
             var code = @"public class C { string s = @""Goo$$""u8; }";
             var expected = @"public class C { string s = [|@""|]Goo""u8; }";
@@ -596,7 +596,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public async Task TestVerbatimUTF8String5()
+        public async Task TestVerbatimUtf8String5()
         {
             var code = @"public class C { string s = @""Goo""$$u8; }";
             var expected = @"public class C { string s = [|@""|]Goo""u8; }";
@@ -605,7 +605,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public async Task TestVerbatimUTF8String6()
+        public async Task TestVerbatimUtf8String6()
         {
             var code = @"public class C { string s = @""Goo""u$$8; }";
             var expected = @"public class C { string s = [|@""|]Goo""u8; }";
@@ -614,7 +614,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public async Task TestVerbatimUTF8String7()
+        public async Task TestVerbatimUtf8String7()
         {
             var code = @"public class C { string s = @""Goo""u8$$; }";
             var expected = @"public class C { string s = [|@""|]Goo""u8; }";

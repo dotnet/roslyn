@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         {
             var syntaxTree = context.Node.SyntaxTree;
 
-            var fadeOutCode = context.GetIdeAnalyzerOptions().FadeOutComplexObjectInitialization;
+            var fadeOutCode = context.GetIdeAnalyzerOptions().FadeOutComplexCollectionInitialization;
             if (!fadeOutCode)
                 return;
 

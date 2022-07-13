@@ -340,15 +340,15 @@ namespace Microsoft.CodeAnalysis.Rename
     {
         public async Task<SerializableConflictResolution> DehydrateAsync(CancellationToken cancellationToken)
         {
-            if (ErrorMessage != null)
+            if (!IsSuccessful)
                 return new SerializableConflictResolution(ErrorMessage, resolution: null);
 
             var documentTextChanges = await RemoteUtilities.GetDocumentTextChangesAsync(OldSolution, _newSolutionWithoutRenamedDocument, cancellationToken).ConfigureAwait(false);
             return new SerializableConflictResolution(
                 errorMessage: null,
                 new SuccessfulConflictResolution(
-                    ReplacementTextValid,
-                    _renamedDocument,
+                    ReplacementTextValid.Value,
+                    _renamedDocument.Value,
                     DocumentIds,
                     RelatedLocations,
                     documentTextChanges,

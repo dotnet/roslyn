@@ -440,8 +440,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private TypeWithAnnotations ComputeType(Binder binder, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
         {
-            RefKind refKind;
-            var typeSyntax = GetTypeSyntax(syntax).SkipRef(out refKind);
+            var typeSyntax = GetTypeSyntax(syntax).SkipRef(out _, allowScoped: false, diagnostics);
             var type = binder.BindType(typeSyntax, diagnostics);
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
 
@@ -450,6 +449,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // "Inconsistent accessibility: indexer return type '{1}' is less accessible than indexer '{0}'"
                 // "Inconsistent accessibility: property type '{1}' is less accessible than property '{0}'"
                 diagnostics.Add((this.IsIndexer ? ErrorCode.ERR_BadVisIndexerReturn : ErrorCode.ERR_BadVisPropertyType), Location, this, type.Type);
+            }
+
+            if (type.Type.IsFileTypeOrUsesFileTypes() && !ContainingType.IsFileTypeOrUsesFileTypes())
+            {
+                diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, Location, type.Type, ContainingType);
             }
 
             diagnostics.Add(Location, useSiteInfo);
@@ -528,6 +532,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (!IsExplicitInterfaceImplementation && !this.IsNoMoreVisibleThan(param.Type, ref useSiteInfo))
                 {
                     diagnostics.Add(ErrorCode.ERR_BadVisIndexerParam, Location, this, param.Type);
+                }
+                else if (param.Type.IsFileTypeOrUsesFileTypes() && !this.ContainingType.IsFileTypeOrUsesFileTypes())
+                {
+                    diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, Location, param.Type, this.ContainingType);
                 }
                 else if (SetMethod is object && param.Name == ParameterSymbol.ValueParameterName)
                 {

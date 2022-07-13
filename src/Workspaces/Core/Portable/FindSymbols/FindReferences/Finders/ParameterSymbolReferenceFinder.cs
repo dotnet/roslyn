@@ -42,58 +42,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            return FindReferencesInDocumentUsingIdentifierAsync(
-                symbol, symbol.Name, state,
-                GetParameterSymbolsMatchFunction(symbol),
-                cancellationToken);
+            return FindReferencesInDocumentUsingIdentifierAsync(symbol, symbol.Name, state, cancellationToken);
         }
 
-        private static Func<ISymbol, FindReferencesDocumentState, SyntaxToken, CancellationToken, ValueTask<(bool matched, CandidateReason reason)>> GetParameterSymbolsMatchFunction(
-            IParameterSymbol parameter)
-        {
-            // Get the standard function for comparing parameters.  This function will just 
-            // directly compare the parameter symbols for SymbolEquivalence.
-            var standardFunction = GetStandardSymbolsMatchFunction();
-
-            // HOwever, we also want to consider parameter symbols them same if they unify across
-            // VB's synthesized AnonymousDelegate parameters. 
-            var containingMethod = parameter.ContainingSymbol as IMethodSymbol;
-            if (containingMethod?.AssociatedAnonymousDelegate == null)
-            {
-                // This was a normal parameter, so just use the normal comparison function.
-                return standardFunction;
-            }
-
-            var invokeMethod = containingMethod.AssociatedAnonymousDelegate.DelegateInvokeMethod;
-            var ordinal = parameter.Ordinal;
-            if (invokeMethod == null || ordinal >= invokeMethod.Parameters.Length)
-            {
-                return standardFunction;
-            }
-
-            // This was parameter of a method that had an associated synthesized anonymous-delegate.
-            // IN that case, we want it to match references to the corresponding parameter in that
-            // anonymous-delegate's invoke method.  So get he symbol match function that will check
-            // for equivalence with that parameter.
-            var anonymousDelegateParameter = invokeMethod.Parameters[ordinal];
-            var anonParameterFunc = GetStandardSymbolsMatchFunction();
-
-            // Return a new function which is a compound of the two functions we have.
-            return async (symbol, state, token, cancellationToken) =>
-            {
-                // First try the standard function.
-                var result = await standardFunction(parameter, state, token, cancellationToken).ConfigureAwait(false);
-                if (!result.matched)
-                {
-                    // If it fails, fall back to the anon-delegate function.
-                    result = await anonParameterFunc(anonymousDelegateParameter, state, token, cancellationToken).ConfigureAwait(false);
-                }
-
-                return result;
-            };
-        }
-
-        protected override async Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+        protected override async ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
             IParameterSymbol parameter,
             Solution solution,
             FindReferencesSearchOptions options,
@@ -109,8 +61,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CascadeBetweenDelegateMethodParameters(parameter, symbols);
             CascadeBetweenPartialMethodParameters(parameter, symbols);
             CascadeBetweenPrimaryConstructorParameterAndProperties(parameter, symbols, cancellationToken);
+            CascadeBetweenAnonymousDelegateParameters(parameter, symbols);
 
             return symbols.ToImmutable();
+        }
+
+        private static void CascadeBetweenAnonymousDelegateParameters(IParameterSymbol parameter, ArrayBuilder<ISymbol> symbols)
+        {
+            if (parameter.ContainingSymbol is IMethodSymbol { AssociatedAnonymousDelegate.DelegateInvokeMethod: { } invokeMethod } &&
+                parameter.Ordinal < invokeMethod.Parameters.Length)
+            {
+                symbols.Add(invokeMethod.Parameters[parameter.Ordinal]);
+            }
         }
 
         private static void CascadeBetweenPrimaryConstructorParameterAndProperties(
@@ -119,7 +81,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             symbols.AddIfNotNull(parameter.GetAssociatedSynthesizedRecordProperty(cancellationToken));
         }
 
-        private static async Task CascadeBetweenAnonymousFunctionParametersAsync(
+        private static async ValueTask CascadeBetweenAnonymousFunctionParametersAsync(
             Solution solution,
             IParameterSymbol parameter,
             ArrayBuilder<ISymbol> results,
@@ -182,9 +144,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                         var convertedType2 = semanticModel.GetTypeInfo(lambdaNode, cancellationToken).ConvertedType;
 
                         if (convertedType1.Equals(convertedType2))
-                        {
                             results.Add(symbol);
-                        }
                     }
                 }
             }
@@ -192,12 +152,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         private static bool ParameterNamesMatch(ISyntaxFactsService syntaxFacts, IMethodSymbol methodSymbol1, IMethodSymbol methodSymbol2)
         {
-            for (var i = 0; i < methodSymbol1.Parameters.Length; i++)
+            for (int i = 0, n = methodSymbol1.Parameters.Length; i < n; i++)
             {
                 if (!syntaxFacts.TextMatch(methodSymbol1.Parameters[i].Name, methodSymbol2.Parameters[i].Name))
-                {
                     return false;
-                }
             }
 
             return true;
@@ -209,10 +167,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             {
                 var declaredSymbol = semanticModel.GetDeclaredSymbol(current);
 
-                if (declaredSymbol is IMethodSymbol method && method.MethodKind != MethodKind.AnonymousFunction)
-                {
+                if (declaredSymbol is IMethodSymbol { MethodKind: not MethodKind.AnonymousFunction } method)
                     return current;
-                }
             }
 
             return syntaxFactsService.GetContainingVariableDeclaratorOfFieldDeclaration(parameterNode);
@@ -227,21 +183,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             if (containingSymbol is IMethodSymbol containingMethod)
             {
                 if (containingMethod.AssociatedSymbol is IPropertySymbol property)
-                {
                     AddParameterAtIndex(results, ordinal, property.Parameters);
-                }
             }
             else if (containingSymbol is IPropertySymbol containingProperty)
             {
                 if (containingProperty.GetMethod != null && ordinal < containingProperty.GetMethod.Parameters.Length)
-                {
                     results.Add(containingProperty.GetMethod.Parameters[ordinal]);
-                }
 
                 if (containingProperty.SetMethod != null && ordinal < containingProperty.SetMethod.Parameters.Length)
-                {
                     results.Add(containingProperty.SetMethod.Parameters[ordinal]);
-                }
             }
         }
 
@@ -279,9 +229,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             ImmutableArray<IParameterSymbol>? parameters)
         {
             if (parameters != null && ordinal < parameters.Value.Length)
-            {
                 results.Add(parameters.Value[ordinal]);
-            }
         }
 
         private static void CascadeBetweenPartialMethodParameters(

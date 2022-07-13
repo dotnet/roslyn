@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         protected override TestWorkspace CreateWorkspace(string fileContents)
             => TestWorkspace.CreateCSharp(fileContents, exportProvider: ExportProvider);
 
-        internal override CompletionServiceWithProviders GetCompletionService(Project project)
+        internal override CompletionService GetCompletionService(Project project)
             => Assert.IsType<CSharpCompletionService>(base.GetCompletionService(project));
 
         private protected override Task BaseVerifyWorkerAsync(

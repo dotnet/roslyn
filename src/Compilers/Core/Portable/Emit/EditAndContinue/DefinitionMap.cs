@@ -167,9 +167,9 @@ namespace Microsoft.CodeAnalysis.Emit
             IReadOnlyDictionary<Cci.ITypeReference, int>? awaiterMap = null;
             IReadOnlyDictionary<int, KeyValuePair<DebugId, int>>? lambdaMap = null;
             IReadOnlyDictionary<int, DebugId>? closureMap = null;
-            IReadOnlyDictionary<int, int>? stateMachineStateMap = null;
-            int? firstUnusedIncreasingStateMachineState = null;
-            int? firstUnusedDecreasingStateMachineState = null;
+            IReadOnlyDictionary<int, StateMachineState>? stateMachineStateMap = null;
+            StateMachineState? firstUnusedIncreasingStateMachineState = null;
+            StateMachineState? firstUnusedDecreasingStateMachineState = null;
 
             int hoistedLocalSlotCount = 0;
             int awaiterSlotCount = 0;
@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         private static void MakeStateMachineStateMap(
             ImmutableArray<StateMachineStateDebugInfo> debugInfos,
-            out IReadOnlyDictionary<int, int>? map)
+            out IReadOnlyDictionary<int, StateMachineState>? map)
         {
             map = debugInfos.IsDefault ?
                 null :

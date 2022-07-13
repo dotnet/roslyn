@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             private sealed class MockOptionService : ILegacyWorkspaceOptionService
             {
                 public IGlobalOptionService GlobalOptions { get; } =
-                    new GlobalOptionService(workspaceThreadingService: null, ImmutableArray<Lazy<IOptionProvider, LanguageMetadata>>.Empty, ImmutableArray<Lazy<IOptionPersisterProvider>>.Empty);
+                    new GlobalOptionService(workspaceThreadingService: null, ImmutableArray<Lazy<IOptionPersisterProvider>>.Empty);
 
                 public void RegisterWorkspace(Workspace workspace)
                 {

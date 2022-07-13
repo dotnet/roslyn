@@ -16,14 +16,12 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
-    using SymbolsMatchAsync = Func<ISymbol, FindReferencesDocumentState, SyntaxNode, CancellationToken, ValueTask<(bool matched, CandidateReason reason)>>;
-
     internal sealed class PropertySymbolReferenceFinder : AbstractMethodOrPropertyOrEventSymbolReferenceFinder<IPropertySymbol>
     {
         protected override bool CanFind(IPropertySymbol symbol)
             => true;
 
-        protected override Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+        protected override ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
             IPropertySymbol symbol,
             Solution solution,
             FindReferencesSearchOptions options,
@@ -35,7 +33,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CascadeToAccessors(symbol, result);
             CascadeToPrimaryConstructorParameters(symbol, result, cancellationToken);
 
-            return Task.FromResult(result.ToImmutable());
+            return new(result.ToImmutable());
         }
 
         private static void CascadeToBackingFields(IPropertySymbol symbol, ArrayBuilder<ISymbol> result)
@@ -161,14 +159,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             Project project, IImmutableSet<Document>? documents, CancellationToken cancellationToken)
         {
             return FindDocumentsWithPredicateAsync(
-                project, documents, static (info, _) => info.ContainsElementAccessExpression, /*unused*/false, cancellationToken);
+                project, documents, static index => index.ContainsElementAccessExpression, cancellationToken);
         }
 
         private static Task<ImmutableArray<Document>> FindDocumentWithIndexerMemberCrefAsync(
             Project project, IImmutableSet<Document>? documents, CancellationToken cancellationToken)
         {
             return FindDocumentsWithPredicateAsync(
-                project, documents, static (info, _) => info.ContainsIndexerMemberCref, /*unused*/false, cancellationToken);
+                project, documents, static index => index.ContainsIndexerMemberCref, cancellationToken);
         }
 
         private static async Task<ImmutableArray<FinderLocation>> FindIndexerReferencesAsync(
@@ -222,35 +220,34 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CancellationToken cancellationToken)
         {
             var syntaxFacts = state.SyntaxFacts;
-            var symbolsMatchAsync = GetStandardSymbolsNodeMatchFunction();
 
             if (syntaxFacts.IsElementAccessExpression(node))
             {
                 // The indexerReference for an element access expression will not be null
-                return ComputeElementAccessInformationAsync(symbol, node, state, symbolsMatchAsync, cancellationToken)!;
+                return ComputeElementAccessInformationAsync(symbol, node, state, cancellationToken)!;
             }
             else if (syntaxFacts.IsConditionalAccessExpression(node))
             {
-                return ComputeConditionalAccessInformationAsync(symbol, node, state, symbolsMatchAsync, cancellationToken);
+                return ComputeConditionalAccessInformationAsync(symbol, node, state, cancellationToken);
             }
             else
             {
                 Debug.Assert(syntaxFacts.IsIndexerMemberCRef(node));
-                return ComputeIndexerMemberCRefInformationAsync(symbol, state, node, symbolsMatchAsync, cancellationToken);
+                return ComputeIndexerMemberCRefInformationAsync(symbol, state, node, cancellationToken);
             }
         }
 
         private static async ValueTask<(bool matched, CandidateReason reason, SyntaxNode indexerReference)> ComputeIndexerMemberCRefInformationAsync(
-            IPropertySymbol symbol, FindReferencesDocumentState state, SyntaxNode node, SymbolsMatchAsync symbolsMatchAsync, CancellationToken cancellationToken)
+            IPropertySymbol symbol, FindReferencesDocumentState state, SyntaxNode node, CancellationToken cancellationToken)
         {
-            var (matched, reason) = await symbolsMatchAsync(symbol, state, node, cancellationToken).ConfigureAwait(false);
+            var (matched, reason) = await SymbolsMatchAsync(symbol, state, node, cancellationToken).ConfigureAwait(false);
 
             // For an IndexerMemberCRef the node itself is the indexer we are looking for.
             return (matched, reason, node);
         }
 
         private static async ValueTask<(bool matched, CandidateReason reason, SyntaxNode indexerReference)> ComputeConditionalAccessInformationAsync(
-            IPropertySymbol symbol, SyntaxNode node, FindReferencesDocumentState state, SymbolsMatchAsync symbolsMatchAsync, CancellationToken cancellationToken)
+            IPropertySymbol symbol, SyntaxNode node, FindReferencesDocumentState state, CancellationToken cancellationToken)
         {
             // For a ConditionalAccessExpression the whenNotNull component is the indexer reference we are looking for
             var syntaxFacts = state.SyntaxFacts;
@@ -264,16 +261,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 return default;
             }
 
-            var (matched, reason) = await symbolsMatchAsync(symbol, state, indexerReference, cancellationToken).ConfigureAwait(false);
+            var (matched, reason) = await SymbolsMatchAsync(symbol, state, indexerReference, cancellationToken).ConfigureAwait(false);
             return (matched, reason, indexerReference);
         }
 
         private static async ValueTask<(bool matched, CandidateReason reason, SyntaxNode? indexerReference)> ComputeElementAccessInformationAsync(
-            IPropertySymbol symbol, SyntaxNode node, FindReferencesDocumentState state, SymbolsMatchAsync symbolsMatchAsync, CancellationToken cancellationToken)
+            IPropertySymbol symbol, SyntaxNode node, FindReferencesDocumentState state, CancellationToken cancellationToken)
         {
             // For an ElementAccessExpression the indexer we are looking for is the argumentList component.
             state.SyntaxFacts.GetPartsOfElementAccessExpression(node, out var expression, out var indexerReference);
-            if (expression != null && (await symbolsMatchAsync(symbol, state, expression, cancellationToken).ConfigureAwait(false)).matched)
+            if (expression != null && (await SymbolsMatchAsync(symbol, state, expression, cancellationToken).ConfigureAwait(false)).matched)
             {
                 // Element access with explicit member name (allowed in VB). We will have
                 // already added a reference location for the member name identifier, so skip
@@ -281,7 +278,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 return default;
             }
 
-            var (matched, reason) = await symbolsMatchAsync(symbol, state, node, cancellationToken).ConfigureAwait(false);
+            var (matched, reason) = await SymbolsMatchAsync(symbol, state, node, cancellationToken).ConfigureAwait(false);
             return (matched, reason, indexerReference);
         }
     }
