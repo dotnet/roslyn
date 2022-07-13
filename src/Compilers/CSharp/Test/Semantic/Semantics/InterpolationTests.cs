@@ -16012,7 +16012,7 @@ class C
             VerifyOperationTreeForTest<ForEachVariableStatementSyntax>(comp, expectedOperationTree: """
                 IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'foreach (($ ...  int[0]) {}')
                   LoopControlVariable:
-                    IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i}""')
+                    IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$"{i}"')
                       Parts(1):
                           IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i}')
                             Expression:
