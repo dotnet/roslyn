@@ -588,13 +588,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_FileTypeBase">
-        <source>File type '{0}' cannot be used as a base type of non-file type '{1}'.</source>
-        <target state="new">File type '{0}' cannot be used as a base type of non-file type '{1}'.</target>
+        <source>File-local type '{0}' cannot be used as a base type of non-file-local type '{1}'.</source>
+        <target state="new">File-local type '{0}' cannot be used as a base type of non-file-local type '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FileTypeDisallowedInSignature">
-        <source>File type '{0}' cannot be used in a member signature in non-file type '{1}'.</source>
-        <target state="new">File type '{0}' cannot be used in a member signature in non-file type '{1}'.</target>
+        <source>File-local type '{0}' cannot be used in a member signature in non-file-local type '{1}'.</source>
+        <target state="new">File-local type '{0}' cannot be used in a member signature in non-file-local type '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FileTypeNameDisallowed">
@@ -603,13 +603,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_FileTypeNested">
-        <source>File type '{0}' must be defined in a top level type; '{0}' is a nested type.</source>
-        <target state="new">File type '{0}' must be defined in a top level type; '{0}' is a nested type.</target>
+        <source>File-local type '{0}' must be defined in a top level type; '{0}' is a nested type.</source>
+        <target state="new">File-local type '{0}' must be defined in a top level type; '{0}' is a nested type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FileTypeNoExplicitAccessibility">
-        <source>File type '{0}' cannot use accessibility modifiers.</source>
-        <target state="new">File type '{0}' cannot use accessibility modifiers.</target>
+        <source>File-local type '{0}' cannot use accessibility modifiers.</source>
+        <target state="new">File-local type '{0}' cannot use accessibility modifiers.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FixedFieldMustNotBeRef">
@@ -658,8 +658,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_GlobalUsingStaticFileType">
-        <source>File type '{0}' cannot be used in a 'global using static' directive.</source>
-        <target state="new">File type '{0}' cannot be used in a 'global using static' directive.</target>
+        <source>File-local type '{0}' cannot be used in a 'global using static' directive.</source>
+        <target state="new">File-local type '{0}' cannot be used in a 'global using static' directive.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
