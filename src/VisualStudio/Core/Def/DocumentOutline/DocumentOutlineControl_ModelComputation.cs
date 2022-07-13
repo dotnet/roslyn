@@ -58,8 +58,8 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             if (filePath is null)
                 return null;
 
-            // Ensure we switch to the threadpool before calling ComputeUIModelAsync. It ensures
-            // that fetching and processing the document model is not done on the UI thread.
+            // Ensure we switch to the threadpool before calling ComputeDataModelAsync. It ensures
+            // that fetching and processing the document symbol data model is not done on the UI thread.
             await TaskScheduler.Default;
 
             var model = await ComputeDataModelAsync(cancellationToken).ConfigureAwait(false);
