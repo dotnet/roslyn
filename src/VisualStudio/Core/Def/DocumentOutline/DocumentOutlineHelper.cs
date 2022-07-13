@@ -135,12 +135,9 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         public static async Task<JToken?> DocumentSymbolsRequestAsync(
             ITextBuffer textBuffer,
             ILanguageServiceBrokerShim languageServiceBroker,
-            string? textViewFilePath,
+            string textViewFilePath,
             CancellationToken cancellationToken)
         {
-            if (textViewFilePath is null)
-                return null;
-
             var parameterFactory = new RoslynDocumentSymbolParams()
             {
                 UseHierarchicalSymbols = true,
