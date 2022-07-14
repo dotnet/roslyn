@@ -3144,7 +3144,7 @@ class C
         [Fact]
         public void NoCompilationProjectsHaveNullSyntaxTreesAndSemanticModels()
         {
-            using var workspace = CreateWorkspace(new[] { typeof(NoCompilationLanguageServiceFactory) });
+            using var workspace = CreateWorkspace(new[] { typeof(NoCompilationLanguageService) });
             var solution = workspace.CurrentSolution;
             var projectId = ProjectId.CreateNewId();
             var documentId = DocumentId.CreateNewId(projectId);
@@ -3165,7 +3165,7 @@ class C
         [Fact]
         public void ChangingFilePathOfFileInNoCompilationProjectWorks()
         {
-            using var workspace = CreateWorkspace(new[] { typeof(NoCompilationLanguageServiceFactory) });
+            using var workspace = CreateWorkspace(new[] { typeof(NoCompilationLanguageService) });
             var solution = workspace.CurrentSolution;
             var projectId = ProjectId.CreateNewId();
             var documentId = DocumentId.CreateNewId(projectId);

@@ -6,11 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading;
-using System.Transactions;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SourceGeneration;
 using Roslyn.Utilities;
@@ -19,25 +15,19 @@ namespace Microsoft.CodeAnalysis;
 
 using Aliases = ArrayBuilder<(string aliasName, string symbolName)>;
 
+[Flags]
+internal enum SourceGeneratorSyntaxTreeInfo
+{
+    NotComputedYet,
+    None = 1 << 0,
+    ContainsGlobalAliases = 1 << 1,
+    ContainsAttributeList = 1 << 2,
+
+    ContainsGlobalAliasesOrAttributeList = ContainsGlobalAliases | ContainsAttributeList,
+}
+
 public partial struct SyntaxValueProvider
 {
-    /// <summary>
-    /// Information computed about a particular tree.  Cached so we don't repeatedly recompute this important
-    /// information each time the incremental pipeline is rerun.
-    /// </summary>
-    private record SyntaxTreeInfo(SyntaxTree Tree, bool ContainsGlobalAliases, bool ContainsAttributeList);
-
-    /// <summary>
-    /// Caching of syntax-tree to the info we've computed about it.  Used because compilations will have thousands of
-    /// trees, and the incremental pipeline will get called back for *all* of them each time a compilation changes.  We
-    /// do not want to continually recompute this data over and over again each time that happens given that normally
-    /// only one tree will be different.  We also do not want to create an IncrementalValuesProvider that yield this
-    /// information as that will mean we have a node in the tree that scales with the number of *all syntax trees*, not
-    /// the number of *relevant syntax trees*. This can lead to huge memory churn keeping track of a high number of
-    /// trees, most of which are not going to be relevant.
-    /// </summary>
-    private static readonly ConditionalWeakTable<SyntaxTree, SyntaxTreeInfo> s_treeToInfo = new ConditionalWeakTable<SyntaxTree, SyntaxTreeInfo>();
-
     private static readonly ObjectPool<Stack<string>> s_stackPool = new ObjectPool<Stack<string>>(static () => new Stack<string>());
 
     /// <summary>
@@ -72,14 +62,12 @@ public partial struct SyntaxValueProvider
         // changed. CreateSyntaxProvider will have to rerun all incremental nodes since it passes along the
         // SemanticModel, and that model is updated whenever any tree changes (since it is tied to the compilation).
         var syntaxTreesProvider = _context.CompilationProvider
-            .SelectMany((compilation, cancellationToken) => compilation.SyntaxTrees
-                .Select(tree => GetTreeInfo(tree, syntaxHelper, cancellationToken))
-                .Where(info => info.ContainsGlobalAliases || info.ContainsAttributeList))
+            .SelectMany((compilation, cancellationToken) => GetSourceGeneratorInfo(syntaxHelper, compilation, cancellationToken))
             .WithTrackingName("compilationUnit_ForAttribute");
 
         // Create a provider that provides (and updates) the global aliases for any particular file when it is edited.
         var individualFileGlobalAliasesProvider = syntaxTreesProvider
-            .Where((info, _) => info.ContainsGlobalAliases)
+            .Where((info, _) => info.Info.HasFlag(SourceGeneratorSyntaxTreeInfo.ContainsGlobalAliases))
             .Select((info, cancellationToken) => getGlobalAliasesInCompilationUnit(syntaxHelper, info.Tree.GetRoot(cancellationToken)))
             .WithTrackingName("individualFileGlobalAliases_ForAttribute");
 
@@ -112,7 +100,7 @@ public partial struct SyntaxValueProvider
         // Combine the two providers so that we reanalyze every file if the global aliases change, or we reanalyze a
         // particular file when it's compilation unit changes.
         var syntaxTreeAndGlobalAliasesProvider = syntaxTreesProvider
-            .Where((info, _) => info.ContainsAttributeList)
+            .Where((info, _) => info.Info.HasFlag(SourceGeneratorSyntaxTreeInfo.ContainsAttributeList))
             .Combine(allUpGlobalAliasesProvider)
             .WithTrackingName("compilationUnitAndGlobalAliases_ForAttribute");
 
@@ -134,23 +122,30 @@ public partial struct SyntaxValueProvider
         }
     }
 
-    private static SyntaxTreeInfo GetTreeInfo(
-        SyntaxTree tree, ISyntaxHelper syntaxHelper, CancellationToken cancellationToken)
+    private static ImmutableArray<(SyntaxTree Tree, SourceGeneratorSyntaxTreeInfo Info)> GetSourceGeneratorInfo(
+        ISyntaxHelper syntaxHelper, Compilation compilation, CancellationToken cancellationToken)
     {
-        // prevent captures for the case where the item is in the tree.
-        return s_treeToInfo.TryGetValue(tree, out var info)
-            ? info
-            : computeTreeInfo();
-
-        SyntaxTreeInfo computeTreeInfo()
+        // Get the count up front so we can allocate without waste.
+        var count = 0;
+        foreach (var tree in compilation.CommonSyntaxTrees)
         {
-            var root = tree.GetRoot(cancellationToken);
-            var containsGlobalAliases = syntaxHelper.ContainsGlobalAliases(root);
-            var containsAttributeList = ContainsAttributeList(root.Green, syntaxHelper.AttributeListKind);
-
-            var info = new SyntaxTreeInfo(tree, containsGlobalAliases, containsAttributeList);
-            return s_treeToInfo.GetValue(tree, _ => info);
+            cancellationToken.ThrowIfCancellationRequested();
+            var info = tree.GetSourceGeneratorInfo(syntaxHelper, cancellationToken);
+            if ((info & SourceGeneratorSyntaxTreeInfo.ContainsGlobalAliasesOrAttributeList) != 0)
+                count++;
         }
+
+        var builder = ImmutableArray.CreateBuilder<(SyntaxTree Tree, SourceGeneratorSyntaxTreeInfo Info)>(count);
+
+        // Iterate again.  This will be free as the values from before will already be cached on the syntax tree.
+        foreach (var tree in compilation.CommonSyntaxTrees)
+        {
+            var info = tree.GetSourceGeneratorInfo(syntaxHelper, cancellationToken);
+            if ((info & SourceGeneratorSyntaxTreeInfo.ContainsGlobalAliasesOrAttributeList) != 0)
+                builder.Add((tree, info));
+        }
+
+        return builder.MoveToImmutable();
     }
 
     private static ImmutableArray<SyntaxNode> GetMatchingNodes(
@@ -163,8 +158,6 @@ public partial struct SyntaxValueProvider
     {
         var compilationUnit = syntaxTree.GetRoot(cancellationToken);
         Debug.Assert(compilationUnit is ICompilationUnitSyntax);
-
-        Debug.Assert(ContainsAttributeList(compilationUnit.Green, syntaxHelper.AttributeListKind));
 
         var isCaseSensitive = syntaxHelper.IsCaseSensitive;
         var comparison = isCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
@@ -327,24 +320,5 @@ public partial struct SyntaxValueProvider
             seenNames.Pop();
             return false;
         }
-    }
-
-    private static bool ContainsAttributeList(GreenNode node, int attributeListKind)
-    {
-        if (node.RawKind == attributeListKind)
-            return true;
-
-        for (int i = 0, n = node.SlotCount; i < n; i++)
-        {
-            var child = node.GetSlot(i);
-
-            if (child is null || child.IsToken)
-                continue;
-
-            if (ContainsAttributeList(child, attributeListKind))
-                return true;
-        }
-
-        return false;
     }
 }
