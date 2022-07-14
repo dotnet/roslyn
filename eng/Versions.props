@@ -308,6 +308,9 @@
   <PropertyGroup Condition="'$(NoPdbConversion)' == 'true'">
     <UsingToolPdbConverter>false</UsingToolPdbConverter>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(NoVsixGeneration)' == 'true'">
+    <UsingToolVSSDK>false</UsingToolVSSDK>
+  </PropertyGroup>
   <PropertyGroup>
     <!-- We should try to keep this version in sync with the version of app-local runtime in VS. -->
     <MicrosoftNetCoreAppPackagesVersion>6.0.6</MicrosoftNetCoreAppPackagesVersion>
