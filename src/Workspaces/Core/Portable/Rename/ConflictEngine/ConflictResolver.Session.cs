@@ -864,22 +864,13 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             /// so we return null and the rename rewriter will perform a complete regex match within comment trivia
             /// and rename all matches instead of specific matches.
             /// </summary>
-            private static ImmutableSortedSet<TextSpan>? GetSubSpansToRenameInStringAndCommentTextSpans(
+            private static ImmutableSortedSet<TextSpan> GetSubSpansToRenameInStringAndCommentTextSpans(
                 TextSpan containingLocationForStringOrComment,
                 IEnumerable<RenameLocation> locationsToRename)
             {
                 var builder = ImmutableSortedSet.CreateBuilder<TextSpan>();
                 foreach (var renameLocation in locationsToRename)
                 {
-                    if (!containingLocationForStringOrComment.Contains(renameLocation.Location.SourceSpan))
-                    {
-                        // We found a location outside the 'containingLocationForStringOrComment',
-                        // which is likely in trivia.
-                        // Bail out from computing specific sub-spans and let the rename rewriter
-                        // do a full regex match and replace.
-                        return null;
-                    }
-
                     // Compute the sub-span within 'containingLocationForStringOrComment' that needs to be renamed.
                     var offset = renameLocation.Location.SourceSpan.Start - containingLocationForStringOrComment.Start;
                     var length = renameLocation.Location.SourceSpan.Length;

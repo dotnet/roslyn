@@ -563,89 +563,53 @@ namespace Microsoft.CodeAnalysis.Rename
             }
 
             internal static string ReplaceMatchingSubStrings(
-                string originalString,
-                int containingTokenOrTriviaStart,
-                ImmutableSortedDictionary<TextSpan, string> subSpanToReplacementText)
+                string replaceInsideString,
+                string matchText,
+                string replacementText,
+                ImmutableSortedSet<TextSpan> subspansToRename)
             {
-                var stringBuilder = new StringBuilder();
-                var startOffset = 0;
-                foreach (var (textSpan, replacementString) in subSpanToReplacementText)
+                var builder = ImmutableSortedDictionary.CreateBuilder<TextSpan, (string replacementText, string matchText)>();
+                foreach (var span in subspansToRename)
                 {
-                    var matchedSpanStart = textSpan.Start - containingTokenOrTriviaStart;
-                    var offset = matchedSpanStart - startOffset;
-                    stringBuilder.Append(originalString.Substring(startOffset, offset));
-                    stringBuilder.Append(replacementString);
-                    startOffset += offset + textSpan.Length;
+                    builder.Add(span, (replacementText, matchText));
                 }
 
-                stringBuilder.Append(originalString.Substring(startOffset));
-                return stringBuilder.ToString();
+                return ReplaceMatchingSubStrings(replaceInsideString, builder.ToImmutable());
             }
 
             internal static string ReplaceMatchingSubStrings(
                 string replaceInsideString,
-                string matchText,
-                string replacementText,
-                ImmutableSortedSet<TextSpan>? subSpansToReplace = null)
+                ImmutableSortedDictionary<TextSpan, (string replacementText, string matchText)> subSpansToReplace)
             {
-                if (subSpansToReplace == null)
-                {
-                    // We do not have already computed sub-spans to replace inside the string.
-                    // Get regex for matches within the string and replace all matches with replacementText.
-                    var regex = GetRegexForMatch(matchText);
-                    return regex.Replace(replaceInsideString, replacementText);
-                }
-                else
-                {
-                    // We are provided specific matches to replace inside the string.
-                    // Process the input string from start to end, replacing matchText with replacementText
-                    // at the provided sub-spans within the string for these matches.
-                    var stringBuilder = new StringBuilder();
-                    var startOffset = 0;
-                    foreach (var subSpan in subSpansToReplace)
-                    {
-                        Debug.Assert(subSpan.Start <= replaceInsideString.Length);
-                        Debug.Assert(subSpan.End <= replaceInsideString.Length);
-
-                        // Verify that provided sub-span has a match with matchText.
-                        if (replaceInsideString.Substring(subSpan.Start, subSpan.Length) != matchText)
-                            continue;
-
-                        // Append the sub-string from last match till the next match
-                        var offset = subSpan.Start - startOffset;
-                        stringBuilder.Append(replaceInsideString.Substring(startOffset, offset));
-
-                        // Append the replacementText
-                        stringBuilder.Append(replacementText);
-
-                        // Update startOffset to process the next match.
-                        startOffset += offset + subSpan.Length;
-                    }
-
-                    // Append the remaining of the sub-string within replaceInsideString after the last match. 
-                    stringBuilder.Append(replaceInsideString.Substring(startOffset));
-
-                    return stringBuilder.ToString();
-                }
-            }
-
-            internal static string ReplaceMatchingSubStrings(
-                string originalString,
-                int containingTokenOrTriviaStart,
-                ImmutableSortedDictionary<TextSpan, string> subSpanToReplacementText)
-            {
+                // We are provided specific matches to replace inside the string.
+                // Process the input string from start to end, replacing matchText with replacementText
+                // at the provided sub-spans within the string for these matches.
                 var stringBuilder = new StringBuilder();
                 var startOffset = 0;
-                foreach (var (textSpan, replacementString) in subSpanToReplacementText)
+                foreach (var (subspan, x) in subSpansToReplace)
                 {
-                    var matchedSpanStart = textSpan.Start - containingTokenOrTriviaStart;
-                    var offset = matchedSpanStart - startOffset;
-                    stringBuilder.Append(originalString.Substring(startOffset, offset));
-                    stringBuilder.Append(replacementString);
-                    startOffset += offset + textSpan.Length;
+                    var (replacementText, matchText) = x;
+                    Debug.Assert(subspan.Start <= replaceInsideString.Length);
+                    Debug.Assert(subspan.End <= replaceInsideString.Length);
+
+                    // Verify that provided sub-span has a match with matchText.
+                    if (replaceInsideString.Substring(subspan.Start, subspan.Length) != matchText)
+                        continue;
+
+                    // Append the sub-string from last match till the next match
+                    var offset = subspan.Start - startOffset;
+                    stringBuilder.Append(replaceInsideString.Substring(startOffset, offset));
+
+                    // Append the replacementText
+                    stringBuilder.Append(replacementText);
+
+                    // Update startOffset to process the next match.
+                    startOffset += offset + subspan.Length;
                 }
 
-                stringBuilder.Append(originalString.Substring(startOffset));
+                // Append the remaining of the sub-string within replaceInsideString after the last match. 
+                stringBuilder.Append(replaceInsideString.Substring(startOffset));
+
                 return stringBuilder.ToString();
             }
         }

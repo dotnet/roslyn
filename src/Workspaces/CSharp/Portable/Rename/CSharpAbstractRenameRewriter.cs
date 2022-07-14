@@ -320,8 +320,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             }
         }
 
-
-
         protected static SyntaxToken RenameToken(
             SyntaxToken oldToken,
             SyntaxToken newToken,
@@ -514,6 +512,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             return replacementText == "Finalize" &&
                 token.IsKind(SyntaxKind.IdentifierToken) &&
                 token.Parent.IsKind(SyntaxKind.DestructorDeclaration);
+        }
+
+        protected SyntaxTrivia RenameInCommentTrivia(
+            SyntaxTrivia trivia,
+            ImmutableSortedDictionary<TextSpan, (string replacementText, string matchText)> subSpanToReplacementString)
+        {
+            var originalString = trivia.ToString();
+            var replacedString = RenameLocations.ReferenceProcessing.ReplaceMatchingSubStrings(
+                originalString,
+                subSpanToReplacementString);
+
+            if (replacedString != originalString)
+            {
+                var oldSpan = trivia.Span;
+                var newTrivia = SyntaxFactory.Comment(replacedString);
+                AddModifiedSpan(oldSpan, newTrivia.Span);
+                return trivia.CopyAnnotationsTo(_renameAnnotations.WithAdditionalAnnotations(newTrivia, new RenameTokenSimplificationAnnotation() { OriginalTextSpan = oldSpan }));
+            }
+
+            return trivia;
         }
     }
 }

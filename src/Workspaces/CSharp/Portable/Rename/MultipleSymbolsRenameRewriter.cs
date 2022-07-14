@@ -7,18 +7,12 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
-using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
@@ -89,7 +83,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
         public override SyntaxTrivia VisitTrivia(SyntaxTrivia trivia)
         {
             var newTrivia = base.VisitTrivia(trivia);
-            if (!trivia.HasStructure && _stringAndCommentRenameContexts.TryGetValue(trivia.Span, out var textSpanRenameContexts))
+            if (!trivia.HasStructure
+                && _stringAndCommentRenameContexts.TryGetValue(trivia.Span, out var textSpanRenameContexts))
             {
                 var subSpanToReplacementText = CreateSubSpanToReplacementTextDictionary(textSpanRenameContexts);
                 return RenameInCommentTrivia(trivia, subSpanToReplacementText);
@@ -255,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
         {
             if (_isProcessingComplexifiedSpans)
             {
-                return CSharpAbstractRenameRewriter.RenameToken(
+                return RenameToken(
                     token,
                     newToken,
                     prefix: null,
@@ -282,25 +277,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             return newToken;
         }
 
-        private SyntaxTrivia RenameInCommentTrivia(SyntaxTrivia trivia, ImmutableSortedDictionary<TextSpan, string> subSpanToReplacementString)
-        {
-            var originalString = trivia.ToString();
-            var replacedString = RenameLocations.ReferenceProcessing.ReplaceMatchingSubStrings(originalString, trivia.SpanStart, subSpanToReplacementString);
-            if (replacedString != originalString)
-            {
-                var oldSpan = trivia.Span;
-                var newTrivia = SyntaxFactory.Comment(replacedString);
-                AddModifiedSpan(oldSpan, newTrivia.Span);
-                return trivia.CopyAnnotationsTo(_renameAnnotations.WithAdditionalAnnotations(newTrivia, new RenameTokenSimplificationAnnotation() { OriginalTextSpan = oldSpan }));
-            }
-
-            return trivia;
-        }
-
-        private SyntaxToken RenameInStringLiteral(SyntaxToken oldToken, SyntaxToken newToken, ImmutableSortedDictionary<TextSpan, string> subSpanToReplacementString, Func<SyntaxTriviaList, string, string, SyntaxTriviaList, SyntaxToken> createNewStringLiteral)
+        private SyntaxToken RenameInStringLiteral(
+            SyntaxToken oldToken,
+            SyntaxToken newToken,
+            ImmutableSortedDictionary<TextSpan, (string replacementText, string matchText)> subSpanToReplacementString,
+            Func<SyntaxTriviaList, string, string, SyntaxTriviaList, SyntaxToken> createNewStringLiteral)
         {
             var originalString = newToken.ToString();
-            var replacedString = RenameLocations.ReferenceProcessing.ReplaceMatchingSubStrings(originalString, oldToken.SpanStart, subSpanToReplacementString);
+            var replacedString = RenameLocations.ReferenceProcessing.ReplaceMatchingSubStrings(
+                originalString,
+                subSpanToReplacementString);
             if (replacedString != originalString)
             {
                 var oldSpan = oldToken.Span;
@@ -418,16 +404,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             return builder.ToImmutableHashSet();
         }
 
-        private static ImmutableSortedDictionary<TextSpan, string> CreateSubSpanToReplacementTextDictionary(
+        private static ImmutableSortedDictionary<TextSpan, (string replacementText, string matchText)> CreateSubSpanToReplacementTextDictionary(
             HashSet<TextSpanRenameContext> textSpanRenameContexts)
         {
-            var subSpanToReplacementTextBuilder = ImmutableSortedDictionary.CreateBuilder<TextSpan, string>();
+            var subSpanToReplacementTextBuilder = ImmutableSortedDictionary.CreateBuilder<TextSpan, (string replacementText, string matchText)>();
             foreach (var context in textSpanRenameContexts.OrderByDescending(c => c.Priority))
             {
                 var location = context.RenameLocation.Location;
                 if (location.IsInSource)
                 {
-                    var subSpan = location.SourceSpan;
+                    var subpan = location.SourceSpan;
 
                     // If two symbols tries to rename a same sub span,
                     // e.g.
@@ -442,9 +428,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     // }
                     // If try to rename both 'class Hello' to 'Bar' and 'void Hello()' to 'Goo'.
                     // For '// Comment Hello', igore the one with lower priority
-                    if (!subSpanToReplacementTextBuilder.ContainsKey(subSpan))
+                    if (!subSpanToReplacementTextBuilder.ContainsKey(subpan))
                     {
-                        subSpanToReplacementTextBuilder[subSpan] = context.SymbolContext.ReplacementText;
+                        subSpanToReplacementTextBuilder[subpan] = (context.SymbolContext.ReplacementText, context.SymbolContext.OriginalText);
                     }
                 }
             }

@@ -138,6 +138,7 @@ namespace Microsoft.CodeAnalysis.Rename
         public abstract bool IsIdentifierValid(string replacementText, ISyntaxFactsService syntaxFactsService);
         public abstract bool LocalVariableConflict(SyntaxToken token, IEnumerable<ISymbol> newReferencedSymbols);
         public abstract void TryAddPossibleNameConflicts(ISymbol symbol, string newName, ICollection<string> possibleNameConflicts);
+        public abstract bool IsRenamableTokenInComment(SyntaxToken token);
 
         protected static void AddConflictingParametersOfProperties(
             IEnumerable<ISymbol> properties, string newPropertyName, ArrayBuilder<Location> conflicts)

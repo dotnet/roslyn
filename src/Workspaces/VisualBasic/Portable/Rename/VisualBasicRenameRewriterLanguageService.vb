@@ -600,28 +600,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 Return newToken
             End Function
 
-            Private Function RenameInCommentTrivia(trivia As SyntaxTrivia) As SyntaxTrivia
-                Dim originalString = trivia.ToString()
-                Dim replacedString As String = RenameLocations.ReferenceProcessing.ReplaceMatchingSubStrings(originalString, _originalText, _replacementText)
-                If replacedString <> originalString Then
-                    Dim oldSpan = trivia.Span
-                    Dim newTrivia = SyntaxFactory.CommentTrivia(replacedString)
-                    AddModifiedSpan(oldSpan, newTrivia.Span)
-                    Return trivia.CopyAnnotationsTo(Me._renameAnnotations.WithAdditionalAnnotations(newTrivia, New RenameTokenSimplificationAnnotation() With {.OriginalTextSpan = oldSpan}))
-                End If
+            'Private Function RenameInCommentTrivia(trivia As SyntaxTrivia) As SyntaxTrivia
+            '    Dim originalString = trivia.ToString()
+            '    Dim replacedString As String = RenameLocations.ReferenceProcessing.ReplaceMatchingSubStrings(originalString, _originalText, _replacementText)
+            '    If replacedString <> originalString Then
+            '        Dim oldSpan = trivia.Span
+            '        Dim newTrivia = SyntaxFactory.CommentTrivia(replacedString)
+            '        AddModifiedSpan(oldSpan, newTrivia.Span)
+            '        Return trivia.CopyAnnotationsTo(Me._renameAnnotations.WithAdditionalAnnotations(newTrivia, New RenameTokenSimplificationAnnotation() With {.OriginalTextSpan = oldSpan}))
+            '    End If
 
-                Return trivia
-            End Function
+            '    Return trivia
+            'End Function
 
-            Private Function RenameInTrivia(token As SyntaxToken, leadingOrTrailingTriviaList As IEnumerable(Of SyntaxTrivia)) As SyntaxToken
-                Return token.ReplaceTrivia(leadingOrTrailingTriviaList, Function(oldTrivia, newTrivia)
-                                                                            If newTrivia.Kind = SyntaxKind.CommentTrivia Then
-                                                                                Return RenameInCommentTrivia(newTrivia)
-                                                                            End If
+            'Private Function RenameInTrivia(token As SyntaxToken, leadingOrTrailingTriviaList As IEnumerable(Of SyntaxTrivia)) As SyntaxToken
+            '    Return token.ReplaceTrivia(leadingOrTrailingTriviaList, Function(oldTrivia, newTrivia)
+            '                                                                If newTrivia.Kind = SyntaxKind.CommentTrivia Then
+            '                                                                    Return RenameInCommentTrivia(newTrivia)
+            '                                                                End If
 
-                                                                            Return newTrivia
-                                                                        End Function)
-            End Function
+            '                                                                Return newTrivia
+            '                                                            End Function)
+            'End Function
 
             Private Function RenameWithinToken(oldToken As SyntaxToken, newToken As SyntaxToken) As SyntaxToken
                 Dim subSpansToReplace As ImmutableSortedSet(Of TextSpan) = Nothing
@@ -647,19 +647,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                         AddModifiedSpan(oldToken.Span, newToken.Span)
                     End If
 
-                    If newToken.HasLeadingTrivia Then
-                        Dim updatedToken = RenameInTrivia(oldToken, oldToken.LeadingTrivia)
-                        If updatedToken <> oldToken Then
-                            newToken = newToken.WithLeadingTrivia(updatedToken.LeadingTrivia)
-                        End If
-                    End If
+                    'If newToken.HasLeadingTrivia Then
+                    '    Dim updatedToken = RenameInTrivia(oldToken, oldToken.LeadingTrivia)
+                    '    If updatedToken <> oldToken Then
+                    '        newToken = newToken.WithLeadingTrivia(updatedToken.LeadingTrivia)
+                    '    End If
+                    'End If
 
-                    If newToken.HasTrailingTrivia Then
-                        Dim updatedToken = RenameInTrivia(oldToken, oldToken.TrailingTrivia)
-                        If updatedToken <> oldToken Then
-                            newToken = newToken.WithTrailingTrivia(updatedToken.TrailingTrivia)
-                        End If
-                    End If
+                    'If newToken.HasTrailingTrivia Then
+                    '    Dim updatedToken = RenameInTrivia(oldToken, oldToken.TrailingTrivia)
+                    '    If updatedToken <> oldToken Then
+                    '        newToken = newToken.WithTrailingTrivia(updatedToken.TrailingTrivia)
+                    '    End If
+                    'End If
                 End If
 
                 Return newToken
@@ -869,6 +869,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
 
             ' there seems to be no statement above this one. Let's see if we can at least get an SimpleNameSyntax
             Return If(enclosingStatement, If(possibleLambdaExpression, token.FirstAncestorOrSelf(Function(n) TypeOf (n) Is SimpleNameSyntax)))
+        End Function
+
+        Public Overrides Function IsRenamableTokenInComment(token As SyntaxToken) As Boolean
+            Return token.IsKind(SyntaxKind.XmlTextLiteralToken, SyntaxKind.XmlNameToken)
         End Function
 
 #Region "Helper Methods"

@@ -80,13 +80,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             /// A map from spans of tokens needing rename within strings or comments to an optional
             /// set of specific sub-spans within the token span that
             /// have <see cref="_originalText"/> matches and should be renamed.
-            /// If this sorted set is null, it indicates that sub-spans to rename within the token span
-            /// are not available, and a regex match should be performed to rename
-            /// all <see cref="_originalText"/> matches within the span.
             /// </summary>
-            private readonly ImmutableDictionary<TextSpan, ImmutableSortedSet<TextSpan>?> _stringAndCommentTextSpans;
-
-            private int _isProcessingTrivia;
+            private readonly ImmutableDictionary<TextSpan, ImmutableSortedSet<TextSpan>> _stringAndCommentTextSpans;
 
             public RenameRewriter(RenameRewriterParameters parameters)
                 : base(parameters.Document,
@@ -113,13 +108,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 _isVerbatim = _replacementText.StartsWith("@", StringComparison.Ordinal);
             }
 
+            public override SyntaxTrivia VisitTrivia(SyntaxTrivia trivia)
+            {
+                var newTrivia = base.VisitTrivia(trivia);
+                if (_isRenamingInComments
+                    && !trivia.HasStructure
+                    && _stringAndCommentTextSpans.TryGetValue(trivia.Span, out var subspansToRename))
+                {
+
+                    var builder = ImmutableSortedDictionary.CreateBuilder<TextSpan, (string replacementText, string matchText)>();
+                    foreach (var span in subspansToRename)
+                    {
+                        builder.Add(span, (_replacementText, _originalText));
+                    }
+
+                    return RenameInCommentTrivia(trivia, builder.ToImmutable());
+                }
+
+                return newTrivia;
+            }
+
             public override SyntaxToken VisitToken(SyntaxToken token)
             {
-                var shouldCheckTrivia = _stringAndCommentTextSpans.ContainsKey(token.Span);
-                _isProcessingTrivia += shouldCheckTrivia ? 1 : 0;
                 var newToken = base.VisitToken(token);
-                _isProcessingTrivia -= shouldCheckTrivia ? 1 : 0;
-
                 // Handle Alias annotations
                 newToken = UpdateAliasAnnotation(newToken);
 
@@ -215,10 +226,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 return newToken;
             }
 
-            private SyntaxToken RenameInStringLiteral(SyntaxToken oldToken, SyntaxToken newToken, ImmutableSortedSet<TextSpan>? subSpansToReplace, Func<SyntaxTriviaList, string, string, SyntaxTriviaList, SyntaxToken> createNewStringLiteral)
+            private SyntaxToken RenameInStringLiteral(SyntaxToken oldToken, SyntaxToken newToken, ImmutableSortedSet<TextSpan> subSpansToReplace, Func<SyntaxTriviaList, string, string, SyntaxTriviaList, SyntaxToken> createNewStringLiteral)
             {
                 var originalString = newToken.ToString();
-                var replacedString = RenameLocations.ReferenceProcessing.ReplaceMatchingSubStrings(originalString, _originalText, _replacementText, subSpansToReplace);
+                var replacedString = RenameLocations.ReferenceProcessing.ReplaceMatchingSubStrings(
+                    originalString,
+                    _originalText,
+                    _replacementText,
+                    subSpansToReplace);
                 if (replacedString != originalString)
                 {
                     var oldSpan = oldToken.Span;
@@ -230,45 +245,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 return newToken;
             }
 
-            private SyntaxToken RenameInTrivia(SyntaxToken token, IEnumerable<SyntaxTrivia> leadingOrTrailingTriviaList)
-            {
-                return token.ReplaceTrivia(leadingOrTrailingTriviaList, (oldTrivia, newTrivia) =>
-                {
-                    if (newTrivia.IsSingleLineComment() || newTrivia.IsMultiLineComment())
-                    {
-                        return RenameInCommentTrivia(newTrivia);
-                    }
-
-                    return newTrivia;
-                });
-            }
-
-            private SyntaxTrivia RenameInCommentTrivia(SyntaxTrivia trivia)
-            {
-                var originalString = trivia.ToString();
-                var replacedString = RenameLocations.ReferenceProcessing.ReplaceMatchingSubStrings(originalString, _originalText, _replacementText);
-                if (replacedString != originalString)
-                {
-                    var oldSpan = trivia.Span;
-                    var newTrivia = SyntaxFactory.Comment(replacedString);
-                    AddModifiedSpan(oldSpan, newTrivia.Span);
-                    return trivia.CopyAnnotationsTo(_renameAnnotations.WithAdditionalAnnotations(newTrivia, new RenameTokenSimplificationAnnotation() { OriginalTextSpan = oldSpan }));
-                }
-
-                return trivia;
-            }
-
             private SyntaxToken RenameWithinToken(SyntaxToken oldToken, SyntaxToken newToken)
             {
-                ImmutableSortedSet<TextSpan>? subSpansToReplace = null;
-                if (_isProcessingComplexifiedSpans ||
-                    (_isProcessingTrivia == 0 &&
-                    !_stringAndCommentTextSpans.TryGetValue(oldToken.Span, out subSpansToReplace)))
+                if (_isProcessingComplexifiedSpans
+                    || !_stringAndCommentTextSpans.TryGetValue(oldToken.Span, out var subSpansToReplace))
                 {
                     return newToken;
                 }
 
-                if (_isRenamingInStrings || subSpansToReplace?.Count > 0)
+                if (_isRenamingInStrings || subSpansToReplace.Count > 0)
                 {
                     if (newToken.IsKind(SyntaxKind.StringLiteralToken))
                     {
@@ -292,24 +277,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                         var newIdentifierToken = SyntaxFactory.Identifier(newToken.LeadingTrivia, _replacementText, newToken.TrailingTrivia);
                         newToken = newToken.CopyAnnotationsTo(_renameAnnotations.WithAdditionalAnnotations(newIdentifierToken, new RenameTokenSimplificationAnnotation() { OriginalTextSpan = oldToken.Span }));
                         AddModifiedSpan(oldToken.Span, newToken.Span);
-                    }
-
-                    if (newToken.HasLeadingTrivia)
-                    {
-                        var updatedToken = RenameInTrivia(oldToken, oldToken.LeadingTrivia);
-                        if (updatedToken != oldToken)
-                        {
-                            newToken = newToken.WithLeadingTrivia(updatedToken.LeadingTrivia);
-                        }
-                    }
-
-                    if (newToken.HasTrailingTrivia)
-                    {
-                        var updatedToken = RenameInTrivia(oldToken, oldToken.TrailingTrivia);
-                        if (updatedToken != oldToken)
-                        {
-                            newToken = newToken.WithTrailingTrivia(updatedToken.TrailingTrivia);
-                        }
                     }
                 }
 
@@ -858,6 +825,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             var position = nodeToSpeculate.SpanStart;
             return SpeculationAnalyzer.CreateSpeculativeSemanticModelForNode(nodeToSpeculate, originalSemanticModel, position, isInNamespaceOrTypeContext);
         }
+
+        public override bool IsRenamableTokenInComment(SyntaxToken token)
+            => token.IsKind(SyntaxKind.XmlTextLiteralToken) || token.IsKind(SyntaxKind.IdentifierToken) && token.Parent.IsKind(SyntaxKind.XmlName);
+
         #endregion
     }
 }

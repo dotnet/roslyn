@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Rename
                     ImmutableArray<SearchResult>.Empty;
 
                 // Finally, include strings/comments if that's what the user wants.
-                var (strings, comments) = await ReferenceProcessing.GetRenamableLocationsInStringsAndCommentsAsync(
+                var stringsAndCommentsLocations = await ReferenceProcessing.GetRenamableLocationsInStringsAndCommentsAsync(
                     symbol,
                     solution,
                     originalSymbolResult.Locations,
@@ -152,8 +152,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 // after adding in reference symbols. This allows any references
                 // in comments to be resolved as proper references rather than
                 // comment resolutions. See https://github.com/dotnet/roslyn/issues/54294
-                mergedLocations.AddRange(strings.NullToEmpty());
-                mergedLocations.AddRange(comments.NullToEmpty());
+                mergedLocations.AddRange(stringsAndCommentsLocations);
 
                 return new RenameLocations(
                     symbol, solution, options, cleanupOptions,
