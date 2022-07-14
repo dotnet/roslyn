@@ -1959,6 +1959,7 @@ _ = x is { Length.Error: > 0 };
         public void ForbiddenOnTypeParametersConstrainedToINumberBase_01()
         {
             var source = """
+                #pragma warning disable 8321 // Unused local function
                 using System.Numerics;
 
                 void M<T>(T t) where T : INumberBase<T>
@@ -1969,37 +1970,32 @@ _ = x is { Length.Error: > 0 };
                         > 1 => 2, // 2
                         int => 3, // OK
                         [] => 4, // 3
-                        (_) => 5 // 4
-                        { } => 6, // OK
-                        var x => 7, // 5, subsumed by 6
-                        _ => 8 // Ok
+                        (_) => 5, // OK
+                        "" => 6, // OK
+                        { } => 7, // OK
+                        var x => 8, // OK
+                        _ => 9 // Ok
                     };
                 }
                 """;
 
             var comp = CreateCompilation(new[] { source, INumberBaseDefinition });
             comp.VerifyDiagnostics(
-                // (3,6): warning CS8321: The local function 'M' is declared but never used
-                // void M<T>(T t) where T : INumberBase<T>
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "M").WithArguments("M").WithLocation(3, 6),
-                // (7,9): error CS9060: Cannot use a numeric constant or relational pattern on 'T' because it inherits from or extends 'INumberBase<T>'. Consider using a type pattern to narrow to a specifc numeric type.
-                //         1 => 1, // 1
-                Diagnostic(ErrorCode.ERR_CannotMatchOnINumberBase, "1").WithArguments("T").WithLocation(7, 9),
                 // (8,9): error CS9060: Cannot use a numeric constant or relational pattern on 'T' because it inherits from or extends 'INumberBase<T>'. Consider using a type pattern to narrow to a specifc numeric type.
+                //         1 => 1, // 1
+                Diagnostic(ErrorCode.ERR_CannotMatchOnINumberBase, "1").WithArguments("T").WithLocation(8, 9),
+                // (9,9): error CS9060: Cannot use a numeric constant or relational pattern on 'T' because it inherits from or extends 'INumberBase<T>'. Consider using a type pattern to narrow to a specifc numeric type.
                 //         > 1 => 2, // 2
-                Diagnostic(ErrorCode.ERR_CannotMatchOnINumberBase, "> 1").WithArguments("T").WithLocation(8, 9),
-                // (10,9): error CS8985: List patterns may not be used for a value of type 'T'. No suitable 'Length' or 'Count' property was found.
+                Diagnostic(ErrorCode.ERR_CannotMatchOnINumberBase, "> 1").WithArguments("T").WithLocation(9, 9),
+                // (11,9): error CS8985: List patterns may not be used for a value of type 'T'. No suitable 'Length' or 'Count' property was found.
                 //         [] => 4, // 3
-                Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[]").WithArguments("T").WithLocation(10, 9),
-                // (10,9): error CS0518: Predefined type 'System.Index' is not defined or imported
+                Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[]").WithArguments("T").WithLocation(11, 9),
+                // (11,9): error CS0518: Predefined type 'System.Index' is not defined or imported
                 //         [] => 4, // 3
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[]").WithArguments("System.Index").WithLocation(10, 9),
-                // (10,9): error CS0021: Cannot apply indexing with [] to an expression of type 'T'
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[]").WithArguments("System.Index").WithLocation(11, 9),
+                // (11,9): error CS0021: Cannot apply indexing with [] to an expression of type 'T'
                 //         [] => 4, // 3
-                Diagnostic(ErrorCode.ERR_BadIndexLHS, "[]").WithArguments("T").WithLocation(10, 9),
-                // (11,17): error CS1003: Syntax error, ',' expected
-                //         (_) => 5 // 4
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(11, 17)
+                Diagnostic(ErrorCode.ERR_BadIndexLHS, "[]").WithArguments("T").WithLocation(11, 9)
             );
         }
 
@@ -2007,6 +2003,7 @@ _ = x is { Length.Error: > 0 };
         public void ForbiddenOnTypeParametersConstrainedToINumberBase_02()
         {
             var source = """
+                #pragma warning disable 8321 // Unused local function
                 using System.Numerics;
 
                 void M<T>(T t) where T : struct, INumberBase<T>
@@ -2017,37 +2014,35 @@ _ = x is { Length.Error: > 0 };
                         > 1 => 2, // 2
                         int => 3, // OK
                         [] => 4, // 3
-                        (_) => 5 // 4
-                        { } => 6, // OK
-                        var x => 7, // 5, subsumed by 6
-                        _ => 8 // Ok
+                        (_) => 5, // OK
+                        "" => 6, // 4
+                        { } => 7, // OK
+                        var x => 8, // OK
+                        _ => 9 // Ok
                     };
                 }
                 """;
 
             var comp = CreateCompilation(new[] { source, INumberBaseDefinition });
             comp.VerifyDiagnostics(
-                // (3,6): warning CS8321: The local function 'M' is declared but never used
-                // void M<T>(T t) where T : INumberBase<T>
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "M").WithArguments("M").WithLocation(3, 6),
-                // (7,9): error CS9060: Cannot use a numeric constant or relational pattern on 'T' because it inherits from or extends 'INumberBase<T>'. Consider using a type pattern to narrow to a specifc numeric type.
-                //         1 => 1, // 1
-                Diagnostic(ErrorCode.ERR_CannotMatchOnINumberBase, "1").WithArguments("T").WithLocation(7, 9),
                 // (8,9): error CS9060: Cannot use a numeric constant or relational pattern on 'T' because it inherits from or extends 'INumberBase<T>'. Consider using a type pattern to narrow to a specifc numeric type.
+                //         1 => 1, // 1
+                Diagnostic(ErrorCode.ERR_CannotMatchOnINumberBase, "1").WithArguments("T").WithLocation(8, 9),
+                // (9,9): error CS9060: Cannot use a numeric constant or relational pattern on 'T' because it inherits from or extends 'INumberBase<T>'. Consider using a type pattern to narrow to a specifc numeric type.
                 //         > 1 => 2, // 2
-                Diagnostic(ErrorCode.ERR_CannotMatchOnINumberBase, "> 1").WithArguments("T").WithLocation(8, 9),
-                // (10,9): error CS8985: List patterns may not be used for a value of type 'T'. No suitable 'Length' or 'Count' property was found.
+                Diagnostic(ErrorCode.ERR_CannotMatchOnINumberBase, "> 1").WithArguments("T").WithLocation(9, 9),
+                // (11,9): error CS8985: List patterns may not be used for a value of type 'T'. No suitable 'Length' or 'Count' property was found.
                 //         [] => 4, // 3
-                Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[]").WithArguments("T").WithLocation(10, 9),
-                // (10,9): error CS0518: Predefined type 'System.Index' is not defined or imported
+                Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[]").WithArguments("T").WithLocation(11, 9),
+                // (11,9): error CS0518: Predefined type 'System.Index' is not defined or imported
                 //         [] => 4, // 3
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[]").WithArguments("System.Index").WithLocation(10, 9),
-                // (10,9): error CS0021: Cannot apply indexing with [] to an expression of type 'T'
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[]").WithArguments("System.Index").WithLocation(11, 9),
+                // (11,9): error CS0021: Cannot apply indexing with [] to an expression of type 'T'
                 //         [] => 4, // 3
-                Diagnostic(ErrorCode.ERR_BadIndexLHS, "[]").WithArguments("T").WithLocation(10, 9),
-                // (11,17): error CS1003: Syntax error, ',' expected
-                //         (_) => 5 // 4
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(11, 17)
+                Diagnostic(ErrorCode.ERR_BadIndexLHS, "[]").WithArguments("T").WithLocation(11, 9),
+                // (13,9): error CS8121: An expression of type 'T' cannot be handled by a pattern of type 'string'.
+                //         "" => 6, // 4
+                Diagnostic(ErrorCode.ERR_PatternWrongType, @"""""").WithArguments("T", "string").WithLocation(13, 9)
             );
         }
 
@@ -2058,19 +2053,21 @@ _ = x is { Length.Error: > 0 };
         public void ForbiddenOnTypeParametersInheritingFromINumberBase(string type)
         {
             var source = $$"""
+                #pragma warning disable 8321 // Unused local function
                 using System.Numerics;
 
-                C c = null;
+                C c = default(C);
                 int o = c switch
                 {
                     1 => 1, // 1
                     > 1 => 2, // 2
-                    int => 3, // OK
-                    [] => 4, // 3
-                    (_) => 5 // 4
-                    { } => 6, // OK
-                    var x => 7, // 5, subsumed by 6
-                    _ => 8 // Ok
+                    int => 3, // 3
+                    [] => 4, // 4
+                    (_) => 5, // OK
+                    "" => 6, // 5
+                    { } => 7, // OK
+                    var x => 8, // OK
+                    _ => 9 // Ok
                 };
 
                 {{type}} C : INumberBase<C>
@@ -2080,33 +2077,30 @@ _ = x is { Length.Error: > 0 };
 
             var comp = CreateCompilation(new[] { source, INumberBaseDefinition });
             comp.VerifyDiagnostics(
-                // (6,5): error CS0029: Cannot implicitly convert type 'int' to 'C'
+                // (7,5): error CS0029: Cannot implicitly convert type 'int' to 'C'
                 //     1 => 1, // 1
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "C").WithLocation(6, 5),
-                // (6,5): error CS9060: Cannot use a numeric constant or relational pattern on 'C' because it inherits from or extends 'INumberBase<T>'. Consider using a type pattern to narrow to a specifc numeric type.
-                //     1 => 1, // 1
-                Diagnostic(ErrorCode.ERR_CannotMatchOnINumberBase, "1").WithArguments("C").WithLocation(6, 5),
-                // (7,5): error CS8781: Relational patterns may not be used for a value of type 'C'.
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "C").WithLocation(7, 5),
+                // (8,5): error CS8781: Relational patterns may not be used for a value of type 'C'.
                 //     > 1 => 2, // 2
-                Diagnostic(ErrorCode.ERR_UnsupportedTypeForRelationalPattern, "> 1").WithArguments("C").WithLocation(7, 5),
-                // (7,7): error CS0029: Cannot implicitly convert type 'int' to 'C'
+                Diagnostic(ErrorCode.ERR_UnsupportedTypeForRelationalPattern, "> 1").WithArguments("C").WithLocation(8, 5),
+                // (8,7): error CS0029: Cannot implicitly convert type 'int' to 'C'
                 //     > 1 => 2, // 2
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "C").WithLocation(7, 7),
-                // (8,5): error CS8121: An expression of type 'C' cannot be handled by a pattern of type 'int'.
-                //     int => 3, // OK
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("C", "int").WithLocation(8, 5),
-                // (9,5): error CS8985: List patterns may not be used for a value of type 'C'. No suitable 'Length' or 'Count' property was found.
-                //     [] => 4, // 3
-                Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[]").WithArguments("C").WithLocation(9, 5),
-                // (9,5): error CS0518: Predefined type 'System.Index' is not defined or imported
-                //     [] => 4, // 3
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[]").WithArguments("System.Index").WithLocation(9, 5),
-                // (9,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
-                //     [] => 4, // 3
-                Diagnostic(ErrorCode.ERR_BadIndexLHS, "[]").WithArguments("C").WithLocation(9, 5),
-                // (10,13): error CS1003: Syntax error, ',' expected
-                //     (_) => 5 // 4
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(10, 13)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "C").WithLocation(8, 7),
+                // (9,5): error CS8121: An expression of type 'C' cannot be handled by a pattern of type 'int'.
+                //     int => 3, // 3
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("C", "int").WithLocation(9, 5),
+                // (10,5): error CS8985: List patterns may not be used for a value of type 'C'. No suitable 'Length' or 'Count' property was found.
+                //     [] => 4, // 4
+                Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[]").WithArguments("C").WithLocation(10, 5),
+                // (10,5): error CS0518: Predefined type 'System.Index' is not defined or imported
+                //     [] => 4, // 4
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[]").WithArguments("System.Index").WithLocation(10, 5),
+                // (10,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+                //     [] => 4, // 4
+                Diagnostic(ErrorCode.ERR_BadIndexLHS, "[]").WithArguments("C").WithLocation(10, 5),
+                // (12,5): error CS0029: Cannot implicitly convert type 'string' to 'C'
+                //     "" => 6, // 5
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""""").WithArguments("string", "C").WithLocation(12, 5)
             );
         }
 
@@ -2123,9 +2117,9 @@ _ = x is { Length.Error: > 0 };
                 public struct Nullable<T> where T : struct {}
                 public struct Byte : INumberBase<Byte> {}
                 public struct SByte : INumberBase<SByte> {}
-                public struct Int16 : INumberBase<Int32> {}
+                public struct Int16 : INumberBase<Int16> {}
                 public struct Char : INumberBase<Char> {}
-                public struct UInt16 : INumberBase<UInt32> {}
+                public struct UInt16 : INumberBase<UInt16> {}
                 public struct Int32 : INumberBase<Int32> {}
                 public struct UInt32 : INumberBase<UInt32> {}
                 public struct Int64 : INumberBase<Int64> {}
@@ -2198,12 +2192,36 @@ _ = x is { Length.Error: > 0 };
             comp.VerifyDiagnostics();
         }
 
+        [Fact]
+        public void MatchingOnConstantConversionsWithINumberBaseIsDisallowed_TypePatternToINumberBaseInt()
+        {
+            var source = """
+                using System.Numerics;
+                int i = 1;
+                _ = ((INumberBase<int>)i) switch
+                {
+                    1 => 1,
+                    > 1 => 2,
+                    _ => 3
+                };
+                """;
+
+            var comp = CreateEmptyCompilation(new[] { source, INumberBaseBCL, INumberBaseDefinition });
+            comp.VerifyDiagnostics(
+                // (5,5): error CS9060: Cannot use a numeric constant or relational pattern on 'INumberBase<int>' because it inherits from or extends 'INumberBase<T>'. Consider using a type pattern to narrow to a specifc numeric type.
+                //     1 => 1,
+                Diagnostic(ErrorCode.ERR_CannotMatchOnINumberBase, "1").WithArguments("System.Numerics.INumberBase<int>").WithLocation(5, 5),
+                // (6,5): error CS9060: Cannot use a numeric constant or relational pattern on 'INumberBase<int>' because it inherits from or extends 'INumberBase<T>'. Consider using a type pattern to narrow to a specifc numeric type.
+                //     > 1 => 2,
+                Diagnostic(ErrorCode.ERR_CannotMatchOnINumberBase, "> 1").WithArguments("System.Numerics.INumberBase<int>").WithLocation(6, 5)
+            );
+        }
+
         [Theory]
         [InlineData("byte")]
         [InlineData("sbyte")]
         [InlineData("short")]
         [InlineData("ushort")]
-        [InlineData("int")]
         [InlineData("uint")]
         [InlineData("nint")]
         [InlineData("nuint")]
@@ -2216,7 +2234,7 @@ _ = x is { Length.Error: > 0 };
         {
             var source = $$"""
                 using System.Numerics;
-                {{inputType}}? i = 1;
+                {{inputType}} i = 1;
                 _ = ((INumberBase<{{inputType}}>)i) switch
                 {
                     1 => 1,
@@ -2226,18 +2244,16 @@ _ = x is { Length.Error: > 0 };
                 """;
 
             var comp = CreateEmptyCompilation(new[] { source, INumberBaseBCL, INumberBaseDefinition });
-            // These errors are not the "Cannot use a numeric constant or relational pattern on 'C' because it inherits from or extends 'INumberBase<T>'" errors,
-            // they are standard inapplicability errors for the interface type itself.
             comp.VerifyDiagnostics(
-                // (5,5): error CS0029: Cannot implicitly convert type 'int' to 'System.Numerics.INumberBase<double>'
+                // (5,5): error CS0029: Cannot implicitly convert type 'int' to 'System.Numerics.INumberBase<nint>'
                 //     1 => 1,
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "System.Numerics.INumberBase<double>").WithLocation(5, 5),
-                // (6,5): error CS8781: Relational patterns may not be used for a value of type 'System.Numerics.INumberBase<double>'.
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", $"System.Numerics.INumberBase<{inputType}>").WithLocation(5, 5),
+                // (6,5): error CS8781: Relational patterns may not be used for a value of type 'System.Numerics.INumberBase<nint>'.
                 //     > 1 => 2,
-                Diagnostic(ErrorCode.ERR_UnsupportedTypeForRelationalPattern, "> 1").WithArguments("System.Numerics.INumberBase<double>").WithLocation(6, 5),
-                // (6,7): error CS0029: Cannot implicitly convert type 'int' to 'System.Numerics.INumberBase<double>'
+                Diagnostic(ErrorCode.ERR_UnsupportedTypeForRelationalPattern, "> 1").WithArguments($"System.Numerics.INumberBase<{inputType}>").WithLocation(6, 5),
+                // (6,7): error CS0029: Cannot implicitly convert type 'int' to 'System.Numerics.INumberBase<nint>'
                 //     > 1 => 2,
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "System.Numerics.INumberBase<double>").WithLocation(6, 7)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", $"System.Numerics.INumberBase<{inputType}>").WithLocation(6, 7)
             );
         }
     }

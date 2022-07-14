@@ -417,7 +417,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     convertedType = inputType;
                 }
 
-                if (HasBlockedINumberConversion(patternConversion, inputType))
+                if ((constantValueOpt?.IsNumeric == true) && HasBlockedINumberConversion(patternConversion, inputType))
                 {
                     // Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specific numeric type.
                     diagnostics.Add(ErrorCode.ERR_CannotMatchOnINumberBase, node.Location, inputType);
@@ -457,7 +457,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var interfaces = inputType is TypeParameterSymbol typeParam ? typeParam.EffectiveInterfacesNoUseSiteDiagnostics : inputType.AllInterfacesNoUseSiteDiagnostics;
-            return interfaces.Any(static (i, iNumberBase) => i.OriginalDefinition.Equals(iNumberBase), iNumberBase);
+            return interfaces.Any(static (i, iNumberBase) => i.OriginalDefinition.Equals(iNumberBase, TypeCompareKind.AllIgnoreOptions), iNumberBase)
+                   || inputType.OriginalDefinition.Equals(iNumberBase, TypeCompareKind.AllIgnoreOptions);
         }
 
         private static ExpressionSyntax SkipParensAndNullSuppressions(ExpressionSyntax e, BindingDiagnosticBag diagnostics, ref bool hasErrors)
