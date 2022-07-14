@@ -217,7 +217,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                                     var breakpoints = await _breakpointService.ResolveBreakpointsAsync(
                                         solution, pszName, cancellationToken).ConfigureAwait(false);
                                     var debugNames = await breakpoints.SelectAsArrayAsync(
-                                        bp => CreateDebugNameAsync(bp, solution, cancellationToken)).ConfigureAwait(false);
+                                        bp => CreateDebugNameAsync(bp, cancellationToken)).ConfigureAwait(false);
 
                                     enumName = new VsEnumDebugName(debugNames);
                                 }
@@ -231,7 +231,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             }
 
             private async ValueTask<IVsDebugName> CreateDebugNameAsync(
-                BreakpointResolutionResult breakpoint, Solution solution, CancellationToken cancellationToken)
+                BreakpointResolutionResult breakpoint, CancellationToken cancellationToken)
             {
                 var document = breakpoint.Document;
                 var filePath = _languageService.Workspace.GetFilePath(document.Id);
@@ -240,7 +240,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 // If we're inside an Venus code nugget, we need to map the span to the surface buffer.
                 // Otherwise, we'll just use the original span.
                 var mappedSpan = await span.MapSpanFromSecondaryBufferToPrimaryBufferAsync(
-                    _threadingContext, solution.Workspace, document.Id, cancellationToken).ConfigureAwait(false);
+                    _threadingContext, document.Id, cancellationToken).ConfigureAwait(false);
                 if (mappedSpan != null)
                     span = mappedSpan.Value;
 

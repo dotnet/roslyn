@@ -34,6 +34,7 @@ using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
@@ -1126,12 +1127,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         protected static bool TryAddImportsToContainedDocument(Document document, IEnumerable<string> memberImportsNamespaces)
         {
-            if (document.Project.Solution.Workspace is not VisualStudioWorkspaceImpl vsWorkspace)
-            {
-                return false;
-            }
-
-            var containedDocument = vsWorkspace.TryGetContainedDocument(document.Id);
+            var containedDocument = ContainedDocument.TryGetContainedDocument(document.Id);
             if (containedDocument == null)
             {
                 return false;
