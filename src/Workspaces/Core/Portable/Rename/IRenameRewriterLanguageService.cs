@@ -17,15 +17,7 @@ namespace Microsoft.CodeAnalysis.Rename
 {
     internal interface IRenameRewriterLanguageService : ILanguageService
     {
-        /// <summary>
-        /// This method annotates the given syntax tree with all the locations that need to be checked for conflict
-        /// after the rename operation.  It also renames all the reference locations and expands any conflict locations.
-        /// </summary>
-        /// <param name="parameters">The options describing this rename operation</param>
-        /// <returns>The root of the annotated tree.</returns>
         SyntaxNode AnnotateAndRename(RenameRewriterParameters parameters);
-
-        SyntaxNode AnnotateAndRename(RenameRewriterParametersNextGen parameters);
 
         /// <summary>
         /// Based on the kind of the symbol and the new name, this function determines possible conflicting names that
@@ -130,7 +122,6 @@ namespace Microsoft.CodeAnalysis.Rename
     internal abstract class AbstractRenameRewriterLanguageService : IRenameRewriterLanguageService
     {
         public abstract SyntaxNode AnnotateAndRename(RenameRewriterParameters parameters);
-        public abstract SyntaxNode AnnotateAndRename(RenameRewriterParametersNextGen parameters);
         public abstract Task<ImmutableArray<Location>> ComputeDeclarationConflictsAsync(string replacementText, ISymbol renamedSymbol, ISymbol renameSymbol, IEnumerable<ISymbol> referencedSymbols, Solution baseSolution, Solution newSolution, IDictionary<Location, Location> reverseMappedLocations, CancellationToken cancellationToken);
         public abstract Task<ImmutableArray<Location>> ComputeImplicitReferenceConflictsAsync(ISymbol renameSymbol, ISymbol renamedSymbol, IEnumerable<ReferenceLocation> implicitReferenceLocations, CancellationToken cancellationToken);
         public abstract ImmutableArray<Location> ComputePossibleImplicitUsageConflicts(ISymbol renamedSymbol, SemanticModel semanticModel, Location originalDeclarationLocation, int newDeclarationLocationStartingPosition, CancellationToken cancellationToken);

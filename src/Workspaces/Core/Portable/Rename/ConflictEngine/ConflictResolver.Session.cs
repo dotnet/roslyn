@@ -806,7 +806,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
                         // Annotate all nodes with a RenameLocation annotations to record old locations & old referenced symbols.
                         // Also annotate nodes that should get complexified (nodes for rename locations + conflict locations)
-                        var parameters = new RenameRewriterParametersNextGen(
+                        var parameters = new RenameRewriterParameters(
                             conflictLocationSpans,
                             originalSolution,
                             semanticModel.SyntaxTree,
@@ -860,31 +860,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 }
 
                 return RenameLocation.ShouldRename(location);
-            }
-
-            /// <summary>
-            /// We try to compute the sub-spans to rename within the given <paramref name="containingLocationForStringOrComment"/>.
-            /// If we are renaming within a string, the locations to rename are always within this containing string location
-            /// and we can identify these sub-spans.
-            /// However, if we are renaming within a comment, the rename locations can be anywhere in trivia,
-            /// so we return null and the rename rewriter will perform a complete regex match within comment trivia
-            /// and rename all matches instead of specific matches.
-            /// </summary>
-            private static ImmutableSortedSet<TextSpan> GetSubSpansToRenameInStringAndCommentTextSpans(
-                TextSpan containingLocationForStringOrComment,
-                IEnumerable<RenameLocation> locationsToRename)
-            {
-                var builder = ImmutableSortedSet.CreateBuilder<TextSpan>();
-                foreach (var renameLocation in locationsToRename)
-                {
-                    // Compute the sub-span within 'containingLocationForStringOrComment' that needs to be renamed.
-                    var offset = renameLocation.Location.SourceSpan.Start - containingLocationForStringOrComment.Start;
-                    var length = renameLocation.Location.SourceSpan.Length;
-                    var subSpan = new TextSpan(offset, length);
-                    builder.Add(subSpan);
-                }
-
-                return builder.ToImmutable();
             }
         }
     }

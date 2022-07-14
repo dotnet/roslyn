@@ -1043,7 +1043,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             Return SpeculationAnalyzer.CreateSpeculativeSemanticModelForNode(nodeToSpeculate, DirectCast(originalSemanticModel, SemanticModel), position, isInNamespaceOrTypeContext)
         End Function
 
-        Public Overrides Function AnnotateAndRename(parameters As RenameRewriterParametersNextGen) As SyntaxNode
+        Public Overrides Function AnnotateAndRename(parameters As RenameRewriterParameters) As SyntaxNode
             Throw New NotImplementedException()
         End Function
 
