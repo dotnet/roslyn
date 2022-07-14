@@ -845,64 +845,64 @@ namespace Microsoft.CodeAnalysis
 
         protected IServiceProvider CreateServiceProvider(Compilation inputCompilation, AnalyzerConfigOptionsProvider analyzerConfigProvider)
         {
-                var serviceProviderBuilder = new ServiceProviderBuilder();
+            var serviceProviderBuilder = new ServiceProviderBuilder();
 
-                IApplicationInfo applicationInfo;
-                var dotNetSdkDirectory = GetDotNetSdkDirectory(analyzerConfigProvider);
+            IApplicationInfo applicationInfo;
+            var dotNetSdkDirectory = GetDotNetSdkDirectory(analyzerConfigProvider);
 
-                if (this.RequiresMetalamaLicensingServices)
+            if (this.RequiresMetalamaLicensingServices)
+            {
+                var licenseOptions = GetLicensingOptions(analyzerConfigProvider);
+                
+                applicationInfo = new MetalamaCompilerApplicationInfo(this.IsLongRunningProcess,
+                    licenseOptions.SkipImplicitLicenses);
+
+                serviceProviderBuilder = serviceProviderBuilder.AddBackstageServices(
+                    applicationInfo,
+                    inputCompilation.AssemblyName,
+                    !licenseOptions.SkipImplicitLicenses,
+                    licenseOptions.SkipImplicitLicenses,
+                    licenseOptions.AdditionalLicenses,
+                    dotNetSdkDirectory,
+                    this.RequiresMetalamaSupportServices,
+                    addSupportServices: this.RequiresMetalamaSupportServices);
+            }
+            else
+            {
+                if (this.RequiresMetalamaSupportServices)
                 {
-                    var licenseOptions = GetLicensingOptions(analyzerConfigProvider);
-                    applicationInfo = new MetalamaCompilerApplicationInfo(this.IsLongRunningProcess,
-                        licenseOptions.SkipImplicitLicenses);
-                    
-                    serviceProviderBuilder = serviceProviderBuilder.AddBackstageServices(
-                        applicationInfo,
-                        inputCompilation.AssemblyName,
-                        !licenseOptions.SkipImplicitLicenses,
-                        licenseOptions.SkipImplicitLicenses,
-                        licenseOptions.AdditionalLicenses,
-                        dotNetSdkDirectory,
-                        this.RequiresMetalamaSupportServices,
-                        addSupportServices: this.RequiresMetalamaSupportServices);
-                    
-                    try
-                    {
-                        var usageReporter = serviceProviderBuilder.ServiceProvider.GetService<IUsageReporter>();
-
-                        if (usageReporter != null && inputCompilation.AssemblyName != null && usageReporter.ShouldReportSession(inputCompilation.AssemblyName ))
-                        {
-                            var usageSample = usageReporter.CreateSample("CompilerUsage");
-                            serviceProviderBuilder = serviceProviderBuilder.AddSingleton(usageSample);
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        ReportException(e, serviceProviderBuilder.ServiceProvider, false);
-
-                        // We don't re-throw here as we don't want compiler to crash because of usage reporting exceptions.
-                    }
-                    
-                    
+                    throw new InvalidOperationException();
                 }
-                else
+
+                applicationInfo = new MetalamaCompilerApplicationInfo(this.IsLongRunningProcess, false);
+                serviceProviderBuilder = serviceProviderBuilder.AddMinimalBackstageServices(
+                    applicationInfo,
+                    true,
+                    inputCompilation.AssemblyName,
+                    dotNetSdkDirectory);
+            }
+            
+            // Initialize usage reporting.
+            try
+            {
+                var usageReporter = serviceProviderBuilder.ServiceProvider.GetService<IUsageReporter>();
+
+                if (usageReporter != null && inputCompilation.AssemblyName != null &&
+                    usageReporter.ShouldReportSession(inputCompilation.AssemblyName))
                 {
-                    if (this.RequiresMetalamaSupportServices)
-                    {
-                        throw new InvalidOperationException();
-                    }
-
-                    applicationInfo = new MetalamaCompilerApplicationInfo(this.IsLongRunningProcess, false);
-                    serviceProviderBuilder = serviceProviderBuilder.AddMinimalBackstageServices(
-                        applicationInfo,
-                        true,
-                        inputCompilation.AssemblyName,
-                        dotNetSdkDirectory);
+                    var usageSample = usageReporter.CreateSample("CompilerUsage");
+                    serviceProviderBuilder = serviceProviderBuilder.AddSingleton(usageSample);
                 }
-                
-                
-                
-                return serviceProviderBuilder.ServiceProvider;
+            }
+            catch (Exception e)
+            {
+                ReportException(e, serviceProviderBuilder.ServiceProvider, false);
+
+                // We don't re-throw here as we don't want compiler to crash because of usage reporting exceptions.
+            }
+
+
+            return serviceProviderBuilder.ServiceProvider;
             
         }
 

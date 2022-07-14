@@ -52,7 +52,7 @@ build_property.MetalamaDebugTransformedCode = {(debugTransformedCode ? "True" : 
         }
 
         [Fact]
-        public void CustomTransformersRequireCommunityLicense()
+        public void TransformersRequireCommunityLicense()
         {
             var csc = CreateCompiler(new DummyTransformer());
 
@@ -65,7 +65,7 @@ build_property.MetalamaDebugTransformedCode = {(debugTransformedCode ? "True" : 
         }
 
         [Fact]
-        public void TransformedCodeDebuggingRequiresMetalamaLicense()
+        public void DebuggingTransformedCodeRequiresMetalamaLicense()
         {
             const string communityLicense = "1-ZEQQQQQQATQEQCRCE4UW3UFEB4URXMHRB8KQBJJSB64LX7EAEJFEB4V4U8DUPY3JP4Y9SXVNF9CSV3ADB53Z69RDR7PZMZGF7GRQPQQ5ZH3PQF7PHJZQTP2";
             var csc = CreateCompiler(new DummyTransformer(), debugTransformedCode: true, license:communityLicense);

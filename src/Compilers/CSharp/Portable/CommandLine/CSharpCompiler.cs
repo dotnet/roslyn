@@ -435,6 +435,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return TransformersResult.Empty(inputCompilation, analyzerConfigProvider);
             }
+            
+            // Enforce licensing.
+            var licenseManager = serviceProvider.GetService<ILicenseConsumptionManager>();
+                
+            string? consumerNamespace = inputCompilation.AssemblyName ?? "";
+
+            if (!licenseManager.CanConsumeFeatures(LicensedFeatures.Essentials, consumerNamespace))
+            {
+                diagnostics.Add(Diagnostic.Create(MetalamaCompilerMessageProvider.Instance,
+                    (int)MetalamaErrorCode.ERR_InvalidLicenseOverall));
+                return TransformersResult.Failure(inputCompilation);
+            }
+
+            bool shouldDebugTransformedCode = ShouldDebugTransformedCode(analyzerConfigProvider);
+
+            if (shouldDebugTransformedCode)
+            {
+                if (!licenseManager.CanConsumeFeatures(LicensedFeatures.Metalama, consumerNamespace))
+                {
+                    diagnostics.Add(Diagnostic.Create(MetalamaCompilerMessageProvider.Instance,
+                        (int)MetalamaErrorCode.ERR_InvalidLicenseForProducingTransformedOutput));
+                    return TransformersResult.Failure(inputCompilation);
+                }
+            }
 
 
 
