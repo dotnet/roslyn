@@ -940,21 +940,19 @@ namespace Microsoft.CodeAnalysis
             // Logging has to be disposed as the last one, so it could be used until now.
             serviceProvider.GetLoggerFactory().Dispose();
         }
-        protected  void ReportException(Exception e, IServiceProvider serviceProvider, bool throwReporterExceptions)
+        
+        protected void ReportException(Exception e, IServiceProvider serviceProvider, bool throwReporterExceptions)
         {
-            if (this.RequiresMetalamaSupportServices)
+            try
             {
-                try
+                var reporter = serviceProvider.GetService<IExceptionReporter>();
+                reporter?.ReportException(e);
+            }
+            catch (Exception reporterException)
+            {
+                if (throwReporterExceptions)
                 {
-                    var reporter = serviceProvider.GetService<IExceptionReporter>();
-                    reporter?.ReportException(e);
-                }
-                catch (Exception reporterException)
-                {
-                    if (throwReporterExceptions)
-                    {
-                        throw new AggregateException(e, reporterException);
-                    }
+                    throw new AggregateException(e, reporterException);
                 }
             }
         }
@@ -1304,6 +1302,11 @@ namespace Microsoft.CodeAnalysis
 
                 MapDiagnosticSyntaxTreesToFinalCompilation(diagnosticBuffer, diagnostics, compilation, true);
             }
+            catch (Exception e) when (serviceProvider != null)
+            {
+                this.ReportException(e, serviceProvider, true);
+                throw;
+            }
             finally
             {
                 if (serviceProvider != null)
@@ -1312,7 +1315,6 @@ namespace Microsoft.CodeAnalysis
                 }
             }
         }
-        
         // </Metalama>
 
         /// <summary>
@@ -1473,12 +1475,12 @@ namespace Microsoft.CodeAnalysis
                 logger = serviceProvider.GetLoggerFactory().GetLogger("Compiler");
 
                 logger.Trace?.Log($"Compiling {compilation.AssemblyName}. {transformers.Length} transformer(s) found.");
-                
+
                 if (!transformers.IsEmpty)
                 {
                     // Split analyzers between those that must run on source code only and those that will run on transformed code.
                     (var sourceOnlyAnalyzers, analyzers) = SplitAnalyzers(analyzerConfigProvider, analyzers);
-                    
+
                     logger.Trace?.Log($"Source-only analyzers: {string.Join(", ", sourceOnlyAnalyzers)}. After-transformation analyzers: {string.Join(", ", analyzers)}. ");
 
                     // PERF: Avoid executing analyzers that report only Hidden and/or Info diagnostics, which don't appear in the build output.
@@ -1666,10 +1668,10 @@ namespace Microsoft.CodeAnalysis
                 // <Metalama>
                 logger?.Error?.Log($"The compilation failed because there are errors at stage Declare.'");
                 // </Metalama>
-                
+
                 return;
             }
-            
+
             cancellationToken.ThrowIfCancellationRequested();
 
             // Given a compilation and a destination directory, determine three names:

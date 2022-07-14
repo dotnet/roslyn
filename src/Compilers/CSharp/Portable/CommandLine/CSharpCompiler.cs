@@ -438,49 +438,40 @@ namespace Microsoft.CodeAnalysis.CSharp
             
             // Enforce licensing.
             var licenseManager = serviceProvider.GetService<ILicenseConsumptionManager>();
-                
-            string? consumerNamespace = inputCompilation.AssemblyName ?? "";
-
-            if (!licenseManager.CanConsumeFeatures(LicensedFeatures.Essentials, consumerNamespace))
+            if (licenseManager != null)
             {
-                diagnostics.Add(Diagnostic.Create(MetalamaCompilerMessageProvider.Instance,
-                    (int)MetalamaErrorCode.ERR_InvalidLicenseOverall));
-                return TransformersResult.Failure(inputCompilation);
-            }
 
-            bool shouldDebugTransformedCode = ShouldDebugTransformedCode(analyzerConfigProvider);
+                string? consumerNamespace = inputCompilation.AssemblyName ?? "";
 
-            if (shouldDebugTransformedCode)
-            {
-                if (!licenseManager.CanConsumeFeatures(LicensedFeatures.Metalama, consumerNamespace))
+                if (!licenseManager.CanConsumeFeatures(LicensedFeatures.Essentials, consumerNamespace))
                 {
                     diagnostics.Add(Diagnostic.Create(MetalamaCompilerMessageProvider.Instance,
-                        (int)MetalamaErrorCode.ERR_InvalidLicenseForProducingTransformedOutput));
+                        (int)MetalamaErrorCode.ERR_InvalidLicenseOverall));
                     return TransformersResult.Failure(inputCompilation);
+                }
+
+                bool shouldDebugTransformedCode = ShouldDebugTransformedCode(analyzerConfigProvider);
+
+                if (shouldDebugTransformedCode)
+                {
+                    if (!licenseManager.CanConsumeFeatures(LicensedFeatures.Metalama, consumerNamespace))
+                    {
+                        diagnostics.Add(Diagnostic.Create(MetalamaCompilerMessageProvider.Instance,
+                            (int)MetalamaErrorCode.ERR_InvalidLicenseForProducingTransformedOutput));
+                        return TransformersResult.Failure(inputCompilation);
+                    }
                 }
             }
 
+            // Run transformers.
+             ImmutableArray<ResourceDescription> resources = Arguments.ManifestResources;
 
+            var result = RunTransformers(inputCompilation, transformers, sourceOnlyAnalyzersOptions, plugins,
+                analyzerConfigProvider, diagnostics, resources, AssemblyLoader, serviceProvider, cancellationToken);
 
-            
-            try
-            {
-                    // Run transformers.
-                    ImmutableArray<ResourceDescription> resources = Arguments.ManifestResources;
+            Arguments.ManifestResources = resources.AddRange(result.AdditionalResources);
 
-                    var result = RunTransformers(inputCompilation, transformers, sourceOnlyAnalyzersOptions, plugins,
-                        analyzerConfigProvider, diagnostics, resources, AssemblyLoader, serviceProvider, cancellationToken);
-
-                    Arguments.ManifestResources = resources.AddRange(result.AdditionalResources);
-
-                    return result;
-            }
-            catch (Exception e)
-            {
-                ReportException(e, serviceProvider, true);
-
-                throw;
-            }
+            return result;
         }
 
         internal static TransformersResult RunTransformers(
