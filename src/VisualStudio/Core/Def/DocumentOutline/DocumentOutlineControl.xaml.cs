@@ -27,21 +27,16 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
     /// <summary>
     /// Interaction logic for DocumentOutlineControl.xaml
     /// </summary>
-    internal partial class DocumentOutlineControl : UserControl, IVsCodeWindowEvents
+    internal partial class DocumentOutlineControl : UserControl, IVsCodeWindowEvents, IDisposable
     {
         private readonly ILanguageServiceBrokerShim _languageServiceBroker;
-
         private readonly IThreadingContext _threadingContext;
-
         private readonly IAsynchronousOperationListener _asyncListener;
-
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
-
         private readonly IVsCodeWindow _codeWindow;
-
+        private readonly ComEventSink _codeWindowEventsSink;
+        private readonly CancellationTokenSource _cancellationTokenSource;
         private readonly CancellationToken _cancellationToken;
-
-        private SortOption _sortOption;
 
         /// <summary>
         /// The type of sorting to be applied to the data model in <see cref="FilterAndSortDataModelAsync"/>.
@@ -62,6 +57,8 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 _sortOption = value;
             }
         }
+
+        private SortOption _sortOption;
 
         /// <summary>
         /// Queue to batch up work to do to compute the data model. Used so we can batch up a lot of events 
@@ -90,8 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             IThreadingContext threadingContext,
             IAsynchronousOperationListener asyncListener,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
-            IVsCodeWindow codeWindow,
-            CancellationToken cancellationToken)
+            IVsCodeWindow codeWindow)
         {
             InitializeComponent();
 
@@ -100,8 +96,8 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             _asyncListener = asyncListener;
             _editorAdaptersFactoryService = editorAdaptersFactoryService;
             _codeWindow = codeWindow;
-            ComEventSink.Advise<IVsCodeWindowEvents>(codeWindow, this);
-            _cancellationToken = cancellationToken;
+            _cancellationTokenSource = new CancellationTokenSource();
+            _cancellationToken = _cancellationTokenSource.Token;
             SortOption = SortOption.Location;
 
             _computeDataModelQueue = new AsyncBatchingWorkQueue<bool, DocumentSymbolDataModel?>(
@@ -109,20 +105,20 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 ComputeDataModelAsync,
                 EqualityComparer<bool>.Default,
                 asyncListener,
-                cancellationToken);
+                _cancellationToken);
 
             _filterAndSortDataModelQueue = new AsyncBatchingWorkQueue<bool, DocumentSymbolDataModel?>(
                 DelayTimeSpan.NearImmediate,
                 FilterAndSortDataModelAsync,
                 EqualityComparer<bool>.Default,
                 asyncListener,
-                cancellationToken);
+                _cancellationToken);
 
             _determineHighlightAndPresentItemsQueue = new AsyncBatchingWorkQueue<ExpansionOption>(
                 DelayTimeSpan.NearImmediate,
                 DetermineHighlightedItemAndPresentItemsAsync,
                 asyncListener,
-                cancellationToken);
+                _cancellationToken);
 
             // Primary text view is expected to exist on window initialization.
             if (ErrorHandler.Failed(codeWindow.GetPrimaryView(out var primaryTextView)))
@@ -137,7 +133,15 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                     Debug.Fail("StartTrackingView failed during DocumentOutlineControl initialization.");
             }
 
+            _codeWindowEventsSink = ComEventSink.Advise<IVsCodeWindowEvents>(codeWindow, this);
             StartComputeDataModelTask();
+        }
+
+        public void Dispose()
+        {
+            _codeWindowEventsSink.Unadvise();
+            _cancellationTokenSource.Cancel();
+            _cancellationTokenSource.Dispose();
         }
 
         int IVsCodeWindowEvents.OnNewView(IVsTextView pView)
