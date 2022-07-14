@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 _throughAdditionalLocations = throughAdditionalLocations;
                 _rule = new(
                     diagnosticId, "test", "test", "test", DiagnosticSeverity.Error, true,
-                    customTags: DiagnosticCustomTags.Create(isUnnecessary: !throughAdditionalLocations, isConfigurable: false, EnforceOnBuild.Never));
+                    customTags: DiagnosticCustomTags.Create(isUnnecessary: true, isConfigurable: false, EnforceOnBuild.Never));
             }
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
@@ -135,6 +135,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var fadingOption = GetFadingOptionForDiagnostic(diagnosticId);
             workspace.GlobalOptions.SetGlobalOption(new OptionKey(fadingOption, LanguageNames.CSharp), fadingOptionValue);
 
+            // Add mapping from diagnostic ID to fading option
+            IDEDiagnosticIdToOptionMappingHelper.AddFadingOptionMapping(diagnosticId, fadingOption);
+
             // Set up the tagger
             using var wrapper = new DiagnosticTaggerWrapper<DiagnosticsClassificationTaggerProvider, ClassificationTag>(workspace, analyzerMap);
             var tagger = wrapper.TaggerProvider.CreateTagger<ClassificationTag>(workspace.Documents.First().GetTextBuffer());
@@ -163,8 +166,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         private static PerLanguageOption2<bool> GetFadingOptionForDiagnostic(string diagnosticId)
             => diagnosticId switch
             {
-                IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId => IdeAnalyzerOptionsStorage.FadeOutUnusedImports,
-                IDEDiagnosticIds.RemoveUnreachableCodeDiagnosticId => IdeAnalyzerOptionsStorage.FadeOutUnreachableCode,
+                IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId => FadingOptions.FadeOutUnusedImports,
+                IDEDiagnosticIds.RemoveUnreachableCodeDiagnosticId => FadingOptions.FadeOutUnreachableCode,
                 _ => throw ExceptionUtilities.UnexpectedValue(diagnosticId),
             };
     }
