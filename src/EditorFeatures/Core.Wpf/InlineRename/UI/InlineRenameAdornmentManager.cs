@@ -78,8 +78,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                         return;
                     }
 
+                    // Get the active selection to make sure the rename text is selected in the same way
+                    var rawStart = _textView.Selection.Start;
+                    var rawEnd = _textView.Selection.End;
+                    var originalSpan = _renameService.ActiveSession.TriggerSpan;
+                    var selectionSpan = _textView.Selection.SelectedSpans.First();
+
+                    var start = selectionSpan.IsEmpty
+                        ? 0
+                        : selectionSpan.Start - originalSpan.Start; // The length from the identifier to the start of selection
+
+                    var length = selectionSpan.IsEmpty
+                        ? _renameService.ActiveSession.ReplacementText.Length
+                        : selectionSpan.Length;
+
+                    var identifierSelection = new TextSpan(start, length);
+
                     var adornment = new RenameFlyout(
-                        (RenameFlyoutViewModel)s_createdViewModels.GetValue(_renameService.ActiveSession, session => new RenameFlyoutViewModel(session)),
+                        (RenameFlyoutViewModel)s_createdViewModels.GetValue(_renameService.ActiveSession, session => new RenameFlyoutViewModel(session, identifierSelection)),
                         _textView);
 
                     _adornmentLayer.AddAdornment(
