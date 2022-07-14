@@ -18,6 +18,8 @@ using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 {
+    // TODO: AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer should sub-type AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    // Tracked with https://github.com/dotnet/roslyn/issues/62638
     internal abstract class AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer
         : DiagnosticAnalyzer, IBuiltInAnalyzer
     {
@@ -65,6 +67,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
                                          helpLinkUri: DiagnosticHelper.GetHelpLinkForDiagnosticId(IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId),
                                          customTags: DiagnosticCustomTags.UnnecessaryAndNotConfigurable);
 #pragma warning restore RS0030 // Do not used banned APIs
+
+            // TODO: Remove the below calls once https://github.com/dotnet/roslyn/issues/62638 is addressed.
+            IDEDiagnosticIdToOptionMappingHelper.AddFadingOptionMapping(_classificationIdDescriptor.Id, FadingOptions.FadeOutUnusedImports);
+            IDEDiagnosticIdToOptionMappingHelper.AddFadingOptionMapping(_generatedCodeClassificationIdDescriptor.Id, FadingOptions.FadeOutUnusedImports);
         }
 
         protected abstract ISyntaxFacts SyntaxFacts { get; }

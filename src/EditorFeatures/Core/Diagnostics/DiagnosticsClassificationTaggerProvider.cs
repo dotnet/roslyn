@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.Serialization.Json;
@@ -62,40 +63,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         protected internal override bool IncludeDiagnostic(DiagnosticData data)
         {
-            // Fading diagnostic might have an 'Unnecessary' custom tag or
-            // unnecessary additional location indices.
-            if (!data.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary)
-                && !TryGetUnnecessaryLocationIndices(data, out _))
+            if (!data.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary))
             {
+                // All unnecessary code diagnostics should have the 'Unnecessary' custom tag.
+                // Below assert ensures that we do no report unnecessary code diagnostics that
+                // want to fade out multiple locations which are encoded as
+                // additional location indices in the diagnostic's property bag
+                // without the 'Unnecessary' custom tag. 
+                Debug.Assert(!TryGetUnnecessaryLocationIndices(data, out _));
+
                 return false;
             }
 
             // Do not fade if user has disabled the fading option corresponding to this diagnostic.
-            PerLanguageOption2<bool> fadingOption;
-            switch (data.Id)
+            if (IDEDiagnosticIdToOptionMappingHelper.TryGetMappedFadingOption(data.Id, out var fadingOption))
             {
-                case IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId:
-                    fadingOption = IdeAnalyzerOptionsStorage.FadeOutUnusedImports;
-                    break;
-
-                case IDEDiagnosticIds.RemoveUnreachableCodeDiagnosticId:
-                    fadingOption = IdeAnalyzerOptionsStorage.FadeOutUnreachableCode;
-                    break;
-
-                case IDEDiagnosticIds.UseObjectInitializerDiagnosticId:
-                    fadingOption = IdeAnalyzerOptionsStorage.FadeOutComplexObjectInitialization;
-                    break;
-
-                case IDEDiagnosticIds.UseCollectionInitializerDiagnosticId:
-                    fadingOption = IdeAnalyzerOptionsStorage.FadeOutComplexCollectionInitialization;
-                    break;
-
-                default:
-                    return true;
+                return data.Language != null
+                    && _editorOptionsService.GlobalOptions.GetOption(fadingOption, data.Language);
             }
 
-            return data.Language != null
-                && _editorOptionsService.GlobalOptions.GetOption(fadingOption, data.Language);
+            return true;
         }
 
         protected internal override ITagSpan<ClassificationTag> CreateTagSpan(Workspace workspace, bool isLiveUpdate, SnapshotSpan span, DiagnosticData data)
