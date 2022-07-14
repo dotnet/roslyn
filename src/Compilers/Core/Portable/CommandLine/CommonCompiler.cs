@@ -618,6 +618,18 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
+        internal static bool HasSuppressableErrors(DiagnosticBag diagnostics)
+        {
+            foreach (var diag in diagnostics.AsEnumerable())
+            {
+                if (!diag.IsUnsuppressableError())
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         /// <summary>
         /// Returns true if the bag has any diagnostics with effective Severity=Error. Also returns true for warnings or informationals
         /// or warnings promoted to error via /warnaserror which are not suppressed.
@@ -977,7 +989,7 @@ namespace Microsoft.CodeAnalysis
             AnalyzerConfigSet? analyzerConfigSet,
             ImmutableArray<AnalyzerConfigOptionsResult> sourceFileAnalyzerConfigOptions,
             ImmutableArray<EmbeddedText?> embeddedTexts,
-            DiagnosticBag diagnostics,
+            DiagnosticBag diagnosticBag,
             CancellationToken cancellationToken,
             out CancellationTokenSource? analyzerCts,
             out AnalyzerDriver? analyzerDriver,
@@ -988,10 +1000,23 @@ namespace Microsoft.CodeAnalysis
             generatorTimingInfo = null;
 
             // Print the diagnostics produced during the parsing stage and exit if there were any errors.
-            compilation.GetDiagnostics(CompilationStage.Parse, includeEarlierStages: false, diagnostics, cancellationToken);
-            if (HasUnsuppressableErrors(diagnostics))
+            compilation.GetDiagnostics(CompilationStage.Parse, includeEarlierStages: false, diagnosticBag, cancellationToken);
+
+            if (diagnosticBag.HasAnyErrors())
             {
-                return;
+                if (HasSuppressableErrors(diagnosticBag))
+                {
+                    if (analyzerDriver != null)
+                    {
+                        analyzerDriver.ApplyProgrammaticSuppressions(diagnosticBag, compilation);
+                        return;
+                    }
+                }
+                else
+                {
+                    // All errors are unsuppressable
+                    return;
+                }
             }
 
             DiagnosticBag? analyzerExceptionDiagnostics = null;
@@ -1010,7 +1035,7 @@ namespace Microsoft.CodeAnalysis
 
                     foreach (var result in additionalFileAnalyzerOptions)
                     {
-                        diagnostics.AddRange(result.Diagnostics);
+                        diagnosticBag.AddRange(result.Diagnostics);
                     }
 
                     analyzerConfigProvider = UpdateAnalyzerConfigOptionsProvider(
@@ -1025,7 +1050,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     // At this point we have a compilation with nothing yet computed. 
                     // We pass it to the generators, which will realize any symbols they require. 
-                    (compilation, generatorTimingInfo) = RunGenerators(compilation, Arguments.ParseOptions, generators, analyzerConfigProvider, additionalTextFiles, diagnostics);
+                    (compilation, generatorTimingInfo) = RunGenerators(compilation, Arguments.ParseOptions, generators, analyzerConfigProvider, additionalTextFiles, diagnosticBag);
 
                     bool hasAnalyzerConfigs = !Arguments.AnalyzerConfigPaths.IsEmpty;
                     bool hasGeneratedOutputPath = !string.IsNullOrWhiteSpace(Arguments.GeneratedFilesOutputDirectory);
@@ -1057,12 +1082,12 @@ namespace Microsoft.CodeAnalysis
                                     Directory.CreateDirectory(Path.GetDirectoryName(path)!);
                                 }
 
-                                var fileStream = OpenFile(path, diagnostics, FileMode.Create, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
+                                var fileStream = OpenFile(path, diagnosticBag, FileMode.Create, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
                                 if (fileStream is object)
                                 {
                                     Debug.Assert(tree.Encoding is object);
 
-                                    using var disposer = new NoThrowStreamDisposer(fileStream, path, diagnostics, MessageProvider);
+                                    using var disposer = new NoThrowStreamDisposer(fileStream, path, diagnosticBag, MessageProvider);
                                     using var writer = new StreamWriter(fileStream, tree.Encoding);
 
                                     sourceText.Write(writer, cancellationToken);
@@ -1115,10 +1140,23 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            compilation.GetDiagnostics(CompilationStage.Declare, includeEarlierStages: false, diagnostics, cancellationToken);
-            if (HasUnsuppressableErrors(diagnostics))
+            compilation.GetDiagnostics(CompilationStage.Declare, includeEarlierStages: false, diagnosticBag, cancellationToken);
+
+            if (diagnosticBag.HasAnyErrors())
             {
-                return;
+                if (HasSuppressableErrors(diagnosticBag))
+                {
+                    if (analyzerDriver != null)
+                    {
+                        analyzerDriver.ApplyProgrammaticSuppressions(diagnosticBag, compilation);
+                        return;
+                    }
+                }
+                else
+                {
+                    // All errors are unsuppressable
+                    return;
+                }
             }
 
             cancellationToken.ThrowIfCancellationRequested();
@@ -1158,7 +1196,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     var sourceLinkStreamOpt = OpenFile(
                         Arguments.SourceLink,
-                        diagnostics,
+                        diagnosticBag,
                         FileMode.Open,
                         FileAccess.Read,
                         FileShare.Read);
@@ -1168,7 +1206,7 @@ namespace Microsoft.CodeAnalysis
                         sourceLinkStreamDisposerOpt = new NoThrowStreamDisposer(
                             sourceLinkStreamOpt,
                             Arguments.SourceLink,
-                            diagnostics,
+                            diagnosticBag,
                             MessageProvider);
                     }
                 }
@@ -1179,11 +1217,11 @@ namespace Microsoft.CodeAnalysis
                 // illegal names
                 if (!PathUtilities.IsValidFilePath(finalPdbFilePath))
                 {
-                    diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.FTL_InvalidInputFileName, Location.None, finalPdbFilePath));
+                    diagnosticBag.Add(MessageProvider.CreateDiagnostic(MessageProvider.FTL_InvalidInputFileName, Location.None, finalPdbFilePath));
                 }
 
                 var moduleBeingBuilt = compilation.CheckOptionsAndCreateModuleBuilder(
-                    diagnostics,
+                    diagnosticBag,
                     Arguments.ManifestResources,
                     emitOptions,
                     debugEntryPoint: null,
@@ -1203,7 +1241,7 @@ namespace Microsoft.CodeAnalysis
                             Arguments.EmitPdb,
                             emitOptions.EmitMetadataOnly,
                             emitOptions.EmitTestCoverageData,
-                            diagnostics,
+                            diagnosticBag,
                             filterOpt: null,
                             cancellationToken: cancellationToken);
 
@@ -1213,12 +1251,12 @@ namespace Microsoft.CodeAnalysis
                         // then we bail out from generating the documentation file.
                         // This maintains the compiler invariant that xml documentation file should not be
                         // generated in presence of diagnostics that break the build.
-                        if (analyzerDriver != null && !diagnostics.IsEmptyWithoutResolution)
+                        if (analyzerDriver != null && !diagnosticBag.IsEmptyWithoutResolution)
                         {
-                            analyzerDriver.ApplyProgrammaticSuppressions(diagnostics, compilation);
+                            analyzerDriver.ApplyProgrammaticSuppressions(diagnosticBag, compilation);
                         }
 
-                        if (HasUnsuppressedErrors(diagnostics))
+                        if (HasUnsuppressedErrors(diagnosticBag))
                         {
                             success = false;
                         }
@@ -1232,7 +1270,7 @@ namespace Microsoft.CodeAnalysis
                             if (finalXmlFilePath != null)
                             {
                                 var xmlStreamOpt = OpenFile(finalXmlFilePath,
-                                                            diagnostics,
+                                                            diagnosticBag,
                                                             FileMode.OpenOrCreate,
                                                             FileAccess.Write,
                                                             FileShare.ReadWrite | FileShare.Delete);
@@ -1248,28 +1286,28 @@ namespace Microsoft.CodeAnalysis
                                 }
                                 catch (Exception e)
                                 {
-                                    MessageProvider.ReportStreamWriteException(e, finalXmlFilePath, diagnostics);
+                                    MessageProvider.ReportStreamWriteException(e, finalXmlFilePath, diagnosticBag);
                                     return;
                                 }
                                 xmlStreamDisposerOpt = new NoThrowStreamDisposer(
                                     xmlStreamOpt,
                                     finalXmlFilePath,
-                                    diagnostics,
+                                    diagnosticBag,
                                     MessageProvider);
                             }
 
                             using (xmlStreamDisposerOpt)
                             {
-                                using (var win32ResourceStreamOpt = GetWin32Resources(FileSystem, MessageProvider, Arguments, compilation, diagnostics))
+                                using (var win32ResourceStreamOpt = GetWin32Resources(FileSystem, MessageProvider, Arguments, compilation, diagnosticBag))
                                 {
-                                    if (HasUnsuppressableErrors(diagnostics))
+                                    if (HasUnsuppressableErrors(diagnosticBag))
                                     {
                                         return;
                                     }
 
                                     success =
-                                        compilation.GenerateResources(moduleBeingBuilt, win32ResourceStreamOpt, useRawWin32Resources: false, diagnostics, cancellationToken) &&
-                                        compilation.GenerateDocumentationComments(xmlStreamDisposerOpt?.Stream, emitOptions.OutputNameOverride, diagnostics, cancellationToken);
+                                        compilation.GenerateResources(moduleBeingBuilt, win32ResourceStreamOpt, useRawWin32Resources: false, diagnosticBag, cancellationToken) &&
+                                        compilation.GenerateDocumentationComments(xmlStreamDisposerOpt?.Stream, emitOptions.OutputNameOverride, diagnosticBag, cancellationToken);
                                 }
                             }
 
@@ -1281,7 +1319,7 @@ namespace Microsoft.CodeAnalysis
                             // only report unused usings if we have success.
                             if (success)
                             {
-                                compilation.ReportUnusedImports(diagnostics, cancellationToken);
+                                compilation.ReportUnusedImports(diagnosticBag, cancellationToken);
                             }
                         }
 
@@ -1293,12 +1331,12 @@ namespace Microsoft.CodeAnalysis
                             // since that method calls EventQueue.TryComplete. Without
                             // TryComplete, we may miss diagnostics.
                             var hostDiagnostics = analyzerDriver.GetDiagnosticsAsync(compilation).Result;
-                            diagnostics.AddRange(hostDiagnostics);
+                            diagnosticBag.AddRange(hostDiagnostics);
 
-                            if (!diagnostics.IsEmptyWithoutResolution)
+                            if (!diagnosticBag.IsEmptyWithoutResolution)
                             {
                                 // Apply diagnostic suppressions for analyzer and/or compiler diagnostics from diagnostic suppressors.
-                                analyzerDriver.ApplyProgrammaticSuppressions(diagnostics, compilation);
+                                analyzerDriver.ApplyProgrammaticSuppressions(diagnosticBag, compilation);
                             }
                         }
                     }
@@ -1307,7 +1345,7 @@ namespace Microsoft.CodeAnalysis
                         moduleBeingBuilt.CompilationFinished();
                     }
 
-                    if (HasUnsuppressedErrors(diagnostics))
+                    if (HasUnsuppressedErrors(diagnosticBag))
                     {
                         success = false;
                     }
@@ -1337,14 +1375,14 @@ namespace Microsoft.CodeAnalysis
                             pdbStreamProviderOpt,
                             rebuildData: null,
                             testSymWriterFactory: null,
-                            diagnostics: diagnostics,
+                            diagnostics: diagnosticBag,
                             emitOptions: emitOptions,
                             privateKeyOpt: privateKeyOpt,
                             cancellationToken: cancellationToken);
 
-                        peStreamProvider.Close(diagnostics);
-                        refPeStreamProviderOpt?.Close(diagnostics);
-                        pdbStreamProviderOpt?.Close(diagnostics);
+                        peStreamProvider.Close(diagnosticBag);
+                        refPeStreamProviderOpt?.Close(diagnosticBag);
+                        pdbStreamProviderOpt?.Close(diagnosticBag);
 
                         if (success && touchedFilesLogger != null)
                         {
@@ -1361,7 +1399,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                if (HasUnsuppressableErrors(diagnostics))
+                if (HasUnsuppressableErrors(diagnosticBag))
                 {
                     return;
                 }
@@ -1380,7 +1418,7 @@ namespace Microsoft.CodeAnalysis
 
             if (analyzerExceptionDiagnostics != null)
             {
-                diagnostics.AddRange(analyzerExceptionDiagnostics);
+                diagnosticBag.AddRange(analyzerExceptionDiagnostics);
                 if (HasUnsuppressableErrors(analyzerExceptionDiagnostics))
                 {
                     return;
@@ -1389,7 +1427,7 @@ namespace Microsoft.CodeAnalysis
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (!WriteTouchedFiles(diagnostics, touchedFilesLogger, finalXmlFilePath))
+            if (!WriteTouchedFiles(diagnosticBag, touchedFilesLogger, finalXmlFilePath))
             {
                 return;
             }
