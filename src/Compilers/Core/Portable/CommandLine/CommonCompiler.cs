@@ -1004,17 +1004,23 @@ namespace Microsoft.CodeAnalysis
 
             if (diagnosticBag.HasAnyErrors())
             {
+                // Suppress all suppressable errors if possible
                 if (HasSuppressableErrors(diagnosticBag))
                 {
                     if (analyzerDriver != null)
                     {
                         analyzerDriver.ApplyProgrammaticSuppressions(diagnosticBag, compilation);
-                        return;
+
+                        // If there are remaining unsuppressable errors, exit early
+                        if (HasUnsuppressableErrors(diagnosticBag))
+                        {
+                            return;
+                        }
                     }
                 }
                 else
                 {
-                    // All errors are unsuppressable
+                    // All errors are unsuppressable, so exit early
                     return;
                 }
             }
@@ -1144,17 +1150,23 @@ namespace Microsoft.CodeAnalysis
 
             if (diagnosticBag.HasAnyErrors())
             {
+                // Suppress all suppressable errors if possible
                 if (HasSuppressableErrors(diagnosticBag))
                 {
                     if (analyzerDriver != null)
                     {
                         analyzerDriver.ApplyProgrammaticSuppressions(diagnosticBag, compilation);
-                        return;
+
+                        // If there are remaining unsuppressable errors, exit early
+                        if (HasUnsuppressableErrors(diagnosticBag))
+                        {
+                            return;
+                        }
                     }
                 }
                 else
                 {
-                    // All errors are unsuppressable
+                    // All errors are unsuppressable, so exit early
                     return;
                 }
             }
