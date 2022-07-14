@@ -956,21 +956,19 @@ namespace Microsoft.CodeAnalysis
                 }
             }
         }
-
+        
+        
         private void ReportUnsuppressedErrors(DiagnosticBag diagnostics, ILogger? logger, string stage)
         {
             ILogWriter? logWriter = logger?.Error;
             
             if (logWriter != null)
             {
-                logger?.Error?.Log($"The compilation failed because there are errors at stage: '{stage}'.'");
-
                 foreach (Diagnostic diagnostic in diagnostics.AsEnumerable())
                 {
                     if (diagnostic.IsUnsuppressedError)
                     {
-
-                        logWriter?.Log(diagnostic.ToString());
+                        logWriter.Log($"The compilation failed at stage: '{stage}' because of the error: {diagnostics}");
                     }
                 }
             }
@@ -1308,7 +1306,6 @@ namespace Microsoft.CodeAnalysis
             out bool reportAnalyzer,
             out AnalyzerDriver? analyzerDriver)
         {
-            DiagnosticBag diagnosticBuffer = new();
             IServiceProvider? serviceProvider = null;
 
             try
@@ -1316,10 +1313,8 @@ namespace Microsoft.CodeAnalysis
 
                 this.CompileAndEmitImpl(touchedFilesLogger, ref compilation, analyzers, generators, transformers,
                     plugins, additionalTextFiles,
-                    analyzerConfigSet, sourceFileAnalyzerConfigOptions, embeddedTexts, diagnosticBuffer,
+                    analyzerConfigSet, sourceFileAnalyzerConfigOptions, embeddedTexts, diagnostics,
                     cancellationToken, out analyzerCts, out reportAnalyzer, out analyzerDriver, out serviceProvider, out var logger );
-
-                MapDiagnosticSyntaxTreesToFinalCompilation(diagnosticBuffer, diagnostics, compilation, logger );
             }
             catch (Exception e) when (serviceProvider != null)
             {
@@ -1524,7 +1519,7 @@ namespace Microsoft.CodeAnalysis
                     var mappedAnalyzerOptions = transformersResult.MappedAnalyzerOptions;
 
                     // Map diagnostics to the final compilation, because suppressors need it.
-                    MapDiagnosticSyntaxTreesToFinalCompilation(transformersDiagnostics, diagnostics, compilation, logger );
+                    MapDiagnosticsToFinalCompilation(transformersDiagnostics, diagnostics, compilation, logger );
 
                     // Don't continue if transformers failed.
                     if (!transformersResult.Success)
@@ -1682,15 +1677,19 @@ namespace Microsoft.CodeAnalysis
                 }
 
             }
+            
+            // <Metalama>
+            var unmappedDiagnostics = new DiagnosticBag();
+            // </Metalama>
 
-            compilation.GetDiagnostics(CompilationStage.Declare, includeEarlierStages: false, diagnostics, cancellationToken);
+            compilation.GetDiagnostics(CompilationStage.Declare, includeEarlierStages: false, unmappedDiagnostics, cancellationToken);
+            
+            // <Metalama>
+            MapDiagnosticsToFinalCompilation(unmappedDiagnostics, diagnostics, compilation, logger);
+            // </Metalama>
 
             if (HasUnsuppressableErrors(diagnostics))
             {
-                // <Metalama>
-                this.ReportUnsuppressedErrors(diagnostics, logger, "Declare");
-                // </Metalama>
-
                 return;
             }
 
@@ -1756,7 +1755,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 var moduleBeingBuilt = compilation.CheckOptionsAndCreateModuleBuilder(
-                    diagnostics,
+                    unmappedDiagnostics,
                     Arguments.ManifestResources,
                     emitOptions,
                     debugEntryPoint: null,
@@ -1764,6 +1763,10 @@ namespace Microsoft.CodeAnalysis
                     embeddedTexts: embeddedTexts,
                     testData: null,
                     cancellationToken: cancellationToken);
+                
+                // <Metalama>
+                MapDiagnosticsToFinalCompilation(unmappedDiagnostics, diagnostics, compilation, logger);
+                // </Metalama>
 
                 if (moduleBeingBuilt != null)
                 {
@@ -1776,9 +1779,13 @@ namespace Microsoft.CodeAnalysis
                             Arguments.EmitPdb,
                             emitOptions.EmitMetadataOnly,
                             emitOptions.EmitTestCoverageData,
-                            diagnostics,
+                            unmappedDiagnostics,
                             filterOpt: null,
                             cancellationToken: cancellationToken);
+                        
+                        // <Metalama>
+                        MapDiagnosticsToFinalCompilation(unmappedDiagnostics, diagnostics, compilation, logger);
+                        // </Metalama>
 
                         // Prior to generating the xml documentation file,
                         // we apply programmatic suppressions for compiler warnings from diagnostic suppressors.
@@ -1849,8 +1856,13 @@ namespace Microsoft.CodeAnalysis
                                     }
 
                                     success =
-                                        compilation.GenerateResources(moduleBeingBuilt, win32ResourceStreamOpt, useRawWin32Resources: false, diagnostics, cancellationToken) &&
-                                        compilation.GenerateDocumentationComments(xmlStreamDisposerOpt?.Stream, emitOptions.OutputNameOverride, diagnostics, cancellationToken);
+                                        compilation.GenerateResources(moduleBeingBuilt, win32ResourceStreamOpt, useRawWin32Resources: false, unmappedDiagnostics, cancellationToken) &&
+                                        compilation.GenerateDocumentationComments(xmlStreamDisposerOpt?.Stream, emitOptions.OutputNameOverride, unmappedDiagnostics, cancellationToken);
+
+                                    // <Metalama>
+                                    MapDiagnosticsToFinalCompilation(unmappedDiagnostics, diagnostics, compilation, logger);
+                                    // </Metalama>
+                              
                                 }
                             }
 
@@ -1877,7 +1889,11 @@ namespace Microsoft.CodeAnalysis
                             // since that method calls EventQueue.TryComplete. Without
                             // TryComplete, we may miss diagnostics.
                             var hostDiagnostics = analyzerDriver.GetDiagnosticsAsync(compilation).Result;
-                            diagnostics.AddRange(hostDiagnostics);
+                            unmappedDiagnostics.AddRange(hostDiagnostics);
+                            
+                            // <Metalama>
+                            MapDiagnosticsToFinalCompilation(unmappedDiagnostics, diagnostics, compilation, logger);
+                            // </Metalama>
 
                             if (!diagnostics.IsEmptyWithoutResolution)
                             {
@@ -1926,12 +1942,15 @@ namespace Microsoft.CodeAnalysis
                             pdbStreamProviderOpt,
                             rebuildData: null,
                             testSymWriterFactory: null,
-                            diagnostics: diagnostics,
+                            diagnostics: unmappedDiagnostics,
                             emitOptions: emitOptions,
                             privateKeyOpt: privateKeyOpt,
                             cancellationToken: cancellationToken);
                         
                         // <Metalama>
+                        
+                        MapDiagnosticsToFinalCompilation(unmappedDiagnostics, diagnostics, compilation, logger);
+                        
                         if (success)
                         {
                             logger?.Trace?.Log(
@@ -1999,20 +2018,14 @@ namespace Microsoft.CodeAnalysis
         }
 
         // <Metalama>
-        private static void MapDiagnosticSyntaxTreesToFinalCompilation(DiagnosticBag sourceDiagnostics, DiagnosticBag targetDiagnostics, Compilation compilation, ILogger? logger )
+
+        private static ( Diagnostic? MappedDiagnostic, bool HasSystemBug, bool HasAspectBug) MapDiagnosticToFinalCompilation(Diagnostic diagnostic, Compilation compilation, ILogWriter? trace)
         {
-            var hasSystemBug = false;
-            var hasAspectBug = false;
-            var trace = logger?.Trace;
-            
-            foreach (var diagnostic in sourceDiagnostics.AsEnumerable())
-            {
-                if (!diagnostic.Location.IsInSource)
+             if (!diagnostic.Location.IsInSource)
                 {
                     trace?.Log($"Diagnostic passed through because not in source code: {diagnostic}");
-                    
-                    targetDiagnostics.Add(diagnostic);
-                    continue;
+
+                    return (diagnostic,false,false);
                 }
 
                 SyntaxTree? finalTree = SyntaxTreeHistory.GetLast(diagnostic.Location.SourceTree);
@@ -2037,13 +2050,29 @@ namespace Microsoft.CodeAnalysis
                 {
                     // We compare the DefaultSeverity, not the Severity, so that warnings-as-errors are eliminated
                     // from the output.
-                    
-                    if (diagnostic.DefaultSeverity >= DiagnosticSeverity.Error &&
-                        diagnostic.Id.StartsWith("CS", StringComparison.OrdinalIgnoreCase))
+
+                    if (diagnostic.DefaultSeverity < DiagnosticSeverity.Error)
+                    {
+                        trace?.Log(
+                            $"Diagnostic ignored because this is not an C# error and it was reported in transformed code: {diagnostic}");
+
+                        return default;
+                    }
+                    else if (!diagnostic.Id.StartsWith("CS", StringComparison.OrdinalIgnoreCase))
+                    {
+                        trace?.Log(
+                            $"Diagnostic ignored because this is not a C# diagnostic and it was reported in transformed code: {diagnostic}");
+
+                        return default;
+                    }
+                    else
                     {
                         // If this is a C# compiler error, it means that we have invalid code.
                         // Try to find the component that generated it and blame the error on it.
 
+                        var hasSystemBug = false;
+                        var hasAspectBug = false;
+                        
                         if (codeGenerator == null)
                         {
                             hasSystemBug = true;
@@ -2058,21 +2087,12 @@ namespace Microsoft.CodeAnalysis
                         var diagnosticWrapper = Diagnostic.Create(new DiagnosticInfo(
                             MetalamaCompilerMessageProvider.Instance, (int)MetalamaErrorCode.ERR_ErrorInGeneratedCode,
                             diagnostic.Id, codeGenerator, diagnostic.GetMessage())).WithLocation(diagnostic.Location);
-                        
-                        trace?.Log($"Diagnostic wrapped because it is an error reported in transformed code: {diagnostic}");
-                        
-                        
-                        targetDiagnostics.Add(diagnosticWrapper);
-                        
-                        continue;
 
-                    }
-                    else
-                    {
-                        trace?.Log($"Diagnostic ignored because this is not a C# error and it was reported in transformed code: {diagnostic}");
-                        
-                        // Other diagnostics on generated code can be ignored.
-                        continue;
+                        trace?.Log(
+                            $"Diagnostic wrapped because it is an error reported in transformed code: {diagnostic}");
+
+
+                        return (diagnosticWrapper, hasSystemBug, hasAspectBug);
                     }
                 }
 
@@ -2094,13 +2114,33 @@ namespace Microsoft.CodeAnalysis
                         trace?.Log($"Diagnostic ignored because this not an error and it cannot be mapped to source code: {diagnostic}");
 
                         // Non-errors or non-C# diagnostics are skipped.
-                        continue;
+                        return default;
                     }
 
                 }
 
-                targetDiagnostics.Add(diagnostic.WithLocation(finalNode.Location));
+                return (diagnostic.WithLocation(finalNode.Location), false, false);
+        }
+        
+        private static void MapDiagnosticsToFinalCompilation(DiagnosticBag sourceDiagnostics, DiagnosticBag targetDiagnostics, Compilation compilation, ILogger? logger )
+        {
+            var hasSystemBug = false;
+            var hasAspectBug = false;
+            var trace = logger?.Trace;
+            
+            foreach (var diagnostic in sourceDiagnostics.AsEnumerable())
+            {
+                var mapped = MapDiagnosticToFinalCompilation(diagnostic, compilation, trace);
+                hasAspectBug |= mapped.HasAspectBug;
+                hasSystemBug |= mapped.HasSystemBug;
+
+                if (mapped.MappedDiagnostic != null)
+                {
+                    targetDiagnostics.Add( mapped.MappedDiagnostic );
+                }
             }
+            
+            sourceDiagnostics.Clear();
 
             // If we had an error in generated code, report tips to diagnose the issue.
             if (hasSystemBug)
