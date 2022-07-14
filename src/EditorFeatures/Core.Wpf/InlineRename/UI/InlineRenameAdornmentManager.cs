@@ -79,8 +79,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     }
 
                     // Get the active selection to make sure the rename text is selected in the same way
-                    var rawStart = _textView.Selection.Start;
-                    var rawEnd = _textView.Selection.End;
                     var originalSpan = _renameService.ActiveSession.TriggerSpan;
                     var selectionSpan = _textView.Selection.SelectedSpans.First();
 
@@ -89,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                         : selectionSpan.Start - originalSpan.Start; // The length from the identifier to the start of selection
 
                     var length = selectionSpan.IsEmpty
-                        ? _renameService.ActiveSession.ReplacementText.Length
+                        ? originalSpan.Length
                         : selectionSpan.Length;
 
                     var identifierSelection = new TextSpan(start, length);
