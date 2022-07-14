@@ -81,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             Contract.ThrowIfFalse(Initialized);
 
             if (e.Kind is WorkspaceChangeKind.SolutionCleared
-                or WorkspaceChangeKind.SolutionRemoved)
+                       or WorkspaceChangeKind.SolutionRemoved)
             {
                 RoslynDebug.AssertNotNull(_threadingContext);
                 RoslynDebug.AssertNotNull(ViewModel);
