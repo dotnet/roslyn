@@ -37,15 +37,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
         public CSharpRenameConflictLanguageService()
         {
         }
-        #region "Annotation"
 
         public override SyntaxNode AnnotateAndRename(RenameRewriterParameters parameters)
         {
-            var renameAnnotationRewriter = new MultipleSymbolsRenameRewriter(parameters);
+            var renameAnnotationRewriter = new SymbolsRenameRewriter(parameters);
             return renameAnnotationRewriter.Visit(parameters.SyntaxRoot)!;
         }
-
-        #endregion
 
         #region "Declaration Conflicts"
 

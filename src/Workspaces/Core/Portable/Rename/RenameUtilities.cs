@@ -2,14 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Rename
@@ -174,6 +177,102 @@ namespace Microsoft.CodeAnalysis.Rename
             }
 
             return TokenRenameInfo.NoSymbolsTokenInfo;
+        }
+
+        internal static Dictionary<ISymbol, RenameSymbolContext> GroupRenameContextBySymbolKey(
+            ImmutableArray<RenameSymbolContext> symbolContexts)
+        {
+            var renameContexts = new Dictionary<ISymbol, RenameSymbolContext>();
+            foreach (var context in symbolContexts)
+            {
+                renameContexts[context.RenamedSymbol] = context;
+            }
+
+            return renameContexts;
+        }
+
+        internal static Dictionary<TextSpan, TextSpanRenameContext> GroupTextRenameContextsByTextSpan(
+            ImmutableArray<TextSpanRenameContext> textSpanRenameContexts)
+        {
+            var textSpanToRenameContext = new Dictionary<TextSpan, TextSpanRenameContext>();
+            foreach (var context in textSpanRenameContexts)
+            {
+                var textSpan = context.RenameLocation.Location.SourceSpan;
+                if (!textSpanToRenameContext.ContainsKey(textSpan))
+                {
+                    textSpanToRenameContext[textSpan] = context;
+                }
+            }
+
+            return textSpanToRenameContext;
+        }
+
+        internal static Dictionary<TextSpan, HashSet<TextSpanRenameContext>> GroupStringAndCommentsTextSpanRenameContexts(
+            ImmutableArray<TextSpanRenameContext> renameSymbolContexts)
+        {
+            var textSpanToRenameContexts = new Dictionary<TextSpan, HashSet<TextSpanRenameContext>>();
+            foreach (var context in renameSymbolContexts)
+            {
+                var containingSpan = context.RenameLocation.ContainingLocationForStringOrComment;
+                if (textSpanToRenameContexts.TryGetValue(containingSpan, out var existingContexts))
+                {
+                    existingContexts.Add(context);
+                }
+                else
+                {
+                    textSpanToRenameContexts[containingSpan] = new HashSet<TextSpanRenameContext>() { context };
+                }
+            }
+
+            return textSpanToRenameContexts;
+        }
+
+        internal static ImmutableHashSet<RenameSymbolContext> GetMatchedContexts(
+            IEnumerable<RenameSymbolContext> renameContexts, Func<RenameSymbolContext, bool> predicate)
+        {
+            using var _ = PooledHashSet<RenameSymbolContext>.GetInstance(out var builder);
+
+            foreach (var renameSymbolContext in renameContexts)
+            {
+                if (predicate(renameSymbolContext))
+                    builder.Add(renameSymbolContext);
+            }
+
+            return builder.ToImmutableHashSet();
+        }
+
+        internal static ImmutableSortedDictionary<TextSpan, (string replacementText, string matchText)> CreateSubSpanToReplacementTextDictionary(
+            HashSet<TextSpanRenameContext> textSpanRenameContexts)
+        {
+            var subSpanToReplacementTextBuilder = ImmutableSortedDictionary.CreateBuilder<TextSpan, (string replacementText, string matchText)>();
+            foreach (var context in textSpanRenameContexts.OrderByDescending(c => c.Priority))
+            {
+                var location = context.RenameLocation.Location;
+                if (location.IsInSource)
+                {
+                    var subpan = location.SourceSpan;
+
+                    // If two symbols tries to rename a same sub span,
+                    // e.g.
+                    //      // Comment Hello
+                    // class Hello
+                    // {
+                    //    
+                    // }
+                    // class World
+                    // {
+                    //    void Hello() { }
+                    // }
+                    // If try to rename both 'class Hello' to 'Bar' and 'void Hello()' to 'Goo'.
+                    // For '// Comment Hello', igore the one with lower priority
+                    if (!subSpanToReplacementTextBuilder.ContainsKey(subpan))
+                    {
+                        subSpanToReplacementTextBuilder[subpan] = (context.SymbolContext.ReplacementText, context.SymbolContext.OriginalText);
+                    }
+                }
+            }
+
+            return subSpanToReplacementTextBuilder.ToImmutable();
         }
     }
 }
