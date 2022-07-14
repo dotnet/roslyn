@@ -121,10 +121,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         [InlineData(IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId, false)]
         [InlineData(IDEDiagnosticIds.RemoveUnreachableCodeDiagnosticId, true)]
         [InlineData(IDEDiagnosticIds.RemoveUnreachableCodeDiagnosticId, false)]
-        [InlineData(IDEDiagnosticIds.UseObjectInitializerDiagnosticId, true)]
-        [InlineData(IDEDiagnosticIds.UseObjectInitializerDiagnosticId, false)]
-        [InlineData(IDEDiagnosticIds.UseCollectionInitializerDiagnosticId, true)]
-        [InlineData(IDEDiagnosticIds.UseCollectionInitializerDiagnosticId, false)]
         public async Task Test_FadingOptions(string diagnosticId, bool fadingOptionValue)
         {
             var analyzer = new Analyzer(diagnosticId, throughAdditionalLocations: false);
@@ -169,8 +165,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             {
                 IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId => IdeAnalyzerOptionsStorage.FadeOutUnusedImports,
                 IDEDiagnosticIds.RemoveUnreachableCodeDiagnosticId => IdeAnalyzerOptionsStorage.FadeOutUnreachableCode,
-                IDEDiagnosticIds.UseObjectInitializerDiagnosticId => IdeAnalyzerOptionsStorage.FadeOutComplexObjectInitialization,
-                IDEDiagnosticIds.UseCollectionInitializerDiagnosticId => IdeAnalyzerOptionsStorage.FadeOutComplexCollectionInitialization,
                 _ => throw ExceptionUtilities.UnexpectedValue(diagnosticId),
             };
     }

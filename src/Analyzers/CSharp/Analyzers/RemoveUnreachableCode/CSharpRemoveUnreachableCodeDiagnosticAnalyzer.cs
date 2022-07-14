@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpRemoveUnreachableCodeDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    internal class CSharpRemoveUnreachableCodeDiagnosticAnalyzer : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer
     {
         private const string CS0162 = nameof(CS0162); // Unreachable code detected
 
@@ -25,9 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
             : base(IDEDiagnosticIds.RemoveUnreachableCodeDiagnosticId,
                    EnforceOnBuildValues.RemoveUnreachableCode,
                    option: null,
+                   fadingOption: FadingOptions.FadeOutUnreachableCode,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Unreachable_code_detected), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
-                   // This analyzer supports fading through AdditionalLocations since it's a user-controlled option
-                   isUnnecessary: false,
                    configurable: false)
         {
         }

@@ -22,10 +22,6 @@ internal sealed record class IdeAnalyzerOptions
     public static readonly IdeAnalyzerOptions CommonDefault = new();
 
     [DataMember] public bool CrashOnAnalyzerException { get; init; } = false;
-    [DataMember] public bool FadeOutUnusedImports { get; init; } = true;
-    [DataMember] public bool FadeOutUnreachableCode { get; init; } = true;
-    [DataMember] public bool FadeOutComplexObjectInitialization { get; init; } = false;
-    [DataMember] public bool FadeOutComplexCollectionInitialization { get; init; } = false;
     [DataMember] public bool ReportInvalidPlaceholdersInStringDotFormatCalls { get; init; } = true;
     [DataMember] public bool ReportInvalidRegexPatterns { get; init; } = true;
     [DataMember] public bool ReportInvalidJsonPatterns { get; init; } = true;
