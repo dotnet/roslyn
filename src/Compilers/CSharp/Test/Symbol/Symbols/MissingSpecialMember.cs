@@ -617,6 +617,7 @@ namespace System
                     case WellKnownType.System_Runtime_CompilerServices_LifetimeAnnotationAttribute:
                     case WellKnownType.System_MemoryExtensions:
                     case WellKnownType.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute:
+                    case WellKnownType.System_Numerics_INumberBase_T:
                         // Not yet in the platform.
                         continue;
                     case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation:

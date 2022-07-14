@@ -551,8 +551,9 @@ End Namespace
                          WellKnownType.System_Diagnostics_CodeAnalysis_SetsRequiredMembersAttribute,
                          WellKnownType.System_MemoryExtensions,
                          WellKnownType.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute,
-                        WellKnownType.System_Runtime_CompilerServices_LifetimeAnnotationAttribute,
-                         WellKnownType.System_MemoryExtensions
+                         WellKnownType.System_Runtime_CompilerServices_LifetimeAnnotationAttribute,
+                         WellKnownType.System_MemoryExtensions,
+                         WellKnownType.System_Numerics_INumberBase_T
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
@@ -623,7 +624,8 @@ End Namespace
                          WellKnownType.System_Diagnostics_CodeAnalysis_SetsRequiredMembersAttribute,
                          WellKnownType.System_MemoryExtensions,
                          WellKnownType.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute,
-                         WellKnownType.System_Runtime_CompilerServices_LifetimeAnnotationAttribute
+                         WellKnownType.System_Runtime_CompilerServices_LifetimeAnnotationAttribute,
+                         WellKnownType.System_Numerics_INumberBase_T
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel

@@ -257,6 +257,11 @@
         <target state="translated">Nie można wywnioskować typu delegowania.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotMatchOnINumberBase">
+        <source>Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specifc numeric type.</source>
+        <target state="new">Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specifc numeric type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotSpecifyManagedWithUnmanagedSpecifiers">
         <source>'managed' calling convention cannot be combined with unmanaged calling convention specifiers.</source>
         <target state="translated">Konwencji wywoływania „managed” nie można łączyć z niezarządzanymi specyfikatorami konwencji wywoływania.</target>
