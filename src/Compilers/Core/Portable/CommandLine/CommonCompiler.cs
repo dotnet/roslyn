@@ -14,6 +14,10 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
+using Metalama.Backstage.Diagnostics;
+using Metalama.Backstage.Extensibility;
+using Metalama.Backstage.Licensing.Consumption;
+using Metalama.Backstage.Telemetry;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
@@ -811,8 +815,162 @@ namespace Microsoft.CodeAnalysis
 
         // <Metalama>
 
+        protected virtual bool RequiresMetalamaSupportServices => true;
+        protected virtual bool RequiresMetalamaLicensingServices => true;
+
+        protected virtual bool IsLongRunningProcess => false;
+        
+        private static (string[] AdditionalLicenses, bool SkipImplicitLicenses) GetLicensingOptions(AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider)
+        {
+            // Load license keys from build options.
+            string[] additionalLicenses;
+            if (analyzerConfigOptionsProvider.GlobalOptions.TryGetValue("build_property.MetalamaLicense", out var licenseProperty))
+            {
+                additionalLicenses = licenseProperty.Trim()
+                    .Split(new[] { ';', ',' }, StringSplitOptions.RemoveEmptyEntries).ToArray();
+            }
+            else
+            {
+                additionalLicenses = Array.Empty<string>();
+            }
+
+            if (!(analyzerConfigOptionsProvider.GlobalOptions.TryGetValue("build_property.MetalamaIgnoreUserLicenses",
+                    out var ignoreUserLicensesProperty) && bool.TryParse(ignoreUserLicensesProperty, out var ignoreUserLicenses)))
+            {
+                ignoreUserLicenses = false;
+            }
+
+            return (additionalLicenses, ignoreUserLicenses);
+        }
+
+        protected IServiceProvider CreateServiceProvider(Compilation inputCompilation, AnalyzerConfigOptionsProvider analyzerConfigProvider)
+        {
+            var serviceProviderBuilder = new ServiceProviderBuilder();
+
+            IApplicationInfo applicationInfo;
+            var dotNetSdkDirectory = GetDotNetSdkDirectory(analyzerConfigProvider);
+
+            if (this.RequiresMetalamaLicensingServices)
+            {
+                var licenseOptions = GetLicensingOptions(analyzerConfigProvider);
+                
+                applicationInfo = new MetalamaCompilerApplicationInfo(this.IsLongRunningProcess,
+                    licenseOptions.SkipImplicitLicenses);
+
+                serviceProviderBuilder = serviceProviderBuilder.AddBackstageServices(
+                    applicationInfo,
+                    inputCompilation.AssemblyName,
+                    !licenseOptions.SkipImplicitLicenses,
+                    licenseOptions.SkipImplicitLicenses,
+                    licenseOptions.AdditionalLicenses,
+                    dotNetSdkDirectory,
+                    this.RequiresMetalamaSupportServices,
+                    addSupportServices: this.RequiresMetalamaSupportServices);
+            }
+            else
+            {
+                if (this.RequiresMetalamaSupportServices)
+                {
+                    throw new InvalidOperationException();
+                }
+
+                applicationInfo = new MetalamaCompilerApplicationInfo(this.IsLongRunningProcess, false);
+                serviceProviderBuilder = serviceProviderBuilder.AddMinimalBackstageServices(
+                    applicationInfo,
+                    true,
+                    inputCompilation.AssemblyName,
+                    dotNetSdkDirectory);
+            }
+            
+            // Initialize usage reporting.
+            try
+            {
+                var usageReporter = serviceProviderBuilder.ServiceProvider.GetService<IUsageReporter>();
+
+                if (usageReporter != null && inputCompilation.AssemblyName != null &&
+                    usageReporter.ShouldReportSession(inputCompilation.AssemblyName))
+                {
+                    var usageSample = usageReporter.CreateSample("CompilerUsage");
+                    serviceProviderBuilder = serviceProviderBuilder.AddSingleton(usageSample);
+                }
+            }
+            catch (Exception e)
+            {
+                ReportException(e, serviceProviderBuilder.ServiceProvider, false);
+
+                // We don't re-throw here as we don't want compiler to crash because of usage reporting exceptions.
+            }
+
+
+            return serviceProviderBuilder.ServiceProvider;
+            
+        }
+
+        protected void DisposeServices(IServiceProvider serviceProvider, DiagnosticBag diagnostics)
+        {
+            // Write all licensing messages that may have been emitted during the compilation.
+            var licenseManager = serviceProvider.GetService<ILicenseConsumptionManager>();
+
+            if (licenseManager != null)
+            {
+                foreach (var licensingMessage in licenseManager.Messages)
+                {
+                    int messageId = (int)(licensingMessage.IsError
+                        ? MetalamaErrorCode.ERR_LicensingMessage
+                        : MetalamaErrorCode.WRN_LicensingMessage);
+                    diagnostics.Add(Diagnostic.Create(MetalamaCompilerMessageProvider.Instance,
+                        messageId, licensingMessage.Text));
+                }
+            }
+
+            // Report usage.
+            try
+            {
+                IUsageSample? usageSample = serviceProvider.GetService<IUsageSample>();
+                usageSample?.Flush();
+            }
+            catch (Exception e)
+            {
+                ReportException(e,  serviceProvider, false);
+
+                // We don't re-throw here as we don't want compiler to crash because of usage reporting exceptions.
+            }
+
+            // Close logs.
+            // Logging has to be disposed as the last one, so it could be used until now.
+            serviceProvider.GetLoggerFactory().Dispose();
+        }
+        
+        protected void ReportException(Exception e, IServiceProvider serviceProvider, bool throwReporterExceptions)
+        {
+            try
+            {
+                var reporter = serviceProvider.GetService<IExceptionReporter>();
+                reporter?.ReportException(e);
+            }
+            catch (Exception reporterException)
+            {
+                if (throwReporterExceptions)
+                {
+                    throw new AggregateException(e, reporterException);
+                }
+            }
+        }
+
+        private protected static string? GetDotNetSdkDirectory(AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider)
+        {
+            if (!analyzerConfigOptionsProvider.GlobalOptions.TryGetValue(
+                    "build_property.NETCoreSdkBundledVersionsProps", out var propsFilePath)
+                || string.IsNullOrEmpty(propsFilePath))
+            {
+                return null;
+            }
+
+            return Path.GetFullPath(Path.GetDirectoryName(propsFilePath)!);
+        }
+
         private protected virtual TransformersResult RunTransformers(
-            Compilation inputCompilation, ImmutableArray<ISourceTransformer> transformers, SourceOnlyAnalyzersOptions sourceOnlyAnalyzersOptions,
+            Compilation inputCompilation, IServiceProvider serviceProvider, ImmutableArray<ISourceTransformer> transformers, SourceOnlyAnalyzersOptions sourceOnlyAnalyzersOptions,
             ImmutableArray<object> plugins, AnalyzerConfigOptionsProvider analyzerConfigProvider, DiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
             return TransformersResult.Empty(inputCompilation, analyzerConfigProvider);
@@ -1132,13 +1290,31 @@ namespace Microsoft.CodeAnalysis
             out AnalyzerDriver? analyzerDriver)
         {
             DiagnosticBag diagnosticBuffer = new();
+            IServiceProvider? serviceProvider = null;
 
-            this.CompileAndEmitImpl(touchedFilesLogger, ref compilation, analyzers, generators, transformers, plugins, additionalTextFiles,
-                analyzerConfigSet, sourceFileAnalyzerConfigOptions, embeddedTexts, diagnosticBuffer, cancellationToken, out analyzerCts, out reportAnalyzer, out analyzerDriver);
-            
-            MapDiagnosticSyntaxTreesToFinalCompilation(diagnosticBuffer, diagnostics, compilation, true );
+            try
+            {
+
+                this.CompileAndEmitImpl(touchedFilesLogger, ref compilation, analyzers, generators, transformers,
+                    plugins, additionalTextFiles,
+                    analyzerConfigSet, sourceFileAnalyzerConfigOptions, embeddedTexts, diagnosticBuffer,
+                    cancellationToken, out analyzerCts, out reportAnalyzer, out analyzerDriver, out serviceProvider);
+
+                MapDiagnosticSyntaxTreesToFinalCompilation(diagnosticBuffer, diagnostics, compilation, true);
+            }
+            catch (Exception e) when (serviceProvider != null)
+            {
+                this.ReportException(e, serviceProvider, true);
+                throw;
+            }
+            finally
+            {
+                if (serviceProvider != null)
+                {
+                    this.DisposeServices(serviceProvider, diagnostics);
+                }
+            }
         }
-        
         // </Metalama>
 
         /// <summary>
@@ -1163,11 +1339,17 @@ namespace Microsoft.CodeAnalysis
             CancellationToken cancellationToken,
             out CancellationTokenSource? analyzerCts,
             out bool reportAnalyzer,
-            out AnalyzerDriver? analyzerDriver)
+            out AnalyzerDriver? analyzerDriver,
+            out IServiceProvider? serviceProvider )
         {
             analyzerCts = null;
             reportAnalyzer = false;
             analyzerDriver = null;
+            
+            // <Metalama>
+            serviceProvider = null;
+            ILogger? logger = null;
+            // </Metalama>
 
 
             // Print the diagnostics produced during the parsing stage and exit if there were any errors.
@@ -1289,11 +1471,17 @@ namespace Microsoft.CodeAnalysis
                     Debugger.Launch();
                 }
 
+                serviceProvider = this.CreateServiceProvider(compilation, analyzerConfigProvider);
+                logger = serviceProvider.GetLoggerFactory().GetLogger("Compiler");
+
+                logger.Trace?.Log($"Compiling {compilation.AssemblyName}. {transformers.Length} transformer(s) found.");
 
                 if (!transformers.IsEmpty)
                 {
                     // Split analyzers between those that must run on source code only and those that will run on transformed code.
                     (var sourceOnlyAnalyzers, analyzers) = SplitAnalyzers(analyzerConfigProvider, analyzers);
+
+                    logger.Trace?.Log($"Source-only analyzers: {string.Join(", ", sourceOnlyAnalyzers)}. After-transformation analyzers: {string.Join(", ", analyzers)}. ");
 
                     // PERF: Avoid executing analyzers that report only Hidden and/or Info diagnostics, which don't appear in the build output.
                     //  1. Always filter out 'Hidden' analyzer diagnostics in build.
@@ -1308,7 +1496,7 @@ namespace Microsoft.CodeAnalysis
                     // Execute transformers.
                     var compilationBeforeTransformation = compilation;
                     var transformersDiagnostics = new DiagnosticBag();
-                    var transformersResult = RunTransformers(compilationBeforeTransformation, transformers, sourceOnlyAnalyzerOptions, plugins, analyzerConfigProvider, transformersDiagnostics, cancellationToken);
+                    var transformersResult = RunTransformers(compilationBeforeTransformation, serviceProvider, transformers, sourceOnlyAnalyzerOptions, plugins, analyzerConfigProvider, transformersDiagnostics, cancellationToken);
 
                     compilation = transformersResult.TransformedCompilation;
                     var mappedAnalyzerOptions = transformersResult.MappedAnalyzerOptions;
@@ -1319,6 +1507,7 @@ namespace Microsoft.CodeAnalysis
                     // Don't continue if transformers failed.
                     if (!transformersResult.Success)
                     {
+                        logger.Error?.Log($"RunTransformers was not successful.");
                         return;
                     }
 
@@ -1343,6 +1532,7 @@ namespace Microsoft.CodeAnalysis
                         // Make sure we start from an empty directory, otherwise we may let garbage from a previous run.
                         if (shouldSaveTransformedCode && Directory.Exists(transformedOutputPath))
                         {
+                            logger.Trace?.Log($"Deleting '{transformedOutputPath}'");
                             Directory.Delete(transformedOutputPath, true);
                         }
 
@@ -1377,6 +1567,7 @@ namespace Microsoft.CodeAnalysis
                                 var directory = Path.GetDirectoryName(fullPath);
                                 if (!Directory.Exists(directory))
                                 {
+                                    logger.Trace?.Log($"Creating directory '{directory}'");
                                     Directory.CreateDirectory(directory);
                                 }
 
@@ -1474,9 +1665,13 @@ namespace Microsoft.CodeAnalysis
 
             if (HasUnsuppressableErrors(diagnostics))
             {
+                // <Metalama>
+                logger?.Error?.Log($"The compilation failed because there are errors at stage Declare.'");
+                // </Metalama>
+
                 return;
             }
-            
+
             cancellationToken.ThrowIfCancellationRequested();
 
             // Given a compilation and a destination directory, determine three names:
@@ -1576,6 +1771,10 @@ namespace Microsoft.CodeAnalysis
 
                         if (HasUnsuppressedErrors(diagnostics))
                         {
+                            // <Metalama>
+                            logger?.Error?.Log($"The compilation failed because there are errors at stage CompileMethods.'");
+                            // </Metalama>
+
                             success = false;
                         }
 
@@ -1620,6 +1819,10 @@ namespace Microsoft.CodeAnalysis
                                 {
                                     if (HasUnsuppressableErrors(diagnostics))
                                     {
+                                        // <Metalama>
+                                        logger?.Error?.Log($"The compilation failed because there are errors at stage GetWin32Resources.'");
+                                        // </Metalama>
+
                                         return;
                                     }
 
@@ -1631,6 +1834,10 @@ namespace Microsoft.CodeAnalysis
 
                             if (xmlStreamDisposerOpt?.HasFailedToDispose == true)
                             {
+                                // <Metalama>
+                                logger?.Error?.Log($"The compilation failed because there are errors disposing the XML stream.'");
+                                // </Metalama>
+
                                 return;
                             }
 
@@ -1666,6 +1873,10 @@ namespace Microsoft.CodeAnalysis
 
                     if (HasUnsuppressedErrors(diagnostics))
                     {
+                        // <Metalama>
+                        logger?.Error?.Log($"The compilation failed because there are errors disposing before emitting the PE file.'");
+                        // </Metalama>
+                        
                         success = false;
                     }
 
@@ -1698,6 +1909,20 @@ namespace Microsoft.CodeAnalysis
                             emitOptions: emitOptions,
                             privateKeyOpt: privateKeyOpt,
                             cancellationToken: cancellationToken);
+                        
+                        // <Metalama>
+                        if (success)
+                        {
+                            logger?.Trace?.Log(
+                                $"The compilation succeeded.'");
+                        }
+                        else
+                        {
+                            logger?.Error?.Log(
+                                $"The compilation failed because there are errors emitting the PE file.'");
+                        }
+                        // </Metalama>
+
 
                         peStreamProvider.Close(diagnostics);
                         refPeStreamProviderOpt?.Close(diagnostics);
