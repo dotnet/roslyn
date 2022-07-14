@@ -623,7 +623,6 @@ namespace System
                     case WellKnownType.System_Runtime_CompilerServices_ITuple:
                     case WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute:
                     case WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute:
-                    case WellKnownType.System_GC:
                         // Not always available.
                         continue;
                     case WellKnownType.ExtSentinel:

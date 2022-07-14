@@ -17125,7 +17125,6 @@ partial class C
         System.Console.WriteLine(""in called"");
     }
 }
-
 static class Program {
     static void Main()
     {

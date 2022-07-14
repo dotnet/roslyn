@@ -1562,13 +1562,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private void EmitStaticCallExpression(BoundCall call, UseKind useKind)
-        {
-            var method = call.Method;
-            var receiver = call.ReceiverOpt;
-            var arguments = call.Arguments;
-
-            EmitStaticCall(method, receiver, arguments, useKind, call.Syntax, call.ArgumentRefKindsOpt);
-        }
+            => EmitStaticCall(call.Method, call.ReceiverOpt, call.Arguments, useKind, call.Syntax, call.ArgumentRefKindsOpt);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private void EmitInstanceCallExpression(BoundCall call, UseKind useKind)
@@ -1922,17 +1916,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitPopIfUnused(used);
         }
 
-        private void EmitUninitializedArrayCreation(BoundArrayCreation expression, SyntaxNode syntax, MethodSymbol allocUninitialized)
+        private void EmitUninitializedArrayCreation(int initializerLength, SyntaxNode syntax, MethodSymbol allocUninitialized)
         {
-            var arrLen = ConstantValue.Create(expression.InitializerOpt.Initializers.Length);
+            BoundExpression receiverOpt = null;
+
+            var arrLen = ConstantValue.Create(initializerLength);
             var pinned = ConstantValue.Create(false);
 
             var arg1 = new BoundLiteral(syntax, arrLen, _module.Compilation.GetSpecialType(SpecialType.System_Int32));
             var arg2 = new BoundLiteral(syntax, pinned, _module.Compilation.GetSpecialType(SpecialType.System_Boolean));
-
             var arguments = ImmutableArray.Create<BoundExpression>(arg1, arg2);
 
-            EmitStaticCall(allocUninitialized, null, arguments, UseKind.UsedAsValue, syntax,
+            EmitStaticCall(allocUninitialized, receiverOpt, arguments, UseKind.UsedAsValue, syntax,
                                 ImmutableArray.Create(RefKind.None, RefKind.None));
         }
 
@@ -1945,7 +1940,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 if (expression.InitializerOpt != null && allocUninitialized is MethodSymbol { } alloc)
                 {
                     var constructed = alloc.Construct(ImmutableArray.Create(arrayType.ElementType));
-                    EmitUninitializedArrayCreation(expression, expression.Syntax, constructed);
+                    EmitUninitializedArrayCreation(expression.InitializerOpt.Initializers.Length, expression.Syntax, constructed);
                 }
                 else
                 {
