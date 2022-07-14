@@ -2111,8 +2111,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion
 
-        // Note: you will need to do the following after adding warnings:
+        // Note: you will need to do the following after adding any code:
+        //  1) Update ErrorFacts.IsBuildOnlyDiagnostic to handle the new error code.
+        // Additionally, after adding a new warning you will need to do the following:
         //  1) Re-generate compiler code (eng\generate-compiler-code.cmd).
-        //  2) Update ErrorFacts.IsBuildOnlyDiagnostic to handle the new error code.
     }
 }
