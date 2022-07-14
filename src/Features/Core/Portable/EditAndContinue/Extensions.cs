@@ -68,6 +68,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             throw ExceptionUtilities.UnexpectedValue(ordinal);
         }
 
+        /// <summary>
+        /// True if the project supports Edit and Continue.
+        /// Only depends on the language of the project and never changes.
+        /// </summary>
         public static bool SupportsEditAndContinue(this Project project)
             => project.LanguageServices.GetService<IEditAndContinueAnalyzer>() != null;
 

@@ -2106,7 +2106,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_GlobalUsingStaticFileType = 9055,
         ERR_FileTypeNameDisallowed = 9056,
         ERR_FeatureNotAvailableInVersion11 = 9058,
-        ERR_CannotMatchOnINumberBase = 9059,
+        ERR_RefFieldInNonRefStruct = 9059,
+        ERR_CannotMatchOnINumberBase = 9060,
 
         #endregion
 

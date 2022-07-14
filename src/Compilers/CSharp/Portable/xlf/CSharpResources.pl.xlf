@@ -1267,6 +1267,11 @@
         <target state="translated">Pole referencyjne nie może odwoływać się do struktury referencyjnej.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RefFieldInNonRefStruct">
+        <source>A ref field can only be declared in a ref struct.</source>
+        <target state="new">A ref field can only be declared in a ref struct.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefLocalOrParamExpected">
         <source>The left-hand side of a ref assignment must be a ref variable.</source>
         <target state="translated">Lewa strona przypisania referencyjnego musi być zmienną referencyjną.</target>

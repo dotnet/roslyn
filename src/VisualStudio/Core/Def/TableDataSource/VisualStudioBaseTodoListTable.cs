@@ -252,7 +252,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 private static LinePosition GetLineColumn(TodoTableItem item)
                 {
                     return VisualStudioVenusSpanMappingService.GetAdjustedLineColumn(
-                        item.Workspace,
                         item.Data.DocumentId,
                         item.Data.OriginalLine,
                         item.Data.OriginalColumn,

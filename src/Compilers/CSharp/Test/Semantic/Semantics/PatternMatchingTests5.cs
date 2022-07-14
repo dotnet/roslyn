@@ -1982,10 +1982,10 @@ _ = x is { Length.Error: > 0 };
                 // (3,6): warning CS8321: The local function 'M' is declared but never used
                 // void M<T>(T t) where T : INumberBase<T>
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "M").WithArguments("M").WithLocation(3, 6),
-                // (7,9): error CS9059: Cannot use a numeric constant or relational pattern on 'T' because it inherits from or extends 'INumberBase<T>'. Consider using a type pattern to narrow to a specifc numeric type.
+                // (7,9): error CS9060: Cannot use a numeric constant or relational pattern on 'T' because it inherits from or extends 'INumberBase<T>'. Consider using a type pattern to narrow to a specifc numeric type.
                 //         1 => 1, // 1
                 Diagnostic(ErrorCode.ERR_CannotMatchOnINumberBase, "1").WithArguments("T").WithLocation(7, 9),
-                // (8,9): error CS9059: Cannot use a numeric constant or relational pattern on 'T' because it inherits from or extends 'INumberBase<T>'. Consider using a type pattern to narrow to a specifc numeric type.
+                // (8,9): error CS9060: Cannot use a numeric constant or relational pattern on 'T' because it inherits from or extends 'INumberBase<T>'. Consider using a type pattern to narrow to a specifc numeric type.
                 //         > 1 => 2, // 2
                 Diagnostic(ErrorCode.ERR_CannotMatchOnINumberBase, "> 1").WithArguments("T").WithLocation(8, 9),
                 // (10,9): error CS8985: List patterns may not be used for a value of type 'T'. No suitable 'Length' or 'Count' property was found.
@@ -2030,10 +2030,10 @@ _ = x is { Length.Error: > 0 };
                 // (3,6): warning CS8321: The local function 'M' is declared but never used
                 // void M<T>(T t) where T : INumberBase<T>
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "M").WithArguments("M").WithLocation(3, 6),
-                // (7,9): error CS9059: Cannot use a numeric constant or relational pattern on 'T' because it inherits from or extends 'INumberBase<T>'. Consider using a type pattern to narrow to a specifc numeric type.
+                // (7,9): error CS9060: Cannot use a numeric constant or relational pattern on 'T' because it inherits from or extends 'INumberBase<T>'. Consider using a type pattern to narrow to a specifc numeric type.
                 //         1 => 1, // 1
                 Diagnostic(ErrorCode.ERR_CannotMatchOnINumberBase, "1").WithArguments("T").WithLocation(7, 9),
-                // (8,9): error CS9059: Cannot use a numeric constant or relational pattern on 'T' because it inherits from or extends 'INumberBase<T>'. Consider using a type pattern to narrow to a specifc numeric type.
+                // (8,9): error CS9060: Cannot use a numeric constant or relational pattern on 'T' because it inherits from or extends 'INumberBase<T>'. Consider using a type pattern to narrow to a specifc numeric type.
                 //         > 1 => 2, // 2
                 Diagnostic(ErrorCode.ERR_CannotMatchOnINumberBase, "> 1").WithArguments("T").WithLocation(8, 9),
                 // (10,9): error CS8985: List patterns may not be used for a value of type 'T'. No suitable 'Length' or 'Count' property was found.
@@ -2083,7 +2083,7 @@ _ = x is { Length.Error: > 0 };
                 // (6,5): error CS0029: Cannot implicitly convert type 'int' to 'C'
                 //     1 => 1, // 1
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "C").WithLocation(6, 5),
-                // (6,5): error CS9059: Cannot use a numeric constant or relational pattern on 'C' because it inherits from or extends 'INumberBase<T>'. Consider using a type pattern to narrow to a specifc numeric type.
+                // (6,5): error CS9060: Cannot use a numeric constant or relational pattern on 'C' because it inherits from or extends 'INumberBase<T>'. Consider using a type pattern to narrow to a specifc numeric type.
                 //     1 => 1, // 1
                 Diagnostic(ErrorCode.ERR_CannotMatchOnINumberBase, "1").WithArguments("C").WithLocation(6, 5),
                 // (7,5): error CS8781: Relational patterns may not be used for a value of type 'C'.

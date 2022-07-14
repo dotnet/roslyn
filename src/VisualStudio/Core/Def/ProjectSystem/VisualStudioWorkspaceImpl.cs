@@ -305,13 +305,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        internal ContainedDocument? TryGetContainedDocument(DocumentId documentId)
-        {
-            // TODO: move everybody off of this instance method and replace them with calls to
-            // ContainedDocument.TryGetContainedDocument
-            return ContainedDocument.TryGetContainedDocument(documentId);
-        }
-
         internal VisualStudioProject? GetProjectWithHierarchyAndName(IVsHierarchy hierarchy, string projectName)
         {
             using (_gate.DisposableWait())
@@ -1205,7 +1198,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private void ApplyTextDocumentChange(DocumentId documentId, SourceText newText)
         {
-            var containedDocument = TryGetContainedDocument(documentId);
+            var containedDocument = ContainedDocument.TryGetContainedDocument(documentId);
 
             if (containedDocument != null)
             {

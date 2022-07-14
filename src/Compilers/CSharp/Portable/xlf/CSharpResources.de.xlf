@@ -1267,6 +1267,11 @@
         <target state="translated">Ein Ref-Feld kann nicht auf eine Ref-Struktur verweisen.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RefFieldInNonRefStruct">
+        <source>A ref field can only be declared in a ref struct.</source>
+        <target state="new">A ref field can only be declared in a ref struct.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefLocalOrParamExpected">
         <source>The left-hand side of a ref assignment must be a ref variable.</source>
         <target state="translated">Die linke Seite einer Ref-Zuweisung muss eine Ref-Variable sein.</target>
