@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
     internal class MultipleSymbolsRenameRewriter : CSharpAbstractRenameRewriter
     {
         private readonly Dictionary<TextSpan, TextSpanRenameContext> _textSpanToRenameContexts;
-        private readonly Dictionary<SymbolKey, RenameSymbolContext> _renameContexts;
+        private readonly Dictionary<ISymbol, RenameSymbolContext> _renameContexts;
         private readonly Dictionary<TextSpan, HashSet<TextSpanRenameContext>> _stringAndCommentRenameContexts;
 
         public MultipleSymbolsRenameRewriter(
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 // 'SomeOtherType' needs to be replaced by its fully qualified name. so here we need to check if the token is linked to other rename contexts.
                 var symbol = _speculativeModel.GetSymbolInfo(token.Parent, _cancellationToken).Symbol;
                 if (symbol != null
-                    && _renameContexts.TryGetValue(symbol.GetSymbolKey(_cancellationToken), out var symbolContext)
+                    && _renameContexts.TryGetValue(symbol, out var symbolContext)
                     && token.IsKind(SyntaxKind.IdentifierToken)
                     && token.ValueText == symbolContext.OriginalText)
                 {
@@ -83,6 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
         public override SyntaxTrivia VisitTrivia(SyntaxTrivia trivia)
         {
             var newTrivia = base.VisitTrivia(trivia);
+            // Syntax token in structure trivia would be renamed when the token is visited.
             if (!trivia.HasStructure
                 && _stringAndCommentRenameContexts.TryGetValue(trivia.Span, out var textSpanRenameContexts))
             {
@@ -106,18 +107,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     newToken,
                     isRenameLocation: true,
                     isOldText: false,
-                    _syntaxFactsService.IsVerbatimIdentifier(symbolContext.ReplacementText),
-                    symbolContext.ReplacementTextValid,
-                    textSpanRenameContext.RenameLocation.IsRenamableAccessor,
-                    symbolContext.ReplacementText,
-                    symbolContext.OriginalText,
-                    symbolContext.RenamableSymbolDeclarationAnnotation,
-                    symbolContext.RenamableDeclarationLocation).WaitAndGetResult_CanCallOnBackground(_cancellationToken);
+                    isVerbatim: _syntaxFactsService.IsVerbatimIdentifier(symbolContext.ReplacementText),
+                    replacementTextValid: symbolContext.ReplacementTextValid,
+                    IsRenamableAccessor: textSpanRenameContext.RenameLocation.IsRenamableAccessor,
+                    replacementText: symbolContext.ReplacementText,
+                    originalText: symbolContext.OriginalText,
+                    renameRenamableSymbolDeclaration: symbolContext.RenamableSymbolDeclarationAnnotation,
+                    renamableDeclarationLocation: symbolContext.RenamableDeclarationLocation).WaitAndGetResult_CanCallOnBackground(_cancellationToken);
                 _invocationExpressionsNeedingConflictChecks.AddRange(token.GetAncestors<InvocationExpressionSyntax>());
-
                 return newToken;
             }
 
+            // If we are renaming a token of complexified node, it could be either
+            // 1. It is a referenced token of any of the rename symbols and it should be annotated by RenameActionAnnotation before the complexification.
+            // We could rename the token by finding its rename context.
+            // 2. Complexification could introduce some new tokens, and they are alse referenced by rename symbols. We need to rename them.
             if (_isProcessingComplexifiedSpans)
             {
                 if (TryGetLocationRenameContext(token, out var textSpanRenameContextForComplexifiedToken))
@@ -134,7 +138,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             return AnnotateNonRenameLocation(token, newToken);
         }
 
-        private bool TryGetLocationRenameContext(SyntaxToken token, [NotNullWhen(true)] out TextSpanRenameContext? textSpanRenameContext)
+        private bool TryGetLocationRenameContext(
+            SyntaxToken token, [NotNullWhen(true)] out TextSpanRenameContext? textSpanRenameContext)
         {
             if (!_isProcessingComplexifiedSpans)
             {
@@ -171,9 +176,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
         {
             if (!_isProcessingComplexifiedSpans)
             {
-                // Handle Alias annotations
+                // Update Alias annotations
                 newToken = UpdateAliasAnnotation(newToken);
-
                 var tokenText = oldToken.ValueText;
                 var renameContexts = _renameContexts.Values;
                 var replacementMatchedContexts = GetMatchedContexts(renameContexts, context => context.ReplacementText == tokenText);
@@ -308,6 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             }
 
             var subSpanToReplacementText = CreateSubSpanToReplacementTextDictionary(textSpanSymbolContexts);
+            // Rename in string
             if (newToken.IsKind(SyntaxKind.StringLiteralToken, SyntaxKind.InterpolatedStringTextToken))
             {
                 Func<SyntaxTriviaList, string, string, SyntaxTriviaList, SyntaxToken> newStringTokenFactory = newToken.Kind() switch
@@ -324,6 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     newStringTokenFactory);
             }
 
+            // Rename Token in structure comment
             if (newToken.IsKind(SyntaxKind.XmlTextLiteralToken))
             {
                 newToken = RenameInStringLiteral(token, newToken, subSpanToReplacementText, SyntaxFactory.XmlTextLiteral);
@@ -342,13 +348,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             return newToken;
         }
 
-        private static Dictionary<SymbolKey, RenameSymbolContext> GroupRenameContextBySymbolKey(
+        private static Dictionary<ISymbol, RenameSymbolContext> GroupRenameContextBySymbolKey(
             ImmutableArray<RenameSymbolContext> symbolContexts)
         {
-            var renameContexts = new Dictionary<SymbolKey, RenameSymbolContext>();
+            var renameContexts = new Dictionary<ISymbol, RenameSymbolContext>();
             foreach (var context in symbolContexts)
             {
-                renameContexts[context.RenamedSymbol.GetSymbolKey()] = context;
+                renameContexts[context.RenamedSymbol] = context;
             }
 
             return renameContexts;

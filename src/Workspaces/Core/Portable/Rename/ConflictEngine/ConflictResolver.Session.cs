@@ -767,6 +767,21 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             {
                 try
                 {
+                    var symbolContext = new RenameSymbolContext
+                    (
+                        Priority: 0,
+                        RenamableSymbolDeclarationAnnotation: _renamedSymbolDeclarationAnnotation,
+                        RenamableDeclarationLocation: _renameSymbolDeclarationLocation,
+                        ReplacementText: _replacementText,
+                        OriginalText: _originalText,
+                        PossibleNameConflicts: _possibleNameConflicts,
+                        RenamedSymbol: _renameLocationSet.Symbol,
+                        AliasSymbol: _renameLocationSet.Symbol as IAliasSymbol,
+                        ReplacementTextValid: replacementTextValid,
+                        IsRenamingInStrings: RenameOptions.RenameInComments,
+                        IsRenamingInComments: RenameOptions.RenameInStrings
+                    );
+
                     foreach (var documentId in documentIdsToRename.ToList())
                     {
                         _cancellationToken.ThrowIfCancellationRequested();
@@ -776,42 +791,33 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         var originalSyntaxRoot = await semanticModel.SyntaxTree.GetRootAsync(_cancellationToken).ConfigureAwait(false);
 
                         // Get all rename locations for the current document.
-                        var allTextSpansInSingleSourceTree = renameLocations
-                            .Where(l => l.DocumentId == documentId && ShouldIncludeLocation(renameLocations, l))
-                            .ToDictionary(l => l.Location.SourceSpan);
+                        var textSpanRenameContexts = renameLocations
+                            .Where(location => location.DocumentId == documentId && ShouldIncludeLocation(renameLocations, location))
+                            .SelectAsArray(location => new TextSpanRenameContext(location, symbolContext));
 
                         // All textspan in the document documentId, that requires rename in String or Comment
-                        var stringAndCommentTextSpansInSingleSourceTree = renameLocations
+                        var stringAndCommentTextSpanContexts = renameLocations
                             .Where(l => l.DocumentId == documentId && l.IsRenameInStringOrComment)
-                            .GroupBy(l => l.ContainingLocationForStringOrComment)
-                            .ToImmutableDictionary(
-                                g => g.Key,
-                                g => GetSubSpansToRenameInStringAndCommentTextSpans(g.Key, g));
+                            .SelectAsArray(location => new TextSpanRenameContext(location, symbolContext));
 
                         var conflictLocationSpans = _conflictLocations
                                                     .Where(t => t.DocumentId == documentId)
-                                                    .Select(t => t.ComplexifiedSpan).ToSet();
+                                                    .Select(t => t.ComplexifiedSpan).ToImmutableHashSet();
 
                         // Annotate all nodes with a RenameLocation annotations to record old locations & old referenced symbols.
                         // Also annotate nodes that should get complexified (nodes for rename locations + conflict locations)
-                        var parameters = new RenameRewriterParameters(
-                            _renamedSymbolDeclarationAnnotation,
-                            document,
-                            semanticModel,
-                            originalSyntaxRoot,
-                            _replacementText,
-                            _originalText,
-                            _possibleNameConflicts,
-                            allTextSpansInSingleSourceTree,
-                            stringAndCommentTextSpansInSingleSourceTree,
+                        var parameters = new RenameRewriterParametersNextGen(
                             conflictLocationSpans,
                             originalSolution,
-                            _renameLocationSet.Symbol,
-                            replacementTextValid,
+                            semanticModel.SyntaxTree,
                             renameSpansTracker,
-                            RenameOptions.RenameInStrings,
-                            RenameOptions.RenameInComments,
+                            originalSyntaxRoot,
+                            document,
+                            semanticModel,
                             _renameAnnotations,
+                            textSpanRenameContexts,
+                            stringAndCommentTextSpanContexts,
+                            ImmutableArray.Create(symbolContext),
                             _cancellationToken);
 
                         var renameRewriterLanguageService = document.GetRequiredLanguageService<IRenameRewriterLanguageService>();
