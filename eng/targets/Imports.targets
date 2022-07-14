@@ -358,4 +358,6 @@
            AlwaysCreate="true"
            Condition="'@(ReferencesCopiedInThisBuild)' != ''"/>
   </Target>
+  
+  <Import Project="DoNotDeployToSymStore_Workaround.targets" Condition="'$(NoPdbConversion)' == 'true'" />
 </Project>
