@@ -25,13 +25,40 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
     internal static class DocumentOutlineHelper
     {
         /// <summary>
-        /// Given an array of all Document Symbols in a document, returns an array containing the 
+        /// Given an array of Document Symbols in a document, returns an array containing the 
         /// top-level Document Symbols and their nested children.
         /// </summary>
-        /// <remarks>
-        /// As of right now, the LSP document symbol request only returns 2 levels of nesting, so
-        /// we nest the symbols first before converting the DocumentSymbols to DocumentSymbolItems.
-        /// </remarks>
+        /// 
+        /// As of right now, the LSP document symbol response only has at most 2 levels of nesting, 
+        /// so we nest the symbols first before converting the DocumentSymbols to DocumentSymbolItems.
+        /// 
+        /// Example file structure:
+        /// Class A
+        ///     ClassB
+        ///         Method1
+        ///         Method2
+        ///         
+        /// LSP document symbol response (each object is a DocumentSymbol):
+        /// [
+        ///     {
+        ///         Name: ClassA,
+        ///         Children: []
+        ///     },
+        ///     {
+        ///         Name: ClassB,
+        ///         Children: 
+        ///         [
+        ///             {
+        ///                 Name: Method1,
+        ///                 Children: []
+        ///             },
+        ///             {
+        ///                 Name: Method2,
+        ///                 Children: []
+        ///             }
+        ///         ]
+        ///     }
+        /// ]
         public static DocumentSymbol[] GetNestedDocumentSymbols(DocumentSymbol[]? documentSymbols)
         {
             if (documentSymbols is null || documentSymbols.Length == 0)
