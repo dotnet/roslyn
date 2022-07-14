@@ -8,19 +8,18 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Differencing;
+using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
@@ -3429,6 +3428,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             out bool hasGeneratedAttributeChange,
             out bool hasGeneratedReturnTypeAttributeChange,
             out bool hasParameterRename,
+            out bool hasParameterTypeChange,
             CancellationToken cancellationToken)
         {
             var rudeEdit = RudeEditKind.None;
@@ -3436,6 +3436,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             hasGeneratedAttributeChange = false;
             hasGeneratedReturnTypeAttributeChange = false;
             hasParameterRename = false;
+            hasParameterTypeChange = false;
 
             if (oldSymbol.Kind != newSymbol.Kind)
             {
@@ -3673,7 +3674,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
                 else
                 {
-                    AnalyzeParameterType(oldParameter, newParameter, ref rudeEdit, ref hasGeneratedAttributeChange);
+                    AnalyzeParameterType(oldParameter, newParameter, ref rudeEdit, ref hasGeneratedAttributeChange, ref hasParameterTypeChange);
                 }
             }
             else if (oldSymbol is ITypeParameterSymbol oldTypeParameter && newSymbol is ITypeParameterSymbol newTypeParameter)
@@ -3741,7 +3742,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private static void AnalyzeParameterType(IParameterSymbol oldParameter, IParameterSymbol newParameter, ref RudeEditKind rudeEdit, ref bool hasGeneratedAttributeChange)
+        private static void AnalyzeParameterType(IParameterSymbol oldParameter, IParameterSymbol newParameter, ref RudeEditKind rudeEdit, ref bool hasGeneratedAttributeChange, ref bool hasParameterTypeChange)
         {
             if (!ParameterTypesEquivalent(oldParameter, newParameter, exact: true))
             {
@@ -3749,9 +3750,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     hasGeneratedAttributeChange = true;
                 }
+                else if (newParameter.ContainingType.IsDelegateType())
+                {
+                    // We don't allow changing parameter types in delegates
+                    rudeEdit = RudeEditKind.TypeUpdate;
+                }
                 else
                 {
-                    rudeEdit = RudeEditKind.TypeUpdate;
+                    hasParameterTypeChange = true;
                 }
             }
         }
@@ -3840,14 +3846,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             ReportCustomAttributeRudeEdits(diagnostics, oldSymbol, newSymbol, newNode, newCompilation, capabilities, out var hasAttributeChange, out var hasReturnTypeAttributeChange, cancellationToken);
 
-            ReportUpdatedSymbolDeclarationRudeEdits(diagnostics, oldSymbol, newSymbol, newNode, newCompilation, capabilities, out var hasGeneratedAttributeChange, out var hasGeneratedReturnTypeAttributeChange, out var hasParameterRename, cancellationToken);
+            ReportUpdatedSymbolDeclarationRudeEdits(diagnostics, oldSymbol, newSymbol, newNode, newCompilation, capabilities, out var hasGeneratedAttributeChange, out var hasGeneratedReturnTypeAttributeChange, out var hasParameterRename, out var hasParameterTypeChange, cancellationToken);
             hasAttributeChange |= hasGeneratedAttributeChange;
             hasReturnTypeAttributeChange |= hasGeneratedReturnTypeAttributeChange;
 
-            if (hasParameterRename)
+            if (hasParameterRename || hasParameterTypeChange)
             {
                 Debug.Assert(newSymbol is IParameterSymbol);
-                AddParameterUpdateSemanticEdit(semanticEdits, (IParameterSymbol)newSymbol, syntaxMap, cancellationToken);
+                AddParameterUpdateSemanticEdit(semanticEdits, (IParameterSymbol)oldSymbol, (IParameterSymbol)newSymbol, syntaxMap, reportDeleteAndInsertEdits: hasParameterTypeChange, cancellationToken);
             }
             else if (hasAttributeChange || hasReturnTypeAttributeChange)
             {
@@ -3905,18 +3911,30 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
             else if (newSymbol is IParameterSymbol newParameterSymbol)
             {
-                AddParameterUpdateSemanticEdit(semanticEdits, newParameterSymbol, syntaxMap, cancellationToken);
+                AddParameterUpdateSemanticEdit(semanticEdits, (IParameterSymbol)oldSymbol, newParameterSymbol, syntaxMap, reportDeleteAndInsertEdits: false, cancellationToken);
             }
         }
 
-        private static void AddParameterUpdateSemanticEdit(ArrayBuilder<SemanticEditInfo> semanticEdits, IParameterSymbol newParameterSymbol, Func<SyntaxNode, SyntaxNode?>? syntaxMap, CancellationToken cancellationToken)
+        private static void AddParameterUpdateSemanticEdit(ArrayBuilder<SemanticEditInfo> semanticEdits, IParameterSymbol oldParameterSymbol, IParameterSymbol newParameterSymbol, Func<SyntaxNode, SyntaxNode?>? syntaxMap, bool reportDeleteAndInsertEdits, CancellationToken cancellationToken)
         {
             var newContainingSymbol = newParameterSymbol.ContainingSymbol;
-            semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, SymbolKey.Create(newContainingSymbol, cancellationToken), syntaxMap, syntaxMapTree: null, partialType: null));
+
+            if (reportDeleteAndInsertEdits)
+            {
+                var oldContainingSymbol = oldParameterSymbol.ContainingSymbol;
+                var containingSymbolKey = SymbolKey.Create(oldContainingSymbol.ContainingSymbol, cancellationToken);
+                AddMemberOrAssociatedMemberSemanticEdits(semanticEdits, SemanticEditKind.Delete, oldContainingSymbol, containingSymbolKey, syntaxMap, partialType: null, cancellationToken);
+                AddMemberOrAssociatedMemberSemanticEdits(semanticEdits, SemanticEditKind.Insert, newContainingSymbol, containingSymbolKey: null, syntaxMap, partialType: null, cancellationToken);
+            }
+            else
+            {
+                semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, SymbolKey.Create(newContainingSymbol, cancellationToken), syntaxMap, syntaxMapTree: null, partialType: null));
+            }
 
             // attributes applied on parameters of a delegate are applied to both Invoke and BeginInvoke methods
             if (newContainingSymbol.ContainingSymbol is INamedTypeSymbol { TypeKind: TypeKind.Delegate } newContainingDelegateType)
             {
+                Debug.Assert(reportDeleteAndInsertEdits == false);
                 AddDelegateBeginInvokeEdit(semanticEdits, newContainingDelegateType, syntaxMap, cancellationToken);
             }
         }
