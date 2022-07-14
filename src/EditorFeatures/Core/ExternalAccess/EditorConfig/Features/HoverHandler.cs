@@ -25,13 +25,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
     [Method(Methods.TextDocumentHoverName)]
     internal sealed class HoverHandler : IRequestHandler<TextDocumentPositionParams, Hover?>
     {
-        private readonly IGlobalOptionService _globalOptions;
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public HoverHandler(IGlobalOptionService globalOptions)
         {
-            _globalOptions = globalOptions;
         }
 
         public bool MutatesSolutionState => false;
@@ -49,13 +46,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
 
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             return new Hover
             {
                 Contents = new MarkupContent
                 {
                     Kind = MarkupKind.Markdown,
-                    Value = "Hover works!",
+                    Value = "Hover works! " + position,
                 },
             };
         }
