@@ -853,7 +853,7 @@ namespace Microsoft.CodeAnalysis
             if (this.RequiresMetalamaLicensingServices)
             {
                 var licenseOptions = GetLicensingOptions(analyzerConfigProvider);
-                
+
                 applicationInfo = new MetalamaCompilerApplicationInfo(this.IsLongRunningProcess,
                     licenseOptions.SkipImplicitLicenses);
 
@@ -881,7 +881,7 @@ namespace Microsoft.CodeAnalysis
                     inputCompilation.AssemblyName,
                     dotNetSdkDirectory);
             }
-            
+
             // Initialize usage reporting.
             try
             {
@@ -903,7 +903,7 @@ namespace Microsoft.CodeAnalysis
 
 
             return serviceProviderBuilder.ServiceProvider;
-            
+
         }
 
         protected void DisposeServices(IServiceProvider serviceProvider, DiagnosticBag diagnostics)
@@ -953,6 +953,25 @@ namespace Microsoft.CodeAnalysis
                 if (throwReporterExceptions)
                 {
                     throw new AggregateException(e, reporterException);
+                }
+            }
+        }
+
+        private void ReportUnsuppressedErrors(DiagnosticBag diagnostics, ILogger? logger, string stage)
+        {
+            ILogWriter? logWriter = logger?.Error;
+            
+            if (logWriter != null)
+            {
+                logger?.Error?.Log($"The compilation failed because there are errors at stage: '{stage}'.'");
+
+                foreach (Diagnostic diagnostic in diagnostics.AsEnumerable())
+                {
+                    if (diagnostic.IsUnsuppressedError)
+                    {
+
+                        logWriter?.Log(diagnostic.ToString());
+                    }
                 }
             }
         }
@@ -1298,9 +1317,9 @@ namespace Microsoft.CodeAnalysis
                 this.CompileAndEmitImpl(touchedFilesLogger, ref compilation, analyzers, generators, transformers,
                     plugins, additionalTextFiles,
                     analyzerConfigSet, sourceFileAnalyzerConfigOptions, embeddedTexts, diagnosticBuffer,
-                    cancellationToken, out analyzerCts, out reportAnalyzer, out analyzerDriver, out serviceProvider);
+                    cancellationToken, out analyzerCts, out reportAnalyzer, out analyzerDriver, out serviceProvider, out var logger );
 
-                MapDiagnosticSyntaxTreesToFinalCompilation(diagnosticBuffer, diagnostics, compilation, true);
+                MapDiagnosticSyntaxTreesToFinalCompilation(diagnosticBuffer, diagnostics, compilation, logger );
             }
             catch (Exception e) when (serviceProvider != null)
             {
@@ -1340,7 +1359,10 @@ namespace Microsoft.CodeAnalysis
             out CancellationTokenSource? analyzerCts,
             out bool reportAnalyzer,
             out AnalyzerDriver? analyzerDriver,
-            out IServiceProvider? serviceProvider )
+            // <Metalama>
+            out IServiceProvider? serviceProvider,
+            out ILogger? logger ) 
+            // </Metalama> 
         {
             analyzerCts = null;
             reportAnalyzer = false;
@@ -1348,7 +1370,7 @@ namespace Microsoft.CodeAnalysis
             
             // <Metalama>
             serviceProvider = null;
-            ILogger? logger = null;
+            logger = null;
             // </Metalama>
 
 
@@ -1502,7 +1524,7 @@ namespace Microsoft.CodeAnalysis
                     var mappedAnalyzerOptions = transformersResult.MappedAnalyzerOptions;
 
                     // Map diagnostics to the final compilation, because suppressors need it.
-                    MapDiagnosticSyntaxTreesToFinalCompilation(transformersDiagnostics, diagnostics, compilation);
+                    MapDiagnosticSyntaxTreesToFinalCompilation(transformersDiagnostics, diagnostics, compilation, logger );
 
                     // Don't continue if transformers failed.
                     if (!transformersResult.Success)
@@ -1666,7 +1688,7 @@ namespace Microsoft.CodeAnalysis
             if (HasUnsuppressableErrors(diagnostics))
             {
                 // <Metalama>
-                logger?.Error?.Log($"The compilation failed because there are errors at stage Declare.'");
+                this.ReportUnsuppressedErrors(diagnostics, logger, "Declare");
                 // </Metalama>
 
                 return;
@@ -1772,7 +1794,7 @@ namespace Microsoft.CodeAnalysis
                         if (HasUnsuppressedErrors(diagnostics))
                         {
                             // <Metalama>
-                            logger?.Error?.Log($"The compilation failed because there are errors at stage CompileMethods.'");
+                            this.ReportUnsuppressedErrors(diagnostics, logger, "CompileMethods");
                             // </Metalama>
 
                             success = false;
@@ -1820,7 +1842,7 @@ namespace Microsoft.CodeAnalysis
                                     if (HasUnsuppressableErrors(diagnostics))
                                     {
                                         // <Metalama>
-                                        logger?.Error?.Log($"The compilation failed because there are errors at stage GetWin32Resources.'");
+                                        this.ReportUnsuppressedErrors(diagnostics, logger, "GetWin32Resources");
                                         // </Metalama>
 
                                         return;
@@ -1835,9 +1857,8 @@ namespace Microsoft.CodeAnalysis
                             if (xmlStreamDisposerOpt?.HasFailedToDispose == true)
                             {
                                 // <Metalama>
-                                logger?.Error?.Log($"The compilation failed because there are errors disposing the XML stream.'");
+                                this.ReportUnsuppressedErrors(diagnostics, logger, "DisposeXmlStream");
                                 // </Metalama>
-
                                 return;
                             }
 
@@ -1874,9 +1895,9 @@ namespace Microsoft.CodeAnalysis
                     if (HasUnsuppressedErrors(diagnostics))
                     {
                         // <Metalama>
-                        logger?.Error?.Log($"The compilation failed because there are errors disposing before emitting the PE file.'");
+                        this.ReportUnsuppressedErrors(diagnostics, logger, "BeforeEmitPe");
                         // </Metalama>
-                        
+
                         success = false;
                     }
 
@@ -1919,7 +1940,7 @@ namespace Microsoft.CodeAnalysis
                         else
                         {
                             logger?.Error?.Log(
-                                $"The compilation failed because there are errors emitting the PE file.'");
+                                $"The compilation failed because there are errors emitting the PE file.");
                         }
                         // </Metalama>
 
@@ -1978,15 +1999,18 @@ namespace Microsoft.CodeAnalysis
         }
 
         // <Metalama>
-        private static void MapDiagnosticSyntaxTreesToFinalCompilation(DiagnosticBag sourceDiagnostics, DiagnosticBag targetDiagnostics, Compilation compilation, bool reportDiagnosticHelp = false )
+        private static void MapDiagnosticSyntaxTreesToFinalCompilation(DiagnosticBag sourceDiagnostics, DiagnosticBag targetDiagnostics, Compilation compilation, ILogger? logger )
         {
             var hasSystemBug = false;
             var hasAspectBug = false;
+            var trace = logger?.Trace;
             
             foreach (var diagnostic in sourceDiagnostics.AsEnumerable())
             {
                 if (!diagnostic.Location.IsInSource)
                 {
+                    trace?.Log($"Diagnostic passed through because not in source code: {diagnostic}");
+                    
                     targetDiagnostics.Add(diagnostic);
                     continue;
                 }
@@ -2011,7 +2035,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (sourceSyntaxNode == null || isGeneratedCode)
                 {
-                    // We compare the DefaultSeverity, not the Severity, so that warnings-as-errors are elimitated
+                    // We compare the DefaultSeverity, not the Severity, so that warnings-as-errors are eliminated
                     // from the output.
                     
                     if (diagnostic.DefaultSeverity >= DiagnosticSeverity.Error &&
@@ -2035,6 +2059,9 @@ namespace Microsoft.CodeAnalysis
                             MetalamaCompilerMessageProvider.Instance, (int)MetalamaErrorCode.ERR_ErrorInGeneratedCode,
                             diagnostic.Id, codeGenerator, diagnostic.GetMessage())).WithLocation(diagnostic.Location);
                         
+                        trace?.Log($"Diagnostic wrapped because it is an error reported in transformed code: {diagnostic}");
+                        
+                        
                         targetDiagnostics.Add(diagnosticWrapper);
                         
                         continue;
@@ -2042,6 +2069,8 @@ namespace Microsoft.CodeAnalysis
                     }
                     else
                     {
+                        trace?.Log($"Diagnostic ignored because this is not a C# error and it was reported in transformed code: {diagnostic}");
+                        
                         // Other diagnostics on generated code can be ignored.
                         continue;
                     }
@@ -2062,6 +2091,8 @@ namespace Microsoft.CodeAnalysis
                     }
                     else
                     {
+                        trace?.Log($"Diagnostic ignored because this not an error and it cannot be mapped to source code: {diagnostic}");
+
                         // Non-errors or non-C# diagnostics are skipped.
                         continue;
                     }
