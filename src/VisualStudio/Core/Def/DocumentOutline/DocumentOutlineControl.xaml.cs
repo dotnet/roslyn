@@ -6,11 +6,13 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Elfie.Model;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
@@ -31,9 +33,13 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
         private readonly IThreadingContext _threadingContext;
 
+        private readonly IAsynchronousOperationListener _asyncListener;
+
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
 
         private readonly IVsCodeWindow _codeWindow;
+
+        private readonly CancellationToken _cancellationToken;
 
         private SortOption _sortOption;
 
@@ -75,11 +81,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         private readonly AsyncBatchingWorkQueue<ExpansionOption> _determineHighlightAndPresentItemsQueue;
 
         /// <summary>
-        /// Queue to batch up work to do to select code in the editor based on the current caret position.
-        /// </summary>
-        private readonly AsyncBatchingWorkQueue<DocumentSymbolUIItem> _jumpToContentQueue;
-
-        /// <summary>
         /// Keeps track of the current primary and secondary text views. Should only be accessed by the UI thread.
         /// </summary>
         private readonly Dictionary<IVsTextView, ITextView> _trackedTextViews = new();
@@ -96,9 +97,11 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             _languageServiceBroker = languageServiceBroker;
             _threadingContext = threadingContext;
+            _asyncListener = asyncListener;
             _editorAdaptersFactoryService = editorAdaptersFactoryService;
             _codeWindow = codeWindow;
             ComEventSink.Advise<IVsCodeWindowEvents>(codeWindow, this);
+            _cancellationToken = cancellationToken;
             SortOption = SortOption.Location;
 
             _computeDataModelQueue = new AsyncBatchingWorkQueue<bool, DocumentSymbolDataModel?>(
@@ -118,12 +121,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             _determineHighlightAndPresentItemsQueue = new AsyncBatchingWorkQueue<ExpansionOption>(
                 DelayTimeSpan.NearImmediate,
                 DetermineHighlightedItemAndPresentItemsAsync,
-                asyncListener,
-                cancellationToken);
-
-            _jumpToContentQueue = new AsyncBatchingWorkQueue<DocumentSymbolUIItem>(
-                DelayTimeSpan.NearImmediate,
-                JumpToContentAsync,
                 asyncListener,
                 cancellationToken);
 
@@ -221,7 +218,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
         private void UpdateSortOptionAndDataModel(SortOption sortOption)
         {
-
             SortOption = sortOption;
             StartFilterAndSortDataModelTask();
         }
@@ -232,7 +228,47 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         private void JumpToContent(object sender, EventArgs e)
         {
             if (sender is StackPanel panel && panel.DataContext is DocumentSymbolUIItem symbol)
-                StartJumpToContentTask(symbol);
+            {
+                var token = _asyncListener.BeginAsyncOperation(nameof(JumpToContentAsync));
+                var task = JumpToContentAsync(symbol);
+                task.CompletesAsyncOperation(token);
+            }
+        }
+
+        /// <summary>
+        /// Given a DocumentSymbolUIItem, moves the caret to the start of its selection range in the latest active text view.
+        /// </summary>
+        private async Task JumpToContentAsync(DocumentSymbolUIItem symbol)
+        {
+            // Switch to the UI thread to update the latest active text view.
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_cancellationToken);
+
+            var activeTextView = GetLastActiveIWpfTextView();
+            if (activeTextView is null)
+                return;
+
+            // When the user clicks on a symbol node in the window, we want to move the cursor to that line in the editor. If we
+            // don't unsubscribe from Caret_PositionChanged first, we will call StartDetermineHighlightedItemAndPresentItemsTask()
+            // once we move the cursor ourselves. This is not ideal because we would be doing extra work to highlight a node that's
+            // already highlighted.
+            activeTextView.Caret.PositionChanged -= Caret_PositionChanged;
+
+            // Prevents us from being permanently unsubscribed if an exception is thrown while updating the text view selection.
+            try
+            {
+                // Map the symbol's original selection range start SnapshotPoint to a SnapshotPoint in the current textview.
+                var currentPoint = symbol.SelectionRangeSpan.Start.TranslateTo(activeTextView.TextSnapshot, PointTrackingMode.Negative);
+
+                // Set the active text view selection to this SnapshotPoint (by converting it to a SnapshotSpan).
+                var currentSpan = new SnapshotSpan(currentPoint, currentPoint);
+                activeTextView.SetSelection(currentSpan);
+                activeTextView.ViewScroller.EnsureSpanVisible(currentSpan);
+            }
+            finally
+            {
+                // Resubscribe to Caret_PositionChanged again so that when the user clicks somewhere else, we can highlight that node.
+                activeTextView.Caret.PositionChanged += Caret_PositionChanged;
+            }
         }
     }
 }

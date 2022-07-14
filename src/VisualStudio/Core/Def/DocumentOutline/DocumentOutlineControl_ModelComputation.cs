@@ -199,56 +199,5 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             SymbolTree.ItemsSource = documentSymbolUIItems;
         }
-
-        /// <summary>
-        /// Starts a new task to select code when a symbol node is clicked.
-        /// </summary>
-        private void StartJumpToContentTask(DocumentSymbolUIItem symbol)
-        {
-            _jumpToContentQueue.AddWork(symbol);
-        }
-
-        /// <summary>
-        /// Given a DocumentSymbolItem, moves the caret to its position in the latest active text view.
-        /// </summary>
-        private async ValueTask JumpToContentAsync(ImmutableSegmentedList<DocumentSymbolUIItem> symbol, CancellationToken cancellationToken)
-        {
-            var model = await _computeDataModelQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
-            if (model is null)
-                return;
-
-            // Switch to the UI thread to update the latest active text view.
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            var activeTextView = GetLastActiveIWpfTextView();
-            if (activeTextView is null)
-                return;
-
-            // When the user clicks on a symbol node in the window, we want to move the cursor to that line in the editor. If we don't
-            // unsubscribe from Caret_PositionChanged first, we will call StartHightlightNodeTask() once we move the cursor ourselves.
-            // This is not ideal because we would be doing extra work to highlight a node that's already highlighted.
-            activeTextView.Caret.PositionChanged -= Caret_PositionChanged;
-
-            // Prevents us from being permanently unsubscribed if an exception is thrown while updating the text view selection.
-            try
-            {
-                // Get the original position of the start of the symbol.
-                var originalPosition = symbol.First().SelectionRangeSpan.Start.Position;
-
-                // Map this position to a span in the current textview.
-                var originalSpan = new SnapshotSpan(model.OriginalSnapshot, Span.FromBounds(originalPosition, originalPosition));
-
-                var currentSpan = originalSpan.TranslateTo(activeTextView.TextSnapshot, SpanTrackingMode.EdgeExclusive);
-
-                // Set the active text view selection to this span.
-                activeTextView.SetSelection(currentSpan);
-                activeTextView.ViewScroller.EnsureSpanVisible(currentSpan);
-            }
-            finally
-            {
-                // Resubscribe to Caret_PositionChanged again so that when the user clicks somewhere else, we can highlight that node.
-                activeTextView.Caret.PositionChanged += Caret_PositionChanged;
-            }
-        }
     }
 }
