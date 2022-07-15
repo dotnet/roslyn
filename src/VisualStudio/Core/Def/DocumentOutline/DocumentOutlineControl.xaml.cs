@@ -161,9 +161,11 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             _trackedTextViews.Add(textView, wpfTextView);
 
+            // In the split window case, there's two views (each with its own caret position) but only one text buffer.
+            // Subscribe to caret position changes once per view.
             wpfTextView.Caret.PositionChanged += Caret_PositionChanged;
 
-            // Subscribe only once since text buffer is the same for the primary and secondary text views.
+            // Subscribe to text buffer changes once per code window.
             if (_trackedTextViews.Count == 1)
                 wpfTextView.TextBuffer.Changed += TextBuffer_Changed;
 
@@ -176,9 +178,11 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             if (_trackedTextViews.TryGetValue(pView, out var view))
             {
+                // In the split window case, there's two views (each with its own caret position) but only one text buffer.
+                // Unsubscribe to caret position changes once per view.
                 view.Caret.PositionChanged -= Caret_PositionChanged;
 
-                // Unsubscribe only once since text buffer is the same for the primary and secondary text views.
+                // Unsubscribe to text buffer changes once per code window.
                 if (_trackedTextViews.Count == 1)
                     view.TextBuffer.Changed -= TextBuffer_Changed;
 
