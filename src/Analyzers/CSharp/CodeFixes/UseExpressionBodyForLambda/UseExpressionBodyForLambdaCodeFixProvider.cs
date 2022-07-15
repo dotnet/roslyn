@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
                     return returnType.Name != nameof(Task);
                 }
 
-                var taskType = semanticModel.Compilation.GetTypeByMetadataName(typeof(Task).FullName);
+                var taskType = semanticModel.Compilation.GetTypeByMetadataName(typeof(Task).FullName!);
                 if (returnType.Equals(taskType))
                 {
                     // 'async Task'.  definitely do not create a 'return' statement;
