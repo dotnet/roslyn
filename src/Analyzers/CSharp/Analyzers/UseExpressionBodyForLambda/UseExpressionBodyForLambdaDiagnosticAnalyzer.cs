@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -84,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             }
         }
 
-        private static Diagnostic AnalyzeSyntax(
+        private static Diagnostic? AnalyzeSyntax(
             SemanticModel semanticModel, CodeStyleOption2<ExpressionBodyPreference> option,
             LambdaExpressionSyntax declaration, CancellationToken cancellationToken)
         {
@@ -93,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
                 var location = GetDiagnosticLocation(declaration);
 
                 var additionalLocations = ImmutableArray.Create(declaration.GetLocation());
-                var properties = ImmutableDictionary<string, string>.Empty;
+                var properties = ImmutableDictionary<string, string?>.Empty;
                 return DiagnosticHelper.Create(
                     CreateDescriptorWithId(UseExpressionBodyTitle, UseExpressionBodyTitle),
                     location, option.Notification.Severity, additionalLocations, properties);
@@ -105,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
                 // if they don't want expression bodies for this member.  
                 var location = GetDiagnosticLocation(declaration);
 
-                var properties = ImmutableDictionary<string, string>.Empty;
+                var properties = ImmutableDictionary<string, string?>.Empty;
                 var additionalLocations = ImmutableArray.Create(declaration.GetLocation());
                 return DiagnosticHelper.Create(
                     CreateDescriptorWithId(UseBlockBodyTitle, UseBlockBodyTitle),
@@ -119,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             => Location.Create(declaration.SyntaxTree,
                     TextSpan.FromBounds(declaration.SpanStart, declaration.ArrowToken.Span.End));
 
-        internal static ExpressionSyntax GetBodyAsExpression(LambdaExpressionSyntax declaration)
+        internal static ExpressionSyntax? GetBodyAsExpression(LambdaExpressionSyntax declaration)
             => declaration.Body as ExpressionSyntax;
 
         private static bool CanOfferUseExpressionBody(
@@ -141,19 +142,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
 
             // They don't have an expression body.  See if we could convert the block they 
             // have into one.
-            return TryConvertToExpressionBody(declaration, languageVersion, preference, out _, out _);
+            return TryConvertToExpressionBody(declaration, languageVersion, preference, out _);
         }
 
         internal static bool TryConvertToExpressionBody(
             LambdaExpressionSyntax declaration,
             LanguageVersion languageVersion,
             ExpressionBodyPreference conversionPreference,
-            out ExpressionSyntax expression,
-            out SyntaxToken semicolon)
+            [NotNullWhen(true)] out ExpressionSyntax? expression)
         {
             var body = declaration.Body as BlockSyntax;
 
-            return body.TryConvertToExpressionBody(languageVersion, conversionPreference, out expression, out semicolon);
+            return body.TryConvertToExpressionBody(languageVersion, conversionPreference, out expression, out _);
         }
 
         private static bool CanOfferUseBlockBody(

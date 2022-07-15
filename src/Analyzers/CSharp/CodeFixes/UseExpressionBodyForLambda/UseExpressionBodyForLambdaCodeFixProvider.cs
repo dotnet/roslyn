@@ -84,12 +84,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             var expressionBody = UseExpressionBodyForLambdaDiagnosticAnalyzer.GetBodyAsExpression(currentDeclaration);
             return expressionBody == null
                 ? WithExpressionBody(currentDeclaration, originalDeclaration.GetLanguageVersion())
-                : WithBlockBody(semanticModel, originalDeclaration, currentDeclaration);
+                : WithBlockBody(semanticModel, originalDeclaration, currentDeclaration, expressionBody);
         }
 
         private static LambdaExpressionSyntax WithExpressionBody(LambdaExpressionSyntax declaration, LanguageVersion languageVersion)
         {
-            if (!UseExpressionBodyForLambdaDiagnosticAnalyzer.TryConvertToExpressionBody(declaration, languageVersion, ExpressionBodyPreference.WhenPossible, out var expressionBody, out _))
+            if (!UseExpressionBodyForLambdaDiagnosticAnalyzer.TryConvertToExpressionBody(declaration, languageVersion, ExpressionBodyPreference.WhenPossible, out var expressionBody))
             {
                 return declaration;
             }
@@ -108,9 +108,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
         }
 
         private static LambdaExpressionSyntax WithBlockBody(
-            SemanticModel semanticModel, LambdaExpressionSyntax originalDeclaration, LambdaExpressionSyntax currentDeclaration)
+            SemanticModel semanticModel, LambdaExpressionSyntax originalDeclaration, LambdaExpressionSyntax currentDeclaration, ExpressionSyntax expressionBody)
         {
-            var expressionBody = UseExpressionBodyForLambdaDiagnosticAnalyzer.GetBodyAsExpression(currentDeclaration);
             var createReturnStatementForExpression = CreateReturnStatementForExpression(
                 semanticModel, originalDeclaration);
 
