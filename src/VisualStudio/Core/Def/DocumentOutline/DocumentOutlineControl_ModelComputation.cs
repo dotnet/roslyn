@@ -25,6 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         {
             _threadingContext.ThrowIfNotOnUIThread();
 
+            // If we return null, the calling queue returns and we stop processing.
             if (ErrorHandler.Failed(_codeWindow.GetLastActiveView(out var textView)))
                 return null;
 
