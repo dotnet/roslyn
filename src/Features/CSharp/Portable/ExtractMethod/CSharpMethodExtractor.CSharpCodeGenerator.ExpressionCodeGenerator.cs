@@ -170,22 +170,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 protected override SyntaxNode GetFirstStatementOrInitializerSelectedAtCallSite()
                 {
                     var scope = (SyntaxNode)CSharpSelectionResult.GetContainingScopeOf<StatementSyntax>();
-                    if (scope == null)
-                    {
-                        scope = CSharpSelectionResult.GetContainingScopeOf<FieldDeclarationSyntax>();
-                    }
+                    scope ??= CSharpSelectionResult.GetContainingScopeOf<FieldDeclarationSyntax>();
 
-                    if (scope == null)
-                    {
-                        scope = CSharpSelectionResult.GetContainingScopeOf<ConstructorInitializerSyntax>();
-                    }
+                    scope ??= CSharpSelectionResult.GetContainingScopeOf<ConstructorInitializerSyntax>();
 
-                    if (scope == null)
-                    {
-                        // This is similar to FieldDeclaration case but we only want to do this 
-                        // if the member has an expression body.
-                        scope = CSharpSelectionResult.GetContainingScopeOf<ArrowExpressionClauseSyntax>().Parent;
-                    }
+                    // This is similar to FieldDeclaration case but we only want to do this 
+                    // if the member has an expression body.
+                    scope ??= CSharpSelectionResult.GetContainingScopeOf<ArrowExpressionClauseSyntax>().Parent;
 
                     return scope;
                 }

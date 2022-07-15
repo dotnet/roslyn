@@ -194,10 +194,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
                 }
             }
 
-            if (node == null)
-            {
-                node = token.Parent;
-            }
+            node ??= token.Parent;
 
             return langServices.GetDisplayNode(node);
         }

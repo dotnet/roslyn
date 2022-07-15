@@ -552,6 +552,11 @@
         <target state="translated">'{0}' 기능은 C# 10.0에서 사용할 수 없습니다. 언어 버전 {1} 이상을 사용하세요.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FeatureNotAvailableInVersion11">
+        <source>Feature '{0}' is not available in C# 11.0. Please use language version {1} or greater.</source>
+        <target state="new">Feature '{0}' is not available in C# 11.0. Please use language version {1} or greater.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
         <source>Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</source>
         <target state="translated">'{0}' 기능은 C# 8.0에서 사용할 수 없습니다. 언어 버전 {1} 이상을 사용하세요.</target>
@@ -580,6 +585,31 @@
       <trans-unit id="ERR_FileScopedNamespaceNotBeforeAllMembers">
         <source>File-scoped namespace must precede all other members in a file.</source>
         <target state="translated">파일 범위 네임스페이스는 파일의 다른 모든 멤버보다 앞에 와야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileTypeBase">
+        <source>File-local type '{0}' cannot be used as a base type of non-file-local type '{1}'.</source>
+        <target state="new">File-local type '{0}' cannot be used as a base type of non-file-local type '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileTypeDisallowedInSignature">
+        <source>File-local type '{0}' cannot be used in a member signature in non-file-local type '{1}'.</source>
+        <target state="new">File-local type '{0}' cannot be used in a member signature in non-file-local type '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileTypeNameDisallowed">
+        <source>Types and aliases cannot be named 'file'.</source>
+        <target state="new">Types and aliases cannot be named 'file'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileTypeNested">
+        <source>File-local type '{0}' must be defined in a top level type; '{0}' is a nested type.</source>
+        <target state="new">File-local type '{0}' must be defined in a top level type; '{0}' is a nested type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileTypeNoExplicitAccessibility">
+        <source>File-local type '{0}' cannot use accessibility modifiers.</source>
+        <target state="new">File-local type '{0}' cannot use accessibility modifiers.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FixedFieldMustNotBeRef">
@@ -625,6 +655,11 @@
       <trans-unit id="ERR_GlobalUsingOutOfOrder">
         <source>A global using directive must precede all non-global using directives.</source>
         <target state="translated">전역 using 지시문은 전역이 아닌 모든 using 지시문 앞에 있어야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_GlobalUsingStaticFileType">
+        <source>File-local type '{0}' cannot be used in a 'global using static' directive.</source>
+        <target state="new">File-local type '{0}' cannot be used in a 'global using static' directive.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
@@ -1227,6 +1262,11 @@
         <target state="translated">ref 필드는 ref 구조체를 참조할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RefFieldInNonRefStruct">
+        <source>A ref field can only be declared in a ref struct.</source>
+        <target state="new">A ref field can only be declared in a ref struct.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefLocalOrParamExpected">
         <source>The left-hand side of a ref assignment must be a ref variable.</source>
         <target state="translated">ref 할당의 왼쪽은 ref 변수여야 합니다.</target>
@@ -1600,6 +1640,11 @@
       <trans-unit id="IDS_FeatureFileScopedNamespace">
         <source>file-scoped namespace</source>
         <target state="translated">파일 범위 네임스페이스</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureFileTypes">
+        <source>file types</source>
+        <target state="new">file types</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureGenericAttributes">
@@ -2206,7 +2251,7 @@
 -target:library              라이브러리를 빌드합니다. (약식: -t:library)
 -target:module               다른 어셈블리에 추가할 수 있는 모듈을
                              빌드합니다. (약식: -t:module)
--target:appcontainerexe      Appcontainer 실행 파일을 빌드합니다. (약식: 
+-target:appcontainerexe      Appcontainer 실행 파일을 빌드합니다. (약식:
                               -t:appcontainerexe)
 -target:winmdobj             WinMDExp에서 사용되는 Windows 런타임 중간
                              파일을 빌드합니다. (약식: -t:winmdobj)
@@ -2320,7 +2365,7 @@
                               지정합니다.
 -utf8output                   컴파일러 메시지를 UTF-8 인코딩으로 출력합니다.
 -main:&lt;type&gt;                   진입점이 포함된 형식을 지정합니다(다른
-                              모든 가능한 진입점 무시). 
+                              모든 가능한 진입점 무시).
                               (약식: -m)
 -fullpaths                    컴파일러가 정규화된 경로를 생성합니다.
 -filealign:&lt;n&gt;                출력 파일 섹션에 사용되는 맞춤을
@@ -10474,11 +10519,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="InvalidGetDeclarationNameMultipleDeclarators">
         <source>Called GetDeclarationName for a declaration node that can possibly contain multiple variable declarators.</source>
         <target state="translated">여러 변수 선언자를 포함할 수 있는 선언 노드에 대해 호출된 GetDeclarationName입니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TreeNotPartOfCompilation">
-        <source>tree not part of compilation</source>
-        <target state="translated">트리는 컴파일의 일부가 아닙니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="PositionIsNotWithinSyntax">

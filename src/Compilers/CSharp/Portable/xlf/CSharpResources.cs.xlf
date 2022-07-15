@@ -552,6 +552,11 @@
         <target state="translated">Funkce {0} není v C# 10.0 dostupná. Použijte prosím jazykovou verzi {1} nebo novější.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FeatureNotAvailableInVersion11">
+        <source>Feature '{0}' is not available in C# 11.0. Please use language version {1} or greater.</source>
+        <target state="new">Feature '{0}' is not available in C# 11.0. Please use language version {1} or greater.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
         <source>Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</source>
         <target state="translated">Funkce {0} není v C# 8.0 dostupná. Použijte prosím jazykovou verzi {1} nebo větší.</target>
@@ -580,6 +585,31 @@
       <trans-unit id="ERR_FileScopedNamespaceNotBeforeAllMembers">
         <source>File-scoped namespace must precede all other members in a file.</source>
         <target state="translated">Obor názvů pro celý soubor musí předcházet všem ostatním členům v souboru.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileTypeBase">
+        <source>File-local type '{0}' cannot be used as a base type of non-file-local type '{1}'.</source>
+        <target state="new">File-local type '{0}' cannot be used as a base type of non-file-local type '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileTypeDisallowedInSignature">
+        <source>File-local type '{0}' cannot be used in a member signature in non-file-local type '{1}'.</source>
+        <target state="new">File-local type '{0}' cannot be used in a member signature in non-file-local type '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileTypeNameDisallowed">
+        <source>Types and aliases cannot be named 'file'.</source>
+        <target state="new">Types and aliases cannot be named 'file'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileTypeNested">
+        <source>File-local type '{0}' must be defined in a top level type; '{0}' is a nested type.</source>
+        <target state="new">File-local type '{0}' must be defined in a top level type; '{0}' is a nested type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileTypeNoExplicitAccessibility">
+        <source>File-local type '{0}' cannot use accessibility modifiers.</source>
+        <target state="new">File-local type '{0}' cannot use accessibility modifiers.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FixedFieldMustNotBeRef">
@@ -625,6 +655,11 @@
       <trans-unit id="ERR_GlobalUsingOutOfOrder">
         <source>A global using directive must precede all non-global using directives.</source>
         <target state="translated">Globální direktiva using musí předcházet všem direktivám using, které nejsou globální. </target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_GlobalUsingStaticFileType">
+        <source>File-local type '{0}' cannot be used in a 'global using static' directive.</source>
+        <target state="new">File-local type '{0}' cannot be used in a 'global using static' directive.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
@@ -1227,6 +1262,11 @@
         <target state="translated">Pole ref nemůže odkazovat na hodnotu ref struct.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RefFieldInNonRefStruct">
+        <source>A ref field can only be declared in a ref struct.</source>
+        <target state="new">A ref field can only be declared in a ref struct.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefLocalOrParamExpected">
         <source>The left-hand side of a ref assignment must be a ref variable.</source>
         <target state="translated">Levá strana přiřazení odkazu musí být parametr Ref.</target>
@@ -1602,6 +1642,11 @@
         <target state="translated">obor názvů pro celý soubor</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureFileTypes">
+        <source>file types</source>
+        <target state="new">file types</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureGenericAttributes">
         <source>generic attributes</source>
         <target state="translated">obecné atributy</target>
@@ -1719,7 +1764,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureSpanCharConstantPattern">
         <source>pattern matching ReadOnly/Span&lt;char&gt; on constant string</source>
-        <target state="translated">vzor odpovídající ReadOnly/Span&lt;char&gt; na konstantním řetězci</target>
+        <target state="new">pattern matching ReadOnly/Span&lt;char&gt; on constant string</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
@@ -2260,7 +2305,7 @@
 -instrument:TestCoverage Vytvoří sestavení instrumentované ke shromažďování
  informací o pokrytí.
 -sourcelink:&lt;file&gt; Informace o zdrojovém odkazu vkládané do souboru PDB..
- 
+
  - CHYBY A UPOZORNĚNÍ -
 -warnaserror[+|-] Hlásí všechna upozornění jako chyby.
 -warnaserror[+|-]:&lt;warn list&gt; Hlásí zadaná upozornění jako chyby.
@@ -10475,11 +10520,6 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
       <trans-unit id="InvalidGetDeclarationNameMultipleDeclarators">
         <source>Called GetDeclarationName for a declaration node that can possibly contain multiple variable declarators.</source>
         <target state="translated">Proběhlo volání funkce GetDeclarationName kvůli uzlu deklarací, který by mohl obsahovat několik variabilních deklarátorů.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TreeNotPartOfCompilation">
-        <source>tree not part of compilation</source>
-        <target state="translated">strom není součástí kompilace</target>
         <note />
       </trans-unit>
       <trans-unit id="PositionIsNotWithinSyntax">

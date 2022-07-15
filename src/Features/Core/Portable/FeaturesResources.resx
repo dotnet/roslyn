@@ -2872,6 +2872,9 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Silent" xml:space="preserve">
     <value>Silent</value>
   </data>
+  <data name="Write_to_the_console" xml:space="preserve">
+    <value>Write to the console</value>
+  </data>
   <data name="embedded" xml:space="preserve">
     <value>embedded</value>
     <comment>Embedded is a technical term for "Embedded source", where souce files are embedded into the PDB</comment>
@@ -3135,6 +3138,9 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Sort_Imports_or_usings" xml:space="preserve">
     <value>Sort Imports or usings</value>
   </data>
+  <data name="Insert_an_if_statement" xml:space="preserve">
+    <value>Insert an 'if' statement</value>
+  </data>
   <data name="Directives_from_0" xml:space="preserve">
     <value>Directives from '{0}'</value>
   </data>
@@ -3149,5 +3155,15 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="Fixing_0" xml:space="preserve">
     <value>Fixing '{0}'</value>
+  </data>
+  <data name="Pull_selected_members_up_to_0" xml:space="preserve">
+    <value>Pull selected members up to {0}</value>
+  </data>
+  <data name="Pull_selected_members_up" xml:space="preserve">
+    <value>Pull selected members up</value>
+  </data>
+  <data name="Required" xml:space="preserve">
+    <value>required</value>
+    <comment>Used in the object initializer completion.</comment>
   </data>
 </root>

@@ -22,17 +22,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         private readonly IThreadingContext _threadingContext;
         private readonly RecentItemsManager _recentItemsManager;
         private readonly IGlobalOptionService _globalOptions;
+        private readonly ILanguageServerSnippetExpander? _languageServerSnippetExpander;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CommitManagerProvider(
             IThreadingContext threadingContext,
             RecentItemsManager recentItemsManager,
-            IGlobalOptionService globalOptions)
+            IGlobalOptionService globalOptions,
+            [Import(AllowDefault = true)] ILanguageServerSnippetExpander? languageServerSnippetExpander)
         {
             _threadingContext = threadingContext;
             _recentItemsManager = recentItemsManager;
             _globalOptions = globalOptions;
+            _languageServerSnippetExpander = languageServerSnippetExpander;
         }
 
         IAsyncCompletionCommitManager? IAsyncCompletionCommitManagerProvider.GetOrCreate(ITextView textView)
@@ -42,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return null;
             }
 
-            return new CommitManager(textView, _recentItemsManager, _globalOptions, _threadingContext);
+            return new CommitManager(textView, _recentItemsManager, _globalOptions, _threadingContext, _languageServerSnippetExpander);
         }
     }
 }

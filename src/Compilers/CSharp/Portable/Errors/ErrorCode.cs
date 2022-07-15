@@ -2099,10 +2099,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FixedFieldMustNotBeRef = 9049,
         ERR_RefFieldCannotReferToRefStruct = 9050,
 
+        ERR_FileTypeDisallowedInSignature = 9051,
+        ERR_FileTypeNoExplicitAccessibility = 9052,
+        ERR_FileTypeBase = 9053,
+        ERR_FileTypeNested = 9054,
+        ERR_GlobalUsingStaticFileType = 9055,
+        ERR_FileTypeNameDisallowed = 9056,
         WRN_AnalyzerReferencesNewerCompiler = 9057,
+        ERR_FeatureNotAvailableInVersion11 = 9058,
+        ERR_RefFieldInNonRefStruct = 9059,
 
         #endregion
 
-        // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
+        // Note: you will need to do the following after adding warnings:
+        //  1) Re-generate compiler code (eng\generate-compiler-code.cmd).
+        //  2) Update ErrorFacts.IsBuildOnlyDiagnostic to handle the new error code.
     }
 }

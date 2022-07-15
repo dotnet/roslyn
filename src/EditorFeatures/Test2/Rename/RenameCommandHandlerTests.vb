@@ -143,6 +143,9 @@ End Class
                 </Workspace>, host)
 
                 Dim view = workspace.Documents.Single().GetTextView()
+
+                view.Options.GlobalOptions.SetOptionValue(DefaultOptions.IndentStyleId, IndentingStyle.Smart)
+
                 view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value))
 
                 Dim commandHandler = CreateCommandHandler(workspace)

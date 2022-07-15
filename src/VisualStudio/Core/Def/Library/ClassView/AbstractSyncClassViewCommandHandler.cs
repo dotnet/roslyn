@@ -96,10 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ClassVi
                 navInfo = libraryService.NavInfoFactory.CreateForSymbol(symbol, document.Project, semanticModel.Compilation, useExpandedHierarchy: true);
             }
 
-            if (navInfo == null)
-            {
-                navInfo = libraryService.NavInfoFactory.CreateForProject(document.Project);
-            }
+            navInfo ??= libraryService.NavInfoFactory.CreateForProject(document.Project);
 
             if (navInfo == null)
             {

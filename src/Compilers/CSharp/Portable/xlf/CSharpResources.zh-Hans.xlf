@@ -552,6 +552,11 @@
         <target state="translated">功能“{0}”在 C# 10.0 中不可用。请使用语言版本 {1} 或更高版本。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FeatureNotAvailableInVersion11">
+        <source>Feature '{0}' is not available in C# 11.0. Please use language version {1} or greater.</source>
+        <target state="new">Feature '{0}' is not available in C# 11.0. Please use language version {1} or greater.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
         <source>Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</source>
         <target state="translated">功能“{0}”在 C# 8.0 中不可用。请使用语言版本 {1} 或更高版本。</target>
@@ -580,6 +585,31 @@
       <trans-unit id="ERR_FileScopedNamespaceNotBeforeAllMembers">
         <source>File-scoped namespace must precede all other members in a file.</source>
         <target state="translated">文件范围内的命名空间必须位于文件中所有其他成员之前。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileTypeBase">
+        <source>File-local type '{0}' cannot be used as a base type of non-file-local type '{1}'.</source>
+        <target state="new">File-local type '{0}' cannot be used as a base type of non-file-local type '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileTypeDisallowedInSignature">
+        <source>File-local type '{0}' cannot be used in a member signature in non-file-local type '{1}'.</source>
+        <target state="new">File-local type '{0}' cannot be used in a member signature in non-file-local type '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileTypeNameDisallowed">
+        <source>Types and aliases cannot be named 'file'.</source>
+        <target state="new">Types and aliases cannot be named 'file'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileTypeNested">
+        <source>File-local type '{0}' must be defined in a top level type; '{0}' is a nested type.</source>
+        <target state="new">File-local type '{0}' must be defined in a top level type; '{0}' is a nested type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileTypeNoExplicitAccessibility">
+        <source>File-local type '{0}' cannot use accessibility modifiers.</source>
+        <target state="new">File-local type '{0}' cannot use accessibility modifiers.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FixedFieldMustNotBeRef">
@@ -625,6 +655,11 @@
       <trans-unit id="ERR_GlobalUsingOutOfOrder">
         <source>A global using directive must precede all non-global using directives.</source>
         <target state="translated">全局 using 指令必须位于所有非全局 using 指令之前。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_GlobalUsingStaticFileType">
+        <source>File-local type '{0}' cannot be used in a 'global using static' directive.</source>
+        <target state="new">File-local type '{0}' cannot be used in a 'global using static' directive.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
@@ -1227,6 +1262,11 @@
         <target state="translated">ref 字段不能引用 ref 结构。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RefFieldInNonRefStruct">
+        <source>A ref field can only be declared in a ref struct.</source>
+        <target state="new">A ref field can only be declared in a ref struct.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefLocalOrParamExpected">
         <source>The left-hand side of a ref assignment must be a ref variable.</source>
         <target state="translated">ref 赋值的左侧必须为 ref 变量。</target>
@@ -1600,6 +1640,11 @@
       <trans-unit id="IDS_FeatureFileScopedNamespace">
         <source>file-scoped namespace</source>
         <target state="translated">文件范围内的命名空间</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureFileTypes">
+        <source>file types</source>
+        <target state="new">file types</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureGenericAttributes">
@@ -2213,12 +2258,12 @@
                               (短格式: - t:winmdobj)
 -doc:&lt;file&gt;                   要生成的 XML 文档文件
 -refout:&lt;file&gt;                要生成的引用程序集输出
- 
+
 -platform:&lt;string&gt;            限制可以运行此代码的平台: x86、
                               Itanium、x64、arm、arm64、 anycpu32bitpreferred 或
                               anycpu。默认值是 anycpu。
 
-                       - 输入文件 - 
+                       - 输入文件 -
 -recurse:&lt;wildcard&gt;           根据通配符规范包括当前目录和
                               子目录中的
                                所有文件
@@ -2232,7 +2277,7 @@
 -analyzer:&lt;file list&gt;         从此程序集运行分析器
                                (短格式: -a)
 -additionalfile:&lt;file list&gt;   不直接影响代码生成
-                              但由分析器用于生成错误或警报 
+                              但由分析器用于生成错误或警报
                               的其他文件。
 -embed                        在 PDB 中嵌入所有源文件。
 -embed:&lt;file list&gt;             在 PDB 中嵌入特定文件。
@@ -2245,7 +2290,7 @@
 -resource:&lt;resinfo&gt;           嵌入指定的资源(短格式: -res)
 - linkresource:&lt;resinfo&gt;       将指定资源关联到此程序集
                               (短格式: -linkres)，其中 resinfo 格式
- 
+
                               是 &lt;file&gt;[,&lt;string name&gt;[,public|private]]
 
                        - 代码生成 -
@@ -2262,16 +2307,16 @@
 -instrument:TestCoverage      生成 已检测的程序集以收集
                                覆盖范围信息
 -sourcelink:&lt;file&gt;           要嵌入 PDB 的源链接信息。
- 
+
                        - 错误和警报  -
 -warnaserror[+|-]             将所有警报报告为错误
 -warnaserror[+|-]:&lt;warn list&gt; 将特定警报报告为错误
                                (将 "nullable" 用于所有可为 null 的警报)
 -warn:&lt;n&gt;                     设置警报级别(0 或更高) (短格式: -w)
- 
+
 -nowarn:&lt;warn list&gt;           禁用特定警报消息
                               (将 "nullable" 用于所有可为 null 的警报)
- 
+
 -ruleset:&lt;file&gt;               指定禁用特定诊断的规则集
                               文件。
 -errorlog:&lt;file&gt; [,version=&lt;sarif_version&gt;]
@@ -2280,7 +2325,7 @@
                               sarif_version:{1|2|2.1} 默认值是 1. 2 和 2.1
                               这两者 都是指 SARIF 版本 2.1.0。
 -reportanalyzer               报告其他分析器信息，例如
-                              执行时间。 
+                              执行时间。
 -skipanalyzers[+|-]           跳过诊断分析器的执行。
 
                      - 语言 -
@@ -2321,7 +2366,7 @@
 -checksumalgorithm:&lt;alg&gt;      指定算法以计算存储在  PDB 中的源文件
                               校验和。支持的值是:
                               SHA1 或 SHA256 (默认)。
- 
+
 -codepage:&lt;n&gt;                 指定打开源文件时使用的
                               代码页
 -utf8output                    采用 UTF-8 编码的输出编译器消息
@@ -10480,11 +10525,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="InvalidGetDeclarationNameMultipleDeclarators">
         <source>Called GetDeclarationName for a declaration node that can possibly contain multiple variable declarators.</source>
         <target state="translated">为可能包含多个变量声明符的声明节点调用了 GetDeclarationName。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TreeNotPartOfCompilation">
-        <source>tree not part of compilation</source>
-        <target state="translated">树不属于编译</target>
         <note />
       </trans-unit>
       <trans-unit id="PositionIsNotWithinSyntax">

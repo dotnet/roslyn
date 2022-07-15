@@ -960,6 +960,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">内联并保留“{0}”</target>
         <note />
       </trans-unit>
+      <trans-unit id="Insert_an_if_statement">
+        <source>Insert an 'if' statement</source>
+        <target state="new">Insert an 'if' statement</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
         <source>Insufficient hexadecimal digits</source>
         <target state="translated">无效的十六进制数字</target>
@@ -1313,6 +1318,16 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Pull_members_up_to_base_type">
         <source>Pull members up to base type...</source>
         <target state="translated">将成员拉到基类...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pull_selected_members_up">
+        <source>Pull selected members up</source>
+        <target state="new">Pull selected members up</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pull_selected_members_up_to_0">
+        <source>Pull selected members up to {0}</source>
+        <target state="new">Pull selected members up to {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Quantifier_x_y_following_nothing">
@@ -2525,6 +2540,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">将条件表达式替换为语句</target>
         <note />
       </trans-unit>
+      <trans-unit id="Required">
+        <source>required</source>
+        <target state="new">required</target>
+        <note>Used in the object initializer completion.</note>
+      </trans-unit>
       <trans-unit id="Resolve_conflict_markers">
         <source>Resolve conflict markers</source>
         <target state="translated">解决冲突标记</target>
@@ -2973,6 +2993,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Wrapping">
         <source>Wrapping</source>
         <target state="translated">换行</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Write_to_the_console">
+        <source>Write to the console</source>
+        <target state="new">Write to the console</target>
         <note />
       </trans-unit>
       <trans-unit id="You_can_use_the_navigation_bar_to_switch_contexts">

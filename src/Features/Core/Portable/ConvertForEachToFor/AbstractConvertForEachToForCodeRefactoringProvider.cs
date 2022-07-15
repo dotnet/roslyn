@@ -325,10 +325,7 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
                     return;
                 }
 
-                if (explicitInterface == null)
-                {
-                    explicitInterface = current;
-                }
+                explicitInterface ??= current;
             }
 
             // okay, we don't have implicitly implemented one, but we do have explicitly implemented one

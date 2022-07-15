@@ -486,7 +486,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             sourceFileB.WriteAllText(sourceB2, encodingB);
 
             // prepare workspace as if it was loaded from project files:
-            using var _ = CreateWorkspace(out var solution, out var service, new[] { typeof(DummyLanguageService) });
+            using var _ = CreateWorkspace(out var solution, out var service, new[] { typeof(NoCompilationLanguageService) });
 
             var projectP = solution.AddProject("P", "P", LanguageNames.CSharp);
             solution = projectP.Solution;
@@ -531,7 +531,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 AddDocument(CreateDesignTimeOnlyDocument(projectP.Id, name: "dt2.cs", path: "dt2.cs"));
 
             // project that does not support EnC - the contents of documents in this project shouldn't be loaded:
-            var projectQ = solution.AddProject("Q", "Q", DummyLanguageService.LanguageName);
+            var projectQ = solution.AddProject("Q", "Q", NoCompilationConstants.LanguageName);
             solution = projectQ.Solution;
 
             solution = solution.AddDocument(DocumentInfo.Create(
@@ -576,7 +576,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             _mockCompilationOutputsProvider = _ => new MockCompilationOutputs(Guid.Empty);
 
-            await StartDebuggingSessionAsync(service, solution);
+            var debuggingSession = await StartDebuggingSessionAsync(service, solution);
 
             // no changes:
             var diagnostics = await service.GetDocumentDiagnosticsAsync(document1, s_noActiveSpans, CancellationToken.None);
@@ -588,6 +588,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             diagnostics = await service.GetDocumentDiagnosticsAsync(document2, s_noActiveSpans, CancellationToken.None);
             Assert.Empty(diagnostics);
+
+            // changes in the project are ignored:
+            var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
+            Assert.Equal(ManagedModuleUpdateStatus.None, updates.Status);
+            Assert.Empty(updates.Updates);
+            Assert.Empty(emitDiagnostics);
+
+            EndDebuggingSession(debuggingSession);
         }
 
         [Fact]
@@ -631,8 +639,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         [CombinatorialData]
         public async Task ProjectThatDoesNotSupportEnC(bool breakMode)
         {
-            using var _ = CreateWorkspace(out var solution, out var service, new[] { typeof(DummyLanguageService) });
-            var project = solution.AddProject("dummy_proj", "dummy_proj", DummyLanguageService.LanguageName);
+            using var _ = CreateWorkspace(out var solution, out var service, new[] { typeof(NoCompilationLanguageService) });
+            var project = solution.AddProject("dummy_proj", "dummy_proj", NoCompilationConstants.LanguageName);
             var document = project.AddDocument("test", SourceText.From("dummy1"));
             solution = document.Project.Solution;
 
@@ -823,8 +831,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 expectedErrorMessage = e.Message;
             }
 
+            var source1 = "class C { void M() { System.Console.WriteLine(1); } }";
+            var source2 = "class C { void M() { System.Console.WriteLine(2); } }";
+
             using var _w = CreateWorkspace(out var solution, out var service);
-            (solution, var document1) = AddDefaultTestProject(solution, "class C1 { void M() { System.Console.WriteLine(1); } }");
+            (solution, var document1) = AddDefaultTestProject(solution, source1);
 
             _mockCompilationOutputsProvider = _ => new CompilationOutputFiles(moduleFile.Path);
 
@@ -836,7 +847,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             }
 
             // change the source:
-            solution = solution.WithDocumentText(document1.Id, SourceText.From("class C1 { void M() { System.Console.WriteLine(2); } }"));
+            solution = solution.WithDocumentText(document1.Id, SourceText.From(source2, encoding: Encoding.UTF8));
             var document2 = solution.GetDocument(document1.Id);
 
             // error not reported here since it might be intermittent and will be reported if the issue persist when applying the update:
@@ -847,6 +858,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             Assert.Equal(ManagedModuleUpdateStatus.RestartRequired, updates.Status);
             Assert.Empty(updates.Updates);
             AssertEx.Equal(new[] { $"{document2.Project.Id}: Error ENC1001: {string.Format(FeaturesResources.ErrorReadingFile, moduleFile.Path, expectedErrorMessage)}" }, InspectDiagnostics(emitDiagnostics));
+
+            // correct the error:
+            EmitLibrary(source2);
+
+            var (updates2, emitDiagnostics2) = await EmitSolutionUpdateAsync(debuggingSession, solution);
+            Assert.Equal(ManagedModuleUpdateStatus.Ready, updates2.Status);
+            Assert.Empty(emitDiagnostics2);
+
+            CommitSolutionUpdate(debuggingSession);
 
             if (breakMode)
             {
@@ -859,8 +879,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             {
                 AssertEx.Equal(new[]
                 {
-                    "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=2",
-                    "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=1|InBreakState=True|Capabilities=31|ProjectIdsWithAppliedChanges=",
+                    "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=3",
+                    "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=1|InBreakState=True|Capabilities=31|ProjectIdsWithAppliedChanges={00000000-AAAA-AAAA-AAAA-111111111111}",
                     "Debugging_EncSession_EditSession_EmitDeltaErrorId: SessionId=1|EditSessionId=2|ErrorId=ENC1001"
                 }, _telemetryLog);
             }
@@ -868,8 +888,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             {
                 AssertEx.Equal(new[]
                 {
-                    "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=0|EmptySessionCount=0|HotReloadSessionCount=1|EmptyHotReloadSessionCount=0",
-                    "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=1|InBreakState=False|Capabilities=31|ProjectIdsWithAppliedChanges=",
+                    "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=0|EmptySessionCount=0|HotReloadSessionCount=1|EmptyHotReloadSessionCount=1",
+                    "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=1|InBreakState=False|Capabilities=31|ProjectIdsWithAppliedChanges={00000000-AAAA-AAAA-AAAA-111111111111}",
                     "Debugging_EncSession_EditSession_EmitDeltaErrorId: SessionId=1|EditSessionId=2|ErrorId=ENC1001"
                 }, _telemetryLog);
             }
@@ -1736,15 +1756,23 @@ class C { int Y => 2; }
         {
             using var _ = CreateWorkspace(out var solution, out var service);
 
+            var pathA = Path.Combine(TempRoot.Root, "A.cs");
+            var pathB = Path.Combine(TempRoot.Root, "B.cs");
+            var pathC = Path.Combine(TempRoot.Root, "C.cs");
+            var pathD = Path.Combine(TempRoot.Root, "D.cs");
+            var pathX = Path.Combine(TempRoot.Root, "X");
+            var pathY = Path.Combine(TempRoot.Root, "Y");
+            var pathCommon = Path.Combine(TempRoot.Root, "Common.cs");
+
             solution = solution.
                 AddProject("A", "A", "C#").
-                AddDocument("A.cs", "class Program { void Main() { System.Console.WriteLine(1); } }", filePath: "A.cs").Project.Solution.
+                AddDocument("A.cs", "class Program { void Main() { System.Console.WriteLine(1); } }", filePath: pathA).Project.Solution.
                 AddProject("B", "B", "C#").
-                AddDocument("Common.cs", "class Common {}", filePath: "Common.cs").Project.
-                AddDocument("B.cs", "class B {}", filePath: "B.cs").Project.Solution.
+                AddDocument("Common.cs", "class Common {}", filePath: pathCommon).Project.
+                AddDocument("B.cs", "class B {}", filePath: pathB).Project.Solution.
                 AddProject("C", "C", "C#").
-                AddDocument("Common.cs", "class Common {}", filePath: "Common.cs").Project.
-                AddDocument("C.cs", "class C {}", filePath: "C.cs").Project.Solution;
+                AddDocument("Common.cs", "class Common {}", filePath: pathCommon).Project.
+                AddDocument("C.cs", "class C {}", filePath: pathC).Project.Solution;
 
             var debuggingSession = await StartDebuggingSessionAsync(service, solution);
             EnterBreakState(debuggingSession);
@@ -1757,9 +1785,9 @@ class C { int Y => 2; }
 
             Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
 
-            Assert.False(await EditSession.HasChangesAsync(oldSolution, solution, sourceFilePath: "Common.cs", CancellationToken.None));
-            Assert.False(await EditSession.HasChangesAsync(oldSolution, solution, sourceFilePath: "B.cs", CancellationToken.None));
-            Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, sourceFilePath: "C.cs", CancellationToken.None));
+            Assert.False(await EditSession.HasChangesAsync(oldSolution, solution, sourceFilePath: pathCommon, CancellationToken.None));
+            Assert.False(await EditSession.HasChangesAsync(oldSolution, solution, sourceFilePath: pathB, CancellationToken.None));
+            Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, sourceFilePath: pathC, CancellationToken.None));
             Assert.False(await EditSession.HasChangesAsync(oldSolution, solution, sourceFilePath: "NonexistentFile.cs", CancellationToken.None));
 
             // All projects must have no errors.
@@ -1771,10 +1799,10 @@ class C { int Y => 2; }
             oldSolution = solution;
             projectC = solution.GetProjectsByName("C").Single();
             var documentDId = DocumentId.CreateNewId(projectC.Id);
-            solution = solution.AddDocument(documentDId, "D", "class D {}", filePath: "D.cs");
+            solution = solution.AddDocument(documentDId, "D", "class D {}", filePath: pathD);
 
             Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
-            Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, sourceFilePath: "D.cs", CancellationToken.None));
+            Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, sourceFilePath: pathD, CancellationToken.None));
 
             // remove a document:
 
@@ -1782,14 +1810,14 @@ class C { int Y => 2; }
             solution = solution.RemoveDocument(documentDId);
 
             Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
-            Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, sourceFilePath: "D.cs", CancellationToken.None));
+            Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, sourceFilePath: pathD, CancellationToken.None));
 
             // add an additional document:
 
             oldSolution = solution;
             projectC = solution.GetProjectsByName("C").Single();
             var documentXId = DocumentId.CreateNewId(projectC.Id);
-            solution = solution.AddAdditionalDocument(documentXId, "X", "xxx", filePath: "X");
+            solution = solution.AddAdditionalDocument(documentXId, "X", "xxx", filePath: pathX);
 
             Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
 
@@ -1801,7 +1829,7 @@ class C { int Y => 2; }
             oldSolution = solution;
             projectC = solution.GetProjectsByName("C").Single();
             var documentYId = DocumentId.CreateNewId(projectC.Id);
-            solution = solution.AddAnalyzerConfigDocument(documentYId, "Y", SourceText.From("yyy"), filePath: "Y");
+            solution = solution.AddAnalyzerConfigDocument(documentYId, "Y", SourceText.From("yyy"), filePath: pathY);
 
             Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
 
@@ -3081,7 +3109,10 @@ class C { int Y => 1; }
             (solution, var documentA) = AddDefaultTestProject(solution, source1);
             var projectA = documentA.Project;
 
-            var projectB = solution.AddProject("B", "A", "C#").AddMetadataReferences(projectA.MetadataReferences).AddDocument("DocB", source1, filePath: "DocB.cs").Project;
+            var projectB = solution.AddProject("B", "A", "C#").
+                AddMetadataReferences(projectA.MetadataReferences).
+                AddDocument("DocB", source1, filePath: Path.Combine(TempRoot.Root, "DocB.cs")).Project;
+
             solution = projectB.Solution;
 
             _mockCompilationOutputsProvider = project =>
@@ -3443,12 +3474,12 @@ class C { int Y => 1; }
         [CombinatorialData]
         public async Task ActiveStatements_ForeignDocument(bool withPath, bool designTimeOnly)
         {
-            var composition = FeaturesTestCompositions.Features.AddParts(typeof(DummyLanguageService));
+            var composition = FeaturesTestCompositions.Features.AddParts(typeof(NoCompilationLanguageService));
 
-            using var _ = CreateWorkspace(out var solution, out var service, new[] { typeof(DummyLanguageService) });
+            using var _ = CreateWorkspace(out var solution, out var service, new[] { typeof(NoCompilationLanguageService) });
 
-            var project = solution.AddProject("dummy_proj", "dummy_proj", designTimeOnly ? LanguageNames.CSharp : DummyLanguageService.LanguageName);
-            var filePath = withPath ? Path.Combine(TempRoot.Root, "test") : null;
+            var project = solution.AddProject("dummy_proj", "dummy_proj", designTimeOnly ? LanguageNames.CSharp : NoCompilationConstants.LanguageName);
+            var filePath = withPath ? Path.Combine(TempRoot.Root, "test.cs") : null;
 
             var documentInfo = DocumentInfo.Create(
                 DocumentId.CreateNewId(project.Id, "test"),

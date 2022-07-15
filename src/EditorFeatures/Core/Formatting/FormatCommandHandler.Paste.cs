@@ -88,6 +88,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             var trackingSpan = caretPosition.Value.Snapshot.CreateTrackingSpan(caretPosition.Value.Position, 0, SpanTrackingMode.EdgeInclusive);
             var span = trackingSpan.GetSpan(args.SubjectBuffer.CurrentSnapshot).Span.ToTextSpan();
 
+            // Note: C# always completes synchronously, TypeScript is async
             var changes = formattingService.GetFormattingChangesOnPasteAsync(document, args.SubjectBuffer, span, cancellationToken).WaitAndGetResult(cancellationToken);
             if (changes.IsEmpty)
             {

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
         private Workspace _ws;
 
         protected Workspace DefaultWorkspace
-            => _ws ?? (_ws = new AdhocWorkspace());
+            => _ws ??= new AdhocWorkspace();
 
         protected override SyntaxNode ParseCompilation(string text, ParseOptions parseOptions)
             => SyntaxFactory.ParseCompilationUnit(text, options: (CSharpParseOptions)parseOptions);

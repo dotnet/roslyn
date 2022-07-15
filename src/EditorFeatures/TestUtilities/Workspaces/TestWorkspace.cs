@@ -125,18 +125,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         protected override void OnDocumentTextChanged(Document document)
         {
-            if (_backgroundParser != null)
-            {
-                _backgroundParser.Parse(document);
-            }
+            _backgroundParser?.Parse(document);
         }
 
         protected override void OnDocumentClosing(DocumentId documentId)
         {
-            if (_backgroundParser != null)
-            {
-                _backgroundParser.CancelParse(documentId);
-            }
+            _backgroundParser?.CancelParse(documentId);
         }
 
         public new void RegisterText(SourceTextContainer text)
@@ -168,10 +162,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 document.CloseTextView();
             }
 
-            if (_backgroundParser != null)
-            {
-                _backgroundParser.CancelAllParses();
-            }
+            _backgroundParser?.CancelAllParses();
 
             base.Dispose(finalize);
         }

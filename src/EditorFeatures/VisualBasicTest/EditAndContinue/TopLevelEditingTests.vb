@@ -5523,9 +5523,12 @@ Class C
 End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Class C", DeletedSymbolDisplay(FeaturesResources.operator_, "+(d As C, g As C)")),
-                Diagnostic(RudeEditKind.Delete, "Class C", DeletedSymbolDisplay(FeaturesResources.operator_, "CType(d As C)")))
+            edits.VerifySemantics(
+                semanticEdits:=
+                {
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.op_Addition"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.op_Explicit"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C"))
+                })
         End Sub
 
         <Fact(Skip:="https://github.com/dotnet/roslyn/issues/51011"), WorkItem(51011, "https://github.com/dotnet/roslyn/issues/51011")>
@@ -7198,8 +7201,14 @@ End Class
                 "Insert [a]@14",
                 "Delete [Event a As Action]@10")
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Class C", DeletedSymbolDisplay(FeaturesResources.event_, "a")))
+            edits.VerifySemantics(
+                semanticEdits:=
+                {
+                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.a")),
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.add_a"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.remove_a"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C"))
+                },
+                capabilities:=EditAndContinueCapabilities.AddInstanceFieldToExistingType)
         End Sub
 
         <Fact>
@@ -7932,8 +7941,11 @@ End Class"
                 "Delete [value As Integer]@91",
                 "Delete [value]@91")
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Private ReadOnly Property P", DeletedSymbolDisplay(FeaturesResources.property_accessor, "P(value As Integer)")))
+            edits.VerifySemantics(
+                semanticEdits:=
+                {
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.set_P"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C"))
+                })
         End Sub
 
         <Fact>
@@ -9167,8 +9179,12 @@ End Class
             edits.VerifyEdits(
                 "Delete [Private Property a As Integer = 1]@10")
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Class C", DeletedSymbolDisplay(FeaturesResources.auto_property, "a")))
+            edits.VerifySemantics(
+                semanticEdits:=
+                {
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.get_a"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.set_a"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C"))
+                })
         End Sub
 
         <Fact>
@@ -10277,8 +10293,13 @@ Class C
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Class C", DeletedSymbolDisplay(FeaturesResources.event_, "E")))
+            edits.VerifySemantics(
+                semanticEdits:=
+                {
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.add_E"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.remove_E"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.raise_E"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C"))
+                })
         End Sub
 
         <Fact>

@@ -213,6 +213,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                 globalOptions.SetGlobalOption(New OptionKey(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic), False)
 
                 Dim view = workspace.Documents.First().GetTextView()
+                view.Options.GlobalOptions.SetOptionValue(DefaultOptions.IndentStyleId, IndentingStyle.Smart)
+
                 Dim line = view.TextSnapshot.GetLineFromLineNumber(beforeCaret(0))
                 If beforeCaret(1) = -1 Then
                     view.Caret.MoveTo(line.End)
