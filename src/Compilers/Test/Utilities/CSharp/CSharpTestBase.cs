@@ -625,6 +625,48 @@ namespace System.Runtime.CompilerServices
     }
 }";
 
+        protected const string RequiredMemberAttribute = @"
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Field | AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
+    public sealed class RequiredMemberAttribute : Attribute
+    {
+        public RequiredMemberAttribute()
+        {
+        }
+    }
+}
+";
+
+        protected const string SetsRequiredMembersAttribute = @"
+namespace System.Diagnostics.CodeAnalysis
+{
+    [AttributeUsage(AttributeTargets.Constructor, Inherited = false, AllowMultiple = false)]
+    public sealed class SetsRequiredMembersAttribute : Attribute
+    {
+        public SetsRequiredMembersAttribute()
+        {
+        }
+    }
+}
+";
+
+        internal const string CompilerFeatureRequiredAttribute = """
+            namespace System.Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.All, AllowMultiple = true, Inherited = false)]
+                public sealed class CompilerFeatureRequiredAttribute : Attribute
+                {
+                    public CompilerFeatureRequiredAttribute(string featureName)
+                    {
+                        FeatureName = featureName;
+                    }
+                    public string FeatureName { get; }
+                    public bool IsOptional { get; set; }
+                }
+            }
+            """;
+
         protected static CSharpCompilationOptions WithNullableEnable(CSharpCompilationOptions options = null)
         {
             return WithNullable(options, NullableContextOptions.Enable);
@@ -1050,6 +1092,21 @@ namespace System.Runtime.CompilerServices
             string sourceFileName = "",
             bool skipUsesIsNullable = false) => CreateCompilationCore(source, TargetFrameworkUtil.GetReferences(TargetFramework.Mscorlib45, references), options, parseOptions, assemblyName, sourceFileName, skipUsesIsNullable, experimentalFeature: feature);
 
+        internal static CSharpCompilation CreateNumericIntPtrCompilation(
+              CSharpTestSource source,
+              IEnumerable<MetadataReference> references = null,
+              CSharpCompilationOptions options = null,
+              CSharpParseOptions parseOptions = null,
+              string assemblyName = "",
+              string sourceFileName = "")
+        {
+            // Note: we use skipUsesIsNullable and skipExtraValidation so that nobody pulls
+            // on the compilation or its references before we set the RuntimeSupportsNumericIntPtr flag.
+            var comp = CreateCompilationCore(source, references, options, parseOptions, assemblyName, sourceFileName, skipUsesIsNullable: true, experimentalFeature: null, skipExtraValidation: true);
+            comp.Assembly.RuntimeSupportsNumericIntPtr = true;
+            return comp;
+        }
+
         public static CSharpCompilation CreateCompilationWithWinRT(
             CSharpTestSource source,
             IEnumerable<MetadataReference> references = null,
@@ -1159,7 +1216,8 @@ namespace System.Runtime.CompilerServices
             string assemblyName,
             string sourceFileName,
             bool skipUsesIsNullable,
-            MessageID? experimentalFeature)
+            MessageID? experimentalFeature,
+            bool skipExtraValidation = false)
         {
             var syntaxTrees = source.GetSyntaxTrees(parseOptions, sourceFileName);
 
@@ -1181,7 +1239,11 @@ namespace System.Runtime.CompilerServices
                 syntaxTrees,
                 references,
                 options);
-            ValidateCompilation(createCompilationLambda);
+
+            if (!skipExtraValidation)
+            {
+                ValidateCompilation(createCompilationLambda);
+            }
 
             var compilation = createCompilationLambda();
             // 'skipUsesIsNullable' may need to be set for some tests, particularly those that want to verify
@@ -1296,12 +1358,12 @@ namespace System.Runtime.CompilerServices
 
         public static CSharpCompilation CreateCompilation(
             AssemblyIdentity identity,
-            string[] source,
-            MetadataReference[] references,
+            CSharpTestSource? source,
+            IEnumerable<MetadataReference> references,
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null)
         {
-            var trees = (source == null) ? null : source.Select(s => Parse(s, options: parseOptions)).ToArray();
+            var trees = (source ?? CSharpTestSource.None).GetSyntaxTrees(parseOptions);
             Func<CSharpCompilation> createCompilationLambda = () => CSharpCompilation.Create(identity.Name, options: options ?? TestOptions.ReleaseDll, references: references, syntaxTrees: trees);
 
             ValidateCompilation(createCompilationLambda);

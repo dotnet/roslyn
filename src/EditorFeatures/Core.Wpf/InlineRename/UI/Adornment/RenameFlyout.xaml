@@ -16,6 +16,7 @@
              GotKeyboardFocus="Adornment_GotKeyboardFocus"
              Focusable="False"
              UseLayoutRounding="True"
+             x:Name="control"
              Background="{DynamicResource {x:Static rename:InlineRenameColors.BackgroundBrushKey}}">
 
     <UserControl.Resources>

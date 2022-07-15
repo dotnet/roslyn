@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             {
                 foreach (var (parameter, hasReference) in _unusedParameters)
                 {
-                    ReportUnusedParameterDiagnostic(parameter, hasReference, context.ReportDiagnostic, context.Options, context.CancellationToken);
+                    ReportUnusedParameterDiagnostic(parameter, hasReference, context.ReportDiagnostic, context.Options);
                 }
             }
 
@@ -129,8 +129,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 IParameterSymbol parameter,
                 bool hasReference,
                 Action<Diagnostic> reportDiagnostic,
-                AnalyzerOptions analyzerOptions,
-                CancellationToken cancellationToken)
+                AnalyzerOptions analyzerOptions)
             {
                 if (!IsUnusedParameterCandidate(parameter))
                 {
@@ -138,7 +137,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 }
 
                 var location = parameter.Locations[0];
-                var option = analyzerOptions.GetOption(CodeStyleOptions2.UnusedParameters, parameter.Language, location.SourceTree, cancellationToken);
+                var option = analyzerOptions.GetAnalyzerOptions(location.SourceTree).UnusedParameters;
                 if (option.Notification.Severity == ReportDiagnostic.Suppress ||
                     !ShouldReportUnusedParameters(parameter.ContainingSymbol, option.Value, option.Notification.Severity))
                 {
@@ -248,7 +247,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                 // Ignore flagging parameters for methods with certain well-known attributes,
                 // which are known to have unused parameters in real world code.
-                if (method.GetAttributes().Any(a => _attributeSetForMethodsToIgnore.Contains(a.AttributeClass)))
+                if (method.GetAttributes().Any(static (a, self) => self._attributeSetForMethodsToIgnore.Contains(a.AttributeClass), this))
                 {
                     return false;
                 }

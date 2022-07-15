@@ -179,12 +179,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var roslynTrigger = Helpers.GetRoslynTrigger(trigger, triggerLocation);
 
             // The completion service decides that user may want a completion.
-            if (completionService.ShouldTriggerCompletion(document.Project, document.Project.LanguageServices, sourceText, triggerLocation.Position, roslynTrigger, options, document.Project.Solution.Options))
-            {
-                return true;
-            }
-
-            return false;
+            return completionService.ShouldTriggerCompletion(
+                document.Project, document.Project.LanguageServices, sourceText, triggerLocation.Position, roslynTrigger, options, document.Project.Solution.Options, _roles);
         }
 
         private bool TryInvokeSnippetCompletion(
@@ -197,13 +193,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return false;
             }
 
-            var syntaxFactsOpt = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             // Snippets are included if the user types: <quesiton><tab>
             // If at least one condition for snippets do not hold, bail out.
-            if (syntaxFactsOpt == null ||
+            if (syntaxFacts == null ||
                 caretPoint < 3 ||
                 text[caretPoint - 2] != '?' ||
-                !QuestionMarkIsPrecededByIdentifierAndWhitespace(text, caretPoint - 2, syntaxFactsOpt))
+                !QuestionMarkIsPrecededByIdentifierAndWhitespace(text, caretPoint - 2, syntaxFacts))
             {
                 return false;
             }
@@ -266,11 +262,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 // contemplate such action thus typing slower before commit and/or spending more time examining the list, which give us some opportunities
                 // to still provide those items later before they are truly required.     
 
-                var options = _globalOptions.GetCompletionOptions(document.Project.Language) with { UpdateImportCompletionCacheInBackground = true };
-                var sessionData = CompletionSessionData.GetOrCreateSessionData(session);
+                var showCompletionItemFilters = _globalOptions.GetOption(CompletionViewOptions.ShowCompletionItemFilters, document.Project.Language);
+                var options = _globalOptions.GetCompletionOptions(document.Project.Language) with
+                {
+                    UpdateImportCompletionCacheInBackground = true,
+                    TargetTypedCompletionFilter = showCompletionItemFilters // Compute targeted types if filter is enabled
+                };
 
-                // For telemetry reporting purpose
-                sessionData.TargetTypeFilterExperimentEnabled = options.TargetTypedCompletionFilter;
+                var sessionData = CompletionSessionData.GetOrCreateSessionData(session);
 
                 if (!options.ShouldShowItemsFromUnimportNamspaces())
                 {
@@ -444,9 +443,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 document, triggerLocation, options, document.Project.Solution.Options, roslynTrigger, _roles, cancellationToken).ConfigureAwait(false);
 
             var filterSet = new FilterSet();
-            using var _ = ArrayBuilder<VSCompletionItem>.GetInstance(completionList.Items.Length, out var itemsBuilder);
+            using var _ = ArrayBuilder<VSCompletionItem>.GetInstance(completionList.ItemsList.Count, out var itemsBuilder);
 
-            foreach (var roslynItem in completionList.Items)
+            foreach (var roslynItem in completionList.ItemsList)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var item = Convert(document, roslynItem, filterSet, triggerLocation);
@@ -478,7 +477,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // If there are suggestionItemOptions, then later HandleNormalFiltering should set selection to SoftSelection.
             sessionData.HasSuggestionItemOptions |= completionList.SuggestionModeItem != null;
 
-            var excludedCommitCharacters = GetExcludedCommitCharacters(completionList.Items);
+            var excludedCommitCharacters = GetExcludedCommitCharacters(completionList.ItemsList);
             if (excludedCommitCharacters.Length > 0)
             {
                 if (session.Properties.TryGetProperty(ExcludedCommitCharacters, out ImmutableArray<char> excludedCommitCharactersBefore))
@@ -615,7 +614,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             return item;
         }
 
-        private static ImmutableArray<char> GetExcludedCommitCharacters(ImmutableArray<RoslynCompletionItem> roslynItems)
+        private static ImmutableArray<char> GetExcludedCommitCharacters(IReadOnlyList<RoslynCompletionItem> roslynItems)
         {
             var hashSet = new HashSet<char>();
             foreach (var roslynItem in roslynItems)

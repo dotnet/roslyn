@@ -99,10 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                 var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var navInfo = libraryService.NavInfoFactory.CreateForSymbol(symbol, project, compilation);
-                if (navInfo == null)
-                {
-                    navInfo = libraryService.NavInfoFactory.CreateForProject(project);
-                }
+                navInfo ??= libraryService.NavInfoFactory.CreateForProject(project);
 
                 if (navInfo != null)
                 {
@@ -141,11 +138,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 var documentCookie = vsRunningDocumentTable4.GetDocumentCookie(result.FilePath);
 
                 var vsTextBuffer = (IVsTextBuffer)vsRunningDocumentTable4.GetDocumentData(documentCookie);
-
-                // Set the buffer to read only, just in case the file isn't
-                ErrorHandler.ThrowOnFailure(vsTextBuffer.GetStateFlags(out var flags));
-                flags |= (int)BUFFERSTATEFLAGS.BSF_USER_READONLY;
-                ErrorHandler.ThrowOnFailure(vsTextBuffer.SetStateFlags(flags));
 
                 var textBuffer = _editorAdaptersFactory.GetDataBuffer(vsTextBuffer);
 

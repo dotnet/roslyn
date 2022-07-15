@@ -313,15 +313,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         public static readonly FixIdDefinition? UseNullCheckOverTypeCheckDiagnosticId;
 
         [Export]
-        [FixId(IDEDiagnosticIds.UseParameterNullCheckingId)]
-        [Name(IDEDiagnosticIds.UseParameterNullCheckingId)]
-        [Order(After = IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId)]
-        [ConfigurationKey("unused")]
-        [HelpLink($"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{IDEDiagnosticIds.UseParameterNullCheckingId}")]
-        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_parameter_null_preferences))]
-        public static readonly FixIdDefinition? UseParameterNullCheckingId;
-
-        [Export]
         [FixId(IDEDiagnosticIds.UsePatternCombinatorsDiagnosticId)]
         [Name(IDEDiagnosticIds.UsePatternCombinatorsDiagnosticId)]
         [Order(After = IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId)]
@@ -365,5 +356,23 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         [HelpLink($"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{IDEDiagnosticIds.UseTupleSwapDiagnosticId}")]
         [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_deconstruct_preferences))]
         public static readonly FixIdDefinition? UseTupleSwapDiagnosticId;
+
+        [Export]
+        [FixId(IDEDiagnosticIds.RemoveRedundantNullableDirectiveDiagnosticId)]
+        [Name(IDEDiagnosticIds.RemoveRedundantNullableDirectiveDiagnosticId)]
+        [Order(After = IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId)]
+        [ConfigurationKey("unused")]
+        [HelpLink($"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{IDEDiagnosticIds.RemoveRedundantNullableDirectiveDiagnosticId}")]
+        [LocalizedName(typeof(CSharpAnalyzersResources), nameof(CSharpAnalyzersResources.Remove_unnecessary_nullable_directive))]
+        public static readonly FixIdDefinition? RemoveRedundantNullableDirectiveDiagnosticId;
+
+        [Export]
+        [FixId(IDEDiagnosticIds.RemoveUnnecessaryNullableDirectiveDiagnosticId)]
+        [Name(IDEDiagnosticIds.RemoveUnnecessaryNullableDirectiveDiagnosticId)]
+        [Order(After = IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId)]
+        [ConfigurationKey("unused")]
+        [HelpLink($"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{IDEDiagnosticIds.RemoveUnnecessaryNullableDirectiveDiagnosticId}")]
+        [LocalizedName(typeof(CSharpAnalyzersResources), nameof(CSharpAnalyzersResources.Remove_unnecessary_nullable_directive))]
+        public static readonly FixIdDefinition? RemoveUnnecessaryNullableDirectiveDiagnosticId;
     }
 }

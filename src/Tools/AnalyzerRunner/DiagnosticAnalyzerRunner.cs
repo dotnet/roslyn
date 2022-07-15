@@ -271,7 +271,7 @@ namespace AnalyzerRunner
                 }
                 else if (options.AnalyzerNames.Count == 0)
                 {
-                    if (analyzer.SupportedDiagnostics.Any(diagnosticDescriptor => diagnosticDescriptor.IsEnabledByDefault))
+                    if (analyzer.SupportedDiagnostics.Any(static diagnosticDescriptor => diagnosticDescriptor.IsEnabledByDefault))
                     {
                         yield return analyzer;
                     }

@@ -137,6 +137,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 {
                     tokens.Add(SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword));
                 }
+
+                if (field.IsRequired)
+                {
+                    tokens.Add(SyntaxFactory.Token(SyntaxKind.RequiredKeyword));
+                }
             }
 
             if (CodeGenerationFieldInfo.GetIsUnsafe(field))

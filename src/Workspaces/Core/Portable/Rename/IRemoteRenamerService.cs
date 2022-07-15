@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Rename
         public static SerializableSearchResult? Dehydrate(Solution solution, RenameLocations.SearchResult? result, CancellationToken cancellationToken)
             => result == null ? null : new SerializableSearchResult
             {
-                Locations = result.Locations.Select(loc => SerializableRenameLocation.Dehydrate(loc)).ToArray(),
+                Locations = result.Locations.Select(SerializableRenameLocation.Dehydrate).ToArray(),
                 ImplicitLocations = result.ImplicitLocations.IsDefault ? null : result.ImplicitLocations.Select(loc => SerializableReferenceLocation.Dehydrate(loc, cancellationToken)).ToArray(),
                 ReferencedSymbols = result.ReferencedSymbols.IsDefault ? null : result.ReferencedSymbols.Select(s => SerializableSymbolAndProjectId.Dehydrate(solution, s, cancellationToken)).ToArray(),
             };
@@ -340,15 +340,15 @@ namespace Microsoft.CodeAnalysis.Rename
     {
         public async Task<SerializableConflictResolution> DehydrateAsync(CancellationToken cancellationToken)
         {
-            if (ErrorMessage != null)
+            if (!IsSuccessful)
                 return new SerializableConflictResolution(ErrorMessage, resolution: null);
 
             var documentTextChanges = await RemoteUtilities.GetDocumentTextChangesAsync(OldSolution, _newSolutionWithoutRenamedDocument, cancellationToken).ConfigureAwait(false);
             return new SerializableConflictResolution(
                 errorMessage: null,
                 new SuccessfulConflictResolution(
-                    ReplacementTextValid,
-                    _renamedDocument,
+                    ReplacementTextValid.Value,
+                    _renamedDocument.Value,
                     DocumentIds,
                     RelatedLocations,
                     documentTextChanges,

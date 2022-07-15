@@ -27,6 +27,11 @@
         <target state="translated">코드 정리가 구성되지 않았습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Computing_Encapsulate_Field_information">
+        <source>Computing 'Encapsulate Field' information</source>
+        <target state="translated">'Encapsulate Field' 정보 계산</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Configure_it_now">
         <source>Configure it now</source>
         <target state="translated">지금 구성</target>
@@ -296,6 +301,11 @@
         <source>Rename _file (not allowed on partial types)</source>
         <target state="translated">파일 이름 바꾸기(부분 형식에서 허용되지 않음)(_F)</target>
         <note>Disabled text status for file rename</note>
+      </trans-unit>
+      <trans-unit id="Rename_operation_could_not_complete_due_to_external_change_to_workspace">
+        <source>Rename operation could not complete due to external change to workspace</source>
+        <target state="translated">작업 영역에 대한 외부 변경으로 인해 이름 바꾸기 작업을 완료할 수 없습니다.</target>
+        <note />
       </trans-unit>
       <trans-unit id="Rename_symbols_file">
         <source>Rename symbol's _file</source>
@@ -599,7 +609,7 @@
       </trans-unit>
       <trans-unit id="_0_Esc_to_cancel">
         <source>{0} (Esc to cancel)</source>
-        <target state="new">{0} (Esc to cancel)</target>
+        <target state="translated">{0}(취소하려면 Esc)</target>
         <note>Placeholder represents an operating that is happening.  Parenthesized expression indicates how you can cancel it.</note>
       </trans-unit>
       <trans-unit id="_0_conflict_s_will_be_resolved">

@@ -13,20 +13,8 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
-    [ExportGlobalOptionProvider, Shared]
-    internal sealed class LoggerOptions : IOptionProvider
+    internal sealed class LoggerOptions
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public LoggerOptions()
-        {
-        }
-
-        ImmutableArray<IOption> IOptionProvider.Options { get; } = ImmutableArray.Create<IOption>(
-            EtwLoggerKey,
-            TraceLoggerKey,
-            OutputWindowLoggerKey);
-
         private const string LocalRegistryPath = @"Roslyn\Internal\Performance\Logger\";
 
         public static readonly Option2<bool> EtwLoggerKey = new(nameof(LoggerOptions), nameof(EtwLoggerKey), defaultValue: true,

@@ -1070,4 +1070,10 @@ Do you want to proceed?</value>
     <value>{0} (Esc to cancel)</value>
     <comment>Placeholder represents an operating that is happening.  Parenthesized expression indicates how you can cancel it.</comment>
   </data>
+  <data name="Computing_Encapsulate_Field_information" xml:space="preserve">
+    <value>Computing 'Encapsulate Field' information</value>
+  </data>
+  <data name="Rename_operation_could_not_complete_due_to_external_change_to_workspace" xml:space="preserve">
+    <value>Rename operation could not complete due to external change to workspace</value>
+  </data>
 </root>

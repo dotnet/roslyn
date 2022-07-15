@@ -205,7 +205,7 @@ class Program
                 TestState = { OutputKind = OutputKind.ConsoleApplication },
                 Options =
                 {
-                    { CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Never },
+                    { CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.Never },
                     { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion },
                 },
             }.RunAsync();

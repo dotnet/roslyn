@@ -146,7 +146,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         /// this means that the remote workpace roots have also changed and need to be updated.
         /// This will not be called concurrently.
         /// </summary>
-        private async Task OnActiveWorkspaceChangedAsync(object sender, EventArgs args)
+        private async Task OnActiveWorkspaceChangedAsync(object? sender, EventArgs args)
         {
             if (IsRemoteSession)
             {

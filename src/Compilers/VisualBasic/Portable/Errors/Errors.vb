@@ -1764,7 +1764,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_MultipleAnalyzerConfigsInSameDir = 37317
         ERR_StdInOptionProvidedButConsoleInputIsNotRedirected = 37318
 
-        ERR_NextAvailable = 37319
+        ERR_UnsupportedCompilerFeature = 37319
+        ERR_DoNotUseCompilerFeatureRequired = 37320
+
+        ERR_NextAvailable = 37321
 
         '// WARNINGS BEGIN HERE
         WRN_UseOfObsoleteSymbol2 = 40000
@@ -1996,6 +1999,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ' // AVAILABLE                             42600 - 49998
         WRN_NextAvailable = 42600
+
+        ' NOTE: On adding a new ERRID, you will need to update ErrorFacts.IsBuildOnlyDiagnostic to handle it.
 
         '// HIDDENS AND INFOS BEGIN HERE
         HDN_UnusedImportClause = 50000

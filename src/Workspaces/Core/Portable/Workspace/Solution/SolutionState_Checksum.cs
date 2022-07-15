@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis
                 AddReferencedProjects(projectsToInclude, projectId);
 
                 return new AsyncLazy<SolutionStateChecksums>(
-                    c => ComputeChecksumsAsync(projectsToInclude, this.Options, c), cacheResult: true);
+                    c => ComputeChecksumsAsync(projectsToInclude, c), cacheResult: true);
             }
 
             void AddReferencedProjects(HashSet<ProjectId> result, ProjectId projectId)
@@ -112,7 +112,6 @@ namespace Microsoft.CodeAnalysis
         /// to get a checksum for the entire solution</param>
         private async Task<SolutionStateChecksums> ComputeChecksumsAsync(
             HashSet<ProjectId>? projectsToInclude,
-            SerializableOptionSet options,
             CancellationToken cancellationToken)
         {
             try
@@ -146,8 +145,6 @@ namespace Microsoft.CodeAnalysis
                     var serializer = _solutionServices.Workspace.Services.GetRequiredService<ISerializerService>();
                     var attributesChecksum = serializer.CreateChecksum(SolutionAttributes, cancellationToken);
 
-                    var optionsChecksum = serializer.CreateChecksum(options, cancellationToken);
-
                     var frozenSourceGeneratedDocumentIdentityChecksum = Checksum.Null;
                     var frozenSourceGeneratedDocumentTextChecksum = Checksum.Null;
 
@@ -163,7 +160,6 @@ namespace Microsoft.CodeAnalysis
                     var projectChecksums = await Task.WhenAll(projectChecksumTasks).ConfigureAwait(false);
                     return new SolutionStateChecksums(
                         attributesChecksum,
-                        optionsChecksum,
                         new ChecksumCollection(projectChecksums.WhereNotNull().ToArray()),
                         analyzerReferenceChecksums,
                         frozenSourceGeneratedDocumentIdentityChecksum,

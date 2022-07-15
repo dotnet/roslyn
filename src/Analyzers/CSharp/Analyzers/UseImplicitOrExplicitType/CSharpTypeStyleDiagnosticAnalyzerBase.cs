@@ -55,7 +55,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
         private void HandleVariableDeclaration(SyntaxNodeAnalysisContext context)
         {
             var declarationStatement = context.Node;
-            var syntaxTree = context.Node.SyntaxTree;
             var cancellationToken = context.CancellationToken;
 
             var semanticModel = context.SemanticModel;
@@ -65,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                 return;
             }
 
-            var simplifierOptions = context.Options.GetCSharpSimplifierOptions(syntaxTree);
+            var simplifierOptions = context.GetCSharpAnalyzerOptions().GetSimplifierOptions();
 
             var typeStyle = Helper.AnalyzeTypeName(
                 declaredType, semanticModel, simplifierOptions, cancellationToken);

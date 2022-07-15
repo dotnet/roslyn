@@ -194,6 +194,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         bool INamedTypeSymbol.IsSerializable => UnderlyingNamedTypeSymbol.IsSerializable;
 
+        bool INamedTypeSymbol.IsFileLocal => UnderlyingNamedTypeSymbol.AssociatedSyntaxTree is not null;
+
         INamedTypeSymbol INamedTypeSymbol.NativeIntegerUnderlyingType => UnderlyingNamedTypeSymbol.NativeIntegerUnderlyingType.GetPublicSymbol();
 
         #region ISymbol Members

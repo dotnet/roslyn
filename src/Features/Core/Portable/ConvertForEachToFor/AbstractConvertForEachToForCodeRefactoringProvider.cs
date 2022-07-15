@@ -68,7 +68,6 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
             var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var semanticFact = document.GetRequiredLanguageService<ISemanticFactsService>();
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var foreachInfo = GetForeachInfo(semanticFact, model, foreachStatement, cancellationToken);
             if (foreachInfo == null || !ValidLocation(foreachInfo))
             {
@@ -271,7 +270,7 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
 
             // go through all known interfaces we support next.
             var knownCollectionInterfaces = s_KnownInterfaceNames.Select(
-                s => model.Compilation.GetTypeByMetadataName(s)).Where(t => !IsNullOrErrorType(t));
+                model.Compilation.GetTypeByMetadataName).Where(t => !IsNullOrErrorType(t));
 
             // for all interfaces, we suggest collection name as "list"
             collectionNameSuggestion = "list";
@@ -326,10 +325,7 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
                     return;
                 }
 
-                if (explicitInterface == null)
-                {
-                    explicitInterface = current;
-                }
+                explicitInterface ??= current;
             }
 
             // okay, we don't have implicitly implemented one, but we do have explicitly implemented one

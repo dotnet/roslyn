@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             _connectionPool = connectionPoolService.TryOpenDatabase(
                 databaseFile,
                 faultInjector,
-                (connection, cancellationToken) => Initialize(connection, cancellationToken),
+                Initialize,
                 CancellationToken.None)!;
 
             // Create a delay to batch up requests to flush.  We'll won't flush more than every FlushAllDelayMS.

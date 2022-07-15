@@ -37,16 +37,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
-            var options = context.Options;
             var syntaxTree = context.Node.SyntaxTree;
-            var semanticModel = context.SemanticModel;
-            var cancellationToken = context.CancellationToken;
 
             // Not available prior to C# 9.
             if (syntaxTree.Options.LanguageVersion() < LanguageVersion.CSharp9)
                 return;
 
-            var styleOption = options.GetOption(CSharpCodeStyleOptions.ImplicitObjectCreationWhenTypeIsApparent, syntaxTree, cancellationToken);
+            var styleOption = context.GetCSharpAnalyzerOptions().ImplicitObjectCreationWhenTypeIsApparent;
             if (!styleOption.Value)
             {
                 // Bail immediately if the user has disabled this feature.
@@ -65,6 +62,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation
             var objectCreation = (ObjectCreationExpressionSyntax)context.Node;
 
             TypeSyntax? typeNode;
+            var semanticModel = context.SemanticModel;
+            var cancellationToken = context.CancellationToken;
 
             if (objectCreation.Parent.IsKind(SyntaxKind.EqualsValueClause) &&
                 objectCreation.Parent.Parent.IsKind(SyntaxKind.VariableDeclarator) &&
@@ -76,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation
                 var helper = CSharpUseImplicitTypeHelper.Instance;
                 if (helper.ShouldAnalyzeVariableDeclaration(variableDeclaration, cancellationToken))
                 {
-                    var simplifierOptions = context.Options.GetCSharpSimplifierOptions(syntaxTree);
+                    var simplifierOptions = context.GetCSharpAnalyzerOptions().GetSimplifierOptions();
 
                     if (helper.AnalyzeTypeName(typeNode, semanticModel, simplifierOptions, cancellationToken).IsStylePreferred)
                     {

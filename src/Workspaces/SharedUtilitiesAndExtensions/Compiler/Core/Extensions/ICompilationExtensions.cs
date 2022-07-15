@@ -50,10 +50,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return referencedAssemblySymbols;
             }
 
+            // Do a quick check first to avoid unnecessary allocations in case this is not a script compilation.
+            var previous = compilation.ScriptCompilationInfo?.PreviousScriptCompilation;
+            if (previous is null)
+            {
+                return referencedAssemblySymbols;
+            }
+
             var builder = ArrayBuilder<IAssemblySymbol>.GetInstance();
             builder.AddRange(referencedAssemblySymbols);
 
-            var previous = compilation.ScriptCompilationInfo?.PreviousScriptCompilation;
             while (previous != null)
             {
                 builder.Add(previous.Assembly);

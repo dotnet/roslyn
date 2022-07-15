@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
 
             var completionList = await service.GetCompletionsAsync(
                 document, nameToken.SpanStart, options, passThroughOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
-            if (completionList.Items.IsEmpty)
+            if (completionList.ItemsList.IsEmpty())
             {
                 return;
             }
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             var onlyConsiderGenerics = isGeneric;
             var results = new MultiDictionary<double, string>();
 
-            foreach (var item in completionList.Items)
+            foreach (var item in completionList.ItemsList)
             {
                 if (onlyConsiderGenerics && !IsGeneric(item))
                 {

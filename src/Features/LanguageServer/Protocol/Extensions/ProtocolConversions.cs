@@ -672,11 +672,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             {
                 // LSP doesn't currently support indent size as an option. However, except in special
                 // circumstances, indent size is usually equivalent to tab size, so we'll just set it.
-                formattingOptions = formattingOptions.With(new LineFormattingOptions(
-                    UseTabs: !options.InsertSpaces,
-                    TabSize: options.TabSize,
-                    IndentationSize: options.TabSize,
-                    NewLine: formattingOptions.NewLine));
+                formattingOptions = formattingOptions.With(new LineFormattingOptions()
+                {
+                    UseTabs = !options.InsertSpaces,
+                    TabSize = options.TabSize,
+                    IndentationSize = options.TabSize,
+                    NewLine = formattingOptions.NewLine
+                });
             }
 
             return formattingOptions;

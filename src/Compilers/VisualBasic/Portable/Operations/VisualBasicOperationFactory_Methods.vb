@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim isImplicit As Boolean = boundAssignment.WasCompilerGenerated
 
             Return New CompoundAssignmentOperation(inConversion, outConversion, operatorInfo.OperatorKind, operatorInfo.IsLifted,
-                                                   operatorInfo.IsChecked, operatorInfo.OperatorMethod, target, value,
+                                                   operatorInfo.IsChecked, operatorInfo.OperatorMethod, constrainedToType:=Nothing, target, value,
                                                    _semanticModel, syntax, type, isImplicit)
         End Function
 
@@ -286,10 +286,6 @@ Namespace Microsoft.CodeAnalysis.Operations
             Return Create(node)
         End Function
 
-        Private Shared Function ParameterIsParamArray(parameter As VisualBasic.Symbols.ParameterSymbol) As Boolean
-            Return If(parameter.IsParamArray AndAlso parameter.Type.Kind = SymbolKind.ArrayType, DirectCast(parameter.Type, VisualBasic.Symbols.ArrayTypeSymbol).IsSZArray, False)
-        End Function
-
         Private Function GetChildOfBadExpression(parent As BoundNode, index As Integer) As IOperation
             Dim child = Create(GetChildOfBadExpressionBoundNode(parent, index))
             If child IsNot Nothing Then
@@ -306,10 +302,6 @@ Namespace Microsoft.CodeAnalysis.Operations
             End If
 
             Return Nothing
-        End Function
-
-        Private Function GetObjectCreationInitializers(expression As BoundObjectCreationExpression) As ImmutableArray(Of IOperation)
-            Return If(expression.InitializerOpt IsNot Nothing, expression.InitializerOpt.Initializers.SelectAsArray(Function(n) Create(n)), ImmutableArray(Of IOperation).Empty)
         End Function
 
         Friend Function GetAnonymousTypeCreationInitializers(expression As BoundAnonymousTypeCreationExpression) As ImmutableArray(Of IOperation)
@@ -334,7 +326,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                     Dim [property] As IPropertySymbol = properties(i)
                     Dim instance As IInstanceReferenceOperation = CreateAnonymousTypePropertyAccessImplicitReceiverOperation([property], expression.Syntax)
                     target = New PropertyReferenceOperation(
-                        [property],
+                        [property], constrainedToType:=Nothing,
                         ImmutableArray(Of IArgumentOperation).Empty,
                         instance,
                         _semanticModel,

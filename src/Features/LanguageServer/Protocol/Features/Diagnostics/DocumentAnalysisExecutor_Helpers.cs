@@ -194,9 +194,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public static bool IsAnalyzerEnabledForProject(DiagnosticAnalyzer analyzer, Project project, IGlobalOptionService globalOptions)
         {
             var options = project.CompilationOptions;
-            if (options == null || analyzer == FileContentLoadAnalyzer.Instance || analyzer == GeneratorDiagnosticsPlaceholderAnalyzer.Instance || analyzer.IsCompilerAnalyzer())
+            if (options == null || analyzer == FileContentLoadAnalyzer.Instance || analyzer == GeneratorDiagnosticsPlaceholderAnalyzer.Instance)
             {
                 return true;
+            }
+
+            if (analyzer.IsCompilerAnalyzer())
+            {
+                return globalOptions.GetOption(SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption, project.Language) != CompilerDiagnosticsScope.None;
             }
 
             // Check if user has disabled analyzer execution for this project or via options.
@@ -403,7 +408,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     var lineSpan = diagnostic.Location.GetLineSpan();
 
                     var documentIds = targetTextDocument.Project.Solution.GetDocumentIdsWithFilePath(lineSpan.Path);
-                    return documentIds.Any(id => id == targetTextDocument.Id);
+                    return documentIds.Any(static (id, targetTextDocument) => id == targetTextDocument.Id, targetTextDocument);
                 }
 
                 return false;

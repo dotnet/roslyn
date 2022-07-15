@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
 
     internal static partial class ConvertProgramTransform
     {
-        public static async Task<Document> ConvertToProgramMainAsync(Document document, CancellationToken cancellationToken)
+        public static async Task<Document> ConvertToProgramMainAsync(Document document, AccessibilityModifiersRequired accessibilityModifiersRequired, CancellationToken cancellationToken)
         {
             // While the analyze and refactoring check ensure we're in a well formed state for their needs, the 'new
             // template' code just calls directly into this if the user prefers Program.Main.  So check and make sure
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
                     if (programType.GetMembers(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName).FirstOrDefault() is IMethodSymbol mainMethod)
                     {
                         var classDeclaration = await GenerateProgramClassAsync(
-                            document, programType, mainMethod, cancellationToken).ConfigureAwait(false);
+                            document, programType, mainMethod, accessibilityModifiersRequired, cancellationToken).ConfigureAwait(false);
 
                         var newRoot = root.RemoveNodes(root.Members.OfType<GlobalStatementSyntax>().Skip(1), SyntaxGenerator.DefaultRemoveOptions);
                         Contract.ThrowIfNull(newRoot);
@@ -59,26 +60,24 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
             Document document,
             INamedTypeSymbol programType,
             IMethodSymbol mainMethod,
+            AccessibilityModifiersRequired accessibilityModifiersRequired,
             CancellationToken cancellationToken)
         {
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-
             // Respect user settings on if they want explicit or implicit accessibility modifiers.
-            var option = options.GetOption(CodeStyleOptions2.RequireAccessibilityModifiers);
-            var accessibilityModifiersRequired = option.Value is AccessibilityModifiersRequired.ForNonInterfaceMembers or AccessibilityModifiersRequired.Always;
+            var useDeclaredAccessibity = accessibilityModifiersRequired is AccessibilityModifiersRequired.ForNonInterfaceMembers or AccessibilityModifiersRequired.Always;
 
             var root = (CompilationUnitSyntax)await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
 
             // See if we have an existing part in another file.  If so, we'll have to generate our declaration as partial.
-            var hasExistingPart = programType.DeclaringSyntaxReferences.Any(d => d.GetSyntax(cancellationToken) is TypeDeclarationSyntax);
+            var hasExistingPart = programType.DeclaringSyntaxReferences.Any(static (d, cancellationToken) => d.GetSyntax(cancellationToken) is TypeDeclarationSyntax, cancellationToken);
 
             var method = (MethodDeclarationSyntax)generator.MethodDeclaration(
                 mainMethod, WellKnownMemberNames.EntryPointMethodName,
                 GenerateProgramMainStatements(root, out var leadingTrivia));
             method = method.WithReturnType(method.ReturnType.WithAdditionalAnnotations(Simplifier.AddImportsAnnotation));
             method = (MethodDeclarationSyntax)generator.WithAccessibility(
-                method, accessibilityModifiersRequired ? mainMethod.DeclaredAccessibility : Accessibility.NotApplicable);
+                method, useDeclaredAccessibity ? mainMethod.DeclaredAccessibility : Accessibility.NotApplicable);
 
             // Workaround for simplification not being ready when we generate a new file.  Substitute System.String[]
             // with string[].
@@ -87,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
 
             return FixupComments(generator.ClassDeclaration(
                 WellKnownMemberNames.TopLevelStatementsEntryPointTypeName,
-                accessibility: accessibilityModifiersRequired ? programType.DeclaredAccessibility : Accessibility.NotApplicable,
+                accessibility: useDeclaredAccessibity ? programType.DeclaredAccessibility : Accessibility.NotApplicable,
                 modifiers: hasExistingPart ? DeclarationModifiers.Partial : DeclarationModifiers.None,
                 members: new[] { method }).WithLeadingTrivia(leadingTrivia));
         }

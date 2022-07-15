@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                     return;
                 }
 
-                if (symbolEndContext.Symbol.GetAttributes().Any(a => a.AttributeClass == _structLayoutAttributeType))
+                if (symbolEndContext.Symbol.GetAttributes().Any(static (a, self) => a.AttributeClass == self._structLayoutAttributeType, this))
                 {
                     // Bail out for types with 'StructLayoutAttribute' as the ordering of the members is critical,
                     // and removal of unused members might break semantics.
@@ -727,7 +727,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             }
 
             private bool IsMethodWithSpecialAttribute(IMethodSymbol methodSymbol)
-                => methodSymbol.GetAttributes().Any(a => _attributeSetForMethodsToIgnore.Contains(a.AttributeClass));
+                => methodSymbol.GetAttributes().Any(static (a, self) => self._attributeSetForMethodsToIgnore.Contains(a.AttributeClass), this);
 
             private static bool IsShouldSerializeOrResetPropertyMethod(IMethodSymbol methodSymbol)
             {
@@ -747,7 +747,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                     {
                         var suffix = methodSymbol.Name[prefix.Length..];
                         return suffix.Length > 0 &&
-                            methodSymbol.ContainingType.GetMembers(suffix).Any(m => m is IPropertySymbol);
+                            methodSymbol.ContainingType.GetMembers(suffix).Any(static m => m is IPropertySymbol);
                     }
 
                     return false;

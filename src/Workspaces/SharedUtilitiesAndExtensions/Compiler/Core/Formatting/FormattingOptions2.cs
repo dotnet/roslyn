@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 }));
 
         internal static Option2<bool> InsertFinalNewLine =
-            new(FeatureName, FormattingOptionGroups.NewLine, nameof(InsertFinalNewLine), defaultValue: false,
+            new(FeatureName, FormattingOptionGroups.NewLine, nameof(InsertFinalNewLine), DocumentFormattingOptions.Default.InsertFinalNewLine,
             storageLocation: EditorConfigStorageLocation.ForBoolOption("insert_final_newline"));
 
         public static PerLanguageOption2<FormattingOptions2.IndentStyle> SmartIndent { get; } =

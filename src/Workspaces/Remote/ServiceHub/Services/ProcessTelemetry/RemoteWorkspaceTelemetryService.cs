@@ -15,18 +15,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
     [ExportWorkspaceService(typeof(IWorkspaceTelemetryService)), Shared]
     internal sealed class RemoteWorkspaceTelemetryService : AbstractWorkspaceTelemetryService
     {
-        private readonly IGlobalOptionService _globalOptions;
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RemoteWorkspaceTelemetryService(IGlobalOptionService globalOptions)
+        public RemoteWorkspaceTelemetryService()
         {
-            _globalOptions = globalOptions;
         }
 
-        protected override ILogger CreateLogger(TelemetrySession telemetrySession)
+        protected override ILogger CreateLogger(TelemetrySession telemetrySession, bool logDelta)
             => AggregateLogger.Create(
-                TelemetryLogger.Create(telemetrySession, _globalOptions),
+                TelemetryLogger.Create(telemetrySession, logDelta),
                 Logger.GetLogger());
     }
 }

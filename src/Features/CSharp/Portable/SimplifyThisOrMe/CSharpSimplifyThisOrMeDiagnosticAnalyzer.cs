@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Simplification.Simplifiers;
 using Microsoft.CodeAnalysis.SimplifyThisOrMe;
 
@@ -19,13 +20,12 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyThisOrMe
             SyntaxKind,
             ExpressionSyntax,
             ThisExpressionSyntax,
-            MemberAccessExpressionSyntax,
-            CSharpSimplifierOptions>
+            MemberAccessExpressionSyntax>
     {
         protected override ISyntaxKinds SyntaxKinds => CSharpSyntaxKinds.Instance;
 
-        protected override CSharpSimplifierOptions GetSimplifierOptions(AnalyzerOptions options, SyntaxTree syntaxTree)
-            => options.GetCSharpSimplifierOptions(syntaxTree);
+        protected override ISimplification Simplification
+            => CSharpSimplification.Instance;
 
         protected override AbstractMemberAccessExpressionSimplifier<ExpressionSyntax, MemberAccessExpressionSyntax, ThisExpressionSyntax> Simplifier
             => MemberAccessExpressionSimplifier.Instance;

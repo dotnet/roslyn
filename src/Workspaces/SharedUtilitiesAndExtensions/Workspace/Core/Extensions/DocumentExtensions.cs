@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.SemanticModelReuse;
@@ -203,5 +204,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 yield return solution.GetRequiredDocument(linkedDocumentId);
             }
         }
+
+#if CODE_STYLE
+        public static async ValueTask<AnalyzerConfigOptions> GetAnalyzerConfigOptionsAsync(this Document document, CancellationToken cancellationToken)
+        {
+            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            return document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);
+        }
+#endif
     }
 }

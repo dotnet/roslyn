@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             ' this order will be used when the rewriter re-order modifiers
             ' PERF: Using UShort instead of SyntaxKind as the element type so that the compiler can use array literal initialization
             Private Shared ReadOnly s_modifierKindsInOrder As SyntaxKind() =
-                VisualBasicCodeStyleOptions.PreferredModifierOrderDefault.ToArray()
+                VisualBasicIdeCodeStyleOptions.DefaultPreferredModifierOrder.ToArray()
 
             Private Shared ReadOnly s_removeDimKeywordSet As HashSet(Of SyntaxKind) = New HashSet(Of SyntaxKind)(SyntaxFacts.EqualityComparer) From {
                 SyntaxKind.PrivateKeyword, SyntaxKind.ProtectedKeyword, SyntaxKind.PublicKeyword, SyntaxKind.FriendKeyword,
@@ -504,7 +504,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                                            Return newPreviousToken
                                        End If
 
-                                       throw ExceptionUtilities.UnexpectedValue(o)
+                                       Throw ExceptionUtilities.UnexpectedValue(o)
                                    End Function)
             End Function
 

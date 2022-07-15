@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
                 // matches what the compiler did.
                 var syntaxKinds = this.SyntaxFacts.SyntaxKinds;
                 if (token.RawKind == syntaxKinds.StringLiteralToken ||
-                    token.RawKind == syntaxKinds.UTF8StringLiteralToken ||
+                    token.RawKind == syntaxKinds.Utf8StringLiteralToken ||
                     token.RawKind == syntaxKinds.CharacterLiteralToken)
                 {
                     var expectedValueText = token.ValueText;
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
                     {
                         Debug.Assert(lastVC.Span.End == token.Span.End - "\"".Length, "Last span has to end right before the end of the string token.");
                     }
-                    else if (token.RawKind == syntaxKinds.UTF8StringLiteralToken)
+                    else if (token.RawKind == syntaxKinds.Utf8StringLiteralToken)
                     {
                         Debug.Assert(lastVC.Span.End == token.Span.End - "\"u8".Length, "Last span has to end right before the end of the string token.");
                     }

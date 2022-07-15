@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
@@ -24,6 +25,12 @@ internal static class CodeGenerationOptionsStorage
 
     public static ValueTask<CleanCodeGenerationOptions> GetCleanCodeGenerationOptionsAsync(this Document document, IGlobalOptionService globalOptions, CancellationToken cancellationToken)
         => document.GetCleanCodeGenerationOptionsAsync(globalOptions.GetCleanCodeGenerationOptions(document.Project.LanguageServices), cancellationToken);
+
+    public static CodeGenerationOptions.CommonOptions GetCommonCodeGenerationOptions(this IGlobalOptionService globalOptions, string language)
+        => new()
+        {
+            NamingStyle = globalOptions.GetNamingStylePreferences(language)
+        };
 
     public static CodeGenerationOptions GetCodeGenerationOptions(this IGlobalOptionService globalOptions, HostLanguageServices languageServices)
         => languageServices.GetRequiredService<ICodeGenerationOptionsStorage>().GetOptions(globalOptions);

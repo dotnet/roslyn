@@ -9,7 +9,9 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.VisualBasic.Shared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\VisualBasicCodeGenerationOptions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\VisualBasicCodeStyleOptions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\VisualBasicIdeCodeStyleOptions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\VirtualChars\VisualBasicVirtualCharService.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ArgumentSyntaxExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DirectiveSyntaxExtensions.vb" />

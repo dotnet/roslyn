@@ -103,10 +103,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.Da
                 description: CSharpVSResources.Prefer_null_check_over_type_check,
                 editorConfigOptions: editorConfigOptions,
                 visualStudioOptions: visualStudioOptions, updater: updaterService, fileName: FileName);
-            yield return CodeStyleSetting.Create(option: CSharpCodeStyleOptions.PreferParameterNullChecking,
-                description: CSharpVSResources.Prefer_parameter_null_checking,
-                editorConfigOptions: editorConfigOptions,
-                visualStudioOptions: visualStudioOptions, updater: updaterService, fileName: FileName);
         }
 
         private IEnumerable<CodeStyleSetting> GetModifierCodeStyleOptions(AnalyzerConfigOptions editorConfigOptions, OptionSet visualStudioOptions, OptionUpdater updaterService)
@@ -156,7 +152,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.Da
             yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferRangeOperator, description: ServicesVSResources.Prefer_range_operator, editorConfigOptions, visualStudioOptions, updaterService, FileName);
             yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.ImplicitObjectCreationWhenTypeIsApparent, description: CSharpVSResources.Prefer_implicit_object_creation_when_type_is_apparent, editorConfigOptions, visualStudioOptions, updaterService, FileName);
             yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferTupleSwap, description: ServicesVSResources.Prefer_tuple_swap, editorConfigOptions, visualStudioOptions, updaterService, FileName);
-            yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferUTF8StringLiterals, description: ServicesVSResources.Prefer_UTF8_string_literals, editorConfigOptions, visualStudioOptions, updaterService, FileName);
+            yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferUtf8StringLiterals, description: ServicesVSResources.Prefer_Utf8_string_literals, editorConfigOptions, visualStudioOptions, updaterService, FileName);
         }
 
         private IEnumerable<CodeStyleSetting> GetPatternMatchingCodeStyleOptions(AnalyzerConfigOptions editorConfigOptions, OptionSet visualStudioOptions, OptionUpdater updaterService)

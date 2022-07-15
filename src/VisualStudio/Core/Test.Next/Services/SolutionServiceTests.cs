@@ -406,8 +406,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             await Verify(currentSolution, remoteSolution3, expectRemoteSolutionToCurrent: true);
 
             // move to new solution backward
-            var (solutionInfo2, options) = await assetProvider.CreateSolutionInfoAndOptionsAsync(await solution1.State.GetChecksumAsync(CancellationToken.None), CancellationToken.None);
-            var solution2 = remoteWorkspace.GetTestAccessor().CreateSolutionFromInfoAndOptions(solutionInfo2, options);
+            var solutionInfo2 = await assetProvider.CreateSolutionInfoAsync(await solution1.State.GetChecksumAsync(CancellationToken.None), CancellationToken.None);
+            var solution2 = remoteWorkspace.GetTestAccessor().CreateSolutionFromInfo(solutionInfo2);
             Assert.False((await remoteWorkspace.GetTestAccessor().TryUpdateWorkspaceCurrentSolutionAsync(
                 solution2, solution1.WorkspaceVersion)).updated);
 
@@ -763,19 +763,12 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var project1SyncedSolution = await remoteWorkspace.GetTestAccessor().GetSolutionAsync(assetProvider, project1Checksum, fromPrimaryBranch: false, workspaceVersion: -1, CancellationToken.None);
             Assert.Equal(1, project1SyncedSolution.Projects.Count());
             Assert.Equal(project1.Name, project1SyncedSolution.Projects.Single().Name);
-            var project1Options = (SerializableOptionSet)project1SyncedSolution.Options;
-            Assert.Equal(2, project1Options.GetTestAccessor().Languages.Count);
-            Assert.Contains(LanguageNames.CSharp, project1Options.GetTestAccessor().Languages);
 
             // Syncing over project2 should now give two sets of options.
             await solution.AppendAssetMapAsync(map, project2.Id, CancellationToken.None);
             var project2Checksum = await solution.State.GetChecksumAsync(project2.Id, CancellationToken.None);
             var project2SyncedSolution = await remoteWorkspace.GetTestAccessor().GetSolutionAsync(assetProvider, project2Checksum, fromPrimaryBranch: false, workspaceVersion: -1, CancellationToken.None);
             Assert.Equal(2, project2SyncedSolution.Projects.Count());
-            var project2Options = (SerializableOptionSet)project2SyncedSolution.Options;
-            Assert.Equal(2, project2Options.GetTestAccessor().Languages.Count);
-            Assert.Contains(LanguageNames.CSharp, project2Options.GetTestAccessor().Languages);
-            Assert.Contains(LanguageNames.VisualBasic, project2Options.GetTestAccessor().Languages);
         }
 
         [Fact]

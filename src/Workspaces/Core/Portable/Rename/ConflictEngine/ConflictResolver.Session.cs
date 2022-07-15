@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     {
                         var definitionLocations = _renameLocationSet.Symbol.Locations;
                         var definitionDocuments = definitionLocations
-                            .Select(l => conflictResolution.OldSolution.GetDocument(l.SourceTree))
+                            .Select(l => conflictResolution.OldSolution.GetRequiredDocument(l.SourceTree))
                             .Distinct();
 
                         if (definitionDocuments.Count() == 1 && _replacementTextValid)
@@ -498,7 +498,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 SyntaxNode syntaxRoot)
             {
                 return syntaxRoot.DescendantNodesAndTokens(descendIntoTrivia: true)
-                    .Where(s => _renameAnnotations.HasAnnotations<RenameActionAnnotation>(s))
+                    .Where(_renameAnnotations.HasAnnotations<RenameActionAnnotation>)
                     .Select(s => (s, _renameAnnotations.GetAnnotations<RenameActionAnnotation>(s).Single()));
             }
 

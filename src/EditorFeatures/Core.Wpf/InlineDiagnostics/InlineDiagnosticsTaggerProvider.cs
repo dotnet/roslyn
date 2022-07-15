@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         {
             return TaggerEventSources.Compose(
                 base.CreateEventSource(textView, subjectBuffer),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineDiagnosticsOptions.Location));
+                TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineDiagnosticsOptions.Location));
         }
 
         protected internal override bool IncludeDiagnostic(DiagnosticData diagnostic)

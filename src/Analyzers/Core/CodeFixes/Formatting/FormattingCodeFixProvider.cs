@@ -40,7 +40,8 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         private async Task<Document> FixOneAsync(CodeFixContext context, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
-            var formattingOptions = await context.Document.GetSyntaxFormattingOptionsAsync(SyntaxFormatting, context.GetOptionsProvider(), cancellationToken).ConfigureAwait(false);
+            var options = await context.Document.GetCodeFixOptionsAsync(context.GetOptionsProvider(), cancellationToken).ConfigureAwait(false);
+            var formattingOptions = options.GetFormattingOptions(SyntaxFormatting);
             var tree = await context.Document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var updatedTree = await FormattingCodeFixHelper.FixOneAsync(tree, SyntaxFormatting, formattingOptions, diagnostic, cancellationToken).ConfigureAwait(false);
             return context.Document.WithText(await updatedTree.GetTextAsync(cancellationToken).ConfigureAwait(false));
@@ -48,7 +49,8 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
-            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(SyntaxFormatting, fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var options = await document.GetCodeFixOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var formattingOptions = options.GetFormattingOptions(SyntaxFormatting);
             var updatedRoot = Formatter.Format(editor.OriginalRoot, SyntaxFormatting, formattingOptions, cancellationToken);
             editor.ReplaceNode(editor.OriginalRoot, updatedRoot);
         }

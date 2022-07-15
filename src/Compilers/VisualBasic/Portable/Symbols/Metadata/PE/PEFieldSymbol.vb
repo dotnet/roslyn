@@ -347,12 +347,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Private Sub EnsureSignatureIsLoaded()
             If _lazyType Is Nothing Then
                 Dim moduleSymbol = _containingType.ContainingPEModule
-                Dim customModifiers As ImmutableArray(Of ModifierInfo(Of TypeSymbol)) = Nothing
-                Dim type As TypeSymbol = New MetadataDecoder(moduleSymbol, _containingType).DecodeFieldSignature(_handle, customModifiers)
+                Dim fieldInfo As FieldInfo(Of TypeSymbol) = New MetadataDecoder(moduleSymbol, _containingType).DecodeFieldSignature(_handle)
+                Dim type As TypeSymbol = fieldInfo.Type
+
+                ' https://github.com/dotnet/roslyn/issues/62121: Report use-site diagnostic if fieldInfo.IsByRef.
 
                 type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, _handle, moduleSymbol)
 
-                ImmutableInterlocked.InterlockedCompareExchange(_lazyCustomModifiers, VisualBasicCustomModifier.Convert(customModifiers), Nothing)
+                ImmutableInterlocked.InterlockedCompareExchange(_lazyCustomModifiers, VisualBasicCustomModifier.Convert(fieldInfo.CustomModifiers), Nothing)
                 Interlocked.CompareExchange(_lazyType, type, Nothing)
             End If
         End Sub
@@ -383,6 +385,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             If Not _lazyCachedUseSiteInfo.IsInitialized Then
                 Dim fieldUseSiteInfo = CalculateUseSiteInfo()
 
+                If fieldUseSiteInfo.DiagnosticInfo Is Nothing Then
+                    Dim errorInfo = DeriveCompilerFeatureRequiredDiagnostic(fieldUseSiteInfo)
+                    If errorInfo IsNot Nothing Then
+                        fieldUseSiteInfo = New UseSiteInfo(Of AssemblySymbol)(errorInfo)
+                    End If
+                End If
+
                 ' if there was no previous use site error for this symbol, check the constant value
                 If fieldUseSiteInfo.DiagnosticInfo Is Nothing Then
 
@@ -401,6 +410,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End If
 
             Return _lazyCachedUseSiteInfo.ToUseSiteInfo(primaryDependency)
+        End Function
+
+        Private Function DeriveCompilerFeatureRequiredDiagnostic(ByRef result As UseSiteInfo(Of AssemblySymbol)) As DiagnosticInfo
+            Dim containingModule = _containingType.ContainingPEModule
+            Return If(DeriveCompilerFeatureRequiredAttributeDiagnostic(Me, containingModule, Handle, CompilerFeatureRequiredFeatures.None, New MetadataDecoder(containingModule, _containingType)),
+                      _containingType.GetCompilerFeatureRequiredDiagnostic())
         End Function
 
         Friend ReadOnly Property Handle As FieldDefinitionHandle

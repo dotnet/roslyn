@@ -27,8 +27,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected abstract bool IsInstrinsic(ISymbol symbol);
         protected abstract bool IsTriggerOnDot(SyntaxToken token, int characterPosition);
 
-        protected sealed override bool ShouldCollectTelemetryForTargetTypeCompletion => true;
-
         protected sealed override async Task<ImmutableArray<(ISymbol symbol, bool preselect)>> GetSymbolsAsync(
             CompletionContext? completionContext, TSyntaxContext context, int position, CompletionOptions options, CancellationToken cancellationToken)
         {
@@ -36,13 +34,18 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var recommender = context.GetRequiredLanguageService<IRecommendationService>();
             var recommendedSymbols = recommender.GetRecommendedSymbolsInContext(context, recommendationOptions, cancellationToken);
 
-            if (context.IsInTaskLikeTypeContext)
+            if (context.IsTaskLikeTypeContext)
             {
                 // If we get 'Task' back, attempt to preselect that as the most likely result.
                 var taskType = context.SemanticModel.Compilation.TaskType();
                 return recommendedSymbols.NamedSymbols.SelectAsArray(
                     s => IsValidForTaskLikeTypeOnlyContext(s, context),
                     s => (s, preselect: s.OriginalDefinition.Equals(taskType)));
+            }
+            else if (context.IsGenericConstraintContext)
+            {
+                // Just filter valid symbols. Nothing to preselect
+                return recommendedSymbols.NamedSymbols.SelectAsArray(IsValidForGenericConstraintContext, s => (s, preselect: false));
             }
             else
             {
@@ -89,7 +92,33 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                        namedType.Equals(compilation.IAsyncEnumeratorOfTType());
             }
 
-            return symbol.IsAwaitableNonDynamic(context.SemanticModel, context.Position);
+            return namedType.IsAwaitableNonDynamic(context.SemanticModel, context.Position) ||
+                   namedType.GetTypeMembers().Any(static (m, context) => IsValidForTaskLikeTypeOnlyContext(m, context), context);
+        }
+
+        private static bool IsValidForGenericConstraintContext(ISymbol symbol)
+        {
+            if (symbol.IsNamespace() ||
+                symbol.IsKind(SymbolKind.TypeParameter))
+            {
+                return true;
+            }
+
+            if (symbol is not INamedTypeSymbol namedType ||
+                symbol.IsDelegateType() ||
+                namedType.IsEnumType())
+            {
+                return false;
+            }
+
+            // If current symbol is a struct or static or sealed class then it cannot be used as a generic constraint.
+            // However it can contain other valid constraint types and if this is true we should show it
+            if (namedType.IsStructType() || namedType.IsStatic || namedType.IsSealed)
+            {
+                return namedType.GetTypeMembers().Any(IsValidForGenericConstraintContext);
+            }
+
+            return true;
         }
 
         private static ITypeSymbol? GetSymbolType(ISymbol symbol)
@@ -106,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             var rules = GetCompletionItemRules(symbols, context);
 
-            var preselect = symbols.Any(t => t.preselect);
+            var preselect = symbols.Any(static t => t.preselect);
             var matchPriority = preselect ? ComputeSymbolMatchPriority(symbols[0].symbol) : MatchPriority.Default;
             rules = rules.WithMatchPriority(matchPriority);
 

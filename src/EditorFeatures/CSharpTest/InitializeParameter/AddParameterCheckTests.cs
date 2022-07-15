@@ -29,96 +29,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
-        [InlineData("csharp_style_prefer_parameter_null_checking = true")]
-        [InlineData("")]
-        public async Task TestSimpleReferenceType(string editorConfig)
-        {
-            await new VerifyCS.Test
-            {
-                LanguageVersion = LanguageVersionExtensions.CSharpNext,
-                TestCode = @"
-using System;
-
-class C
-{
-    public C([||]string s)
-    {
-    }
-}",
-                FixedCode = @"
-using System;
-
-class C
-{
-    public C(string s!!)
-    {
-    }
-}",
-                EditorConfig = $@"
-[*]
-{editorConfig}
-"
-            }.RunAsync();
-        }
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
-        public async Task TestDoNotPreferParameterNullChecking()
-        {
-            await new VerifyCS.Test
-            {
-                LanguageVersion = LanguageVersionExtensions.CSharpNext,
-                TestCode = @"
-using System;
-
-class C
-{
-    public C([||]string s)
-    {
-    }
-}",
-                FixedCode = @"
-using System;
-
-class C
-{
-    public C(string s)
-    {
-        if (s is null)
-        {
-            throw new ArgumentNullException(nameof(s));
-        }
-    }
-}",
-                EditorConfig = @"
-[*]
-csharp_style_prefer_parameter_null_checking = false
-",
-            }.RunAsync();
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
-        public async Task TestSimpleReferenceType_AlreadyNullChecked1()
-        {
-            var testCode = @"
-using System;
-
-class C
-{
-    public C([||]string s!!)
-    {
-    }
-}";
-            await new VerifyCS.Test
-            {
-                LanguageVersion = LanguageVersionExtensions.CSharpNext,
-                TestCode = testCode,
-                FixedCode = testCode
-            }.RunAsync();
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
-        public async Task TestSimpleReferenceType_AlreadyNullChecked2()
+        public async Task TestSimpleReferenceType_AlreadyNullChecked()
         {
             var testCode = @"
 using System;
@@ -135,14 +47,14 @@ class C
 }";
             await new VerifyCS.Test
             {
-                LanguageVersion = LanguageVersionExtensions.CSharpNext,
+                LanguageVersion = LanguageVersion.CSharp11,
                 TestCode = testCode,
                 FixedCode = testCode
             }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
-        public async Task TestSimpleReferenceType_CSharp8()
+        public async Task TestSimpleReferenceType()
         {
             await VerifyCS.VerifyRefactoringAsync(
 @"
@@ -319,7 +231,7 @@ class C
 
         [Theory]
         [Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
-        [InlineData(LanguageVersionExtensions.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         [InlineData(LanguageVersion.CSharp8)]
         public async Task TestNotOnPartialMethodDefinition1(LanguageVersion languageVersion)
         {
@@ -366,7 +278,7 @@ partial class C
 
         [Theory]
         [Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
-        [InlineData(LanguageVersionExtensions.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         [InlineData(LanguageVersion.CSharp8)]
         public async Task TestNotOnPartialMethodDefinition2(LanguageVersion languageVersion)
         {
@@ -413,37 +325,6 @@ partial class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestOnPartialMethodImplementation1()
-        {
-            await new VerifyCS.Test
-            {
-                LanguageVersion = LanguageVersionExtensions.CSharpNext,
-                TestCode = @"
-using System;
-
-partial class C
-{
-    partial void M(string s);
-
-    partial void M([||]string s)
-    {
-    }
-}",
-                FixedCode = @"
-using System;
-
-partial class C
-{
-    partial void M(string s);
-
-    partial void M(string s!!)
-    {
-    }
-}"
-            }.RunAsync();
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
-        public async Task TestOnPartialMethodImplementation1_CSharp8()
         {
             await VerifyCS.VerifyRefactoringAsync(
 @"
@@ -511,37 +392,6 @@ partial class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestOnPartialMethodImplementation2()
-        {
-            await new VerifyCS.Test
-            {
-                LanguageVersion = LanguageVersionExtensions.CSharpNext,
-                TestCode = @"
-using System;
-
-partial class C
-{
-    partial void M([||]string s)
-    {
-    }
-
-    partial void M(string s);
-}",
-                FixedCode = @"
-using System;
-
-partial class C
-{
-    partial void M(string s!!)
-    {
-    }
-
-    partial void M(string s);
-}"
-            }.RunAsync();
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
-        public async Task TestOnPartialMethodImplementation2_CSharp9()
         {
             await VerifyCS.VerifyRefactoringAsync(
 @"
@@ -1710,7 +1560,7 @@ class C
         {
             await new VerifyCS.Test
             {
-                LanguageVersion = LanguageVersionExtensions.CSharpNext,
+                LanguageVersion = LanguageVersion.CSharp11,
                 TestCode = @"
 using System;
 
@@ -1728,7 +1578,15 @@ class C
 {
     public C()
     {
-        Func<string, int> f = (_!!) => { return 0; };
+        Func<string, int> f = (_) =>
+        {
+            if (_ is null)
+            {
+                throw new ArgumentNullException(nameof(_));
+            }
+
+            return 0;
+        };
     }
 }"
             }.RunAsync();
@@ -1750,7 +1608,7 @@ class C
 }";
             await new VerifyCS.Test
             {
-                LanguageVersion = LanguageVersionExtensions.CSharpNext,
+                LanguageVersion = LanguageVersion.CSharp11,
                 TestCode = testCode,
                 FixedCode = testCode
             }.RunAsync();
@@ -2882,7 +2740,7 @@ class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         [WorkItem(58779, "https://github.com/dotnet/roslyn/issues/58779")]
-        public async Task TestNotInRecordBeforeCSharp11()
+        public async Task TestNotInRecord()
         {
             var code = @"
 record C([||]string s) { public string s; }";
@@ -2891,35 +2749,6 @@ record C([||]string s) { public string s; }";
                 LanguageVersion = LanguageVersion.CSharp10,
                 TestCode = code,
                 FixedCode = code,
-            }.RunAsync();
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
-        [WorkItem(58779, "https://github.com/dotnet/roslyn/issues/58779")]
-        public async Task TestInRecordAfterCSharp11()
-        {
-            await new VerifyCS.Test
-            {
-                LanguageVersion = LanguageVersionExtensions.CSharpNext,
-                TestCode = @"
-record C([||]string s) { public string s; }",
-                FixedCode = @"
-record C(string s!!) { public string s; }",
-            }.RunAsync();
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
-        [WorkItem(58779, "https://github.com/dotnet/roslyn/issues/58779")]
-        public async Task TestInRecordWithMultipleParametersAfterCSharp11()
-        {
-            await new VerifyCS.Test
-            {
-                LanguageVersion = LanguageVersionExtensions.CSharpNext,
-                TestCode = @"
-record C([||]string s, string t) { public string s, t; }",
-                FixedCode = @"
-record C(string s!!, string t!!) { public string s, t; }",
-                CodeActionIndex = 1,
             }.RunAsync();
         }
     }

@@ -56,25 +56,28 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             var formattingService = document.Project.LanguageServices.GetRequiredService<ISyntaxFormattingService>();
+            var documentSyntax = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
-            if (!await formattingService.ShouldFormatOnTypedCharacterAsync(document, request.Character[0], position, cancellationToken).ConfigureAwait(false))
+            if (!formattingService.ShouldFormatOnTypedCharacter(documentSyntax, request.Character[0], position, cancellationToken))
             {
                 return Array.Empty<TextEdit>();
             }
 
             // We should use the options passed in by LSP instead of the document's options.
             var formattingOptions = await ProtocolConversions.GetFormattingOptionsAsync(request.Options, document, _globalOptions, cancellationToken).ConfigureAwait(false);
-            var indentationOptions = new IndentationOptions(formattingOptions, _globalOptions.GetAutoFormattingOptions(document.Project.Language));
+            var indentationOptions = new IndentationOptions(formattingOptions)
+            {
+                AutoFormattingOptions = _globalOptions.GetAutoFormattingOptions(document.Project.Language)
+            };
 
-            var textChanges = await formattingService.GetFormattingChangesOnTypedCharacterAsync(document, position, indentationOptions, cancellationToken).ConfigureAwait(false);
+            var textChanges = formattingService.GetFormattingChangesOnTypedCharacter(documentSyntax, position, indentationOptions, cancellationToken);
             if (textChanges.IsEmpty)
             {
                 return Array.Empty<TextEdit>();
             }
 
             var edits = new ArrayBuilder<TextEdit>();
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            edits.AddRange(textChanges.Select(change => ProtocolConversions.TextChangeToTextEdit(change, text)));
+            edits.AddRange(textChanges.Select(change => ProtocolConversions.TextChangeToTextEdit(change, documentSyntax.Text)));
             return edits.ToArrayAndFree();
         }
     }

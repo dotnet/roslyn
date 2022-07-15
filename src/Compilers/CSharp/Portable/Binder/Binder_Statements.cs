@@ -694,6 +694,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             var typeSyntax = node.Declaration.Type.SkipRef(out _);
             bool isConst = node.IsConst;
 
+            foreach (var modifier in node.Modifiers)
+            {
+                // Check for support for 'scoped'. Duplicate modifiers are reported
+                // as errors in parsing rather than here.
+                if (modifier.Kind() == SyntaxKind.ScopedKeyword)
+                {
+                    ModifierUtils.CheckScopedModifierAvailability(node, modifier, diagnostics);
+                }
+            }
+
+            if (node.Declaration.Type is RefTypeSyntax { ScopedKeyword: var scopedKeyword } &&
+                scopedKeyword.Kind() == SyntaxKind.ScopedKeyword)
+            {
+                ModifierUtils.CheckScopedModifierAvailability(typeSyntax, scopedKeyword, diagnostics);
+            }
+
             bool isVar;
             AliasSymbol alias;
             TypeWithAnnotations declType = BindVariableTypeWithAnnotations(node.Declaration, diagnostics, typeSyntax, ref isConst, isVar: out isVar, alias: out alias);
@@ -1078,17 +1094,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
+            if (localSymbol.Scope == DeclarationScope.ValueScoped && !declTypeOpt.Type.IsErrorTypeOrRefLikeType())
+            {
+                localDiagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, typeSyntax.Location);
+            }
+
             localSymbol.SetTypeWithAnnotations(declTypeOpt);
 
             if (initializerOpt != null)
             {
-                var currentScope = LocalScopeDepth;
-
-                localSymbol.SetValEscape(GetValEscape(initializerOpt, currentScope));
-
-                if (localSymbol.RefKind != RefKind.None)
+                if (UseUpdatedEscapeRules && localSymbol.Scope != DeclarationScope.Unscoped)
                 {
-                    localSymbol.SetRefEscape(GetRefEscape(initializerOpt, currentScope));
+                    // If the local has a scoped modifier, then the lifetime is not inferred from
+                    // the initializer. Validate the escape values for the initializer instead.
+
+                    Debug.Assert(localSymbol.RefKind == RefKind.None ||
+                        localSymbol.RefEscapeScope >= GetRefEscape(initializerOpt, LocalScopeDepth));
+
+                    if (declTypeOpt.Type.IsRefLikeType)
+                    {
+                        initializerOpt = ValidateEscape(initializerOpt, localSymbol.ValEscapeScope, isByRef: false, diagnostics);
+                    }
+                }
+                else
+                {
+                    var currentScope = LocalScopeDepth;
+
+                    localSymbol.SetValEscape(GetValEscape(initializerOpt, currentScope));
+
+                    if (localSymbol.RefKind != RefKind.None)
+                    {
+                        localSymbol.SetRefEscape(GetRefEscape(initializerOpt, currentScope));
+                    }
                 }
             }
 
@@ -1203,11 +1240,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 localSymbol = SourceLocalSymbol.MakeLocal(
                     ContainingMemberOrLambda,
                     this,
-                    false, // do not allow ref
+                    allowRefKind: false, // do not allow ref
                     typeSyntax,
                     identifier,
                     kind,
-                    equalsValue);
+                    equalsValue,
+                    hasScopedModifier: false);
             }
 
             return localSymbol;

@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.ConvertProgram;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.CodeStyle;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
@@ -25,15 +26,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         public async Task<Document> FormatNewDocumentAsync(Document document, Document? hintDocument, CodeCleanupOptions options, CancellationToken cancellationToken)
         {
-            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-
             // if the user prefers Program.Main style instead, then attempt to convert a template with
             // top-level-statements to that form.
-            var option = documentOptions.GetOption(CSharpCodeStyleOptions.PreferTopLevelStatements);
+            var option = ((CSharpSyntaxFormattingOptions)options.FormattingOptions).PreferTopLevelStatements;
             if (option.Value)
                 return document;
 
-            return await ConvertProgramTransform.ConvertToProgramMainAsync(document, cancellationToken).ConfigureAwait(false);
+            return await ConvertProgramTransform.ConvertToProgramMainAsync(document, options.FormattingOptions.AccessibilityModifiersRequired, cancellationToken).ConfigureAwait(false);
         }
     }
 }

@@ -48,11 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
         private void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext)
         {
-            var options = syntaxContext.Options;
-            var syntaxTree = syntaxContext.Node.SyntaxTree;
-            var cancellationToken = syntaxContext.CancellationToken;
-
-            var styleOption = options.GetOption(CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck, syntaxTree, cancellationToken);
+            var styleOption = syntaxContext.GetCSharpAnalyzerOptions().PreferPatternMatchingOverIsWithCastCheck;
             if (!styleOption.Value)
             {
                 // Bail immediately if the user has disabled this feature.
@@ -63,6 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
             // "x is Type y" is only available in C# 7.0 and above.  Don't offer this refactoring
             // in projects targeting a lesser version.
+            var syntaxTree = syntaxContext.Node.SyntaxTree;
             if (syntaxTree.Options.LanguageVersion() < LanguageVersion.CSharp7)
             {
                 return;
@@ -100,6 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 return;
             }
 
+            var cancellationToken = syntaxContext.CancellationToken;
             var semanticModel = syntaxContext.SemanticModel;
             var localSymbol = (ILocalSymbol)semanticModel.GetRequiredDeclaredSymbol(declarator, cancellationToken);
             var isType = semanticModel.GetTypeInfo(castExpression.Type).Type;

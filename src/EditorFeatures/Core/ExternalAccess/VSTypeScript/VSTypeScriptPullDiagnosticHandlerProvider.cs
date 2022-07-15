@@ -22,10 +22,9 @@ internal class VSTypeScriptDocumentPullDiagnosticHandlerFactory : DocumentPullDi
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public VSTypeScriptDocumentPullDiagnosticHandlerFactory(
-        IDiagnosticService diagnosticService,
         IDiagnosticAnalyzerService analyzerService,
         EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource,
-        IGlobalOptionService globalOptions) : base(diagnosticService, analyzerService, editAndContinueDiagnosticUpdateSource, globalOptions)
+        IGlobalOptionService globalOptions) : base(analyzerService, editAndContinueDiagnosticUpdateSource, globalOptions)
     {
     }
 }
@@ -36,9 +35,9 @@ internal class VSTypeScriptWorkspacePullDiagnosticHandler : WorkspacePullDiagnos
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public VSTypeScriptWorkspacePullDiagnosticHandler(
-        IDiagnosticService diagnosticService,
+        IDiagnosticAnalyzerService analyzerService,
         EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource,
-        IGlobalOptionService globalOptions) : base(diagnosticService, editAndContinueDiagnosticUpdateSource, globalOptions)
+        IGlobalOptionService globalOptions) : base(analyzerService, editAndContinueDiagnosticUpdateSource, globalOptions)
     {
     }
 }

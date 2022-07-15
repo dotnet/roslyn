@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="Add_explicit_cast">
         <source>Add explicit cast</source>
-        <target state="new">Add explicit cast</target>
+        <target state="translated">Добавить явное приведение</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_file_header">
@@ -29,12 +29,12 @@
       </trans-unit>
       <trans-unit id="Alias_ambiguous_type_0">
         <source>Alias ambiguous type '{0}'</source>
-        <target state="new">Alias ambiguous type '{0}'</target>
+        <target state="translated">Неоднозначный тип псевдонима "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_type_to_0">
         <source>Convert type to '{0}'</source>
-        <target state="new">Convert type to '{0}'</target>
+        <target state="translated">Преобразовать тип в "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_Name_Violation_colon_0">
@@ -49,12 +49,12 @@
       </trans-unit>
       <trans-unit id="Make_class_abstract">
         <source>Make class 'abstract'</source>
-        <target state="new">Make class 'abstract'</target>
+        <target state="translated">Сделать класс абстрактным</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_member_static">
         <source>Make static</source>
-        <target state="new">Make static</target>
+        <target state="translated">Сделать статическим</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_extra_blank_lines">
@@ -64,7 +64,7 @@
       </trans-unit>
       <trans-unit id="Remove_redundant_assignment">
         <source>Remove redundant assignment</source>
-        <target state="translated">Удалить избыточные операторы назначения</target>
+        <target state="translated">Удалить избыточное присваивание</target>
         <note />
       </trans-unit>
       <trans-unit id="Suppress_or_Configure_issues">

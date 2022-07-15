@@ -145,11 +145,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             int arity;
             string memberName;
+            string memberNameText;
 
             if (nameSyntax != null)
             {
                 arity = nameSyntax.Arity;
                 memberName = nameSyntax.Identifier.ValueText;
+                memberNameText = nameSyntax.Identifier.Text;
             }
             else
             {
@@ -161,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 containerOpt = BindNamespaceOrTypeSymbolInCref(syntax.Name);
 
                 arity = 0;
-                memberName = WellKnownMemberNames.InstanceConstructorName;
+                memberName = memberNameText = WellKnownMemberNames.InstanceConstructorName;
             }
 
             if (string.IsNullOrEmpty(memberName))
@@ -170,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ImmutableArray<Symbol>.Empty;
             }
 
-            ImmutableArray<Symbol> sortedSymbols = ComputeSortedCrefMembers(syntax, containerOpt, memberName, arity, syntax.Parameters != null, diagnostics);
+            ImmutableArray<Symbol> sortedSymbols = ComputeSortedCrefMembers(syntax, containerOpt, memberName, memberNameText, arity, syntax.Parameters != null, diagnostics);
 
             if (sortedSymbols.IsEmpty)
             {
@@ -192,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             const int arity = 0;
 
-            ImmutableArray<Symbol> sortedSymbols = ComputeSortedCrefMembers(syntax, containerOpt, WellKnownMemberNames.Indexer, arity, syntax.Parameters != null, diagnostics);
+            ImmutableArray<Symbol> sortedSymbols = ComputeSortedCrefMembers(syntax, containerOpt, WellKnownMemberNames.Indexer, memberNameText: WellKnownMemberNames.Indexer, arity, syntax.Parameters != null, diagnostics);
 
             if (sortedSymbols.IsEmpty)
             {
@@ -240,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ImmutableArray<Symbol>.Empty;
             }
 
-            ImmutableArray<Symbol> sortedSymbols = ComputeSortedCrefMembers(syntax, containerOpt, memberName, arity, syntax.Parameters != null, diagnostics);
+            ImmutableArray<Symbol> sortedSymbols = ComputeSortedCrefMembers(syntax, containerOpt, memberName, memberNameText: memberName, arity, syntax.Parameters != null, diagnostics);
 
             if (sortedSymbols.IsEmpty)
             {
@@ -286,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 memberName = WellKnownMemberNames.ExplicitConversionName;
             }
 
-            ImmutableArray<Symbol> sortedSymbols = ComputeSortedCrefMembers(syntax, containerOpt, memberName, arity, syntax.Parameters != null, diagnostics);
+            ImmutableArray<Symbol> sortedSymbols = ComputeSortedCrefMembers(syntax, containerOpt, memberName, memberNameText: memberName, arity, syntax.Parameters != null, diagnostics);
 
             if (sortedSymbols.IsEmpty)
             {
@@ -324,17 +326,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// Never returns null.
         /// </remarks>
-        private ImmutableArray<Symbol> ComputeSortedCrefMembers(CSharpSyntaxNode syntax, NamespaceOrTypeSymbol? containerOpt, string memberName, int arity, bool hasParameterList, BindingDiagnosticBag diagnostics)
+        private ImmutableArray<Symbol> ComputeSortedCrefMembers(CSharpSyntaxNode syntax, NamespaceOrTypeSymbol? containerOpt, string memberName, string memberNameText, int arity, bool hasParameterList, BindingDiagnosticBag diagnostics)
         {
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            var result = ComputeSortedCrefMembers(containerOpt, memberName, arity, hasParameterList, ref useSiteInfo);
+            var result = ComputeSortedCrefMembers(containerOpt, memberName, memberNameText, arity, hasParameterList, syntax, diagnostics, ref useSiteInfo);
             diagnostics.Add(syntax, useSiteInfo);
             return result;
         }
 
-        private ImmutableArray<Symbol> ComputeSortedCrefMembers(NamespaceOrTypeSymbol? containerOpt, string memberName, int arity, bool hasParameterList, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private ImmutableArray<Symbol> ComputeSortedCrefMembers(NamespaceOrTypeSymbol? containerOpt, string memberName, string memberNameText, int arity, bool hasParameterList, CSharpSyntaxNode syntax,
+            BindingDiagnosticBag diagnostics, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            // Since we may find symbols without going through the lookup API, 
+            // Since we may find symbols without going through the lookup API,
             // expose the symbols via an ArrayBuilder.
             ArrayBuilder<Symbol> builder;
             {
@@ -357,6 +360,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder = ArrayBuilder<Symbol>.GetInstance();
                     builder.AddRange(result.Symbols);
                     result.Free();
+                }
+                else if (memberNameText is "nint" or "nuint"
+                    && containerOpt is null
+                    && arity == 0
+                    && !hasParameterList)
+                {
+                    result.Free(); // Won't be using this.
+                    Debug.Assert(memberName == memberNameText);
+                    CheckFeatureAvailability(syntax, MessageID.IDS_FeatureNativeInt, diagnostics);
+                    builder = ArrayBuilder<Symbol>.GetInstance();
+                    builder.Add(this.GetSpecialType(memberName == "nint" ? SpecialType.System_IntPtr : SpecialType.System_UIntPtr, diagnostics, syntax).AsNativeInteger());
                 }
                 else
                 {

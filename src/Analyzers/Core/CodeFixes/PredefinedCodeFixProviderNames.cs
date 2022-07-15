@@ -97,6 +97,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string RemoveUnnecessaryDiscardDesignation = nameof(RemoveUnnecessaryDiscardDesignation);
         public const string RemoveUnnecessaryImports = nameof(RemoveUnnecessaryImports);
         public const string RemoveUnnecessaryLambdaExpression = nameof(RemoveUnnecessaryLambdaExpression);
+        public const string RemoveUnnecessaryNullableDirective = nameof(RemoveUnnecessaryNullableDirective);
         public const string RemoveUnnecessaryParentheses = nameof(RemoveUnnecessaryParentheses);
         public const string RemoveUnnecessaryPragmaSuppressions = nameof(RemoveUnnecessaryPragmaSuppressions);
         public const string RemoveUnreachableCode = nameof(RemoveUnreachableCode);
@@ -140,7 +141,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string UseInterpolatedVerbatimString = nameof(UseInterpolatedVerbatimString);
         public const string UseIsNotExpression = nameof(UseIsNotExpression);
         public const string UseIsNullCheck = nameof(UseIsNullCheck);
-        public const string UseParameterNullChecking = nameof(UseParameterNullChecking);
         public const string UseIsNullCheckForCastAndEqualityOperator = nameof(UseIsNullCheckForCastAndEqualityOperator);
         public const string UseIsNullCheckForReferenceEquals = nameof(UseIsNullCheckForReferenceEquals);
         public const string UseLocalFunction = nameof(UseLocalFunction);
@@ -157,6 +157,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string UseSystemHashCode = nameof(UseSystemHashCode);
         public const string UseThrowExpression = nameof(UseThrowExpression);
         public const string UseTupleSwap = nameof(UseTupleSwap);
-        public const string UseUTF8StringLiteral = nameof(UseUTF8StringLiteral);
+        public const string UseUtf8StringLiteral = nameof(UseUtf8StringLiteral);
     }
 }

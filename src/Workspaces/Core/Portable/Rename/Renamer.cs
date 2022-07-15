@@ -54,12 +54,16 @@ namespace Microsoft.CodeAnalysis.Rename
 
             var resolution = await RenameSymbolAsync(solution, symbol, newName, options, CodeActionOptions.DefaultProvider, nonConflictSymbols: null, cancellationToken).ConfigureAwait(false);
 
-            // This is a public entry-point.  So if rename failed to resolve conflicts, we report that back to caller as
-            // an exception.
-            if (resolution.ErrorMessage != null)
+            if (resolution.IsSuccessful)
+            {
+                return resolution.NewSolution;
+            }
+            else
+            {
+                // This is a public entry-point.  So if rename failed to resolve conflicts, we report that back to caller as
+                // an exception.
                 throw new ArgumentException(resolution.ErrorMessage);
-
-            return resolution.NewSolution;
+            }
         }
 
         [Obsolete("Use overload taking RenameOptions")]
@@ -93,13 +97,13 @@ namespace Microsoft.CodeAnalysis.Rename
         /// <param name="options">Options used to configure rename of a type contained in the document that matches the document's name.</param>
         /// <param name="newDocumentFolders">The new set of folders for the <see cref="TextDocument.Folders"/> property</param>
         public static Task<RenameDocumentActionSet> RenameDocumentAsync(
-            Document document!!,
+            Document document,
             DocumentRenameOptions options,
             string? newDocumentName,
             IReadOnlyList<string>? newDocumentFolders = null,
             CancellationToken cancellationToken = default)
         {
-            return RenameDocumentAsync(document, options, CodeActionOptions.DefaultProvider, newDocumentName, newDocumentFolders, cancellationToken);
+            return RenameDocumentAsync(document ?? throw new ArgumentNullException(nameof(document)), options, CodeActionOptions.DefaultProvider, newDocumentName, newDocumentFolders, cancellationToken);
         }
 
         internal static async Task<RenameDocumentActionSet> RenameDocumentAsync(

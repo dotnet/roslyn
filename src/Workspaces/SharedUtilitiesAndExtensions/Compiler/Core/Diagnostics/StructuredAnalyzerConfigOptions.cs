@@ -40,6 +40,23 @@ internal abstract class StructuredAnalyzerConfigOptions : AnalyzerConfigOptions
             => _lazyNamingStylePreferences.Value;
     }
 
+    private sealed class EmptyImplementation : StructuredAnalyzerConfigOptions
+    {
+        public override NamingStylePreferences GetNamingStylePreferences()
+            => NamingStylePreferences.Empty;
+
+        public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
+        {
+            value = null;
+            return false;
+        }
+
+        public override IEnumerable<string> Keys
+            => SpecializedCollections.EmptyEnumerable<string>();
+    }
+
+    public static readonly StructuredAnalyzerConfigOptions Empty = new EmptyImplementation();
+
     public abstract NamingStylePreferences GetNamingStylePreferences();
 
     public static StructuredAnalyzerConfigOptions Create(ImmutableDictionary<string, string> options)
@@ -47,6 +64,9 @@ internal abstract class StructuredAnalyzerConfigOptions : AnalyzerConfigOptions
         Contract.ThrowIfFalse(options.KeyComparer == KeyComparer);
         return new Implementation(new DictionaryAnalyzerConfigOptions(options));
     }
+
+    public static StructuredAnalyzerConfigOptions Create(AnalyzerConfigOptions options)
+        => new Implementation(options);
 
     public static bool TryGetStructuredOptions(AnalyzerConfigOptions configOptions, [NotNullWhen(true)] out StructuredAnalyzerConfigOptions? options)
     {

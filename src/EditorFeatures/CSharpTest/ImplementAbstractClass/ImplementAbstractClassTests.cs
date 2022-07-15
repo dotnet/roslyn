@@ -2075,5 +2075,41 @@ class D : C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestRequiredMember()
+        {
+            await TestAllOptionsOffAsync(
+                """
+                abstract class C
+                {
+                    public abstract required int Property { get; set; }
+                }
+                class [|D|] : C
+                {
+                }
+                """,
+                """
+                abstract class C
+                {
+                    public abstract required int Property { get; set; }
+                }
+                class D : C
+                {
+                    public override required int Property
+                    {
+                        get
+                        {
+                            throw new System.NotImplementedException();
+                        }
+
+                        set
+                        {
+                            throw new System.NotImplementedException();
+                        }
+                    }
+                }
+                """);
+        }
     }
 }

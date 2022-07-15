@@ -125,18 +125,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         protected override void OnDocumentTextChanged(Document document)
         {
-            if (_backgroundParser != null)
-            {
-                _backgroundParser.Parse(document);
-            }
+            _backgroundParser?.Parse(document);
         }
 
         protected override void OnDocumentClosing(DocumentId documentId)
         {
-            if (_backgroundParser != null)
-            {
-                _backgroundParser.CancelParse(documentId);
-            }
+            _backgroundParser?.CancelParse(documentId);
         }
 
         public new void RegisterText(SourceTextContainer text)
@@ -168,10 +162,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 document.CloseTextView();
             }
 
-            if (_backgroundParser != null)
-            {
-                _backgroundParser.CancelAllParses();
-            }
+            _backgroundParser?.CancelAllParses();
 
             base.Dispose(finalize);
         }
@@ -685,6 +676,42 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             Contract.ThrowIfFalse(IsDocumentOpen(documentId));
 
             this.OnDocumentClosed(documentId, testDocument.Loader);
+        }
+
+        public override void OpenAdditionalDocument(DocumentId documentId, bool activate = true)
+        {
+            // Fetching the open SourceTextContainer implicitly opens the document.
+            var testDocument = GetTestAdditionalDocument(documentId);
+            Contract.ThrowIfTrue(testDocument.IsSourceGenerated);
+
+            testDocument.GetOpenTextContainer();
+        }
+
+        public override void CloseAdditionalDocument(DocumentId documentId)
+        {
+            var testDocument = this.GetTestAdditionalDocument(documentId);
+            Contract.ThrowIfTrue(testDocument.IsSourceGenerated);
+            Contract.ThrowIfFalse(IsDocumentOpen(documentId));
+
+            this.OnAdditionalDocumentClosed(documentId, testDocument.Loader);
+        }
+
+        public override void OpenAnalyzerConfigDocument(DocumentId documentId, bool activate = true)
+        {
+            // Fetching the open SourceTextContainer implicitly opens the document.
+            var testDocument = GetTestAnalyzerConfigDocument(documentId);
+            Contract.ThrowIfTrue(testDocument.IsSourceGenerated);
+
+            testDocument.GetOpenTextContainer();
+        }
+
+        public override void CloseAnalyzerConfigDocument(DocumentId documentId)
+        {
+            var testDocument = this.GetTestAnalyzerConfigDocument(documentId);
+            Contract.ThrowIfTrue(testDocument.IsSourceGenerated);
+            Contract.ThrowIfFalse(IsDocumentOpen(documentId));
+
+            this.OnAnalyzerConfigDocumentClosed(documentId, testDocument.Loader);
         }
 
         public void OpenSourceGeneratedDocument(DocumentId documentId)

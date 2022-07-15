@@ -20,6 +20,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal partial class FindReferencesSearchEngine
     {
+        private static readonly ObjectPool<MetadataUnifyingSymbolHashSet> s_metadataUnifyingSymbolHashSetPool = new(() => new());
+
         private readonly Solution _solution;
         private readonly IImmutableSet<Document>? _documents;
         private readonly ImmutableArray<IReferenceFinder> _finders;
@@ -149,7 +151,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 if (!_symbolToGroup.ContainsKey(symbol))
                 {
                     var linkedSymbols = await SymbolFinder.FindLinkedSymbolsAsync(symbol, _solution, cancellationToken).ConfigureAwait(false);
+                    Contract.ThrowIfFalse(linkedSymbols.Contains(symbol), "Linked symbols did not contain the very symbol we started with.");
+
                     var group = new SymbolGroup(linkedSymbols);
+                    Contract.ThrowIfFalse(group.Symbols.Contains(symbol), "Symbol group did not contain the very symbol we started with.");
 
                     foreach (var groupSymbol in group.Symbols)
                         _symbolToGroup.TryAdd(groupSymbol, group);
@@ -172,7 +177,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private async Task ProcessProjectAsync(Project project, ImmutableArray<ISymbol> allSymbols, CancellationToken cancellationToken)
         {
             using var _1 = PooledDictionary<ISymbol, PooledHashSet<string>>.GetInstance(out var symbolToGlobalAliases);
-            using var _2 = PooledDictionary<Document, PooledHashSet<ISymbol>>.GetInstance(out var documentToSymbols);
+            using var _2 = PooledDictionary<Document, MetadataUnifyingSymbolHashSet>.GetInstance(out var documentToSymbols);
             try
             {
                 foreach (var symbol in allSymbols)
@@ -183,7 +188,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             symbol, project, cancellationToken).ConfigureAwait(false);
                         if (aliases.Length > 0)
                         {
-                            var globalAliases = Get(symbolToGlobalAliases, symbol);
+                            var globalAliases = GetGlobalAliasesSet(symbolToGlobalAliases, symbol);
                             globalAliases.AddRange(aliases);
                         }
                     }
@@ -200,7 +205,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                         foreach (var document in documents)
                         {
-                            var docSymbols = Get(documentToSymbols, document);
+                            var docSymbols = GetSymbolSet(documentToSymbols, document);
                             docSymbols.Add(symbol);
                         }
                     }
@@ -218,7 +223,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             finally
             {
                 foreach (var (_, symbols) in documentToSymbols)
-                    symbols.Free();
+                {
+                    symbols.Clear();
+                    s_metadataUnifyingSymbolHashSetPool.Free(symbols);
+                }
 
                 foreach (var (_, globalAliases) in symbolToGlobalAliases)
                     globalAliases.Free();
@@ -226,11 +234,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 await _progressTracker.ItemCompletedAsync(cancellationToken).ConfigureAwait(false);
             }
 
-            static PooledHashSet<U> Get<T, U>(PooledDictionary<T, PooledHashSet<U>> dictionary, T key) where T : notnull
+            static PooledHashSet<string> GetGlobalAliasesSet<T>(PooledDictionary<T, PooledHashSet<string>> dictionary, T key) where T : notnull
             {
                 if (!dictionary.TryGetValue(key, out var set))
                 {
-                    set = PooledHashSet<U>.GetInstance();
+                    set = PooledHashSet<string>.GetInstance();
+                    dictionary.Add(key, set);
+                }
+
+                return set;
+            }
+
+            static MetadataUnifyingSymbolHashSet GetSymbolSet<T>(PooledDictionary<T, MetadataUnifyingSymbolHashSet> dictionary, T key) where T : notnull
+            {
+                if (!dictionary.TryGetValue(key, out var set))
+                {
+                    set = s_metadataUnifyingSymbolHashSetPool.Allocate();
                     dictionary.Add(key, set);
                 }
 
@@ -242,49 +261,56 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             => dictionary.TryGetValue(key, out var set) ? set : null;
 
         private async Task ProcessDocumentAsync(
-            Document document, HashSet<ISymbol> symbols,
+            Document document,
+            MetadataUnifyingSymbolHashSet symbols,
             Dictionary<ISymbol, PooledHashSet<string>> symbolToGlobalAliases,
             CancellationToken cancellationToken)
         {
             await _progress.OnFindInDocumentStartedAsync(document, cancellationToken).ConfigureAwait(false);
 
-            SemanticModel? model = null;
             try
             {
-                model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-                // start cache for this semantic model
-                FindReferenceCache.Start(model);
+                // We're doing to do all of our processing of this document at once.  This will necessitate all the
+                // appropriate finders checking this document for hits.  We know that in the initial pass to determine
+                // documents, this document was already considered a strong match (e.g. we know it contains the name of
+                // the symbol being searched for).  As such, we're almost certainly going to have to do semantic checks
+                // to now see if the candidate actually matches the symbol.  This will require syntax and semantics.  So
+                // just grab those once here and hold onto them for the lifetime of this call.
+                var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var cache = FindReferenceCache.GetCache(model);
 
                 foreach (var symbol in symbols)
                 {
                     var globalAliases = TryGet(symbolToGlobalAliases, symbol);
-                    await ProcessDocumentAsync(document, model, symbol, globalAliases, cancellationToken).ConfigureAwait(false);
+                    var state = new FindReferencesDocumentState(
+                        document, model, root, cache, globalAliases);
+                    await ProcessDocumentAsync(symbol, state).ConfigureAwait(false);
                 }
             }
             finally
             {
-                FindReferenceCache.Stop(model);
-
                 await _progress.OnFindInDocumentCompletedAsync(document, cancellationToken).ConfigureAwait(false);
             }
-        }
 
-        private async Task ProcessDocumentAsync(
-            Document document, SemanticModel semanticModel, ISymbol symbol,
-            HashSet<string>? globalAliases, CancellationToken cancellationToken)
-        {
-            using (Logger.LogBlock(FunctionId.FindReference_ProcessDocumentAsync, cancellationToken))
+            async Task ProcessDocumentAsync(
+                ISymbol symbol,
+                FindReferencesDocumentState state)
             {
-                // This is safe to just blindly read. We can only ever get here after the call to ReportGroupsAsync
-                // happened.  So there must be a group for this symbol in our map.
-                var group = _symbolToGroup[symbol];
-                foreach (var finder in _finders)
+                cancellationToken.ThrowIfCancellationRequested();
+
+                using (Logger.LogBlock(FunctionId.FindReference_ProcessDocumentAsync, cancellationToken))
                 {
-                    var references = await finder.FindReferencesInDocumentAsync(
-                        symbol, globalAliases, document, semanticModel, _options, cancellationToken).ConfigureAwait(false);
-                    foreach (var (_, location) in references)
-                        await _progress.OnReferenceFoundAsync(group, symbol, location, cancellationToken).ConfigureAwait(false);
+                    // This is safe to just blindly read. We can only ever get here after the call to ReportGroupsAsync
+                    // happened.  So there must be a group for this symbol in our map.
+                    var group = _symbolToGroup[symbol];
+                    foreach (var finder in _finders)
+                    {
+                        var references = await finder.FindReferencesInDocumentAsync(
+                            symbol, state, _options, cancellationToken).ConfigureAwait(false);
+                        foreach (var (_, location) in references)
+                            await _progress.OnReferenceFoundAsync(group, symbol, location, cancellationToken).ConfigureAwait(false);
+                    }
                 }
             }
         }

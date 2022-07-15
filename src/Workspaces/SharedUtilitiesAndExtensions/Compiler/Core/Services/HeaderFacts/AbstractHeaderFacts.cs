@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             // Holes are exclusive: 
             // To be consistent with other 'being on the edge' of Tokens/Nodes a position is 
             // in a hole (not in a header) only if it's inside _inside_ a hole, not only on the edge.
-            if (holes.Any(h => h.Span.Contains(position) && position > h.Span.Start))
+            if (holes.Any(static (h, position) => h.Span.Contains(position) && position > h.Span.Start, position))
             {
                 return false;
             }

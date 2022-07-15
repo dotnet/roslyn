@@ -1010,20 +1010,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        public TypeSyntax Type => GetRed(ref this.type, 2)!;
+        public SyntaxToken ScopedKeyword
+        {
+            get
+            {
+                var slot = ((Syntax.InternalSyntax.RefTypeSyntax)this.Green).scopedKeyword;
+                return slot != null ? new SyntaxToken(this, slot, GetChildPosition(2), GetChildIndex(2)) : default;
+            }
+        }
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.type, 2)! : null;
+        public TypeSyntax Type => GetRed(ref this.type, 3)!;
 
-        internal override SyntaxNode? GetCachedSlot(int index) => index == 2 ? this.type : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 3 ? GetRed(ref this.type, 3)! : null;
+
+        internal override SyntaxNode? GetCachedSlot(int index) => index == 3 ? this.type : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitRefType(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitRefType(this);
 
-        public RefTypeSyntax Update(SyntaxToken refKeyword, SyntaxToken readOnlyKeyword, TypeSyntax type)
+        public RefTypeSyntax Update(SyntaxToken refKeyword, SyntaxToken readOnlyKeyword, SyntaxToken scopedKeyword, TypeSyntax type)
         {
-            if (refKeyword != this.RefKeyword || readOnlyKeyword != this.ReadOnlyKeyword || type != this.Type)
+            if (refKeyword != this.RefKeyword || readOnlyKeyword != this.ReadOnlyKeyword || scopedKeyword != this.ScopedKeyword || type != this.Type)
             {
-                var newNode = SyntaxFactory.RefType(refKeyword, readOnlyKeyword, type);
+                var newNode = SyntaxFactory.RefType(refKeyword, readOnlyKeyword, scopedKeyword, type);
                 var annotations = GetAnnotations();
                 return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
@@ -1031,9 +1040,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return this;
         }
 
-        public RefTypeSyntax WithRefKeyword(SyntaxToken refKeyword) => Update(refKeyword, this.ReadOnlyKeyword, this.Type);
-        public RefTypeSyntax WithReadOnlyKeyword(SyntaxToken readOnlyKeyword) => Update(this.RefKeyword, readOnlyKeyword, this.Type);
-        public RefTypeSyntax WithType(TypeSyntax type) => Update(this.RefKeyword, this.ReadOnlyKeyword, type);
+        public RefTypeSyntax WithRefKeyword(SyntaxToken refKeyword) => Update(refKeyword, this.ReadOnlyKeyword, this.ScopedKeyword, this.Type);
+        public RefTypeSyntax WithReadOnlyKeyword(SyntaxToken readOnlyKeyword) => Update(this.RefKeyword, readOnlyKeyword, this.ScopedKeyword, this.Type);
+        public RefTypeSyntax WithScopedKeyword(SyntaxToken scopedKeyword) => Update(this.RefKeyword, this.ReadOnlyKeyword, scopedKeyword, this.Type);
+        public RefTypeSyntax WithType(TypeSyntax type) => Update(this.RefKeyword, this.ReadOnlyKeyword, this.ScopedKeyword, type);
     }
 
     public abstract partial class ExpressionOrPatternSyntax : CSharpSyntaxNode
@@ -1949,7 +1959,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <item><description><see cref="SyntaxKind.ArgListExpression"/></description></item>
     /// <item><description><see cref="SyntaxKind.NumericLiteralExpression"/></description></item>
     /// <item><description><see cref="SyntaxKind.StringLiteralExpression"/></description></item>
-    /// <item><description><see cref="SyntaxKind.UTF8StringLiteralExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.Utf8StringLiteralExpression"/></description></item>
     /// <item><description><see cref="SyntaxKind.CharacterLiteralExpression"/></description></item>
     /// <item><description><see cref="SyntaxKind.TrueLiteralExpression"/></description></item>
     /// <item><description><see cref="SyntaxKind.FalseLiteralExpression"/></description></item>
@@ -13192,23 +13202,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>Gets the identifier.</summary>
         public SyntaxToken Identifier => new SyntaxToken(this, ((Syntax.InternalSyntax.ParameterSyntax)this.Green).identifier, GetChildPosition(3), GetChildIndex(3));
 
-        public SyntaxToken ExclamationExclamationToken
-        {
-            get
-            {
-                var slot = ((Syntax.InternalSyntax.ParameterSyntax)this.Green).exclamationExclamationToken;
-                return slot != null ? new SyntaxToken(this, slot, GetChildPosition(4), GetChildIndex(4)) : default;
-            }
-        }
-
-        public EqualsValueClauseSyntax? Default => GetRed(ref this.@default, 5);
+        public EqualsValueClauseSyntax? Default => GetRed(ref this.@default, 4);
 
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
                 0 => GetRedAtZero(ref this.attributeLists)!,
                 2 => GetRed(ref this.type, 2),
-                5 => GetRed(ref this.@default, 5),
+                4 => GetRed(ref this.@default, 4),
                 _ => null,
             };
 
@@ -13217,18 +13218,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 0 => this.attributeLists,
                 2 => this.type,
-                5 => this.@default,
+                4 => this.@default,
                 _ => null,
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitParameter(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitParameter(this);
 
-        public ParameterSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax? type, SyntaxToken identifier, SyntaxToken exclamationExclamationToken, EqualsValueClauseSyntax? @default)
+        public ParameterSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax? type, SyntaxToken identifier, EqualsValueClauseSyntax? @default)
         {
-            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || type != this.Type || identifier != this.Identifier || exclamationExclamationToken != this.ExclamationExclamationToken || @default != this.Default)
+            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || type != this.Type || identifier != this.Identifier || @default != this.Default)
             {
-                var newNode = SyntaxFactory.Parameter(attributeLists, modifiers, type, identifier, exclamationExclamationToken, @default);
+                var newNode = SyntaxFactory.Parameter(attributeLists, modifiers, type, identifier, @default);
                 var annotations = GetAnnotations();
                 return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
@@ -13237,14 +13238,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         internal override BaseParameterSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
-        public new ParameterSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => Update(attributeLists, this.Modifiers, this.Type, this.Identifier, this.ExclamationExclamationToken, this.Default);
+        public new ParameterSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => Update(attributeLists, this.Modifiers, this.Type, this.Identifier, this.Default);
         internal override BaseParameterSyntax WithModifiersCore(SyntaxTokenList modifiers) => WithModifiers(modifiers);
-        public new ParameterSyntax WithModifiers(SyntaxTokenList modifiers) => Update(this.AttributeLists, modifiers, this.Type, this.Identifier, this.ExclamationExclamationToken, this.Default);
+        public new ParameterSyntax WithModifiers(SyntaxTokenList modifiers) => Update(this.AttributeLists, modifiers, this.Type, this.Identifier, this.Default);
         internal override BaseParameterSyntax WithTypeCore(TypeSyntax? type) => WithType(type);
-        public new ParameterSyntax WithType(TypeSyntax? type) => Update(this.AttributeLists, this.Modifiers, type, this.Identifier, this.ExclamationExclamationToken, this.Default);
-        public ParameterSyntax WithIdentifier(SyntaxToken identifier) => Update(this.AttributeLists, this.Modifiers, this.Type, identifier, this.ExclamationExclamationToken, this.Default);
-        public ParameterSyntax WithExclamationExclamationToken(SyntaxToken exclamationExclamationToken) => Update(this.AttributeLists, this.Modifiers, this.Type, this.Identifier, exclamationExclamationToken, this.Default);
-        public ParameterSyntax WithDefault(EqualsValueClauseSyntax? @default) => Update(this.AttributeLists, this.Modifiers, this.Type, this.Identifier, this.ExclamationExclamationToken, @default);
+        public new ParameterSyntax WithType(TypeSyntax? type) => Update(this.AttributeLists, this.Modifiers, type, this.Identifier, this.Default);
+        public ParameterSyntax WithIdentifier(SyntaxToken identifier) => Update(this.AttributeLists, this.Modifiers, this.Type, identifier, this.Default);
+        public ParameterSyntax WithDefault(EqualsValueClauseSyntax? @default) => Update(this.AttributeLists, this.Modifiers, this.Type, this.Identifier, @default);
 
         internal override BaseParameterSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
         public new ParameterSyntax AddAttributeLists(params AttributeListSyntax[] items) => WithAttributeLists(this.AttributeLists.AddRange(items));

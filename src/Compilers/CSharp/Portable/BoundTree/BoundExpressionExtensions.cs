@@ -26,6 +26,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Parameter:
                     return ((BoundParameter)node).ParameterSymbol.RefKind;
 
+                case BoundKind.FieldAccess:
+                    return ((BoundFieldAccess)node).FieldSymbol.RefKind;
+
                 case BoundKind.Call:
                     return ((BoundCall)node).Method.RefKind;
 

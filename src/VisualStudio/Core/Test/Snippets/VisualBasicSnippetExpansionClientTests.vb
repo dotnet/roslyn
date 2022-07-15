@@ -16,6 +16,7 @@ Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
+Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Projection
 Imports Roslyn.Test.Utilities
 
@@ -365,7 +366,7 @@ End Class</Test>
                     editorCommandHandlerServiceFactory:=Nothing,
                     Nothing,
                     workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)().ToImmutableArray(),
-                    workspace.GetService(Of IGlobalOptionService))
+                    workspace.GetService(Of EditorOptionsService)())
 
                 SnippetExpansionClientTestsHelper.TestFormattingAndCaretPosition(snippetExpansionClient, document, expectedResult, tabSize * 3)
             End Using
@@ -409,14 +410,14 @@ End Class</Test>
                     editorCommandHandlerServiceFactory:=Nothing,
                     Nothing,
                     workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)().ToImmutableArray(),
-                    workspace.GetService(Of IGlobalOptionService))
+                    workspace.GetService(Of EditorOptionsService)())
 
                 Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()
 
-                Dim addImportOptions = New AddImportPlacementOptions(
-                    PlaceSystemNamespaceFirst:=placeSystemNamespaceFirst,
-                    PlaceImportsInsideNamespaces:=False,
-                    AllowInHiddenRegions:=False)
+                Dim addImportOptions = New AddImportPlacementOptions() With
+                {
+                    .PlaceSystemNamespaceFirst = placeSystemNamespaceFirst
+                }
 
                 Dim formattingOptions = VisualBasicSyntaxFormattingOptions.Default
 
@@ -451,7 +452,7 @@ End Class</Test>
                     editorCommandHandlerServiceFactory:=Nothing,
                     Nothing,
                     workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)().ToImmutableArray(),
-                    workspace.GetService(Of IGlobalOptionService))
+                    workspace.GetService(Of EditorOptionsService)())
 
                 SnippetExpansionClientTestsHelper.TestProjectionBuffer(snippetExpansionClient, surfaceBufferDocument, expectedSurfaceBuffer)
             End Using

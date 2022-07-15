@@ -45,7 +45,6 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
             SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var memberAccessNodes = diagnostics.Select(

@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 using var _ = ArrayBuilder<(string name, SymbolKind kind)>.GetInstance(out var result);
 
                 // Suggest names from existing overloads.
-                if (nameInfo.PossibleSymbolKinds.Any(k => k.SymbolKind == SymbolKind.Parameter))
+                if (nameInfo.PossibleSymbolKinds.Any(static k => k.SymbolKind == SymbolKind.Parameter))
                 {
                     var (_, partialSemanticModel) = await document.GetPartialSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                     if (partialSemanticModel is not null)
@@ -87,7 +88,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var baseNames = GetBaseNames(context.SemanticModel, nameInfo);
                 if (baseNames != default)
                 {
-                    await GetRecommendedNamesAsync(baseNames, nameInfo, context, document, result, cancellationToken).ConfigureAwait(false);
+                    var namingStyleOptions = await document.GetNamingStylePreferencesAsync(completionContext.CompletionOptions.NamingStyleFallbackOptions, cancellationToken).ConfigureAwait(false);
+                    GetRecommendedNames(baseNames, nameInfo, context, result, namingStyleOptions, cancellationToken);
                 }
 
                 var recommendedNames = result.ToImmutable();
@@ -252,15 +254,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return (type, wasPlural);
         }
 
-        private static async Task GetRecommendedNamesAsync(
+        private static void GetRecommendedNames(
             ImmutableArray<ImmutableArray<string>> baseNames,
             NameDeclarationInfo declarationInfo,
             CSharpSyntaxContext context,
-            Document document,
             ArrayBuilder<(string name, SymbolKind kind)> result,
+            NamingStylePreferences namingStyleOptions,
             CancellationToken cancellationToken)
         {
-            var rules = await document.GetNamingRulesAsync(FallbackNamingRules.CompletionFallbackRules, cancellationToken).ConfigureAwait(false);
+            var rules = namingStyleOptions.CreateRules().NamingRules.AddRange(FallbackNamingRules.CompletionFallbackRules);
+
             var supplementaryRules = FallbackNamingRules.CompletionSupplementaryRules;
             var semanticFactsService = context.GetRequiredLanguageService<ISemanticFactsService>();
 

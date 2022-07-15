@@ -104,7 +104,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             }
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             using var resultDisposer = ArrayBuilder<CodeAction>.GetInstance(out var result);
             if (CanOfferUseExpressionBody(option, lambdaNode, root.GetLanguageVersion()))

@@ -444,7 +444,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return sb.ToString();
         }
 
-        public static string GetAssertText(DiagnosticDescription[] expected, IEnumerable<Diagnostic> actual)
+        public static string GetAssertText(DiagnosticDescription[] expected, IEnumerable<Diagnostic> actual, DiagnosticDescription[] unamtchedExpected, IEnumerable<Diagnostic> unmatchedActual)
         {
             const int CSharp = 1;
             const int VisualBasic = 2;
@@ -459,6 +459,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 // If this is a new test (empty expectations) or a test that's already sorted,
                 // we sort the actual diagnostics to minimize diff noise as diagnostics change.
                 actual = Sort(actual);
+                unmatchedActual = Sort(unmatchedActual);
             }
 
             var assertText = new StringBuilder();
@@ -476,7 +477,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             // write out the actual results as method calls (copy/paste this to update baseline)
             assertText.AppendLine("Actual:");
-            var actualText = ArrayBuilder<string>.GetInstance();
             var e = actual.GetEnumerator();
             for (i = 0; e.MoveNext(); i++)
             {
@@ -507,14 +507,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
 
                 var description = new DiagnosticDescription(d, errorCodeOnly: false, includeDefaultSeverity, includeEffectiveSeverity);
-                var diffDescription = description;
-                var idx = Array.IndexOf(expected, description);
-                if (idx != -1)
-                {
-                    diffDescription = expected[idx];
-                }
                 assertText.Append(GetDiagnosticDescription(description, indentDepth));
-                actualText.Add(GetDiagnosticDescription(diffDescription, indentDepth));
             }
             if (i > 0)
             {
@@ -522,9 +515,27 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             assertText.AppendLine("Diff:");
-            assertText.Append(DiffUtil.DiffReport(expectedText, actualText, separator: Environment.NewLine));
 
-            actualText.Free();
+            var unmatchedExpectedText = ArrayBuilder<string>.GetInstance();
+            foreach (var d in unamtchedExpected)
+            {
+                unmatchedExpectedText.Add(GetDiagnosticDescription(d, indentDepth));
+            }
+
+            var unmatchedActualText = ArrayBuilder<string>.GetInstance();
+            e = unmatchedActual.GetEnumerator();
+            for (i = 0; e.MoveNext(); i++)
+            {
+                Diagnostic d = e.Current;
+                var diffDescription = new DiagnosticDescription(d, errorCodeOnly: false, includeDefaultSeverity, includeEffectiveSeverity);
+                unmatchedActualText.Add(GetDiagnosticDescription(diffDescription, indentDepth));
+            }
+
+            assertText.Append(DiffUtil.DiffReport(unmatchedExpectedText, unmatchedActualText, separator: Environment.NewLine));
+
+            unmatchedExpectedText.Free();
+            unmatchedActualText.Free();
+
             expectedText.Free();
 
             return assertText.ToString();

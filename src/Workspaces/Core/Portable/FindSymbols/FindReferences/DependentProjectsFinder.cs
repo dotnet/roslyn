@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Solution solution, ImmutableArray<ISymbol> symbols, IImmutableSet<Project> projects, CancellationToken cancellationToken)
         {
             // namespaces are visible in all projects.
-            if (symbols.Any(s => s.Kind == SymbolKind.Namespace))
+            if (symbols.Any(static s => s.Kind == SymbolKind.Namespace))
                 return projects.ToImmutableArray();
 
             var dependentProjects = await GetDependentProjectsWorkerAsync(solution, symbols, cancellationToken).ConfigureAwait(false);

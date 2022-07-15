@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                 return
                     symbol.Type.Accept(this) ||
-                    symbol.Parameters.Any(p => p.Accept(this));
+                    symbol.Parameters.Any(static (p, self) => p.Accept(self), this);
             }
 
             public override bool VisitTypeParameter(ITypeParameterSymbol symbol)
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return false;
                 }
 
-                return symbol.ConstraintTypes.Any(ts => ts.Accept(this));
+                return symbol.ConstraintTypes.Any(static (ts, self) => ts.Accept(self), this);
             }
 
             public override bool VisitMethod(IMethodSymbol symbol)
@@ -112,8 +112,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                 return
                     symbol.ReturnType.Accept(this) ||
-                    symbol.Parameters.Any(p => p.Accept(this)) ||
-                    symbol.TypeParameters.Any(tp => tp.Accept(this));
+                    symbol.Parameters.Any(static (p, self) => p.Accept(self), this) ||
+                    symbol.TypeParameters.Any(static (tp, self) => tp.Accept(self), this);
             }
 
             public override bool VisitParameter(IParameterSymbol symbol)

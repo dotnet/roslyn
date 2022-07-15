@@ -11,7 +11,10 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
@@ -23,6 +26,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal abstract partial class NamedTypeSymbol : TypeSymbol, INamedTypeSymbolInternal
     {
         private bool _hasNoBaseCycles;
+
+        private static readonly ImmutableSegmentedDictionary<string, Symbol> RequiredMembersErrorSentinel = ImmutableSegmentedDictionary<string, Symbol>.Empty.Add("<error sentinel>", null!);
+
+        /// <summary>
+        /// <see langword="default"/> if uninitialized. <see cref="RequiredMembersErrorSentinel"/> if there are errors. <see cref="ImmutableSegmentedDictionary{TKey, TValue}.Empty"/> if
+        /// there are no required members. Otherwise, the required members.
+        /// </summary>
+        private ImmutableSegmentedDictionary<string, Symbol> _lazyRequiredMembers = default;
 
         // Only the compiler can create NamedTypeSymbols.
         internal NamedTypeSymbol(TupleExtraData tupleData = null)
@@ -468,6 +479,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public abstract override string Name { get; }
 
+#nullable enable
         /// <summary>
         /// Return the name including the metadata arity suffix.
         /// </summary>
@@ -475,14 +487,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return MangleName ? MetadataHelpers.ComposeAritySuffixedMetadataName(Name, Arity) : Name;
+                var fileIdentifier = this.AssociatedFileIdentifier();
+                // If we have a fileIdentifier, the type will definitely use CLS arity encoding for nonzero arity.
+                Debug.Assert(!(fileIdentifier != null && !MangleName && Arity > 0));
+                return fileIdentifier != null || MangleName
+                    ? MetadataHelpers.ComposeAritySuffixedMetadataName(Name, Arity, fileIdentifier)
+                    : Name;
             }
         }
+
+        /// <summary>
+        /// If this type is a file-local type, returns the syntax tree where this type is visible. Otherwise, returns null.
+        /// </summary>
+        internal abstract SyntaxTree? AssociatedSyntaxTree { get; }
+#nullable disable
 
         /// <summary>
         /// Should the name returned by Name property be mangled with [`arity] suffix in order to get metadata name.
         /// Must return False for a type with Arity == 0.
         /// </summary>
+        /// <remarks>
+        /// Some types with Arity > 0 still have MangleName == false. For example, EENamedTypeSymbol.
+        /// Note that other differences between source names and metadata names exist and are not controlled by this property,
+        /// such as the 'AssociatedFileIdentifier' prefix for file types.
+        /// </remarks>
         internal abstract bool MangleName
         {
             // Intentionally no default implementation to force consideration of appropriate implementation for each new subclass
@@ -493,6 +521,127 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Collection of names of members declared within this type. May return duplicates.
         /// </summary>
         public abstract IEnumerable<string> MemberNames { get; }
+
+        /// <summary>
+        /// True if this type declares any required members. It does not recursively check up the tree for _all_ required members.
+        /// </summary>
+        internal abstract bool HasDeclaredRequiredMembers { get; }
+
+#nullable enable
+        /// <summary>
+        /// Whether the type encountered an error while trying to build its complete list of required members.
+        /// </summary>
+        internal bool HasRequiredMembersError
+        {
+            get
+            {
+                CalculateRequiredMembersIfRequired();
+                Debug.Assert(!_lazyRequiredMembers.IsDefault);
+                return _lazyRequiredMembers == RequiredMembersErrorSentinel;
+            }
+        }
+
+        /// <summary>
+        /// Returns true if there are any required members. Prefer calling this over checking <see cref="AllRequiredMembers"/> for empty, as
+        /// this will avoid calculating base type requirements if not necessary.
+        /// </summary>
+        internal bool HasAnyRequiredMembers => HasDeclaredRequiredMembers || !AllRequiredMembers.IsEmpty;
+
+        /// <summary>
+        /// The full list of all required members for this type, including from base classes. If <see cref="HasRequiredMembersError"/> is true,
+        /// this returns empty.
+        /// </summary>
+        /// <remarks>
+        /// Do not call this API if all you need are the required members declared on this type. Use <see cref="GetMembers()"/> instead, filtering for
+        /// required members, instead of calling this API. If you only need to determine whether this type or any base types have required members, call
+        /// <see cref="HasAnyRequiredMembers"/>, which will avoid calling this API if not required.
+        /// </remarks>
+        internal ImmutableSegmentedDictionary<string, Symbol> AllRequiredMembers
+        {
+            get
+            {
+                CalculateRequiredMembersIfRequired();
+                Debug.Assert(!_lazyRequiredMembers.IsDefault);
+                if (_lazyRequiredMembers == RequiredMembersErrorSentinel)
+                {
+                    return ImmutableSegmentedDictionary<string, Symbol>.Empty;
+                }
+
+                return _lazyRequiredMembers;
+            }
+        }
+
+        private void CalculateRequiredMembersIfRequired()
+        {
+            if (!_lazyRequiredMembers.IsDefault)
+            {
+                return;
+            }
+
+            ImmutableSegmentedDictionary<string, Symbol>.Builder? builder = null;
+            bool success = TryCalculateRequiredMembers(ref builder);
+
+            var requiredMembers = success
+                ? builder?.ToImmutable() ?? ImmutableSegmentedDictionary<string, Symbol>.Empty
+                : RequiredMembersErrorSentinel;
+
+            RoslynImmutableInterlocked.InterlockedInitialize(ref _lazyRequiredMembers, requiredMembers);
+        }
+
+        /// <summary>
+        /// Attempts to calculate the required members for this type. Returns false if there were errors.
+        /// </summary>
+        private bool TryCalculateRequiredMembers(ref ImmutableSegmentedDictionary<string, Symbol>.Builder? requiredMembersBuilder)
+        {
+            var lazyRequiredMembers = _lazyRequiredMembers;
+            if (lazyRequiredMembers == RequiredMembersErrorSentinel)
+            {
+                return false;
+            }
+
+            if (BaseTypeNoUseSiteDiagnostics?.TryCalculateRequiredMembers(ref requiredMembersBuilder) == false)
+            {
+                return false;
+            }
+
+            // We need to make sure that members from a base type weren't hidden by members from the current type.
+            if (!HasDeclaredRequiredMembers && requiredMembersBuilder == null)
+            {
+                return true;
+            }
+
+            return addCurrentTypeMembers(ref requiredMembersBuilder);
+
+            bool addCurrentTypeMembers(ref ImmutableSegmentedDictionary<string, Symbol>.Builder? requiredMembersBuilder)
+            {
+                requiredMembersBuilder ??= ImmutableSegmentedDictionary.CreateBuilder<string, Symbol>();
+
+                foreach (var member in GetMembersUnordered())
+                {
+                    if (requiredMembersBuilder.ContainsKey(member.Name))
+                    {
+                        // This is only permitted if the member is an override of a required member from a base type, and is required itself.
+                        if (!member.IsRequired()
+                            || member.Kind == SymbolKind.Field
+                            || member.GetOverriddenMember() is not { } overriddenMember
+                            || !overriddenMember.Equals(requiredMembersBuilder[member.Name], TypeCompareKind.ConsiderEverything))
+                        {
+                            return false;
+                        }
+                    }
+
+                    if (!member.IsRequired())
+                    {
+                        continue;
+                    }
+
+                    requiredMembersBuilder[member.Name] = member;
+                }
+
+                return true;
+            }
+        }
+#nullable disable
 
         /// <summary>
         /// Get all the members of this symbol.
@@ -1119,12 +1268,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         // Given C<int>.D<string, double>, yields { int, string, double }
-        internal void GetAllTypeArguments(ArrayBuilder<TypeSymbol> builder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        internal void GetAllTypeArguments(ref TemporaryArray<TypeSymbol> builder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             var outer = ContainingType;
             if (!ReferenceEquals(outer, null))
             {
-                outer.GetAllTypeArguments(builder, ref useSiteInfo);
+                outer.GetAllTypeArguments(ref builder, ref useSiteInfo);
             }
 
             foreach (var argument in TypeArgumentsWithDefinitionUseSiteDiagnostics(ref useSiteInfo))
@@ -1532,6 +1681,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns an instance of a symbol that represents a native integer
         /// if this underlying symbol represents System.IntPtr or System.UIntPtr.
+        /// For platforms that support numeric IntPtr/UIntPtr, those types are returned as-is.
         /// For other symbols, throws <see cref="System.InvalidOperationException"/>.
         /// </summary>
         internal abstract NamedTypeSymbol AsNativeInteger();

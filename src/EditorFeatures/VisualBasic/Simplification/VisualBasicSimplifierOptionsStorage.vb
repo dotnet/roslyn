@@ -28,13 +28,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
 
         <Extension>
         Public Function GetVisualBasicSimplifierOptions(globalOptions As IGlobalOptionService) As VisualBasicSimplifierOptions
-            Return New VisualBasicSimplifierOptions(
-                qualifyFieldAccess:=globalOptions.GetOption(CodeStyleOptions2.QualifyFieldAccess, LanguageNames.VisualBasic),
-                qualifyPropertyAccess:=globalOptions.GetOption(CodeStyleOptions2.QualifyPropertyAccess, LanguageNames.VisualBasic),
-                qualifyMethodAccess:=globalOptions.GetOption(CodeStyleOptions2.QualifyMethodAccess, LanguageNames.VisualBasic),
-                qualifyEventAccess:=globalOptions.GetOption(CodeStyleOptions2.QualifyEventAccess, LanguageNames.VisualBasic),
-                preferPredefinedTypeKeywordInMemberAccess:=globalOptions.GetOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, LanguageNames.VisualBasic),
-                preferPredefinedTypeKeywordInDeclaration:=globalOptions.GetOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, LanguageNames.VisualBasic))
+            Return New VisualBasicSimplifierOptions() With
+            {
+                .Common = globalOptions.GetCommonSimplifierOptions(LanguageNames.VisualBasic)
+            }
         End Function
     End Module
 End Namespace

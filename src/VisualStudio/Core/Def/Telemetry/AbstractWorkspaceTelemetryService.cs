@@ -19,13 +19,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
     {
         public TelemetrySession? CurrentSession { get; private set; }
 
-        protected abstract ILogger CreateLogger(TelemetrySession telemetrySession);
+        protected abstract ILogger CreateLogger(TelemetrySession telemetrySession, bool logDelta);
 
-        public void InitializeTelemetrySession(TelemetrySession telemetrySession)
+        public void InitializeTelemetrySession(TelemetrySession telemetrySession, bool logDelta)
         {
             Contract.ThrowIfFalse(CurrentSession is null);
 
-            Logger.SetLogger(CreateLogger(telemetrySession));
+            Logger.SetLogger(CreateLogger(telemetrySession, logDelta));
             FaultReporter.RegisterTelemetrySesssion(telemetrySession);
 
             CurrentSession = telemetrySession;

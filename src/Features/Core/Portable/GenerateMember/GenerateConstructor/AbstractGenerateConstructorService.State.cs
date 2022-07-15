@@ -75,9 +75,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 CodeAndImportGenerationOptionsProvider fallbackOptions,
                 CancellationToken cancellationToken)
             {
-                var fieldNamingRule = await document.Document.GetApplicableNamingRuleAsync(SymbolKind.Field, Accessibility.Private, cancellationToken).ConfigureAwait(false);
-                var propertyNamingRule = await document.Document.GetApplicableNamingRuleAsync(SymbolKind.Property, Accessibility.Public, cancellationToken).ConfigureAwait(false);
-                var parameterNamingRule = await document.Document.GetApplicableNamingRuleAsync(SymbolKind.Parameter, Accessibility.NotApplicable, cancellationToken).ConfigureAwait(false);
+                var fieldNamingRule = await document.Document.GetApplicableNamingRuleAsync(SymbolKind.Field, Accessibility.Private, fallbackOptions, cancellationToken).ConfigureAwait(false);
+                var propertyNamingRule = await document.Document.GetApplicableNamingRuleAsync(SymbolKind.Property, Accessibility.Public, fallbackOptions, cancellationToken).ConfigureAwait(false);
+                var parameterNamingRule = await document.Document.GetApplicableNamingRuleAsync(SymbolKind.Parameter, Accessibility.NotApplicable, fallbackOptions, cancellationToken).ConfigureAwait(false);
 
                 var state = new State(service, document, fieldNamingRule, propertyNamingRule, parameterNamingRule, fallbackOptions);
                 if (!await state.TryInitializeAsync(node, cancellationToken).ConfigureAwait(false))
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
                 var destinationProvider = _document.Project.Solution.Workspace.Services.GetLanguageServices(TypeToGenerateIn.Language);
                 var syntaxFacts = destinationProvider.GetRequiredService<ISyntaxFactsService>();
-                return TypeToGenerateIn.InstanceConstructors.Any(c => Matches(c, syntaxFacts));
+                return TypeToGenerateIn.InstanceConstructors.Any(static (c, arg) => arg.self.Matches(c, arg.syntaxFacts), (self: this, syntaxFacts));
             }
 
             private bool Matches(IMethodSymbol ctor, ISyntaxFactsService service)
@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                     Token = token;
                     _arguments = arguments;
                     //// Attribute parameters are restricted to be constant values (simple types or string, etc).
-                    if (GetParameterTypes(cancellationToken).Any(t => !IsValidAttributeParameterType(t)))
+                    if (GetParameterTypes(cancellationToken).Any(static t => !IsValidAttributeParameterType(t)))
                         return false;
                 }
                 else
@@ -585,7 +585,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 var delegatingArguments = provider.GetService<SyntaxGenerator>().CreateArguments(_delegatedConstructor.Parameters);
 
                 var newParameters = _delegatedConstructor.Parameters.Concat(_parameters);
-                var generateUnsafe = !IsContainedInUnsafeType && newParameters.Any(p => p.RequiresUnsafeModifier());
+                var generateUnsafe = !IsContainedInUnsafeType && newParameters.Any(static p => p.RequiresUnsafeModifier());
 
                 var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
                     attributes: default,

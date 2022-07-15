@@ -41,8 +41,8 @@ namespace Microsoft.CodeAnalysis
         {
             return new PooledObject<StringBuilder>(
                 pool,
-                p => Allocator(p),
-                (p, sb) => Releaser(p, sb));
+                Allocator,
+                Releaser);
         }
 
         public static PooledObject<Stack<TItem>> Create<TItem>(ObjectPool<Stack<TItem>> pool)

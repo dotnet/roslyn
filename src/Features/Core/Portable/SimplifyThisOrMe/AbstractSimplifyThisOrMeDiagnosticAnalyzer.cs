@@ -20,14 +20,12 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
         TLanguageKindEnum,
         TExpressionSyntax,
         TThisExpressionSyntax,
-        TMemberAccessExpressionSyntax,
-        TSimplifierOptions> :
+        TMemberAccessExpressionSyntax> :
         AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TLanguageKindEnum : struct
         where TExpressionSyntax : SyntaxNode
         where TThisExpressionSyntax : TExpressionSyntax
         where TMemberAccessExpressionSyntax : TExpressionSyntax
-        where TSimplifierOptions : SimplifierOptions
     {
         protected AbstractSimplifyThisOrMeDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.RemoveThisOrMeQualificationDiagnosticId,
@@ -40,7 +38,7 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
         }
 
         protected abstract ISyntaxKinds SyntaxKinds { get; }
-        protected abstract TSimplifierOptions GetSimplifierOptions(AnalyzerOptions options, SyntaxTree syntaxTree);
+        protected abstract ISimplification Simplification { get; }
 
         protected abstract AbstractMemberAccessExpressionSimplifier<TExpressionSyntax, TMemberAccessExpressionSyntax, TThisExpressionSyntax> Simplifier { get; }
 
@@ -59,8 +57,7 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
             if (node.Parent is not TMemberAccessExpressionSyntax memberAccessExpression)
                 return;
 
-            var syntaxTree = node.SyntaxTree;
-            var simplifierOptions = GetSimplifierOptions(context.Options, syntaxTree);
+            var simplifierOptions = context.GetAnalyzerOptions().GetSimplifierOptions(Simplification);
 
             if (!this.Simplifier.ShouldSimplifyThisMemberAccessExpression(
                     memberAccessExpression, semanticModel, simplifierOptions, out var thisExpression, out var severity, cancellationToken))

@@ -6,6 +6,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
@@ -19,10 +20,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 @"$$");
         }
 
+        [WorkItem(57121, "https://github.com/dotnet/roslyn/issues/57121")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAtRoot_Regular()
+        {
+            await VerifyKeywordAsync(SourceCodeKind.Regular,
+@"$$");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterClass_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
+@"class C { }
+$$");
+        }
+
+        [WorkItem(57121, "https://github.com/dotnet/roslyn/issues/57121")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterClass_Regular()
+        {
+            await VerifyKeywordAsync(SourceCodeKind.Regular,
 @"class C { }
 $$");
         }
@@ -35,10 +53,28 @@ $$");
 $$");
         }
 
+        [WorkItem(57121, "https://github.com/dotnet/roslyn/issues/57121")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterGlobalStatement_Regular()
+        {
+            await VerifyKeywordAsync(SourceCodeKind.Regular,
+@"System.Console.WriteLine();
+$$");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
+@"int i = 0;
+$$");
+        }
+
+        [WorkItem(57121, "https://github.com/dotnet/roslyn/issues/57121")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterGlobalVariableDeclaration_Regular()
+        {
+            await VerifyKeywordAsync(SourceCodeKind.Regular,
 @"int i = 0;
 $$");
         }

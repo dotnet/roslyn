@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddParameter;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -74,7 +75,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 }
 
                 await AddLocalCodeActionsAsync(actions, document, state, fallbackOptions, cancellationToken).ConfigureAwait(false);
-                await AddParameterCodeActionsAsync(actions, document, state, cancellationToken).ConfigureAwait(false);
+                await AddParameterCodeActionsAsync(actions, document, state, fallbackOptions, cancellationToken).ConfigureAwait(false);
 
                 if (actions.Count > 1)
                 {
@@ -107,7 +108,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
             // Don't generate properties with a `_` prefix unless that's what the user really wants as their naming style.
             if (await NameIsHighlyUnlikelyToWarrantSymbolAsync(
-                    document.Document, state, SymbolKind.Property, state.DetermineMaximalAccessibility(), cancellationToken).ConfigureAwait(false))
+                    document.Document, state, SymbolKind.Property, state.DetermineMaximalAccessibility(), fallbackOptions, cancellationToken).ConfigureAwait(false))
             {
                 return;
             }
@@ -123,13 +124,13 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
         }
 
         private static async Task<bool> NameIsHighlyUnlikelyToWarrantSymbolAsync(
-            Document document, State state, SymbolKind kind, Accessibility accessibility, CancellationToken cancellationToken)
+            Document document, State state, SymbolKind kind, Accessibility accessibility, NamingStylePreferencesProvider fallbackOptions, CancellationToken cancellationToken)
         {
             // Check If the user explicitly used _ as the start of the name they're generating.  Don't offer to generate
             // a non-field symbol unless that's genuinely the naming style they have setup.
             if (state.IdentifierToken.ValueText.StartsWith("_"))
             {
-                var namingStyle = await document.GetApplicableNamingRuleAsync(kind, accessibility, cancellationToken).ConfigureAwait(false);
+                var namingStyle = await document.GetApplicableNamingRuleAsync(kind, accessibility, fallbackOptions, cancellationToken).ConfigureAwait(false);
                 if (namingStyle.NamingStyle.Prefix != "_")
                     return true;
             }
@@ -189,7 +190,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             {
                 // Don't generate locals with a `_` prefix unless that's what the user really wants as their naming style.
                 if (await NameIsHighlyUnlikelyToWarrantSymbolAsync(
-                        document, state, SymbolKind.Local, Accessibility.NotApplicable, cancellationToken).ConfigureAwait(false))
+                        document, state, SymbolKind.Local, Accessibility.NotApplicable, fallbackOptions, cancellationToken).ConfigureAwait(false))
                 {
                     return;
                 }
@@ -199,13 +200,13 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
         }
 
         private static async Task AddParameterCodeActionsAsync(
-            ArrayBuilder<CodeAction> result, Document document, State state, CancellationToken cancellationToken)
+            ArrayBuilder<CodeAction> result, Document document, State state, CodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             if (state.CanGenerateParameter())
             {
                 // Don't generate parameters with a `_` prefix unless that's what the user really wants as their naming style.
                 if (await NameIsHighlyUnlikelyToWarrantSymbolAsync(
-                        document, state, SymbolKind.Parameter, Accessibility.NotApplicable, cancellationToken).ConfigureAwait(false))
+                        document, state, SymbolKind.Parameter, Accessibility.NotApplicable, fallbackOptions, cancellationToken).ConfigureAwait(false))
                 {
                     return;
                 }

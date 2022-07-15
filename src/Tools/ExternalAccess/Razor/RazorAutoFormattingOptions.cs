@@ -18,11 +18,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             bool formatOnTyping,
             bool formatOnSemicolon,
             bool formatOnCloseBrace)
-            : this(new AutoFormattingOptions(
-                FormatOnReturn: formatOnReturn,
-                FormatOnTyping: formatOnTyping,
-                FormatOnSemicolon: formatOnSemicolon,
-                FormatOnCloseBrace: formatOnCloseBrace))
+            : this(new AutoFormattingOptions()
+            {
+                FormatOnReturn = formatOnReturn,
+                FormatOnTyping = formatOnTyping,
+                FormatOnSemicolon = formatOnSemicolon,
+                FormatOnCloseBrace = formatOnCloseBrace,
+            })
         {
         }
     }

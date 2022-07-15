@@ -25,13 +25,13 @@ namespace Microsoft.CodeAnalysis.GenerateType
             private readonly Document _document;
             private readonly State _state;
             private readonly string _equivalenceKey;
-            private readonly CodeAndImportGenerationOptionsProvider _fallbackOptions;
+            private readonly CleanCodeGenerationOptionsProvider _fallbackOptions;
 
             public GenerateTypeCodeAction(
                 TService service,
                 Document document,
                 State state,
-                CodeAndImportGenerationOptionsProvider fallbackOptions,
+                CleanCodeGenerationOptionsProvider fallbackOptions,
                 bool intoNamespace,
                 bool inNewFile)
             {
@@ -85,9 +85,9 @@ namespace Microsoft.CodeAnalysis.GenerateType
             private readonly TService _service;
             private readonly Document _document;
             private readonly State _state;
-            private readonly CodeAndImportGenerationOptionsProvider _fallbackOptions;
+            private readonly CleanCodeGenerationOptionsProvider _fallbackOptions;
 
-            internal GenerateTypeCodeActionWithOption(TService service, Document document, State state, CodeAndImportGenerationOptionsProvider fallbackOptions)
+            internal GenerateTypeCodeActionWithOption(TService service, Document document, State state, CleanCodeGenerationOptionsProvider fallbackOptions)
             {
                 _service = service;
                 _document = document;

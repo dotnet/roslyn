@@ -10,22 +10,16 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#endif
-
 namespace Microsoft.CodeAnalysis.QualifyMemberAccess
 {
     internal abstract class AbstractQualifyMemberAccessDiagnosticAnalyzer<
         TLanguageKindEnum,
         TExpressionSyntax,
-        TSimpleNameSyntax,
-        TSimplifierOptions>
+        TSimpleNameSyntax>
         : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TLanguageKindEnum : struct
         where TExpressionSyntax : SyntaxNode
         where TSimpleNameSyntax : TExpressionSyntax
-        where TSimplifierOptions : SimplifierOptions
     {
         protected AbstractQualifyMemberAccessDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.AddThisOrMeQualificationDiagnosticId,
@@ -64,7 +58,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
             => context.RegisterOperationAction(AnalyzeOperation, OperationKind.FieldReference, OperationKind.PropertyReference, OperationKind.MethodReference, OperationKind.Invocation);
 
         protected abstract Location GetLocation(IOperation operation);
-        protected abstract TSimplifierOptions GetSimplifierOptions(AnalyzerOptions options, SyntaxTree syntaxTree);
+        protected abstract ISimplification Simplification { get; }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
@@ -127,7 +121,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
                 _ => throw ExceptionUtilities.UnexpectedValue(operation),
             };
 
-            var simplifierOptions = GetSimplifierOptions(context.Options, context.Operation.Syntax.SyntaxTree);
+            var simplifierOptions = context.GetAnalyzerOptions().GetSimplifierOptions(Simplification);
             if (!simplifierOptions.TryGetQualifyMemberAccessOption(symbolKind, out var optionValue))
                 return;
 

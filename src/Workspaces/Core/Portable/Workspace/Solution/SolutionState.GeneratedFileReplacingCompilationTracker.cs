@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis
                     await UnderlyingTracker.GetDependentChecksumAsync(solution, cancellationToken).ConfigureAwait(false),
                     await _replacedGeneratedDocumentState.GetChecksumAsync(cancellationToken).ConfigureAwait(false));
 
-            public CompilationReference? GetPartialMetadataReference(ProjectState fromProject, ProjectReference projectReference)
+            public MetadataReference? GetPartialMetadataReference(ProjectState fromProject, ProjectReference projectReference)
             {
                 // This method is used if you're forking a solution with partial semantics, and used to quickly produce references.
                 // So this method should only be called if:

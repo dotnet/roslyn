@@ -41,6 +41,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public bool IsWriteOnly => _symbol.IsWriteOnly;
 
+            public bool IsRequired => _symbol.IsRequired;
+
             public bool ReturnsByRef => _symbol.ReturnsByRef;
 
             public bool ReturnsByRefReadonly => _symbol.ReturnsByRefReadonly;

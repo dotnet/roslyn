@@ -7,12 +7,12 @@ using System.Runtime.Serialization;
 namespace Microsoft.CodeAnalysis.DocumentHighlighting;
 
 [DataContract]
-internal readonly record struct HighlightingOptions(
-    [property: DataMember(Order = 0)] bool HighlightRelatedRegexComponentsUnderCursor = true,
-    [property: DataMember(Order = 1)] bool HighlightRelatedJsonComponentsUnderCursor = true)
+internal readonly record struct HighlightingOptions
 {
+    [DataMember] public bool HighlightRelatedRegexComponentsUnderCursor { get; init; } = true;
+    [DataMember] public bool HighlightRelatedJsonComponentsUnderCursor { get; init; } = true;
+
     public HighlightingOptions()
-        : this(HighlightRelatedRegexComponentsUnderCursor: true)
     {
     }
 

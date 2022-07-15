@@ -21,14 +21,14 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             private readonly Document _document;
             private readonly State _state;
             private readonly bool _addNullChecks;
-            private readonly CodeAndImportGenerationOptionsProvider _fallbackOptions;
+            private readonly CleanCodeGenerationOptionsProvider _fallbackOptions;
 
             public FieldDelegatingCodeAction(
                 AbstractGenerateConstructorFromMembersCodeRefactoringProvider service,
                 Document document,
                 State state,
                 bool addNullChecks,
-                CodeAndImportGenerationOptionsProvider fallbackOptions)
+                CleanCodeGenerationOptionsProvider fallbackOptions)
             {
                 _service = service;
                 _document = document;
@@ -53,8 +53,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
                 var semanticModel = await _document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var syntaxTree = semanticModel.SyntaxTree;
-                var options = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-                var preferThrowExpression = _service.PrefersThrowExpression(options);
+                var preferThrowExpression = await _service.PrefersThrowExpressionAsync(_document, _fallbackOptions, cancellationToken).ConfigureAwait(false);
 
                 var members = factory.CreateMemberDelegatingConstructor(
                     semanticModel,

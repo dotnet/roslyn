@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
@@ -92,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 return;
 
             // If feature isn't enabled for any registered language, do nothing.
-            var languageEnabled = _registeredLanguages.Any(lang => _perLanguageOptions.Any(option => _globalOptions.GetOption(option, lang)));
+            var languageEnabled = _registeredLanguages.Any(lang => _perLanguageOptions.Any(static (option, arg) => arg.self._globalOptions.GetOption(option, arg.lang), (self: this, lang)));
             if (!languageEnabled)
                 return;
 

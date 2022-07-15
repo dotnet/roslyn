@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
         protected override async Task FixOneAsync(
             Document document, Diagnostic diagnostic,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var ifStatement = (TIfStatementSyntax)diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
@@ -64,7 +64,9 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 trueStatement, falseStatement,
                 trueReturn?.ReturnedValue ?? trueStatement,
                 falseReturn?.ReturnedValue ?? falseStatement,
-                anyReturn.GetRefKind(containingSymbol) != RefKind.None, cancellationToken).ConfigureAwait(false);
+                anyReturn.GetRefKind(containingSymbol) != RefKind.None,
+                fallbackOptions,
+                cancellationToken).ConfigureAwait(false);
 
             var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
             var returnStatement = anyReturn.Kind == OperationKind.YieldReturn

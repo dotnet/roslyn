@@ -183,7 +183,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.NoConversion:
                 case ConversionKind.Identity:
                 case ConversionKind.ImplicitConstant:
-                case ConversionKind.ImplicitUtf8StringLiteral:
                 case ConversionKind.ImplicitNumeric:
                 case ConversionKind.ImplicitReference:
                 case ConversionKind.ImplicitEnumeration:
@@ -227,7 +226,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static Conversion NoConversion => new Conversion(ConversionKind.NoConversion);
         internal static Conversion Identity => new Conversion(ConversionKind.Identity);
         internal static Conversion ImplicitConstant => new Conversion(ConversionKind.ImplicitConstant);
-        internal static Conversion ImplicitUtf8StringLiteral => new Conversion(ConversionKind.ImplicitUtf8StringLiteral);
         internal static Conversion ImplicitNumeric => new Conversion(ConversionKind.ImplicitNumeric);
         internal static Conversion ImplicitReference => new Conversion(ConversionKind.ImplicitReference);
         internal static Conversion ImplicitEnumeration => new Conversion(ConversionKind.ImplicitEnumeration);
@@ -828,17 +826,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Returns true if the conversion is an implicit Utf8 string literal conversion.
-        /// </summary>
-        public bool IsUTF8StringLiteral
-        {
-            get
-            {
-                return Kind == ConversionKind.ImplicitUtf8StringLiteral;
-            }
-        }
-
-        /// <summary>
         /// Returns true if the conversion is an implicit anonymous function conversion.
         /// </summary>
         /// <remarks>
@@ -926,6 +913,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return this.Method.GetPublicSymbol();
+            }
+        }
+
+        /// <summary>
+        /// Type parameter which runtime type will be used to resolve virtual invocation of the <see cref="MethodSymbol" />, if any.
+        /// Null if <see cref="MethodSymbol" /> is resolved statically, or is null.
+        /// </summary>
+        public ITypeSymbol? ConstrainedToType
+        {
+            get
+            {
+                return this.ConstrainedToTypeOpt.GetPublicSymbol();
             }
         }
 
@@ -1047,7 +1046,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Creates a <seealso cref="CommonConversion"/> from this C# conversion.
+        /// Creates a <see cref="CommonConversion"/> from this C# conversion.
         /// </summary>
         /// <returns>The <see cref="CommonConversion"/> that represents this conversion.</returns>
         /// <remarks>
@@ -1057,8 +1056,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public CommonConversion ToCommonConversion()
         {
             // The MethodSymbol of CommonConversion only refers to UserDefined conversions, not method groups
-            var methodSymbol = IsUserDefined ? MethodSymbol : null;
-            return new CommonConversion(Exists, IsIdentity, IsNumeric, IsReference, IsImplicit, IsNullable, methodSymbol);
+            var (methodSymbol, constrainedToType) = IsUserDefined ? (MethodSymbol, ConstrainedToType) : (null, null);
+            return new CommonConversion(Exists, IsIdentity, IsNumeric, IsReference, IsImplicit, IsNullable, methodSymbol, constrainedToType);
         }
 
         /// <summary>

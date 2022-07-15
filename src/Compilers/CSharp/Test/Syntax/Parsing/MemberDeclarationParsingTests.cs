@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -24,15 +25,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return SyntaxFactory.ParseMemberDeclaration(text, offset, options);
         }
 
-        private SyntaxTree UsingTree(string text, CSharpParseOptions options, params DiagnosticDescription[] expectedErrors)
-        {
-            var tree = base.UsingTree(text, options);
-
-            var actualErrors = tree.GetDiagnostics();
-            actualErrors.Verify(expectedErrors);
-
-            return tree;
-        }
+        private static readonly CSharpParseOptions RequiredMembersOptions = TestOptions.Regular11;
+        public static readonly IEnumerable<object[]> Regular10AndScriptAndRequiredMembersMinimum = new[] { new[] { TestOptions.Regular10 }, new[] { RequiredMembersOptions }, new[] { TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp10) } };
+        public static readonly IEnumerable<object[]> Regular10AndScript = new[] { new[] { TestOptions.Regular10 }, new[] { TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp10) } };
 
         [Fact]
         [WorkItem(367, "https://github.com/dotnet/roslyn/issues/367")]
@@ -430,7 +425,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void UnsignedRightShiftOperator_01()
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.RegularNext })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.Regular11 })
             {
                 UsingDeclaration("C operator >>>(C x, C y) => x;", options: options);
 
@@ -481,7 +476,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void UnsignedRightShiftOperator_02()
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.RegularNext })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.Regular11 })
             {
                 UsingDeclaration("C operator > >>(C x, C y) => x;", options: options,
                     // (1,14): error CS1003: Syntax error, '(' expected
@@ -564,7 +559,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void UnsignedRightShiftOperator_03()
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.RegularNext })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.Regular11 })
             {
                 UsingDeclaration("C operator >> >(C x, C y) => x;", options: options,
                     // (1,15): error CS1003: Syntax error, '(' expected
@@ -647,7 +642,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void UnsignedRightShiftOperator_04()
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.RegularNext })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.Regular11 })
             {
                 UsingDeclaration("C operator >>>=(C x, C y) => x;", options: options,
                     // (1,14): error CS1003: Syntax error, '(' expected
@@ -1206,13 +1201,724 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
+        [Theory, CompilerTrait(CompilerFeature.RequiredMembers)]
+        [MemberData(nameof(Regular10AndScriptAndRequiredMembersMinimum))]
+        public void RequiredModifierProperty_01(CSharpParseOptions parseOptions)
+        {
+            UsingDeclaration("required string Prop { get; }", options: parseOptions);
+            N(SyntaxKind.PropertyDeclaration);
+            {
+                N(SyntaxKind.RequiredKeyword);
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.StringKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "Prop");
+                N(SyntaxKind.AccessorList);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.GetAccessorDeclaration);
+                    {
+                        N(SyntaxKind.GetKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Theory, CompilerTrait(CompilerFeature.RequiredMembers)]
+        [MemberData(nameof(Regular10AndScript))]
+        public void RequiredModifierProperty_02(CSharpParseOptions parseOptions)
+        {
+            UsingDeclaration("required Prop { get; }", options: parseOptions);
+            N(SyntaxKind.PropertyDeclaration);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "required");
+                }
+                N(SyntaxKind.IdentifierToken, "Prop");
+                N(SyntaxKind.AccessorList);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.GetAccessorDeclaration);
+                    {
+                        N(SyntaxKind.GetKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RequiredMembers)]
+        public void RequiredModifierProperty_03()
+        {
+            UsingDeclaration("required Prop { get; }", options: RequiredMembersOptions,
+                // (1,1): error CS1073: Unexpected token '{'
+                // required Prop { get; }
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "required Prop").WithArguments("{").WithLocation(1, 1),
+                // (1,15): error CS1519: Invalid token '{' in class, record, struct, or interface member declaration
+                // required Prop { get; }
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(1, 15)
+                );
+            N(SyntaxKind.IncompleteMember);
+            {
+                N(SyntaxKind.RequiredKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "Prop");
+                }
+            }
+            EOF();
+        }
+
+        [Theory, CompilerTrait(CompilerFeature.RequiredMembers)]
+        [MemberData(nameof(Regular10AndScript))]
+        public void RequiredModifierProperty_04(CSharpParseOptions parseOptions)
+        {
+            UsingDeclaration("required required { get; }", options: parseOptions);
+            N(SyntaxKind.PropertyDeclaration);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "required");
+                }
+                N(SyntaxKind.IdentifierToken, "required");
+                N(SyntaxKind.AccessorList);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.GetAccessorDeclaration);
+                    {
+                        N(SyntaxKind.GetKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RequiredMembers)]
+        public void RequiredModifierProperty_05()
+        {
+            UsingDeclaration("required required { get; }", options: RequiredMembersOptions,
+                // (1,1): error CS1073: Unexpected token '{'
+                // required required { get; }
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "required required").WithArguments("{").WithLocation(1, 1),
+                // (1,19): error CS1519: Invalid token '{' in class, record, struct, or interface member declaration
+                // required required { get; }
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(1, 19)
+                );
+            N(SyntaxKind.IncompleteMember);
+            {
+                N(SyntaxKind.RequiredKeyword);
+                N(SyntaxKind.RequiredKeyword);
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RequiredMembers)]
+        public void RequiredModifierProperty_06()
+        {
+            UsingDeclaration("required required Prop { get; }", options: RequiredMembersOptions,
+                // (1,1): error CS1073: Unexpected token '{'
+                // required required Prop { get; }
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "required required Prop").WithArguments("{").WithLocation(1, 1),
+                // (1,24): error CS1519: Invalid token '{' in class, record, struct, or interface member declaration
+                // required required Prop { get; }
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(1, 24)
+                );
+            N(SyntaxKind.IncompleteMember);
+            {
+                N(SyntaxKind.RequiredKeyword);
+                N(SyntaxKind.RequiredKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "Prop");
+                }
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RequiredMembers)]
+        public void RequiredModifierProperty_07()
+        {
+            UsingDeclaration("required Type required { get; }", options: RequiredMembersOptions);
+            N(SyntaxKind.PropertyDeclaration);
+            {
+                N(SyntaxKind.RequiredKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "Type");
+                }
+                N(SyntaxKind.IdentifierToken, "required");
+                N(SyntaxKind.AccessorList);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.GetAccessorDeclaration);
+                    {
+                        N(SyntaxKind.GetKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Theory, CompilerTrait(CompilerFeature.RequiredMembers)]
+        [MemberData(nameof(Regular10AndScriptAndRequiredMembersMinimum))]
+        public void RequiredModifierField_01(CSharpParseOptions parseOptions)
+        {
+            UsingDeclaration("required string Field;", options: parseOptions);
+            N(SyntaxKind.FieldDeclaration);
+            {
+                N(SyntaxKind.RequiredKeyword);
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.StringKeyword);
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Field");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Theory, CompilerTrait(CompilerFeature.RequiredMembers)]
+        [MemberData(nameof(Regular10AndScript))]
+        public void RequiredModifierField_02(CSharpParseOptions parseOptions)
+        {
+            UsingDeclaration("required Field;", options: parseOptions);
+            N(SyntaxKind.FieldDeclaration);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "required");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Field");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RequiredMembers)]
+        public void RequiredModifierField_03()
+        {
+            UsingDeclaration("required Field;", options: RequiredMembersOptions,
+                // (1,1): error CS1073: Unexpected token ';'
+                // required Field;
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "required Field").WithArguments(";").WithLocation(1, 1),
+                // (1,15): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
+                // required Field;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(1, 15)
+                );
+            N(SyntaxKind.IncompleteMember);
+            {
+                N(SyntaxKind.RequiredKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "Field");
+                }
+            }
+            EOF();
+        }
+
+        [Theory, CompilerTrait(CompilerFeature.RequiredMembers)]
+        [MemberData(nameof(Regular10AndScript))]
+        public void RequiredModifierField_04(CSharpParseOptions parseOptions)
+        {
+            UsingDeclaration("required required;", options: parseOptions);
+            N(SyntaxKind.FieldDeclaration);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "required");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "required");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RequiredMembers)]
+        public void RequiredModifierField_05()
+        {
+            UsingDeclaration("required required;", options: RequiredMembersOptions,
+                // (1,1): error CS1073: Unexpected token ';'
+                // required required;
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "required required").WithArguments(";").WithLocation(1, 1),
+                // (1,18): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
+                // required required;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(1, 18)
+                );
+            N(SyntaxKind.IncompleteMember);
+            {
+                N(SyntaxKind.RequiredKeyword);
+                N(SyntaxKind.RequiredKeyword);
+            }
+            EOF();
+        }
+
+        [Theory, CompilerTrait(CompilerFeature.RequiredMembers)]
+        [MemberData(nameof(Regular10AndScriptAndRequiredMembersMinimum))]
+        public void RequiredModifierMethod_01(CSharpParseOptions parseOptions)
+        {
+            // Note this is a semantic error, not a syntactic one
+            UsingDeclaration("required string M() {}", options: parseOptions);
+            N(SyntaxKind.MethodDeclaration);
+            {
+                N(SyntaxKind.RequiredKeyword);
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.StringKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Theory, CompilerTrait(CompilerFeature.RequiredMembers)]
+        [MemberData(nameof(Regular10AndScript))]
+        public void RequiredModifierMethod_02(CSharpParseOptions parseOptions)
+        {
+            UsingDeclaration("required M() {}", options: parseOptions);
+            N(SyntaxKind.MethodDeclaration);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "required");
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RequiredMembers)]
+        public void RequiredModifierMethod_03()
+        {
+            UsingDeclaration("required M() {}", options: RequiredMembersOptions);
+            N(SyntaxKind.ConstructorDeclaration);
+            {
+                N(SyntaxKind.RequiredKeyword);
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Theory, CompilerTrait(CompilerFeature.RequiredMembers)]
+        [MemberData(nameof(Regular10AndScriptAndRequiredMembersMinimum))]
+        public void RequiredModifierOperator(CSharpParseOptions parseOptions)
+        {
+            // Note this is a semantic error, not a syntactic one
+            UsingDeclaration("static required C operator+(C c1, C c2) {}", options: parseOptions);
+            N(SyntaxKind.OperatorDeclaration);
+            {
+                N(SyntaxKind.StaticKeyword);
+                N(SyntaxKind.RequiredKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "C");
+                }
+                N(SyntaxKind.OperatorKeyword);
+                N(SyntaxKind.PlusToken);
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "C");
+                        }
+                        N(SyntaxKind.IdentifierToken, "c1");
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "C");
+                        }
+                        N(SyntaxKind.IdentifierToken, "c2");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Theory, CompilerTrait(CompilerFeature.RequiredMembers)]
+        [MemberData(nameof(Regular10AndScriptAndRequiredMembersMinimum))]
+        public void RequiredModifierConversion_01(CSharpParseOptions parseOptions)
+        {
+            // Note this is a semantic error, not a syntactic one
+            UsingDeclaration("static required implicit operator C(S s) {}", options: parseOptions);
+            N(SyntaxKind.ConversionOperatorDeclaration);
+            {
+                N(SyntaxKind.StaticKeyword);
+                N(SyntaxKind.RequiredKeyword);
+                N(SyntaxKind.ImplicitKeyword);
+                N(SyntaxKind.OperatorKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "C");
+                }
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "S");
+                        }
+                        N(SyntaxKind.IdentifierToken, "s");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Theory, CompilerTrait(CompilerFeature.RequiredMembers)]
+        [MemberData(nameof(Regular10AndScript))]
+        public void RequiredModifierConversion_02(CSharpParseOptions parseOptions)
+        {
+            UsingDeclaration("static implicit required operator C(S s) {}", options: parseOptions,
+                // (1,17): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
+                // static implicit required operator C(S s) {}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "required ").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 17),
+                // (1,26): error CS1003: Syntax error, '.' expected
+                // static implicit required operator C(S s) {}
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 26)
+                );
+            N(SyntaxKind.ConversionOperatorDeclaration);
+            {
+                N(SyntaxKind.StaticKeyword);
+                N(SyntaxKind.ImplicitKeyword);
+                N(SyntaxKind.ExplicitInterfaceSpecifier);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "required");
+                    }
+                    M(SyntaxKind.DotToken);
+                }
+                N(SyntaxKind.OperatorKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "C");
+                }
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "S");
+                        }
+                        N(SyntaxKind.IdentifierToken, "s");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Theory, CompilerTrait(CompilerFeature.RequiredMembers)]
+        [MemberData(nameof(Regular10AndScriptAndRequiredMembersMinimum))]
+        public void RequiredModifierIncompleteProperty_01(CSharpParseOptions parseOptions)
+        {
+            UsingDeclaration("required string Prop { get;", options: parseOptions,
+                // (1,28): error CS1513: } expected
+                // required string Prop { get;
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 28)
+            );
+            N(SyntaxKind.PropertyDeclaration);
+            {
+                N(SyntaxKind.RequiredKeyword);
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.StringKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "Prop");
+                N(SyntaxKind.AccessorList);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.GetAccessorDeclaration);
+                    {
+                        N(SyntaxKind.GetKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    M(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Theory, CompilerTrait(CompilerFeature.RequiredMembers)]
+        [MemberData(nameof(Regular10AndScriptAndRequiredMembersMinimum))]
+        public void RequiredModifierIncompleteProperty_02(CSharpParseOptions parseOptions)
+        {
+            UsingDeclaration("required string Prop {", options: parseOptions,
+                // (1,23): error CS1513: } expected
+                // required string Prop {
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 23)
+            );
+            N(SyntaxKind.PropertyDeclaration);
+            {
+                N(SyntaxKind.RequiredKeyword);
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.StringKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "Prop");
+                N(SyntaxKind.AccessorList);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Theory, CompilerTrait(CompilerFeature.RequiredMembers)]
+        [MemberData(nameof(Regular10AndScriptAndRequiredMembersMinimum))]
+        public void RequiredModifierIncompleteMember_01(CSharpParseOptions parseOptions)
+        {
+            UsingDeclaration("required string Prop", options: parseOptions,
+                // (1,21): error CS1002: ; expected
+                // required string Prop
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 21)
+            );
+            N(SyntaxKind.FieldDeclaration);
+            {
+                N(SyntaxKind.RequiredKeyword);
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.StringKeyword);
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Prop");
+                    }
+                }
+                M(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Theory, CompilerTrait(CompilerFeature.RequiredMembers)]
+        [MemberData(nameof(Regular10AndScriptAndRequiredMembersMinimum))]
+        public void RequiredModifierIncompleteMember_02(CSharpParseOptions parseOptions)
+        {
+            UsingDeclaration("required string", options: parseOptions,
+                // (1,16): error CS1519: Invalid token '' in class, record, struct, or interface member declaration
+                // required string
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "").WithArguments("").WithLocation(1, 16)
+            );
+            N(SyntaxKind.IncompleteMember);
+            {
+                N(SyntaxKind.RequiredKeyword);
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.StringKeyword);
+                }
+            }
+            EOF();
+        }
+
+        [Theory, CompilerTrait(CompilerFeature.RequiredMembers)]
+        [MemberData(nameof(Regular10AndScriptAndRequiredMembersMinimum))]
+        public void RequiredModifierIncompleteMember_03(CSharpParseOptions parseOptions)
+        {
+            UsingDeclaration("required C", options: parseOptions,
+                // (1,11): error CS1519: Invalid token '' in class, record, struct, or interface member declaration
+                // required C
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "").WithArguments("").WithLocation(1, 11)
+            );
+            N(SyntaxKind.IncompleteMember);
+            {
+                N(SyntaxKind.RequiredKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "C");
+                }
+            }
+            EOF();
+        }
+
+        [Theory, CompilerTrait(CompilerFeature.RequiredMembers)]
+        [MemberData(nameof(Regular10AndScript))]
+        public void RequiredModifierIncompleteMember_04(CSharpParseOptions parseOptions)
+        {
+            UsingDeclaration("required", options: parseOptions,
+                // (1,9): error CS1519: Invalid token '' in class, record, struct, or interface member declaration
+                // required
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "").WithArguments("").WithLocation(1, 9)
+            );
+            N(SyntaxKind.IncompleteMember);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "required");
+                }
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RequiredMembers)]
+        public void RequiredModifierIncompleteMember_05()
+        {
+            UsingDeclaration("required", options: RequiredMembersOptions,
+                // (1,9): error CS1519: Invalid token '' in class, record, struct, or interface member declaration
+                // required
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "").WithArguments("").WithLocation(1, 9)
+            );
+            N(SyntaxKind.IncompleteMember);
+            {
+                N(SyntaxKind.RequiredKeyword);
+            }
+            EOF();
+        }
+
+        [Theory, CompilerTrait(CompilerFeature.RequiredMembers), WorkItem(61510, "https://github.com/dotnet/roslyn/issues/61510")]
+        [MemberData(nameof(Regular10AndScriptAndRequiredMembersMinimum))]
+        public void RequiredModifier_LocalNamedRequired_TopLevelStatements(CSharpParseOptions parseOptions)
+        {
+            bool isScript = parseOptions.Kind == SourceCodeKind.Script;
+
+            UsingTree("""
+                bool required;
+                required = true;
+                """, options: parseOptions);
+            N(SyntaxKind.CompilationUnit);
+            {
+                if (isScript)
+                {
+                    N(SyntaxKind.FieldDeclaration);
+                }
+                else
+                {
+                    N(SyntaxKind.GlobalStatement);
+                    N(SyntaxKind.LocalDeclarationStatement);
+                }
+
+                {
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.BoolKeyword);
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "required");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.SimpleAssignmentExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "required");
+                            }
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.TrueLiteralExpression);
+                            {
+                                N(SyntaxKind.TrueKeyword);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
         [Fact]
         public void OperatorDeclaration_ExplicitImplementation_01()
         {
             var error =
-                // (1,12): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,12): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                 // public int N.I.operator +(int x, int y) => x + y;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 12);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 12);
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
             {
@@ -1313,9 +2019,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     UsingDeclaration("public int N.I.implicit (int x) => x;", options: options.WithLanguageVersion(version),
                         version == LanguageVersion.CSharp9 ?
                             errors.Append(
-                                // (1,12): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // (1,12): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                                 // public int N.I.implicit (int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 12)
+                                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 12)
                                 ).ToArray() :
                             errors);
 
@@ -1394,9 +2100,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     UsingDeclaration("public int N.I.explicit (int x) => x;", options: options.WithLanguageVersion(version),
                         version == LanguageVersion.CSharp9 ?
                             errors.Append(
-                                // (1,12): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // (1,12): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                                 // public int N.I.explicit (int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 12)
+                                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 12)
                                 ).ToArray() :
                             errors);
 
@@ -1469,9 +2175,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     UsingDeclaration("public int N.I operator +(int x) => x;", options: options.WithLanguageVersion(version),
                         version == LanguageVersion.CSharp9 ?
                             errors.Append(
-                                // (1,12): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // (1,12): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                                 // public int N.I operator +(int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I ").WithArguments("static abstract members in interfaces").WithLocation(1, 12)
+                                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I ").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 12)
                                 ).ToArray() :
                             errors);
 
@@ -1544,9 +2250,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     UsingDeclaration("public int I operator +(int x) => x;", options: options.WithLanguageVersion(version),
                         version == LanguageVersion.CSharp9 ?
                             errors.Append(
-                                // (1,12): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // (1,12): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                                 // public int I operator +(int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "I ").WithArguments("static abstract members in interfaces").WithLocation(1, 12)
+                                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "I ").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 12)
                                 ).ToArray() :
                             errors);
 
@@ -1916,9 +2622,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void OperatorDeclaration_ExplicitImplementation_11()
         {
             var error =
-                // (1,12): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,12): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                 // public int N.I.operator +(int x, int y) => x + y;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 12);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 12);
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
             {
@@ -2023,9 +2729,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     UsingTree("public int N.I.implicit (int x) => x;", options: options.WithLanguageVersion(version),
                         version == LanguageVersion.CSharp9 ?
                             errors.Append(
-                                // (1,12): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // (1,12): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                                 // public int N.I.implicit (int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 12)
+                                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 12)
                                 ).ToArray() :
                             errors);
 
@@ -2108,9 +2814,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     UsingTree("public int N.I.explicit (int x) => x;", options: options.WithLanguageVersion(version),
                         version == LanguageVersion.CSharp9 ?
                             errors.Append(
-                                // (1,12): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // (1,12): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                                 // public int N.I.explicit (int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 12)
+                                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 12)
                                 ).ToArray() :
                             errors);
 
@@ -2187,9 +2893,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     UsingTree("public int N.I operator +(int x) => x;", options: options.WithLanguageVersion(version),
                         version == LanguageVersion.CSharp9 ?
                             errors.Append(
-                                // (1,12): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // (1,12): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                                 // public int N.I operator +(int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I ").WithArguments("static abstract members in interfaces").WithLocation(1, 12)
+                                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I ").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 12)
                                 ).ToArray() :
                             errors);
 
@@ -2266,9 +2972,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     UsingTree("public int I operator +(int x) => x;", options: options.WithLanguageVersion(version),
                         version == LanguageVersion.CSharp9 ?
                             errors.Append(
-                                // (1,12): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // (1,12): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                                 // public int I operator +(int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "I ").WithArguments("static abstract members in interfaces").WithLocation(1, 12)
+                                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "I ").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 12)
                                 ).ToArray() :
                             errors);
 
@@ -2788,9 +3494,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void OperatorDeclaration_ExplicitImplementation_23()
         {
             var error =
-                // (1,5): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,5): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                 // int N.I.operator +(int x, int y) => x + y;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 5);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 5);
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
             {
@@ -2890,9 +3596,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     UsingDeclaration("int N.I.implicit (int x) => x;", options: options.WithLanguageVersion(version),
                         version == LanguageVersion.CSharp9 ?
                             errors.Append(
-                                // (1,5): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // (1,5): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                                 // int N.I.implicit (int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 5)
+                                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 5)
                                 ).ToArray() :
                             errors);
 
@@ -2970,9 +3676,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     UsingDeclaration("int N.I.explicit (int x) => x;", options: options.WithLanguageVersion(version),
                         version == LanguageVersion.CSharp9 ?
                             errors.Append(
-                                // (1,5): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // (1,5): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                                 // int N.I.explicit (int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 5)
+                                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 5)
                                 ).ToArray() :
                             errors);
 
@@ -3044,9 +3750,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     UsingDeclaration("int N.I operator +(int x) => x;", options: options.WithLanguageVersion(version),
                         version == LanguageVersion.CSharp9 ?
                             errors.Append(
-                                // (1,5): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // (1,5): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                                 // int N.I operator +(int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I ").WithArguments("static abstract members in interfaces").WithLocation(1, 5)
+                                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I ").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 5)
                                 ).ToArray() :
                             errors);
 
@@ -3118,9 +3824,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     UsingDeclaration("int I operator +(int x) => x;", options: options.WithLanguageVersion(version),
                         version == LanguageVersion.CSharp9 ?
                             errors.Append(
-                                // (1,5): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // (1,5): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                                 // int I operator +(int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "I ").WithArguments("static abstract members in interfaces").WithLocation(1, 5)
+                                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "I ").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 5)
                                 ).ToArray() :
                             errors);
 
@@ -3484,9 +4190,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void OperatorDeclaration_ExplicitImplementation_33()
         {
             var error =
-                // (1,5): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,5): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                 // int N.I.operator +(int x, int y) => x + y;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 5);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 5);
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
             {
@@ -3590,9 +4296,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     UsingTree("int N.I.implicit (int x) => x;", options: options.WithLanguageVersion(version),
                         version == LanguageVersion.CSharp9 ?
                             errors.Append(
-                                // (1,5): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // (1,5): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                                 // int N.I.implicit (int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 5)
+                                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 5)
                                 ).ToArray() :
                             errors);
 
@@ -3674,9 +4380,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     UsingTree("int N.I.explicit (int x) => x;", options: options.WithLanguageVersion(version),
                         version == LanguageVersion.CSharp9 ?
                             errors.Append(
-                                // (1,5): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // (1,5): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                                 // int N.I.explicit (int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 5)
+                                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 5)
                                 ).ToArray() :
                             errors);
 
@@ -3752,9 +4458,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     UsingTree("int N.I operator +(int x) => x;", options: options.WithLanguageVersion(version),
                         version == LanguageVersion.CSharp9 ?
                             errors.Append(
-                                // (1,5): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // (1,5): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                                 // int N.I operator +(int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I ").WithArguments("static abstract members in interfaces").WithLocation(1, 5)
+                                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I ").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 5)
                                 ).ToArray() :
                             errors);
 
@@ -3830,9 +4536,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     UsingTree("int I operator +(int x) => x;", options: options.WithLanguageVersion(version),
                         version == LanguageVersion.CSharp9 ?
                             errors.Append(
-                                // (1,5): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // (1,5): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                                 // int I operator +(int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "I ").WithArguments("static abstract members in interfaces").WithLocation(1, 5)
+                                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "I ").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 5)
                                 ).ToArray() :
                             errors);
 
@@ -4527,9 +5233,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void ConversionDeclaration_ExplicitImplementation_01()
         {
             var error =
-                // (1,10): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,10): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                 // implicit N.I.operator int(int x) => x;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 10);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 10);
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
             {
@@ -4606,9 +5312,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     UsingDeclaration("N.I.operator int(int x) => x;", options: options.WithLanguageVersion(version),
                         version == LanguageVersion.CSharp9 ?
                             errors.Append(
-                                // (1,1): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // (1,1): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                                 // N.I.operator int(int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 1)
+                                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 1)
                                 ).ToArray() :
                             errors);
 
@@ -4731,9 +5437,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     UsingDeclaration("implicit N.I operator int(int x) => x;", options: options.WithLanguageVersion(version),
                         version == LanguageVersion.CSharp9 ?
                             errors.Append(
-                                // (1,10): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // (1,10): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                                 // implicit N.I operator int(int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I ").WithArguments("static abstract members in interfaces").WithLocation(1, 10)
+                                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I ").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 10)
                                 ).ToArray() :
                             errors);
 
@@ -4805,9 +5511,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     UsingDeclaration("explicit I operator int(int x) => x;", options: options.WithLanguageVersion(version),
                         version == LanguageVersion.CSharp9 ?
                             errors.Append(
-                                // (1,10): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // (1,10): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                                 // explicit I operator int(int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "I ").WithArguments("static abstract members in interfaces").WithLocation(1, 10)
+                                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "I ").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 10)
                                 ).ToArray() :
                             errors);
 
@@ -5154,9 +5860,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void ConversionDeclaration_ExplicitImplementation_11()
         {
             var error =
-                // (1,10): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,10): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                 // explicit N.I.operator int(int x) => x;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 10);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 10);
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
             {
@@ -5240,9 +5946,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     UsingTree("implicit N.I int(int x) => x;", options: options.WithLanguageVersion(version),
                         version == LanguageVersion.CSharp9 ?
                             errors.Append(
-                                // (1,10): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // (1,10): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                                 // implicit N.I int(int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I ").WithArguments("static abstract members in interfaces").WithLocation(1, 10)
+                                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I ").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 10)
                                 ).ToArray() :
                             errors);
 
@@ -5318,9 +6024,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     UsingTree("explicit N.I. int(int x) => x;", options: options.WithLanguageVersion(version),
                         version == LanguageVersion.CSharp9 ?
                             errors.Append(
-                                // (1,10): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // (1,10): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                                 // explicit N.I. int(int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 10)
+                                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 10)
                                 ).ToArray() :
                             errors);
 
@@ -5396,9 +6102,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     UsingTree("implicit N.I operator int(int x) => x;", options: options.WithLanguageVersion(version),
                         version == LanguageVersion.CSharp9 ?
                             errors.Append(
-                                // (1,10): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // (1,10): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                                 // implicit N.I operator int(int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I ").WithArguments("static abstract members in interfaces").WithLocation(1, 10)
+                                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I ").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 10)
                                 ).ToArray() :
                             errors);
 
@@ -5474,9 +6180,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     UsingTree("explicit I operator int(int x) => x;", options: options.WithLanguageVersion(version),
                         version == LanguageVersion.CSharp9 ?
                             errors.Append(
-                                // (1,10): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // (1,10): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                                 // explicit I operator int(int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "I ").WithArguments("static abstract members in interfaces").WithLocation(1, 10)
+                                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "I ").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 10)
                                 ).ToArray() :
                             errors);
 
@@ -7998,6 +8704,176 @@ class C<T> where T : Type, /*comment*/ delegate /*comment*/ { }
                 }
                 N(SyntaxKind.OperatorKeyword);
                 N(SyntaxKind.CheckedKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "D");
+                }
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "C");
+                        }
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.ArrowExpressionClause);
+                {
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Theory, WorkItem(60394, "https://github.com/dotnet/roslyn/issues/60394")]
+        [InlineData("+", SyntaxKind.PlusToken)]
+        [InlineData("-", SyntaxKind.MinusToken)]
+        [InlineData("!", SyntaxKind.ExclamationToken)]
+        [InlineData("~", SyntaxKind.TildeToken)]
+        [InlineData("++", SyntaxKind.PlusPlusToken)]
+        [InlineData("--", SyntaxKind.MinusMinusToken)]
+        [InlineData("true", SyntaxKind.TrueKeyword)]
+        [InlineData("false", SyntaxKind.FalseKeyword)]
+        public void UncheckedOperatorDeclaration_01(string op, SyntaxKind opToken)
+        {
+            UsingDeclaration("C operator unchecked " + op + "(C x) => x;", expectedErrors:
+                // (1,12): error CS9027: Unexpected keyword 'unchecked'
+                // C operator unchecked op(C x) => x;
+                Diagnostic(ErrorCode.ERR_MisplacedUnchecked, "unchecked").WithLocation(1, 12));
+
+            N(SyntaxKind.OperatorDeclaration);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "C");
+                }
+                N(SyntaxKind.OperatorKeyword);
+                N(opToken);
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "C");
+                        }
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.ArrowExpressionClause);
+                {
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Theory, WorkItem(60394, "https://github.com/dotnet/roslyn/issues/60394")]
+        [InlineData("+", SyntaxKind.PlusToken)]
+        [InlineData("-", SyntaxKind.MinusToken)]
+        [InlineData("*", SyntaxKind.AsteriskToken)]
+        [InlineData("/", SyntaxKind.SlashToken)]
+        [InlineData("%", SyntaxKind.PercentToken)]
+        [InlineData("&", SyntaxKind.AmpersandToken)]
+        [InlineData("|", SyntaxKind.BarToken)]
+        [InlineData("^", SyntaxKind.CaretToken)]
+        [InlineData("<<", SyntaxKind.LessThanLessThanToken)]
+        [InlineData(">>", SyntaxKind.GreaterThanGreaterThanToken)]
+        [InlineData(">>>", SyntaxKind.GreaterThanGreaterThanGreaterThanToken)]
+        [InlineData("==", SyntaxKind.EqualsEqualsToken)]
+        [InlineData("!=", SyntaxKind.ExclamationEqualsToken)]
+        [InlineData(">", SyntaxKind.GreaterThanToken)]
+        [InlineData("<", SyntaxKind.LessThanToken)]
+        [InlineData(">=", SyntaxKind.GreaterThanEqualsToken)]
+        [InlineData("<=", SyntaxKind.LessThanEqualsToken)]
+        public void UncheckedOperatorDeclaration_04(string op, SyntaxKind opToken)
+        {
+            UsingDeclaration("C I.operator unchecked " + op + "(C x, C y) => x;", options: TestOptions.RegularPreview,
+                // (1,14): error CS9027: Unexpected keyword 'unchecked'
+                // C I.operator unchecked op(C x, C y) => x;
+                Diagnostic(ErrorCode.ERR_MisplacedUnchecked, "unchecked").WithLocation(1, 14));
+
+            N(SyntaxKind.OperatorDeclaration);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "C");
+                }
+                N(SyntaxKind.ExplicitInterfaceSpecifier);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "I");
+                    }
+                    N(SyntaxKind.DotToken);
+                }
+                N(SyntaxKind.OperatorKeyword);
+                N(opToken);
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "C");
+                        }
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "C");
+                        }
+                        N(SyntaxKind.IdentifierToken, "y");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.ArrowExpressionClause);
+                {
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Theory, WorkItem(60394, "https://github.com/dotnet/roslyn/issues/60394")]
+        [InlineData("implicit", SyntaxKind.ImplicitKeyword)]
+        [InlineData("explicit", SyntaxKind.ExplicitKeyword)]
+        public void UnheckedOperatorDeclaration_05(string op, SyntaxKind opToken)
+        {
+            UsingDeclaration(op + " operator unchecked D(C x) => x;", expectedErrors:
+                // (1,19): error CS9027: Unexpected keyword 'unchecked'
+                // implicit operator unchecked op(C x) => x;
+                Diagnostic(ErrorCode.ERR_MisplacedUnchecked, "unchecked").WithLocation(1, 19));
+
+            N(SyntaxKind.ConversionOperatorDeclaration);
+            {
+                N(opToken);
+                N(SyntaxKind.OperatorKeyword);
                 N(SyntaxKind.IdentifierName);
                 {
                     N(SyntaxKind.IdentifierToken, "D");

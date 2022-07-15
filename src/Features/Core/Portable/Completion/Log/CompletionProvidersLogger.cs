@@ -21,8 +21,6 @@ namespace Microsoft.CodeAnalysis.Completion.Log
             TypeImportCompletionCacheMissCount,
             CommitsOfTypeImportCompletionItem,
 
-            TargetTypeCompletionTicks,
-
             ExtensionMethodCompletionTicks,
             ExtensionMethodCompletionMethodsProvided,
             ExtensionMethodCompletionGetSymbolsTicks,
@@ -52,12 +50,6 @@ namespace Microsoft.CodeAnalysis.Completion.Log
 
         internal static void LogCommitOfTypeImportCompletionItem() =>
             s_logAggregator.IncreaseCount((int)ActionInfo.CommitsOfTypeImportCompletionItem);
-
-        internal static void LogTargetTypeCompletionTicksDataPoint(int count)
-        {
-            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.TargetTypeCompletionTicks, count);
-            s_histogramLogAggregator.IncreaseCount((int)ActionInfo.TargetTypeCompletionTicks, count);
-        }
 
         internal static void LogExtensionMethodCompletionTicksDataPoint(int total, int getSymbols, int createItems, bool isRemote)
         {

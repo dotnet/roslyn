@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 // Do not cascade to symbols that are defined only in metadata.
                 if (referencedSymbol.Kind == originalSymbol.Kind &&
                     string.Compare(TrimNameToAfterLastDot(referencedSymbol.Name), TrimNameToAfterLastDot(originalSymbol.Name), StringComparison.OrdinalIgnoreCase) == 0 &&
-                    referencedSymbol.Locations.Any(loc => loc.IsInSource))
+                    referencedSymbol.Locations.Any(static loc => loc.IsInSource))
                 {
                     return true;
                 }
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 if (referencedSymbol.ContainingSymbol != null &&
                     referencedSymbol.ContainingSymbol.Kind == SymbolKind.NamedType &&
                     ((INamedTypeSymbol)referencedSymbol.ContainingSymbol).TypeKind == TypeKind.Interface &&
-                    !originalSymbol.ExplicitInterfaceImplementations().Any(s => s.Equals(referencedSymbol)))
+                    !originalSymbol.ExplicitInterfaceImplementations().Any(static (s, referencedSymbol) => s.Equals(referencedSymbol), referencedSymbol))
                 {
                     return true;
                 }

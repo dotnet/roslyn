@@ -89,12 +89,21 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Set
         End Property
 
-        Public Property CollapseMetadataImplementationsWhenFirstOpened As Boolean
+        Public Property CollapseMetadataSignatureFilesWhenFirstOpened As Boolean
             Get
-                Return GetBooleanOption(BlockStructureOptionsStorage.CollapseMetadataImplementationsWhenFirstOpened)
+                Return GetBooleanOption(BlockStructureOptionsStorage.CollapseMetadataSignatureFilesWhenFirstOpened)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(BlockStructureOptionsStorage.CollapseMetadataImplementationsWhenFirstOpened, value)
+                SetBooleanOption(BlockStructureOptionsStorage.CollapseMetadataSignatureFilesWhenFirstOpened, value)
+            End Set
+        End Property
+
+        Public Property CollapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened As Boolean
+            Get
+                Return GetBooleanOption(BlockStructureOptionsStorage.CollapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened)
+            End Get
+            Set(value As Boolean)
+                SetBooleanOption(BlockStructureOptionsStorage.CollapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened, value)
             End Set
         End Property
 

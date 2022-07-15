@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -796,7 +797,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static void ReportBinaryOperatorError(ExpressionSyntax node, BindingDiagnosticBag diagnostics, SyntaxToken operatorToken, BoundExpression left, BoundExpression right, LookupResultKind resultKind)
+        private void ReportBinaryOperatorError(ExpressionSyntax node, BindingDiagnosticBag diagnostics, SyntaxToken operatorToken, BoundExpression left, BoundExpression right, LookupResultKind resultKind)
         {
             bool isEquality = operatorToken.Kind() == SyntaxKind.EqualsEqualsToken || operatorToken.Kind() == SyntaxKind.ExclamationEqualsToken;
             switch (left.Kind, right.Kind)
@@ -825,11 +826,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
             }
 
-            ErrorCode errorCode = resultKind == LookupResultKind.Ambiguous ?
-                ErrorCode.ERR_AmbigBinaryOps : // Operator '{0}' is ambiguous on operands of type '{1}' and '{2}'
-                ErrorCode.ERR_BadBinaryOps;    // Operator '{0}' cannot be applied to operands of type '{1}' and '{2}'
+#nullable enable
+            ErrorCode errorCode;
+
+            switch (resultKind)
+            {
+                case LookupResultKind.Ambiguous:
+                    errorCode = ErrorCode.ERR_AmbigBinaryOps; // Operator '{0}' is ambiguous on operands of type '{1}' and '{2}'
+                    break;
+
+                case LookupResultKind.OverloadResolutionFailure when operatorToken.Kind() is SyntaxKind.PlusToken && isReadOnlySpanOfByte(left.Type) && isReadOnlySpanOfByte(right.Type):
+                    errorCode = ErrorCode.ERR_BadBinaryReadOnlySpanConcatenation; // Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF-8 byte representations
+                    break;
+
+                default:
+                    errorCode = ErrorCode.ERR_BadBinaryOps;    // Operator '{0}' cannot be applied to operands of type '{1}' and '{2}'
+                    break;
+            }
 
             Error(diagnostics, errorCode, node, operatorToken.Text, left.Display, right.Display);
+
+            bool isReadOnlySpanOfByte(TypeSymbol? type)
+            {
+                return type is NamedTypeSymbol namedType && Compilation.IsReadOnlySpanType(namedType) &&
+                    namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Single().Type.SpecialType is SpecialType.System_Byte;
+
+            }
+#nullable disable
         }
 
         private BoundExpression BindConditionalLogicalOperator(BinaryExpressionSyntax node, BindingDiagnosticBag diagnostics)
@@ -1103,7 +1126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool typesAreSame = TypeSymbol.Equals(signature.LeftType, signature.RightType, TypeCompareKind.ConsiderEverything2) && TypeSymbol.Equals(signature.LeftType, signature.ReturnType, TypeCompareKind.ConsiderEverything2);
             MethodSymbol definition;
             bool typeMatchesContainer = TypeSymbol.Equals(signature.ReturnType.StrippedType(), t, TypeCompareKind.ConsiderEverything2) ||
-                                        (t.IsInterface && signature.Method.IsAbstract &&
+                                        (t.IsInterface && (signature.Method.IsAbstract || signature.Method.IsVirtual) &&
                                          SourceUserDefinedOperatorSymbol.IsSelfConstrainedTypeParameter((definition = signature.Method.OriginalDefinition).ReturnType.StrippedType(), definition.ContainingType));
 
             if (!typesAreSame || !typeMatchesContainer)
@@ -1394,7 +1417,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (kind == UnaryOperatorKind.UnaryMinus &&
                         (object)operand.Type != null &&
-                        (operand.Type.SpecialType == SpecialType.System_UInt64 || (operand.Type.SpecialType == SpecialType.System_UIntPtr && operand.Type.IsNativeIntegerType)))
+                        (operand.Type.SpecialType == SpecialType.System_UInt64 || isNuint(operand.Type)))
                     {
                         resultKind = LookupResultKind.OverloadResolutionFailure;
                     }
@@ -1422,6 +1445,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             result.Free();
             return possiblyBest;
+
+            static bool isNuint(TypeSymbol type)
+            {
+                return type.SpecialType == SpecialType.System_UIntPtr
+                    && type.IsNativeIntegerType;
+            }
         }
 
         private static object FoldDecimalBinaryOperators(BinaryOperatorKind kind, ConstantValue valueLeft, ConstantValue valueRight)
@@ -2323,7 +2352,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (methodOpt?.ContainingType?.IsInterface == true && methodOpt.IsStatic)
             {
-                if (methodOpt.IsAbstract)
+                if (methodOpt.IsAbstract || methodOpt.IsVirtual)
                 {
                     if (constrainedToTypeOpt is not TypeParameterSymbol)
                     {

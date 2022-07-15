@@ -4,6 +4,7 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.AddImport
+Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Simplification
@@ -83,10 +84,10 @@ End NameSpace"
 
             Dim doc = Await GetDocument(initialText, useSymbolAnnotations, globalImports)
 
-            Dim addImportOptions = New AddImportPlacementOptions(
-                PlaceSystemNamespaceFirst:=placeSystemNamespaceFirst,
-                PlaceImportsInsideNamespaces:=False,
-                AllowInHiddenRegions:=False)
+            Dim addImportOptions = New AddImportPlacementOptions() With
+            {
+                .PlaceSystemNamespaceFirst = placeSystemNamespaceFirst
+            }
 
             Dim formattingOptions = VisualBasicSyntaxFormattingOptions.Default
             Dim simplifierOptions = VisualBasicSimplifierOptions.Default

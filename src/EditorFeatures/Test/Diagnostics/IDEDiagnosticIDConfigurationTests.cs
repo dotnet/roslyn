@@ -423,9 +423,6 @@ dotnet_diagnostic.IDE0170.severity = %value%
 # IDE0180
 dotnet_diagnostic.IDE0180.severity = %value%
 
-# IDE0190
-dotnet_diagnostic.IDE0190.severity = %value%
-
 # IDE0200
 dotnet_diagnostic.IDE0200.severity = %value%
 
@@ -440,6 +437,12 @@ dotnet_diagnostic.IDE0220.severity = %value%
 
 # IDE0230
 dotnet_diagnostic.IDE0230.severity = %value%
+
+# IDE0240
+dotnet_diagnostic.IDE0240.severity = %value%
+
+# IDE0241
+dotnet_diagnostic.IDE0241.severity = %value%
 
 # IDE1005
 dotnet_diagnostic.IDE1005.severity = %value%
@@ -861,7 +864,7 @@ csharp_prefer_simple_default_expression = true
 No editorconfig based code style option
 
 # IDE0036, PreferredModifierOrder
-csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async
+csharp_preferred_modifier_order = public,private,protected,internal,file,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,required,volatile,async
 
 # IDE0037, PreferInferredTupleNames
 dotnet_style_prefer_inferred_tuple_names = true
@@ -1043,9 +1046,6 @@ csharp_style_prefer_extended_property_pattern = true
 # IDE0180, PreferTupleSwap
 csharp_style_prefer_tuple_swap = true
 
-# IDE0190, PreferParameterNullChecking
-csharp_style_prefer_parameter_null_checking = true
-
 # IDE0200, PreferMethodGroupConversion
 csharp_style_prefer_method_group_conversion = true
 
@@ -1058,8 +1058,14 @@ csharp_style_prefer_top_level_statements = true
 # IDE0220, ForEachExplicitCastInSource
 dotnet_style_prefer_foreach_explicit_cast_in_source = when_strongly_typed
 
-# IDE0230, PreferUTF8StringLiterals
+# IDE0230, PreferUtf8StringLiterals
 csharp_style_prefer_utf8_string_literals = true
+
+# IDE0240
+No editorconfig based code style option
+
+# IDE0241
+No editorconfig based code style option
 
 # IDE1005, PreferConditionalDelegateCall
 csharp_style_conditional_delegate_call = true

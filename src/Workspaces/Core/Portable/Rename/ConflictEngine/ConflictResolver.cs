@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            using (Logger.LogBlock(FunctionId.Renamer_FindRenameLocationsAsync, cancellationToken))
+            using (Logger.LogBlock(FunctionId.Renamer_ResolveConflictsAsync, cancellationToken))
             {
                 var solution = renameLocationSet.Solution;
                 var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
@@ -77,27 +77,28 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             ImmutableHashSet<ISymbol>? nonConflictSymbols,
             CancellationToken cancellationToken)
         {
-            var resolution = await ResolveMutableConflictsAsync(
-                renameLocationSet, replacementText, nonConflictSymbols, cancellationToken).ConfigureAwait(false);
-            return resolution.ToConflictResolution();
-        }
-
-        private static Task<MutableConflictResolution> ResolveMutableConflictsAsync(
-            RenameLocations renameLocationSet,
-            string replacementText,
-            ImmutableHashSet<ISymbol>? nonConflictSymbols,
-            CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
             // when someone e.g. renames a symbol from metadata through the API (IDE blocks this), we need to return
             var renameSymbolDeclarationLocation = renameLocationSet.Symbol.Locations.Where(loc => loc.IsInSource).FirstOrDefault();
             if (renameSymbolDeclarationLocation == null)
             {
                 // Symbol "{0}" is not from source.
-                return Task.FromResult(new MutableConflictResolution(string.Format(WorkspacesResources.Symbol_0_is_not_from_source, renameLocationSet.Symbol.Name)));
+                return new ConflictResolution(string.Format(WorkspacesResources.Symbol_0_is_not_from_source, renameLocationSet.Symbol.Name));
             }
 
+            var resolution = await ResolveMutableConflictsAsync(
+                renameLocationSet, renameSymbolDeclarationLocation, replacementText, nonConflictSymbols, cancellationToken).ConfigureAwait(false);
+
+            return resolution.ToConflictResolution();
+        }
+
+        private static Task<MutableConflictResolution> ResolveMutableConflictsAsync(
+            RenameLocations renameLocationSet,
+            Location renameSymbolDeclarationLocation,
+            string replacementText,
+            ImmutableHashSet<ISymbol>? nonConflictSymbols,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
             var session = new Session(
                 renameLocationSet, renameSymbolDeclarationLocation,
                 replacementText, nonConflictSymbols, cancellationToken);
@@ -149,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         {
             // if we rename an identifier and it now binds to a symbol from metadata this should be treated as
             // an invalid rename.
-            return conflictResolution.ReplacementTextValid && renamedSymbol != null && renamedSymbol.Locations.Any(loc => loc.IsInSource);
+            return conflictResolution.ReplacementTextValid && renamedSymbol != null && renamedSymbol.Locations.Any(static loc => loc.IsInSource);
         }
 
         private static async Task AddImplicitConflictsAsync(

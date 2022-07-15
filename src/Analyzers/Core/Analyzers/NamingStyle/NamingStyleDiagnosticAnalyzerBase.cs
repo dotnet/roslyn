@@ -128,12 +128,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return null;
             }
 
-            var namingPreferences = GetNamingStylePreferences(compilation, symbol, options, cancellationToken);
-            if (namingPreferences == null)
+            var sourceTree = symbol.Locations.FirstOrDefault()?.SourceTree;
+            if (sourceTree == null)
             {
                 return null;
             }
 
+            var namingPreferences = options.GetAnalyzerOptions(sourceTree).NamingPreferences;
             var namingStyleRules = namingPreferences.Rules;
 
             if (!namingStyleRules.TryGetApplicableRule(symbol, out var applicableRule) ||
@@ -165,21 +166,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             builder["OptionLanguage"] = compilation.Language;
 
             return DiagnosticHelper.Create(Descriptor, symbol.Locations.First(), applicableRule.EnforcementLevel, additionalLocations: null, builder.ToImmutable(), failureReason);
-        }
-
-        private static NamingStylePreferences? GetNamingStylePreferences(
-            Compilation compilation,
-            ISymbol symbol,
-            AnalyzerOptions options,
-            CancellationToken cancellationToken)
-        {
-            var sourceTree = symbol.Locations.FirstOrDefault()?.SourceTree;
-            if (sourceTree == null)
-            {
-                return null;
-            }
-
-            return options.GetOption(NamingStyleOptions.NamingPreferences, compilation.Language, sourceTree, cancellationToken);
         }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()

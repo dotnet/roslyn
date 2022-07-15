@@ -86,7 +86,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 && e.Workspace.Services.GetService<IWorkspaceConfigurationService>()?.Options.EnableOpeningSourceGeneratedFiles == true
                 && e.Solution.GetProject(e.DocumentId.ProjectId) is { } project)
             {
-                document = ThreadingContext.JoinableTaskFactory.Run(() => project.GetSourceGeneratedDocumentAsync(e.DocumentId, CancellationToken.None).AsTask());
+                var documentId = e.DocumentId;
+                document = ThreadingContext.JoinableTaskFactory.Run(() => project.GetSourceGeneratedDocumentAsync(documentId, CancellationToken.None).AsTask());
             }
 
             // Open documents *should* always have their SourceText available, but we cannot guarantee

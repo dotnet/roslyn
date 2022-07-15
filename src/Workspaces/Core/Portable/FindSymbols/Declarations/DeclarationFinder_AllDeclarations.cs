@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -29,14 +27,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Contract.ThrowIfTrue(query.Kind == SearchKind.Custom, "Custom queries are not supported in this API");
 
             if (project == null)
-            {
                 throw new ArgumentNullException(nameof(project));
-            }
 
-            if (query.Name != null && string.IsNullOrWhiteSpace(query.Name))
-            {
+            Contract.ThrowIfNull(query.Name);
+            if (string.IsNullOrWhiteSpace(query.Name))
                 return ImmutableArray<ISymbol>.Empty;
-            }
 
             var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
             if (client != null)
@@ -63,15 +58,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         internal static async Task<ImmutableArray<ISymbol>> FindAllDeclarationsWithNormalQueryInCurrentProcessAsync(
             Project project, SearchQuery query, SymbolFilter criteria, CancellationToken cancellationToken)
         {
-            var list = ArrayBuilder<ISymbol>.GetInstance();
+            using var _1 = ArrayBuilder<ISymbol>.GetInstance(out var buffer);
+            using var _2 = ArrayBuilder<ISymbol>.GetInstance(out var result);
 
             if (project.SupportsCompilation)
             {
-                var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
                 // get declarations from the compilation's assembly
                 await AddCompilationDeclarationsWithNormalQueryAsync(
-                    project, query, criteria, list, cancellationToken).ConfigureAwait(false);
+                    project, query, criteria, buffer, cancellationToken).ConfigureAwait(false);
 
                 // get declarations from directly referenced projects and metadata
                 foreach (var assembly in compilation.GetReferencedAssemblySymbols())
@@ -80,30 +76,33 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     if (assemblyProject != null)
                     {
                         await AddCompilationDeclarationsWithNormalQueryAsync(
-                            assemblyProject, query, criteria, list,
+                            assemblyProject, query, criteria, buffer,
                             compilation, assembly, cancellationToken).ConfigureAwait(false);
                     }
                     else
                     {
                         await AddMetadataDeclarationsWithNormalQueryAsync(
                             project, assembly, compilation.GetMetadataReference(assembly) as PortableExecutableReference,
-                            query, criteria, list, cancellationToken).ConfigureAwait(false);
+                            query, criteria, buffer, cancellationToken).ConfigureAwait(false);
                     }
                 }
 
                 // Make certain all namespace symbols returned by API are from the compilation
                 // for the passed in project.
-                for (var i = 0; i < list.Count; i++)
+                foreach (var symbol in buffer)
                 {
-                    var symbol = list[i];
                     if (symbol is INamespaceSymbol ns)
                     {
-                        list[i] = compilation.GetCompilationNamespace(ns);
+                        result.AddIfNotNull(compilation.GetCompilationNamespace(ns));
+                    }
+                    else
+                    {
+                        result.Add(symbol);
                     }
                 }
             }
 
-            return list.ToImmutableAndFree();
+            return result.ToImmutable();
         }
 
         private static async Task<ImmutableArray<ISymbol>> RehydrateAsync(

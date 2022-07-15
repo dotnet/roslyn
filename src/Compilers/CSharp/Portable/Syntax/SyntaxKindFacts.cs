@@ -181,11 +181,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SyntaxKind.IdentifierToken:
                 case SyntaxKind.StringLiteralToken:
-                case SyntaxKind.UTF8StringLiteralToken:
+                case SyntaxKind.Utf8StringLiteralToken:
                 case SyntaxKind.SingleLineRawStringLiteralToken:
-                case SyntaxKind.UTF8SingleLineRawStringLiteralToken:
+                case SyntaxKind.Utf8SingleLineRawStringLiteralToken:
                 case SyntaxKind.MultiLineRawStringLiteralToken:
-                case SyntaxKind.UTF8MultiLineRawStringLiteralToken:
+                case SyntaxKind.Utf8MultiLineRawStringLiteralToken:
                 case SyntaxKind.CharacterLiteralToken:
                 case SyntaxKind.NumericLiteralToken:
                 case SyntaxKind.XmlTextLiteralToken:
@@ -543,11 +543,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return token switch
             {
                 SyntaxKind.StringLiteralToken => SyntaxKind.StringLiteralExpression,
-                SyntaxKind.UTF8StringLiteralToken => SyntaxKind.UTF8StringLiteralExpression,
+                SyntaxKind.Utf8StringLiteralToken => SyntaxKind.Utf8StringLiteralExpression,
                 SyntaxKind.SingleLineRawStringLiteralToken => SyntaxKind.StringLiteralExpression,
-                SyntaxKind.UTF8SingleLineRawStringLiteralToken => SyntaxKind.UTF8StringLiteralExpression,
+                SyntaxKind.Utf8SingleLineRawStringLiteralToken => SyntaxKind.Utf8StringLiteralExpression,
                 SyntaxKind.MultiLineRawStringLiteralToken => SyntaxKind.StringLiteralExpression,
-                SyntaxKind.UTF8MultiLineRawStringLiteralToken => SyntaxKind.UTF8StringLiteralExpression,
+                SyntaxKind.Utf8MultiLineRawStringLiteralToken => SyntaxKind.Utf8StringLiteralExpression,
                 SyntaxKind.CharacterLiteralToken => SyntaxKind.CharacterLiteralExpression,
                 SyntaxKind.NumericLiteralToken => SyntaxKind.NumericLiteralExpression,
                 SyntaxKind.NullKeyword => SyntaxKind.NullLiteralExpression,
@@ -1138,7 +1138,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static IEnumerable<SyntaxKind> GetContextualKeywordKinds()
         {
-            for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.UnmanagedKeyword; i++)
+            for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.FileKeyword; i++)
             {
                 yield return (SyntaxKind)i;
             }
@@ -1191,6 +1191,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.RecordKeyword:
                 case SyntaxKind.ManagedKeyword:
                 case SyntaxKind.UnmanagedKeyword:
+                case SyntaxKind.RequiredKeyword:
+                case SyntaxKind.ScopedKeyword:
+                case SyntaxKind.FileKeyword:
                     return true;
                 default:
                     return false;
@@ -1310,6 +1313,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.ManagedKeyword;
                 case "unmanaged":
                     return SyntaxKind.UnmanagedKeyword;
+                case "required":
+                    return SyntaxKind.RequiredKeyword;
+                case "scoped":
+                    return SyntaxKind.ScopedKeyword;
+                case "file":
+                    return SyntaxKind.FileKeyword;
                 default:
                     return SyntaxKind.None;
             }
@@ -1451,8 +1460,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "??=";
                 case SyntaxKind.DotDotToken:
                     return "..";
-                case SyntaxKind.ExclamationExclamationToken:
-                    return "!!";
 
                 // Keywords
                 case SyntaxKind.BoolKeyword:
@@ -1751,6 +1758,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "managed";
                 case SyntaxKind.UnmanagedKeyword:
                     return "unmanaged";
+                case SyntaxKind.RequiredKeyword:
+                    return "required";
+                case SyntaxKind.ScopedKeyword:
+                    return "scoped";
+                case SyntaxKind.FileKeyword:
+                    return "file";
                 default:
                     return string.Empty;
             }

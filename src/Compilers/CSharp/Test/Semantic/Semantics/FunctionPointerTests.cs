@@ -4038,5 +4038,23 @@ public class C
                 Diagnostic(ErrorCode.ERR_FunctionPointersCannotBeCalledWithNamedArguments, "arg0").WithLocation(6, 13)
             );
         }
+
+        [Fact, WorkItem(53973, "https://github.com/dotnet/roslyn/issues/53973")]
+        public void FunctionPointerNullable()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+public class C
+{
+    
+    public unsafe void M(delegate*<void>? f) {
+    }
+}
+");
+            comp.VerifyDiagnostics(
+                // (5,43): error CS0306: The type 'delegate*<void>' may not be used as a type argument
+                //     public unsafe void M(delegate*<void>? f) {
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "f").WithArguments("delegate*<void>").WithLocation(5, 43)
+            );
+        }
     }
 }

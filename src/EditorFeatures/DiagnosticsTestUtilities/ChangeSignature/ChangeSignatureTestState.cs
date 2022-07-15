@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.VisualBasic;
@@ -81,14 +82,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 
         public async Task<ChangeSignatureResult> ChangeSignatureAsync()
         {
-            var context = await ChangeSignatureService.GetChangeSignatureContextAsync(InvocationDocument, _testDocument.CursorPosition.Value, restrictToDeclarations: false, CodeActionOptions.DefaultProvider, CancellationToken.None).ConfigureAwait(false);
+            var context = await ChangeSignatureService.GetChangeSignatureContextAsync(InvocationDocument, _testDocument.CursorPosition.Value, restrictToDeclarations: false, Workspace.GlobalOptions.CreateProvider(), CancellationToken.None).ConfigureAwait(false);
             var options = AbstractChangeSignatureService.GetChangeSignatureOptions(context);
             return await ChangeSignatureService.ChangeSignatureWithContextAsync(context, options, CancellationToken.None);
         }
 
         public async Task<ParameterConfiguration> GetParameterConfigurationAsync()
         {
-            var context = await ChangeSignatureService.GetChangeSignatureContextAsync(InvocationDocument, _testDocument.CursorPosition.Value, restrictToDeclarations: false, CodeActionOptions.DefaultProvider, CancellationToken.None);
+            var context = await ChangeSignatureService.GetChangeSignatureContextAsync(InvocationDocument, _testDocument.CursorPosition.Value, restrictToDeclarations: false, Workspace.GlobalOptions.CreateProvider(), CancellationToken.None);
             if (context is ChangeSignatureAnalysisSucceededContext changeSignatureAnalyzedSucceedContext)
             {
                 return changeSignatureAnalyzedSucceedContext.ParameterConfiguration;
@@ -99,10 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 
         public void Dispose()
         {
-            if (Workspace != null)
-            {
-                Workspace.Dispose();
-            }
+            Workspace?.Dispose();
         }
     }
 }

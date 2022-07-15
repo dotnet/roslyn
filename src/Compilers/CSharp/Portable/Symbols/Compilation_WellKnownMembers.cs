@@ -540,7 +540,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal void EnsureNativeIntegerAttributeExists(BindingDiagnosticBag? diagnostics, Location location, bool modifyCompilation)
         {
+            Debug.Assert(ShouldEmitNativeIntegerAttributes());
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.NativeIntegerAttribute, diagnostics, location, modifyCompilation);
+        }
+
+        internal void EnsureLifetimeAnnotationAttributeExists(BindingDiagnosticBag? diagnostics, Location location, bool modifyCompilation)
+        {
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.LifetimeAnnotationAttribute, diagnostics, location, modifyCompilation);
         }
 
         internal bool CheckIfAttributeShouldBeEmbedded(EmbeddableAttributes attribute, BindingDiagnosticBag? diagnosticsOpt, Location locationOpt)
@@ -593,12 +599,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case EmbeddableAttributes.NativeIntegerAttribute:
                     // If the type exists, we'll check both constructors, regardless of which one(s) we'll eventually need.
+                    Debug.Assert(ShouldEmitNativeIntegerAttributes());
                     return CheckIfAttributeShouldBeEmbedded(
                         diagnosticsOpt,
                         locationOpt,
                         WellKnownType.System_Runtime_CompilerServices_NativeIntegerAttribute,
                         WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctor,
                         WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctorTransformFlags);
+
+                case EmbeddableAttributes.LifetimeAnnotationAttribute:
+                    return CheckIfAttributeShouldBeEmbedded(
+                        diagnosticsOpt,
+                        locationOpt,
+                        WellKnownType.System_Runtime_CompilerServices_LifetimeAnnotationAttribute,
+                        WellKnownMember.System_Runtime_CompilerServices_LifetimeAnnotationAttribute__ctor);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(attribute);
@@ -983,6 +997,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             internal static void Encode(ArrayBuilder<bool> builder, TypeSymbol type)
             {
+                Debug.Assert(type.ContainingAssembly?.RuntimeSupportsNumericIntPtr != true);
                 type.VisitType((typeSymbol, builder, isNested) => AddFlags(typeSymbol, builder), builder);
             }
 
@@ -992,7 +1007,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case SpecialType.System_IntPtr:
                     case SpecialType.System_UIntPtr:
-                        builder.Add(type.IsNativeIntegerType);
+                        builder.Add(type.IsNativeIntegerWrapperType);
                         break;
                 }
                 // Continue walking types
