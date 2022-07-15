@@ -63,7 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             // that fetching and processing the document symbol data model is not done on the UI thread.
             await TaskScheduler.Default;
 
-            var model = await ComputeDataModelAsync(cancellationToken).ConfigureAwait(false);
+            var model = await ComputeModelAsync().ConfigureAwait(false);
 
             // The model can be null if the LSP document symbol request returns a null response.
             if (model is not null)
@@ -71,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             return model;
 
-            async Task<DocumentSymbolDataModel?> ComputeDataModelAsync(CancellationToken cancellationToken)
+            async Task<DocumentSymbolDataModel?> ComputeModelAsync()
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
