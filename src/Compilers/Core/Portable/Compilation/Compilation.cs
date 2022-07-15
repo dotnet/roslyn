@@ -3024,7 +3024,8 @@ namespace Microsoft.CodeAnalysis
             Stream? sourceLinkStream,
             IEnumerable<EmbeddedText>? embeddedTexts,
             CompilationTestData? testData,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken,
+            bool ignoreUnsuppressableErrors = false)
         {
             options.ValidateOptions(diagnostics, MessageProvider, Options.Deterministic);
 
@@ -3045,7 +3046,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            if (CommonCompiler.HasUnsuppressableErrors(diagnostics))
+            if (!ignoreUnsuppressableErrors && CommonCompiler.HasUnsuppressableErrors(diagnostics))
             {
                 return null;
             }
