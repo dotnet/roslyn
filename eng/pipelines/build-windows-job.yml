@@ -37,13 +37,13 @@ jobs:
       displayName: Restore
       inputs:
         filePath: eng/build.ps1
-        arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -restore -binaryLog /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false  /p:NoGenerateSatelliteAssemblies=true
+        arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -restore -binaryLog /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false  /p:EnableXlfLocalization=false
 
     - task: PowerShell@2
       displayName: Build
       inputs:
         filePath: eng/build.ps1
-        arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -build -binaryLog -skipDocumentation /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false  /p:NoGenerateSatelliteAssemblies=true /p:NoPublishReadyToRun=true ${{ parameters.buildArguments }}
+        arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -build -binaryLog -skipDocumentation /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false  /p:EnableXlfLocalization=false /p:NoPublishReadyToRun=true ${{ parameters.buildArguments }}
 
     - task: PowerShell@2
       displayName: Prepare Unit Tests
