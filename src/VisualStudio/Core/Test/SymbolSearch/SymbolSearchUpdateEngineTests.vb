@@ -658,7 +658,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             Return CreatedownloaderMock(CreatePatchElementStream(isUpToDate, isTooOld, contents))
         End Function
 
-        Private Function CreatePatchElementStream(Optional isUpToDate As Boolean = False,
+        Private Shared Function CreatePatchElementStream(Optional isUpToDate As Boolean = False,
                                                   Optional isTooOld As Boolean = False,
                                                   Optional contents As String = Nothing) As Stream
             Dim element = New XElement("Patch",
@@ -669,7 +669,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             Return CreateStream(element)
         End Function
 
-        Private Function CreateFullDownloadElementStream() As Stream
+        Private Shared Function CreateFullDownloadElementStream() As Stream
             Dim saveStream = New MemoryStream()
             Dim zipStream = New DeflateStream(saveStream, CompressionMode.Compress)
             zipStream.Write(New Byte() {0}, 0, 1)
