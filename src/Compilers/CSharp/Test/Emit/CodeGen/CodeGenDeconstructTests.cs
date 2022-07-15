@@ -3724,7 +3724,7 @@ class C
 
                 var x34Var = (DeclarationExpressionSyntax)x3.Parent.Parent;
                 Assert.Equal("var", x34Var.Type.ToString());
-                Assert.Null(model.GetSymbolInfo(x34Var.Type).Symbol); // The var in `var (x3, x4)` has no symbol
+                Assert.Equal("(System.Int32 x3, System.Int32 x4)", model.GetSymbolInfo(x34Var.Type).Symbol.GetSymbol().ToTestDisplayString());
             };
 
             var comp = CompileAndVerify(source, expectedOutput: "1 2 3 4", sourceSymbolValidator: validator);
@@ -3818,7 +3818,7 @@ class C
                 // extra check on var
                 var x12Var = (DeclarationExpressionSyntax)x1.Parent.Parent;
                 Assert.Equal("var", x12Var.Type.ToString());
-                Assert.Null(model.GetSymbolInfo(x12Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
+                Assert.Equal("(System.Int32 x1, System.Int32 x2)", model.GetSymbolInfo(x12Var.Type).Symbol.GetSymbol().ToTestDisplayString());
             };
 
             var comp = CompileAndVerify(source, expectedOutput: "1 2", sourceSymbolValidator: validator);
@@ -4004,7 +4004,7 @@ class C
                 var x12Var = (DeclarationExpressionSyntax)x1.Parent.Parent;
                 Assert.Equal("var", x12Var.Type.ToString());
                 Assert.Equal("(System.Int32 x1, System.Int32 x2)", model.GetTypeInfo(x12Var).Type.ToTestDisplayString());
-                Assert.Null(model.GetSymbolInfo(x12Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
+                Assert.Equal("(System.Int32 x1, System.Int32 x2)", model.GetSymbolInfo(x12Var.Type).Symbol.GetSymbol().ToTestDisplayString());
 
                 // verify deconstruction info
                 var deconstructionForeach = tree.GetRoot().DescendantNodes().OfType<ForEachVariableStatementSyntax>().Single();
@@ -4111,7 +4111,7 @@ class C
                 // extra check on var
                 var x12Var = (DeclarationExpressionSyntax)x1.Parent.Parent;
                 Assert.Equal("var", x12Var.Type.ToString());
-                Assert.Null(model.GetSymbolInfo(x12Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
+                Assert.Equal("(System.Int32 x1, System.Int32 x2)", model.GetSymbolInfo(x12Var.Type).Symbol.GetSymbol().ToTestDisplayString());
             };
 
             var comp = CompileAndVerify(source, expectedOutput: "1 2 - 3 4 -", sourceSymbolValidator: validator);
@@ -4194,7 +4194,7 @@ class C
                 // extra check on var
                 var x12Var = (DeclarationExpressionSyntax)x1.Parent.Parent;
                 Assert.Equal("var", x12Var.Type.ToString());
-                Assert.Null(model.GetSymbolInfo(x12Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
+                Assert.Equal("(System.Int32 x1, System.Int32 x2)", model.GetSymbolInfo(x12Var.Type).Symbol.GetSymbol().ToTestDisplayString());
             };
 
             var comp = CompileAndVerify(source, expectedOutput: "1 2 - 3 4 - 5 6 - 7 8 -", sourceSymbolValidator: validator);
@@ -4305,7 +4305,7 @@ static class Extension
                 // extra check on var
                 var x12Var = (DeclarationExpressionSyntax)x1.Parent.Parent;
                 Assert.Equal("var", x12Var.Type.ToString());
-                Assert.Null(model.GetSymbolInfo(x12Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
+                Assert.Equal("(System.Int32 x1, System.Int32 x2)", model.GetSymbolInfo(x12Var.Type).Symbol.GetSymbol().ToTestDisplayString());
             };
 
             var comp = CompileAndVerify(source, expectedOutput: "1 1 - 2 2 - 3 3 - ", sourceSymbolValidator: validator);
@@ -4426,7 +4426,7 @@ class C
                 // extra check on var
                 var x23Var = (DeclarationExpressionSyntax)x2.Parent.Parent;
                 Assert.Equal("var", x23Var.Type.ToString());
-                Assert.Null(model.GetSymbolInfo(x23Var.Type).Symbol); // The var in `var (x2, x3)` has no symbol
+                Assert.Equal("(System.Int32 x2, System.Int32 x3)", model.GetSymbolInfo(x23Var.Type).Symbol.GetSymbol().ToTestDisplayString());
             };
 
             var comp = CompileAndVerify(source, expectedOutput: "1 2 3 4 5 - 6 7 8 9 10 -", sourceSymbolValidator: validator);
@@ -4572,7 +4572,7 @@ class C
                 // extra check on var
                 var x23Var = (DeclarationExpressionSyntax)x2.Parent.Parent;
                 Assert.Equal("var", x23Var.Type.ToString());
-                Assert.Null(model.GetSymbolInfo(x23Var.Type).Symbol); // The var in `var (x2, x3)` has no symbol
+                Assert.Equal("(System.Int32 x2, System.Int32 x3)", model.GetSymbolInfo(x23Var.Type).Symbol.GetSymbol().ToTestDisplayString());
             };
 
             string expected =
@@ -5159,7 +5159,7 @@ System.Console.Write($""{x1} {x2} {x3}"");
                 // extra check on x2 and x3's var
                 var x23Var = (DeclarationExpressionSyntax)x2.Parent.Parent;
                 Assert.Equal("var", x23Var.Type.ToString());
-                Assert.Null(model.GetSymbolInfo(x23Var.Type).Symbol); // The var in `var (x2, x3)` has no symbol
+                Assert.Equal("(System.Int32 x2, System.Int32 x3)", model.GetSymbolInfo(x23Var.Type).Symbol.GetSymbol().ToTestDisplayString());
             };
 
             var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
@@ -5708,8 +5708,8 @@ System.Console.Write($""{x1} {x2} {x3}"");
             // extra check on var
             var x123Var = (DeclarationExpressionSyntax)x1.Parent.Parent;
             Assert.Equal("var", x123Var.Type.ToString());
-            Assert.Null(model.GetTypeInfo(x123Var.Type).Type);
-            Assert.Null(model.GetSymbolInfo(x123Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
+            Assert.Equal("(System.Byte x1, (System.Byte x2, System.Byte x3))", model.GetTypeInfo(x123Var.Type).Type.ToTestDisplayString());
+            Assert.Equal("(System.Byte x1, (System.Byte x2, System.Byte x3))", model.GetSymbolInfo(x123Var.Type).Symbol.GetSymbol().ToTestDisplayString());
         }
 
         [Fact]
@@ -5750,8 +5750,8 @@ System.Console.Write($""{x1} {x2} {x3}"");
             // extra check on var
             var x123Var = (DeclarationExpressionSyntax)x1.Parent.Parent;
             Assert.Equal("var", x123Var.Type.ToString());
-            Assert.Null(model.GetTypeInfo(x123Var.Type).Type);
-            Assert.Null(model.GetSymbolInfo(x123Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
+            Assert.Equal("(Script.var x1, (Script.var x2, Script.var x3))", model.GetTypeInfo(x123Var.Type).Type.ToTestDisplayString());
+            Assert.Equal("(Script.var x1, (Script.var x2, Script.var x3))", model.GetSymbolInfo(x123Var.Type).Symbol.GetSymbol().ToTestDisplayString());
         }
 
         [Fact]
