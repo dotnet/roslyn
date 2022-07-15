@@ -172,6 +172,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool HasInterpolatedStringHandlerArgumentError => false;
 
-        internal override DeclarationScope Scope => ContainingType?.TypeKind != TypeKind.Struct ? DeclarationScope.Unscoped : DeclarationScope.RefScoped;
+        internal override DeclarationScope DeclaredScope
+            => _containingType.IsStructType() ? DeclarationScope.RefScoped : DeclarationScope.Unscoped;
+
+        internal override DeclarationScope EffectiveScope
+        {
+            get
+            {
+                var scope = DeclaredScope;
+                if (scope != DeclarationScope.Unscoped &&
+                    hasUnscopedRefAttribute(_containingMethod, _containingType as NamedTypeSymbol))
+                {
+                    return DeclarationScope.Unscoped;
+                }
+                return scope;
+
+                static bool hasUnscopedRefAttribute(MethodSymbol? containingMethod, NamedTypeSymbol? containingType)
+                {
+                    if (containingMethod is SourceMethodSymbolWithAttributes { HasUnscopedRefAttribute: true })
+                    {
+                        return true;
+                    }
+                    if (containingMethod?.AssociatedSymbol is SourcePropertySymbol { HasUnscopedRefAttribute: true })
+                    {
+                        return true;
+                    }
+                    return false;
+                }
+            }
+        }
     }
 }

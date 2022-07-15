@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (ParameterHelpers.RequiresLifetimeAnnotationAttribute(this))
             {
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeLifetimeAnnotationAttribute(this, Scope));
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeLifetimeAnnotationAttribute(this, DeclaredScope));
             }
 
             if (type.Type.ContainsTupleNames())

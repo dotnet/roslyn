@@ -5818,5 +5818,27 @@ void M(int i, [CallerArgumentExpression(""i"")] in string s = ""default value"")
 
             CompileAndVerify(comp, expectedOutput: "1 + 1").VerifyDiagnostics();
         }
+
+        [Fact]
+        public void CallerArgumentExpression_Cycle()
+        {
+            string source =
+@"namespace System.Runtime.CompilerServices
+{
+    public sealed class CallerArgumentExpressionAttribute : Attribute
+    {
+        public CallerArgumentExpressionAttribute([CallerArgumentExpression(nameof(parameterName))] string parameterName)
+        {
+            ParameterName = parameterName;
+        }
+        public string ParameterName { get; }
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,51): error CS8964: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
+                //         public CallerArgumentExpressionAttribute([CallerArgumentExpression(nameof(parameterName))] string parameterName)
+                Diagnostic(ErrorCode.ERR_BadCallerArgumentExpressionParamWithoutDefaultValue, "CallerArgumentExpression").WithLocation(5, 51));
+        }
     }
 }

@@ -1313,6 +1313,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 MessageID.IDS_FeatureMemberNotNull.CheckFeatureAvailability(diagnostics, arguments.AttributeSyntaxOpt);
                 CSharpAttributeData.DecodeMemberNotNullWhenAttribute<PropertyWellKnownAttributeData>(ContainingType, ref arguments);
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.UnscopedRefAttribute))
+            {
+                arguments.GetOrCreateData<PropertyWellKnownAttributeData>().HasUnscopedRefAttribute = true;
+            }
         }
 
         internal bool HasDisallowNull
@@ -1368,6 +1372,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal ImmutableArray<SourceAttributeData> MemberNotNullWhenAttributeIfExists
             => FindAttributes(AttributeDescription.MemberNotNullWhenAttribute);
+
+        internal bool HasUnscopedRefAttribute => GetDecodedWellKnownAttributeData()?.HasUnscopedRefAttribute == true;
 
         private SourceAttributeData FindAttribute(AttributeDescription attributeDescription)
             => (SourceAttributeData)GetAttributes().First(a => a.IsTargetAttribute(this, attributeDescription));

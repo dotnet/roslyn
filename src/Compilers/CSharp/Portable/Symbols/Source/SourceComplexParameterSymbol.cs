@@ -198,6 +198,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 #nullable enable
 
+        internal sealed override DeclarationScope EffectiveScope
+        {
+            get
+            {
+                var scope = DeclaredScope;
+                if (scope != DeclarationScope.Unscoped &&
+                    HasUnscopedRefAttribute)
+                {
+                    return DeclarationScope.Unscoped;
+                }
+                return scope;
+            }
+        }
+
+        private bool HasUnscopedRefAttribute => GetEarlyDecodedWellKnownAttributeData()?.HasUnscopedRefAttribute == true;
+
         internal static SyntaxNode? GetDefaultValueSyntaxForIsNullableAnalysisEnabled(ParameterSyntax? parameterSyntax) =>
             parameterSyntax?.Default?.Value;
 
@@ -592,6 +608,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.DateTimeConstantAttribute))
             {
                 return EarlyDecodeAttributeForDefaultParameterValue(AttributeDescription.DateTimeConstantAttribute, ref arguments);
+            }
+            else if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.UnscopedRefAttribute))
+            {
+                // We can't bind the attribute here because that might lead to a cycle.
+                // Instead, simply record that the attribute exists and bind later.
+                arguments.GetOrCreateData<ParameterEarlyWellKnownAttributeData>().HasUnscopedRefAttribute = true;
+                return (null, null);
             }
             else if (!IsOnPartialImplementation(arguments.AttributeSyntax))
             {

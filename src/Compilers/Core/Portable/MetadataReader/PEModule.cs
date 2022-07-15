@@ -1099,6 +1099,11 @@ namespace Microsoft.CodeAnalysis
             return TryExtractValueFromAttribute(info.Handle, out value, CrackBoolAndBoolInAttributeValue);
         }
 
+        internal bool HasUnscopedRefAttribute(EntityHandle token)
+        {
+            return FindTargetAttribute(token, AttributeDescription.UnscopedRefAttribute).HasValue;
+        }
+
         internal bool HasTupleElementNamesAttribute(EntityHandle token, out ImmutableArray<string> tupleElementNames)
         {
             var info = FindTargetAttribute(token, AttributeDescription.TupleElementNamesAttribute);

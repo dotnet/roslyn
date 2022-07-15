@@ -223,7 +223,7 @@ using System.Runtime.CompilerServices;
             var method = comp.GetMember<MethodSymbol>("A.F4");
             Assert.Equal("void A.F4(ref scoped R r)", method.ToDisplayString(SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped)));
             var parameter = method.Parameters[0];
-            Assert.Equal(DeclarationScope.ValueScoped, parameter.Scope);
+            Assert.Equal(DeclarationScope.ValueScoped, parameter.DeclaredScope);
         }
 
         [Fact]
