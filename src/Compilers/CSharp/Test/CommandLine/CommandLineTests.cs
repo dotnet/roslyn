@@ -12441,6 +12441,91 @@ class C
 
         [WorkItem(62540, "https://github.com/dotnet/roslyn/issues/62540")]
         [Fact]
+        public void TestSuppression_CompilerSyntaxBindingError_AndSuppressibleWarning()
+        {
+            const string sourceCode = @"
+                public class MyClass
+                {
+                    void MyPrivateMethod(int i)
+                    {
+                        // warning CS1522: Empty switch block
+                        // NOTE: Empty switch block warning is reported by the C# language parser
+                        switch (i)
+                        {
+                        }
+                    }
+                }
+                public class YourClass
+                { 
+                    void YourPrivateMethod()
+                    {
+                        // Cannot access private method
+                        new MyClass().MyPrivateMethod();
+                    }
+                }";
+
+            var sourceDir = Temp.CreateDirectory();
+            var sourceFile = sourceDir.CreateFile("a.cs");
+            sourceFile.WriteAllText(sourceCode);
+
+            // Verify two things:
+            // 1. Compiler warning CS1522 is suppressed with diagnostic suppressor, and info diagnostic is logged with programmatic suppression information.
+            // 2. Compiler error CS1001 is reported.
+            var suppressor = new DiagnosticSuppressorForId("CS1522");
+
+            // Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'
+            var suppressionMessage =
+                string.Format(
+                    CodeAnalysisResources.SuppressionDiagnosticDescriptorMessage,
+                    suppressor.SuppressionDescriptor.SuppressedDiagnosticId,
+                    new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.WRN_EmptySwitch), Location.None).GetMessage(CultureInfo.InvariantCulture),
+                    suppressor.SuppressionDescriptor.Id,
+                    suppressor.SuppressionDescriptor.Justification);
+
+            var output =
+                VerifyOutput(
+                    sourceDir,
+                    sourceFile,
+                    expectedErrorCount: 1,
+                    expectedInfoCount: 1,
+                    expectedWarningCount: 0,
+                    includeCurrentAssemblyAsAnalyzerReference: false,
+                    analyzers: new[] { suppressor },
+                    errorlog: true);
+
+            Assert.DoesNotContain("warning CS1522", output, StringComparison.Ordinal);
+
+            Assert.Contains(suppressionMessage, output, StringComparison.Ordinal);
+            Assert.Contains("info SP0001", output, StringComparison.Ordinal);
+            Assert.Contains("error CS0122", output, StringComparison.Ordinal);
+
+            // Verify two things:
+            // 1. Compiler warning CS1522 is suppressed with diagnostic suppressor even with /warnaserror, and info diagnostic is logged with programmatic suppression information.
+            // 2. Compiler error CS1001 is reported.
+            output =
+                VerifyOutput(
+                    sourceDir,
+                    sourceFile,
+                    expectedErrorCount: 1,
+                    expectedInfoCount: 1,
+                    expectedWarningCount: 0,
+                    additionalFlags: new[] { "/warnAsError" },
+                    includeCurrentAssemblyAsAnalyzerReference: false,
+                    errorlog: true,
+                    analyzers: new[] { suppressor });
+
+            Assert.DoesNotContain($"error CS1522", output, StringComparison.Ordinal);
+            Assert.DoesNotContain($"warning CS1522", output, StringComparison.Ordinal);
+
+            Assert.Contains(suppressionMessage, output, StringComparison.Ordinal);
+            Assert.Contains("info SP0001", output, StringComparison.Ordinal);
+            Assert.Contains("error CS0122", output, StringComparison.Ordinal);
+
+            CleanupAllGeneratedFiles(sourceFile.Path);
+        }
+
+        [WorkItem(62540, "https://github.com/dotnet/roslyn/issues/62540")]
+        [Fact]
         public void TestSuppression_CompilerSyntaxParsingError_AndSuppressibleWarning()
         {
             const string sourceCode = @"
