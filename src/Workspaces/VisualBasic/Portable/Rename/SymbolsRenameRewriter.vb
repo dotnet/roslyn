@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             _renameAnnotations = parameters.RenameAnnotations
             _renameSpansTracker = parameters.RenameSpansTracker
 
-            _renameContexts = RenameUtilities.GroupRenameContextBySymbolKey(parameters.RenameSymbolContexts)
+            _renameContexts = RenameUtilities.GroupRenameContextBySymbolKey(parameters.RenameSymbolContexts, SymbolKey.GetComparer(ignoreCase:=True, ignoreAssemblyKeys:=False))
             _textSpanToRenameContexts = RenameUtilities.GroupTextRenameContextsByTextSpan(parameters.TokenTextSpanRenameContexts)
             _stringAndCommentRenameContexts = RenameUtilities.GroupStringAndCommentsTextSpanRenameContexts(parameters.StringAndCommentsTextSpanRenameContexts)
         End Sub
@@ -417,17 +417,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             If _isProcessingComplexifiedSpans Then
                 RoslynDebug.Assert(_speculativeModel IsNot Nothing)
 
-                If token.Parent Is Nothing Then
-                    Return False
-                End If
-
-                Dim symbol = Me._speculativeModel.GetSymbolInfo(token.Parent, Me._cancellationToken).Symbol
-                If symbol IsNot Nothing AndAlso _renameContexts.TryGetValue(symbol.GetSymbolKey(), renameSymbolContext) AndAlso
-                        renameSymbolContext.OriginalText = token.ValueText AndAlso token.IsKind(SyntaxKind.IdentifierToken) Then
-                    Return True
+                If TypeOf token.Parent Is SimpleNameSyntax AndAlso token.Kind <> SyntaxKind.GlobalKeyword AndAlso token.Parent.Parent.IsKind(SyntaxKind.QualifiedName, SyntaxKind.QualifiedCrefOperatorReference) Then
+                    Dim symbol = Me._speculativeModel.GetSymbolInfo(token.Parent, Me._cancellationToken).Symbol
+                    If symbol IsNot Nothing AndAlso
+                        _renameContexts.TryGetValue(symbol.GetSymbolKey(), renameSymbolContext) AndAlso
+                        renameSymbolContext.RenamedSymbol.Kind <> SymbolKind.Local AndAlso
+                        renameSymbolContext.RenamedSymbol.Kind <> SymbolKind.RangeVariable AndAlso
+                        token.ValueText = renameSymbolContext.OriginalText Then
+                        Return True
+                    End If
                 End If
             End If
 
+            renameSymbolContext = Nothing
             Return False
         End Function
 

@@ -180,9 +180,9 @@ namespace Microsoft.CodeAnalysis.Rename
         }
 
         internal static Dictionary<SymbolKey, RenameSymbolContext> GroupRenameContextBySymbolKey(
-            ImmutableArray<RenameSymbolContext> symbolContexts)
+            ImmutableArray<RenameSymbolContext> symbolContexts, IEqualityComparer<SymbolKey> comparer)
         {
-            var renameContexts = new Dictionary<SymbolKey, RenameSymbolContext>();
+            var renameContexts = new Dictionary<SymbolKey, RenameSymbolContext>(comparer);
             foreach (var context in symbolContexts)
             {
                 renameContexts[context.RenamedSymbol.GetSymbolKey()] = context;

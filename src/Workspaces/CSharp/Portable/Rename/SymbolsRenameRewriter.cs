@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             _isProcessingComplexifiedSpans = false;
             _skipRenameForComplexification = 0;
 
-            _renameContexts = GroupRenameContextBySymbolKey(parameters.RenameSymbolContexts);
+            _renameContexts = GroupRenameContextBySymbolKey(parameters.RenameSymbolContexts, SymbolKey.GetComparer(ignoreCase: true, ignoreAssemblyKeys: false));
             _textSpanToRenameContexts = GroupTextRenameContextsByTextSpan(parameters.TokenTextSpanRenameContexts);
             _stringAndCommentRenameContexts = GroupStringAndCommentsTextSpanRenameContexts(parameters.StringAndCommentsTextSpanRenameContexts);
         }
@@ -320,36 +320,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
         private bool TryFindSymbolContextForComplexifiedToken(SyntaxToken token, [NotNullWhen(true)] out RenameSymbolContext? renameSymbolContext)
         {
-            renameSymbolContext = null;
             if (_isProcessingComplexifiedSpans)
             {
                 RoslynDebug.Assert(_speculativeModel != null);
-                if (token.Parent == null)
+                if (token.Parent is SimpleNameSyntax && !token.IsKind(SyntaxKind.GlobalKeyword) && token.Parent.Parent.IsKind(SyntaxKind.AliasQualifiedName, SyntaxKind.QualifiedCref, SyntaxKind.QualifiedName))
                 {
-                    return false;
-                }
-
-                // Some tokens might be introduced for the complexified node, for example
-                // document1:
-                // class Bar
-                // {
-                //     Someothertype Method() => SomeOtherType.Instance;
-                // }
-                // document2:
-                // public class X
-                // {
-                //    public class SomeOtherType { public static SomeOtherType Instance = new (); }
-                // }
-                // if we are going to rename 'SomeOtherType' to 'Bar', and 'class X' to 'Y', then when processing document1,
-                // 'SomeOtherType' needs to be replaced by its fully qualified name. so here we need to check if the token is linked to other rename contexts.
-                var symbol = _speculativeModel.GetSymbolInfo(token.Parent, _cancellationToken).Symbol;
-                if (symbol != null
-                    && _renameContexts.TryGetValue(symbol.GetSymbolKey(), out var symbolContext)
-                    && token.IsKind(SyntaxKind.IdentifierToken)
-                    && token.ValueText == symbolContext.OriginalText)
-                {
-                    renameSymbolContext = symbolContext;
-                    return true;
+                    var symbol = _speculativeModel.GetSymbolInfo(token.Parent, _cancellationToken).Symbol;
+                    if (symbol != null
+                        && _renameContexts.TryGetValue(symbol.GetSymbolKey(), out var symbolContext)
+                        && symbolContext.RenamedSymbol.Kind != SymbolKind.Local
+                        && symbolContext.RenamedSymbol.Kind != SymbolKind.RangeVariable
+                        && token.ValueText == symbolContext.OriginalText)
+                    {
+                        renameSymbolContext = symbolContext;
+                        return true;
+                    }
                 }
             }
 
