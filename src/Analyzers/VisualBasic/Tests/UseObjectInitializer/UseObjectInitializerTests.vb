@@ -30,7 +30,7 @@ Class C
     Dim i As Integer
     Sub M()
         Dim c = [|New|] C()
-        c.i = 1
+        [|c|].i = 1
     End Sub
 End Class",
 "
@@ -52,7 +52,7 @@ Class C
     Dim i As Integer
     Sub M()
         Dim c As [|New|] C()
-        c.i = 1
+        [|c|].i = 1
     End Sub
 End Class",
 "
@@ -75,7 +75,7 @@ Class C
     Sub M()
         Dim c as C = Nothing
         c = [|New|] C()
-        c.i = 1
+        [|c|].i = 1
     End Sub
 End Class",
 "
@@ -98,7 +98,7 @@ Class C
     Dim i As Integer
     Sub M()
         Dim c = [|New|] C()
-        c.i = 1
+        [|c|].i = 1
         c.i = 2
     End Sub
 End Class",
@@ -125,8 +125,8 @@ Class C
         Dim array As C()
 
         array(0) = [|New|] C()
-        array(0).i = 1
-        array(0).j = 2
+        [|array(0)|].i = 1
+        [|array(0)|].j = 2
     End Sub
 End Class",
 "
@@ -153,7 +153,7 @@ Class C
     Dim j As Integer
     Sub M()
         Dim c = [|New|] C()
-        c.i = 1
+        [|c|].i = 1
         c.j += 1
     End Sub
 End Class",
@@ -182,7 +182,7 @@ Class C
         Dim c = [|New|] C() With {
             .i = 1
         }
-        c.j = 1
+        [|c|].j = 1
     End Sub
 End Class",
 "
@@ -210,7 +210,7 @@ Class C
         Dim c = [|New|] C() With {
             .i = 1
         }
-        c.j = 1
+        [|c|].j = 1
         c.i = 2
     End Sub
 End Class",
@@ -255,7 +255,7 @@ imports system.diagnostics
 Class C
     Sub M()
         Dim x As ProcessStartInfo = [|New|] ProcessStartInfo()
-        x.Arguments = {|BC30491:Sub()
+        [|x|].Arguments = {|BC30491:Sub()
                          With New String(Nothing)
                             Dim a = .Length.ToString()
                          End With
@@ -289,12 +289,12 @@ Class C
         Dim array As C()
 
         array(0) = [|New|] C()
-        array(0).i = 1
-        array(0).j = 2
+        [|array(0)|].i = 1
+        [|array(0)|].j = 2
 
         array(1) = [|New|] C()
-        array(1).i = 3
-        array(1).j = 4
+        [|array(1)|].i = 3
+        [|array(1)|].j = 4
     End Sub
 End Class",
 "
@@ -326,8 +326,8 @@ Class C
     Dim j As Integer
     Sub M()
         Dim c = [|New|] C()
-        c.i = 1 ' Goo
-        c.j = 2 ' Bar
+        [|c|].i = 1 ' Goo
+        [|c|].j = 2 ' Bar
     End Sub
 End Class",
 "
@@ -353,8 +353,8 @@ Class C
         Dim XmlAppConfigReader As [|New|] XmlTextReader(Reader)
 
         ' Required by Fxcop rule CA3054 - DoNotAllowDTDXmlTextReader
-        XmlAppConfigReader.x = 0
-        XmlAppConfigReader.y = 1
+        [|XmlAppConfigReader|].x = 0
+        [|XmlAppConfigReader|].y = 1
     End Sub
 End Class
 
@@ -397,10 +397,10 @@ Class C
         Dim XmlAppConfigReader As [|New|] XmlTextReader(Reader)
 
         ' Required by Fxcop rule CA3054 - DoNotAllowDTDXmlTextReader
-        XmlAppConfigReader.x = 0
+        [|XmlAppConfigReader|].x = 0
 
         ' Bar
-        XmlAppConfigReader.y = 1
+        [|XmlAppConfigReader|].y = 1
     End Sub
 End Class
 
@@ -445,7 +445,7 @@ Class C
 
     Sub M()
         Dim z = [|New|] C()
-        z.x = 1
+        [|z|].x = 1
         z.y = 2
     End Sub
 End Class
@@ -526,7 +526,7 @@ End Class
 class C
     Sub Bar()
         Dim c As IExample = [|New|] Goo
-        c.LastName = String.Empty
+        [|c|].LastName = String.Empty
         c.Name = String.Empty
     End Sub
 End Class
@@ -575,7 +575,7 @@ End Class
 class C
     Sub Bar()
         Dim c As IExample = [|New|] Goo
-        c.LastName = String.Empty
+        [|c|].LastName = String.Empty
         c.Name = String.Empty
     End Sub
 End Class
