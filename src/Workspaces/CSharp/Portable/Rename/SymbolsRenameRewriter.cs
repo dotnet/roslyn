@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
         private int _skipRenameForComplexification;
 
         private readonly Dictionary<TextSpan, TextSpanRenameContext> _textSpanToRenameContexts;
-        private readonly Dictionary<ISymbol, RenameSymbolContext> _renameContexts;
+        private readonly Dictionary<SymbolKey, RenameSymbolContext> _renameContexts;
         private readonly Dictionary<TextSpan, HashSet<TextSpanRenameContext>> _stringAndCommentRenameContexts;
 
         public SymbolsRenameRewriter(
@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 // 'SomeOtherType' needs to be replaced by its fully qualified name. so here we need to check if the token is linked to other rename contexts.
                 var symbol = _speculativeModel.GetSymbolInfo(token.Parent, _cancellationToken).Symbol;
                 if (symbol != null
-                    && _renameContexts.TryGetValue(symbol, out var symbolContext)
+                    && _renameContexts.TryGetValue(symbol.GetSymbolKey(), out var symbolContext)
                     && token.IsKind(SyntaxKind.IdentifierToken)
                     && token.ValueText == symbolContext.OriginalText)
                 {
@@ -516,8 +516,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                         annotation.Prefix,
                         annotation.Suffix,
                         _syntaxFactsService.IsVerbatimIdentifier(textSpanRenameContext.SymbolContext.ReplacementText),
-                        textSpanRenameContext.SymbolContext.OriginalText,
                         textSpanRenameContext.SymbolContext.ReplacementText,
+                        textSpanRenameContext.SymbolContext.OriginalText,
                         textSpanRenameContext.SymbolContext.ReplacementTextValid);
 
                     AddModifiedSpan(annotation.OriginalSpan, newToken.Span);
@@ -537,8 +537,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     prefix: null,
                     suffix: null,
                     _syntaxFactsService.IsVerbatimIdentifier(renameSymbolContext.ReplacementText),
-                    renameSymbolContext.OriginalText,
                     renameSymbolContext.ReplacementText,
+                    renameSymbolContext.OriginalText,
                     renameSymbolContext.ReplacementTextValid);
             }
 

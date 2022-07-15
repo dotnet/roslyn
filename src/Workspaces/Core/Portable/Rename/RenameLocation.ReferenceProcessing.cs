@@ -586,9 +586,8 @@ namespace Microsoft.CodeAnalysis.Rename
                 // at the provided sub-spans within the string for these matches.
                 var stringBuilder = new StringBuilder();
                 var startOffset = 0;
-                foreach (var (subspan, x) in subSpansToReplace)
+                foreach (var (subspan, (replacementText, matchText)) in subSpansToReplace)
                 {
-                    var (replacementText, matchText) = x;
                     Debug.Assert(subspan.Start <= replaceInsideString.Length);
                     Debug.Assert(subspan.End <= replaceInsideString.Length);
 

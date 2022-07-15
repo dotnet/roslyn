@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
 
         Private ReadOnly _textSpanToRenameContexts As Dictionary(Of TextSpan, TextSpanRenameContext)
         Private ReadOnly _stringAndCommentRenameContexts As Dictionary(Of TextSpan, HashSet(Of TextSpanRenameContext))
-        Private ReadOnly _renameContexts As Dictionary(Of ISymbol, RenameSymbolContext)
+        Private ReadOnly _renameContexts As Dictionary(Of SymbolKey, RenameSymbolContext)
 
         Private ReadOnly _documentId As DocumentId
         Private ReadOnly _solution As Solution
@@ -422,7 +422,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 End If
 
                 Dim symbol = Me._speculativeModel.GetSymbolInfo(token.Parent, Me._cancellationToken).Symbol
-                If symbol IsNot Nothing AndAlso _renameContexts.TryGetValue(symbol, renameSymbolContext) AndAlso
+                If symbol IsNot Nothing AndAlso _renameContexts.TryGetValue(symbol.GetSymbolKey(), renameSymbolContext) AndAlso
                         renameSymbolContext.OriginalText = token.ValueText AndAlso token.IsKind(SyntaxKind.IdentifierToken) Then
                     Return True
                 End If

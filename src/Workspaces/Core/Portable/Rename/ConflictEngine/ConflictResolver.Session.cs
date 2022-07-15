@@ -188,9 +188,9 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                                     // After phase 2, if there are still conflicts then remove the conflict locations from being expanded
                                     var unresolvedLocations = conflictResolution.RelatedLocations
                                         .Where(l => (l.Type & RelatedLocationType.UnresolvedConflict) != 0)
-                                        .Select(l => Tuple.Create(l.ComplexifiedTargetSpan, l.DocumentId)).Distinct();
+                                        .Select(l => (complexifiedSpan: l.ComplexifiedTargetSpan, documentId: l.DocumentId)).Distinct();
 
-                                    _conflictLocations = _conflictLocations.Where(l => !unresolvedLocations.Any(c => c.Item2 == l.DocumentId && c.Item1.Contains(l.OriginalIdentifierSpan))).ToSet();
+                                    _conflictLocations = _conflictLocations.Where(l => !unresolvedLocations.Any(c => c.documentId == l.DocumentId && c.complexifiedSpan.Contains(l.OriginalIdentifierSpan))).ToSet();
                                 }
 
                                 // Clean up side effects from rename before entering the next phase

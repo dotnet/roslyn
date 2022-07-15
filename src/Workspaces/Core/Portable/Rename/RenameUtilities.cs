@@ -179,13 +179,13 @@ namespace Microsoft.CodeAnalysis.Rename
             return TokenRenameInfo.NoSymbolsTokenInfo;
         }
 
-        internal static Dictionary<ISymbol, RenameSymbolContext> GroupRenameContextBySymbolKey(
+        internal static Dictionary<SymbolKey, RenameSymbolContext> GroupRenameContextBySymbolKey(
             ImmutableArray<RenameSymbolContext> symbolContexts)
         {
-            var renameContexts = new Dictionary<ISymbol, RenameSymbolContext>();
+            var renameContexts = new Dictionary<SymbolKey, RenameSymbolContext>();
             foreach (var context in symbolContexts)
             {
-                renameContexts[context.RenamedSymbol] = context;
+                renameContexts[context.RenamedSymbol.GetSymbolKey()] = context;
             }
 
             return renameContexts;
@@ -247,11 +247,20 @@ namespace Microsoft.CodeAnalysis.Rename
             var subSpanToReplacementTextBuilder = ImmutableSortedDictionary.CreateBuilder<TextSpan, (string replacementText, string matchText)>();
             foreach (var context in textSpanRenameContexts.OrderByDescending(c => c.Priority))
             {
-                var location = context.RenameLocation.Location;
-                if (location.IsInSource)
+                var renameLocation = context.RenameLocation;
+                var location = renameLocation.Location;
+                if (location.IsInSource && renameLocation.IsRenameInStringOrComment)
                 {
-                    var subpan = location.SourceSpan;
+                    var sourceSpan = location.SourceSpan;
 
+                    // SourceSpan should be a part of the containing location.
+                    RoslynDebug.Assert(sourceSpan.Start >= renameLocation.ContainingLocationForStringOrComment.Start);
+                    RoslynDebug.Assert(sourceSpan.End <= renameLocation.ContainingLocationForStringOrComment.End);
+
+                    // Calculate the relative postion within the containg location.
+                    var subSpan = new TextSpan(
+                        sourceSpan.Start - renameLocation.ContainingLocationForStringOrComment.Start,
+                        sourceSpan.Length);
                     // If two symbols tries to rename a same sub span,
                     // e.g.
                     //      // Comment Hello
@@ -265,9 +274,9 @@ namespace Microsoft.CodeAnalysis.Rename
                     // }
                     // If try to rename both 'class Hello' to 'Bar' and 'void Hello()' to 'Goo'.
                     // For '// Comment Hello', igore the one with lower priority
-                    if (!subSpanToReplacementTextBuilder.ContainsKey(subpan))
+                    if (!subSpanToReplacementTextBuilder.ContainsKey(subSpan))
                     {
-                        subSpanToReplacementTextBuilder[subpan] = (context.SymbolContext.ReplacementText, context.SymbolContext.OriginalText);
+                        subSpanToReplacementTextBuilder[subSpan] = (context.SymbolContext.ReplacementText, context.SymbolContext.OriginalText);
                     }
                 }
             }
