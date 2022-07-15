@@ -20,14 +20,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     [System.ComponentModel.DesignerCategory("code")] // this must be fully qualified
     public abstract class AbstractOptionPageControl : UserControl
     {
+        internal readonly struct TestAccessor
+        {
+            private readonly AbstractOptionPageControl _pageControl;
+
+            public TestAccessor(AbstractOptionPageControl pageControl)
+            {
+                _pageControl = pageControl;
+            }
+
+            internal IReadOnlyList<BindingExpressionBase> BindingExpressions => _pageControl._bindingExpressions.AsReadOnly();
+        }
+
         internal readonly OptionStore OptionStore;
         private readonly List<BindingExpressionBase> _bindingExpressions = new List<BindingExpressionBase>();
         private readonly List<OptionPageSearchHandler> _searchHandlers = new();
-
-        /// <summary>
-        /// Used for testing only!
-        /// </summary>
-        internal IReadOnlyList<BindingExpressionBase> BindingExpressions => _bindingExpressions.AsReadOnly();
 
         protected AbstractOptionPageControl(OptionStore optionStore)
         {
@@ -40,6 +47,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
             this.OptionStore = optionStore;
         }
+
+        internal TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
 
         private void InitializeStyles()
         {

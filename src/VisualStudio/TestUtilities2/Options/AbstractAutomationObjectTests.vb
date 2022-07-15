@@ -121,7 +121,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
                 Dim pageControls As IEnumerable(Of AbstractOptionPageControl) = CreatePageControls(optionStore, workspace)
                 For Each pageControl In pageControls
                     Dim radioButtonGroups = New Dictionary(Of String, List(Of RadioButton))()
-                    For Each bindingExpression In pageControl.BindingExpressions
+                    For Each bindingExpression In pageControl.GetTestAccessor().BindingExpressions
                         Dim target = bindingExpression.Target
                         Dim optionForAssertMessage = DirectCast(target, FrameworkElement).Name
 
