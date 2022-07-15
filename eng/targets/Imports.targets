@@ -359,6 +359,6 @@
            Condition="'@(ReferencesCopiedInThisBuild)' != ''"/>
   </Target>
   
-  <Import Project="DoNotDeployToSymStore_Workaround.targets" Condition="'$(NoPdbConversion)' == 'true'" />
+  <Import Project="DoNotDeployToSymStore_Workaround.targets" Condition="'$(UsingToolPdbConverter)' == 'false'" />
   <Import Project="DoNotGenerateSatelliteAssemblies_Workaround.targets" Condition="'$(NoGenerateSatelliteAssemblies)' == 'true'" />
 </Project>
