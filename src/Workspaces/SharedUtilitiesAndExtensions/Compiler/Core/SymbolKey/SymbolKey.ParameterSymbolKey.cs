@@ -19,7 +19,12 @@ namespace Microsoft.CodeAnalysis
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
             {
                 var metadataName = reader.ReadRequiredString();
-                var containingSymbolResolution = reader.ReadSymbolKey(out var containingSymbolFailureReason);
+
+                // Parameters are owned by members, and members are never resolved in a way where we have contextual
+                // types to guide how the outer parts of the member may resolve.  We can use contextual typing for the
+                // *signature* portion of the member though.
+                var containingSymbolResolution = reader.ReadSymbolKey(
+                    reader.CurrentContextualSymbol?.ContainingSymbol, out var containingSymbolFailureReason);
 
                 if (containingSymbolFailureReason != null)
                 {

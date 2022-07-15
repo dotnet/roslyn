@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -179,6 +180,40 @@ public class App
         #endregion
 
         #region "Metadata vs. Metadata"
+
+        [Fact]
+        public void M2MMissingReferences()
+        {
+            var src1 = @"
+public class Uri
+{
+    public Uri(string path)
+    {
+    }
+}
+";
+
+            var sourceCompilation = (Compilation)CreateCompilation(src1);
+
+            // Create a compilation that references our library, but doesn't reference types needed by the library.
+            // This emulates the experience in Go To Definition when navigating to metadata from the .NET runtime when
+            // implementations are split over multiple assemblies with various type forwards in play.
+            // For example:
+            //   System.Uri exists in System.Private.Uri.dll, but System.String exists in System.Private.CoreLib.dll
+            //   and we want to allow a symbol for System.Uri.Create(System.String) to resolve correctly even when the
+            //   System.Private.CoreLib reference is missing.
+            var emptyCompilation = CSharpCompilation.Create("empty", options: new(OutputKind.ConsoleApplication, concurrentBuild: false))
+                .AddReferences(sourceCompilation.EmitToImageReference());
+
+            var uri = sourceCompilation.SourceModule.GlobalNamespace.GetTypeMembers("Uri").Single();
+            var constructor = uri.GetMembers(".ctor").Single() as IMethodSymbol;
+
+            var symbolKey = SymbolKey.CreateString(constructor);
+            var resolution = SymbolKey.ResolveString(symbolKey.ToString(), emptyCompilation, ignoreAssemblyKey: true, out var failureReason, CancellationToken.None);
+
+            Assert.Null(failureReason);
+            Assert.NotNull(resolution.Symbol);
+        }
 
         [Fact]
         public void M2MMultiTargetingMsCorLib01()

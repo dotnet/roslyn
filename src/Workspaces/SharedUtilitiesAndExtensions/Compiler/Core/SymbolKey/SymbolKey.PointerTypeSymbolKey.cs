@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
             {
-                var pointedAtTypeResolution = reader.ReadSymbolKey(out var pointedAtTypeFailureReason);
+                var pointedAtTypeResolution = reader.ReadSymbolKey((reader.CurrentContextualSymbol as IPointerTypeSymbol)?.PointedAtType, out var pointedAtTypeFailureReason);
 
                 if (pointedAtTypeFailureReason != null)
                 {

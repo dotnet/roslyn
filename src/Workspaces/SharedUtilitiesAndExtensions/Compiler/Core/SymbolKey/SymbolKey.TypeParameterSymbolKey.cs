@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis
                 else
                 {
                     var metadataName = reader.ReadString();
-                    var containingSymbolResolution = reader.ReadSymbolKey(out var containingSymbolFailureReason);
+                    var containingSymbolResolution = reader.ReadSymbolKey(reader.CurrentContextualSymbol?.ContainingSymbol, out var containingSymbolFailureReason);
 
                     if (containingSymbolFailureReason != null)
                     {
