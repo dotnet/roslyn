@@ -637,7 +637,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                 Returns(downloaderMock.Object)
         End Sub
 
-        Private Function CreateFullDatabasedownloaderMock() As Mock(Of IFileDownloader)
+        Private Shared Function CreateFullDatabasedownloaderMock() As Mock(Of IFileDownloader)
             Return CreatedownloaderMock(CreateFullDownloadElementStream())
         End Function
 
@@ -652,7 +652,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             Return downloaderMock
         End Function
 
-        Private Function CreatePatchdownloaderMock(Optional isUpToDate As Boolean = False,
+        Private Shared Function CreatePatchdownloaderMock(Optional isUpToDate As Boolean = False,
                                                Optional isTooOld As Boolean = False,
                                                Optional contents As String = Nothing) As Mock(Of IFileDownloader)
             Return CreatedownloaderMock(CreatePatchElementStream(isUpToDate, isTooOld, contents))
