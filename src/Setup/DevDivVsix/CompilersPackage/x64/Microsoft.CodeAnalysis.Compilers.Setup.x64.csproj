@@ -17,5 +17,5 @@
     </PropertyGroup>
   </Target>
 
-  <Import Project="..\CompilersPackage.targets" Condition="'$(NoVsixGeneration)' != 'true'" />
+  <Import Project="..\CompilersPackage.targets" Condition="'$(UsingToolVSSDK)' == 'true'" />
 </Project>
