@@ -43,6 +43,10 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(NoGenerateSatelliteAssemblies)' == 'true'">
+    <EnableXlfLocalization>false</EnableXlfLocalization>
+  </PropertyGroup>
+
   <!--
     Disable Source Link and Xliff in WPF temp projects to avoid generating non-deterministic file names to obj dir.
     The project name is non-deterministic and is included in the Source Link json file name and xlf directory names.
