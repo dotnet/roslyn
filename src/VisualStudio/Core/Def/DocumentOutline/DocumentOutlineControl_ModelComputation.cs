@@ -88,9 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 if (responseBody is null)
                     return null;
 
-                var documentSymbols = DocumentOutlineHelper.GetNestedDocumentSymbols(responseBody);
-                var documentSymbolData = DocumentOutlineHelper.GetDocumentSymbolData(documentSymbols, originalSnapshot);
-                return new DocumentSymbolDataModel(documentSymbolData, originalSnapshot);
+                return DocumentOutlineHelper.GetDocumentSymbolDataModel(responseBody, originalSnapshot);
             }
 
             string? GetFilePath()

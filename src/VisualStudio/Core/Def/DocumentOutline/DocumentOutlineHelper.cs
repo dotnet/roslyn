@@ -3,13 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -17,6 +15,9 @@ using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageServiceBrokerShim;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Progression;
+using Microsoft.VisualStudio.Shell.FindResults;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Newtonsoft.Json.Linq;
 
@@ -24,13 +25,37 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
     internal static class DocumentOutlineHelper
     {
+        public static async Task<JToken?> DocumentSymbolsRequestAsync(
+            ITextBuffer textBuffer,
+            ILanguageServiceBrokerShim languageServiceBroker,
+            string textViewFilePath,
+            CancellationToken cancellationToken)
+        {
+            var parameterFactory = new RoslynDocumentSymbolParams()
+            {
+                UseHierarchicalSymbols = true,
+                TextDocument = new TextDocumentIdentifier()
+                {
+                    Uri = new Uri(textViewFilePath)
+                }
+            };
+
+            return await languageServiceBroker.RequestAsync(
+                textBuffer: textBuffer,
+                method: Methods.TextDocumentDocumentSymbolName,
+                capabilitiesFilter: (JToken x) => true,
+                languageServerName: WellKnownLspServerKinds.AlwaysActiveVSLspServer.ToUserVisibleString(),
+                parameterFactory: _ => JToken.FromObject(parameterFactory),
+                cancellationToken: cancellationToken).ConfigureAwait(false);
+        }
+
         /// <summary>
         /// Given an array of Document Symbols in a document, returns an array containing the 
         /// top-level Document Symbols and their nested children.
         /// </summary>
         /// 
         /// As of right now, the LSP document symbol response only has at most 2 levels of nesting, 
-        /// so we nest the symbols first before converting the DocumentSymbols to DocumentSymbolItems.
+        /// so we nest the symbols first before converting the DocumentSymbols to DocumentSymbolData.
         /// 
         /// Example file structure:
         /// Class A
@@ -59,11 +84,8 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         ///         ]
         ///     }
         /// ]
-        public static DocumentSymbol[] GetNestedDocumentSymbols(DocumentSymbol[]? documentSymbols)
+        public static DocumentSymbolDataModel GetDocumentSymbolDataModel(DocumentSymbol[] documentSymbols, ITextSnapshot originalSnapshot)
         {
-            if (documentSymbols is null || documentSymbols.Length == 0)
-                return Array.Empty<DocumentSymbol>();
-
             var allSymbols = documentSymbols
                 .SelectMany(x => x.Children)
                 .Concat(documentSymbols)
@@ -71,119 +93,37 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 .ThenBy(x => x.Range.Start.Character)
                 .ToImmutableArray();
 
-            return GroupDocumentSymbolTrees(allSymbols)
-                .Select(group => CreateDocumentSymbolTree(group))
-                .ToArray();
+            var currentStart = 0;
 
-            // Groups a flat array of Document Symbols into arrays containing the symbols of each tree.
-            // The first symbol in an array is always the parent (determines the group's position range).
-            static ImmutableArray<ImmutableArray<DocumentSymbol>> GroupDocumentSymbolTrees(ImmutableArray<DocumentSymbol> allSymbols)
+            using var _1 = ArrayBuilder<DocumentSymbolData>.GetInstance(out var finalResult);
+
+            while (currentStart < allSymbols.Length)
+                finalResult.Add(GroupSymbols(allSymbols, currentStart, originalSnapshot, out currentStart));
+
+            return new DocumentSymbolDataModel(finalResult.ToImmutable(), originalSnapshot);
+
+            static DocumentSymbolData GroupSymbols(ImmutableArray<DocumentSymbol> allSymbols, int start, ITextSnapshot originalSnapshot, out int end)
             {
-                var documentSymbolGroups = ArrayBuilder<ImmutableArray<DocumentSymbol>>.GetInstance();
-                if (allSymbols.Length == 0)
+                var currentItem = allSymbols[start];
+                start++;
+                end = start;
+
+                using var _2 = ArrayBuilder<DocumentSymbolData>.GetInstance(out var currentItemChildren);
+                while (end < allSymbols.Length)
                 {
-                    return documentSymbolGroups.ToImmutableAndFree();
+                    var nextItem = allSymbols[end];
+                    if (!Contains(currentItem, nextItem))
+                        break;
+
+                    currentItemChildren.Add(GroupSymbols(allSymbols, start: end, originalSnapshot, out end));
                 }
 
-                var currentGroup = ArrayBuilder<DocumentSymbol>.GetInstance(1, allSymbols.First());
-                var currentRange = allSymbols.First().Range;
-                for (var i = 1; i < allSymbols.Length; i++)
-                {
-                    var symbol = allSymbols[i];
-                    // If the symbol's range is in the parent symbol's range
-                    if (symbol.Range.Start.Line > currentRange.Start.Line && symbol.Range.End.Line < currentRange.End.Line)
-                    {
-                        currentGroup.Add(symbol);
-                    }
-                    else
-                    {
-                        // Push existing group
-                        documentSymbolGroups.Add(currentGroup.ToImmutableAndFree());
-                        // Create new group with this symbol as the parent
-                        currentGroup = ArrayBuilder<DocumentSymbol>.GetInstance(1, symbol);
-                        currentRange = symbol.Range;
-                    }
-                }
-
-                documentSymbolGroups.Add(currentGroup.ToImmutableAndFree());
-                return documentSymbolGroups.ToImmutableAndFree();
+                return new DocumentSymbolData(currentItem, originalSnapshot, currentItemChildren.ToImmutable());
             }
 
-            // Given a flat array containing a Document Symbol and its descendants, returns the Document Symbol
-            // with its descendants recursively nested. The first Document Symbol in the array is considered the root node.
-            static DocumentSymbol CreateDocumentSymbolTree(ImmutableArray<DocumentSymbol> documentSymbols)
+            static bool Contains(DocumentSymbol parent, DocumentSymbol child)
             {
-                var node = documentSymbols.First();
-                var childDocumentSymbols = documentSymbols.RemoveAt(0);
-                node.Children = GroupDocumentSymbolTrees(childDocumentSymbols)
-                    .Select(group => CreateDocumentSymbolTree(group))
-                    .ToArray();
-                return node;
-            }
-        }
-
-        /// <summary>
-        /// Converts an array of type DocumentSymbol to an immutable array of type DocumentSymbolData.
-        /// </summary>
-        public static ImmutableArray<DocumentSymbolData> GetDocumentSymbolData(DocumentSymbol[] documentSymbols, ITextSnapshot originalSnapshot)
-        {
-            var documentSymbolData = ArrayBuilder<DocumentSymbolData>.GetInstance();
-            foreach (var documentSymbol in documentSymbols)
-            {
-                var children = GetDocumentSymbolData(documentSymbol.Children ?? Array.Empty<DocumentSymbol>(), originalSnapshot);
-                documentSymbolData.Add(new DocumentSymbolData(documentSymbol, originalSnapshot, children));
-            }
-
-            return documentSymbolData.ToImmutable();
-        }
-
-        public static ImmutableArray<DocumentSymbolUIItem> GetDocumentSymbolUIItems(ImmutableArray<DocumentSymbolData> documentSymbolData)
-        {
-            var documentSymbolItems = ArrayBuilder<DocumentSymbolUIItem>.GetInstance();
-
-            foreach (var documentSymbol in documentSymbolData)
-            {
-                var documentSymbolItem = new DocumentSymbolUIItem(documentSymbol);
-
-                if (!documentSymbol.Children.IsEmpty)
-                    documentSymbolItem.Children = GetDocumentSymbolUIItems(documentSymbol.Children);
-
-                documentSymbolItems.Add(documentSymbolItem);
-            }
-
-            return documentSymbolItems.ToImmutable();
-        }
-
-        public static async Task<JToken?> DocumentSymbolsRequestAsync(
-            ITextBuffer textBuffer,
-            ILanguageServiceBrokerShim languageServiceBroker,
-            string textViewFilePath,
-            CancellationToken cancellationToken)
-        {
-            var parameterFactory = new RoslynDocumentSymbolParams()
-            {
-                UseHierarchicalSymbols = true,
-                TextDocument = new TextDocumentIdentifier()
-                {
-                    Uri = new Uri(textViewFilePath)
-                }
-            };
-
-            return await languageServiceBroker.RequestAsync(
-                textBuffer: textBuffer,
-                method: Methods.TextDocumentDocumentSymbolName,
-                capabilitiesFilter: (JToken x) => true,
-                languageServerName: WellKnownLspServerKinds.AlwaysActiveVSLspServer.ToUserVisibleString(),
-                parameterFactory: _ => JToken.FromObject(parameterFactory),
-                cancellationToken: cancellationToken).ConfigureAwait(false);
-        }
-
-        public static void SetIsExpanded(ImmutableArray<DocumentSymbolUIItem> documentSymbolItems, ExpansionOption expansionOption)
-        {
-            foreach (var documentSymbolItem in documentSymbolItems)
-            {
-                documentSymbolItem.IsExpanded = expansionOption is ExpansionOption.Expand;
-                SetIsExpanded(documentSymbolItem.Children, expansionOption);
+                return child.Range.Start.Line > parent.Range.Start.Line && child.Range.End.Line < parent.Range.End.Line;
             }
         }
 
@@ -215,7 +155,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var sortedDocumentSymbols = ArrayBuilder<DocumentSymbolData>.GetInstance();
+                using var _ = ArrayBuilder<DocumentSymbolData>.GetInstance(out var sortedDocumentSymbols);
                 foreach (var documentSymbol in documentSymbolData)
                 {
                     var sortedChildren = SortDocumentSymbolData(documentSymbol.Children, sortOption, cancellationToken);
@@ -255,7 +195,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var documentSymbols = ArrayBuilder<DocumentSymbolData>.GetInstance();
+            using var _ = ArrayBuilder<DocumentSymbolData>.GetInstance(out var documentSymbols);
             var patternMatcher = PatternMatcher.CreatePatternMatcher(pattern, includeMatchedSpans: false, allowFuzzyMatching: true);
 
             foreach (var documentSymbol in documentSymbolItems)
@@ -282,6 +222,32 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 }
 
                 return false;
+            }
+        }
+
+        public static ImmutableArray<DocumentSymbolUIItem> GetDocumentSymbolUIItems(ImmutableArray<DocumentSymbolData> documentSymbolData)
+        {
+            using var _ = ArrayBuilder<DocumentSymbolUIItem>.GetInstance(out var documentSymbolItems);
+
+            foreach (var documentSymbol in documentSymbolData)
+            {
+                var documentSymbolItem = new DocumentSymbolUIItem(documentSymbol);
+
+                if (!documentSymbol.Children.IsEmpty)
+                    documentSymbolItem.Children = GetDocumentSymbolUIItems(documentSymbol.Children);
+
+                documentSymbolItems.Add(documentSymbolItem);
+            }
+
+            return documentSymbolItems.ToImmutable();
+        }
+
+        public static void SetIsExpanded(ImmutableArray<DocumentSymbolUIItem> documentSymbolItems, ExpansionOption expansionOption)
+        {
+            foreach (var documentSymbolItem in documentSymbolItems)
+            {
+                documentSymbolItem.IsExpanded = expansionOption is ExpansionOption.Expand;
+                SetIsExpanded(documentSymbolItem.Children, expansionOption);
             }
         }
 
