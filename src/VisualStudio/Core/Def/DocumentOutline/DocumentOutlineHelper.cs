@@ -15,11 +15,9 @@ using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageServiceBrokerShim;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Progression;
-using Microsoft.VisualStudio.Shell.FindResults;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Newtonsoft.Json.Linq;
+using LspDocumentSymbol = Microsoft.VisualStudio.LanguageServer.Protocol.DocumentSymbol;
 
 namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
@@ -55,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// </summary>
         /// 
         /// As of right now, the LSP document symbol response only has at most 2 levels of nesting, 
-        /// so we nest the symbols first before converting the DocumentSymbols to DocumentSymbolData.
+        /// so we nest the symbols first before converting the LSP DocumentSymbols to DocumentSymbolData.
         /// 
         /// Example file structure:
         /// Class A
@@ -63,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         ///         Method1
         ///         Method2
         ///         
-        /// LSP document symbol response (each object is a DocumentSymbol):
+        /// LSP document symbol response:
         /// [
         ///     {
         ///         Name: ClassA,
@@ -84,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         ///         ]
         ///     }
         /// ]
-        public static DocumentSymbolDataModel GetDocumentSymbolDataModel(DocumentSymbol[] documentSymbols, ITextSnapshot originalSnapshot)
+        public static DocumentSymbolDataModel GetDocumentSymbolDataModel(LspDocumentSymbol[] documentSymbols, ITextSnapshot originalSnapshot)
         {
             var allSymbols = documentSymbols
                 .SelectMany(x => x.Children)
@@ -102,7 +100,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             return new DocumentSymbolDataModel(finalResult.ToImmutable(), originalSnapshot);
 
-            static DocumentSymbolData GroupSymbols(ImmutableArray<DocumentSymbol> allSymbols, int start, ITextSnapshot originalSnapshot, out int end)
+            static DocumentSymbolData GroupSymbols(ImmutableArray<LspDocumentSymbol> allSymbols, int start, ITextSnapshot originalSnapshot, out int end)
             {
                 var currentItem = allSymbols[start];
                 start++;
@@ -121,7 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 return new DocumentSymbolData(currentItem, originalSnapshot, currentItemChildren.ToImmutable());
             }
 
-            static bool Contains(DocumentSymbol parent, DocumentSymbol child)
+            static bool Contains(LspDocumentSymbol parent, LspDocumentSymbol child)
             {
                 return child.Range.Start.Line > parent.Range.Start.Line && child.Range.End.Line < parent.Range.End.Line;
             }
