@@ -4,6 +4,8 @@ Microsoft.CodeAnalysis.CodeFixes.FixAllScope.ContainingMember = 4 -> Microsoft.C
 Microsoft.CodeAnalysis.CodeFixes.FixAllScope.ContainingType = 5 -> Microsoft.CodeAnalysis.CodeFixes.FixAllScope
 Microsoft.CodeAnalysis.Editing.DeclarationModifiers.IsRequired.get -> bool
 Microsoft.CodeAnalysis.Editing.DeclarationModifiers.WithIsRequired(bool isRequired) -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
+Microsoft.CodeAnalysis.Editing.DeclarationModifiers.IsFile.get -> bool
+Microsoft.CodeAnalysis.Editing.DeclarationModifiers.WithIsFile(bool isFile) -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
 Microsoft.CodeAnalysis.Editing.SyntaxEditor.SyntaxEditor(Microsoft.CodeAnalysis.SyntaxNode root, Microsoft.CodeAnalysis.Host.HostWorkspaceServices services) -> void
 *REMOVED*static Microsoft.CodeAnalysis.Editing.SyntaxGenerator.DefaultRemoveOptions -> Microsoft.CodeAnalysis.SyntaxRemoveOptions
 Microsoft.CodeAnalysis.TextDocumentEventArgs
@@ -16,6 +18,7 @@ Microsoft.CodeAnalysis.Workspace.TextDocumentOpened -> System.EventHandler<Micro
 static Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.AllTypeNames.get -> System.Collections.Immutable.ImmutableArray<string>
 static Microsoft.CodeAnalysis.CodeFixes.FixAllProvider.Create(System.Func<Microsoft.CodeAnalysis.CodeFixes.FixAllContext, Microsoft.CodeAnalysis.Document, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>, System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>> fixAllAsync, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CodeFixes.FixAllScope> supportedFixAllScopes) -> Microsoft.CodeAnalysis.CodeFixes.FixAllProvider
 static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.Required.get -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
+static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.File.get -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
 static Microsoft.CodeAnalysis.Recommendations.Recommender.GetRecommendedSymbolsAtPositionAsync(Microsoft.CodeAnalysis.Document document, int position, Microsoft.CodeAnalysis.Options.OptionSet options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISymbol>>
 static readonly Microsoft.CodeAnalysis.Editing.SyntaxGenerator.DefaultRemoveOptions -> Microsoft.CodeAnalysis.SyntaxRemoveOptions
 Microsoft.CodeAnalysis.Rename.SymbolRenameOptions

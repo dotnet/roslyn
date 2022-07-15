@@ -14,9 +14,9 @@ namespace Microsoft.CodeAnalysis
     {
         /// <summary>
         /// Disables all optimizations and instruments the generated code to improve debugging experience.
-        /// </summary>
-        /// <remarks>
+        /// <para>
         /// The compiler prefers debuggability over performance. Do not use for code running in a production environment.
+        /// </para>
         /// <list type="bullet">
         /// <item><description>JIT optimizations are disabled via assembly level attribute (<see cref="DebuggableAttribute"/>).</description></item>
         /// <item><description>Edit and Continue is enabled.</description></item>
@@ -25,14 +25,14 @@ namespace Microsoft.CodeAnalysis
         /// <para>
         /// Corresponds to command line argument /optimize-.
         /// </para>
-        /// </remarks>
+        /// </summary>
         Debug = 0,
 
         /// <summary>
         /// Enables all optimizations, debugging experience might be degraded.
-        /// </summary>
-        /// <remarks>
+        /// <para>
         /// The compiler prefers performance over debuggability. Use for code running in a production environment.
+        /// </para>
         /// <list type="bullet">
         /// <item><description>JIT optimizations are enabled via assembly level attribute (<see cref="DebuggableAttribute"/>).</description></item>
         /// <item><description>Edit and Continue is disabled.</description></item>
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis
         /// <para>
         /// Corresponds to command line argument /optimize+.
         /// </para>
-        /// </remarks>
+        /// </summary>
         Release = 1
     }
 

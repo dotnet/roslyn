@@ -119,12 +119,12 @@
       </trans-unit>
       <trans-unit id="Nullable_directive_is_redundant">
         <source>Nullable directive is redundant</source>
-        <target state="new">Nullable directive is redundant</target>
+        <target state="translated">La directive nullable est redondante</target>
         <note />
       </trans-unit>
       <trans-unit id="Nullable_directive_is_unnecessary">
         <source>Nullable directive is unnecessary</source>
-        <target state="new">Nullable directive is unnecessary</target>
+        <target state="translated">La directive nullable n’est pas nécessaire</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_null_check_over_type_check">
@@ -144,7 +144,7 @@
       </trans-unit>
       <trans-unit id="Remove_redundant_nullable_directive">
         <source>Remove redundant nullable directive</source>
-        <target state="new">Remove redundant nullable directive</target>
+        <target state="translated">Supprimer la directive nullable redondante</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_suppression_operators">
@@ -159,7 +159,7 @@
       </trans-unit>
       <trans-unit id="Remove_unnecessary_nullable_directive">
         <source>Remove unnecessary nullable directive</source>
-        <target state="new">Remove unnecessary nullable directive</target>
+        <target state="translated">Supprimer la directive nullable inutile</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_suppression_operator">
@@ -204,7 +204,7 @@
       </trans-unit>
       <trans-unit id="Use_Utf8_string_literal">
         <source>Use UTF-8 string literal</source>
-        <target state="new">Use UTF-8 string literal</target>
+        <target state="translated">Utiliser le littéral de chaîne UTF-8</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_accessors">

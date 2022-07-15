@@ -124,7 +124,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadAbstractEqualityOperatorSignature">
         <source>One of the parameters of an equality, or inequality operator declared in interface '{0}' must be a type parameter on '{0}' constrained to '{0}'</source>
-        <target state="new">One of the parameters of an equality, or inequality operator declared in interface '{0}' must be a type parameter on '{0}' constrained to '{0}'</target>
+        <target state="translated">'{0}' arabiriminde bildirilen eşitlik veya eşitsizlik işlecinin parametrelerinden biri '{0}' üzerinde '{0}' ile kısıtlanmış bir tür parametresi olmalıdır</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractIncDecRetType">
@@ -154,7 +154,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadBinaryReadOnlySpanConcatenation">
         <source>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF-8 byte representations</source>
-        <target state="new">Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF-8 byte representations</target>
+        <target state="translated">'{0}' işleci UTF-8 bayt gösterimleri olmayan '{1}' ve '{2}' işlenenlerine uygulanamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadCallerArgumentExpressionParamWithoutDefaultValue">
@@ -234,7 +234,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotBeConvertedToUtf8">
         <source>The input string cannot be converted into the equivalent UTF-8 byte representation. {0}</source>
-        <target state="new">The input string cannot be converted into the equivalent UTF-8 byte representation. {0}</target>
+        <target state="translated">Giriş dizesi eşdeğer UTF-8 bayt gösterimine dönüştürülemiyor. {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotBeMadeNullable">
@@ -449,7 +449,7 @@
       </trans-unit>
       <trans-unit id="ERR_EscapeVariable">
         <source>Cannot use variable '{0}' in this context because it may expose referenced variables outside of their declaration scope</source>
-        <target state="new">Cannot use variable '{0}' in this context because it may expose referenced variables outside of their declaration scope</target>
+        <target state="translated">'{0}' değişkeni, başvurulan değişkenleri kendi bildirim kapsamı dışında kullanıma sunabileceğinden bu bağlamda kullanılamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitImplementationOfOperatorsMustBeStatic">
@@ -524,7 +524,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsUtf8StringLiterals">
         <source>An expression tree may not contain UTF-8 string conversion or literal.</source>
-        <target state="new">An expression tree may not contain UTF-8 string conversion or literal.</target>
+        <target state="translated">İfade ağacı UTF-8 dize dönüştürmesi veya sabit değer içermeyebilir.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsWithExpression">
@@ -550,6 +550,11 @@
       <trans-unit id="ERR_FeatureNotAvailableInVersion10">
         <source>Feature '{0}' is not available in C# 10.0. Please use language version {1} or greater.</source>
         <target state="translated">'{0}' özelliği C# 10.0'da kullanılamıyor. Lütfen {1} veya daha yüksek dil sürümünü kullanın.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FeatureNotAvailableInVersion11">
+        <source>Feature '{0}' is not available in C# 11.0. Please use language version {1} or greater.</source>
+        <target state="new">Feature '{0}' is not available in C# 11.0. Please use language version {1} or greater.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
@@ -582,9 +587,34 @@
         <target state="translated">Dosya kapsamlı ad alanı bir dosyadaki diğer tüm üyelerin önünde olmalıdır.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FileTypeBase">
+        <source>File-local type '{0}' cannot be used as a base type of non-file-local type '{1}'.</source>
+        <target state="new">File-local type '{0}' cannot be used as a base type of non-file-local type '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileTypeDisallowedInSignature">
+        <source>File-local type '{0}' cannot be used in a member signature in non-file-local type '{1}'.</source>
+        <target state="new">File-local type '{0}' cannot be used in a member signature in non-file-local type '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileTypeNameDisallowed">
+        <source>Types and aliases cannot be named 'file'.</source>
+        <target state="new">Types and aliases cannot be named 'file'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileTypeNested">
+        <source>File-local type '{0}' must be defined in a top level type; '{0}' is a nested type.</source>
+        <target state="new">File-local type '{0}' must be defined in a top level type; '{0}' is a nested type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileTypeNoExplicitAccessibility">
+        <source>File-local type '{0}' cannot use accessibility modifiers.</source>
+        <target state="new">File-local type '{0}' cannot use accessibility modifiers.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FixedFieldMustNotBeRef">
         <source>A fixed field must not be a ref field.</source>
-        <target state="new">A fixed field must not be a ref field.</target>
+        <target state="translated">Sabit bir alan bir başvuru alanı olamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ForEachMissingMemberWrongAsync">
@@ -614,7 +644,7 @@
       </trans-unit>
       <trans-unit id="ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers">
         <source>The interface '{0}' cannot be used as type argument. Static member '{1}' does not have a most specific implementation in the interface.</source>
-        <target state="new">The interface '{0}' cannot be used as type argument. Static member '{1}' does not have a most specific implementation in the interface.</target>
+        <target state="translated">'{0}' arabirimi tür bağımsız değişkeni olarak kullanılamaz. '{1}' statik üyesinin arabirimde en belirgin uygulaması yok.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GlobalUsingInNamespace">
@@ -625,6 +655,11 @@
       <trans-unit id="ERR_GlobalUsingOutOfOrder">
         <source>A global using directive must precede all non-global using directives.</source>
         <target state="translated">Genel bir using yönergesi genel olmayan tüm using yönergelerinden önce gelmelidir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_GlobalUsingStaticFileType">
+        <source>File-local type '{0}' cannot be used in a 'global using static' directive.</source>
+        <target state="new">File-local type '{0}' cannot be used in a 'global using static' directive.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
@@ -659,7 +694,7 @@
       </trans-unit>
       <trans-unit id="ERR_ImplicitImplementationOfInaccessibleInterfaceMember">
         <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement an inaccessible member.</source>
-        <target state="new">'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement an inaccessible member.</target>
+        <target state="translated">'{0}, '{1}' arabirim üyesini uygulamıyor. '{2}' erişilemez bir üyeyi örtük olarak uygulayamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitIndexIndexerWithName">
@@ -839,7 +874,7 @@
       </trans-unit>
       <trans-unit id="ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember">
         <source>'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</source>
-        <target state="new">'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</target>
+        <target state="translated">'{3}' özelliği C# {4} sürümünde kullanılamadığından '{0}', '{2}' türündeki '{1}' arabirim üyesini uygulayamaz. Lütfen '{5}' veya daha yüksek bir dil sürümü kullanın.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LineContainsDifferentWhitespace">
@@ -864,7 +899,7 @@
       </trans-unit>
       <trans-unit id="ERR_LineSpanDirectiveRequiresSpace">
         <source>The #line span directive requires space before the first parenthesis, before the character offset, and before the file name</source>
-        <target state="new">The #line span directive requires space before the first parenthesis, before the character offset, and before the file name</target>
+        <target state="translated">#line span yönergesi ilk parantezden önce, karakter uzaklığından önce ve dosya adından önce boşluk gerektirir</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ListPatternRequiresLength">
@@ -1224,12 +1259,17 @@
       </trans-unit>
       <trans-unit id="ERR_RefFieldCannotReferToRefStruct">
         <source>A ref field cannot refer to a ref struct.</source>
-        <target state="new">A ref field cannot refer to a ref struct.</target>
+        <target state="translated">Başvuru alanı bir başvuru yapısına başvuramaz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefFieldInNonRefStruct">
+        <source>A ref field can only be declared in a ref struct.</source>
+        <target state="new">A ref field can only be declared in a ref struct.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefLocalOrParamExpected">
         <source>The left-hand side of a ref assignment must be a ref variable.</source>
-        <target state="new">The left-hand side of a ref assignment must be a ref variable.</target>
+        <target state="translated">ref atamasının sol tarafı, ref değişkeni olmalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningPropertiesCannotBeRequired">
@@ -1314,27 +1354,27 @@
       </trans-unit>
       <trans-unit id="ERR_ScopedMismatchInParameterOfOverrideOrImplementation">
         <source>The 'scoped' modifier of parameter '{0}' doesn't match overridden or implemented member.</source>
-        <target state="new">The 'scoped' modifier of parameter '{0}' doesn't match overridden or implemented member.</target>
+        <target state="translated">'{0}' parametresinin 'scoped' değiştiricisi geçersiz kılınan veya uygulanan üyeyle eşleşmiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedMismatchInParameterOfPartial">
         <source>The 'scoped' modifier of parameter '{0}' doesn't match partial method declaration.</source>
-        <target state="new">The 'scoped' modifier of parameter '{0}' doesn't match partial method declaration.</target>
+        <target state="translated">'{0}' parametresinin 'scoped' değiştiricisi, kısmi yöntem bildirimiyle eşleşmiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedMismatchInParameterOfTarget">
         <source>The 'scoped' modifier of parameter '{0}' doesn't match target '{1}'.</source>
-        <target state="new">The 'scoped' modifier of parameter '{0}' doesn't match target '{1}'.</target>
+        <target state="translated">'{0}' parametresinin 'scoped' değiştiricisi, '{1}' hedefiyle eşleşmiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedRefAndRefStructOnly">
         <source>The 'scoped' modifier can be used for refs and ref struct values only.</source>
-        <target state="new">The 'scoped' modifier can be used for refs and ref struct values only.</target>
+        <target state="translated">'scoped' değiştiricisi yalnızca başvurular ve başvuru yapı değerleri için kullanılabilir.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers">
         <source>Required members are not allowed on the top level of a script or submission.</source>
-        <target state="new">Required members are not allowed on the top level of a script or submission.</target>
+        <target state="translated">Bir betiğin veya gönderimin en üst düzeyinde gerekli üyelere izin verilmez.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SealedAPIInRecord">
@@ -1602,6 +1642,11 @@
         <target state="translated">dosya kapsamlı ad alanı</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureFileTypes">
+        <source>file types</source>
+        <target state="new">file types</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureGenericAttributes">
         <source>generic attributes</source>
         <target state="translated">genel öznitelikler</target>
@@ -1669,7 +1714,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureRefFields">
         <source>ref fields</source>
-        <target state="new">ref fields</target>
+        <target state="translated">başvuru alanları</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRelaxedShiftOperator">
@@ -1699,7 +1744,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureUtf8StringLiterals">
         <source>UTF-8 string literals</source>
-        <target state="new">UTF-8 string literals</target>
+        <target state="translated">UTF-8 sabit değerli dizeleri</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureWithOnAnonymousTypes">
@@ -6552,7 +6597,7 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
       </trans-unit>
       <trans-unit id="ERR_LookupInTypeVariable">
         <source>Cannot do non-virtual member lookup in '{0}' because it is a type parameter</source>
-        <target state="new">Cannot do non-virtual member lookup in '{0}' because it is a type parameter</target>
+        <target state="translated">'{0}' bir tür parametresi olduğundan burada sanal olmayan üye araması yapılamıyor</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadConstraintType">
@@ -10467,11 +10512,6 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
         <target state="translated">Birden çok değişken bildirimcisi içerebilecek bir bildirim düğümü için GetDeclarationName çağrıldı.</target>
         <note />
       </trans-unit>
-      <trans-unit id="TreeNotPartOfCompilation">
-        <source>tree not part of compilation</source>
-        <target state="translated">ağaç derlemenin parçası değildir</target>
-        <note />
-      </trans-unit>
       <trans-unit id="PositionIsNotWithinSyntax">
         <source>Position is not within syntax tree with full span {0}</source>
         <target state="translated">Konum, tam kapsam {0} ile sözdizimi ağacı içinde değil</target>
@@ -11099,7 +11139,7 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
       </trans-unit>
       <trans-unit id="ERR_RefReturnParameter">
         <source>Cannot return a parameter by reference '{0}' because it is not a ref parameter</source>
-        <target state="new">Cannot return a parameter by reference '{0}' because it is not a ref parameter</target>
+        <target state="translated">'{0}' parametresi bir ref parametresi olmadığından başvuru ile döndürülemez</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnParameter2">
@@ -11719,7 +11759,7 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
       </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainConversionOrEqualityOperators">
         <source>Conversion, equality, or inequality operators declared in interfaces must be abstract or virtual</source>
-        <target state="new">Conversion, equality, or inequality operators declared in interfaces must be abstract or virtual</target>
+        <target state="translated">Arabirimlerde bildirilen dönüştürme, eşitlik veya eşitsizlik işleçleri soyut veya sanal olmalıdır</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">

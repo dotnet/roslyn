@@ -6,9 +6,9 @@
 
 using System;
 using System.Windows;
-using ICSharpCode.Decompiler.IL;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.ColorSchemes;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -19,7 +19,6 @@ using Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 using Microsoft.CodeAnalysis.Editor.InlineDiagnostics;
 using Microsoft.CodeAnalysis.Editor.InlineHints;
-using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ExtractMethod;
@@ -107,8 +106,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(Collapse_regions_when_collapsing_to_definitions, BlockStructureOptionsStorage.CollapseRegionsWhenCollapsingToDefinitions, LanguageNames.CSharp);
 
             // Fading
-            BindToOption(Fade_out_unused_usings, IdeAnalyzerOptionsStorage.FadeOutUnusedImports, LanguageNames.CSharp);
-            BindToOption(Fade_out_unreachable_code, IdeAnalyzerOptionsStorage.FadeOutUnreachableCode, LanguageNames.CSharp);
+            BindToOption(Fade_out_unused_usings, FadingOptions.FadeOutUnusedImports, LanguageNames.CSharp);
+            BindToOption(Fade_out_unreachable_code, FadingOptions.FadeOutUnreachableCode, LanguageNames.CSharp);
 
             // Block Structure Guides
             BindToOption(Show_guides_for_declaration_level_constructs, BlockStructureOptionsStorage.ShowBlockStructureGuidesForDeclarationLevelConstructs, LanguageNames.CSharp);

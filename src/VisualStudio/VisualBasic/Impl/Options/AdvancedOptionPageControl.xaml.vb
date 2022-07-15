@@ -5,6 +5,7 @@
 Imports System.Windows
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Classification
+Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.ColorSchemes
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -98,7 +99,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(Collapse_regions_when_collapsing_to_definitions, BlockStructureOptionsStorage.CollapseRegionsWhenCollapsingToDefinitions, LanguageNames.VisualBasic)
 
             ' Fading
-            BindToOption(Fade_out_unused_imports, IdeAnalyzerOptionsStorage.FadeOutUnusedImports, LanguageNames.VisualBasic)
+            BindToOption(Fade_out_unused_imports, FadingOptions.FadeOutUnusedImports, LanguageNames.VisualBasic)
 
             ' Block structure guides
             BindToOption(Show_guides_for_declaration_level_constructs, BlockStructureOptionsStorage.ShowBlockStructureGuidesForDeclarationLevelConstructs, LanguageNames.VisualBasic)

@@ -660,9 +660,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Creates a new VisualBasicCompilationOptions instance with a different deterministic mode specified.
+        ''' </summary>
         ''' <param name="deterministic"> The deterministic mode. </param>
         ''' <returns> A new instance of VisualBasicCompilationOptions, if the deterministic mode is different; otherwise the current instance.</returns>
-        ''' </summary>
         Public Shadows Function WithDeterministic(deterministic As Boolean) As VisualBasicCompilationOptions
             If deterministic = Me.Deterministic Then
                 Return Me

@@ -34,6 +34,7 @@ using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
@@ -65,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         protected readonly Guid LanguageServiceGuid;
         protected readonly ITextView TextView;
         protected readonly ITextBuffer SubjectBuffer;
-        internal readonly IGlobalOptionService GlobalOptions;
+        internal readonly EditorOptionsService EditorOptionsService;
 
         private readonly ImmutableArray<Lazy<ArgumentProvider, OrderableLanguageMetadata>> _allArgumentProviders;
         private ImmutableArray<ArgumentProvider> _argumentProviders;
@@ -95,7 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             IEditorCommandHandlerServiceFactory editorCommandHandlerServiceFactory,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
             ImmutableArray<Lazy<ArgumentProvider, OrderableLanguageMetadata>> argumentProviders,
-            IGlobalOptionService globalOptions)
+            EditorOptionsService editorOptionsService)
             : base(threadingContext)
         {
             LanguageServiceGuid = languageServiceGuid;
@@ -104,8 +105,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             _signatureHelpControllerProvider = signatureHelpControllerProvider;
             _editorCommandHandlerServiceFactory = editorCommandHandlerServiceFactory;
             EditorAdaptersFactoryService = editorAdaptersFactoryService;
+            EditorOptionsService = editorOptionsService;
             _allArgumentProviders = argumentProviders;
-            GlobalOptions = globalOptions;
         }
 
         /// <inheritdoc cref="State._expansionSession"/>
@@ -220,7 +221,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
             var formattingSpan = CommonFormattingHelpers.GetFormattingSpan(SubjectBuffer.CurrentSnapshot, snippetTrackingSpan.GetSpan(SubjectBuffer.CurrentSnapshot));
 
-            SubjectBuffer.CurrentSnapshot.FormatAndApplyToBuffer(formattingSpan, GlobalOptions, CancellationToken.None);
+            SubjectBuffer.FormatAndApplyToBuffer(formattingSpan, EditorOptionsService, CancellationToken.None);
 
             if (isFullSnippetFormat)
             {
@@ -290,7 +291,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                     var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                     if (document != null)
                     {
-                        var formattingOptions = document.GetLineFormattingOptionsAsync(GlobalOptions, CancellationToken.None).AsTask().WaitAndGetResult(CancellationToken.None);
+                        var formattingOptions = document.GetLineFormattingOptionsAsync(EditorOptionsService.GlobalOptions, CancellationToken.None).AsTask().WaitAndGetResult(CancellationToken.None);
                         _indentDepth = lineText.GetColumnFromLineOffset(lineText.Length, formattingOptions.TabSize);
                     }
                     else
@@ -549,7 +550,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return false;
             }
 
-            if (!(GlobalOptions.GetOption(CompletionViewOptions.EnableArgumentCompletionSnippets, document.Project.Language) ?? false))
+            if (!(EditorOptionsService.GlobalOptions.GetOption(CompletionViewOptions.EnableArgumentCompletionSnippets, document.Project.Language) ?? false))
             {
                 // Argument completion snippets are not enabled
                 return false;
@@ -1072,8 +1073,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return;
             }
 
-            var addImportOptions = documentWithImports.GetAddImportPlacementOptionsAsync(GlobalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
-            var formattingOptions = documentWithImports.GetSyntaxFormattingOptionsAsync(GlobalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
+            var addImportOptions = documentWithImports.GetAddImportPlacementOptionsAsync(EditorOptionsService.GlobalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
+            var formattingOptions = documentWithImports.GetSyntaxFormattingOptionsAsync(EditorOptionsService.GlobalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
 
             documentWithImports = AddImports(documentWithImports, addImportOptions, formattingOptions, position, snippetNode, cancellationToken);
             AddReferences(documentWithImports.Project, snippetNode);
@@ -1126,12 +1127,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         protected static bool TryAddImportsToContainedDocument(Document document, IEnumerable<string> memberImportsNamespaces)
         {
-            if (document.Project.Solution.Workspace is not VisualStudioWorkspaceImpl vsWorkspace)
-            {
-                return false;
-            }
-
-            var containedDocument = vsWorkspace.TryGetContainedDocument(document.Id);
+            var containedDocument = ContainedDocument.TryGetContainedDocument(document.Id);
             if (containedDocument == null)
             {
                 return false;
