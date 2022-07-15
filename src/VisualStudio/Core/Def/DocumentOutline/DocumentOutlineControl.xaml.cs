@@ -120,7 +120,8 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 asyncListener,
                 _cancellationToken);
 
-            // Primary text view is expected to exist on window initialization.
+            // We don't think the shell is initialized lazily, so we'll Debug.Fail(), but if it was we'd still
+            // see the view created later so this will still function.
             if (ErrorHandler.Failed(codeWindow.GetPrimaryView(out var primaryTextView)))
                 Debug.Fail("GetPrimaryView failed during DocumentOutlineControl initialization.");
 
