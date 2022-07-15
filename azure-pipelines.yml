@@ -182,7 +182,8 @@ jobs:
 
 - job: Correctness_Determinism
   pool:
-    vmImage: windows-latest
+    name: NetCore1ESPool-Public
+    demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
   timeoutInMinutes: 90
   steps:
     - template: eng/pipelines/checkout-windows-task.yml
