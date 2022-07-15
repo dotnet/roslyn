@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
                 (current, _) => Update(semanticModel, originalDeclaration, (LambdaExpressionSyntax)current));
         }
 
-        private static LambdaExpressionSyntax Update(SemanticModel semanticModel, LambdaExpressionSyntax originalDeclaration, LambdaExpressionSyntax currentDeclaration)
+        internal static LambdaExpressionSyntax Update(SemanticModel semanticModel, LambdaExpressionSyntax originalDeclaration, LambdaExpressionSyntax currentDeclaration)
             => UpdateWorker(semanticModel, originalDeclaration, currentDeclaration).WithAdditionalAnnotations(Formatter.Annotation);
 
         private static LambdaExpressionSyntax UpdateWorker(
@@ -164,15 +164,4 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             return true;
         }
     }
-
-    // PROTOTYPE: TODO
-    //[ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.UseExpressionBodyForLambda), Shared]
-    //internal sealed class UseExpressionBodyForLambdaCodeRefactoringProvider : UseExpressionBodyForLambdaCodeStyleProvider.CodeRefactoringProvider
-    //{
-    //    [ImportingConstructor]
-    //    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    //    public UseExpressionBodyForLambdaCodeRefactoringProvider()
-    //    {
-    //    }
-    //}
 }

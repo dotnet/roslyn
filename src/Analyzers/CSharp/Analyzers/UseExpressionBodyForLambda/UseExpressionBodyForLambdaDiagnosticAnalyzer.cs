@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class UseExpressionBodyForLambdaDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        private static readonly LocalizableString UseExpressionBodyTitle = new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_expression_body_for_lambda_expressions), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources));
-        private static readonly LocalizableString UseBlockBodyTitle = new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_block_body_for_lambda_expressions), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources));
+        internal static readonly LocalizableString UseExpressionBodyTitle = new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_expression_body_for_lambda_expressions), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources));
+        internal static readonly LocalizableString UseBlockBodyTitle = new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_block_body_for_lambda_expressions), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources));
 
         public UseExpressionBodyForLambdaDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseExpressionBodyForLambdaExpressionsDiagnosticId,
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             => context.RegisterSyntaxNodeAction(AnalyzeIfEnabled,
                 SyntaxKind.SimpleLambdaExpression, SyntaxKind.ParenthesizedLambdaExpression);
 
-        private static CodeStyleOption2<ExpressionBodyPreference> GetCodeStyleOption(AnalyzerOptionsProvider provider)
+        internal static CodeStyleOption2<ExpressionBodyPreference> GetCodeStyleOption(AnalyzerOptionsProvider provider)
             => ((CSharpAnalyzerOptionsProvider)provider).PreferExpressionBodiedLambdas;
 
         /// <summary>
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
         /// handle ReportDiagnostic.Default and will map that back to the appropriate value in that
         /// case.
         /// </summary>
-        private static ReportDiagnostic GetOptionSeverity(CodeStyleOption2<ExpressionBodyPreference> optionValue)
+        internal static ReportDiagnostic GetOptionSeverity(CodeStyleOption2<ExpressionBodyPreference> optionValue)
         {
             var severity = optionValue.Notification.Severity;
             return severity == ReportDiagnostic.Default
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
         internal static ExpressionSyntax? GetBodyAsExpression(LambdaExpressionSyntax declaration)
             => declaration.Body as ExpressionSyntax;
 
-        private static bool CanOfferUseExpressionBody(
+        internal static bool CanOfferUseExpressionBody(
             ExpressionBodyPreference preference, LambdaExpressionSyntax declaration, LanguageVersion languageVersion)
         {
             var userPrefersExpressionBodies = preference != ExpressionBodyPreference.Never;
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             return body.TryConvertToExpressionBody(languageVersion, conversionPreference, out expression, out _);
         }
 
-        private static bool CanOfferUseBlockBody(
+        internal static bool CanOfferUseBlockBody(
             SemanticModel semanticModel, ExpressionBodyPreference preference,
             LambdaExpressionSyntax declaration, CancellationToken cancellationToken)
         {
