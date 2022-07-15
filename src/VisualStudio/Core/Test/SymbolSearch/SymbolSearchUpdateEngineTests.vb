@@ -641,7 +641,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             Return CreatedownloaderMock(CreateFullDownloadElementStream())
         End Function
 
-        Private Function CreatedownloaderMock(stream As Stream) As Mock(Of IFileDownloader)
+        Private Shared Function CreateDownloaderMock(stream As Stream) As Mock(Of IFileDownloader)
             Dim downloaderMock = New Mock(Of IFileDownloader)(MockBehavior.Strict)
 
             ' Return a full database element when the service asks for it.
@@ -680,7 +680,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                 New XAttribute(SymbolSearchUpdateEngine.ContentAttributeName, contents)))
         End Function
 
-        Private Function CreateStream(element As XElement) As Stream
+        Private Shared Function CreateStream(element As XElement) As Stream
             Dim stream = New MemoryStream()
             element.Save(stream)
             stream.Position = 0
