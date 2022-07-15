@@ -14060,12 +14060,11 @@ class C
             for (int i = 0; i < 10; i++)
             {
                 test.AddGeneration(
-                    source: $$"""
-                        class C
-                        {
-                            int M2() { return {{i}}; }
-                        }
-                        """,
+                    source: @$"
+class C
+{{
+    int M2() {{ return {i}; }}
+}}",
                     edits: new[] {
                         Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.M1"), newSymbolProvider: c=>c.GetMember("C")),
                         Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMember("C.M2")),
@@ -14077,12 +14076,11 @@ class C
                         g.VerifyDeletedMembers("C: {M1}");
                     })
                 .AddGeneration(
-                    source: $$"""
-                        class C
-                        {
-                            int M1() { return {{i}}; }
-                        }
-                        """,
+                    source: @$"
+class C
+{{
+    int M1() {{ return {i}; }}
+}}",
                     edits: new[] {
                         Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.M2"), newSymbolProvider: c=>c.GetMember("C")),
                         Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMember("C.M1")),
