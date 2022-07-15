@@ -1,9 +1,8 @@
-﻿sues// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -13,14 +12,11 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -29,12 +25,12 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertToRecord), Shared]
-    internal class ConvertToRecordRefactoringProvider : SyntaxEditorBasedCodeRefactoringProvider
+    internal class CSharpConvertToRecordRefactoringProvider : SyntaxEditorBasedCodeRefactoringProvider
     {
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ConvertToRecordRefactoringProvider()
+        public CSharpConvertToRecordRefactoringProvider()
         {
         }
 
@@ -66,15 +62,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             if (semanticModel.GetDeclaredSymbol(classDeclaration, cancellationToken) is not INamedTypeSymbol type ||
                 // if type is some enum, interface, delegate, etc we don't want to refactor
                 (type.TypeKind != TypeKind.Class && type.TypeKind != TypeKind.Struct) ||
-                // No need to convert a record to a record
+                // TODO: when adding other options it might make sense to convert a postional record to a non-positional one and vice versa
+                // but for now we don't convert records
                 type.IsRecord ||
-                // records can't be inherited from normal classes and normal classes cant be interited from records.
-                // so if it is currently a non-record and has a base class, that base class must be a non-record (and so we can't convert)
-                (type.BaseType?.SpecialType != SpecialType.System_ValueType && type.BaseType?.SpecialType != SpecialType.System_Object) ||
                 // records can't be static and so if the class is static we probably shouldn't convert it
                 type.IsStatic ||
-                // records can't be abstract
-                type.IsAbstract ||
                 // make sure that there is at least one positional parameter we can introduce
                 !classDeclaration.Members.Any(m => ShouldConvertProperty(m, type)))
             {
@@ -83,27 +75,36 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
 
             context.RegisterRefactoring(CodeAction.Create(
                 "placeholder title",
-                cancellationToken => ConvertToRecordAsync(document, type, classDeclaration, cancellationToken),
+                cancellationToken => ConvertToPositionalRecordAsync(document, type, classDeclaration, cancellationToken),
                 "placeholder key"));
         }
 
-        private static async Task<Document> ConvertToRecordAsync(
+        private static async Task<Document> ConvertToPositionalRecordAsync(
             Document document,
             INamedTypeSymbol originalType,
             TypeDeclarationSyntax originalDeclarationNode,
             CancellationToken cancellationToken)
         {
             var codeGenerationService = document.GetRequiredLanguageService<ICodeGenerationService>();
+            // TODO: grab documentation comments (and other comments) to move to params
             var propertiesToAddAsParams = originalDeclarationNode.Members.AsImmutable().SelectAsArray(
                 predicate: m => ShouldConvertProperty(m, originalType),
                 selector: m =>
                 {
                     var p = (PropertyDeclarationSyntax)m;
-                    return SyntaxFactory.Parameter(p.AttributeLists, modifiers: default, p.Type, p.Identifier, @default: null);
+                    return SyntaxFactory.Parameter(
+                        new SyntaxList<AttributeListSyntax>(p.AttributeLists.SelectAsArray(attributeList =>
+                            attributeList.Target == null
+                            ? attributeList.WithTarget(SyntaxFactory.AttributeTargetSpecifier(SyntaxFactory.Token(SyntaxKind.PropertyKeyword)))
+                            : attributeList)),
+                        modifiers: default,
+                        p.Type,
+                        p.Identifier,
+                        @default: null);
                 });
 
-            // remove properties and any constructor with the same params
-            var membersToKeep = GetModifiedMembers(originalType, originalDeclarationNode, propertiesToAddAsParams);
+            // remove converted properties and reformat other methods
+            var membersToKeep = GetModifiedMembersForPositionalRecord(originalType, originalDeclarationNode, propertiesToAddAsParams);
 
             var changedTypeDeclaration = SyntaxFactory.RecordDeclaration(
                 originalType.TypeKind == TypeKind.Class
@@ -119,12 +120,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 originalDeclarationNode.TypeParameterList,
                 SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(propertiesToAddAsParams)),
                 // TODO: inheritance
-                null,
+                baseList: null,
                 originalDeclarationNode.ConstraintClauses,
                 SyntaxFactory.Token(SyntaxKind.OpenBraceToken),
                 SyntaxFactory.List(membersToKeep),
                 SyntaxFactory.Token(SyntaxKind.CloseBraceToken),
-                default);
+                semicolonToken: default);
 
             var changedDocument = await document.ReplaceNodeAsync(originalDeclarationNode, changedTypeDeclaration, cancellationToken).ConfigureAwait(false);
             return changedDocument;
@@ -185,14 +186,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             return true;
         }
 
-        private static ImmutableArray<MemberDeclarationSyntax> GetModifiedMembers(
+        private static ImmutableArray<MemberDeclarationSyntax> GetModifiedMembersForPositionalRecord(
             INamedTypeSymbol type,
             TypeDeclarationSyntax classDeclaration,
             ImmutableArray<ParameterSyntax> positionalParams)
         {
             var oldMembers = classDeclaration.Members;
-            // for operators == and !=, we want to delete both if there niether mention an Equals method
-            var shouldDeleteEqualityOperators = false;
+            // create capture variables for the equality operators, since we want to check both of them at the same time
+            // to make sure they can be deleted
+            OperatorDeclarationSyntax? equals = null;
+            OperatorDeclarationSyntax? notEquals = null;
 
             using var _ = ArrayBuilder<MemberDeclarationSyntax>.GetInstance(out var modifiedMembers);
             foreach (var member in oldMembers)
@@ -203,73 +206,107 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                     continue;
                 }
 
-                if (member is ConstructorDeclarationSyntax constructor)
+                switch (member)
                 {
-                    // remove the constructor with the same parameter types in the same order as the positional parameters
-                    var constructorParamTypes = constructor.ParameterList.Parameters.SelectAsArray(p => p.Type!.ToString());
-                    var positionalParamTypes = positionalParams.SelectAsArray(p => p.Type!.ToString());
-                    if (constructorParamTypes.SequenceEqual(positionalParamTypes))
-                    {
-                        continue;
-                    }
-
-                    // TODO: Can potentially refactor statements which initialize properties with a simple exression (not using local variables) to be moved into the this args
-                    var thisArgs = SyntaxFactory.ArgumentList(
-                        SyntaxFactory.SeparatedList(
-                            Enumerable.Repeat(
-                                SyntaxFactory.Argument(
-                                    SyntaxFactory.LiteralExpression(SyntaxKind.DefaultLiteralExpression)),
-                                positionalParams.Length)));
-
-                    // TODO: look to see if there is already initializer (base or this), part of inheritance as well
-
-                    var modifiedConstructor = constructor.WithInitializer(SyntaxFactory.ConstructorInitializer(SyntaxKind.ThisConstructorInitializer, thisArgs));
-
-                    modifiedMembers.Add(modifiedConstructor);
-                    continue;
-                }
-
-                if (member is OperatorDeclarationSyntax op)
-                {
-                    var opKind = op.OperatorToken.Kind();
-                    if (opKind == SyntaxKind.EqualsEqualsToken || opKind == SyntaxKind.ExclamationEqualsToken)
-                    {
-                        // TODO: search for an equals method call
-                        // right now just assume we didn't find one so we keep the original method
-
-                        modifiedMembers.Add(op);
-                        continue;
-                    }
-                }
-
-                if (member is MethodDeclarationSyntax method)
-                {
-                    // TODO: Ensure the single param is an StringBuilder
-                    if (method.Identifier.Text == "PrintMembers" &&
-                        method.ReturnType == SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.BoolKeyword)) &&
-                        method.ParameterList.Parameters.IsSingle())
-                    {
-                        if (type.TypeKind == TypeKind.Class && !type.IsSealed)
+                    case ConstructorDeclarationSyntax constructor:
                         {
-                            // ensure virtual and protected modifiers
-                            modifiedMembers.Add(method.WithModifiers(SyntaxFactory.TokenList(
-                                SyntaxFactory.Token(SyntaxKind.ProtectedKeyword),
-                                SyntaxFactory.Token(SyntaxKind.VirtualKeyword))));
-                        }
-                        else
-                        {
-                            // ensure private member
-                            modifiedMembers.Add(method.WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword))));
+                            // remove the constructor with the same parameter types in the same order as the positional parameters
+                            // TODO: search to see if there are side effects and consider not deleting
+                            /* Disabling for now, can re-enable pending design meeting.
+                            var constructorParamTypes = constructor.ParameterList.Parameters.SelectAsArray(p => p.Type!.ToString());
+                            var positionalParamTypes = positionalParams.SelectAsArray(p => p.Type!.ToString());
+                            if (constructorParamTypes.SequenceEqual(positionalParamTypes))
+                            {
+                                continue;
+                            }*/
+
+                            // TODO: Can potentially refactor statements which initialize properties with a simple expression (not using local variables) to be moved into the this args
+                            var thisArgs = SyntaxFactory.ArgumentList(
+                                SyntaxFactory.SeparatedList(
+                                    Enumerable.Repeat(
+                                        SyntaxFactory.Argument(
+                                            SyntaxFactory.LiteralExpression(SyntaxKind.DefaultLiteralExpression)),
+                                        positionalParams.Length)));
+
+                            // TODO: look to see if there is already initializer (base or this), part of inheritance as well
+
+                            var modifiedConstructor = constructor.WithInitializer(SyntaxFactory.ConstructorInitializer(SyntaxKind.ThisConstructorInitializer, thisArgs));
+
+                            modifiedMembers.Add(modifiedConstructor);
+                            continue;
                         }
 
-                        continue;
-                    }
+                    case OperatorDeclarationSyntax op:
+                        {
+                            var opKind = op.OperatorToken.Kind();
+                            if (opKind == SyntaxKind.EqualsEqualsToken)
+                            {
+                                equals = op;
+                            }
+                            else if (opKind == SyntaxKind.ExclamationEqualsToken)
+                            {
+                                notEquals = op;
+                            }
+
+                            if (equals != null && notEquals != null)
+                            {
+                                if (!ContainsEqualsInvocation(equals) && !ContainsEqualsInvocation(notEquals))
+                                {
+                                    // add both back in
+                                    // TODO: maintain declared order so the diff doesn't look weird
+                                    modifiedMembers.Add(equals);
+                                    modifiedMembers.Add(notEquals);
+                                }
+                            }
+
+                            break;
+                        }
+
+                    case MethodDeclarationSyntax method:
+                        {
+                            /* TODO: Enable this along with other signature change after design review, for now leave even if error
+                             * // TODO: Ensure the single param is an StringBuilder
+                            if (method.Identifier.Text == "PrintMembers" &&
+                                method.ReturnType == SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.BoolKeyword)) &&
+                                method.ParameterList.Parameters.IsSingle())
+                            {
+                                if (type.TypeKind == TypeKind.Class && !type.IsSealed)
+                                {
+                                    // ensure virtual and protected modifiers
+                                    modifiedMembers.Add(method.WithModifiers(SyntaxFactory.TokenList(
+                                        SyntaxFactory.Token(SyntaxKind.ProtectedKeyword),
+                                        SyntaxFactory.Token(SyntaxKind.VirtualKeyword))));
+                                }
+                                else
+                                {
+                                    // ensure private member
+                                    modifiedMembers.Add(method.WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword))));
+                                }
+
+                                continue;
+                            }*/
+
+                            break;
+                        }
                 }
+
                 // any other members we didn't change or modify we just keep
                 modifiedMembers.Add(member);
             }
 
             return modifiedMembers.ToImmutable();
+        }
+
+        /// <summary>
+        /// Returns true if the method contents contain a call to the Equals method
+        /// indicating that the contents are similar to what would be generated
+        /// </summary>
+        private static bool ContainsEqualsInvocation(OperatorDeclarationSyntax expression)
+        {
+            // TODO: search for a call to an equals method or comparison of the properties we would move
+            // reserved for an extension of the feature
+            // for now we return false, indicating we aren't confident enough to delete the method
+            return false;
         }
     }
 }
