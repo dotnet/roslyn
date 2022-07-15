@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
             {
                 var name = reader.ReadRequiredString();
-                var targetResolution = reader.ReadSymbolKey(out var targetFailureReason);
+                var targetResolution = reader.ReadSymbolKey((reader.CurrentContextualSymbol as IAliasSymbol)?.Target, out var targetFailureReason);
                 var filePath = reader.ReadRequiredString();
 
                 if (targetFailureReason != null)

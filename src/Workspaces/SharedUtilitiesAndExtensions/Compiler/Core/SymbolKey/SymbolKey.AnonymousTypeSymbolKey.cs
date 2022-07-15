@@ -31,11 +31,20 @@ namespace Microsoft.CodeAnalysis
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
             {
-                using var propertyTypes = reader.ReadSymbolKeyArray<ITypeSymbol>(out var propertyTypesFailureReason);
-#pragma warning disable IDE0007 // Use implicit type
-                using PooledArrayBuilder<string> propertyNames = reader.ReadStringArray()!;
-#pragma warning restore IDE0007 // Use implicit type
+                var contextualSymbol = reader.CurrentContextualSymbol is INamedTypeSymbol { IsAnonymousType: true } contextualType
+                    ? contextualType
+                    : null;
+
+                var contextualProperties = contextualSymbol?.GetMembers().OfType<IPropertySymbol>().ToImmutableArray() ?? ImmutableArray<IPropertySymbol>.Empty;
+
+                using var propertyTypes = reader.ReadSymbolKeyArray<INamedTypeSymbol, ITypeSymbol>(
+                    contextualSymbol,
+                    getContextualType: (contextualSymbol, i) => SafeGet(contextualProperties, i)?.Type,
+                    out var propertyTypesFailureReason);
+
+                using var propertyNames = reader.ReadStringArray();
                 using var propertyIsReadOnly = reader.ReadBooleanArray();
+
                 var propertyLocations = ReadPropertyLocations(reader, out var propertyLocationsFailureReason);
 
                 if (propertyTypesFailureReason != null)
@@ -53,7 +62,7 @@ namespace Microsoft.CodeAnalysis
                 if (!propertyTypes.IsDefault)
                 {
                     var anonymousType = reader.Compilation.CreateAnonymousTypeSymbol(
-                        propertyTypes.ToImmutable(), propertyNames.ToImmutable(),
+                        propertyTypes.ToImmutable(), propertyNames.ToImmutable()!,
                         propertyIsReadOnly.ToImmutable(), propertyLocations);
                     failureReason = null;
                     return new SymbolKeyResolution(anonymousType);

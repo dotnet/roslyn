@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (symbol.ContainingNamespace != null)
                 {
-                    visitor.WriteBoolean(false);
+                    visitor.WriteInteger(0);
                     visitor.WriteSymbolKey(symbol.ContainingNamespace);
                 }
                 else
@@ -35,15 +36,15 @@ namespace Microsoft.CodeAnalysis
                     switch (symbol.NamespaceKind)
                     {
                         case NamespaceKind.Module:
-                            visitor.WriteBoolean(false);
+                            visitor.WriteInteger(1);
                             visitor.WriteSymbolKey(symbol.ContainingModule);
                             break;
                         case NamespaceKind.Assembly:
-                            visitor.WriteBoolean(false);
+                            visitor.WriteInteger(2);
                             visitor.WriteSymbolKey(symbol.ContainingAssembly);
                             break;
                         case NamespaceKind.Compilation:
-                            visitor.WriteBoolean(true);
+                            visitor.WriteInteger(3);
                             visitor.WriteSymbolKey(null);
                             break;
                         default:
@@ -55,8 +56,20 @@ namespace Microsoft.CodeAnalysis
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
             {
                 var metadataName = reader.ReadRequiredString();
-                var isCompilationGlobalNamespace = reader.ReadBoolean();
-                var containingSymbolResolution = reader.ReadSymbolKey(out var containingSymbolFailureReason);
+                var containerKind = reader.ReadInteger();
+
+                var containingContextualSymbol = containerKind switch
+                {
+                    0 => reader.CurrentContextualSymbol?.ContainingNamespace,
+                    1 => reader.CurrentContextualSymbol?.ContainingModule,
+                    2 => reader.CurrentContextualSymbol?.ContainingAssembly,
+                    3 => (ISymbol?)null,
+                    _ => throw ExceptionUtilities.UnexpectedValue(containerKind),
+                };
+
+                // Namespaces are never parented by types, so there can be no contextual type to resolve our container.
+                var containingSymbolResolution = reader.ReadSymbolKey(
+                    containingContextualSymbol, out var containingSymbolFailureReason);
 
                 if (containingSymbolFailureReason != null)
                 {
@@ -64,7 +77,7 @@ namespace Microsoft.CodeAnalysis
                     return default;
                 }
 
-                if (isCompilationGlobalNamespace)
+                if (containerKind == 3)
                 {
                     failureReason = null;
                     return new SymbolKeyResolution(reader.Compilation.GlobalNamespace);

@@ -182,16 +182,20 @@ namespace Microsoft.CodeAnalysis
                 => Eat(DoubleQuoteChar);
 
             public PooledArrayBuilder<TStringResult?> ReadStringArray()
-                => ReadArray(_readString, out _);
+                => ReadSimpleArray(_readString, out _);
 
             public PooledArrayBuilder<bool> ReadBooleanArray()
-                => ReadArray(_readBoolean, out _);
+                => ReadSimpleArray(_readBoolean, out _);
 
             public PooledArrayBuilder<RefKind> ReadRefKindArray()
-                => ReadArray(_readRefKind, out _);
+                => ReadSimpleArray(_readRefKind, out _);
 
-            public PooledArrayBuilder<T> ReadArray<T>(ReadFunction<T> readFunction, out string? failureReason)
+            public PooledArrayBuilder<T> ReadSimpleArray<T>(
+                ReadFunction<T> readFunction,
+                out string? failureReason)
             {
+                // Keep in Sync with ReadSymbolArray in SymbolKeyReader
+
                 var builder = PooledArrayBuilder<T>.GetInstance();
                 EatSpace();
 
@@ -205,6 +209,7 @@ namespace Microsoft.CodeAnalysis
                 for (var i = 0; i < length; i++)
                 {
                     CancellationToken.ThrowIfCancellationRequested();
+
                     builder.Builder.Add(readFunction(out var elementFailureReason));
 
                     if (elementFailureReason != null)
@@ -302,12 +307,11 @@ namespace Microsoft.CodeAnalysis
 
         private delegate T ReadFunction<T>(out string? failureReason);
 
-        private class SymbolKeyReader : Reader<string>
+        private sealed class SymbolKeyReader : Reader<string>
         {
             private static readonly ObjectPool<SymbolKeyReader> s_readerPool = SharedPools.Default<SymbolKeyReader>();
 
             private readonly Dictionary<int, SymbolKeyResolution> _idToResult = new();
-            private readonly ReadFunction<SymbolKeyResolution> _readSymbolKey;
             private readonly ReadFunction<Location?> _readLocation;
 
             public Compilation Compilation { get; private set; }
@@ -315,10 +319,10 @@ namespace Microsoft.CodeAnalysis
             public SymbolEquivalenceComparer Comparer { get; private set; }
 
             private readonly List<IMethodSymbol?> _methodSymbolStack = new();
+            private readonly Stack<ISymbol?> _contextualSymbolStack = new();
 
             public SymbolKeyReader()
             {
-                _readSymbolKey = ReadSymbolKey;
                 _readLocation = ReadLocation;
 
                 Compilation = null!;
@@ -333,6 +337,7 @@ namespace Microsoft.CodeAnalysis
                 IgnoreAssemblyKey = false;
                 Comparer = null!;
                 _methodSymbolStack.Clear();
+                _contextualSymbolStack.Clear();
 
                 // Place us back in the pool for future use.
                 s_readerPool.Free(this);
@@ -363,10 +368,14 @@ namespace Microsoft.CodeAnalysis
                     : SymbolEquivalenceComparer.Instance;
             }
 
-            internal bool ParameterTypesMatch(
-                ImmutableArray<IParameterSymbol> parameters,
-                PooledArrayBuilder<ITypeSymbol> originalParameterTypes)
+            internal bool ParameterTypesMatch<TOwningSymbol>(
+                TOwningSymbol owningSymbol,
+                Func<TOwningSymbol, int, ITypeSymbol?> getContextualType,
+                ImmutableArray<IParameterSymbol> parameters)
+                where TOwningSymbol : ISymbol
             {
+                using var originalParameterTypes = this.ReadSymbolKeyArray<TOwningSymbol, ITypeSymbol>(owningSymbol, getContextualType, out _);
+
                 if (originalParameterTypes.IsDefault || parameters.Length != originalParameterTypes.Count)
                 {
                     return false;
@@ -381,26 +390,73 @@ namespace Microsoft.CodeAnalysis
                 for (var i = 0; i < originalParameterTypes.Count; i++)
                 {
                     if (!signatureComparer.Equals(originalParameterTypes[i], parameters[i].Type))
-                    {
                         return false;
-                    }
                 }
 
                 return true;
             }
 
-            public void PushMethod(IMethodSymbol? method)
-                => _methodSymbolStack.Add(method);
+            public MethodPopper PushMethod(IMethodSymbol? method)
+            {
+                _methodSymbolStack.Add(method);
+                return new MethodPopper(this, method);
+            }
 
-            public void PopMethod(IMethodSymbol? method)
+            private void PopMethod(IMethodSymbol? method)
             {
                 Contract.ThrowIfTrue(_methodSymbolStack.Count == 0);
-                Contract.ThrowIfFalse(Equals(method, _methodSymbolStack[_methodSymbolStack.Count - 1]));
+                Contract.ThrowIfFalse(Equals(method, _methodSymbolStack[^1]));
                 _methodSymbolStack.RemoveAt(_methodSymbolStack.Count - 1);
             }
 
             public IMethodSymbol? ResolveMethod(int index)
                 => _methodSymbolStack[index];
+
+            public ContextualSymbolPopper PushContextualSymbol(ISymbol? contextualSymbol)
+            {
+                _contextualSymbolStack.Push(contextualSymbol);
+                return new ContextualSymbolPopper(this, contextualSymbol);
+            }
+
+            private void PopContextualSymbol(ISymbol? contextualSymbol)
+            {
+                Contract.ThrowIfTrue(_contextualSymbolStack.Count == 0);
+                Contract.ThrowIfFalse(Equals(contextualSymbol, _contextualSymbolStack.Peek()));
+                _contextualSymbolStack.Pop();
+            }
+
+            public ISymbol? CurrentContextualSymbol
+                => _contextualSymbolStack.Count == 0 ? null : _contextualSymbolStack.Peek();
+
+            public readonly ref struct MethodPopper
+            {
+                private readonly SymbolKeyReader _reader;
+                private readonly IMethodSymbol? _method;
+
+                public MethodPopper(SymbolKeyReader reader, IMethodSymbol? method)
+                {
+                    _reader = reader;
+                    _method = method;
+                }
+
+                public void Dispose()
+                    => _reader.PopMethod(_method);
+            }
+
+            public readonly ref struct ContextualSymbolPopper
+            {
+                private readonly SymbolKeyReader _reader;
+                private readonly ISymbol? _contextualSymbol;
+
+                public ContextualSymbolPopper(SymbolKeyReader reader, ISymbol? contextualSymbol)
+                {
+                    _reader = reader;
+                    _contextualSymbol = contextualSymbol;
+                }
+
+                public void Dispose()
+                    => _reader.PopContextualSymbol(_contextualSymbol);
+            }
 
             internal SyntaxTree? GetSyntaxTree(string filePath)
             {
@@ -417,9 +473,10 @@ namespace Microsoft.CodeAnalysis
 
             #region Symbols
 
-            public SymbolKeyResolution ReadSymbolKey(out string? failureReason)
+            public SymbolKeyResolution ReadSymbolKey(ISymbol? contextualSymbol, out string? failureReason)
             {
                 CancellationToken.ThrowIfCancellationRequested();
+                using var _ = PushContextualSymbol(contextualSymbol);
                 EatSpace();
 
                 var type = (SymbolKeyType)Data[Position];
@@ -483,6 +540,44 @@ namespace Microsoft.CodeAnalysis
                     _ => throw new NotImplementedException(),
                 };
 
+            private PooledArrayBuilder<SymbolKeyResolution> ReadSymbolKeyArray<TContextualSymbol>(
+                TContextualSymbol? contextualSymbol,
+                Func<TContextualSymbol, int, ITypeSymbol?> getContextualType,
+                out string? failureReason)
+            {
+                // Keep in Sync with ReadSimpleArray
+
+                var builder = PooledArrayBuilder<SymbolKeyResolution>.GetInstance();
+                EatSpace();
+
+                Debug.Assert((SymbolKeyType)Data[Position] != SymbolKeyType.Null);
+
+                EatOpenParen();
+                Eat(SymbolKeyType.Array);
+
+                string? totalFailureReason = null;
+                var length = ReadInteger();
+                for (var i = 0; i < length; i++)
+                {
+                    CancellationToken.ThrowIfCancellationRequested();
+
+                    var contextualType = contextualSymbol is null ? null : getContextualType(contextualSymbol, i);
+                    builder.Builder.Add(ReadSymbolKey(contextualType, out var elementFailureReason));
+
+                    if (elementFailureReason != null)
+                    {
+                        var reason = $"element {i} failed {elementFailureReason}";
+                        totalFailureReason = totalFailureReason == null
+                            ? $"({reason})"
+                            : $"({totalFailureReason} -> {reason})";
+                    }
+                }
+
+                EatCloseParen();
+                failureReason = totalFailureReason;
+                return builder;
+            }
+
             /// <summary>
             /// Reads an array of symbols out from the key.  Note: the number of symbols returned 
             /// will either be the same as the original amount written, or <c>default</c> will be 
@@ -493,9 +588,15 @@ namespace Microsoft.CodeAnalysis
             /// Callers should <see cref="IDisposable.Dispose"/> the instance returned.  No check is
             /// necessary if <c>default</c> was returned before calling <see cref="IDisposable.Dispose"/>
             /// </summary>
-            public PooledArrayBuilder<TSymbol> ReadSymbolKeyArray<TSymbol>(out string? failureReason) where TSymbol : ISymbol
+            public PooledArrayBuilder<TSymbol> ReadSymbolKeyArray<TContextualSymbol, TSymbol>(
+                TContextualSymbol? contextualSymbol,
+                Func<TContextualSymbol, int, ITypeSymbol?> getContextualType,
+                out string? failureReason)
+                where TContextualSymbol : ISymbol
+                where TSymbol : ISymbol
             {
-                using var resolutions = ReadArray(_readSymbolKey, out var elementsFailureReason);
+                using var resolutions = ReadSymbolKeyArray(
+                    contextualSymbol, getContextualType, out var elementsFailureReason);
                 if (elementsFailureReason != null)
                 {
                     failureReason = elementsFailureReason;
@@ -581,7 +682,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 else if (kind == LocationKind.MetadataFile)
                 {
-                    var assemblyResolution = ReadSymbolKey(out var assemblyFailureReason);
+                    var assemblyResolution = ReadSymbolKey(contextualSymbol: null, out var assemblyFailureReason);
                     var moduleName = ReadString();
 
                     if (assemblyFailureReason != null)
@@ -656,7 +757,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             public PooledArrayBuilder<Location?> ReadLocationArray(out string? failureReason)
-                => ReadArray(_readLocation, out failureReason);
+                => ReadSimpleArray(_readLocation, out failureReason);
 
             #endregion
         }

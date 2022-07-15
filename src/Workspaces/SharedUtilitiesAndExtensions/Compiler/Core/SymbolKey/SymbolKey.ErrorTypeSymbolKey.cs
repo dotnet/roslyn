@@ -62,12 +62,17 @@ namespace Microsoft.CodeAnalysis
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
             {
+                var contextualType = reader.CurrentContextualSymbol as INamedTypeSymbol;
+
                 var name = reader.ReadRequiredString();
                 var containingSymbolResolution = ResolveContainer(reader, out var containingSymbolFailureReason);
                 var arity = reader.ReadInteger();
                 var isConstructed = reader.ReadBoolean();
 
-                using var typeArguments = reader.ReadSymbolKeyArray<ITypeSymbol>(out var typeArgumentsFailureReason);
+                using var typeArguments = reader.ReadSymbolKeyArray<INamedTypeSymbol, ITypeSymbol>(
+                    contextualType,
+                    getContextualType: static (contextualType, i) => SafeGet(contextualType.TypeArguments, i),
+                    out var typeArgumentsFailureReason);
 
                 if (containingSymbolFailureReason != null)
                 {
@@ -109,7 +114,7 @@ namespace Microsoft.CodeAnalysis
                 var type = reader.ReadInteger();
 
                 if (type == 0)
-                    return reader.ReadSymbolKey(out failureReason);
+                    return reader.ReadSymbolKey((reader.CurrentContextualSymbol as INamedTypeSymbol)?.ContainingType, out failureReason);
 
                 if (type == 1)
                 {

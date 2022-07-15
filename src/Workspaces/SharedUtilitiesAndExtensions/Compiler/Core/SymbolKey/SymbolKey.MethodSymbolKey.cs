@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -20,14 +21,17 @@ namespace Microsoft.CodeAnalysis
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
             {
-                var reducedFromResolution = reader.ReadSymbolKey(out var reducedFromFailureReason);
+                var contextualMethod = reader.CurrentContextualSymbol as IMethodSymbol;
+
+                var reducedFromResolution = reader.ReadSymbolKey(contextualMethod?.ReducedFrom, out var reducedFromFailureReason);
+                var receiverTypeResolution = reader.ReadSymbolKey(contextualMethod?.ReceiverType, out var receiverTypeFailureReason);
+
                 if (reducedFromFailureReason != null)
                 {
                     failureReason = $"({nameof(ReducedExtensionMethodSymbolKey)} {nameof(reducedFromResolution)} failed -> {reducedFromFailureReason})";
                     return default;
                 }
 
-                var receiverTypeResolution = reader.ReadSymbolKey(out var receiverTypeFailureReason);
                 if (receiverTypeFailureReason != null)
                 {
                     failureReason = $"({nameof(ReducedExtensionMethodSymbolKey)} {nameof(receiverTypeResolution)} failed -> {receiverTypeFailureReason})";
@@ -38,9 +42,7 @@ namespace Microsoft.CodeAnalysis
                 foreach (var reducedFrom in reducedFromResolution.OfType<IMethodSymbol>())
                 {
                     foreach (var receiverType in receiverTypeResolution.OfType<ITypeSymbol>())
-                    {
                         result.AddIfNotNull(reducedFrom.ReduceExtensionMethod(receiverType));
-                    }
                 }
 
                 return CreateResolution(result, $"({nameof(ReducedExtensionMethodSymbolKey)} failed)", out failureReason);
@@ -60,14 +62,21 @@ namespace Microsoft.CodeAnalysis
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
             {
-                var constructedFrom = reader.ReadSymbolKey(out var constructedFromFailureReason);
+                var contextualMethod = reader.CurrentContextualSymbol as IMethodSymbol;
+
+                var constructedFrom = reader.ReadSymbolKey(contextualMethod?.ConstructedFrom, out var constructedFromFailureReason);
+
+                using var typeArguments = reader.ReadSymbolKeyArray<IMethodSymbol, ITypeSymbol>(
+                    contextualMethod,
+                    getContextualType: static (contextualMethod, i) => SafeGet(contextualMethod.TypeArguments, i),
+                    out var typeArgumentsFailureReason);
+
                 if (constructedFromFailureReason != null)
                 {
                     failureReason = $"({nameof(ConstructedMethodSymbolKey)} {nameof(constructedFrom)} failed -> {constructedFromFailureReason})";
                     return default;
                 }
 
-                using var typeArguments = reader.ReadSymbolKeyArray<ITypeSymbol>(out var typeArgumentsFailureReason);
                 if (typeArgumentsFailureReason != null)
                 {
                     failureReason = $"({nameof(ConstructedMethodSymbolKey)} {nameof(typeArguments)} failed -> {typeArgumentsFailureReason})";
@@ -128,8 +137,6 @@ namespace Microsoft.CodeAnalysis
                 // happens with cases like Goo<T>(T t);
                 visitor.PushMethod(symbol);
 
-                visitor.WriteParameterTypesArray(symbol.OriginalDefinition.Parameters);
-
                 if (symbol.MethodKind == MethodKind.Conversion)
                 {
                     visitor.WriteSymbolKey(symbol.ReturnType);
@@ -138,6 +145,8 @@ namespace Microsoft.CodeAnalysis
                 {
                     visitor.WriteSymbolKey(null);
                 }
+
+                visitor.WriteParameterTypesArray(symbol.OriginalDefinition.Parameters);
 
                 // Done writing the signature of this method.  Remove it from the set of methods
                 // we're writing signatures for.
@@ -148,7 +157,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var metadataName = reader.ReadRequiredString();
 
-                var containingType = reader.ReadSymbolKey(out var containingTypeFailureReason);
+                var containingType = reader.ReadSymbolKey(reader.CurrentContextualSymbol?.ContainingSymbol, out var containingTypeFailureReason);
                 var arity = reader.ReadInteger();
                 var isPartialMethodImplementationPart = reader.ReadBoolean();
                 using var parameterRefKinds = reader.ReadRefKindArray();
@@ -161,44 +170,56 @@ namespace Microsoft.CodeAnalysis
                 // Because of this, we keep track of where we are in the reader.  Before resolving
                 // every parameter list, we'll mark which method we're on and we'll rewind to this
                 // point.
-                var beforeParametersPosition = reader.Position;
+                var beforeReturnTypeAndParameters = reader.Position;
 
                 using var methods = GetMembersOfNamedType<IMethodSymbol>(containingType, metadataName: null);
-                using var result = PooledArrayBuilder<IMethodSymbol>.GetInstance();
-
+                IMethodSymbol? method = null;
                 foreach (var candidate in methods)
                 {
-                    var method = Resolve(reader, metadataName, arity, isPartialMethodImplementationPart,
-                        parameterRefKinds, beforeParametersPosition, candidate);
-
-                    // Note: after finding the first method that matches we stop.  That's necessary
-                    // as we cache results while searching.  We don't want to override these positive
-                    // matches with a negative ones if we were to continue searching.
-                    if (method != null)
+                    if (candidate.Arity != arity ||
+                        candidate.MetadataName != metadataName ||
+                        !ParameterRefKindsMatch(candidate.Parameters, parameterRefKinds))
                     {
-                        result.AddIfNotNull(method);
-                        break;
+                        continue;
                     }
+
+                    // Method looks like a potential match.  It has the right arity, name and refkinds match.  We now
+                    // need to do the more complicated work of checking the parameters (and possibly the return type).
+                    // This is more complicated because those symbols might refer to method type parameters.  In order
+                    // for resolution to work on those type parameters, we have to keep track in the reader that we're
+                    // resolving this method. 
+                    using (reader.PushMethod(candidate))
+                    {
+                        method = Resolve(reader, isPartialMethodImplementationPart, candidate);
+                    }
+
+                    // Note: after finding the first method that matches we stop.  That's necessary as we cache results
+                    // while searching.  We don't want to override these positive matches with a negative ones if we
+                    // were to continue searching.
+                    if (method != null)
+                        break;
+
+                    // reset ourselves so we can check the return-type/parameters against the next candidate.
+                    reader.Position = beforeReturnTypeAndParameters;
                 }
 
-                if (reader.Position == beforeParametersPosition)
+                if (reader.Position == beforeReturnTypeAndParameters)
                 {
-                    // We didn't find any candidates.  We still need to stream through this
-                    // method signature so the reader is in a proper position.
+                    // We didn't find a match.  Read through the stream one final time so we're at the correct location
+                    // after this MethodSymbolKey.
 
-                    // Push an null-method to our stack so that any method-type-parameters
-                    // can at least be read (if not resolved) properly.
-                    reader.PushMethod(method: null);
+                    // Push an null-method to our stack so that any method-type-parameters can at least be read (if not
+                    // resolved) properly.
+                    using var _1 = reader.PushMethod(method: null);
 
-                    // read out the values.  We don't actually need to use them, but we have
-                    // to effectively read past them in the string.
+                    // Read the return type.
+                    _ = reader.ReadSymbolKey(contextualSymbol: null, out _);
 
-                    using (reader.ReadSymbolKeyArray<ITypeSymbol>(out _))
-                    {
-                        _ = reader.ReadSymbolKey(out _);
-                    }
-
-                    reader.PopMethod(method: null);
+                    // then the parameter types.
+                    _ = reader.ReadSymbolKeyArray<IMethodSymbol, ITypeSymbol>(
+                        contextualSymbol: null,
+                        getContextualType: static (_, _) => null,
+                        failureReason: out _);
                 }
 
                 if (containingTypeFailureReason != null)
@@ -207,63 +228,39 @@ namespace Microsoft.CodeAnalysis
                     return default;
                 }
 
-                return CreateResolution(result, $"({nameof(MethodSymbolKey)} '{metadataName}' not found)", out failureReason);
-            }
-
-            private static IMethodSymbol? Resolve(
-                SymbolKeyReader reader, string metadataName, int arity, bool isPartialMethodImplementationPart,
-                PooledArrayBuilder<RefKind> parameterRefKinds, int beforeParametersPosition,
-                IMethodSymbol method)
-            {
-                if (method.Arity == arity &&
-                    method.MetadataName == metadataName &&
-                    ParameterRefKindsMatch(method.Parameters, parameterRefKinds))
+                if (method == null)
                 {
-                    // Method looks like a potential match.  It has the right arity, name and 
-                    // refkinds match.  We now need to do the more complicated work of checking
-                    // the parameters (and possibly the return type).  This is more complicated 
-                    // because those symbols might refer to method type parameters.  In order
-                    // for resolution to work on those type parameters, we have to keep track
-                    // in the reader that we're resolving this method. 
-
-                    // Restore our position to right before the list of parameters.  Also, push
-                    // this method into our method-resolution-stack so that we can properly resolve
-                    // method type parameter ordinals.
-                    reader.Position = beforeParametersPosition;
-                    reader.PushMethod(method);
-
-                    var result = Resolve(reader, isPartialMethodImplementationPart, method);
-
-                    reader.PopMethod(method);
-
-                    if (result != null)
-                    {
-                        return result;
-                    }
+                    failureReason = $"({nameof(MethodSymbolKey)} '{metadataName}' not found)";
+                    return default;
                 }
 
-                return null;
+                failureReason = null;
+                return new SymbolKeyResolution(method);
             }
 
             private static IMethodSymbol? Resolve(
                 SymbolKeyReader reader, bool isPartialMethodImplementationPart, IMethodSymbol method)
             {
-                using var originalParameterTypes = reader.ReadSymbolKeyArray<ITypeSymbol>(out _);
-                var returnType = (ITypeSymbol?)reader.ReadSymbolKey(out _).GetAnySymbol();
-
-                if (reader.ParameterTypesMatch(method.OriginalDefinition.Parameters, originalParameterTypes))
+                var returnType = (ITypeSymbol?)reader.ReadSymbolKey(contextualSymbol: method.ReturnType, out _).GetAnySymbol();
+                if (returnType != null &&
+                    !reader.Comparer.Equals(returnType, method.ReturnType))
                 {
-                    if (returnType == null ||
-                        reader.Comparer.Equals(returnType, method.ReturnType))
-                    {
-                        if (isPartialMethodImplementationPart)
-                        {
-                            method = method.PartialImplementationPart ?? method;
-                        }
+                    // ok to early exit here, the topmost caller will reset the position in the stream accordingly.
+                    return null;
+                }
 
-                        Debug.Assert(method != null);
-                        return method;
+                if (reader.ParameterTypesMatch(
+                        method,
+                        getContextualType: static (method, i) => SafeGet(method.Parameters, i)?.Type,
+                        method.OriginalDefinition.Parameters))
+                {
+                    if (isPartialMethodImplementationPart)
+                    {
+                        method = method.PartialImplementationPart ?? method;
                     }
+
+                    Debug.Assert(method != null);
+                    return method;
                 }
 
                 return null;

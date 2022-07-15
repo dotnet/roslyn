@@ -7,6 +7,7 @@ using System.Linq;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
+using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -20,8 +21,8 @@ namespace Microsoft.CodeAnalysis
 
                 var isError = symbol.TupleUnderlyingType!.TypeKind == TypeKind.Error;
 
-                var friendlyNames = ArrayBuilder<string?>.GetInstance();
-                var locations = ArrayBuilder<Location>.GetInstance();
+                using var _1 = ArrayBuilder<string?>.GetInstance(out var friendlyNames);
+                using var _2 = ArrayBuilder<Location>.GetInstance(out var locations);
 
                 foreach (var element in symbol.TupleElements)
                 {
@@ -30,19 +31,17 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 visitor.WriteBoolean(isError);
-                visitor.WriteStringArray(friendlyNames.ToImmutableAndFree());
-                visitor.WriteLocationArray(locations.ToImmutableAndFree());
+                visitor.WriteStringArray(friendlyNames.ToImmutable());
+                visitor.WriteLocationArray(locations.ToImmutable());
 
                 if (isError)
                 {
-                    var elementTypes = ArrayBuilder<ISymbol>.GetInstance();
+                    using var _3 = ArrayBuilder<ISymbol>.GetInstance(out var elementTypes);
 
                     foreach (var element in symbol.TupleElements)
-                    {
                         elementTypes.Add(element.Type);
-                    }
 
-                    visitor.WriteSymbolKeyArray(elementTypes.ToImmutableAndFree());
+                    visitor.WriteSymbolKeyArray(elementTypes.ToImmutable());
                 }
                 else
                 {
@@ -61,7 +60,9 @@ namespace Microsoft.CodeAnalysis
             {
                 using var elementNames = reader.ReadStringArray();
                 var elementLocations = ReadElementLocations(reader, out var elementLocationsFailureReason);
-                var underlyingTypeResolution = reader.ReadSymbolKey(out var underlyingTypeFailureReason);
+                var underlyingTypeResolution = reader.ReadSymbolKey(
+                    (reader.CurrentContextualSymbol as INamedTypeSymbol)?.TupleUnderlyingType,
+                    out var underlyingTypeFailureReason);
 
                 if (underlyingTypeFailureReason != null)
                 {
@@ -84,9 +85,16 @@ namespace Microsoft.CodeAnalysis
 
             private static SymbolKeyResolution ResolveErrorTuple(SymbolKeyReader reader, out string? failureReason)
             {
+                var contextualType = reader.CurrentContextualSymbol is INamedTypeSymbol { IsTupleType: true } tupleType
+                    ? tupleType
+                    : null;
+
                 using var elementNames = reader.ReadStringArray();
                 var elementLocations = ReadElementLocations(reader, out var elementLocationsFailureReason);
-                using var elementTypes = reader.ReadSymbolKeyArray<ITypeSymbol>(out var elementTypesFailureReason);
+                using var elementTypes = reader.ReadSymbolKeyArray<INamedTypeSymbol, ITypeSymbol>(
+                    contextualType,
+                    static (contextualType, i) => SafeGet(contextualType.TupleElements, i)?.Type,
+                    out var elementTypesFailureReason);
 
                 if (elementLocationsFailureReason != null)
                 {

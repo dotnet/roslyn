@@ -4,6 +4,8 @@
 
 using System.Collections.Immutable;
 using System.Reflection.Metadata;
+using System.Runtime.CompilerServices;
+
 namespace Microsoft.CodeAnalysis
 {
     internal partial struct SymbolKey
@@ -28,12 +30,17 @@ namespace Microsoft.CodeAnalysis
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
             {
+                var functionPointerType = reader.CurrentContextualSymbol as IFunctionPointerTypeSymbol;
+
                 var callingConvention = (SignatureCallingConvention)reader.ReadInteger();
 
                 var callingConventionModifiers = ImmutableArray<INamedTypeSymbol>.Empty;
                 if (callingConvention == SignatureCallingConvention.Unmanaged)
                 {
-                    using var modifiersBuilder = reader.ReadSymbolKeyArray<INamedTypeSymbol>(out var conventionTypesFailureReason);
+                    using var modifiersBuilder = reader.ReadSymbolKeyArray<IFunctionPointerTypeSymbol, INamedTypeSymbol>(
+                        functionPointerType,
+                        static (functionPointerType, i) => SafeGet(functionPointerType.Signature.UnmanagedCallingConventionTypes, i),
+                        out var conventionTypesFailureReason);
                     if (conventionTypesFailureReason != null)
                     {
                         failureReason = $"({nameof(FunctionPointerTypeSymbolKey)} {nameof(callingConventionModifiers)} failed -> {conventionTypesFailureReason})";
@@ -44,9 +51,12 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 var returnRefKind = reader.ReadRefKind();
-                var returnType = reader.ReadSymbolKey(out var returnTypeFailureReason);
+                var returnType = reader.ReadSymbolKey(functionPointerType?.Signature.ReturnType, out var returnTypeFailureReason);
                 using var paramRefKinds = reader.ReadRefKindArray();
-                using var parameterTypes = reader.ReadSymbolKeyArray<ITypeSymbol>(out var parameterTypesFailureReason);
+                using var parameterTypes = reader.ReadSymbolKeyArray<IFunctionPointerTypeSymbol, ITypeSymbol>(
+                    functionPointerType,
+                    static (functionPointerType, i) => SafeGet(functionPointerType.Signature.Parameters, i)?.Type,
+                    out var parameterTypesFailureReason);
 
                 if (returnTypeFailureReason != null)
                 {
