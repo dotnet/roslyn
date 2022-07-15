@@ -54,7 +54,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\TypeInferenceService\AbstractTypeInferenceService.AbstractTypeInferrer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\TypeInferenceService\AbstractTypeInferenceService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\TypeInferenceService\ITypeInferenceService.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Log\LogAggregator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Log\CountLogAggregator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Log\AbstractLogAggregator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\SemanticsFactsService\AbstractSemanticFactsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\SemanticsFactsService\ISemanticFactsService.cs" />
