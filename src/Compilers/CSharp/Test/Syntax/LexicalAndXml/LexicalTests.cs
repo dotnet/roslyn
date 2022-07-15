@@ -3766,14 +3766,11 @@ class C
             var trivia = token.LeadingTrivia[0];
             Assert.True(trivia.Kind() == SyntaxKind.ConflictMarkerTrivia);
             Assert.Equal("======= Trailing", trivia.ToFullString());
-            Assert.Equal(16, trivia.Span.Length);
             Assert.True(trivia.ContainsDiagnostics);
             Assert.Equal((int)ErrorCode.ERR_Merge_conflict_marker_encountered, trivia.Errors().Single().Code);
 
             trivia = token.LeadingTrivia[1];
             Assert.True(trivia.Kind() == SyntaxKind.EndOfLineTrivia);
-            Assert.Equal(16, trivia.Span.Start);
-            Assert.Equal(2, trivia.Span.Length);
 
             trivia = token.LeadingTrivia[2];
             Assert.True(trivia.Kind() == SyntaxKind.DisabledTextTrivia);
@@ -3788,9 +3785,7 @@ class C
 
             trivia = token.LeadingTrivia[3];
             Assert.True(trivia.Kind() == SyntaxKind.ConflictMarkerTrivia);
-            Assert.Equal(65, trivia.Span.Start);
             Assert.Equal(">>>>>>> Actually the end", trivia.ToFullString());
-            Assert.Equal(24, trivia.Span.Length);
             Assert.True(trivia.ContainsDiagnostics);
             Assert.Equal((int)ErrorCode.ERR_Merge_conflict_marker_encountered, trivia.Errors().Single().Code);
         }
@@ -3813,14 +3808,11 @@ class C
             var trivia = token.LeadingTrivia[0];
             Assert.True(trivia.Kind() == SyntaxKind.ConflictMarkerTrivia);
             Assert.Equal("======= Trailing", trivia.ToFullString());
-            Assert.Equal(16, trivia.Span.Length);
             Assert.True(trivia.ContainsDiagnostics);
             Assert.Equal((int)ErrorCode.ERR_Merge_conflict_marker_encountered, trivia.Errors().Single().Code);
 
             trivia = token.LeadingTrivia[1];
             Assert.True(trivia.Kind() == SyntaxKind.EndOfLineTrivia);
-            Assert.Equal(16, trivia.Span.Start);
-            Assert.Equal(2, trivia.Span.Length);
 
             trivia = token.LeadingTrivia[2];
             Assert.True(trivia.Kind() == SyntaxKind.DisabledTextTrivia);
@@ -3830,14 +3822,10 @@ class C
                 more disabled text
 
                 """, trivia.ToFullString());
-            Assert.Equal(18, trivia.Span.Start);
-            Assert.Equal(47, trivia.Span.Length);
 
             trivia = token.LeadingTrivia[3];
             Assert.True(trivia.Kind() == SyntaxKind.ConflictMarkerTrivia);
-            Assert.Equal(65, trivia.Span.Start);
             Assert.Equal(">>>>>>> Actually the end", trivia.ToFullString());
-            Assert.Equal(24, trivia.Span.Length);
             Assert.True(trivia.ContainsDiagnostics);
             Assert.Equal((int)ErrorCode.ERR_Merge_conflict_marker_encountered, trivia.Errors().Single().Code);
         }
@@ -3867,7 +3855,6 @@ class C
             Assert.True(token.HasLeadingTrivia);
             var trivia = token.LeadingTrivia.Single();
             Assert.True(trivia.Kind() == SyntaxKind.ConflictMarkerTrivia);
-            Assert.Equal(22, trivia.Span.Length);
 
             Assert.True(trivia.ContainsDiagnostics);
             var errors = trivia.Errors();
@@ -3883,7 +3870,6 @@ class C
             Assert.Equal(3, token.LeadingTrivia.Count);
             trivia = token.LeadingTrivia[0];
             Assert.True(trivia.Kind() == SyntaxKind.ConflictMarkerTrivia);
-            Assert.Equal(16, trivia.Span.Length);
 
             Assert.True(trivia.ContainsDiagnostics);
             errors = trivia.Errors();
@@ -3892,13 +3878,9 @@ class C
 
             trivia = token.LeadingTrivia[1];
             Assert.True(trivia.Kind() == SyntaxKind.EndOfLineTrivia);
-            Assert.Equal(16, trivia.Span.Start);
-            Assert.Equal(2, trivia.Span.Length);
 
             trivia = token.LeadingTrivia[2];
             Assert.True(trivia.Kind() == SyntaxKind.DisabledTextTrivia);
-            Assert.Equal(18, trivia.Span.Start);
-            Assert.Equal(13, trivia.Span.Length);
 
             token = Lex("""
                 ||||||| Trailing
@@ -3911,7 +3893,6 @@ class C
 
             trivia = token.LeadingTrivia[0];
             Assert.True(trivia.Kind() == SyntaxKind.ConflictMarkerTrivia);
-            Assert.Equal(16, trivia.Span.Length);
 
             Assert.True(trivia.ContainsDiagnostics);
             errors = trivia.Errors();
@@ -3920,11 +3901,9 @@ class C
 
             trivia = token.LeadingTrivia[1];
             Assert.True(trivia.Kind() == SyntaxKind.EndOfLineTrivia);
-            Assert.Equal(2, trivia.Span.Length);
 
             trivia = token.LeadingTrivia[2];
             Assert.True(trivia.Kind() == SyntaxKind.DisabledTextTrivia);
-            Assert.Equal(34, trivia.Span.Length);
 
             token = Lex("""
                 ||||||| Trailing
@@ -3936,7 +3915,6 @@ class C
             Assert.Equal(4, token.LeadingTrivia.Count);
             var trivia1 = token.LeadingTrivia[0];
             Assert.True(trivia1.Kind() == SyntaxKind.ConflictMarkerTrivia);
-            Assert.Equal(16, trivia1.Span.Length);
 
             Assert.True(trivia1.ContainsDiagnostics);
             errors = trivia1.Errors();
@@ -3945,18 +3923,12 @@ class C
 
             var trivia2 = token.LeadingTrivia[1];
             Assert.True(trivia2.Kind() == SyntaxKind.EndOfLineTrivia);
-            Assert.Equal(16, trivia2.Span.Start);
-            Assert.Equal(2, trivia2.Span.Length);
 
             var trivia3 = token.LeadingTrivia[2];
             Assert.True(trivia3.Kind() == SyntaxKind.DisabledTextTrivia);
-            Assert.Equal(18, trivia3.Span.Start);
-            Assert.Equal(15, trivia3.Span.Length);
 
             var trivia4 = token.LeadingTrivia[3];
             Assert.True(trivia4.Kind() == SyntaxKind.ConflictMarkerTrivia);
-            Assert.Equal(33, trivia4.Span.Start);
-            Assert.Equal(24, trivia4.Span.Length);
 
             Assert.True(trivia4.ContainsDiagnostics);
             errors = trivia4.Errors();
@@ -3973,7 +3945,6 @@ class C
             Assert.Equal(3, token.LeadingTrivia.Count);
             trivia1 = token.LeadingTrivia[0];
             Assert.True(trivia1.Kind() == SyntaxKind.ConflictMarkerTrivia);
-            Assert.Equal(16, trivia1.Span.Length);
 
             Assert.True(trivia1.ContainsDiagnostics);
             errors = trivia1.Errors();
@@ -3982,13 +3953,9 @@ class C
 
             trivia2 = token.LeadingTrivia[1];
             Assert.True(trivia2.Kind() == SyntaxKind.EndOfLineTrivia);
-            Assert.Equal(16, trivia2.Span.Start);
-            Assert.Equal(2, trivia2.Span.Length);
 
             trivia3 = token.LeadingTrivia[2];
             Assert.True(trivia3.Kind() == SyntaxKind.ConflictMarkerTrivia);
-            Assert.Equal(18, trivia3.Span.Start);
-            Assert.Equal(24, trivia3.Span.Length);
 
             Assert.True(trivia3.ContainsDiagnostics);
             errors = trivia3.Errors();
@@ -4011,32 +3978,24 @@ class C
             var trivia = token.LeadingTrivia[0];
             Assert.True(trivia.Kind() == SyntaxKind.ConflictMarkerTrivia);
             Assert.Equal("||||||| Mid", trivia.ToFullString());
-            Assert.Equal(11, trivia.Span.Length);
             Assert.True(trivia.ContainsDiagnostics);
             Assert.Equal((int)ErrorCode.ERR_Merge_conflict_marker_encountered, trivia.Errors().Single().Code);
 
             trivia = token.LeadingTrivia[1];
             Assert.True(trivia.Kind() == SyntaxKind.EndOfLineTrivia);
-            Assert.Equal(11, trivia.Span.Start);
-            Assert.Equal(2, trivia.Span.Length);
 
             trivia = token.LeadingTrivia[2];
             Assert.True(trivia.Kind() == SyntaxKind.ConflictMarkerTrivia);
             Assert.Equal("======= Trailing", trivia.ToFullString());
-            Assert.Equal(16, trivia.Span.Length);
             Assert.True(trivia.ContainsDiagnostics);
             Assert.Equal((int)ErrorCode.ERR_Merge_conflict_marker_encountered, trivia.Errors().Single().Code);
 
             trivia = token.LeadingTrivia[3];
             Assert.True(trivia.Kind() == SyntaxKind.EndOfLineTrivia);
-            Assert.Equal(29, trivia.Span.Start);
-            Assert.Equal(2, trivia.Span.Length);
 
             trivia = token.LeadingTrivia[4];
             Assert.True(trivia.Kind() == SyntaxKind.ConflictMarkerTrivia);
-            Assert.Equal(31, trivia.Span.Start);
             Assert.Equal(">>>>>>> Actually the end", trivia.ToFullString());
-            Assert.Equal(24, trivia.Span.Length);
             Assert.True(trivia.ContainsDiagnostics);
             Assert.Equal((int)ErrorCode.ERR_Merge_conflict_marker_encountered, trivia.Errors().Single().Code);
         }
@@ -4058,14 +4017,11 @@ class C
             var trivia = token.LeadingTrivia[0];
             Assert.True(trivia.Kind() == SyntaxKind.ConflictMarkerTrivia);
             Assert.Equal("||||||| Mid", trivia.ToFullString());
-            Assert.Equal(11, trivia.Span.Length);
             Assert.True(trivia.ContainsDiagnostics);
             Assert.Equal((int)ErrorCode.ERR_Merge_conflict_marker_encountered, trivia.Errors().Single().Code);
 
             trivia = token.LeadingTrivia[1];
             Assert.True(trivia.Kind() == SyntaxKind.EndOfLineTrivia);
-            Assert.Equal(11, trivia.Span.Start);
-            Assert.Equal(2, trivia.Span.Length);
 
             trivia = token.LeadingTrivia[2];
             Assert.True(trivia.Kind() == SyntaxKind.DisabledTextTrivia);
@@ -4073,20 +4029,15 @@ class C
                 disabled text 1
 
                 """, trivia.ToFullString());
-            Assert.Equal(13, trivia.Span.Start);
-            Assert.Equal(17, trivia.Span.Length);
 
             trivia = token.LeadingTrivia[3];
             Assert.True(trivia.Kind() == SyntaxKind.ConflictMarkerTrivia);
             Assert.Equal("======= Trailing", trivia.ToFullString());
-            Assert.Equal(16, trivia.Span.Length);
             Assert.True(trivia.ContainsDiagnostics);
             Assert.Equal((int)ErrorCode.ERR_Merge_conflict_marker_encountered, trivia.Errors().Single().Code);
 
             trivia = token.LeadingTrivia[4];
             Assert.True(trivia.Kind() == SyntaxKind.EndOfLineTrivia);
-            Assert.Equal(46, trivia.Span.Start);
-            Assert.Equal(2, trivia.Span.Length);
 
             trivia = token.LeadingTrivia[5];
             Assert.True(trivia.Kind() == SyntaxKind.DisabledTextTrivia);
@@ -4094,14 +4045,10 @@ class C
                 disabled text 2
 
                 """, trivia.ToFullString());
-            Assert.Equal(48, trivia.Span.Start);
-            Assert.Equal(17, trivia.Span.Length);
 
             trivia = token.LeadingTrivia[6];
             Assert.True(trivia.Kind() == SyntaxKind.ConflictMarkerTrivia);
-            Assert.Equal(65, trivia.Span.Start);
             Assert.Equal(">>>>>>> Actually the end", trivia.ToFullString());
-            Assert.Equal(24, trivia.Span.Length);
             Assert.True(trivia.ContainsDiagnostics);
             Assert.Equal((int)ErrorCode.ERR_Merge_conflict_marker_encountered, trivia.Errors().Single().Code);
         }
@@ -4126,14 +4073,11 @@ class C
             var trivia = token.LeadingTrivia[0];
             Assert.True(trivia.Kind() == SyntaxKind.ConflictMarkerTrivia);
             Assert.Equal("||||||| Mid", trivia.ToFullString());
-            Assert.Equal(11, trivia.Span.Length);
             Assert.True(trivia.ContainsDiagnostics);
             Assert.Equal((int)ErrorCode.ERR_Merge_conflict_marker_encountered, trivia.Errors().Single().Code);
 
             trivia = token.LeadingTrivia[1];
             Assert.True(trivia.Kind() == SyntaxKind.EndOfLineTrivia);
-            Assert.Equal(11, trivia.Span.Start);
-            Assert.Equal(2, trivia.Span.Length);
 
             trivia = token.LeadingTrivia[2];
             Assert.True(trivia.Kind() == SyntaxKind.DisabledTextTrivia);
@@ -4141,20 +4085,15 @@ class C
                 disabled text 1
 
                 """, trivia.ToFullString());
-            Assert.Equal(13, trivia.Span.Start);
-            Assert.Equal(17, trivia.Span.Length);
 
             trivia = token.LeadingTrivia[3];
             Assert.True(trivia.Kind() == SyntaxKind.ConflictMarkerTrivia);
             Assert.Equal("======= Trailing", trivia.ToFullString());
-            Assert.Equal(16, trivia.Span.Length);
             Assert.True(trivia.ContainsDiagnostics);
             Assert.Equal((int)ErrorCode.ERR_Merge_conflict_marker_encountered, trivia.Errors().Single().Code);
 
             trivia = token.LeadingTrivia[4];
             Assert.True(trivia.Kind() == SyntaxKind.EndOfLineTrivia);
-            Assert.Equal(46, trivia.Span.Start);
-            Assert.Equal(2, trivia.Span.Length);
 
             trivia = token.LeadingTrivia[5];
             Assert.True(trivia.Kind() == SyntaxKind.DisabledTextTrivia);
@@ -4164,14 +4103,10 @@ class C
                 more disabled text
 
                 """, trivia.ToFullString());
-            Assert.Equal(48, trivia.Span.Start);
-            Assert.Equal(47, trivia.Span.Length);
 
             trivia = token.LeadingTrivia[6];
             Assert.True(trivia.Kind() == SyntaxKind.ConflictMarkerTrivia);
-            Assert.Equal(95, trivia.Span.Start);
             Assert.Equal(">>>>>>> Actually the end", trivia.ToFullString());
-            Assert.Equal(24, trivia.Span.Length);
             Assert.True(trivia.ContainsDiagnostics);
             Assert.Equal((int)ErrorCode.ERR_Merge_conflict_marker_encountered, trivia.Errors().Single().Code);
         }
@@ -4196,14 +4131,11 @@ class C
             var trivia = token.LeadingTrivia[0];
             Assert.True(trivia.Kind() == SyntaxKind.ConflictMarkerTrivia);
             Assert.Equal("||||||| Mid", trivia.ToFullString());
-            Assert.Equal(11, trivia.Span.Length);
             Assert.True(trivia.ContainsDiagnostics);
             Assert.Equal((int)ErrorCode.ERR_Merge_conflict_marker_encountered, trivia.Errors().Single().Code);
 
             trivia = token.LeadingTrivia[1];
             Assert.True(trivia.Kind() == SyntaxKind.EndOfLineTrivia);
-            Assert.Equal(11, trivia.Span.Start);
-            Assert.Equal(2, trivia.Span.Length);
 
             trivia = token.LeadingTrivia[2];
             Assert.True(trivia.Kind() == SyntaxKind.DisabledTextTrivia);
@@ -4213,20 +4145,15 @@ class C
                 more disabled text
 
                 """, trivia.ToFullString());
-            Assert.Equal(13, trivia.Span.Start);
-            Assert.Equal(47, trivia.Span.Length);
 
             trivia = token.LeadingTrivia[3];
             Assert.True(trivia.Kind() == SyntaxKind.ConflictMarkerTrivia);
             Assert.Equal("======= Trailing", trivia.ToFullString());
-            Assert.Equal(16, trivia.Span.Length);
             Assert.True(trivia.ContainsDiagnostics);
             Assert.Equal((int)ErrorCode.ERR_Merge_conflict_marker_encountered, trivia.Errors().Single().Code);
 
             trivia = token.LeadingTrivia[4];
             Assert.True(trivia.Kind() == SyntaxKind.EndOfLineTrivia);
-            Assert.Equal(76, trivia.Span.Start);
-            Assert.Equal(2, trivia.Span.Length);
 
             trivia = token.LeadingTrivia[5];
             Assert.True(trivia.Kind() == SyntaxKind.DisabledTextTrivia);
@@ -4234,14 +4161,10 @@ class C
                 disabled text 2
 
                 """, trivia.ToFullString());
-            Assert.Equal(78, trivia.Span.Start);
-            Assert.Equal(17, trivia.Span.Length);
 
             trivia = token.LeadingTrivia[6];
             Assert.True(trivia.Kind() == SyntaxKind.ConflictMarkerTrivia);
-            Assert.Equal(95, trivia.Span.Start);
             Assert.Equal(">>>>>>> Actually the end", trivia.ToFullString());
-            Assert.Equal(24, trivia.Span.Length);
             Assert.True(trivia.ContainsDiagnostics);
             Assert.Equal((int)ErrorCode.ERR_Merge_conflict_marker_encountered, trivia.Errors().Single().Code);
         }
