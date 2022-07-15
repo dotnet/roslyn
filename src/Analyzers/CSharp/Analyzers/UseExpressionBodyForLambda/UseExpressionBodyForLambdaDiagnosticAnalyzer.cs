@@ -20,15 +20,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
         internal static readonly LocalizableString UseExpressionBodyTitle = new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_expression_body_for_lambda_expressions), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources));
         internal static readonly LocalizableString UseBlockBodyTitle = new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_block_body_for_lambda_expressions), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources));
 
-        public UseExpressionBodyForLambdaDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.UseExpressionBodyForLambdaExpressionsDiagnosticId,
-                   EnforceOnBuildValues.UseExpressionBodyForLambdaExpressions,
-                   CSharpCodeStyleOptions.PreferExpressionBodiedLambdas,
-                   LanguageNames.CSharp,
-                   UseExpressionBodyTitle,
-                   UseExpressionBodyTitle,
-                   isUnnecessary: false,
-                   configurable: true)
+        private static readonly DiagnosticDescriptor s_useExpressionBodyForLambda = CreateDescriptorWithId(UseExpressionBodyTitle, UseExpressionBodyTitle);
+        private static readonly DiagnosticDescriptor s_useBlockBodyForLambda = CreateDescriptorWithId(UseBlockBodyTitle, UseBlockBodyTitle);
+
+        public UseExpressionBodyForLambdaDiagnosticAnalyzer() : base(
+            ImmutableDictionary<DiagnosticDescriptor, Options.ILanguageSpecificOption>.Empty
+                .Add(s_useExpressionBodyForLambda, CSharpCodeStyleOptions.PreferExpressionBodiedLambdas)
+                .Add(s_useBlockBodyForLambda, CSharpCodeStyleOptions.PreferExpressionBodiedLambdas),
+            LanguageNames.CSharp)
         {
         }
 
@@ -96,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
                 var additionalLocations = ImmutableArray.Create(declaration.GetLocation());
                 var properties = ImmutableDictionary<string, string?>.Empty;
                 return DiagnosticHelper.Create(
-                    CreateDescriptorWithId(UseExpressionBodyTitle, UseExpressionBodyTitle),
+                    s_useExpressionBodyForLambda,
                     location, option.Notification.Severity, additionalLocations, properties);
             }
 
@@ -109,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
                 var properties = ImmutableDictionary<string, string?>.Empty;
                 var additionalLocations = ImmutableArray.Create(declaration.GetLocation());
                 return DiagnosticHelper.Create(
-                    CreateDescriptorWithId(UseBlockBodyTitle, UseBlockBodyTitle),
+                    s_useBlockBodyForLambda,
                     location, option.Notification.Severity, additionalLocations, properties);
             }
 
@@ -205,11 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
         private static DiagnosticDescriptor CreateDescriptorWithId(
             LocalizableString title, LocalizableString message)
         {
-            return new DiagnosticDescriptor(
-                IDEDiagnosticIds.UseExpressionBodyForLambdaExpressionsDiagnosticId, title, message,
-                DiagnosticCategory.Style,
-                DiagnosticSeverity.Hidden,
-                isEnabledByDefault: true);
+            return CreateDescriptorWithId(IDEDiagnosticIds.UseExpressionBodyForLambdaExpressionsDiagnosticId, EnforceOnBuildValues.UseExpressionBodyForLambdaExpressions, title, message);
         }
     }
 }
