@@ -9707,12 +9707,12 @@ record C(int Y)
                 // (9,9): error CS8147: Properties which return by reference cannot have set accessors
                 //         set { }
                 Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithLocation(9, 9),
-                // (15,32): error CS1073: Unexpected token 'ref'
+                // (15,28): error CS8373: The left-hand side of a ref assignment must be a ref variable.
                 //         var c = new C(0) { X = ref a[0] };
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(15, 32),
-                // (17,26): error CS1073: Unexpected token 'ref'
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "X").WithLocation(15, 28),
+                // (17,22): error CS8373: The left-hand side of a ref assignment must be a ref variable.
                 //         c = c with { X = ref a[0] };
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(17, 26)
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "X").WithLocation(17, 22)
             );
         }
 
