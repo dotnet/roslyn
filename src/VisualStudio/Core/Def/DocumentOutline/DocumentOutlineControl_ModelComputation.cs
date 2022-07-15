@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             if (activeTextView is null)
                 return null;
 
-            var originalSnapshot = activeTextView.TextSnapshot;
+            var currentSnapshot = activeTextView.TextSnapshot;
             var textBuffer = activeTextView.TextBuffer;
 
             var filePath = GetFilePath();
@@ -88,7 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 if (responseBody is null)
                     return null;
 
-                return DocumentOutlineHelper.GetDocumentSymbolDataModel(responseBody, originalSnapshot);
+                return DocumentOutlineHelper.GetDocumentSymbolDataModel(responseBody, currentSnapshot);
             }
 
             string? GetFilePath()
