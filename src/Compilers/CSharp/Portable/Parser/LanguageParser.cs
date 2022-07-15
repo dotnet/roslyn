@@ -1201,6 +1201,8 @@ tryAgain:
                             modTok = ConvertToKeyword(this.EatToken());
                             modTok = CheckFeatureAvailability(modTok,
                                 isPartialType ? MessageID.IDS_FeaturePartialTypes : MessageID.IDS_FeaturePartialMethod);
+                            tokens.Add(modTok);
+                            return;
                         }
                         else if (nextToken.Kind == SyntaxKind.NamespaceKeyword)
                         {

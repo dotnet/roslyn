@@ -192,13 +192,27 @@ public class FileModifierParsingTests : ParsingTests
         EOF();
     }
 
-    [Theory]
-    [InlineData(SyntaxKind.RecordKeyword)]
-    public void FileModifier_04(SyntaxKind typeKeyword)
+    [Fact]
+    public void FileModifier_04()
     {
-        UsingNode($$"""
-            partial file {{SyntaxFacts.GetText(typeKeyword)}} C { }
-            """);
+        UsingNode("""
+            partial file record C { }
+            """,
+            // (1,1): error CS1031: Type expected
+            // partial file record C { }
+            Diagnostic(ErrorCode.ERR_TypeExpected, "partial").WithLocation(1, 1),
+            // (1,1): error CS1525: Invalid expression term 'partial'
+            // partial file record C { }
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(1, 1),
+            // (1,1): error CS1003: Syntax error, ',' expected
+            // partial file record C { }
+            Diagnostic(ErrorCode.ERR_SyntaxError, "partial").WithArguments(",").WithLocation(1, 1),
+            // (1,25): error CS1002: ; expected
+            // partial file record C { }
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(1, 25),
+            // (1,25): error CS1022: Type or namespace definition, or end-of-file expected
+            // partial file record C { }
+            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(1, 25));
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxFacts.GetBaseTypeDeclarationKind(typeKeyword));
@@ -243,7 +257,19 @@ public class FileModifierParsingTests : ParsingTests
     {
         UsingNode($$"""
             partial file record struct C { }
-            """);
+            """,
+            // (1,1): error CS1031: Type expected
+            // partial file record struct C { }
+            Diagnostic(ErrorCode.ERR_TypeExpected, "partial").WithLocation(1, 1),
+            // (1,1): error CS1525: Invalid expression term 'partial'
+            // partial file record struct C { }
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(1, 1),
+            // (1,1): error CS1003: Syntax error, ',' expected
+            // partial file record struct C { }
+            Diagnostic(ErrorCode.ERR_SyntaxError, "partial").WithArguments(",").WithLocation(1, 1),
+            // (1,21): error CS1002: ; expected
+            // partial file record struct C { }
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 21));
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.RecordStructDeclaration);
