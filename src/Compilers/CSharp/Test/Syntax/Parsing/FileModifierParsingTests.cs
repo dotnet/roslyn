@@ -215,11 +215,11 @@ public class FileModifierParsingTests : ParsingTests
             Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(1, 25));
         N(SyntaxKind.CompilationUnit);
         {
-            N(SyntaxFacts.GetBaseTypeDeclarationKind(typeKeyword));
+            N(SyntaxKind.RecordDeclaration);
             {
                 N(SyntaxKind.PartialKeyword);
                 N(SyntaxKind.FileKeyword);
-                N(typeKeyword);
+                N(SyntaxKind.RecordKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
                 N(SyntaxKind.CloseBraceToken);
