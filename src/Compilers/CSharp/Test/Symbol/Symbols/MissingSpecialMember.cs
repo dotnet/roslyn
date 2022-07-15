@@ -990,10 +990,10 @@ namespace System
                     case WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Item:
                     case WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Length:
+                    case WellKnownMember.System_GC__AllocateUninitializedArray_T:
                         // Not always available.
                         continue;
                 }
-                if (wkm == WellKnownMember.Count) continue; // Not a real value.
 
                 var symbol = comp.GetWellKnownTypeMember(wkm);
                 Assert.True((object)symbol != null, $"Unexpected null for {wkm}");
