@@ -18,8 +18,8 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageServiceBrokerShim
 {
-    // This shim type was created since the Microsoft.VisualStudio.LanguageServer.Client.Implementation package reference exists in
-    // Microsoft.VisualStudio.LanguageServices.Implementation (instead of Microsoft.VisualStudio.LanguageServices).
+    // Microsoft.VisualStudio.LanguageServer.Client.Implementation does not ship on nuget but Microsoft.VisualStudio.LanguageServices does so we cannot depend
+    // on it directly - we instead need this shim to act as a redirect.
     // The request for our dependencies to be available on nuget.org is tracked internally by: https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1542016/
     [Export(typeof(ILanguageServiceBrokerShim))]
     internal class LanguageServiceBrokerShim : ILanguageServiceBrokerShim
@@ -33,9 +33,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             _languageServiceBroker2 = languageServiceBroker2;
         }
 
-        public async Task<JToken?> RequestAsync(ITextBuffer textBuffer, Func<JToken, bool> capabilitiesFilter, string languageServerName, string method, Func<ITextSnapshot, JToken> parameterFactory, CancellationToken cancellationToken)
+        public async Task<JToken?> RequestAsync(
+            ITextBuffer textBuffer,
+            Func<JToken, bool> capabilitiesFilter,
+            string languageServerName,
+            string method,
+            Func<ITextSnapshot, JToken> parameterFactory,
+            CancellationToken cancellationToken)
         {
-            return (await _languageServiceBroker2.RequestAsync(textBuffer, capabilitiesFilter, languageServerName, method, parameterFactory, cancellationToken).ConfigureAwait(false))?.Response;
+            return (await _languageServiceBroker2.RequestAsync(textBuffer, capabilitiesFilter, languageServerName, method, parameterFactory, cancellationToken)
+                .ConfigureAwait(false))?.Response;
         }
     }
 }
