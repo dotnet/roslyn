@@ -43,7 +43,7 @@ jobs:
       displayName: Build
       inputs:
         filePath: eng/build.ps1
-        arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -build -binaryLog -skipDocumentation /p:NoPdbConversion=true /p:NoVsixGeneration=true  /p:NoGenerateSatelliteAssemblies=true ${{ parameters.buildArguments }}
+        arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -build -binaryLog -skipDocumentation /p:NoPdbConversion=true /p:NoVsixGeneration=true  /p:NoGenerateSatelliteAssemblies=true /p:NoPublishReadyToRun=true ${{ parameters.buildArguments }}
 
     - task: PowerShell@2
       displayName: Prepare Unit Tests

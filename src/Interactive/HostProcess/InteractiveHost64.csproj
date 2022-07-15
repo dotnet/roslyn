@@ -11,7 +11,7 @@
     <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
 
     <!-- Publishing (only precompile binaries when building on CI to avoid slowing down dev builds by ~10s) -->
-    <PublishReadyToRun Condition="'$(ContinuousIntegrationBuild)' == 'true'">true</PublishReadyToRun>
+    <PublishReadyToRun Condition="'$(ContinuousIntegrationBuild)' == 'true' AND '$(NoPublishReadyToRun)' != 'true'">true</PublishReadyToRun>
     <SelfContained>false</SelfContained>    
     <PublishDocumentationFiles>false</PublishDocumentationFiles>
   </PropertyGroup>
