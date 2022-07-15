@@ -13,6 +13,7 @@
     <None Include="$(MSBuildThisFileDirectory)AnalyzersResources.resx" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AbstractBuiltInCodeStyleDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AbstractCodeQualityDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AbstractBuiltInCodeStyleDiagnosticAnalyzer_Core.cs" />
