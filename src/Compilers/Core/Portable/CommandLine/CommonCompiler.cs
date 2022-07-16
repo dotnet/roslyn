@@ -1130,7 +1130,7 @@ namespace Microsoft.CodeAnalysis
                 var emitOptions = GetEmitOptions(compilation, cancellationToken);
 
                 diagnostics.Clear();
-                var moduleBuilder = 
+                var moduleBuilder =
                     compilation.CheckOptionsAndCreateModuleBuilder(
                         diagnostics,
                         Arguments.ManifestResources,
