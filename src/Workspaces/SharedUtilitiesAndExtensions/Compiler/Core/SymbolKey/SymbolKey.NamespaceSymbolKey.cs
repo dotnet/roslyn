@@ -10,8 +10,10 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial struct SymbolKey
     {
-        private static class NamespaceSymbolKey
+        private sealed class NamespaceSymbolKey : AbstractSymbolKey<INamespaceSymbol>
         {
+            public static readonly NamespaceSymbolKey Instance = new();
+
             // The containing symbol can be one of many things. 
             // 1) Null when this is the global namespace for a compilation.  
             // 2) The SymbolId for an assembly symbol if this is the global namespace for an
@@ -20,7 +22,7 @@ namespace Microsoft.CodeAnalysis
             // 4) The SymbolId for the containing namespace symbol if this is not a global
             //    namespace.
 
-            public static void Create(INamespaceSymbol symbol, SymbolKeyWriter visitor)
+            public sealed override void Create(INamespaceSymbol symbol, SymbolKeyWriter visitor)
             {
                 visitor.WriteString(symbol.MetadataName);
 
@@ -53,16 +55,17 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
+            protected sealed override SymbolKeyResolution Resolve(
+                SymbolKeyReader reader, INamespaceSymbol? contextualSymbol, out string? failureReason)
             {
                 var metadataName = reader.ReadRequiredString();
                 var containerKind = reader.ReadInteger();
 
                 var containingContextualSymbol = containerKind switch
                 {
-                    0 => reader.CurrentContextualSymbol?.ContainingNamespace,
-                    1 => reader.CurrentContextualSymbol?.ContainingModule,
-                    2 => reader.CurrentContextualSymbol?.ContainingAssembly,
+                    0 => contextualSymbol?.ContainingNamespace,
+                    1 => contextualSymbol?.ContainingModule,
+                    2 => contextualSymbol?.ContainingAssembly,
                     3 => (ISymbol?)null,
                     _ => throw ExceptionUtilities.UnexpectedValue(containerKind),
                 };

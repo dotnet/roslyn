@@ -13,9 +13,11 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial struct SymbolKey
     {
-        private static class TupleTypeSymbolKey
+        private sealed class TupleTypeSymbolKey : AbstractSymbolKey<INamedTypeSymbol>
         {
-            public static void Create(INamedTypeSymbol symbol, SymbolKeyWriter visitor)
+            public static readonly TupleTypeSymbolKey Instance = new();
+
+            public sealed override void Create(INamedTypeSymbol symbol, SymbolKeyWriter visitor)
             {
                 Debug.Assert(symbol.IsTupleType);
 
@@ -49,19 +51,24 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
+            protected sealed override SymbolKeyResolution Resolve(
+                SymbolKeyReader reader, INamedTypeSymbol? contextualSymbol, out string? failureReason)
             {
+                contextualSymbol = contextualSymbol is { IsTupleType: true } ? contextualSymbol : null;
                 var isError = reader.ReadBoolean();
 
-                return isError ? ResolveErrorTuple(reader, out failureReason) : ResolveNormalTuple(reader, out failureReason);
+                return isError
+                    ? ResolveErrorTuple(reader, contextualSymbol, out failureReason)
+                    : ResolveNormalTuple(reader, contextualSymbol, out failureReason);
             }
 
-            private static SymbolKeyResolution ResolveNormalTuple(SymbolKeyReader reader, out string? failureReason)
+            private static SymbolKeyResolution ResolveNormalTuple(
+                SymbolKeyReader reader, INamedTypeSymbol? contextualSymbol, out string? failureReason)
             {
                 using var elementNames = reader.ReadStringArray();
                 var elementLocations = ReadElementLocations(reader, out var elementLocationsFailureReason);
                 var underlyingTypeResolution = reader.ReadSymbolKey(
-                    (reader.CurrentContextualSymbol as INamedTypeSymbol)?.TupleUnderlyingType,
+                    contextualSymbol?.TupleUnderlyingType,
                     out var underlyingTypeFailureReason);
 
                 if (underlyingTypeFailureReason != null)
@@ -83,12 +90,9 @@ namespace Microsoft.CodeAnalysis
                 return CreateResolution(result, $"({nameof(TupleTypeSymbolKey)} failed)", out failureReason);
             }
 
-            private static SymbolKeyResolution ResolveErrorTuple(SymbolKeyReader reader, out string? failureReason)
+            private static SymbolKeyResolution ResolveErrorTuple(
+                SymbolKeyReader reader, INamedTypeSymbol? contextualType, out string? failureReason)
             {
-                var contextualType = reader.CurrentContextualSymbol is INamedTypeSymbol { IsTupleType: true } tupleType
-                    ? tupleType
-                    : null;
-
                 using var elementNames = reader.ReadStringArray();
                 var elementLocations = ReadElementLocations(reader, out var elementLocationsFailureReason);
                 using var elementTypes = reader.ReadSymbolKeyArray<INamedTypeSymbol, ITypeSymbol>(

@@ -11,9 +11,11 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial struct SymbolKey
     {
-        private static class AnonymousTypeSymbolKey
+        private sealed class AnonymousTypeSymbolKey : AbstractSymbolKey<INamedTypeSymbol>
         {
-            public static void Create(INamedTypeSymbol symbol, SymbolKeyWriter visitor)
+            public static readonly AnonymousTypeSymbolKey Instance = new();
+
+            public sealed override void Create(INamedTypeSymbol symbol, SymbolKeyWriter visitor)
             {
                 Debug.Assert(symbol.IsAnonymousType);
 
@@ -29,17 +31,16 @@ namespace Microsoft.CodeAnalysis
                 visitor.WriteLocationArray(propertyLocations);
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
+            protected sealed override SymbolKeyResolution Resolve(
+                SymbolKeyReader reader, INamedTypeSymbol? contextualSymbol, out string? failureReason)
             {
-                var contextualSymbol = reader.CurrentContextualSymbol is INamedTypeSymbol { IsAnonymousType: true } contextualType
-                    ? contextualType
-                    : null;
+                contextualSymbol = contextualSymbol is { IsAnonymousType: true } ? contextualSymbol : null;
 
                 var contextualProperties = contextualSymbol?.GetMembers().OfType<IPropertySymbol>().ToImmutableArray() ?? ImmutableArray<IPropertySymbol>.Empty;
 
                 using var propertyTypes = reader.ReadSymbolKeyArray<INamedTypeSymbol, ITypeSymbol>(
                     contextualSymbol,
-                    getContextualType: (contextualSymbol, i) => SafeGet(contextualProperties, i)?.Type,
+                    getContextualSymbol: (contextualSymbol, i) => SafeGet(contextualProperties, i)?.Type,
                     out var propertyTypesFailureReason);
 
                 using var propertyNames = reader.ReadStringArray();

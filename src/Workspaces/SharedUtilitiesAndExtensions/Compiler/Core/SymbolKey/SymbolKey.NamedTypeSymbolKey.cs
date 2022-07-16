@@ -10,9 +10,12 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial struct SymbolKey
     {
-        private static class NamedTypeSymbolKey
+
+        private sealed class NamedTypeSymbolKey : AbstractSymbolKey<INamedTypeSymbol>
         {
-            public static void Create(INamedTypeSymbol symbol, SymbolKeyWriter visitor)
+            public static readonly NamedTypeSymbolKey Instance = new();
+
+            public sealed override void Create(INamedTypeSymbol symbol, SymbolKeyWriter visitor)
             {
                 visitor.WriteSymbolKey(symbol.ContainingSymbol);
                 visitor.WriteString(symbol.Name);
@@ -32,19 +35,18 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
+            protected sealed override SymbolKeyResolution Resolve(
+                SymbolKeyReader reader, INamedTypeSymbol? contextualSymbol, out string? failureReason)
             {
-                var contextualType = reader.CurrentContextualSymbol as INamedTypeSymbol;
-
-                var containingSymbolResolution = reader.ReadSymbolKey(contextualType?.ContainingSymbol, out var containingSymbolFailureReason);
+                var containingSymbolResolution = reader.ReadSymbolKey(contextualSymbol?.ContainingSymbol, out var containingSymbolFailureReason);
                 var name = reader.ReadRequiredString();
                 var arity = reader.ReadInteger();
                 var filePath = reader.ReadString();
                 var isUnboundGenericType = reader.ReadBoolean();
 
                 using var typeArguments = reader.ReadSymbolKeyArray<INamedTypeSymbol, ITypeSymbol>(
-                    contextualType,
-                    getContextualType: static (contextualType, i) => SafeGet(contextualType.TypeArguments, i),
+                    contextualSymbol,
+                    getContextualSymbol: static (contextualType, i) => SafeGet(contextualType.TypeArguments, i),
                     out var typeArgumentsFailureReason);
 
                 if (typeArgumentsFailureReason != null)
@@ -70,7 +72,7 @@ namespace Microsoft.CodeAnalysis
                     return normalResolution;
 
                 return ResolveContextualErrorType(
-                    reader,
+                    reader, contextualSymbol,
                     containingSymbolResolution,
                     name, arity, isUnboundGenericType, typeArgumentsArray,
                     ref failureReason);
@@ -78,6 +80,7 @@ namespace Microsoft.CodeAnalysis
 
             private static SymbolKeyResolution ResolveContextualErrorType(
                 SymbolKeyReader reader,
+                INamedTypeSymbol? contextualType,
                 SymbolKeyResolution containingSymbolResolution,
                 string name,
                 int arity,
@@ -99,7 +102,7 @@ namespace Microsoft.CodeAnalysis
                 // root of the compilation to find the match.  However, error symbols cannot be found in that fashion.
                 // Instead, we have to structurally match this error symbol against our own symbol key to see if it is
                 // valid.
-                if (reader.CurrentContextualSymbol is not IErrorTypeSymbol errorType)
+                if (contextualType is not IErrorTypeSymbol errorType)
                     return default;
 
                 // Check name/arity. If not hte same, this symbol key isn't referring to the same contextual type

@@ -9,9 +9,11 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial struct SymbolKey
     {
-        private static class ReducedExtensionMethodSymbolKey
+        private sealed class ReducedExtensionMethodSymbolKey : AbstractSymbolKey<IMethodSymbol>
         {
-            public static void Create(IMethodSymbol symbol, SymbolKeyWriter visitor)
+            public static readonly ReducedExtensionMethodSymbolKey Instance = new();
+
+            public sealed override void Create(IMethodSymbol symbol, SymbolKeyWriter visitor)
             {
                 Debug.Assert(symbol.Equals(symbol.ConstructedFrom));
 
@@ -19,10 +21,9 @@ namespace Microsoft.CodeAnalysis
                 visitor.WriteSymbolKey(symbol.ReceiverType);
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
+            protected sealed override SymbolKeyResolution Resolve(
+                SymbolKeyReader reader, IMethodSymbol? contextualMethod, out string? failureReason)
             {
-                var contextualMethod = reader.CurrentContextualSymbol as IMethodSymbol;
-
                 var reducedFromResolution = reader.ReadSymbolKey(contextualMethod?.ReducedFrom, out var reducedFromFailureReason);
                 var receiverTypeResolution = reader.ReadSymbolKey(contextualMethod?.ReceiverType, out var receiverTypeFailureReason);
 
@@ -52,23 +53,24 @@ namespace Microsoft.CodeAnalysis
 
     internal partial struct SymbolKey
     {
-        private static class ConstructedMethodSymbolKey
+        private sealed class ConstructedMethodSymbolKey : AbstractSymbolKey<IMethodSymbol>
         {
-            public static void Create(IMethodSymbol symbol, SymbolKeyWriter visitor)
+            public static readonly ConstructedMethodSymbolKey Instance = new();
+
+            public sealed override void Create(IMethodSymbol symbol, SymbolKeyWriter visitor)
             {
                 visitor.WriteSymbolKey(symbol.ConstructedFrom);
                 visitor.WriteSymbolKeyArray(symbol.TypeArguments);
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
+            protected sealed override SymbolKeyResolution Resolve(
+                SymbolKeyReader reader, IMethodSymbol? contextualMethod, out string? failureReason)
             {
-                var contextualMethod = reader.CurrentContextualSymbol as IMethodSymbol;
-
                 var constructedFrom = reader.ReadSymbolKey(contextualMethod?.ConstructedFrom, out var constructedFromFailureReason);
 
                 using var typeArguments = reader.ReadSymbolKeyArray<IMethodSymbol, ITypeSymbol>(
                     contextualMethod,
-                    getContextualType: static (contextualMethod, i) => SafeGet(contextualMethod.TypeArguments, i),
+                    getContextualSymbol: static (contextualMethod, i) => SafeGet(contextualMethod.TypeArguments, i),
                     out var typeArgumentsFailureReason);
 
                 if (constructedFromFailureReason != null)
@@ -119,9 +121,11 @@ namespace Microsoft.CodeAnalysis
 
     internal partial struct SymbolKey
     {
-        private static class MethodSymbolKey
+        private sealed class MethodSymbolKey : AbstractSymbolKey<IMethodSymbol>
         {
-            public static void Create(IMethodSymbol symbol, SymbolKeyWriter visitor)
+            public static readonly MethodSymbolKey Instance = new();
+
+            public sealed override void Create(IMethodSymbol symbol, SymbolKeyWriter visitor)
             {
                 Debug.Assert(symbol.Equals(symbol.ConstructedFrom));
 
@@ -153,11 +157,12 @@ namespace Microsoft.CodeAnalysis
                 visitor.PopMethod(symbol);
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
+            protected sealed override SymbolKeyResolution Resolve(
+                SymbolKeyReader reader, IMethodSymbol? contextualSymbol, out string? failureReason)
             {
                 var metadataName = reader.ReadRequiredString();
 
-                var containingType = reader.ReadSymbolKey(reader.CurrentContextualSymbol?.ContainingSymbol, out var containingTypeFailureReason);
+                var containingType = reader.ReadSymbolKey(contextualSymbol?.ContainingSymbol, out var containingTypeFailureReason);
                 var arity = reader.ReadInteger();
                 var isPartialMethodImplementationPart = reader.ReadBoolean();
                 using var parameterRefKinds = reader.ReadRefKindArray();
@@ -217,9 +222,7 @@ namespace Microsoft.CodeAnalysis
 
                     // then the parameter types.
                     _ = reader.ReadSymbolKeyArray<IMethodSymbol, ITypeSymbol>(
-                        contextualSymbol: null,
-                        getContextualType: static (_, _) => null,
-                        failureReason: out _);
+                        contextualSymbol: null, getContextualSymbol: null, failureReason: out _);
                 }
 
                 if (containingTypeFailureReason != null)

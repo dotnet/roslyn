@@ -514,27 +514,27 @@ namespace Microsoft.CodeAnalysis
             private SymbolKeyResolution ReadWorker(SymbolKeyType type, out string? failureReason)
                 => type switch
                 {
-                    SymbolKeyType.Alias => AliasSymbolKey.Resolve(this, out failureReason),
+                    SymbolKeyType.Alias => AliasSymbolKey.Instance.Resolve(this, out failureReason),
                     SymbolKeyType.BodyLevel => BodyLevelSymbolKey.Resolve(this, out failureReason),
-                    SymbolKeyType.ConstructedMethod => ConstructedMethodSymbolKey.Resolve(this, out failureReason),
-                    SymbolKeyType.NamedType => NamedTypeSymbolKey.Resolve(this, out failureReason),
-                    SymbolKeyType.ErrorType => ErrorTypeSymbolKey.Resolve(this, out failureReason),
-                    SymbolKeyType.Field => FieldSymbolKey.Resolve(this, out failureReason),
-                    SymbolKeyType.FunctionPointer => FunctionPointerTypeSymbolKey.Resolve(this, out failureReason),
-                    SymbolKeyType.DynamicType => DynamicTypeSymbolKey.Resolve(this, out failureReason),
-                    SymbolKeyType.Method => MethodSymbolKey.Resolve(this, out failureReason),
-                    SymbolKeyType.Namespace => NamespaceSymbolKey.Resolve(this, out failureReason),
-                    SymbolKeyType.PointerType => PointerTypeSymbolKey.Resolve(this, out failureReason),
-                    SymbolKeyType.Parameter => ParameterSymbolKey.Resolve(this, out failureReason),
-                    SymbolKeyType.Property => PropertySymbolKey.Resolve(this, out failureReason),
-                    SymbolKeyType.ArrayType => ArrayTypeSymbolKey.Resolve(this, out failureReason),
-                    SymbolKeyType.Assembly => AssemblySymbolKey.Resolve(this, out failureReason),
-                    SymbolKeyType.TupleType => TupleTypeSymbolKey.Resolve(this, out failureReason),
-                    SymbolKeyType.Module => ModuleSymbolKey.Resolve(this, out failureReason),
-                    SymbolKeyType.Event => EventSymbolKey.Resolve(this, out failureReason),
-                    SymbolKeyType.ReducedExtensionMethod => ReducedExtensionMethodSymbolKey.Resolve(this, out failureReason),
-                    SymbolKeyType.TypeParameter => TypeParameterSymbolKey.Resolve(this, out failureReason),
-                    SymbolKeyType.AnonymousType => AnonymousTypeSymbolKey.Resolve(this, out failureReason),
+                    SymbolKeyType.ConstructedMethod => ConstructedMethodSymbolKey.Instance.Resolve(this, out failureReason),
+                    SymbolKeyType.NamedType => NamedTypeSymbolKey.Instance.Resolve(this, out failureReason),
+                    SymbolKeyType.ErrorType => ErrorTypeSymbolKey.Instance.Resolve(this, out failureReason),
+                    SymbolKeyType.Field => FieldSymbolKey.Instance.Resolve(this, out failureReason),
+                    SymbolKeyType.FunctionPointer => FunctionPointerTypeSymbolKey.Instance.Resolve(this, out failureReason),
+                    SymbolKeyType.DynamicType => DynamicTypeSymbolKey.Instance.Resolve(this, out failureReason),
+                    SymbolKeyType.Method => MethodSymbolKey.Instance.Resolve(this, out failureReason),
+                    SymbolKeyType.Namespace => NamespaceSymbolKey.Instance.Resolve(this, out failureReason),
+                    SymbolKeyType.PointerType => PointerTypeSymbolKey.Instance.Resolve(this, out failureReason),
+                    SymbolKeyType.Parameter => ParameterSymbolKey.Instance.Resolve(this, out failureReason),
+                    SymbolKeyType.Property => PropertySymbolKey.Instance.Resolve(this, out failureReason),
+                    SymbolKeyType.ArrayType => ArrayTypeSymbolKey.Instance.Resolve(this, out failureReason),
+                    SymbolKeyType.Assembly => AssemblySymbolKey.Instance.Resolve(this, out failureReason),
+                    SymbolKeyType.TupleType => TupleTypeSymbolKey.Instance.Resolve(this, out failureReason),
+                    SymbolKeyType.Module => ModuleSymbolKey.Instance.Resolve(this, out failureReason),
+                    SymbolKeyType.Event => EventSymbolKey.Instance.Resolve(this, out failureReason),
+                    SymbolKeyType.ReducedExtensionMethod => ReducedExtensionMethodSymbolKey.Instance.Resolve(this, out failureReason),
+                    SymbolKeyType.TypeParameter => TypeParameterSymbolKey.Instance.Resolve(this, out failureReason),
+                    SymbolKeyType.AnonymousType => AnonymousTypeSymbolKey.Instance.Resolve(this, out failureReason),
                     SymbolKeyType.AnonymousFunctionOrDelegate => AnonymousFunctionOrDelegateSymbolKey.Resolve(this, out failureReason),
                     SymbolKeyType.TypeParameterOrdinal => TypeParameterOrdinalSymbolKey.Resolve(this, out failureReason),
                     _ => throw new NotImplementedException(),
@@ -542,7 +542,7 @@ namespace Microsoft.CodeAnalysis
 
             private PooledArrayBuilder<SymbolKeyResolution> ReadSymbolKeyArray<TContextualSymbol>(
                 TContextualSymbol? contextualSymbol,
-                Func<TContextualSymbol, int, ITypeSymbol?> getContextualType,
+                Func<TContextualSymbol, int, ISymbol?>? getContextualSymbol,
                 out string? failureReason)
             {
                 // Keep in Sync with ReadSimpleArray
@@ -561,8 +561,8 @@ namespace Microsoft.CodeAnalysis
                 {
                     CancellationToken.ThrowIfCancellationRequested();
 
-                    var contextualType = contextualSymbol is null ? null : getContextualType(contextualSymbol, i);
-                    builder.Builder.Add(ReadSymbolKey(contextualType, out var elementFailureReason));
+                    var nextContextualSymbol = contextualSymbol is null ? null : getContextualSymbol?.Invoke(contextualSymbol, i);
+                    builder.Builder.Add(ReadSymbolKey(nextContextualSymbol, out var elementFailureReason));
 
                     if (elementFailureReason != null)
                     {
@@ -594,13 +594,13 @@ namespace Microsoft.CodeAnalysis
             /// </remarks>
             public PooledArrayBuilder<TSymbol> ReadSymbolKeyArray<TContextualSymbol, TSymbol>(
                 TContextualSymbol? contextualSymbol,
-                Func<TContextualSymbol, int, ITypeSymbol?> getContextualType,
+                Func<TContextualSymbol, int, ISymbol?>? getContextualSymbol,
                 out string? failureReason)
                 where TContextualSymbol : ISymbol
                 where TSymbol : ISymbol
             {
                 using var resolutions = ReadSymbolKeyArray(
-                    contextualSymbol, getContextualType, out var elementsFailureReason);
+                    contextualSymbol, getContextualSymbol, out var elementsFailureReason);
                 if (elementsFailureReason != null)
                 {
                     failureReason = elementsFailureReason;
