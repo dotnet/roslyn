@@ -318,30 +318,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             }
         }
 
-        private bool TryFindSymbolContextForComplexifiedToken(SyntaxToken token, [NotNullWhen(true)] out RenameSymbolContext? renameSymbolContext)
-        {
-            if (_isProcessingComplexifiedSpans)
-            {
-                RoslynDebug.Assert(_speculativeModel != null);
-                if (token.Parent is SimpleNameSyntax && !token.IsKind(SyntaxKind.GlobalKeyword) && token.Parent.Parent.IsKind(SyntaxKind.AliasQualifiedName, SyntaxKind.QualifiedCref, SyntaxKind.QualifiedName))
-                {
-                    var symbol = _speculativeModel.GetSymbolInfo(token.Parent, _cancellationToken).Symbol;
-                    if (symbol != null
-                        && _renameContexts.TryGetValue(symbol.GetSymbolKey(), out var symbolContext)
-                        && symbolContext.RenamedSymbol.Kind != SymbolKind.Local
-                        && symbolContext.RenamedSymbol.Kind != SymbolKind.RangeVariable
-                        && token.ValueText == symbolContext.OriginalText)
-                    {
-                        renameSymbolContext = symbolContext;
-                        return true;
-                    }
-                }
-            }
-
-            renameSymbolContext = null;
-            return false;
-        }
-
         public override SyntaxTrivia VisitTrivia(SyntaxTrivia trivia)
         {
             var newTrivia = base.VisitTrivia(trivia);
@@ -361,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             var newToken = base.VisitToken(token);
             newToken = UpdateAliasAnnotation(newToken);
             newToken = RenameTokenInStringOrComment(token, newToken);
-            if (!_isProcessingComplexifiedSpans && TryGetLocationRenameContext(token, out var textSpanRenameContext))
+            if (!_isProcessingComplexifiedSpans && _textSpanToRenameContexts.TryGetValue(token.Span, out var textSpanRenameContext))
             {
                 var symbolContext = textSpanRenameContext.SymbolContext;
                 newToken = RenameAndAnnotateAsync(
@@ -386,52 +362,55 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             // 2. Complexification could introduce some new tokens, and they are alse referenced by rename symbols. We need to rename them.
             if (_isProcessingComplexifiedSpans)
             {
-                if (TryGetLocationRenameContext(token, out var textSpanRenameContextForComplexifiedToken))
-                {
-                    return RenameComplexifiedToken(token, newToken, textSpanRenameContextForComplexifiedToken);
-                }
-
-                if (TryFindSymbolContextForComplexifiedToken(token, out var renameSymbolContext))
-                {
-                    return RenameComplexifiedToken(token, newToken, renameSymbolContext);
-                }
+                return RenameTokenWhenProcessingComplexifiedSpans(token, newToken);
             }
 
             return AnnotateNonRenameLocation(token, newToken);
         }
 
-        private bool TryGetLocationRenameContext(
-            SyntaxToken token, [NotNullWhen(true)] out TextSpanRenameContext? textSpanRenameContext)
+        private SyntaxToken RenameTokenWhenProcessingComplexifiedSpans(SyntaxToken token, SyntaxToken newToken)
         {
             if (!_isProcessingComplexifiedSpans)
             {
-                return _textSpanToRenameContexts.TryGetValue(token.Span, out textSpanRenameContext);
+                return newToken;
             }
-            else
+
+            RoslynDebug.Assert(_speculativeModel != null);
+
+            if (token.HasAnnotations(AliasAnnotation.Kind))
             {
-                if (token.HasAnnotations(AliasAnnotation.Kind))
-                {
-                    textSpanRenameContext = null;
-                    return false;
-                }
+                return newToken;
+            }
 
-                if (!token.HasAnnotations(RenameAnnotation.Kind))
+            if (token.HasAnnotations(RenameAnnotation.Kind))
+            {
+                var annotation = _renameAnnotations.GetAnnotations(token).OfType<RenameActionAnnotation>().FirstOrDefault();
+                if (annotation.IsRenameLocation && _textSpanToRenameContexts.TryGetValue(annotation.OriginalSpan, out var originalContext))
                 {
-                    textSpanRenameContext = null;
-                    return false;
+                    return RenameComplexifiedToken(token, newToken, originalContext);
                 }
-
-                // After a node is complexfied, try to find the original rename context for the given token based on the original span.
-                var annotation = _renameAnnotations.GetAnnotations(token).OfType<RenameActionAnnotation>().SingleOrDefault(annotation => annotation.IsRenameLocation);
-                if (annotation != null && _textSpanToRenameContexts.TryGetValue(annotation.OriginalSpan, out var originalContext))
+                else
                 {
-                    textSpanRenameContext = originalContext;
-                    return true;
+                    return newToken;
                 }
             }
 
-            textSpanRenameContext = null;
-            return false;
+            if (token.Parent is SimpleNameSyntax
+                && !token.IsKind(SyntaxKind.GlobalKeyword)
+                && token.Parent.Parent.IsKind(SyntaxKind.AliasQualifiedName, SyntaxKind.QualifiedCref, SyntaxKind.QualifiedName))
+            {
+                var symbol = _speculativeModel.GetSymbolInfo(token.Parent, _cancellationToken).Symbol;
+                if (symbol != null
+                    && _renameContexts.TryGetValue(symbol.GetSymbolKey(), out var symbolContext)
+                    && symbolContext.RenamedSymbol.Kind != SymbolKind.Local
+                    && symbolContext.RenamedSymbol.Kind != SymbolKind.RangeVariable
+                    && token.ValueText == symbolContext.OriginalText)
+                {
+                    return RenameComplexifiedToken(token, newToken, symbolContext);
+                }
+            }
+
+            return newToken;
         }
 
         private SyntaxToken AnnotateNonRenameLocation(SyntaxToken oldToken, SyntaxToken newToken)

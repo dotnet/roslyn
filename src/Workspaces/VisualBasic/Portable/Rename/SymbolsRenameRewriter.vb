@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
 
         Private _skipRenameForComplexification As Integer
         Private _isProcessingComplexifiedSpans As Boolean
-        Private _modifiedSubSpans As List(Of ValueTuple(Of TextSpan, TextSpan))
+        Private _modifiedSubSpans As List(Of (TextSpan, TextSpan))
         Private _speculativeModel As SemanticModel
 
         Private ReadOnly _complexifiedSpans As HashSet(Of TextSpan) = New HashSet(Of TextSpan)
@@ -387,31 +387,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
 
             Return newToken
         End Function
-
-        'Private Function IsInRenameLocation(token As SyntaxToken, renameSymbolContext As RenameSymbolContext) As Boolean
-        '    If Not Me._isProcessingComplexifiedSpans Then
-        '        Return renameSymbolContext.RenameLocations.ContainsKey(token.Span)
-        '    Else
-        '        If token.HasAnnotations(AliasAnnotation.Kind) Then
-        '            Return False
-        '        End If
-
-        '        If Me._renameAnnotations.HasAnnotations(Of RenameActionAnnotation)(token) Then
-        '            Return Me._renameAnnotations.GetAnnotations(Of RenameActionAnnotation)(token).First().IsRenameLocation
-        '        End If
-
-        '        If TypeOf token.Parent Is SimpleNameSyntax AndAlso token.Kind <> SyntaxKind.GlobalKeyword AndAlso token.Parent.Parent.IsKind(SyntaxKind.QualifiedName, SyntaxKind.QualifiedCrefOperatorReference) Then
-        '            Dim symbol = Me._speculativeModel.GetSymbolInfo(token.Parent, Me._cancellationToken).Symbol
-        '            Dim renamedSymbol = renameSymbolContext.RenamedSymbol
-        '            If symbol IsNot Nothing AndAlso renamedSymbol.Kind <> SymbolKind.Local AndAlso renamedSymbol.Kind <> SymbolKind.RangeVariable AndAlso
-        '                (Equals(symbol, renamedSymbol) OrElse SymbolKey.GetComparer(ignoreCase:=True, ignoreAssemblyKeys:=False).Equals(symbol.GetSymbolKey(), renamedSymbol.GetSymbolKey())) Then
-        '                Return True
-        '            End If
-        '        End If
-
-        '        Return False
-        '    End If
-        'End Function
 
         Private Function TryFindSymbolContextForComplexifiedToken(token As SyntaxToken, ByRef renameSymbolContext As RenameSymbolContext) As Boolean
             If _isProcessingComplexifiedSpans Then
