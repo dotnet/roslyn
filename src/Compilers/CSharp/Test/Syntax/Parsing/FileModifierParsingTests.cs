@@ -101,18 +101,8 @@ public class FileModifierParsingTests : ParsingTests
         UsingNode($$"""
             file partial enum C { }
             """,
-            expectedParsingDiagnostics: new[]
-            {
-                // (1,6): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
-                // file partial enum C { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 6)
-            },
-            // note: we also get duplicate ERR_PartialMisplaced diagnostics on `partial enum C { }`.
             expectedBindingDiagnostics: new[]
             {
-                // (1,6): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
-                // file partial enum C { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 6),
                 // (1,19): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 // file partial enum C { }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "C").WithLocation(1, 19)
@@ -198,21 +188,12 @@ public class FileModifierParsingTests : ParsingTests
         UsingNode("""
             partial file record C { }
             """,
-            // (1,1): error CS1031: Type expected
-            // partial file record C { }
-            Diagnostic(ErrorCode.ERR_TypeExpected, "partial").WithLocation(1, 1),
-            // (1,1): error CS1525: Invalid expression term 'partial'
-            // partial file record C { }
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(1, 1),
-            // (1,1): error CS1003: Syntax error, ',' expected
-            // partial file record C { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "partial").WithArguments(",").WithLocation(1, 1),
-            // (1,25): error CS1002: ; expected
-            // partial file record C { }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(1, 25),
-            // (1,25): error CS1022: Type or namespace definition, or end-of-file expected
-            // partial file record C { }
-            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(1, 25));
+            expectedBindingDiagnostics: new DiagnosticDescription[]
+            {
+                // (1,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // partial file record C { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1)
+            });
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.RecordDeclaration);
@@ -258,18 +239,12 @@ public class FileModifierParsingTests : ParsingTests
         UsingNode($$"""
             partial file record struct C { }
             """,
-            // (1,1): error CS1031: Type expected
-            // partial file record struct C { }
-            Diagnostic(ErrorCode.ERR_TypeExpected, "partial").WithLocation(1, 1),
-            // (1,1): error CS1525: Invalid expression term 'partial'
-            // partial file record struct C { }
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(1, 1),
-            // (1,1): error CS1003: Syntax error, ',' expected
-            // partial file record struct C { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "partial").WithArguments(",").WithLocation(1, 1),
-            // (1,21): error CS1002: ; expected
-            // partial file record struct C { }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 21));
+            expectedBindingDiagnostics: new DiagnosticDescription[]
+            {
+                // (1,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // partial file record struct C { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1)
+            });
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.RecordStructDeclaration);

@@ -516,7 +516,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var syntax = GetSyntax();
             return ModifierUtils.MakeAndCheckNontypeMemberModifiers(isForTypeDeclaration: false, isForInterfaceMember: ContainingType.IsInterface,
-                                                                    syntax.Modifiers, defaultAccess: DeclarationModifiers.None, allowedModifiers, Locations[0], diagnostics, out _);
+                                                                    syntax.Modifiers, defaultAccess: DeclarationModifiers.None, allowedModifiers, Locations[0], diagnostics, out _, isOrdinaryMethod: true);
         }
 
         private ImmutableArray<TypeParameterSymbol> MakeTypeParameters(MethodDeclarationSyntax syntax, BindingDiagnosticBag diagnostics)

@@ -19,9 +19,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DeclarationModifiers allowedModifiers,
             Location errorLocation,
             BindingDiagnosticBag diagnostics,
-            out bool modifierErrors)
+            out bool modifierErrors,
+            bool isOrdinaryMethod = false)
         {
-            var result = modifiers.ToDeclarationModifiers(diagnostics.DiagnosticBag ?? new DiagnosticBag());
+            var result = modifiers.ToDeclarationModifiers(diagnostics.DiagnosticBag ?? new DiagnosticBag(), isOrdinaryMethod: isOrdinaryMethod);
             result = CheckModifiers(isForTypeDeclaration, isForInterfaceMember, result, allowedModifiers, errorLocation, diagnostics, modifiers, out modifierErrors);
 
             if ((result & DeclarationModifiers.AccessibilityMask) == 0)
@@ -382,20 +383,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public static DeclarationModifiers ToDeclarationModifiers(
-            this SyntaxTokenList modifiers, DiagnosticBag diagnostics)
+            this SyntaxTokenList modifiers, DiagnosticBag diagnostics, bool isOrdinaryMethod = false)
         {
             var result = DeclarationModifiers.None;
             bool seenNoDuplicates = true;
-            bool seenNoAccessibilityDuplicates = true;
 
-            foreach (var modifier in modifiers)
+            for (int i = 0; i < modifiers.Count; i++)
             {
+                SyntaxToken modifier = modifiers[i];
                 DeclarationModifiers one = ToDeclarationModifier(modifier.ContextualKind());
 
                 ReportDuplicateModifiers(
                     modifier, one, result,
-                    ref seenNoDuplicates, ref seenNoAccessibilityDuplicates,
+                    ref seenNoDuplicates,
                     diagnostics);
+
+                if (one == DeclarationModifiers.Partial && i < modifiers.Count - 1)
+                {
+                    // There was a bug where we allowed `partial async` at the end of modifiers on methods. We keep this behavior for backcompat.
+                    if (!(isOrdinaryMethod && i == modifiers.Count - 2 && ToDeclarationModifier(modifiers[i + 1].ContextualKind()) == DeclarationModifiers.Async))
+                    {
+                        diagnostics.Add(
+                            ErrorCode.ERR_PartialMisplaced,
+                            modifier.GetLocation());
+                    }
+                }
 
                 result |= one;
             }
@@ -423,7 +435,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DeclarationModifiers modifierKind,
             DeclarationModifiers allModifiers,
             ref bool seenNoDuplicates,
-            ref bool seenNoAccessibilityDuplicates,
             DiagnosticBag diagnostics)
         {
             if ((allModifiers & modifierKind) != 0)
