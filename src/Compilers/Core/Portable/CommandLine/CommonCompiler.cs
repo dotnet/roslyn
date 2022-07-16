@@ -1434,6 +1434,7 @@ namespace Microsoft.CodeAnalysis
             string outputFileName = GetOutputFileName(compilation, cancellationToken);
             string pdbFilePath = Arguments.GetPdbFilePath(outputFileName);
 
+            // NOTE: Unlike the PDB path, the XML doc path is not embedded in the assembly, so we don't need to pass it to emit.
             var emitOptions =
                 Arguments.EmitOptions.
                     WithOutputNameOverride(outputFileName).
