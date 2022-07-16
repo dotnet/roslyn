@@ -11,9 +11,11 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial struct SymbolKey
     {
-        private static class FunctionPointerTypeSymbolKey
+        private sealed class FunctionPointerTypeSymbolKey : AbstractSymbolKey<IFunctionPointerTypeSymbol>
         {
-            public static void Create(IFunctionPointerTypeSymbol symbol, SymbolKeyWriter visitor)
+            public static readonly FunctionPointerTypeSymbolKey Instance = new();
+
+            public sealed override void Create(IFunctionPointerTypeSymbol symbol, SymbolKeyWriter visitor)
             {
                 var callingConvention = symbol.Signature.CallingConvention;
                 visitor.WriteInteger((int)callingConvention);
@@ -29,18 +31,17 @@ namespace Microsoft.CodeAnalysis
                 visitor.WriteParameterTypesArray(symbol.Signature.Parameters);
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
+            protected sealed override SymbolKeyResolution Resolve(
+                SymbolKeyReader reader, IFunctionPointerTypeSymbol? contextualSymbol, out string? failureReason)
             {
-                var functionPointerType = reader.CurrentContextualSymbol as IFunctionPointerTypeSymbol;
-
                 var callingConvention = (SignatureCallingConvention)reader.ReadInteger();
 
                 var callingConventionModifiers = ImmutableArray<INamedTypeSymbol>.Empty;
                 if (callingConvention == SignatureCallingConvention.Unmanaged)
                 {
                     using var modifiersBuilder = reader.ReadSymbolKeyArray<IFunctionPointerTypeSymbol, INamedTypeSymbol>(
-                        functionPointerType,
-                        static (functionPointerType, i) => SafeGet(functionPointerType.Signature.UnmanagedCallingConventionTypes, i),
+                        contextualSymbol,
+                        static (contextualSymbol, i) => SafeGet(contextualSymbol.Signature.UnmanagedCallingConventionTypes, i),
                         out var conventionTypesFailureReason);
                     if (conventionTypesFailureReason != null)
                     {
@@ -52,11 +53,11 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 var returnRefKind = reader.ReadRefKind();
-                var returnType = reader.ReadSymbolKey(functionPointerType?.Signature.ReturnType, out var returnTypeFailureReason);
+                var returnType = reader.ReadSymbolKey(contextualSymbol?.Signature.ReturnType, out var returnTypeFailureReason);
                 using var paramRefKinds = reader.ReadRefKindArray();
                 using var parameterTypes = reader.ReadSymbolKeyArray<IFunctionPointerTypeSymbol, ITypeSymbol>(
-                    functionPointerType,
-                    static (functionPointerType, i) => SafeGet(functionPointerType.Signature.Parameters, i)?.Type,
+                    contextualSymbol,
+                    static (contextualSymbol, i) => SafeGet(contextualSymbol.Signature.Parameters, i)?.Type,
                     out var parameterTypesFailureReason);
 
                 if (returnTypeFailureReason != null)

@@ -6,9 +6,11 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial struct SymbolKey
     {
-        private static class PropertySymbolKey
+        private sealed class PropertySymbolKey : AbstractSymbolKey<IPropertySymbol>
         {
-            public static void Create(IPropertySymbol symbol, SymbolKeyWriter visitor)
+            public static readonly PropertySymbolKey Instance = new();
+
+            public sealed override void Create(IPropertySymbol symbol, SymbolKeyWriter visitor)
             {
                 visitor.WriteString(symbol.MetadataName);
                 visitor.WriteSymbolKey(symbol.ContainingSymbol);
@@ -17,11 +19,12 @@ namespace Microsoft.CodeAnalysis
                 visitor.WriteParameterTypesArray(symbol.OriginalDefinition.Parameters);
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
+            protected sealed override SymbolKeyResolution Resolve(
+                SymbolKeyReader reader, IPropertySymbol? contextualSymbol, out string? failureReason)
             {
                 var metadataName = reader.ReadString();
 
-                var containingTypeResolution = reader.ReadSymbolKey(reader.CurrentContextualSymbol?.ContainingSymbol, out var containingTypeFailureReason);
+                var containingTypeResolution = reader.ReadSymbolKey(contextualSymbol?.ContainingSymbol, out var containingTypeFailureReason);
 
                 var isIndexer = reader.ReadBoolean();
                 using var refKinds = reader.ReadRefKindArray();
@@ -62,9 +65,7 @@ namespace Microsoft.CodeAnalysis
                     // after this PropertySymbolKey.
 
                     _ = reader.ReadSymbolKeyArray<IPropertySymbol, ITypeSymbol>(
-                        contextualSymbol: null,
-                        getContextualType: static (_, _) => null,
-                        failureReason: out _);
+                        contextualSymbol: null, getContextualSymbol: null, failureReason: out _);
                 }
 
                 if (containingTypeFailureReason != null)

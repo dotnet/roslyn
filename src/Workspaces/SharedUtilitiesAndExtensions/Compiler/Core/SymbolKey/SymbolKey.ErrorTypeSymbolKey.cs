@@ -10,9 +10,11 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial struct SymbolKey
     {
-        private static class ErrorTypeSymbolKey
+        private sealed class ErrorTypeSymbolKey : AbstractSymbolKey<INamedTypeSymbol>
         {
-            public static void Create(INamedTypeSymbol symbol, SymbolKeyWriter visitor)
+            public static readonly ErrorTypeSymbolKey Instance = new();
+
+            public sealed override void Create(INamedTypeSymbol symbol, SymbolKeyWriter visitor)
             {
                 visitor.WriteString(symbol.Name);
                 switch (symbol.ContainingSymbol)
@@ -60,18 +62,17 @@ namespace Microsoft.CodeAnalysis
                 return builder.ToImmutable();
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
+            protected sealed override SymbolKeyResolution Resolve(
+                SymbolKeyReader reader, INamedTypeSymbol? contextualType, out string? failureReason)
             {
-                var contextualType = reader.CurrentContextualSymbol as INamedTypeSymbol;
-
                 var name = reader.ReadRequiredString();
-                var containingSymbolResolution = ResolveContainer(reader, out var containingSymbolFailureReason);
+                var containingSymbolResolution = ResolveContainer(reader, contextualType, out var containingSymbolFailureReason);
                 var arity = reader.ReadInteger();
                 var isConstructed = reader.ReadBoolean();
 
                 using var typeArguments = reader.ReadSymbolKeyArray<INamedTypeSymbol, ITypeSymbol>(
                     contextualType,
-                    getContextualType: static (contextualType, i) => SafeGet(contextualType.TypeArguments, i),
+                    getContextualSymbol: static (contextualType, i) => SafeGet(contextualType.TypeArguments, i),
                     out var typeArgumentsFailureReason);
 
                 if (containingSymbolFailureReason != null)
@@ -106,12 +107,13 @@ namespace Microsoft.CodeAnalysis
                 return CreateResolution(result, $"({nameof(ErrorTypeSymbolKey)} failed)", out failureReason);
             }
 
-            private static SymbolKeyResolution ResolveContainer(SymbolKeyReader reader, out string? failureReason)
+            private static SymbolKeyResolution ResolveContainer(
+                SymbolKeyReader reader, INamedTypeSymbol? contextualType, out string? failureReason)
             {
                 var type = reader.ReadInteger();
 
                 if (type == 0)
-                    return reader.ReadSymbolKey((reader.CurrentContextualSymbol as INamedTypeSymbol)?.ContainingType, out failureReason);
+                    return reader.ReadSymbolKey(contextualType?.ContainingType, out failureReason);
 
                 if (type == 1)
                 {
