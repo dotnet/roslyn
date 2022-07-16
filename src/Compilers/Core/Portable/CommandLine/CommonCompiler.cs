@@ -963,42 +963,6 @@ namespace Microsoft.CodeAnalysis
             return existing.WithAdditionalTreeOptions(builder.ToImmutable());
         }
 
-        private CompilerAnalyzerConfigOptionsProvider GetCompilerAnalyzerConfigOptionsProvider(
-            Compilation compilation,
-            ImmutableArray<AdditionalText> additionalTextFiles,
-            ImmutableArray<AnalyzerConfigOptionsResult> sourceFileAnalyzerConfigOptions,
-            DiagnosticBag diagnostics,
-            AnalyzerConfigSet? analyzerConfigSet)
-        {
-            if (Arguments.AnalyzerConfigPaths.Length == 0)
-            {
-                return CompilerAnalyzerConfigOptionsProvider.Empty;
-            }
-
-            Debug.Assert(analyzerConfigSet is object);
-
-            var analyzerConfigProvider = 
-                CompilerAnalyzerConfigOptionsProvider.Empty.WithGlobalOptions(
-                    new DictionaryAnalyzerConfigOptions(analyzerConfigSet.GetOptionsForSourcePath(string.Empty).AnalyzerOptions));
-
-            // TODO(https://github.com/dotnet/roslyn/issues/31916): The compiler currently doesn't support
-            // configuring diagnostic reporting on additional text files individually.
-            ImmutableArray<AnalyzerConfigOptionsResult> additionalFileAnalyzerOptions =
-                additionalTextFiles.SelectAsArray(f => analyzerConfigSet.GetOptionsForSourcePath(f.Path));
-
-            foreach (var result in additionalFileAnalyzerOptions)
-            {
-                diagnostics.AddRange(result.Diagnostics);
-            }
-
-            return UpdateAnalyzerConfigOptionsProvider(
-                CompilerAnalyzerConfigOptionsProvider.Empty,
-                compilation.SyntaxTrees,
-                sourceFileAnalyzerConfigOptions,
-                additionalTextFiles,
-                additionalFileAnalyzerOptions);
-        }
-
         /// <summary>
         /// Perform all the work associated with actual compilation
         /// (parsing, binding, compile, emit), resulting in diagnostics
@@ -1035,7 +999,29 @@ namespace Microsoft.CodeAnalysis
             DiagnosticBag? analyzerExceptionDiagnostics = null;
             if (!analyzers.IsEmpty || !generators.IsEmpty)
             {
-                var analyzerConfigProvider = GetCompilerAnalyzerConfigOptionsProvider(compilation, additionalTextFiles, sourceFileAnalyzerConfigOptions, diagnostics, analyzerConfigSet);
+                var analyzerConfigProvider = CompilerAnalyzerConfigOptionsProvider.Empty;
+                if (Arguments.AnalyzerConfigPaths.Length > 0)
+                {
+                    Debug.Assert(analyzerConfigSet is object);
+                    analyzerConfigProvider = analyzerConfigProvider.WithGlobalOptions(new DictionaryAnalyzerConfigOptions(analyzerConfigSet.GetOptionsForSourcePath(string.Empty).AnalyzerOptions));
+
+                    // TODO(https://github.com/dotnet/roslyn/issues/31916): The compiler currently doesn't support
+                    // configuring diagnostic reporting on additional text files individually.
+                    ImmutableArray<AnalyzerConfigOptionsResult> additionalFileAnalyzerOptions =
+                        additionalTextFiles.SelectAsArray(f => analyzerConfigSet.GetOptionsForSourcePath(f.Path));
+
+                    foreach (var result in additionalFileAnalyzerOptions)
+                    {
+                        diagnostics.AddRange(result.Diagnostics);
+                    }
+
+                    analyzerConfigProvider = UpdateAnalyzerConfigOptionsProvider(
+                        analyzerConfigProvider,
+                        compilation.SyntaxTrees,
+                        sourceFileAnalyzerConfigOptions,
+                        additionalTextFiles,
+                        additionalFileAnalyzerOptions);
+                }
 
                 if (!generators.IsEmpty)
                 {
