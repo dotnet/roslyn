@@ -970,12 +970,11 @@ namespace Microsoft.CodeAnalysis
             DiagnosticBag diagnostics,
             AnalyzerConfigSet? analyzerConfigSet)
         {
+            Debug.Assert(analyzerConfigSet is object); 
             if (Arguments.AnalyzerConfigPaths.Length == 0)
             {
                 return CompilerAnalyzerConfigOptionsProvider.Empty;
             }
-
-            Debug.Assert(analyzerConfigSet is object);
 
             var analyzerConfigProvider = 
                 CompilerAnalyzerConfigOptionsProvider.Empty.WithGlobalOptions(
