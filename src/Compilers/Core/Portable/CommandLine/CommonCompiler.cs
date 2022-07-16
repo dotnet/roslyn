@@ -1133,14 +1133,10 @@ namespace Microsoft.CodeAnalysis
             compilation.GetDiagnostics(CompilationStage.Declare, includeEarlierStages: false, diagnostics, cancellationToken);
 
             // If there are unsuppressable declaration errors, we want to exit early from this method.
-            // But before we do so, we need to check that BOTH of these two conditions are met:
-            // 1. Whether there are any diagnostic suppressors -- if there are, an instance of `AnalyzerDriver` would already have been created and then assigned to `analyzerDriver`.
-            // 2. Whether `warnaserror` is set. If true, it means that some/all warnings are automatically treated as suppressable errors
-            // (i.e. they will be added to the diagnostic bag during the `CompilationStage.Declare` stage),
-            // but we might want to suppress some of these warnings-elevated-as-suppressable-errors using diagnostic suppressors.
+            // But before we do so, we need to check whether there are any diagnostic suppressors.
             if (HasUnsuppressableErrors(diagnostics))
             {
-                if (analyzerDriver == null)
+                if (analyzerDriver == null || !analyzerDriver.HasDiagnosticSuppressors)
                 {
                     return;
                 }
