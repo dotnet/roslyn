@@ -739,7 +739,8 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Item,
                          WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Length,
                          WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor,
-                         WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject
+                         WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject,
+                         WellKnownMember.System_GC__AllocateUninitializedArray_T
                         ' Not always available.
                         Continue For
                 End Select
@@ -891,7 +892,8 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Item,
                          WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Length,
                          WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor,
-                         WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject
+                         WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject,
+                         WellKnownMember.System_GC__AllocateUninitializedArray_T
                         ' Not always available.
                         Continue For
                 End Select
