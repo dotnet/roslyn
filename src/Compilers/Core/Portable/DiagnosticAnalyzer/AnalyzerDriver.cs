@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Flag indicating if the <see cref="Analyzers"/> include any <see cref="DiagnosticSuppressor"/>
         /// which can suppress reported analyzer/compiler diagnostics.
         /// </summary>
-        public readonly bool HasDiagnosticSuppressors;
+        internal readonly bool HasDiagnosticSuppressors;
 
         /// <summary>
         /// Filtered diagnostic severities in the compilation, i.e. diagnostics with effective severity from this set should not be reported.
