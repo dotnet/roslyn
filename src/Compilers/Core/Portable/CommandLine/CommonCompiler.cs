@@ -618,18 +618,6 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        internal static bool HasSuppressableErrors(DiagnosticBag diagnostics)
-        {
-            foreach (var diag in diagnostics.AsEnumerable())
-            {
-                if (!diag.IsUnsuppressableError())
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
         /// <summary>
         /// Returns true if the bag has any diagnostics with effective Severity=Error. Also returns true for warnings or informationals
         /// or warnings promoted to error via /warnaserror which are not suppressed.
