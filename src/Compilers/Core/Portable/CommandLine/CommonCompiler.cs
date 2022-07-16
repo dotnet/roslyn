@@ -1022,8 +1022,6 @@ namespace Microsoft.CodeAnalysis
             analyzerDriver = null;
             generatorTimingInfo = null;
 
-            DiagnosticBag? analyzerExceptionDiagnostics = null;
-            
             // Print the diagnostics produced during the parsing stage and exit if there were any errors.
             compilation.GetDiagnostics(CompilationStage.Parse, includeEarlierStages: false, diagnostics, cancellationToken);
 
@@ -1033,6 +1031,7 @@ namespace Microsoft.CodeAnalysis
                 return;
             }
 
+            DiagnosticBag? analyzerExceptionDiagnostics = null;
             if (!analyzers.IsEmpty || !generators.IsEmpty)
             {
                 var analyzerConfigProvider = GetCompilerAnalyzerConfigOptionsProvider(compilation, additionalTextFiles, sourceFileAnalyzerConfigOptions, diagnostics, analyzerConfigSet);
