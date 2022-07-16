@@ -13624,7 +13624,7 @@ class C
                         }
                         """,
                     edits: new[] {
-                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.M2"), newSymbolProvider: c=>c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.M2"), newSymbolProvider: c => c.GetMember("C")),
                     },
                     validator: g =>
                     {
@@ -13679,7 +13679,7 @@ class C
                         }
                         """,
                     edits: new[] {
-                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.M1"), newSymbolProvider: c=>c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.M1"), newSymbolProvider: c => c.GetMember("C")),
                     },
                     validator: g =>
                     {
@@ -13781,7 +13781,7 @@ class C
                         }
                         """,
                     edits: new[] {
-                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.M1"), newSymbolProvider: c=>c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.M1"), newSymbolProvider: c => c.GetMember("C")),
                     },
                     validator: g =>
                     {
@@ -13958,7 +13958,7 @@ class C
                         }
                         """,
                     edits: new[] {
-                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.M1"), newSymbolProvider: c=>c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.M1"), newSymbolProvider: c => c.GetMember("C")),
                     },
                     validator: g =>
                     {
@@ -14066,7 +14066,7 @@ class C
     int M2() {{ return {i}; }}
 }}",
                     edits: new[] {
-                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.M1"), newSymbolProvider: c=>c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.M1"), newSymbolProvider: c => c.GetMember("C")),
                         Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMember("C.M2")),
                     },
                     validator: g =>
@@ -14082,7 +14082,7 @@ class C
     int M1() {{ return {i}; }}
 }}",
                     edits: new[] {
-                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.M2"), newSymbolProvider: c=>c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.M2"), newSymbolProvider: c => c.GetMember("C")),
                         Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMember("C.M1")),
                     },
                     validator: g =>
