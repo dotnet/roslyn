@@ -970,11 +970,12 @@ namespace Microsoft.CodeAnalysis
             DiagnosticBag diagnostics,
             AnalyzerConfigSet? analyzerConfigSet)
         {
-            Debug.Assert(analyzerConfigSet is object); 
             if (Arguments.AnalyzerConfigPaths.Length == 0)
             {
                 return CompilerAnalyzerConfigOptionsProvider.Empty;
             }
+
+            Debug.Assert(analyzerConfigSet is object);
 
             var analyzerConfigProvider = 
                 CompilerAnalyzerConfigOptionsProvider.Empty.WithGlobalOptions(
@@ -1132,7 +1133,7 @@ namespace Microsoft.CodeAnalysis
             compilation.GetDiagnostics(CompilationStage.Declare, includeEarlierStages: false, diagnostics, cancellationToken);
 
             // If there are unsuppressable declaration errors, we want to exit early from this method.
-            // But before we do so, we need to check whether there are any diagnostic suppressors.
+            // But before we do so, we need to run diagnostic suppressors (if any).
             if (HasUnsuppressableErrors(diagnostics))
             {
                 if (analyzerDriver == null || !analyzerDriver.HasDiagnosticSuppressors)
