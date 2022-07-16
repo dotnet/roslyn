@@ -3719,12 +3719,7 @@ class C
             Assert.Equal(34, trivia.Span.Length);
 
 
-            token = Lex("""
-                {
-                ======= Trailing
-                disabled text
-                >>>>>>> Actually the end
-                """).Skip(1).First();
+            token = Lex("{\r\n======= Trailing\r\ndisabled text\r\n>>>>>>> Actually the end").Skip(1).First();
             Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
             Assert.True(token.HasLeadingTrivia);
             Assert.Equal(4, token.LeadingTrivia.Count);
@@ -3780,8 +3775,6 @@ class C
                 more disabled text
 
                 """, trivia.ToFullString());
-            Assert.Equal(18, trivia.Span.Start);
-            Assert.Equal(47, trivia.Span.Length);
 
             trivia = token.LeadingTrivia[3];
             Assert.True(trivia.Kind() == SyntaxKind.ConflictMarkerTrivia);
