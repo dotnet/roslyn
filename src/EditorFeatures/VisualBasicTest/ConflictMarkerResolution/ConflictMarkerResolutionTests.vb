@@ -289,5 +289,309 @@ end namespace"
                 .CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeBothEquivalenceKey
             }.RunAsync()
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)>
+        Public Async Function TestTakeTop1_WithBaseline() As Task
+            Dim source =
+"
+imports System
+
+namespace N
+{|BC37284:<<<<<<< This is mine!|}
+    class Program
+        sub Main()
+            dim p as Program
+            Console.WriteLine(""My section"")
+        end sub
+    end class
+{|BC37284:||||||| Baseline|}
+    class Removed
+    end class
+{|BC37284:=======|}
+    class Program2
+        sub Main2()
+            dim p as Program2
+            Console.WriteLine(""Their section"")
+        end sub
+    end class
+{|BC37284:>>>>>>> This is theirs!|}
+end namespace"
+            Dim fixedSource = "
+imports System
+
+namespace N
+    class Program
+        sub Main()
+            dim p as Program
+            Console.WriteLine(""My section"")
+        end sub
+    end class
+end namespace"
+
+            Await New VerifyVB.Test With
+            {
+                .TestCode = source,
+                .FixedCode = fixedSource,
+                .NumberOfIncrementalIterations = 1,
+                .CodeActionIndex = 0,
+                .CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeTopEquivalenceKey
+            }.RunAsync()
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)>
+        Public Async Function TestTakeBottom1_WithBaseline() As Task
+            Dim source =
+"
+imports System
+
+namespace N
+{|BC37284:<<<<<<< This is mine!|}
+    class Program
+        sub Main()
+            dim p as Program
+            Console.WriteLine(""My section"")
+        end sub
+    end class
+{|BC37284:||||||| Baseline|}
+    class Removed
+    end class
+{|BC37284:=======|}
+    class Program2
+        sub Main2()
+            dim p as Program2
+            Console.WriteLine(""Their section"")
+        end sub
+    end class
+{|BC37284:>>>>>>> This is theirs!|}
+end namespace"
+            Dim fixedSource = "
+imports System
+
+namespace N
+    class Program2
+        sub Main2()
+            dim p as Program2
+            Console.WriteLine(""Their section"")
+        end sub
+    end class
+end namespace"
+
+            Await New VerifyVB.Test With
+            {
+                .TestCode = source,
+                .FixedCode = fixedSource,
+                .NumberOfIncrementalIterations = 1,
+                .CodeActionIndex = 1,
+                .CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeBottomEquivalenceKey
+            }.RunAsync()
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)>
+        Public Async Function TestTakeBoth1_WithBaseline() As Task
+            Dim source =
+"
+imports System
+
+namespace N
+{|BC37284:<<<<<<< This is mine!|}
+    class Program
+        sub Main()
+            dim p as Program
+            Console.WriteLine(""My section"")
+        end sub
+    end class
+{|BC37284:||||||| Baseline|}
+    class Removed
+    end class
+{|BC37284:=======|}
+    class Program2
+        sub Main2()
+            dim p as Program2
+            Console.WriteLine(""Their section"")
+        end sub
+    end class
+{|BC37284:>>>>>>> This is theirs!|}
+end namespace"
+            Dim fixedSource = "
+imports System
+
+namespace N
+    class Program
+        sub Main()
+            dim p as Program
+            Console.WriteLine(""My section"")
+        end sub
+    end class
+    class Program2
+        sub Main2()
+            dim p as Program2
+            Console.WriteLine(""Their section"")
+        end sub
+    end class
+end namespace"
+
+            Await New VerifyVB.Test With
+            {
+                .TestCode = source,
+                .FixedCode = fixedSource,
+                .NumberOfIncrementalIterations = 1,
+                .CodeActionIndex = 2,
+                .CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeBothEquivalenceKey
+            }.RunAsync()
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)>
+        Public Async Function TestFixAll1_WithBaseline() As Task
+            Dim source =
+"
+imports System
+
+namespace N
+{|BC37284:<<<<<<< This is mine!|}
+    class Program
+    end class
+{|BC37284:||||||| Baseline|}
+    class Removed 
+    end class
+{|BC37284:=======|}
+    class Program2
+    end class
+{|BC37284:>>>>>>> This is theirs!|}
+
+{|BC37284:<<<<<<< This is mine!|}
+    class Program3
+    end class
+{|BC37284:||||||| Baseline|}
+    class Removed2
+    end class
+{|BC37284:=======|}
+    class Program4
+    end class
+{|BC37284:>>>>>>> This is theirs!|}
+end namespace"
+            Dim fixedSource = "
+imports System
+
+namespace N
+    class Program
+    end class
+
+    class Program3
+    end class
+end namespace"
+
+            Await New VerifyVB.Test With
+            {
+                .TestCode = source,
+                .FixedCode = fixedSource,
+                .NumberOfIncrementalIterations = 2,
+                .CodeActionIndex = 0,
+                .CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeTopEquivalenceKey
+            }.RunAsync()
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)>
+        Public Async Function TestFixAll2_WithBaseline() As Task
+            Dim source =
+"
+imports System
+
+namespace N
+{|BC37284:<<<<<<< This is mine!|}
+    class Program
+    end class
+{|BC37284:||||||||}
+    class Removed
+    end class
+{|BC37284:=======|}
+    class Program2
+    end class
+{|BC37284:>>>>>>> This is theirs!|}
+
+{|BC37284:<<<<<<< This is mine!|}
+    class Program3
+    end class
+{|BC37284:||||||||}
+    class Removed2
+    end class
+{|BC37284:=======|}
+    class Program4
+    end class
+{|BC37284:>>>>>>> This is theirs!|}
+end namespace"
+            Dim fixedSource = "
+imports System
+
+namespace N
+    class Program2
+    end class
+
+    class Program4
+    end class
+end namespace"
+
+            Await New VerifyVB.Test With
+            {
+                .TestCode = source,
+                .FixedCode = fixedSource,
+                .NumberOfIncrementalIterations = 2,
+                .CodeActionIndex = 1,
+                .CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeBottomEquivalenceKey
+            }.RunAsync()
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)>
+        Public Async Function TestFixAll3_WithBaseline() As Task
+            Dim source =
+"
+imports System
+
+namespace N
+{|BC37284:<<<<<<< This is mine!|}
+    class Program
+    end class
+{|BC37284:||||||| Baseline|}
+    class Removed
+    end class
+{|BC37284:=======|}
+    class Program2
+    end class
+{|BC37284:>>>>>>> This is theirs!|}
+
+{|BC37284:<<<<<<< This is mine!|}
+    class Program3
+    end class
+{|BC37284:||||||| Baseline|}
+    class Removed2
+    end class
+{|BC37284:=======|}
+    class Program4
+    end class
+{|BC37284:>>>>>>> This is theirs!|}
+end namespace"
+            Dim fixedSource = "
+imports System
+
+namespace N
+    class Program
+    end class
+    class Program2
+    end class
+
+    class Program3
+    end class
+    class Program4
+    end class
+end namespace"
+
+            Await New VerifyVB.Test With
+            {
+                .TestCode = source,
+                .FixedCode = fixedSource,
+                .NumberOfIncrementalIterations = 2,
+                .CodeActionIndex = 2,
+                .CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeBothEquivalenceKey
+            }.RunAsync()
+        End Function
     End Class
 End Namespace
