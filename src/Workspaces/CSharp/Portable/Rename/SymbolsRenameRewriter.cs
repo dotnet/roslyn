@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             bool isOldText,
             bool isVerbatim,
             bool replacementTextValid,
-            bool IsRenamableAccessor,
+            bool isRenamableAccessor,
             string replacementText,
             string originalText,
             RenameAnnotation renameRenamableSymbolDeclaration,
@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 var symbols = RenameUtilities.GetSymbolsTouchingPosition(token.Span.Start, _semanticModel, _solution.Workspace.Services, _cancellationToken);
 
                 string? suffix = null;
-                var prefix = isRenameLocation && IsRenamableAccessor
+                var prefix = isRenameLocation && isRenamableAccessor
                     ? newToken.ValueText.Substring(0, newToken.ValueText.IndexOf('_') + 1)
                     : null;
 
@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     isOldText: false,
                     isVerbatim: _syntaxFactsService.IsVerbatimIdentifier(symbolContext.ReplacementText),
                     replacementTextValid: symbolContext.ReplacementTextValid,
-                    IsRenamableAccessor: textSpanRenameContext.RenameLocation.IsRenamableAccessor,
+                    isRenamableAccessor: textSpanRenameContext.RenameLocation.IsRenamableAccessor,
                     replacementText: symbolContext.ReplacementText,
                     originalText: symbolContext.OriginalText,
                     renameRenamableSymbolDeclaration: symbolContext.RenamableSymbolDeclarationAnnotation,
@@ -384,7 +384,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
             if (token.HasAnnotations(RenameAnnotation.Kind))
             {
-                var annotation = _renameAnnotations.GetAnnotations(token).OfType<RenameActionAnnotation>().FirstOrDefault();
+                var annotation = _renameAnnotations.GetAnnotations(token).OfType<RenameActionAnnotation>().First();
                 if (annotation.IsRenameLocation && _textSpanToRenameContexts.TryGetValue(annotation.OriginalSpan, out var originalContext))
                 {
                     return RenameComplexifiedToken(token, newToken, originalContext);
