@@ -1145,13 +1145,14 @@ namespace Microsoft.CodeAnalysis
 
             compilation.GetDiagnostics(CompilationStage.Declare, includeEarlierStages: false, diagnostics, cancellationToken);
 
-            // If there are declaration errors, check two conditions:
-            // 1. Whether there are any diagnostic suppressors -- if there are, an instance of `AnalyzerDriver` would already have been created.
-            // 2. Whether "warnaserror" is set. If true, it means that some/all warnings are automatically treated as suppressable errors (i.e. they will be contained in the diagnostic bag),
+            // If there are unsuppressable declaration errors, we want to exit early from this method.
+            // But before we do so, we need to check that BOTH of these two conditions are met:
+            // 1. Whether there are any diagnostic suppressors -- if there are, an instance of `AnalyzerDriver` would already have been created and then assigned to `analyzerDriver`.
+            // 2. Whether `warnaserror` is set. If true, it means that some/all warnings are automatically treated as suppressable errors
+            // (i.e. they will be added to the diagnostic bag during the `CompilationStage.Declare` stage),
             // but we might want to suppress some of these warnings-elevated-as-suppressable-errors using diagnostic suppressors.
             if (HasUnsuppressableErrors(diagnostics))
             {
-                // If there are any diagnostic suppressors, `analyzerDriver` would not be null.
                 if (analyzerDriver == null)
                 {
                     return;
@@ -1162,7 +1163,7 @@ namespace Microsoft.CodeAnalysis
                 var emitOptions = GetEmitOptions(outputFileName, pdbFilePath);
 
                 diagnostics.Clear();
-                var moduleBeingBuilt = 
+                var moduleBuilder = 
                     compilation.CheckOptionsAndCreateModuleBuilder(
                         diagnostics,
                         Arguments.ManifestResources,
@@ -1173,12 +1174,12 @@ namespace Microsoft.CodeAnalysis
                         testData: null,
                         cancellationToken: cancellationToken);
 
-                if (moduleBeingBuilt != null)
+                if (moduleBuilder != null)
                 {
                     try
                     {
                         compilation.CompileMethods(
-                            moduleBeingBuilt,
+                            moduleBuilder,
                             Arguments.EmitPdb,
                             emitOptions.EmitMetadataOnly,
                             emitOptions.EmitTestCoverageData,
@@ -1186,13 +1187,13 @@ namespace Microsoft.CodeAnalysis
                             filterOpt: null,
                             cancellationToken: cancellationToken);
 
-                        // Apply programmatic suppressions for compiler warnings from diagnostic suppressors.
+                        // Apply programmatic suppressions
                         analyzerDriver.ApplyProgrammaticSuppressions(diagnostics, compilation);
                         compilation.CompleteTrees(null);
                     }
                     finally
                     {
-                        moduleBeingBuilt.CompilationFinished();
+                        moduleBuilder.CompilationFinished();
                     }
                 }
                 return;

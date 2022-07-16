@@ -12360,10 +12360,16 @@ class C
         public void TestSuppression_CompilerSyntaxDeclarationError_AndWarningElevatedAsSuppressibleError()
         {
             const string sourceCode = @"
-                // warning CS0282: Partial struct warning
-                public partial struct MyPartialStruct
+                // warning CS1522: Empty switch block
+                // NOTE: Empty switch block warning is reported by the C# language parser
+                class C
                 {
-                    public int MyInt;
+                    void M(int i)
+                    {
+                        switch (i)
+                        {
+                        }
+                    }
                 }
 
                 public abstract class MyAbstractClass
@@ -12379,40 +12385,9 @@ class C
             sourceFile.WriteAllText(sourceCode);
 
             // Verify two things:
-            // 1. Compiler warning CS1522 is suppressed with diagnostic suppressor, and info diagnostic is logged with programmatic suppression information.
-            // 2. Compiler error CS1001 is reported.
-            //var suppressor = new DiagnosticSuppressorForId("CS1522");
-
-            //// Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'
-            //var suppressionMessage =
-            //    string.Format(
-            //        CodeAnalysisResources.SuppressionDiagnosticDescriptorMessage,
-            //        suppressor.SuppressionDescriptor.SuppressedDiagnosticId,
-            //        new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.WRN_EmptySwitch), Location.None).GetMessage(CultureInfo.InvariantCulture),
-            //        suppressor.SuppressionDescriptor.Id,
-            //        suppressor.SuppressionDescriptor.Justification);
-
-            //var output =
-            //    VerifyOutput(
-            //        sourceDir,
-            //        sourceFile,
-            //        expectedErrorCount: 1,
-            //        expectedInfoCount: 1,
-            //        expectedWarningCount: 0,
-            //        includeCurrentAssemblyAsAnalyzerReference: false,
-            //        analyzers: new[] { suppressor },
-            //        errorlog: true);
-
-            //Assert.DoesNotContain("warning CS1522", output, StringComparison.Ordinal);
-
-            //Assert.Contains(suppressionMessage, output, StringComparison.Ordinal);
-            //Assert.Contains("info SP0001", output, StringComparison.Ordinal);
-            //Assert.Contains("error CS0180", output, StringComparison.Ordinal);
-
-            // Verify two things:
-            // 1. Compiler warning CS1522 is suppressed with diagnostic suppressor even with /warnaserror, and info diagnostic is logged with programmatic suppression information.
-            // 2. Compiler error CS1001 is reported.
-            var suppressor = new DiagnosticSuppressorForId("CS0282");
+            // 1.Compiler warning CS1522 is suppressed with diagnostic suppressor, and info diagnostic is logged with programmatic suppression information.
+            //  2.Compiler error CS1001 is reported.
+            var suppressor = new DiagnosticSuppressorForId("CS1522");
 
             // Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'
             var suppressionMessage =
@@ -12430,13 +12405,30 @@ class C
                     expectedErrorCount: 1,
                     expectedInfoCount: 1,
                     expectedWarningCount: 0,
+                    includeCurrentAssemblyAsAnalyzerReference: false,
+                    analyzers: new[] { suppressor },
+                    errorlog: true);
+
+            Assert.DoesNotContain("warning CS1522", output, StringComparison.Ordinal);
+
+            Assert.Contains(suppressionMessage, output, StringComparison.Ordinal);
+            Assert.Contains("info SP0001", output, StringComparison.Ordinal);
+            Assert.Contains("error CS0180", output, StringComparison.Ordinal);
+
+            output =
+                VerifyOutput(
+                    sourceDir,
+                    sourceFile,
+                    expectedErrorCount: 1,
+                    expectedInfoCount: 1,
+                    expectedWarningCount: 0,
                     additionalFlags: new[] { "/warnaserror" },
                     includeCurrentAssemblyAsAnalyzerReference: false,
                     errorlog: true,
                     analyzers: new[] { suppressor });
 
-            Assert.DoesNotContain($"error CS0282", output, StringComparison.Ordinal);
-            Assert.DoesNotContain($"warning CS0282", output, StringComparison.Ordinal);
+            Assert.DoesNotContain($"error CS1522", output, StringComparison.Ordinal);
+            Assert.DoesNotContain($"warning CS1522", output, StringComparison.Ordinal);
 
             Assert.Contains(suppressionMessage, output, StringComparison.Ordinal);
             Assert.Contains("info SP0001", output, StringComparison.Ordinal);
@@ -12515,7 +12507,7 @@ class C
                     expectedErrorCount: 1,
                     expectedInfoCount: 1,
                     expectedWarningCount: 0,
-                    additionalFlags: new[] { "/warnAsError" },
+                    additionalFlags: new[] { "/warnaserror" },
                     includeCurrentAssemblyAsAnalyzerReference: false,
                     errorlog: true,
                     analyzers: new[] { suppressor });
@@ -12529,88 +12521,7 @@ class C
 
             CleanupAllGeneratedFiles(sourceFile.Path);
         }
-
-        //[WorkItem(62540, "https://github.com/dotnet/roslyn/issues/62540")]
-        //[Fact]
-        //public void TestSuppression_CompilerSyntaxParsingError_AndSuppressibleWarning()
-        //{
-        //    const string sourceCode = @"
-        //        class C
-        //        {
-        //            void M(int i)
-        //            {
-        //                // warning CS1522: Empty switch block
-        //                // NOTE: Empty switch block warning is reported by the C# language parser
-        //                switch (i)
-        //                {
-        //                }
-        //            }
-        //        }
-        //        class 
-        //        { 
-        //            // error CS1001: Identifier expected
-        //        }";
-
-        //    var sourceDir = Temp.CreateDirectory();
-        //    var sourceFile = sourceDir.CreateFile("a.cs");
-        //    sourceFile.WriteAllText(sourceCode);
-
-        //    // Verify two things:
-        //    // 1. Compiler warning CS1522 is suppressed with diagnostic suppressor, and info diagnostic is logged with programmatic suppression information.
-        //    // 2. Compiler error CS1001 is reported.
-        //    var suppressor = new DiagnosticSuppressorForId("CS1522");
-
-        //    // Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'
-        //    var suppressionMessage =
-        //        string.Format(
-        //            CodeAnalysisResources.SuppressionDiagnosticDescriptorMessage,
-        //            suppressor.SuppressionDescriptor.SuppressedDiagnosticId,
-        //            new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.WRN_EmptySwitch), Location.None).GetMessage(CultureInfo.InvariantCulture),
-        //            suppressor.SuppressionDescriptor.Id,
-        //            suppressor.SuppressionDescriptor.Justification);
-
-        //    var output =
-        //        VerifyOutput(
-        //            sourceDir,
-        //            sourceFile,
-        //            expectedErrorCount: 1,
-        //            expectedInfoCount: 1,
-        //            expectedWarningCount: 0,
-        //            includeCurrentAssemblyAsAnalyzerReference: false,
-        //            analyzers: new[] { suppressor },
-        //            errorlog: true);
-
-        //    Assert.DoesNotContain("warning CS1522", output, StringComparison.Ordinal);
-
-        //    Assert.Contains(suppressionMessage, output, StringComparison.Ordinal);
-        //    Assert.Contains("info SP0001", output, StringComparison.Ordinal); 
-        //    Assert.Contains("error CS1001", output, StringComparison.Ordinal);
-
-        //    // Verify two things:
-        //    // 1. Compiler warning CS1522 is suppressed with diagnostic suppressor even with /warnaserror, and info diagnostic is logged with programmatic suppression information.
-        //    // 2. Compiler error CS1001 is reported.
-        //    output = 
-        //        VerifyOutput(
-        //            sourceDir,
-        //            sourceFile,
-        //            expectedErrorCount: 1,
-        //            expectedInfoCount: 1, 
-        //            expectedWarningCount: 0, 
-        //            additionalFlags: new[] { "/warnAsError" },
-        //            includeCurrentAssemblyAsAnalyzerReference: false,
-        //            errorlog: true,
-        //            analyzers: new[] { suppressor });
-
-        //    Assert.DoesNotContain($"error CS1522", output, StringComparison.Ordinal);
-        //    Assert.DoesNotContain($"warning CS1522", output, StringComparison.Ordinal);
-
-        //    Assert.Contains(suppressionMessage, output, StringComparison.Ordinal); 
-        //    Assert.Contains("info SP0001", output, StringComparison.Ordinal);
-        //    Assert.Contains("error CS1001", output, StringComparison.Ordinal);
-
-        //    CleanupAllGeneratedFiles(sourceFile.Path);
-        //}
-
+        
         [WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
         [Fact]
         public void TestNoSuppression_CompilerSyntaxError()

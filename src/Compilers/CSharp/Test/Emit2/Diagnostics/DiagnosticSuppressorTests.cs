@@ -70,6 +70,73 @@ class C
             VerifySuppressedAndFilteredDiagnostics(compilation, analyzers);
         }
 
+
+        [WorkItem(62540, "https://github.com/dotnet/roslyn/issues/62540")]
+        [Fact]
+        public void TestSuppression_CompilerSyntaxBindingError_AndSuppressibleWarning()
+        {
+            const string sourceCode = @"
+                public class MyClass
+                {
+                    void MyPrivateMethod(int i)
+                    {
+                        // warning CS1522: Empty switch block
+                        // NOTE: Empty switch block warning is reported by the C# language parser
+                        switch (i)
+                        {
+                        }
+                    }
+                }
+                public class YourClass
+                { 
+                    void YourPrivateMethod()
+                    {
+                        // Cannot access private method
+                        new MyClass().MyPrivateMethod();
+                    }
+                }";
+
+            var compilation = CreateCompilation(sourceCode);
+
+            // Verify that suppression takes place even there are declaration errors
+            var analyzers = new DiagnosticAnalyzer[] { new DiagnosticSuppressorForId("CS1522") };
+            VerifySuppressedDiagnostics(compilation, analyzers, Diagnostic("CS1522", "{", isSuppressed: true));
+            VerifySuppressedAndFilteredDiagnostics(compilation, analyzers);
+        }
+
+        [WorkItem(62540, "https://github.com/dotnet/roslyn/issues/62540")]
+        [Fact]
+        public void TestSuppression_CompilerSyntaxDeclarationError_AndSuppressibleWarning()
+        {
+            const string sourceCode = @"
+                // warning CS1522: Empty switch block
+                // NOTE: Empty switch block warning is reported by the C# language parser
+                class C
+                {
+                    void M(int i)
+                    {
+                        switch (i)
+                        {
+                        }
+                    }
+                }
+
+                public abstract class MyAbstractClass
+                {
+                    // error CS0180: Methods cannot be both extern and abstract -- this is a declaration error
+                    public extern abstract void MyFaultyMethod()
+                    {
+                    }
+                }";
+
+            var compilation = CreateCompilation(sourceCode);
+            
+            // Verify that suppression takes place even there are declaration errors
+            var analyzers = new DiagnosticAnalyzer[] { new DiagnosticSuppressorForId("CS1522") };
+            VerifySuppressedDiagnostics(compilation, analyzers, Diagnostic("CS1522", "{", isSuppressed: true));
+            VerifySuppressedAndFilteredDiagnostics(compilation, analyzers);
+        }
+
         [Fact, WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
         public void TestSuppression_CompilerSemanticWarning()
         {
