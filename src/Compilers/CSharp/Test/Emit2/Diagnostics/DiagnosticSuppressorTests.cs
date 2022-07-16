@@ -130,7 +130,7 @@ class C
                 }";
 
             var compilation = CreateCompilation(sourceCode);
-            
+
             // Verify that suppression takes place even there are declaration errors
             var analyzers = new DiagnosticAnalyzer[] { new DiagnosticSuppressorForId("CS1522") };
             VerifySuppressedDiagnostics(compilation, analyzers, Diagnostic("CS1522", "{", isSuppressed: true));

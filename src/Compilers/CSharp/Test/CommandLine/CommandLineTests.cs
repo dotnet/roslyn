@@ -12528,7 +12528,7 @@ class C
 
             CleanupAllGeneratedFiles(sourceFile.Path);
         }
-        
+
         [WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
         [Fact]
         public void TestNoSuppression_CompilerSyntaxError()
