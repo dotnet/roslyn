@@ -17,15 +17,15 @@ using SAsyncServiceProvider = Microsoft.VisualStudio.Shell.Interop.SAsyncService
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
     [Export(typeof(IOptionPersisterProvider))]
-    internal sealed class RoamingVisualStudioProfileOptionPersisterProvider : IOptionPersisterProvider
+    internal sealed class VisualStudioSettingsOptionPersisterProvider : IOptionPersisterProvider
     {
         private readonly IAsyncServiceProvider _serviceProvider;
         private readonly IGlobalOptionService _optionService;
-        private RoamingVisualStudioProfileOptionPersister? _lazyPersister;
+        private VisualStudioSettingsOptionPersister? _lazyPersister;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RoamingVisualStudioProfileOptionPersisterProvider(
+        public VisualStudioSettingsOptionPersisterProvider(
             [Import(typeof(SAsyncServiceProvider))] IAsyncServiceProvider serviceProvider,
             IGlobalOptionService optionService)
         {
@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
             var settingsManager = (ISettingsManager?)await _serviceProvider.GetServiceAsync(typeof(SVsSettingsPersistenceManager)).ConfigureAwait(true);
 
-            _lazyPersister ??= new RoamingVisualStudioProfileOptionPersister(_optionService, settingsManager);
+            _lazyPersister ??= new VisualStudioSettingsOptionPersister(_optionService, settingsManager);
             return _lazyPersister;
         }
     }
