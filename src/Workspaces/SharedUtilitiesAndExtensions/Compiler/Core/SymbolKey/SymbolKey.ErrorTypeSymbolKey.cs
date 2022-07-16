@@ -82,15 +82,12 @@ namespace Microsoft.CodeAnalysis
 
                 if (typeArgumentsFailureReason != null)
                 {
+                    Contract.ThrowIfFalse(typeArguments.IsDefault);
                     failureReason = $"({nameof(ErrorTypeSymbolKey)} {nameof(typeArguments)} failed -> {typeArgumentsFailureReason})";
                     return default;
                 }
 
-                if (typeArguments.IsDefault)
-                {
-                    failureReason = $"({nameof(ErrorTypeSymbolKey)} {nameof(typeArguments)} failed)";
-                    return default;
-                }
+                Contract.ThrowIfTrue(typeArguments.IsDefault);
 
                 using var result = PooledArrayBuilder<INamedTypeSymbol>.GetInstance();
 
