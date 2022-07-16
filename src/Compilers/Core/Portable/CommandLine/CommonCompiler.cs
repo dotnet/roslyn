@@ -991,7 +991,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             return UpdateAnalyzerConfigOptionsProvider(
-                analyzerConfigProvider,
+                CompilerAnalyzerConfigOptionsProvider.Empty,
                 compilation.SyntaxTrees,
                 sourceFileAnalyzerConfigOptions,
                 additionalTextFiles,
