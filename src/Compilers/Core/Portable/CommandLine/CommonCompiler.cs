@@ -1127,9 +1127,7 @@ namespace Microsoft.CodeAnalysis
                     return;
                 }
 
-                string outputFileName = GetOutputFileName(compilation, cancellationToken);
-                string pdbFilePath = Arguments.GetPdbFilePath(outputFileName);
-                var emitOptions = GetEmitOptions(outputFileName, pdbFilePath);
+                var emitOptions = GetEmitOptions(compilation, cancellationToken);
 
                 diagnostics.Clear();
                 var moduleBuilder = 
@@ -1183,8 +1181,7 @@ namespace Microsoft.CodeAnalysis
 
             try
             {
-                // NOTE: Unlike the PDB path, the XML doc path is not embedded in the assembly, so we don't need to pass it to emit.
-                EmitOptions emitOptions = GetEmitOptions(outputName, finalPdbFilePath);
+                EmitOptions emitOptions = GetEmitOptions(compilation, cancellationToken);
 
                 if (Arguments.ParseOptions.Features.ContainsKey("debug-determinism"))
                 {
@@ -1432,11 +1429,15 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private EmitOptions GetEmitOptions(string outputName, string finalPdbFilePath)
+        private EmitOptions GetEmitOptions(Compilation compilation, CancellationToken cancellationToken)
         {
-            var emitOptions = Arguments.EmitOptions.
-                WithOutputNameOverride(outputName).
-                WithPdbFilePath(PathUtilities.NormalizePathPrefix(finalPdbFilePath, Arguments.PathMap));
+            string outputFileName = GetOutputFileName(compilation, cancellationToken);
+            string pdbFilePath = Arguments.GetPdbFilePath(outputFileName);
+
+            var emitOptions =
+                Arguments.EmitOptions.
+                    WithOutputNameOverride(outputFileName).
+                    WithPdbFilePath(PathUtilities.NormalizePathPrefix(pdbFilePath, Arguments.PathMap));
 
             // TODO(https://github.com/dotnet/roslyn/issues/19592):
             // This feature flag is being maintained until our next major release to avoid unnecessary 
