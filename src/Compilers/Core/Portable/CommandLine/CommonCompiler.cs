@@ -1040,84 +1040,12 @@ namespace Microsoft.CodeAnalysis
             // Print the diagnostics produced during the parsing stage and exit if there were any errors.
             compilation.GetDiagnostics(CompilationStage.Parse, includeEarlierStages: false, diagnostics, cancellationToken);
 
+            // If there are parsing errors, return immediately
             if (HasUnsuppressableErrors(diagnostics))
             {
-                if (analyzers.IsEmpty)
-                {
-                    return;
-                }
-
-                var analyzerConfigProvider = 
-                    GetCompilerAnalyzerConfigOptionsProvider(compilation, additionalTextFiles, sourceFileAnalyzerConfigOptions, diagnostics, analyzerConfigSet);
-                var analyzerOptions = CreateAnalyzerOptions(additionalTextFiles, analyzerConfigProvider);
-
-                analyzerCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                analyzerExceptionDiagnostics = new DiagnosticBag();
-
-                // PERF: Avoid executing analyzers that report only Hidden and/or Info diagnostics, which don't appear in the build output.
-                //  1. Always filter out 'Hidden' analyzer diagnostics in build.
-                //  2. Filter out 'Info' analyzer diagnostics if they are not required to be logged in errorlog.
-                var severityFilter = SeverityFilter.Hidden;
-
-                if (Arguments.ErrorLogPath == null)
-                    severityFilter |= SeverityFilter.Info;
-
-                analyzerDriver =
-                    AnalyzerDriver.CreateAndAttachToCompilation(
-                        compilation,
-                        analyzers,
-                        analyzerOptions,
-                        new AnalyzerManager(analyzers),
-                        analyzerExceptionDiagnostics.Add,
-                        Arguments.ReportAnalyzer,
-                        severityFilter,
-                        out compilation,
-                        analyzerCts.Token);
-
-                string outputName_ = GetOutputFileName(compilation, cancellationToken);
-                string finalPdbFilePath_ = Arguments.GetPdbFilePath(outputName_);
-                var emitOptions = GetEmitOptions(outputName_, finalPdbFilePath_);
-
-                diagnostics.Clear();
-                var moduleBeingBuilt = compilation.CheckOptionsAndCreateModuleBuilder(
-                    diagnostics,
-                    Arguments.ManifestResources,
-                    emitOptions,
-                    debugEntryPoint: null,
-                    sourceLinkStream: null,
-                    embeddedTexts: embeddedTexts,
-                    testData: null,
-                    cancellationToken: cancellationToken);
-
-                if (moduleBeingBuilt != null)
-                {
-                    bool success;
-
-                    try
-                    {
-                        success = compilation.CompileMethods(
-                            moduleBeingBuilt,
-                            Arguments.EmitPdb,
-                            emitOptions.EmitMetadataOnly,
-                            emitOptions.EmitTestCoverageData,
-                            diagnostics,
-                            filterOpt: null,
-                            cancellationToken: cancellationToken);
-
-                        // Apply programmatic suppressions for compiler warnings from diagnostic suppressors.
-                        if (!diagnostics.IsEmptyWithoutResolution)
-                        {
-                            analyzerDriver.ApplyProgrammaticSuppressions(diagnostics, compilation);
-                        }
-                        compilation.CompleteTrees(null);
-                    }
-                    finally
-                    {
-                        moduleBeingBuilt.CompilationFinished();
-                    }
-                }
                 return;
             }
+
             if (!analyzers.IsEmpty || !generators.IsEmpty)
             {
                 var analyzerConfigProvider = GetCompilerAnalyzerConfigOptionsProvider(compilation, additionalTextFiles, sourceFileAnalyzerConfigOptions, diagnostics, analyzerConfigSet);
@@ -1188,8 +1116,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                AnalyzerOptions analyzerOptions = CreateAnalyzerOptions(
-                      additionalTextFiles, analyzerConfigProvider);
+                AnalyzerOptions analyzerOptions = CreateAnalyzerOptions(additionalTextFiles, analyzerConfigProvider);
 
                 if (!analyzers.IsEmpty)
                 {
@@ -1217,61 +1144,40 @@ namespace Microsoft.CodeAnalysis
             }
 
             compilation.GetDiagnostics(CompilationStage.Declare, includeEarlierStages: false, diagnostics, cancellationToken);
+
+            // If there are declaration errors, check two conditions:
+            // 1. Whether there are any diagnostic suppressors -- if there are, an instance of `AnalyzerDriver` would already have been created.
+            // 2. Whether "warnaserror" is set. If true, it means that some/all warnings are automatically treated as suppressable errors (i.e. they will be contained in the diagnostic bag),
+            // but we might want to suppress some of these warnings-elevated-as-suppressable-errors using diagnostic suppressors.
             if (HasUnsuppressableErrors(diagnostics))
             {
-                if (analyzers.IsEmpty)
+                // If there are any diagnostic suppressors, `analyzerDriver` would not be null.
+                if (analyzerDriver == null)
                 {
                     return;
                 }
 
-                var analyzerConfigProvider =
-                    GetCompilerAnalyzerConfigOptionsProvider(compilation, additionalTextFiles, sourceFileAnalyzerConfigOptions, diagnostics, analyzerConfigSet);
-                var analyzerOptions = CreateAnalyzerOptions(additionalTextFiles, analyzerConfigProvider);
-
-                analyzerCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                analyzerExceptionDiagnostics = new DiagnosticBag();
-
-                // PERF: Avoid executing analyzers that report only Hidden and/or Info diagnostics, which don't appear in the build output.
-                //  1. Always filter out 'Hidden' analyzer diagnostics in build.
-                //  2. Filter out 'Info' analyzer diagnostics if they are not required to be logged in errorlog.
-                var severityFilter = SeverityFilter.Hidden;
-
-                if (Arguments.ErrorLogPath == null)
-                    severityFilter |= SeverityFilter.Info;
-
-                analyzerDriver =
-                    AnalyzerDriver.CreateAndAttachToCompilation(
-                        compilation,
-                        analyzers,
-                        analyzerOptions,
-                        new AnalyzerManager(analyzers),
-                        analyzerExceptionDiagnostics.Add,
-                        Arguments.ReportAnalyzer,
-                        severityFilter,
-                        out compilation,
-                        analyzerCts.Token);
-
-                string outputName_ = GetOutputFileName(compilation, cancellationToken);
-                string finalPdbFilePath_ = Arguments.GetPdbFilePath(outputName_);
-                var emitOptions = GetEmitOptions(outputName_, finalPdbFilePath_);
+                string outputFileName = GetOutputFileName(compilation, cancellationToken);
+                string pdbFilePath = Arguments.GetPdbFilePath(outputFileName);
+                var emitOptions = GetEmitOptions(outputFileName, pdbFilePath);
 
                 diagnostics.Clear();
-                var moduleBeingBuilt = compilation.CheckOptionsAndCreateModuleBuilder(
-                    diagnostics,
-                    Arguments.ManifestResources,
-                    emitOptions,
-                    debugEntryPoint: null,
-                    sourceLinkStream: null,
-                    embeddedTexts: embeddedTexts,
-                    testData: null,
-                    cancellationToken: cancellationToken);
+                var moduleBeingBuilt = 
+                    compilation.CheckOptionsAndCreateModuleBuilder(
+                        diagnostics,
+                        Arguments.ManifestResources,
+                        emitOptions,
+                        debugEntryPoint: null,
+                        sourceLinkStream: null,
+                        embeddedTexts: embeddedTexts,
+                        testData: null,
+                        cancellationToken: cancellationToken);
 
                 if (moduleBeingBuilt != null)
                 {
-                    bool success;
                     try
                     {
-                        success = compilation.CompileMethods(
+                        compilation.CompileMethods(
                             moduleBeingBuilt,
                             Arguments.EmitPdb,
                             emitOptions.EmitMetadataOnly,
@@ -1281,10 +1187,7 @@ namespace Microsoft.CodeAnalysis
                             cancellationToken: cancellationToken);
 
                         // Apply programmatic suppressions for compiler warnings from diagnostic suppressors.
-                        if (!diagnostics.IsEmptyWithoutResolution)
-                        {
-                            analyzerDriver.ApplyProgrammaticSuppressions(diagnostics, compilation);
-                        }
+                        analyzerDriver.ApplyProgrammaticSuppressions(diagnostics, compilation);
                         compilation.CompleteTrees(null);
                     }
                     finally
@@ -1559,7 +1462,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        EmitOptions GetEmitOptions(string outputName, string finalPdbFilePath)
+        private EmitOptions GetEmitOptions(string outputName, string finalPdbFilePath)
         {
             var emitOptions = Arguments.EmitOptions.
                 WithOutputNameOverride(outputName).
