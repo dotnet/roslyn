@@ -12384,9 +12384,10 @@ class C
             var sourceFile = sourceDir.CreateFile("a.cs");
             sourceFile.WriteAllText(sourceCode);
 
-            // Verify two things:
-            // 1.Compiler warning CS1522 is suppressed with diagnostic suppressor, and info diagnostic is logged with programmatic suppression information.
-            //  2.Compiler error CS1001 is reported.
+            // Verify 3 things:
+            // 1. Compiler warning CS1522 is suppressed with diagnostic suppressor,
+            // 2. Info diagnostic for the suppression is logged with programmatic suppression information,
+            // 3. Compiler error CS1001 is reported.
             var suppressor = new DiagnosticSuppressorForId("CS1522");
 
             // Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'
@@ -12415,6 +12416,10 @@ class C
             Assert.Contains("info SP0001", output, StringComparison.Ordinal);
             Assert.Contains("error CS0180", output, StringComparison.Ordinal);
 
+            // Verify 3 things:
+            // 1. Compiler warning CS1522 is suppressed with diagnostic suppressor even when elevated as an error (using `/warnaserror`),
+            // 2. Info diagnostic for the suppression is logged with programmatic suppression information,
+            // 3. Compiler error CS1001 is reported.
             output =
                 VerifyOutput(
                     sourceDir,
@@ -12466,9 +12471,10 @@ class C
             var sourceFile = sourceDir.CreateFile("a.cs");
             sourceFile.WriteAllText(sourceCode);
 
-            // Verify two things:
-            // 1. Compiler warning CS1522 is suppressed with diagnostic suppressor, and info diagnostic is logged with programmatic suppression information.
-            // 2. Compiler error CS1001 is reported.
+            // Verify 3 things:
+            // 1. Compiler warning CS1522 is suppressed with diagnostic suppressor,
+            // 2. Info diagnostic for the suppression is logged with programmatic suppression information,
+            // 3. Compiler error CS1001 is reported.
             var suppressor = new DiagnosticSuppressorForId("CS1522");
 
             // Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'
@@ -12497,9 +12503,10 @@ class C
             Assert.Contains("info SP0001", output, StringComparison.Ordinal);
             Assert.Contains("error CS0122", output, StringComparison.Ordinal);
 
-            // Verify two things:
-            // 1. Compiler warning CS1522 is suppressed with diagnostic suppressor even with /warnaserror, and info diagnostic is logged with programmatic suppression information.
-            // 2. Compiler error CS1001 is reported.
+            // Verify 3 things:
+            // 1. Compiler warning CS1522 is suppressed with diagnostic suppressor even when elevated as an error (using `/warnaserror`),
+            // 2. Info diagnostic for the suppression is logged with programmatic suppression information,
+            // 3. Compiler error CS1001 is reported.
             output =
                 VerifyOutput(
                     sourceDir,
