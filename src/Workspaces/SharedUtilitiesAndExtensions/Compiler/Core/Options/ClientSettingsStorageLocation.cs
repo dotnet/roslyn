@@ -36,7 +36,12 @@ internal abstract class ClientSettingsStorageLocation : OptionStorageLocation2
 
         if (languageName != null)
         {
-            keyName = keyName.Replace("%LANGUAGE%", languageName switch { LanguageNames.CSharp => "CSharp", LanguageNames.VisualBasic => "VisualBasic", _ => languageName });
+            keyName = keyName.Replace("%LANGUAGE%", languageName switch
+            {
+                LanguageNames.CSharp => "CSharp",
+                LanguageNames.VisualBasic => "VisualBasic",
+                _ => languageName // handles F#, TypeScript and Xaml
+            });
         }
 
         return keyName;
