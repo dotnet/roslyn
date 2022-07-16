@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -66,15 +67,12 @@ namespace Microsoft.CodeAnalysis
 
                 if (parameterTypesFailureReason != null)
                 {
+                    Contract.ThrowIfFalse(parameterTypes.IsDefault);
                     failureReason = $"({nameof(FunctionPointerTypeSymbolKey)} {nameof(parameterTypes)} failed -> {parameterTypesFailureReason})";
                     return default;
                 }
 
-                if (parameterTypes.IsDefault)
-                {
-                    failureReason = $"({nameof(FunctionPointerTypeSymbolKey)} no parameter types)";
-                    return default;
-                }
+                Contract.ThrowIfTrue(parameterTypes.IsDefault);
 
                 if (returnType.GetAnySymbol() is not ITypeSymbol returnTypeSymbol)
                 {

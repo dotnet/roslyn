@@ -579,15 +579,19 @@ namespace Microsoft.CodeAnalysis
             }
 
             /// <summary>
-            /// Reads an array of symbols out from the key.  Note: the number of symbols returned 
-            /// will either be the same as the original amount written, or <c>default</c> will be 
-            /// returned. It will never be less or more.  <c>default</c> will be returned if any 
-            /// elements could not be resolved to the requested <typeparamref name="TSymbol"/> type 
-            /// in the provided <see cref="SymbolKeyReader.Compilation"/>.
-            /// 
-            /// Callers should <see cref="IDisposable.Dispose"/> the instance returned.  No check is
-            /// necessary if <c>default</c> was returned before calling <see cref="IDisposable.Dispose"/>
+            /// Reads an array of symbols out from the key.  Note: the number of symbols returned will either be the
+            /// same as the original amount written, or <c>default</c> will be returned. It will never be less or more.
+            /// <c>default</c> will be returned if any elements could not be resolved to the requested <typeparamref
+            /// name="TSymbol"/> type in the provided <see cref="SymbolKeyReader.Compilation"/>.
+            /// <para>
+            /// Callers should <see cref="IDisposable.Dispose"/> the instance returned.  No check is necessary if
+            /// <c>default</c> was returned before calling <see cref="IDisposable.Dispose"/>
+            /// </para>
             /// </summary>
+            /// <remarks>
+            /// If <c>default</c> is returned then <paramref name="failureReason"/> will be non-null.  Similarly, if
+            /// <paramref name="failureReason"/> is non-null, then only <c>default</c> will be returned.
+            /// </remarks>
             public PooledArrayBuilder<TSymbol> ReadSymbolKeyArray<TContextualSymbol, TSymbol>(
                 TContextualSymbol? contextualSymbol,
                 Func<TContextualSymbol, int, ITypeSymbol?> getContextualType,
