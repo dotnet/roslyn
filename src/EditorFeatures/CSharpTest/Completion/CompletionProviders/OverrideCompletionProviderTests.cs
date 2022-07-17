@@ -2743,7 +2743,7 @@ int bar;
         public async Task CommitRequiredKeywordPreserved(string ordering)
         {
             var markupBeforeCommit = $@"<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"" LanguageVersion=""{TestOptions.RegularNext.LanguageVersion}"">
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"" LanguageVersion=""{TestOptions.Regular11.LanguageVersion.ToDisplayString()}"">
         <Document>class Base
 {{
     public virtual required int Prop {{ get; }}
@@ -2782,7 +2782,7 @@ class Derived : Base
         public async Task CommitRequiredKeywordPreservedWhenBaseIsNotRequired(string ordering)
         {
             var markupBeforeCommit = $@"<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"" LanguageVersion=""{TestOptions.RegularNext.LanguageVersion}"">
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"" LanguageVersion=""{TestOptions.Regular11.LanguageVersion.ToDisplayString()}"">
         <Document>class Base
 {{
     public virtual int Prop {{ get; }}

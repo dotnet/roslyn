@@ -366,9 +366,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // PREFER reporting diagnostics in binding when diagnostics do not affect the shape of the syntax tree
 
                 // C# preview features.
+                case MessageID.IDS_FeatureGenericAttributes: // semantic check
+                    return LanguageVersion.Preview;
+
+                // C# 11.0 features.
                 case MessageID.IDS_FeatureRawStringLiterals:
                 case MessageID.IDS_FeatureStaticAbstractMembersInInterfaces: // semantic check
-                case MessageID.IDS_FeatureGenericAttributes: // semantic check
                 case MessageID.IDS_FeatureNewLinesInInterpolations: // semantic check
                 case MessageID.IDS_FeatureListPattern: // semantic check
                 case MessageID.IDS_FeatureRequiredMembers: // semantic check
@@ -381,7 +384,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureRelaxedShiftOperator: // semantic check
                 case MessageID.IDS_FeatureRefFields: // semantic check
                 case MessageID.IDS_FeatureFileTypes: // semantic check
-                    return LanguageVersion.Preview;
+                    return LanguageVersion.CSharp11;
 
                 // C# 10.0 features.
                 case MessageID.IDS_FeatureMixedDeclarationsAndExpressionsInDeconstruction: // semantic check

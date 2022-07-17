@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 
             using (Logger.LogBlock(FunctionId.Formatting_ApplyResultToBuffer, cancellationToken))
             {
-                textBuffer.ApplyChanges(changes);
+                document.Project.Solution.Workspace.ApplyTextChanges(document.Id, changes, cancellationToken);
             }
         }
 

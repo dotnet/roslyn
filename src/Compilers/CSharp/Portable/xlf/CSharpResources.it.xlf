@@ -552,6 +552,11 @@
         <target state="translated">La funzionalità '{0}' non è disponibile in C# 10.0. Usare la versione {1} o versioni successive del linguaggio.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FeatureNotAvailableInVersion11">
+        <source>Feature '{0}' is not available in C# 11.0. Please use language version {1} or greater.</source>
+        <target state="new">Feature '{0}' is not available in C# 11.0. Please use language version {1} or greater.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
         <source>Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</source>
         <target state="translated">La funzionalità '{0}' non è disponibile in C# 8.0. Usare la versione {1} o versioni successive del linguaggio.</target>
@@ -583,13 +588,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_FileTypeBase">
-        <source>File type '{0}' cannot be used as a base type of non-file type '{1}'.</source>
-        <target state="new">File type '{0}' cannot be used as a base type of non-file type '{1}'.</target>
+        <source>File-local type '{0}' cannot be used as a base type of non-file-local type '{1}'.</source>
+        <target state="new">File-local type '{0}' cannot be used as a base type of non-file-local type '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FileTypeDisallowedInSignature">
-        <source>File type '{0}' cannot be used in a member signature in non-file type '{1}'.</source>
-        <target state="new">File type '{0}' cannot be used in a member signature in non-file type '{1}'.</target>
+        <source>File-local type '{0}' cannot be used in a member signature in non-file-local type '{1}'.</source>
+        <target state="new">File-local type '{0}' cannot be used in a member signature in non-file-local type '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FileTypeNameDisallowed">
@@ -598,13 +603,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_FileTypeNested">
-        <source>File type '{0}' must be defined in a top level type; '{0}' is a nested type.</source>
-        <target state="new">File type '{0}' must be defined in a top level type; '{0}' is a nested type.</target>
+        <source>File-local type '{0}' must be defined in a top level type; '{0}' is a nested type.</source>
+        <target state="new">File-local type '{0}' must be defined in a top level type; '{0}' is a nested type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FileTypeNoExplicitAccessibility">
-        <source>File type '{0}' cannot use accessibility modifiers.</source>
-        <target state="new">File type '{0}' cannot use accessibility modifiers.</target>
+        <source>File-local type '{0}' cannot use accessibility modifiers.</source>
+        <target state="new">File-local type '{0}' cannot use accessibility modifiers.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FixedFieldMustNotBeRef">
@@ -653,8 +658,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_GlobalUsingStaticFileType">
-        <source>File type '{0}' cannot be used in a 'global using static' directive.</source>
-        <target state="new">File type '{0}' cannot be used in a 'global using static' directive.</target>
+        <source>File-local type '{0}' cannot be used in a 'global using static' directive.</source>
+        <target state="new">File-local type '{0}' cannot be used in a 'global using static' directive.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
@@ -1255,6 +1260,11 @@
       <trans-unit id="ERR_RefFieldCannotReferToRefStruct">
         <source>A ref field cannot refer to a ref struct.</source>
         <target state="translated">Un campo ref non può fare riferimento a un ref struct.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefFieldInNonRefStruct">
+        <source>A ref field can only be declared in a ref struct.</source>
+        <target state="new">A ref field can only be declared in a ref struct.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefLocalOrParamExpected">

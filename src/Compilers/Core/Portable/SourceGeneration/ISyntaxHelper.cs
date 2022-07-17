@@ -9,12 +9,11 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.SourceGeneration
+namespace Microsoft.CodeAnalysis
 {
     internal interface ISyntaxHelper
     {
         bool IsCaseSensitive { get; }
-        int AttributeListKind { get; }
 
         bool IsValidIdentifier(string name);
 
@@ -38,13 +37,14 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         void AddAliases(GreenNode node, ArrayBuilder<(string aliasName, string symbolName)> aliases, bool global);
         void AddAliases(CompilationOptions options, ArrayBuilder<(string aliasName, string symbolName)> aliases);
 
+        bool ContainsAttributeList(SyntaxNode root);
         bool ContainsGlobalAliases(SyntaxNode root);
     }
 
     internal abstract class AbstractSyntaxHelper : ISyntaxHelper
     {
         public abstract bool IsCaseSensitive { get; }
-        public abstract int AttributeListKind { get; }
+        protected abstract int AttributeListKind { get; }
 
         public abstract bool IsValidIdentifier(string name);
 
@@ -65,5 +65,27 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         public abstract void AddAliases(CompilationOptions options, ArrayBuilder<(string aliasName, string symbolName)> aliases);
 
         public abstract bool ContainsGlobalAliases(SyntaxNode root);
+
+        public bool ContainsAttributeList(SyntaxNode root)
+            => ContainsAttributeList(root.Green, this.AttributeListKind);
+
+        private static bool ContainsAttributeList(GreenNode node, int attributeListKind)
+        {
+            if (node.RawKind == attributeListKind)
+                return true;
+
+            for (int i = 0, n = node.SlotCount; i < n; i++)
+            {
+                var child = node.GetSlot(i);
+
+                if (child is null || child.IsToken)
+                    continue;
+
+                if (ContainsAttributeList(child, attributeListKind))
+                    return true;
+            }
+
+            return false;
+        }
     }
 }

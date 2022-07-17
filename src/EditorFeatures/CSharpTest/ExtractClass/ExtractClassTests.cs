@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ExtractClass;
 using Microsoft.CodeAnalysis.PullMemberUp;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -2227,6 +2228,59 @@ internal class MyBase<T1, T3>
                     }
                 },
                 DialogSelection = MakeSelection("Field1", "Method")
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestIncompleteFieldSelection_NoAction1()
+        {
+            var input = @"
+class C
+{
+    pub[||] {|CS1519:int|} Foo = 0;
+}
+";
+            await new Test
+            {
+                TestCode = input,
+                FixedCode = input
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestIncompleteMethodSelection_NoAction()
+        {
+            var input = @"
+class C
+{
+    pub[||] {|CS1519:int|} Foo()
+    {
+        return 5;
+    }
+}
+";
+            await new Test
+            {
+                TestCode = input,
+                FixedCode = input
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestTopLevelStatementSelection_NoAction()
+        {
+            var input = @"
+[||]_ = 42;
+";
+            await new Test
+            {
+                TestCode = input,
+                FixedCode = input,
+                LanguageVersion = LanguageVersion.CSharp10,
+                TestState =
+                {
+                    OutputKind = OutputKind.ConsoleApplication
+                }
             }.RunAsync();
         }
 
