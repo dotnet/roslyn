@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis
                 visitor.WriteSymbolKey(symbol.ContainingSymbol);
                 visitor.WriteString(symbol.Name);
                 visitor.WriteInteger(symbol.Arity);
-                visitor.WriteString(symbol.IsFile
+                visitor.WriteString(symbol.IsFileLocal
                     ? symbol.DeclaringSyntaxReferences[0].SyntaxTree.FilePath
                     : null);
                 visitor.WriteBoolean(symbol.IsUnboundGenericType);
@@ -84,19 +84,19 @@ namespace Microsoft.CodeAnalysis
             {
                 foreach (var type in container.GetTypeMembers(name, arity))
                 {
-                    // if this is a 'file' type, then only resolve to a file-type from this same file
+                    // if this is a file-local type, then only resolve to a file-local type from this same file
                     if (filePath != null)
                     {
-                        if (!type.IsFile ||
+                        if (!type.IsFileLocal ||
                             // note: if we found 'IsFile' returned true, we can assume DeclaringSyntaxReferences is non-empty.
                             type.DeclaringSyntaxReferences[0].SyntaxTree.FilePath != filePath)
                         {
                             continue;
                         }
                     }
-                    else if (type.IsFile)
+                    else if (type.IsFileLocal)
                     {
-                        // since this key lacks a file path it can't match against a 'file' type
+                        // since this key lacks a file path it can't match against a file-local type
                         continue;
                     }
 

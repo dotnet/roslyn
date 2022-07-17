@@ -71,9 +71,9 @@ public class RawInterpolatedStringLiteralCompilingTests : CompilingTestBase
 {
     const string s = $"""""" """""";
 }", parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-            // (3,22): error CS8652: The feature 'raw string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     const string s = """ """;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$"""""" """"""").WithArguments("raw string literals").WithLocation(3, 22));
+            // (3,22): error CS8936: Feature 'raw string literals' is not available in C# 10.0. Please use language version 11.0 or greater.
+            //     const string s = $""" """;
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, @"$"""""" """"""").WithArguments("raw string literals", "11.0").WithLocation(3, 22));
     }
 
     [Fact]
@@ -83,7 +83,7 @@ public class RawInterpolatedStringLiteralCompilingTests : CompilingTestBase
 @"class C
 {
     const string s = $"""""" """""";
-}", parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+}", parseOptions: TestOptions.Regular11).VerifyDiagnostics();
     }
 
     [Fact]
@@ -284,14 +284,14 @@ class C
 """"""}"";
     }
 }", parseOptions: TestOptions.Regular9).VerifyDiagnostics(
-                // (5,20): error CS8652: The feature 'raw string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,20): error CS8773: Feature 'raw string literals' is not available in C# 9.0. Please use language version 11.0 or greater.
                 //         var v = $"{$"""
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""""""
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$""""""
 
-""""""").WithArguments("raw string literals").WithLocation(5, 20),
-                // (7,4): error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 9.0. Please use language version preview or greater.
+""""""").WithArguments("raw string literals", "11.0").WithLocation(5, 20),
+                // (7,4): error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 9.0. Please use language version 11.0 or greater.
                 // """}";
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("9.0", "preview").WithLocation(7, 4));
+                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("9.0", "11.0").WithLocation(7, 4));
     }
 
     [Fact]

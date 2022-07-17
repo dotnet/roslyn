@@ -2204,6 +2204,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_FileTypeNested:
                 case ErrorCode.ERR_GlobalUsingStaticFileType:
                 case ErrorCode.ERR_FileTypeNameDisallowed:
+                case ErrorCode.ERR_FeatureNotAvailableInVersion11:
+                case ErrorCode.ERR_RefFieldInNonRefStruct:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

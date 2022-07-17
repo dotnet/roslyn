@@ -27,12 +27,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             var ideOptions = AnalyzerService.GlobalOptions.GetIdeAnalyzerOptions(project);
 
-            if (_projectCompilationsWithAnalyzers.TryGetValue(project, out var compilationWithAnalyzers) &&
-                ((WorkspaceAnalyzerOptions)compilationWithAnalyzers!.AnalysisOptions.Options!).IdeOptions == ideOptions)
+            if (_projectCompilationsWithAnalyzers.TryGetValue(project, out var compilationWithAnalyzers))
             {
-                // we have cached one, return that.
-                AssertAnalyzers(compilationWithAnalyzers, stateSets);
-                return compilationWithAnalyzers;
+                // We may have cached a null entry if we determiend that there are no actual analyzers to run.
+                if (compilationWithAnalyzers is null)
+                {
+                    return null;
+                }
+                else if (((WorkspaceAnalyzerOptions)compilationWithAnalyzers.AnalysisOptions.Options!).IdeOptions == ideOptions)
+                {
+                    // we have cached one, return that.
+                    AssertAnalyzers(compilationWithAnalyzers, stateSets);
+                    return compilationWithAnalyzers;
+                }
             }
 
             // Create driver that holds onto compilation and associated analyzers
