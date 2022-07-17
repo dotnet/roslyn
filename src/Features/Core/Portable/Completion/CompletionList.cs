@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -21,6 +22,8 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// The completion items to present to the user.
         /// </summary>
+        [Obsolete($"This property is obsolete. Use {nameof(ItemsList)} instead", error: false)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public ImmutableArray<CompletionItem> Items => _lazyItems.Value;
 
         /// <summary>
@@ -28,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// This property is preferred over `Items` because of the flexibility it provides. 
         /// For example, the list can be backed by types like SegmentedList to avoid LOH allocations.
         /// </summary>
-        internal IReadOnlyList<CompletionItem> ItemsList { get; }
+        public IReadOnlyList<CompletionItem> ItemsList { get; }
 
         /// <summary>
         /// The span of the syntax element at the caret position when the <see cref="CompletionList"/> was created.

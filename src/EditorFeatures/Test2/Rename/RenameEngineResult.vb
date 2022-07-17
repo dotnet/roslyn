@@ -89,6 +89,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 Dim result = GetConflictResolution(renameTo, workspace.CurrentSolution, symbol, renameOptions, host)
 
                 If expectFailure Then
+                    Assert.False(result.IsSuccessful)
                     Assert.NotNull(result.ErrorMessage)
                     Return engineResult
                 Else

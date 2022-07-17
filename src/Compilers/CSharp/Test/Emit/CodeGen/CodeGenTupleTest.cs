@@ -232,12 +232,12 @@ namespace System
                 // (7,20): warning CS0169: The field '(T1, T2).Item2' is never used
                 //         private T2 Item2;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "Item2").WithArguments("(T1, T2).Item2").WithLocation(7, 20),
-                // (8,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
+                // (8,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller. Consider updating to language version '11.0' to auto-default the field.
                 //         public ValueTuple(T1 item1, T2 item2)
-                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "ValueTuple").WithArguments("(T1, T2).Item2", "preview").WithLocation(8, 16),
-                // (8,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "ValueTuple").WithArguments("(T1, T2).Item2", "11.0").WithLocation(8, 16),
+                // (8,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller. Consider updating to language version '11.0' to auto-default the field.
                 //         public ValueTuple(T1 item1, T2 item2)
-                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "ValueTuple").WithArguments("(T1, T2).Item2", "preview").WithLocation(8, 16),
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "ValueTuple").WithArguments("(T1, T2).Item2", "11.0").WithLocation(8, 16),
                 // (11,18): error CS0229: Ambiguity between '(T1, T2).Item2' and '(T1, T2).Item2'
                 //             this.Item2 = item2;
                 Diagnostic(ErrorCode.ERR_AmbigMember, "Item2").WithArguments("(T1, T2).Item2", "(T1, T2).Item2").WithLocation(11, 18)
@@ -26178,7 +26178,7 @@ public class C
 
         [Fact]
         [WorkItem(21785, "https://github.com/dotnet/roslyn/issues/21785")]
-        void TypelessTupleInArrayInitializer()
+        public void TypelessTupleInArrayInitializer()
         {
             string source = @"
 class C

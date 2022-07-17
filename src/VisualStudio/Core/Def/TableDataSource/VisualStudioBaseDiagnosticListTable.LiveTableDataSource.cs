@@ -539,10 +539,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 private static FrameworkElement GetOrCreateTextBlock(
                     [NotNull] ref FrameworkElement[]? caches, int count, int index, DiagnosticData item, Func<DiagnosticData, FrameworkElement> elementCreator)
                 {
-                    if (caches == null)
-                    {
-                        caches = new FrameworkElement[count];
-                    }
+                    caches ??= new FrameworkElement[count];
 
                     if (caches[index] == null)
                     {

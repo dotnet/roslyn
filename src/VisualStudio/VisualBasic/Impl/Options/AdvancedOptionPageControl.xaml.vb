@@ -5,6 +5,7 @@
 Imports System.Windows
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Classification
+Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.ColorSchemes
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -47,7 +48,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             ' Keep this code in sync with the actual order options appear in Tools | Options
 
             ' Analysis
-            BindToOption(Run_background_code_analysis_for, SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic)
+            BindToOption(Run_background_code_analysis_for, SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, label:=Run_background_code_analysis_for_label)
             BindToOption(Show_compiler_errors_and_warnings_for, SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption, LanguageNames.VisualBasic)
             BindToOption(DisplayDiagnosticsInline, InlineDiagnosticsOptions.EnableInlineDiagnostics, LanguageNames.VisualBasic)
             BindToOption(at_the_end_of_the_line_of_code, InlineDiagnosticsOptions.Location, InlineDiagnosticsLocations.PlacedAtEndOfCode, LanguageNames.VisualBasic)
@@ -98,7 +99,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(Collapse_regions_when_collapsing_to_definitions, BlockStructureOptionsStorage.CollapseRegionsWhenCollapsingToDefinitions, LanguageNames.VisualBasic)
 
             ' Fading
-            BindToOption(Fade_out_unused_imports, IdeAnalyzerOptionsStorage.FadeOutUnusedImports, LanguageNames.VisualBasic)
+            BindToOption(Fade_out_unused_imports, FadingOptions.FadeOutUnusedImports, LanguageNames.VisualBasic)
 
             ' Block structure guides
             BindToOption(Show_guides_for_declaration_level_constructs, BlockStructureOptionsStorage.ShowBlockStructureGuidesForDeclarationLevelConstructs, LanguageNames.VisualBasic)

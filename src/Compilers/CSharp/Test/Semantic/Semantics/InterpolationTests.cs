@@ -1261,7 +1261,7 @@ class App{
     Console.WriteLine(str);
   }
 }";
-            var parseOptions = TestOptions.RegularNext;
+            var parseOptions = TestOptions.Regular11;
             var compOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication);
 
             //string.Format was fixed in dotnet core 3
@@ -1422,7 +1422,7 @@ class App{
     Console.WriteLine(str);
   }
 }";
-            var parseOptions = TestOptions.RegularNext;
+            var parseOptions = TestOptions.Regular11;
             var compOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication);
 
             var expectedOutput = "Before {a} After";
@@ -3942,62 +3942,63 @@ Caught");
 
 
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
-{
-  // Code size      122 (0x7a)
+ {
+  // Code size      123 (0x7b)
   .maxstack  4
   .locals init (System.ReadOnlySpan<char> V_0, //s
                 System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1)
   IL_0000:  ldc.i4.1
-  IL_0001:  newarr     ""char""
-  IL_0006:  dup
-  IL_0007:  ldc.i4.0
-  IL_0008:  ldc.i4.s   105
-  IL_000a:  stelem.i2
-  IL_000b:  call       ""System.ReadOnlySpan<char> System.ReadOnlySpan<char>.op_Implicit(char[])""
-  IL_0010:  stloc.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  call       ""char[] System.GC.AllocateUninitializedArray<char>(int, bool)""
+  IL_0007:  dup
+  IL_0008:  ldc.i4.0
+  IL_0009:  ldc.i4.s   105
+  IL_000b:  stelem.i2
+  IL_000c:  call       ""System.ReadOnlySpan<char> System.ReadOnlySpan<char>.op_Implicit(char[])""
+  IL_0011:  stloc.0
   .try
   {
-    IL_0011:  ldstr      ""Starting try""
-    IL_0016:  call       ""void System.Console.WriteLine(string)""
-    IL_001b:  newobj     ""MyException..ctor()""
-    IL_0020:  dup
-    IL_0021:  ldloca.s   V_0
-    IL_0023:  constrained. ""System.ReadOnlySpan<char>""
-    IL_0029:  callvirt   ""string object.ToString()""
-    IL_002e:  callvirt   ""void MyException.Prop.set""
-    IL_0033:  throw
+    IL_0012:  ldstr      ""Starting try""
+    IL_0017:  call       ""void System.Console.WriteLine(string)""
+    IL_001c:  newobj     ""MyException..ctor()""
+    IL_0021:  dup
+    IL_0022:  ldloca.s   V_0
+    IL_0024:  constrained. ""System.ReadOnlySpan<char>""
+    IL_002a:  callvirt   ""string object.ToString()""
+    IL_002f:  callvirt   ""void MyException.Prop.set""
+    IL_0034:  throw
   }
   filter
   {
-    IL_0034:  isinst     ""MyException""
-    IL_0039:  dup
-    IL_003a:  brtrue.s   IL_0040
-    IL_003c:  pop
-    IL_003d:  ldc.i4.0
-    IL_003e:  br.s       IL_006a
-    IL_0040:  callvirt   ""string object.ToString()""
-    IL_0045:  ldloca.s   V_1
-    IL_0047:  ldc.i4.0
-    IL_0048:  ldc.i4.1
-    IL_0049:  call       ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)""
-    IL_004e:  ldloca.s   V_1
-    IL_0050:  ldloc.0
-    IL_0051:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(System.ReadOnlySpan<char>)""
-    IL_0056:  ldloca.s   V_1
-    IL_0058:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
-    IL_005d:  callvirt   ""string string.Trim()""
-    IL_0062:  call       ""bool string.op_Equality(string, string)""
-    IL_0067:  ldc.i4.0
-    IL_0068:  cgt.un
-    IL_006a:  endfilter
+    IL_0035:  isinst     ""MyException""
+    IL_003a:  dup
+    IL_003b:  brtrue.s   IL_0041
+    IL_003d:  pop
+    IL_003e:  ldc.i4.0
+    IL_003f:  br.s       IL_006b
+    IL_0041:  callvirt   ""string object.ToString()""
+    IL_0046:  ldloca.s   V_1
+    IL_0048:  ldc.i4.0
+    IL_0049:  ldc.i4.1
+    IL_004a:  call       ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)""
+    IL_004f:  ldloca.s   V_1
+    IL_0051:  ldloc.0
+    IL_0052:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(System.ReadOnlySpan<char>)""
+    IL_0057:  ldloca.s   V_1
+    IL_0059:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
+    IL_005e:  callvirt   ""string string.Trim()""
+    IL_0063:  call       ""bool string.op_Equality(string, string)""
+    IL_0068:  ldc.i4.0
+    IL_0069:  cgt.un
+    IL_006b:  endfilter
   }  // end filter
   {  // handler
-    IL_006c:  pop
-    IL_006d:  ldstr      ""Caught""
-    IL_0072:  call       ""void System.Console.WriteLine(string)""
-    IL_0077:  leave.s    IL_0079
+    IL_006d:  pop
+    IL_006e:  ldstr      ""Caught""
+    IL_0073:  call       ""void System.Console.WriteLine(string)""
+    IL_0078:  leave.s    IL_007a
   }
-  IL_0079:  ret
+  IL_007a:  ret
 }
 ");
         }
@@ -13450,9 +13451,9 @@ public ref struct CustomHandler
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (17,19): error CS8352: Cannot use local 's' in this context because it may expose referenced variables outside of their declaration scope
+                // (17,19): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
                 //         return $"{s}";
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "s").WithArguments("s").WithLocation(17, 19)
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(17, 19)
             );
         }
 
@@ -13557,14 +13558,30 @@ public ref struct S1
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, parseOptions: TestOptions.Regular10, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (17,9): error CS8350: This combination of arguments to 'CustomHandler.M2(ref S1, ref CustomHandler)' is disallowed because it may expose variables referenced by parameter 'handler' outside of their declaration scope
                 //         M2(ref s1, $"{s}");
                 Diagnostic(ErrorCode.ERR_CallArgMixing, @"M2(ref s1, " + expression + @")").WithArguments("CustomHandler.M2(ref S1, ref CustomHandler)", "handler").WithLocation(17, 9),
-                // (17,23): error CS8352: Cannot use local 's' in this context because it may expose referenced variables outside of their declaration scope
+                // (17,23): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
                 //         M2(ref s1, $"{s}");
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "s").WithArguments("s").WithLocation(17, 23)
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(17, 23)
+            );
+
+            comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (17,9): error CS8350: This combination of arguments to 'CustomHandler.M2(ref S1, ref CustomHandler)' is disallowed because it may expose variables referenced by parameter 'handler' outside of their declaration scope
+                //         M2(ref s1, $"{s}");
+                Diagnostic(ErrorCode.ERR_CallArgMixing, @"M2(ref s1, " + expression + @")").WithArguments("CustomHandler.M2(ref S1, ref CustomHandler)", "handler").WithLocation(17, 9),
+                // (17,16): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         M2(ref s1, $"{s}");
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "s1").WithLocation(17, 16),
+                // (17,20): error CS8347: Cannot use a result of 'CustomHandler.CustomHandler(int, int, ref S1)' in this context because it may expose variables referenced by parameter 's1' outside of their declaration scope
+                //         M2(ref s1, $"{s}");
+                Diagnostic(ErrorCode.ERR_EscapeCall, expression).WithArguments("CustomHandler.CustomHandler(int, int, ref S1)", "s1").WithLocation(17, 20),
+                // (17,23): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
+                //         M2(ref s1, $"{s}");
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(17, 23)
             );
         }
 
@@ -13697,9 +13714,9 @@ public ref struct CustomHandler
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (16,16): error CS8352: Cannot use local 'c' in this context because it may expose referenced variables outside of their declaration scope
+                // (16,16): error CS8352: Cannot use variable 'c' in this context because it may expose referenced variables outside of their declaration scope
                 //         return c;
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "c").WithArguments("c").WithLocation(16, 16)
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c").WithArguments("c").WithLocation(16, 16)
             );
         }
 
@@ -13734,15 +13751,69 @@ public ref struct S1
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, parseOptions: TestOptions.Regular10, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (15,9): error CS8350: This combination of arguments to 'CustomHandler.M2(ref S1, CustomHandler)' is disallowed because it may expose variables referenced by parameter 'handler' outside of their declaration scope
                 //         M2(ref s1, $"{s2}");
                 Diagnostic(ErrorCode.ERR_CallArgMixing, @"M2(ref s1, $""{s2}"")").WithArguments("CustomHandler.M2(ref S1, CustomHandler)", "handler").WithLocation(15, 9),
-                // (15,23): error CS8352: Cannot use local 's2' in this context because it may expose referenced variables outside of their declaration scope
+                // (15,23): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
                 //         M2(ref s1, $"{s2}");
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "s2").WithArguments("s2").WithLocation(15, 23)
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(15, 23)
             );
+
+            comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (15,9): error CS8350: This combination of arguments to 'CustomHandler.M2(ref S1, CustomHandler)' is disallowed because it may expose variables referenced by parameter 'handler' outside of their declaration scope
+                //         M2(ref s1, $"{s2}");
+                Diagnostic(ErrorCode.ERR_CallArgMixing, @"M2(ref s1, $""{s2}"")").WithArguments("CustomHandler.M2(ref S1, CustomHandler)", "handler").WithLocation(15, 9),
+                // (15,16): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         M2(ref s1, $"{s2}");
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "s1").WithLocation(15, 16),
+                // (15,20): error CS8347: Cannot use a result of 'CustomHandler.CustomHandler(int, int, ref S1)' in this context because it may expose variables referenced by parameter 's1' outside of their declaration scope
+                //         M2(ref s1, $"{s2}");
+                Diagnostic(ErrorCode.ERR_EscapeCall, @"$""{s2}""").WithArguments("CustomHandler.CustomHandler(int, int, ref S1)", "s1").WithLocation(15, 20),
+                // (15,23): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
+                //         M2(ref s1, $"{s2}");
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(15, 23)
+            );
+        }
+
+        [Fact]
+        public void RefEscape_10()
+        {
+            var code =
+@"using System.Runtime.CompilerServices;
+[InterpolatedStringHandler]
+ref struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, ref S s) : this() { s.Handler = this; }
+    public void AppendFormatted(int i) { } 
+}
+ref struct S
+{
+    public CustomHandler Handler;
+}
+class Program
+{
+    static void Main()
+    {
+        S s = default;
+        M(ref s, $""{1}"");
+    }
+    static void M(ref S s, [InterpolatedStringHandlerArgument(""s"")] CustomHandler handler) { }
+}";
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, parseOptions: TestOptions.Regular10, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (17,15): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         M(ref s, $"{1}");
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "s").WithLocation(17, 15),
+                // (17,18): error CS8347: Cannot use a result of 'CustomHandler.CustomHandler(int, int, ref S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //         M(ref s, $"{1}");
+                Diagnostic(ErrorCode.ERR_EscapeCall, @"$""{1}""").WithArguments("CustomHandler.CustomHandler(int, int, ref S)", "s").WithLocation(17, 18));
         }
 
         [Theory, WorkItem(54703, "https://github.com/dotnet/roslyn/issues/54703")]
@@ -15920,6 +15991,47 @@ class C
                 // (7,16): error CS8026: Feature 'interpolated strings' is not available in C# 5. Please use language version 6 or greater.
                 //         return $"hello + {other}";
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, @"$""hello + {other}""").WithArguments("interpolated strings", "6").WithLocation(7, 16));
+        }
+
+        [Fact, WorkItem(1566008, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1566008")]
+        public void InterpolatedStringInForeach_HasErrors()
+        {
+            var text = """
+                int i = 1;
+                /*<bind>*/foreach (($"{i}") in new int[0]) {}/*</bind>*/
+                """;
+
+            var comp = CreateCompilation(text).VerifyDiagnostics(
+                // (1,5): warning CS0219: The variable 'i' is assigned but its value is never used
+                // int i = 1;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i").WithArguments("i").WithLocation(1, 5),
+                // (2,29): error CS0230: Type and identifier are both required in a foreach statement
+                // /*<bind>*/foreach (($"{i}") in new int[0]) {}/*</bind>*/
+                Diagnostic(ErrorCode.ERR_BadForeachDecl, "in").WithLocation(2, 29)
+            );
+
+            VerifyOperationTreeForTest<ForEachVariableStatementSyntax>(comp, expectedOperationTree: """
+                IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'foreach (($ ...  int[0]) {}')
+                  LoopControlVariable:
+                    IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$"{i}"')
+                      Parts(1):
+                          IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i}')
+                            Expression:
+                              ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+                            Alignment:
+                              null
+                            FormatString:
+                              null
+                  Collection:
+                    IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[]) (Syntax: 'new int[0]')
+                      Dimension Sizes(1):
+                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+                      Initializer:
+                        null
+                  Body:
+                    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{}')
+                  NextVariables(0)
+                """);
         }
     }
 }

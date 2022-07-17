@@ -25577,11 +25577,6 @@ class H
             }
         }
 
-        private static void AssertNoGlobalStatements(SyntaxTree tree)
-        {
-            Assert.Empty(tree.GetRoot().DescendantNodes().OfType<GlobalStatementSyntax>());
-        }
-
         [Fact]
         public void GlobalCode_ExpressionStatement_02()
         {

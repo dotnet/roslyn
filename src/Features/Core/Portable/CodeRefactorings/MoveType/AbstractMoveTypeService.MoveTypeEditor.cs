@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
                 // get potential namespace, types and members to remove.
                 var removableCandidates = root
-                    .DescendantNodes(n => spine.Contains(n))
+                    .DescendantNodes(spine.Contains)
                     .Where(n => FilterToTopLevelMembers(n, State.TypeNode)).ToSet();
 
                 // diff candidates with items we want to keep.

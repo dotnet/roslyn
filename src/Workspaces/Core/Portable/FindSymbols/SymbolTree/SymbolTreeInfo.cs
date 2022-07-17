@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             ImmutableArray<Node> sortedNodes,
             Task<SpellChecker> spellCheckerTask,
             OrderPreservingMultiDictionary<string, string> inheritanceMap,
-            MultiDictionary<string, ExtensionMethodInfo> receiverTypeNameToExtensionMethodMap)
+            MultiDictionary<string, ExtensionMethodInfo>? receiverTypeNameToExtensionMethodMap)
             : this(checksum, sortedNodes, spellCheckerTask,
                    CreateIndexBasedInheritanceMap(sortedNodes, inheritanceMap),
                    receiverTypeNameToExtensionMethodMap)
@@ -169,11 +169,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             // If the query has a specific string provided, then call into the SymbolTreeInfo
             // helpers optimized for lookup based on an exact name.
+
+            var queryName = query.Name;
+            Contract.ThrowIfNull(queryName);
+
             return query.Kind switch
             {
-                SearchKind.Exact => this.FindAsync(lazyAssembly, query.Name, ignoreCase: false, cancellationToken: cancellationToken),
-                SearchKind.ExactIgnoreCase => this.FindAsync(lazyAssembly, query.Name, ignoreCase: true, cancellationToken: cancellationToken),
-                SearchKind.Fuzzy => this.FuzzyFindAsync(lazyAssembly, query.Name, cancellationToken),
+                SearchKind.Exact => this.FindAsync(lazyAssembly, queryName, ignoreCase: false, cancellationToken: cancellationToken),
+                SearchKind.ExactIgnoreCase => this.FindAsync(lazyAssembly, queryName, ignoreCase: true, cancellationToken: cancellationToken),
+                SearchKind.Fuzzy => this.FuzzyFindAsync(lazyAssembly, queryName, cancellationToken),
                 _ => throw new InvalidOperationException(),
             };
         }
@@ -496,14 +500,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             HostWorkspaceServices services, SolutionKey solutionKey, Checksum checksum,
             string filePath, ImmutableArray<BuilderNode> unsortedNodes,
             OrderPreservingMultiDictionary<string, string> inheritanceMap,
-            MultiDictionary<string, ExtensionMethodInfo> simpleMethods)
+            MultiDictionary<string, ExtensionMethodInfo>? receiverTypeNameToExtensionMethodMap)
         {
             SortNodes(unsortedNodes, out var sortedNodes);
             var createSpellCheckerTask = GetSpellCheckerAsync(
                 services, solutionKey, checksum, filePath, sortedNodes);
 
             return new SymbolTreeInfo(
-                checksum, sortedNodes, createSpellCheckerTask, inheritanceMap, simpleMethods);
+                checksum, sortedNodes, createSpellCheckerTask, inheritanceMap, receiverTypeNameToExtensionMethodMap);
         }
 
         private static OrderPreservingMultiDictionary<int, int> CreateIndexBasedInheritanceMap(

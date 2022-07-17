@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -476,6 +477,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
+        internal static bool IsErrorTypeOrRefLikeType(this TypeSymbol type)
+        {
+            return type.IsErrorType() || type.IsRefLikeType;
+        }
+
         private static readonly string[] s_expressionsNamespaceName = { "Expressions", "Linq", MetadataHelpers.SystemString, "" };
 
         private static bool IsNamespaceName(Symbol symbol, string[] names)
@@ -904,7 +910,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static bool IsAsRestrictive(NamedTypeSymbol s1, Symbol sym2, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        internal static bool IsAsRestrictive(this Symbol s1, Symbol sym2, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Accessibility acc1 = s1.DeclaredAccessibility;
 
@@ -1353,6 +1359,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static bool IsPartial(this TypeSymbol type)
         {
             return type is SourceNamedTypeSymbol { IsPartial: true };
+        }
+
+        public static bool HasFileLocalTypes(this TypeSymbol type)
+        {
+            var foundType = type.VisitType(predicate: (type, _, _) => type is SourceMemberContainerTypeSymbol { IsFileLocal: true }, arg: (object?)null);
+            return foundType is not null;
+        }
+
+        internal static string? AssociatedFileIdentifier(this NamedTypeSymbol type)
+        {
+            if (type.AssociatedSyntaxTree is not SyntaxTree tree)
+            {
+                return null;
+            }
+            var ordinal = type.DeclaringCompilation.GetSyntaxTreeOrdinal(tree);
+            return GeneratedNames.MakeFileIdentifier(tree.FilePath, ordinal);
         }
 
         public static bool IsPointerType(this TypeSymbol type)

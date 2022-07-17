@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
         {
         }
 
-        protected override Task<SyntaxNode> GetSelectedNodeAsync(CodeRefactoringContext context)
-            => NodeSelectionHelpers.GetSelectedDeclarationOrVariableAsync(context);
+        protected override Task<ImmutableArray<SyntaxNode>> GetSelectedNodesAsync(CodeRefactoringContext context)
+            => NodeSelectionHelpers.GetSelectedDeclarationsOrVariablesAsync(context);
     }
 }

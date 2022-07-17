@@ -1538,7 +1538,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_EscapeOther = 8349,
         ERR_CallArgMixing = 8350,
         ERR_MismatchedRefEscapeInTernary = 8351,
-        ERR_EscapeLocal = 8352,
+        ERR_EscapeVariable = 8352,
         ERR_EscapeStackAlloc = 8353,
         ERR_RefReturnThis = 8354,
         ERR_OutAttrOnInParam = 8355,
@@ -2021,6 +2021,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_EncUpdateFailedDelegateTypeChanged = 8984,
 
         ERR_ListPatternRequiresLength = 8985,
+        ERR_ScopedMismatchInParameterOfTarget = 8986,
+        ERR_ScopedMismatchInParameterOfOverrideOrImplementation = 8987,
+        ERR_ScopedMismatchInParameterOfPartial = 8988,
 
         // param-nullchecking feature removed from C# 11
         ERR_ParameterNullCheckingNotSupported = 8989,
@@ -2069,8 +2072,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ImplicitConversionOperatorCantBeChecked = 9024,
         ERR_CheckedOperatorNeedsMatch = 9025,
 
-        ERR_CannotBeConvertedToUTF8 = 9026,
+        ERR_CannotBeConvertedToUtf8 = 9026,
         ERR_MisplacedUnchecked = 9027,
+        ERR_LineSpanDirectiveRequiresSpace = 9028,
 
         ERR_RequiredNameDisallowed = 9029,
         ERR_OverrideMustHaveRequired = 9030,
@@ -2087,9 +2091,27 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_UnsupportedCompilerFeature = 9041,
         WRN_ObsoleteMembersShouldNotBeRequired = 9042,
         ERR_RefReturningPropertiesCannotBeRequired = 9043,
+        ERR_ImplicitImplementationOfInaccessibleInterfaceMember = 9044,
+        ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers = 9045,
+        ERR_BadAbstractEqualityOperatorSignature = 9046,
+        ERR_BadBinaryReadOnlySpanConcatenation = 9047,
+        ERR_ScopedRefAndRefStructOnly = 9048,
+        ERR_FixedFieldMustNotBeRef = 9049,
+        ERR_RefFieldCannotReferToRefStruct = 9050,
+
+        ERR_FileTypeDisallowedInSignature = 9051,
+        ERR_FileTypeNoExplicitAccessibility = 9052,
+        ERR_FileTypeBase = 9053,
+        ERR_FileTypeNested = 9054,
+        ERR_GlobalUsingStaticFileType = 9055,
+        ERR_FileTypeNameDisallowed = 9056,
+        ERR_FeatureNotAvailableInVersion11 = 9058,
+        ERR_RefFieldInNonRefStruct = 9059,
 
         #endregion
 
-        // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
+        // Note: you will need to do the following after adding warnings:
+        //  1) Re-generate compiler code (eng\generate-compiler-code.cmd).
+        //  2) Update ErrorFacts.IsBuildOnlyDiagnostic to handle the new error code.
     }
 }

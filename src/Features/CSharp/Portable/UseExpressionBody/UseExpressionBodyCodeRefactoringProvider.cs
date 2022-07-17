@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var options = (CSharpCodeGenerationOptions)await document.GetCodeGenerationOptionsAsync(optionsProvider, cancellationToken).ConfigureAwait(false);
             var declarationsToFix = GetDeclarationsToFix(fixAllSpans, root, helper, useExpressionBody, options);
-            await FixDeclarationsAsync(document, editor, root, declarationsToFix, helper, useExpressionBody, cancellationToken).ConfigureAwait(false);
+            await FixDeclarationsAsync(document, editor, root, declarationsToFix.ToImmutableArray(), helper, useExpressionBody, cancellationToken).ConfigureAwait(false);
             return;
 
             // Local functions.
@@ -242,18 +242,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 Document document,
                 SyntaxEditor editor,
                 SyntaxNode root,
-                IEnumerable<SyntaxNode> declarationsToFix,
+                ImmutableArray<SyntaxNode> declarationsToFix,
                 UseExpressionBodyHelper helper,
                 bool useExpressionBody,
                 CancellationToken cancellationToken)
             {
-                // Process all declaration nodes in reverse to handle nested declaration updates properly.
-                declarationsToFix = declarationsToFix.Reverse();
-
                 // Track all the declaration nodes to be fixed so we can get the latest declaration node in the current root during updates.
                 var currentRoot = root.TrackNodes(declarationsToFix);
 
-                foreach (var declaration in declarationsToFix)
+                // Process all declaration nodes in reverse to handle nested declaration updates properly.
+                foreach (var declaration in declarationsToFix.Reverse())
                 {
                     // Get the current document, root, semanticModel and declaration.
                     document = document.WithSyntaxRoot(currentRoot);

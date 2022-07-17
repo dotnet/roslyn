@@ -134,7 +134,9 @@ namespace IdeCoreBenchmarks
             Console.ReadLine();
         }
 
+#pragma warning disable IDE0051 // Remove unused private members
         private static async Task WalkTree(Document document)
+#pragma warning restore IDE0051 // Remove unused private members
         {
             var root = await document.GetSyntaxRootAsync();
             if (root != null)

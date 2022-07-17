@@ -552,7 +552,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         {
             private readonly Func<CancellationToken, Task<Solution>> _createChangedSolution;
 
-            private SolutionChangeAction(
+            protected SolutionChangeAction(
                 string title,
                 Func<CancellationToken, Task<Solution>> createChangedSolution,
                 string? equivalenceKey,

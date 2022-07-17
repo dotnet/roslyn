@@ -188,6 +188,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // Also guard against active statements unmapped to multiple locations in the unmapped file
                 // (when multiple #line map to the same span that overlaps with the active statement).
                 if (TryGetTextSpan(oldText.Lines, unmappedLineSpan, out var unmappedSpan) &&
+                    oldRoot.FullSpan.Contains(unmappedSpan.Start) &&
                     mappedStatements.Add(activeStatement))
                 {
                     var exceptionRegions = analyzer.GetExceptionRegions(oldRoot, unmappedSpan, activeStatement.IsNonLeaf, cancellationToken);

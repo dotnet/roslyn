@@ -31,6 +31,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             }
         }
 
+        RefKind IFieldSymbol.RefKind => _underlying.RefKind;
+
+        ImmutableArray<CustomModifier> IFieldSymbol.RefCustomModifiers => _underlying.RefCustomModifiers;
+
         ITypeSymbol IFieldSymbol.Type
         {
             get

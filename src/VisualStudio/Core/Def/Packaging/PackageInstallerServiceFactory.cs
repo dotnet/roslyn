@@ -144,8 +144,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             Task<ImmutableArray<PackageSource>> localPackageSourcesTask;
             lock (_gate)
             {
-                if (_packageSourcesTask is null)
-                    _packageSourcesTask = Task.Run(() => GetPackageSourcesAsync(), this.DisposalToken);
+                _packageSourcesTask ??= Task.Run(() => GetPackageSourcesAsync(), this.DisposalToken);
 
                 localPackageSourcesTask = _packageSourcesTask;
             }

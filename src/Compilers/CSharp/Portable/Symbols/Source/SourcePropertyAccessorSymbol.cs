@@ -166,11 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody: true, diagnostics: diagnostics);
             CheckModifiersForBody(location, diagnostics);
 
-            var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, isExplicitInterfaceImplementation);
-            if (info != null)
-            {
-                diagnostics.Add(info, location);
-            }
+            ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, isExplicitInterfaceImplementation, diagnostics, location);
 
             this.CheckModifiers(location, hasBody: true, isAutoPropertyOrExpressionBodied: true, diagnostics: diagnostics);
         }
@@ -230,11 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 CheckModifiersForBody(location, diagnostics);
             }
 
-            var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, isExplicitInterfaceImplementation);
-            if (info != null)
-            {
-                diagnostics.Add(info, location);
-            }
+            ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, isExplicitInterfaceImplementation, diagnostics, location);
 
             if (!modifierErrors)
             {

@@ -4584,8 +4584,7 @@ class C
 
         [Fact]
         [WorkItem(545651, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545651")]
-
-        private void TestReferenceToNestedGenericType()
+        public void TestReferenceToNestedGenericType()
         {
             string p1 = @"public class Goo<T> { }";
             string p2 = @"using System;

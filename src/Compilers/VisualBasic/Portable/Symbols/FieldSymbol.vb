@@ -48,6 +48,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         ''' <summary>
+        ''' Returns the RefKind of the field. 
+        ''' </summary>
+        Public ReadOnly Property RefKind As RefKind Implements IFieldSymbol.RefKind
+            Get
+                Return RefKind.None
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Custom modifiers associated with the ref modifier, or an empty array if there are none.
+        ''' </summary>
+        Public ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier) Implements IFieldSymbol.RefCustomModifiers
+            Get
+                Return ImmutableArray(Of CustomModifier).Empty
+            End Get
+        End Property
+
+        ''' <summary>
         ''' Gets the type of this variable.
         ''' </summary>
         Public MustOverride ReadOnly Property Type As TypeSymbol

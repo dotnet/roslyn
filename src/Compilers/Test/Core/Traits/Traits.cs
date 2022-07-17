@@ -149,6 +149,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsRemoveUnnecessaryCast = "CodeActions.RemoveUnnecessaryCast";
             public const string CodeActionsRemoveUnnecessaryDiscardDesignation = "CodeActions.RemoveUnnecessaryDiscardDesignation";
             public const string CodeActionsRemoveUnnecessaryImports = "CodeActions.RemoveUnnecessaryImports";
+            public const string CodeActionsRemoveUnnecessaryNullableDirective = "CodeActions.RemoveUnnecessaryNullableDirective";
             public const string CodeActionsRemoveUnnecessaryParentheses = "CodeActions.RemoveUnnecessaryParentheses";
             public const string CodeActionsRemoveUnreachableCode = "CodeActions.RemoveUnreachableCode";
             public const string CodeActionsRemoveUnusedLocalFunction = "CodeActions.RemoveUnusedLocalFunction";
@@ -207,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsUseSimpleUsingStatement = "CodeActions.UseSimpleUsingStatement";
             public const string CodeActionsUseSystemHashCode = "CodeActions.UseSystemHashCode";
             public const string CodeActionsUseThrowExpression = "CodeActions.UseThrowExpression";
-            public const string CodeActionsUseUTF8StringLiteral = "CodeActions.CodeActionsUseUTF8StringLiteral";
+            public const string CodeActionsUseUtf8StringLiteral = "CodeActions.CodeActionsUseUtf8StringLiteral";
             public const string CodeActionsWrapping = "CodeActions.Wrapping";
             public const string CodeCleanup = nameof(CodeCleanup);
             public const string CodeDefinitionWindow = nameof(CodeDefinitionWindow);
@@ -290,6 +291,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string RemoveUnnecessaryLineContinuation = nameof(RemoveUnnecessaryLineContinuation);
             public const string Rename = nameof(Rename);
             public const string RenameTracking = nameof(RenameTracking);
+            public const string RoslynLSPSnippetConverter = nameof(RoslynLSPSnippetConverter);
             public const string SignatureHelp = nameof(SignatureHelp);
             public const string Simplification = nameof(Simplification);
             public const string SmartIndent = nameof(SmartIndent);

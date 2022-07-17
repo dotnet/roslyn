@@ -29,7 +29,7 @@
       </trans-unit>
       <trans-unit id="Computing_Encapsulate_Field_information">
         <source>Computing 'Encapsulate Field' information</source>
-        <target state="new">Computing 'Encapsulate Field' information</target>
+        <target state="translated">Computando informações de 'Encapsular Campo'</target>
         <note />
       </trans-unit>
       <trans-unit id="Configure_it_now">
@@ -304,7 +304,7 @@
       </trans-unit>
       <trans-unit id="Rename_operation_could_not_complete_due_to_external_change_to_workspace">
         <source>Rename operation could not complete due to external change to workspace</source>
-        <target state="new">Rename operation could not complete due to external change to workspace</target>
+        <target state="translated">Não foi possível concluir a operação de renomeação devido a uma alteração externa no espaço de trabalho</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_symbols_file">
@@ -609,7 +609,7 @@
       </trans-unit>
       <trans-unit id="_0_Esc_to_cancel">
         <source>{0} (Esc to cancel)</source>
-        <target state="new">{0} (Esc to cancel)</target>
+        <target state="translated">{0} (Esc para cancelar)</target>
         <note>Placeholder represents an operating that is happening.  Parenthesized expression indicates how you can cancel it.</note>
       </trans-unit>
       <trans-unit id="_0_conflict_s_will_be_resolved">

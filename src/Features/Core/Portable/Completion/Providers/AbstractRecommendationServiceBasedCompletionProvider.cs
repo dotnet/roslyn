@@ -27,8 +27,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected abstract bool IsInstrinsic(ISymbol symbol);
         protected abstract bool IsTriggerOnDot(SyntaxToken token, int characterPosition);
 
-        protected sealed override bool ShouldCollectTelemetryForTargetTypeCompletion => true;
-
         protected sealed override async Task<ImmutableArray<(ISymbol symbol, bool preselect)>> GetSymbolsAsync(
             CompletionContext? completionContext, TSyntaxContext context, int position, CompletionOptions options, CancellationToken cancellationToken)
         {
@@ -36,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var recommender = context.GetRequiredLanguageService<IRecommendationService>();
             var recommendedSymbols = recommender.GetRecommendedSymbolsInContext(context, recommendationOptions, cancellationToken);
 
-            if (context.IsInTaskLikeTypeContext)
+            if (context.IsTaskLikeTypeContext)
             {
                 // If we get 'Task' back, attempt to preselect that as the most likely result.
                 var taskType = context.SemanticModel.Compilation.TaskType();
@@ -94,7 +92,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                        namedType.Equals(compilation.IAsyncEnumeratorOfTType());
             }
 
-            return symbol.IsAwaitableNonDynamic(context.SemanticModel, context.Position);
+            return namedType.IsAwaitableNonDynamic(context.SemanticModel, context.Position) ||
+                   namedType.GetTypeMembers().Any(static (m, context) => IsValidForTaskLikeTypeOnlyContext(m, context), context);
         }
 
         private static bool IsValidForGenericConstraintContext(ISymbol symbol)

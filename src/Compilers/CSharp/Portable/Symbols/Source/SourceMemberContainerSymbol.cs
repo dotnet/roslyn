@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private const int NullableContextSize = 3;
 
             private const int HasDeclaredRequiredMembersOffset = NullableContextOffset + NullableContextSize;
-            private const int HasDeclaredRequiredMembersSize = 2;
+            //private const int HasDeclaredRequiredMembersSize = 2;
 
             private const int SpecialTypeMask = (1 << SpecialTypeSize) - 1;
             private const int ManagedKindMask = (1 << ManagedKindSize) - 1;
@@ -274,7 +274,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Symbol containingSymbol = this.ContainingSymbol;
             DeclarationModifiers defaultAccess;
-            var allowedModifiers = DeclarationModifiers.AccessibilityMask;
+
+            // note: we give a specific diagnostic when a file-local type is nested
+            var allowedModifiers = DeclarationModifiers.AccessibilityMask | DeclarationModifiers.File;
 
             if (containingSymbol.Kind == SymbolKind.Namespace)
             {
@@ -395,12 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // It is an error for the same modifier to appear multiple times.
                     if (!modifierErrors)
                     {
-                        var info = ModifierUtils.CheckAccessibility(mods, this, isExplicitInterfaceImplementation: false);
-                        if (info != null)
-                        {
-                            diagnostics.Add(info, this.Locations[0]);
-                            modifierErrors = true;
-                        }
+                        modifierErrors = ModifierUtils.CheckAccessibility(mods, this, isExplicitInterfaceImplementation: false, diagnostics, Locations[0]);
                     }
                 }
 
@@ -418,6 +415,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((result & DeclarationModifiers.AccessibilityMask) == 0)
             {
                 result |= defaultAccess;
+            }
+            else if ((result & DeclarationModifiers.File) != 0)
+            {
+                diagnostics.Add(ErrorCode.ERR_FileTypeNoExplicitAccessibility, Locations[0], this);
             }
 
             if (missingPartial)
@@ -476,7 +477,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             if (reportIfContextual(SyntaxKind.RecordKeyword, MessageID.IDS_FeatureRecords, ErrorCode.WRN_RecordNamedDisallowed)
-                || reportIfContextual(SyntaxKind.RequiredKeyword, MessageID.IDS_FeatureRequiredMembers, ErrorCode.ERR_RequiredNameDisallowed))
+                || reportIfContextual(SyntaxKind.RequiredKeyword, MessageID.IDS_FeatureRequiredMembers, ErrorCode.ERR_RequiredNameDisallowed)
+                || reportIfContextual(SyntaxKind.FileKeyword, MessageID.IDS_FeatureFileTypes, ErrorCode.ERR_FileTypeNameDisallowed))
             {
                 return;
             }
@@ -823,6 +825,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal bool IsPartial => HasFlag(DeclarationModifiers.Partial);
 
         internal bool IsNew => HasFlag(DeclarationModifiers.New);
+
+        internal bool IsFileLocal => HasFlag(DeclarationModifiers.File);
+
+        internal sealed override SyntaxTree? AssociatedSyntaxTree => IsFileLocal ? declaration.Declarations[0].Location.SourceTree : null;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool HasFlag(DeclarationModifiers flag) => (_declModifiers & flag) != 0;
@@ -1267,7 +1273,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private Dictionary<string, ImmutableArray<NamedTypeSymbol>> MakeTypeMembers(BindingDiagnosticBag diagnostics)
         {
             var symbols = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-            var conflictDict = new Dictionary<(string, int), SourceNamedTypeSymbol>();
+            var conflictDict = new Dictionary<(string name, int arity, SyntaxTree? syntaxTree), SourceNamedTypeSymbol>();
             try
             {
                 foreach (var childDeclaration in declaration.Children)
@@ -1275,7 +1281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var t = new SourceNamedTypeSymbol(this, childDeclaration, diagnostics);
                     this.CheckMemberNameDistinctFromType(t, diagnostics);
 
-                    var key = (t.Name, t.Arity);
+                    var key = (t.Name, t.Arity, t.AssociatedSyntaxTree);
                     SourceNamedTypeSymbol? other;
                     if (conflictDict.TryGetValue(key, out other))
                     {
@@ -1673,6 +1679,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckForUnmatchedOperators(diagnostics);
             CheckForRequiredMemberAttribute(diagnostics);
 
+            if (IsScriptClass || IsSubmissionClass)
+            {
+                ReportRequiredMembers(diagnostics);
+            }
+
             var location = Locations[0];
             var compilation = DeclaringCompilation;
 
@@ -1731,6 +1742,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     ReportReservedTypeName(identifier?.Text, this.DeclaringCompilation, diagnostics.DiagnosticBag, identifier?.GetLocation() ?? Location.None);
                 }
+            }
+
+            if (IsFileLocal && (object?)ContainingType != null)
+            {
+                diagnostics.Add(ErrorCode.ERR_FileTypeNested, location, this);
             }
 
             return;
@@ -2471,6 +2487,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     // The required members list for the base type '{0}' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
                     diagnostics.Add(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, method.Locations[0], BaseTypeNoUseSiteDiagnostics);
+                }
+            }
+        }
+
+        private void ReportRequiredMembers(BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(IsSubmissionClass || IsScriptClass);
+
+            foreach (var member in GetMembersUnordered())
+            {
+                if (member.IsRequired())
+                {
+                    // Required members are not allowed on the top level of a script or submission.
+                    diagnostics.Add(ErrorCode.ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers, member.Locations[0]);
                 }
             }
         }
@@ -4412,6 +4442,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.FieldDeclaration:
                         {
                             var fieldSyntax = (FieldDeclarationSyntax)m;
+                            _ = fieldSyntax.Declaration.Type.SkipRef(out RefKind refKind, allowScoped: false, diagnostics);
+
                             if (IsImplicitClass && reportMisplacedGlobalCode)
                             {
                                 diagnostics.Add(ErrorCode.ERR_NamespaceUnexpected,
@@ -4419,7 +4451,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             }
 
                             bool modifierErrors;
-                            var modifiers = SourceMemberFieldSymbol.MakeModifiers(this, fieldSyntax.Declaration.Variables[0].Identifier, fieldSyntax.Modifiers, diagnostics, out modifierErrors);
+                            var modifiers = SourceMemberFieldSymbol.MakeModifiers(this, fieldSyntax.Declaration.Variables[0].Identifier, fieldSyntax.Modifiers, isRefField: refKind != RefKind.None, diagnostics, out modifierErrors);
                             foreach (var variable in fieldSyntax.Declaration.Variables)
                             {
                                 var fieldSymbol = (modifiers & DeclarationModifiers.Fixed) == 0

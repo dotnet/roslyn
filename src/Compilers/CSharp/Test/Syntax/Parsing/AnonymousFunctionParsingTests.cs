@@ -2066,8 +2066,7 @@ class Program
     {
     }
 }";
-            var tree = UsingTree(test);
-            tree.GetDiagnostics().Verify(
+            var tree = UsingTree(test,
                 // (4,25): error CS1026: ) expected
                 //     [ObsoleteAttribute(x
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(4, 25),
@@ -2144,8 +2143,7 @@ class Program
     {
     }
 }";
-            var tree = UsingTree(test);
-            tree.GetDiagnostics().Verify(
+            var tree = UsingTree(test,
                 // (4,25): error CS1003: Syntax error, ',' expected
                 //     [ObsoleteAttribute(x
                 Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(4, 25),

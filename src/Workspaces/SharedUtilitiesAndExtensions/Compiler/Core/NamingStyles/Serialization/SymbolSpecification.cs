@@ -253,9 +253,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             return new SymbolSpecification(
                 reader.ReadGuid(),
                 reader.ReadString(),
-                reader.ReadArray(r => SymbolKindOrTypeKind.ReadFrom(r)),
+                reader.ReadArray(SymbolKindOrTypeKind.ReadFrom),
                 reader.ReadArray(r => (Accessibility)r.ReadInt32()),
-                reader.ReadArray(r => ModifierKind.ReadFrom(r)));
+                reader.ReadArray(ModifierKind.ReadFrom));
         }
 
         private XElement CreateSymbolKindsXElement()

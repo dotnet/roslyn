@@ -25,7 +25,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// </summary>
         Task<FirstFixResult> GetMostSevereFixAsync(Document document, TextSpan range, CodeActionRequestPriority priority, CodeActionOptionsProvider fallbackOptions, bool isBlocking, CancellationToken cancellationToken);
 
-        Task<CodeFixCollection?> GetDocumentFixAllForIdInSpanAsync(Document document, TextSpan textSpan, string diagnosticId, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken);
+        Task<CodeFixCollection?> GetDocumentFixAllForIdInSpanAsync(Document document, TextSpan textSpan, string diagnosticId, DiagnosticSeverity severity, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken);
+        Task<Document> ApplyCodeFixesForSpecificDiagnosticIdAsync(Document document, string diagnosticId, DiagnosticSeverity severity, IProgressTracker progressTracker, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken);
         CodeFixProvider? GetSuppressionFixer(string language, IEnumerable<string> diagnosticIds);
     }
 
@@ -39,5 +40,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         public static Task<ImmutableArray<CodeFixCollection>> GetFixesAsync(this ICodeFixService service, Document document, TextSpan textSpan, CodeActionRequestPriority priority, CodeActionOptionsProvider fallbackOptions, bool isBlocking, Func<string, IDisposable?> addOperationScope, CancellationToken cancellationToken)
             => service.StreamFixesAsync(document, textSpan, priority, fallbackOptions, isBlocking, addOperationScope, cancellationToken).ToImmutableArrayAsync(cancellationToken);
+
+        public static Task<CodeFixCollection?> GetDocumentFixAllForIdInSpanAsync(this ICodeFixService service, Document document, TextSpan range, string diagnosticId, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            => service.GetDocumentFixAllForIdInSpanAsync(document, range, diagnosticId, DiagnosticSeverity.Hidden, fallbackOptions, cancellationToken);
+
+        public static Task<Document> ApplyCodeFixesForSpecificDiagnosticIdAsync(this ICodeFixService service, Document document, string diagnosticId, IProgressTracker progressTracker, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            => service.ApplyCodeFixesForSpecificDiagnosticIdAsync(document, diagnosticId, DiagnosticSeverity.Hidden, progressTracker, fallbackOptions, cancellationToken);
     }
 }

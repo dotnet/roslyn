@@ -1160,7 +1160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             => propertyOrIndexerDeclaration.IsKind(SyntaxKind.PropertyDeclaration, out PropertyDeclarationSyntax? propertyDecl) &&
                SyntaxUtilities.HasBackingField(propertyDecl);
 
-        internal override bool TryGetAssociatedMemberDeclaration(SyntaxNode node, [NotNullWhen(true)] out SyntaxNode? declaration)
+        internal override bool TryGetAssociatedMemberDeclaration(SyntaxNode node, EditKind editKind, [NotNullWhen(true)] out SyntaxNode? declaration)
         {
             if (node.IsKind(SyntaxKind.Parameter, SyntaxKind.TypeParameter))
             {
@@ -1169,7 +1169,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 return true;
             }
 
-            if (node.Parent.IsParentKind(SyntaxKind.PropertyDeclaration, SyntaxKind.IndexerDeclaration, SyntaxKind.EventDeclaration))
+            // For deletes, we don't associate accessors with their parents, as deleting accessors is allowed
+            if (editKind != EditKind.Delete && node.Parent.IsParentKind(SyntaxKind.PropertyDeclaration, SyntaxKind.IndexerDeclaration, SyntaxKind.EventDeclaration))
             {
                 declaration = node.Parent.Parent!;
                 return true;
@@ -2645,15 +2646,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         #endregion
 
         #region State Machines
-
-        protected override bool SupportsStateMachineUpdates
-            => true;
-
-        protected override bool IsStateMachineResumableStateSyntax(SyntaxNode node)
-            => SyntaxBindingUtilities.BindsToResumableStateMachineState(node);
-
-        protected override bool StateMachineSuspensionPointKindEquals(SyntaxNode suspensionPoint1, SyntaxNode suspensionPoint2)
-            => (suspensionPoint1 is CommonForEachStatementSyntax) ? suspensionPoint2 is CommonForEachStatementSyntax : suspensionPoint1.RawKind == suspensionPoint2.RawKind;
 
         internal override bool IsStateMachineMethod(SyntaxNode declaration)
             => SyntaxUtilities.IsAsyncDeclaration(declaration) || SyntaxUtilities.IsIterator(declaration);

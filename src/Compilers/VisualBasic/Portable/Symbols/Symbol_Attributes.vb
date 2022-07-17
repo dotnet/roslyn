@@ -387,12 +387,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Function
 
-        Private Shared Function GetAttributesToBind(attributeBlockSyntaxList As SyntaxList(Of AttributeListSyntax)) As ImmutableArray(Of AttributeSyntax)
-            Dim attributeSyntaxBuilder As ArrayBuilder(Of AttributeSyntax) = Nothing
-            GetAttributesToBind(attributeBlockSyntaxList, attributeSyntaxBuilder)
-            Return If(attributeSyntaxBuilder IsNot Nothing, attributeSyntaxBuilder.ToImmutableAndFree(), ImmutableArray(Of AttributeSyntax).Empty)
-        End Function
-
         Friend Shared Sub GetAttributesToBind(attributeBlockSyntaxList As SyntaxList(Of AttributeListSyntax), ByRef attributeSyntaxBuilder As ArrayBuilder(Of AttributeSyntax))
             If attributeBlockSyntaxList.Count > 0 Then
                 If attributeSyntaxBuilder Is Nothing Then

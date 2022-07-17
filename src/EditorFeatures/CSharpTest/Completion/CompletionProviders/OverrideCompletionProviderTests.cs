@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -29,12 +30,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         internal override Type GetCompletionProviderType()
             => typeof(OverrideCompletionProvider);
 
-        protected override OptionSet WithChangedNonCompletionOptions(OptionSet options)
-        {
-            return base.WithChangedNonCompletionOptions(options)
-                .WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement)
-                .WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement);
-        }
+        internal override OptionsCollection NonCompletionOptions
+            => new(LanguageNames.CSharp)
+            {
+                { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+                { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement }
+            };
 
         #region "CompletionItem tests"
 
@@ -2742,7 +2743,7 @@ int bar;
         public async Task CommitRequiredKeywordPreserved(string ordering)
         {
             var markupBeforeCommit = $@"<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"" LanguageVersion=""{TestOptions.RegularNext.LanguageVersion}"">
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"" LanguageVersion=""{TestOptions.Regular11.LanguageVersion.ToDisplayString()}"">
         <Document>class Base
 {{
     public virtual required int Prop {{ get; }}
@@ -2781,7 +2782,7 @@ class Derived : Base
         public async Task CommitRequiredKeywordPreservedWhenBaseIsNotRequired(string ordering)
         {
             var markupBeforeCommit = $@"<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"" LanguageVersion=""{TestOptions.RegularNext.LanguageVersion}"">
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"" LanguageVersion=""{TestOptions.Regular11.LanguageVersion.ToDisplayString()}"">
         <Document>class Base
 {{
     public virtual int Prop {{ get; }}
@@ -3165,7 +3166,7 @@ public class SomeClass : Base
             var completionList = await GetCompletionListAsync(service, document, testDocument.CursorPosition.Value, CompletionTrigger.Invoke);
             var completionItem = completionList.ItemsList.Where(c => c.DisplayText == "M(in int x)").Single();
 
-            var commit = await service.GetChangeAsync(document, completionItem, commitKey: null, CancellationToken.None);
+            var commit = await service.GetChangeAsync(document, completionItem, commitCharacter: null, CancellationToken.None);
 
             var text = await document.GetTextAsync();
             var newText = text.WithChanges(commit.TextChange);

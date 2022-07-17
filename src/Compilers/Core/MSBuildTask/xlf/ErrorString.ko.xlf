@@ -9,12 +9,12 @@
       </trans-unit>
       <trans-unit id="CopyRefAssembly_Changed">
         <source>Source reference assembly "{0}" (timestamp "{1}", MVID "{2}") differs from destination "{3}" (timestamp "{4}", MVID "{5}").</source>
-        <target state="new">Source reference assembly "{0}" (timestamp "{1}", MVID "{2}") differs from destination "{3}" (timestamp "{4}", MVID "{5}").</target>
+        <target state="translated">원본 참조 어셈블리 "{0}"(타임스탬프 "{1}", MVID "{2}")이(가) 대상 "{3}"(타임스탬프 "{4}", MVID "{5}")과(와) 다릅니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="CopyRefAssembly_Copying">
         <source>Copying reference assembly from "{0}" to "{1}".</source>
-        <target state="new">Copying reference assembly from "{0}" to "{1}".</target>
+        <target state="translated">"{0}"에서 "{1}"(으)로 참조 어셈블리를 복사하는 중입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Csc_AssemblyAliasContainsIllegalCharacters">

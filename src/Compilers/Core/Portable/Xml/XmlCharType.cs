@@ -82,9 +82,6 @@ namespace Microsoft.CodeAnalysis
         // bitmap for public ID characters - 1 bit per character 0x0 - 0x80; no character > 0x80 is a PUBLIC ID char
         private const string s_PublicIdBitmap = "\u2400\u0000\uffbb\uafff\uffff\u87ff\ufffe\u07ff";
 
-        // size of XmlCharType table
-        private const uint CharPropertiesSize = (uint)char.MaxValue + 1;
-
         // 8 results in the smaller combined size of the tables.
         // if anything changes (like we do not care about some of the char flags), try 
         // generating with other sizes as 8 might no longer be optimal.
@@ -483,6 +480,9 @@ namespace Microsoft.CodeAnalysis
 
 #else
         private static byte[][] s_charProperties = InitInstance();
+
+        // size of XmlCharType table
+        private const uint CharPropertiesSize = (uint)char.MaxValue + 1;
 
         static byte[][] InitInstance()
         {

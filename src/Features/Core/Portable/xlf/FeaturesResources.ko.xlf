@@ -457,7 +457,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Changing_the_containing_namespace_of_0_from_1_to_2_requires_restarting_th_application">
         <source>Changing the containing namespace of '{0}' from '{1}' to '{2}' requires restarting the application</source>
-        <target state="new">Changing the containing namespace of '{0}' from '{1}' to '{2}' requires restarting the application</target>
+        <target state="translated">'{0}'의 포함 네임스페이스를 '{1}'에서 '{2}'(으)로 변경하려면 애플리케이션을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_declaration_scope_of_a_captured_variable_0_requires_restarting_the_application">
@@ -527,12 +527,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Containing_Member">
         <source>Containing Member</source>
-        <target state="new">Containing Member</target>
+        <target state="translated">포함하는 멤버</target>
         <note />
       </trans-unit>
       <trans-unit id="Containing_Type">
         <source>Containing Type</source>
-        <target state="new">Containing Type</target>
+        <target state="translated">포함하는 형식</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_linq">
@@ -587,7 +587,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Could_not_find_implementation_of_symbol_0">
         <source>Could not find implementation of symbol '{0}'</source>
-        <target state="new">Could not find implementation of symbol '{0}'</target>
+        <target state="translated">'{0}' 기호의 구현을 찾을 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Create_and_assign_field_0">
@@ -612,7 +612,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Decompiled">
         <source>decompiled</source>
-        <target state="new">decompiled</target>
+        <target state="translated">디컴파일됨</target>
         <note />
       </trans-unit>
       <trans-unit id="Deleting_0_around_an_active_statement_requires_restarting_the_application">
@@ -632,7 +632,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Directives_from_0">
         <source>Directives from '{0}'</source>
-        <target state="new">Directives from '{0}'</target>
+        <target state="translated">'{0}'의 지시문</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
@@ -733,6 +733,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Fix_typo_0">
         <source>Fix typo '{0}'</source>
         <target state="translated">오타 '{0}' 수정</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fixing_0">
+        <source>Fixing '{0}'</source>
+        <target state="translated">'{0}' 수정 중</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_document">
@@ -953,6 +958,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Inline_and_keep_0">
         <source>Inline and keep '{0}'</source>
         <target state="translated">'{0}'을(를) 인라인으로 지정 및 유지</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_an_if_statement">
+        <source>Insert an 'if' statement</source>
+        <target state="new">Insert an 'if' statement</target>
         <note />
       </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
@@ -1308,6 +1318,16 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Pull_members_up_to_base_type">
         <source>Pull members up to base type...</source>
         <target state="translated">기본 형식까지 멤버를 풀...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pull_selected_members_up">
+        <source>Pull selected members up</source>
+        <target state="new">Pull selected members up</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pull_selected_members_up_to_0">
+        <source>Pull selected members up to {0}</source>
+        <target state="new">Pull selected members up to {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Quantifier_x_y_following_nothing">
@@ -2517,8 +2537,13 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Replace_conditional_expression_with_statements">
         <source>Replace conditional expression with statements</source>
-        <target state="new">Replace conditional expression with statements</target>
+        <target state="translated">조건식을 명령문으로 바꾸기</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Required">
+        <source>required</source>
+        <target state="new">required</target>
+        <note>Used in the object initializer completion.</note>
       </trans-unit>
       <trans-unit id="Resolve_conflict_markers">
         <source>Resolve conflict markers</source>
@@ -2963,6 +2988,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Wrapping">
         <source>Wrapping</source>
         <target state="translated">래핑</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Write_to_the_console">
+        <source>Write to the console</source>
+        <target state="new">Write to the console</target>
         <note />
       </trans-unit>
       <trans-unit id="You_can_use_the_navigation_bar_to_switch_contexts">

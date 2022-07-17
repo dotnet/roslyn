@@ -92,7 +92,15 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
                         if (decompiledSourceService != null)
                         {
-                            temporaryDocument = await decompiledSourceService.AddSourceToAsync(temporaryDocument, compilation, symbol, refInfo.metadataReference, refInfo.assemblyLocation, options.GenerationOptions.CleanupOptions.FormattingOptions, cancellationToken).ConfigureAwait(false);
+                            var decompilationDocument = await decompiledSourceService.AddSourceToAsync(temporaryDocument, compilation, symbol, refInfo.metadataReference, refInfo.assemblyLocation, options.GenerationOptions.CleanupOptions.FormattingOptions, cancellationToken).ConfigureAwait(false);
+                            if (decompilationDocument is not null)
+                            {
+                                temporaryDocument = decompilationDocument;
+                            }
+                            else
+                            {
+                                useDecompiler = false;
+                            }
                         }
                         else
                         {

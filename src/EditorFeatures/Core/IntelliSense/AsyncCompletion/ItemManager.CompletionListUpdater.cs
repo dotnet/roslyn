@@ -207,10 +207,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             private void AddCompletionItems(List<MatchResult<VSCompletionItem>> list, CancellationToken cancellationToken)
             {
-                // FilterStateHelper is used to decide whether a given item should be included in the list based on the state of filter/expander buttons.
-                var filterHelper = new FilterStateHelper(_snapshotData.SelectedFilters);
-                filterHelper.LogTargetTypeFilterTelemetry(_sessionData);
-
                 // We want to sort the items by pattern matching results while preserving the original alphabetical order for items with
                 // same pattern match score, but `List<T>.Sort` isn't stable. Therefore we have to add a monotonically increasing integer
                 // to `MatchResult` to keep track the original alphabetical order of each item.
@@ -220,6 +216,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 // we can interact with Roslyn's completion system
                 var roslynInitialTriggerKind = Helpers.GetRoslynTriggerKind(InitialTriggerReason);
                 var roslynFilterReason = Helpers.GetFilterReason(UpdateTriggerReason);
+
+                // FilterStateHelper is used to decide whether a given item should be included in the list based on the state of filter/expander buttons.
+                var filterHelper = new FilterStateHelper(_snapshotData.SelectedFilters);
 
                 // Filter items based on the selected filters and matching.
                 foreach (var item in _snapshotData.InitialSortedList)
@@ -812,23 +811,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     // 1. has no expander filter, therefore should be included
                     // 2. or, all associated expanders are unselected, therefore should be excluded
                     return associatedWithUnselectedExpander;
-                }
-
-                public void LogTargetTypeFilterTelemetry(CompletionSessionData sessionData)
-                {
-                    if (sessionData.TargetTypeFilterExperimentEnabled)
-                    {
-                        // Telemetry: Want to know % of sessions with the "Target type matches" filter where that filter is actually enabled
-                        if (_needToFilter &&
-                            !sessionData.TargetTypeFilterSelected &&
-                            _selectedNonExpanderFilters.Any(static f => f.DisplayText == FeaturesResources.Target_type_matches))
-                        {
-                            AsyncCompletionLogger.LogTargetTypeFilterChosenInSession();
-
-                            // Make sure we only record one enabling of the filter per session
-                            sessionData.TargetTypeFilterSelected = true;
-                        }
-                    }
                 }
             }
 

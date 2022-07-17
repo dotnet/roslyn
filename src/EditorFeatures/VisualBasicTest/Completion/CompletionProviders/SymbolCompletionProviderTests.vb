@@ -8539,7 +8539,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)>
         Public Async Function TestTargetTypeFilterWithExperimentEnabled() As Task
-            TargetTypedCompletionFilterFeatureFlag = True
+            ShowTargetTypedCompletionFilter = True
             Dim markup =
 "Class C
     Dim intField As Integer
@@ -8554,7 +8554,7 @@ End Class"
 
         <Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)>
         Public Async Function TestNoTargetTypeFilterWithExperimentDisabled() As Task
-            TargetTypedCompletionFilterFeatureFlag = False
+            ShowTargetTypedCompletionFilter = False
             Dim markup =
 "Class C
     Dim intField As Integer
@@ -8569,7 +8569,7 @@ End Class"
 
         <Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)>
         Public Async Function TestTargetTypeFilter_NotOnObjectMembers() As Task
-            TargetTypedCompletionFilterFeatureFlag = True
+            ShowTargetTypedCompletionFilter = True
             Dim markup =
 "Class C
     Dim intField As Integer

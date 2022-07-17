@@ -2000,6 +2000,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' // AVAILABLE                             42600 - 49998
         WRN_NextAvailable = 42600
 
+        ' NOTE: On adding a new ERRID, you will need to update ErrorFacts.IsBuildOnlyDiagnostic to handle it.
+
         '// HIDDENS AND INFOS BEGIN HERE
         HDN_UnusedImportClause = 50000
         HDN_UnusedImportStatement = 50001

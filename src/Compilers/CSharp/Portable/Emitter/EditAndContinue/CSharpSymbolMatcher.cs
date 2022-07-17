@@ -32,10 +32,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             EmitContext sourceContext,
             SourceAssemblySymbol otherAssembly,
             EmitContext otherContext,
-            ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> otherSynthesizedMembersOpt)
+            ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>>? otherSynthesizedMembers,
+            ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>>? otherDeletedMembers)
         {
             _defs = new MatchDefsToSource(sourceContext, otherContext);
-            _symbols = new MatchSymbols(anonymousTypeMap, anonymousDelegates, anonymousDelegatesWithFixedTypes, sourceAssembly, otherAssembly, otherSynthesizedMembersOpt, new DeepTranslator(otherAssembly.GetSpecialType(SpecialType.System_Object)));
+            _symbols = new MatchSymbols(anonymousTypeMap, anonymousDelegates, anonymousDelegatesWithFixedTypes, sourceAssembly, otherAssembly, otherSynthesizedMembers, otherDeletedMembers, new DeepTranslator(otherAssembly.GetSpecialType(SpecialType.System_Object)));
         }
 
         public CSharpSymbolMatcher(
@@ -55,7 +56,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 sourceAssembly,
                 otherAssembly,
                 otherSynthesizedMembers: null,
-                deepTranslator: null);
+                deepTranslator: null,
+                otherDeletedMembers: null);
         }
 
         public override Cci.IDefinition? MapDefinition(Cci.IDefinition definition)
@@ -292,6 +294,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             /// </summary>
             private readonly ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>>? _otherSynthesizedMembers;
 
+            private readonly ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>>? _otherDeletedMembers;
+
             private readonly SymbolComparer _comparer;
             private readonly ConcurrentDictionary<Symbol, Symbol?> _matches = new(ReferenceEqualityComparer.Instance);
 
@@ -310,6 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 SourceAssemblySymbol sourceAssembly,
                 AssemblySymbol otherAssembly,
                 ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>>? otherSynthesizedMembers,
+                ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>>? otherDeletedMembers,
                 DeepTranslator? deepTranslator)
             {
                 _anonymousTypeMap = anonymousTypeMap;
@@ -318,6 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 _sourceAssembly = sourceAssembly;
                 _otherAssembly = otherAssembly;
                 _otherSynthesizedMembers = otherSynthesizedMembers;
+                _otherDeletedMembers = otherDeletedMembers;
                 _comparer = new SymbolComparer(this, deepTranslator);
             }
 
@@ -987,6 +993,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     members.AddRange(synthesizedMembers);
                 }
 
+                if (_otherDeletedMembers?.TryGetValue(symbol, out var deletedMembers) == true)
+                {
+                    members.AddRange(deletedMembers);
+                }
+
                 var result = members.ToDictionary(s => s.MetadataName, StringOrdinalComparer.Instance);
                 members.Free();
                 return result;
@@ -1006,6 +1017,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                 public bool Equals(TypeSymbol source, TypeSymbol other)
                 {
+                    if (ReferenceEquals(source, other))
+                    {
+                        return true;
+                    }
+
                     var visitedSource = (TypeSymbol?)_matcher.Visit(source);
                     var visitedOther = (_deepTranslator != null) ? (TypeSymbol)_deepTranslator.Visit(other) : other;
 

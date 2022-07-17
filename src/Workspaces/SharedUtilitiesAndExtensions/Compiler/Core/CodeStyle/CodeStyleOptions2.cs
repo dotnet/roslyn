@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferSystemHashCode = CreateOption(
             CodeStyleOptionGroups.ExpressionLevelPreferences,
             nameof(PreferSystemHashCode),
-            IdeAnalyzerOptions.DefaultPreferSystemHashCode,
+            IdeAnalyzerOptions.CommonDefault.PreferSystemHashCode,
             new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferSystemHashCode"));
 
         public static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferNamespaceAndFolderMatchStructure = CreateOption(

@@ -483,6 +483,37 @@ End Module")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function TestClassAttribute() As Task
+            Await TestInRegularAndScriptAsync(
+"<[|TestOverload|](1)>
+Class Program
+End Class
+Public Class TestOverloadAttribute
+    Inherits System.Attribute
+    Public Sub New(param As Short)
+    End Sub
+    Public Sub New(param As TestEnum)
+    End Sub
+End Class
+Public Enum TestEnum
+    One = 1
+End Enum",
+"<TestOverload(CShort(1))>
+Class Program
+End Class
+Public Class TestOverloadAttribute
+    Inherits System.Attribute
+    Public Sub New(param As Short)
+    End Sub
+    Public Sub New(param As TestEnum)
+    End Sub
+End Class
+Public Enum TestEnum
+    One = 1
+End Enum", compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, optionStrict:=OptionStrict.Off))
+        End Function
+
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
         Public Async Function TestMultiline() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On

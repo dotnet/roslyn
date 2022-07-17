@@ -13,9 +13,9 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Extensibility.Testing;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
+using WindowsInput.Native;
 using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
@@ -492,7 +492,7 @@ public class Program
 
 public class P2 { }", HangMitigatingCancellationToken);
 
-            await TestServices.Input.SendAsync(VirtualKey.Backspace, VirtualKey.Backspace, "Stream");
+            await TestServices.Input.SendAsync(VirtualKeyCode.BACK, VirtualKeyCode.BACK, "Stream");
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
                 new[]
                 {
@@ -557,7 +557,7 @@ namespace NS
         }
     }
 }", HangMitigatingCancellationToken);
-            await TestServices.Input.SendAsync(VirtualKey.Backspace, VirtualKey.Backspace,
+            await TestServices.Input.SendAsync(VirtualKeyCode.BACK, VirtualKeyCode.BACK,
                 "Foober");
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
                 new[]

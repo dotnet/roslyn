@@ -1498,7 +1498,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => node.Update(VisitToken(node.OmittedTypeArgumentToken));
 
         public override SyntaxNode? VisitRefType(RefTypeSyntax node)
-            => node.Update(VisitToken(node.RefKeyword), VisitToken(node.ReadOnlyKeyword), (TypeSyntax?)Visit(node.Type) ?? throw new ArgumentNullException("type"));
+            => node.Update(VisitToken(node.RefKeyword), VisitToken(node.ReadOnlyKeyword), VisitToken(node.ScopedKeyword), (TypeSyntax?)Visit(node.Type) ?? throw new ArgumentNullException("type"));
 
         public override SyntaxNode? VisitParenthesizedExpression(ParenthesizedExpressionSyntax node)
             => node.Update(VisitToken(node.OpenParenToken), (ExpressionSyntax?)Visit(node.Expression) ?? throw new ArgumentNullException("expression"), VisitToken(node.CloseParenToken));
@@ -2406,7 +2406,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => SyntaxFactory.OmittedTypeArgument(SyntaxFactory.Token(SyntaxKind.OmittedTypeArgumentToken));
 
         /// <summary>Creates a new RefTypeSyntax instance.</summary>
-        public static RefTypeSyntax RefType(SyntaxToken refKeyword, SyntaxToken readOnlyKeyword, TypeSyntax type)
+        public static RefTypeSyntax RefType(SyntaxToken refKeyword, SyntaxToken readOnlyKeyword, SyntaxToken scopedKeyword, TypeSyntax type)
         {
             if (refKeyword.Kind() != SyntaxKind.RefKeyword) throw new ArgumentException(nameof(refKeyword));
             switch (readOnlyKeyword.Kind())
@@ -2415,13 +2415,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(readOnlyKeyword));
             }
+            switch (scopedKeyword.Kind())
+            {
+                case SyntaxKind.ScopedKeyword:
+                case SyntaxKind.None: break;
+                default: throw new ArgumentException(nameof(scopedKeyword));
+            }
             if (type == null) throw new ArgumentNullException(nameof(type));
-            return (RefTypeSyntax)Syntax.InternalSyntax.SyntaxFactory.RefType((Syntax.InternalSyntax.SyntaxToken)refKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken?)readOnlyKeyword.Node, (Syntax.InternalSyntax.TypeSyntax)type.Green).CreateRed();
+            return (RefTypeSyntax)Syntax.InternalSyntax.SyntaxFactory.RefType((Syntax.InternalSyntax.SyntaxToken)refKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken?)readOnlyKeyword.Node, (Syntax.InternalSyntax.SyntaxToken?)scopedKeyword.Node, (Syntax.InternalSyntax.TypeSyntax)type.Green).CreateRed();
         }
 
         /// <summary>Creates a new RefTypeSyntax instance.</summary>
         public static RefTypeSyntax RefType(TypeSyntax type)
-            => SyntaxFactory.RefType(SyntaxFactory.Token(SyntaxKind.RefKeyword), default, type);
+            => SyntaxFactory.RefType(SyntaxFactory.Token(SyntaxKind.RefKeyword), default, default, type);
 
         /// <summary>Creates a new ParenthesizedExpressionSyntax instance.</summary>
         public static ParenthesizedExpressionSyntax ParenthesizedExpression(SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
@@ -2842,7 +2848,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ArgListExpression:
                 case SyntaxKind.NumericLiteralExpression:
                 case SyntaxKind.StringLiteralExpression:
-                case SyntaxKind.UTF8StringLiteralExpression:
+                case SyntaxKind.Utf8StringLiteralExpression:
                 case SyntaxKind.CharacterLiteralExpression:
                 case SyntaxKind.TrueLiteralExpression:
                 case SyntaxKind.FalseLiteralExpression:
@@ -2855,11 +2861,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ArgListKeyword:
                 case SyntaxKind.NumericLiteralToken:
                 case SyntaxKind.StringLiteralToken:
-                case SyntaxKind.UTF8StringLiteralToken:
+                case SyntaxKind.Utf8StringLiteralToken:
                 case SyntaxKind.MultiLineRawStringLiteralToken:
-                case SyntaxKind.UTF8MultiLineRawStringLiteralToken:
+                case SyntaxKind.Utf8MultiLineRawStringLiteralToken:
                 case SyntaxKind.SingleLineRawStringLiteralToken:
-                case SyntaxKind.UTF8SingleLineRawStringLiteralToken:
+                case SyntaxKind.Utf8SingleLineRawStringLiteralToken:
                 case SyntaxKind.CharacterLiteralToken:
                 case SyntaxKind.TrueKeyword:
                 case SyntaxKind.FalseKeyword:

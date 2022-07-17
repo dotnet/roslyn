@@ -11,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Features.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -21,8 +20,19 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.DocumentHighlighting
 {
-    internal abstract partial class AbstractDocumentHighlightsService : IDocumentHighlightsService
+    internal abstract partial class AbstractDocumentHighlightsService :
+        AbstractEmbeddedLanguageFeatureService<IEmbeddedLanguageDocumentHighlighter>,
+        IDocumentHighlightsService
     {
+        protected AbstractDocumentHighlightsService(
+            string languageName,
+            EmbeddedLanguageInfo info,
+            ISyntaxKinds syntaxKinds,
+            IEnumerable<Lazy<IEmbeddedLanguageDocumentHighlighter, EmbeddedLanguageMetadata>> allServices)
+            : base(languageName, info, syntaxKinds, allServices)
+        {
+        }
+
         public async Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsAsync(
             Document document, int position, IImmutableSet<Document> documentsToSearch, HighlightingOptions options, CancellationToken cancellationToken)
         {
@@ -53,14 +63,13 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         private async Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsInCurrentProcessAsync(
             Document document, int position, IImmutableSet<Document> documentsToSearch, HighlightingOptions options, CancellationToken cancellationToken)
         {
-            var result = await TryGetEmbeddedLanguageHighlightsAsync(
-                document, position, documentsToSearch, options, cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var result = TryGetEmbeddedLanguageHighlights(document, semanticModel, position, options, cancellationToken);
             if (!result.IsDefaultOrEmpty)
                 return result;
 
             var solution = document.Project.Solution;
 
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var symbol = await SymbolFinder.FindSymbolAtPositionAsync(
                 semanticModel, position, solution.Workspace, cancellationToken).ConfigureAwait(false);
             if (symbol == null)
@@ -80,26 +89,18 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             return tags;
         }
 
-        private static async Task<ImmutableArray<DocumentHighlights>> TryGetEmbeddedLanguageHighlightsAsync(
-            Document document, int position, IImmutableSet<Document> documentsToSearch, HighlightingOptions options, CancellationToken cancellationToken)
+        private ImmutableArray<DocumentHighlights> TryGetEmbeddedLanguageHighlights(
+            Document document, SemanticModel semanticModel, int position, HighlightingOptions options, CancellationToken cancellationToken)
         {
-            var languagesProvider = document.GetLanguageService<IEmbeddedLanguagesProvider>();
-            if (languagesProvider != null)
+            var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
+            var token = root.FindToken(position);
+            var embeddedHighlightsServices = this.GetServices(semanticModel, token, cancellationToken);
+            foreach (var service in embeddedHighlightsServices)
             {
-                foreach (var language in languagesProvider.Languages)
-                {
-                    var highlighter = (language as IEmbeddedLanguageFeatures)?.DocumentHighlightsService;
-                    if (highlighter != null)
-                    {
-                        var highlights = await highlighter.GetDocumentHighlightsAsync(
-                            document, position, documentsToSearch, options, cancellationToken).ConfigureAwait(false);
-
-                        if (!highlights.IsDefaultOrEmpty)
-                        {
-                            return highlights;
-                        }
-                    }
-                }
+                var result = service.Value.GetDocumentHighlights(
+                    document, semanticModel, token, position, options, cancellationToken);
+                if (!result.IsDefaultOrEmpty)
+                    return result;
             }
 
             return default;
@@ -116,7 +117,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             {
                 var progress = new StreamingProgressCollector();
 
-                var options = FindSymbols.FindReferencesSearchOptions.GetFeatureOptionsForStartingSymbol(symbol);
+                var options = FindReferencesSearchOptions.GetFeatureOptionsForStartingSymbol(symbol);
                 await SymbolFinder.FindReferencesAsync(
                     symbol, document.Project.Solution, progress,
                     documentsToSearch, options, cancellationToken).ConfigureAwait(false);

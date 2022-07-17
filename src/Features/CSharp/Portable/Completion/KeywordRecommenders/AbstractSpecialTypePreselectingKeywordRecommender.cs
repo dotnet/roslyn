@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         protected sealed override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             // Filter out all special-types from locations where we think we only want something task-like.
-            if (context.IsInTaskLikeTypeContext)
+            if (context.IsTaskLikeTypeContext)
                 return false;
 
             return IsValidContextWorker(position, context, cancellationToken);

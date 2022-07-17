@@ -25,7 +25,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Private ReadOnly _metadataName As String
 
         Private _lazyExportedTypes As ImmutableArray(Of Cci.ExportedType)
-        Private ReadOnly _lazyNumberOfTypesFromOtherModules As Integer
         Private _lazyTranslatedImports As ImmutableArray(Of Cci.UsedNamespaceOrType)
         Private _lazyDefaultNamespace As String
 
@@ -444,7 +443,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 ' exported types are not emitted in EnC deltas (hence generation 0):
                 Dim fullEmittedName As String = MetadataHelpers.BuildQualifiedName(
                     DirectCast(typeReference, Cci.INamespaceTypeReference).NamespaceName,
-                    Cci.MetadataWriter.GetMangledName(DirectCast(typeReference, Cci.INamedTypeReference), generation:=0))
+                    Cci.MetadataWriter.GetMetadataName(DirectCast(typeReference, Cci.INamedTypeReference), generation:=0))
 
                 ' First check against types declared in the primary module
                 If ContainsTopLevelType(fullEmittedName) Then
@@ -739,7 +738,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Sub
 
         Public Function JITOptimizationIsDisabled(methodSymbol As MethodSymbol) As Boolean
-            Debug.Assert(methodSymbol.ContainingModule Is Me.SourceModule AndAlso methodSymbol Is methodSymbol.OriginalDefinition)
+            Debug.Assert(methodSymbol Is methodSymbol.OriginalDefinition)
             Return _disableJITOptimization.ContainsKey(methodSymbol)
         End Function
 

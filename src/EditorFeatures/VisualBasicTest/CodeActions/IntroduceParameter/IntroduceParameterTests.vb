@@ -7,18 +7,10 @@ Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
 
+Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeRefactoringVerifier(Of Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable.VisualBasicIntroduceParameterCodeRefactoringProvider)
+
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.IntroduceParameter
     Public Class IntroduceParameterTests
-        Inherits AbstractVisualBasicCodeActionTest
-
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
-            Return New VisualBasicIntroduceParameterCodeRefactoringProvider()
-        End Function
-
-        Protected Overrides Function MassageActions(actions As ImmutableArray(Of CodeAction)) As ImmutableArray(Of CodeAction)
-            Return GetNestedActions(actions)
-        End Function
-
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
         Public Async Function TestExpressionWithNoMethodCallsCase() As Task
             Dim source =
@@ -32,7 +24,12 @@ End Class"
     Sub M(x As Integer, y As Integer, z As Integer, num As Integer)
     End Sub
 End Class"
-            Await TestInRegularAndScriptAsync(source, expected, index:=0)
+            Await New VerifyVB.Test With
+                {
+                   .TestCode = source,
+                   .FixedCode = expected,
+                   .CodeActionIndex = 0
+                }.RunAsync()
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
@@ -48,7 +45,7 @@ End Class"
         M(z, y, x)
     End Sub
 End Class"
-            Await TestMissingInRegularAndScriptAsync(source)
+            Await VerifyVB.VerifyRefactoringAsync(source, source)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
@@ -72,7 +69,12 @@ End Class"
         M(y, 5, 2, y.Length * 5 * 2)
     End Sub
 End Class"
-            Await TestInRegularAndScriptAsync(source, expected, index:=0)
+            Await New VerifyVB.Test With
+                {
+                   .TestCode = source,
+                   .FixedCode = expected,
+                   .CodeActionIndex = 0
+                }.RunAsync()
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
@@ -96,7 +98,12 @@ End Class"
         M(z, y, x, z * y * x)
     End Sub
 End Class"
-            Await TestInRegularAndScriptAsync(source, expected, index:=0)
+            Await New VerifyVB.Test With
+                {
+                   .TestCode = source,
+                   .FixedCode = expected,
+                   .CodeActionIndex = 0
+                }.RunAsync()
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
@@ -104,14 +111,14 @@ End Class"
             Dim source =
 "Class Program
     Sub M(x As Integer, y As Integer, z As Integer)
-        Dim num = [|x * y * z|], y = 0
+        Dim num = [|x * {|BC32000:y|} * z|], {|BC30734:y|} = 0
     End Sub
 
     Sub M1(x As Integer, y As Integer, z As Integer)
         M(z, y, x)
     End Sub
 End Class"
-            Await TestMissingInRegularAndScriptAsync(source)
+            Await VerifyVB.VerifyRefactoringAsync(source, source)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
@@ -126,7 +133,7 @@ End Class"
         M(z, y, x)
     End Sub
 End Class"
-            Await TestMissingInRegularAndScriptAsync(source)
+            Await VerifyVB.VerifyRefactoringAsync(source, source)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
@@ -139,7 +146,7 @@ End Class"
 
     Sub M1(x As Integer, y As Integer, z As Integer)
         M(z, y, x)
-        M(a + b, 5, x)
+        M({|BC30451:a|} + {|BC30451:b|}, 5, x)
     End Sub
 End Class"
             Dim expected =
@@ -149,10 +156,15 @@ End Class"
 
     Sub M1(x As Integer, y As Integer, z As Integer)
         M(z, y, x, z * y * x)
-        M(a + b, 5, x, (a + b) * 5 * x)
+        M({|BC30451:a|} + {|BC30451:b|}, 5, x, ({|BC30451:a|} + {|BC30451:b|}) * 5 * x)
     End Sub
 End Class"
-            Await TestInRegularAndScriptAsync(source, expected, index:=0)
+            Await New VerifyVB.Test With
+                {
+                   .TestCode = source,
+                   .FixedCode = expected,
+                   .CodeActionIndex = 0
+                }.RunAsync()
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
@@ -178,7 +190,12 @@ End Class"
         M(z, y, x, z * y * x)
     End Sub
 End Class"
-            Await TestInRegularAndScriptAsync(source, expected, index:=3)
+            Await New VerifyVB.Test With
+                {
+                   .TestCode = source,
+                   .FixedCode = expected,
+                   .CodeActionIndex = 3
+                }.RunAsync()
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
@@ -198,7 +215,12 @@ End Class"
     Sub M(x As Integer, y As Integer, z As Integer, num As Integer)
     End Sub
 End Class"
-            Await TestInRegularAndScriptAsync(source, expected, index:=1)
+            Await New VerifyVB.Test With
+                {
+                   .TestCode = source,
+                   .FixedCode = expected,
+                   .CodeActionIndex = 1
+                }.RunAsync()
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
@@ -226,7 +248,12 @@ End Class"
         M(z, y, x, GetNum(z, y, x))
     End Sub
 End Class"
-            Await TestInRegularAndScriptAsync(source, expected, index:=1)
+            Await New VerifyVB.Test With
+                {
+                   .TestCode = source,
+                   .FixedCode = expected,
+                   .CodeActionIndex = 1
+                }.RunAsync()
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
@@ -257,7 +284,12 @@ End Class"
     End Sub
 End Class"
 
-            Await TestInRegularAndScriptAsync(source, expected, index:=4)
+            Await New VerifyVB.Test With
+                {
+                    .TestCode = source,
+                    .FixedCode = expected,
+                    .CodeActionIndex = 4
+                }.RunAsync()
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
@@ -285,7 +317,12 @@ End Class"
         Me.M(z, y, x, GetNum(z, y, x))
     End Sub
 End Class"
-            Await TestInRegularAndScriptAsync(source, expected, index:=1)
+            Await New VerifyVB.Test With
+                {
+                   .TestCode = source,
+                   .FixedCode = expected,
+                   .CodeActionIndex = 1
+                }.RunAsync()
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
@@ -313,7 +350,12 @@ End Class"
         Me?.M(z, y, x, Me?.GetNum(z, y, x))
     End Sub
 End Class"
-            Await TestInRegularAndScriptAsync(source, expected, index:=1)
+            Await New VerifyVB.Test With
+                {
+                   .TestCode = source,
+                   .FixedCode = expected,
+                   .CodeActionIndex = 1
+                }.RunAsync()
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
@@ -357,7 +399,12 @@ Class B
         Return age
     End Function
 End Class"
-            Await TestInRegularAndScriptAsync(source, expected, index:=1)
+            Await New VerifyVB.Test With
+                {
+                   .TestCode = source,
+                   .FixedCode = expected,
+                   .CodeActionIndex = 1
+                }.RunAsync()
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
@@ -401,7 +448,12 @@ Class B
         Return age
     End Function
 End Class"
-            Await TestInRegularAndScriptAsync(source, expected, index:=1)
+            Await New VerifyVB.Test With
+                {
+                   .TestCode = source,
+                   .FixedCode = expected,
+                   .CodeActionIndex = 1
+                }.RunAsync()
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
@@ -445,7 +497,12 @@ Class B
         Return age
     End Function
 End Class"
-            Await TestInRegularAndScriptAsync(source, expected, index:=1)
+            Await New VerifyVB.Test With
+                {
+                   .TestCode = source,
+                   .FixedCode = expected,
+                   .CodeActionIndex = 1
+                }.RunAsync()
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
@@ -489,7 +546,12 @@ Class B
         Return age
     End Function
 End Class"
-            Await TestInRegularAndScriptAsync(source, expected, index:=1)
+            Await New VerifyVB.Test With
+                {
+                   .TestCode = source,
+                   .FixedCode = expected,
+                   .CodeActionIndex = 1
+                }.RunAsync()
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
@@ -518,7 +580,12 @@ End Class"
     End Sub
 End Class"
 
-            Await TestInRegularAndScriptAsync(source, expected, index:=2)
+            Await New VerifyVB.Test With
+                {
+                   .TestCode = source,
+                   .FixedCode = expected,
+                   .CodeActionIndex = 2
+                }.RunAsync()
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
@@ -537,7 +604,12 @@ End Class"
     End Sub
 End Class"
 
-            Await TestInRegularAndScriptAsync(source, expected, index:=0)
+            Await New VerifyVB.Test With
+                {
+                   .TestCode = source,
+                   .FixedCode = expected,
+                   .CodeActionIndex = 0
+                }.RunAsync()
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
@@ -556,7 +628,12 @@ End Class"
     End Function
 End Class"
 
-            Await TestInRegularAndScriptAsync(source, expected, index:=0)
+            Await New VerifyVB.Test With
+                {
+                   .TestCode = source,
+                   .FixedCode = expected,
+                   .CodeActionIndex = 0
+                }.RunAsync()
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
@@ -569,7 +646,7 @@ End Class"
     End Function
 End Class"
 
-            Await TestMissingInRegularAndScriptAsync(source)
+            Await VerifyVB.VerifyRefactoringAsync(source, source)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
@@ -594,7 +671,12 @@ End Class"
     End Sub
 End Class"
 
-            Await TestInRegularAndScriptAsync(source, expected, index:=0)
+            Await New VerifyVB.Test With
+                {
+                   .TestCode = source,
+                   .FixedCode = expected,
+                   .CodeActionIndex = 0
+                }.RunAsync()
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
@@ -619,7 +701,12 @@ End Class"
     End Sub
 End Class"
 
-            Await TestInRegularAndScriptAsync(source, expected, index:=0)
+            Await New VerifyVB.Test With
+                {
+                   .TestCode = source,
+                   .FixedCode = expected,
+                   .CodeActionIndex = 0
+                }.RunAsync()
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
@@ -650,7 +737,12 @@ End Class"
     End Sub
 End Class"
 
-            Await TestInRegularAndScriptAsync(source, expected, index:=2)
+            Await New VerifyVB.Test With
+                {
+                   .TestCode = source,
+                   .FixedCode = expected,
+                   .CodeActionIndex = 2
+                }.RunAsync()
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
@@ -681,7 +773,12 @@ End Class"
     End Sub
 End Class"
 
-            Await TestInRegularAndScriptAsync(source, expected, index:=1)
+            Await New VerifyVB.Test With
+                {
+                   .TestCode = source,
+                   .FixedCode = expected,
+                   .CodeActionIndex = 1
+                }.RunAsync()
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
@@ -712,7 +809,12 @@ End Class"
     End Sub
 End Class"
 
-            Await TestInRegularAndScriptAsync(source, expected, index:=1)
+            Await New VerifyVB.Test With
+                {
+                   .TestCode = source,
+                   .FixedCode = expected,
+                   .CodeActionIndex = 1
+                }.RunAsync()
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
@@ -739,7 +841,12 @@ Class Program
     End Sub
 End Class"
 
-            Await TestInRegularAndScriptAsync(source, expected, index:=0)
+            Await New VerifyVB.Test With
+                {
+                   .TestCode = source,
+                   .FixedCode = expected,
+                   .CodeActionIndex = 0
+                }.RunAsync()
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
@@ -764,7 +871,12 @@ End Class"
     End Sub
 End Class"
 
-            Await TestInRegularAndScriptAsync(source, expected, index:=1)
+            Await New VerifyVB.Test With
+                {
+                   .TestCode = source,
+                   .FixedCode = expected,
+                   .CodeActionIndex = 1
+                }.RunAsync()
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
@@ -781,7 +893,7 @@ End Class"
     End Sub
 End Class"
 
-            Await TestMissingInRegularAndScriptAsync(source)
+            Await VerifyVB.VerifyRefactoringAsync(source, source)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
@@ -799,7 +911,7 @@ End Class"
     End Property
 End Class"
 
-            Await TestMissingInRegularAndScriptAsync(source)
+            Await VerifyVB.VerifyRefactoringAsync(source, source)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
@@ -817,7 +929,7 @@ End Class"
     End Property
 End Class"
 
-            Await TestMissingInRegularAndScriptAsync(source)
+            Await VerifyVB.VerifyRefactoringAsync(source, source)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
@@ -828,7 +940,7 @@ End Class"
         Dim prod = [|1 * 5|]
     End Sub
 End Class"
-            Await TestMissingInRegularAndScriptAsync(source)
+            Await VerifyVB.VerifyRefactoringAsync(source, source)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
@@ -839,7 +951,7 @@ End Class"
     End Sub
 End Class"
 
-            Await TestMissingInRegularAndScriptAsync(source)
+            Await VerifyVB.VerifyRefactoringAsync(source, source)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
@@ -863,7 +975,12 @@ End Class"
     Public Sub M(x As Integer, y As Integer)
     End Sub
 End Class"
-            Await TestInRegularAndScriptAsync(source, expected, index:=0)
+            Await New VerifyVB.Test With
+                {
+                   .TestCode = source,
+                   .FixedCode = expected,
+                   .CodeActionIndex = 0
+                }.RunAsync()
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
@@ -876,7 +993,7 @@ End Class"
     End Function
 
     Sub M1()
-        M(z:=0, y:=2)
+        {|BC30455:M|}(z:=0, y:=2)
     End Sub
 End Class"
             Dim expected =
@@ -886,11 +1003,16 @@ End Class"
     End Function
 
     Sub M1()
-        M(z:=0, num:=2 * 0, y:=2)
+        {|BC30455:M|}(z:=0, num:=2 * 0, y:=2)
     End Sub
 End Class"
 
-            Await TestInRegularAndScriptAsync(source, expected, index:=0)
+            Await New VerifyVB.Test With
+                {
+                   .TestCode = source,
+                   .FixedCode = expected,
+                   .CodeActionIndex = 0
+                }.RunAsync()
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
@@ -929,7 +1051,12 @@ Class A
     End Sub
 End Class"
 
-            Await TestInRegularAndScriptAsync(source, expected, index:=1)
+            Await New VerifyVB.Test With
+                {
+                   .TestCode = source,
+                   .FixedCode = expected,
+                   .CodeActionIndex = 1
+                }.RunAsync()
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
@@ -941,7 +1068,7 @@ End Class"
     End Function
 End Class"
 
-            Await TestMissingInRegularAndScriptAsync(source)
+            Await VerifyVB.VerifyRefactoringAsync(source, source)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
@@ -963,7 +1090,7 @@ Class TestClass
     End Function
 End Class"
 
-            Await TestMissingInRegularAndScriptAsync(source)
+            Await VerifyVB.VerifyRefactoringAsync(source, source)
         End Function
     End Class
 End Namespace

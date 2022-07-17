@@ -13,10 +13,11 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource;
 internal static class MetadataAsSourceOptionsStorage
 {
     public static MetadataAsSourceOptions GetMetadataAsSourceOptions(this IGlobalOptionService globalOptions, HostLanguageServices languageServices)
-        => new(
-            GenerationOptions: globalOptions.GetCleanCodeGenerationOptions(languageServices),
-            NavigateToDecompiledSources: globalOptions.GetOption(NavigateToDecompiledSources),
-            AlwaysUseDefaultSymbolServers: globalOptions.GetOption(AlwaysUseDefaultSymbolServers));
+        => new(GenerationOptions: globalOptions.GetCleanCodeGenerationOptions(languageServices))
+        {
+            NavigateToDecompiledSources = globalOptions.GetOption(NavigateToDecompiledSources),
+            AlwaysUseDefaultSymbolServers = globalOptions.GetOption(AlwaysUseDefaultSymbolServers),
+        };
 
     public static Option2<bool> NavigateToDecompiledSources =
         new("FeatureOnOffOptions", "NavigateToDecompiledSources", defaultValue: true,

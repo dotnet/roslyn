@@ -167,10 +167,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
         private void InitializeWorkspace(Project project)
         {
-            if (_workspace == null)
-            {
-                _workspace = new MetadataAsSourceWorkspace(this, project.Solution.Workspace.Services.HostServices);
-            }
+            _workspace ??= new MetadataAsSourceWorkspace(this, project.Solution.Workspace.Services.HostServices);
         }
 
         internal async Task<SymbolMappingResult?> MapSymbolAsync(Document document, SymbolKey symbolId, CancellationToken cancellationToken)

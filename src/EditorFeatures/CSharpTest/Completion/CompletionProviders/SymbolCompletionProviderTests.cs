@@ -11065,7 +11065,7 @@ class AnotherBuilder
         [Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
         public async Task TestTargetTypeFilterWithExperimentEnabled()
         {
-            TargetTypedCompletionFilterFeatureFlag = true;
+            ShowTargetTypedCompletionFilter = true;
 
             var markup =
 @"public class C
@@ -11084,7 +11084,7 @@ class AnotherBuilder
         [Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
         public async Task TestNoTargetTypeFilterWithExperimentDisabled()
         {
-            TargetTypedCompletionFilterFeatureFlag = false;
+            ShowTargetTypedCompletionFilter = false;
 
             var markup =
 @"public class C
@@ -11103,7 +11103,7 @@ class AnotherBuilder
         [Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
         public async Task TestTargetTypeFilter_NotOnObjectMembers()
         {
-            TargetTypedCompletionFilterFeatureFlag = true;
+            ShowTargetTypedCompletionFilter = true;
 
             var markup =
 @"public class C
@@ -11121,7 +11121,7 @@ class AnotherBuilder
         [Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
         public async Task TestTargetTypeFilter_NotNamedTypes()
         {
-            TargetTypedCompletionFilterFeatureFlag = true;
+            ShowTargetTypedCompletionFilter = true;
 
             var markup =
 @"public class C
@@ -11664,7 +11664,7 @@ public class C
         public async Task TestTargetTypeCompletionDescription(string targetType, string expectedParameterList)
         {
             // Check the description displayed is based on symbol matches targeted type
-            TargetTypedCompletionFilterFeatureFlag = true;
+            ShowTargetTypedCompletionFilter = true;
 
             var markup =
 $@"public class C
@@ -12108,7 +12108,7 @@ class C
 ";
             await VerifyItemExistsAsync(MakeMarkup(source), "parameter");
 
-            await VerifyItemIsAbsentAsync(MakeMarkup(source, languageVersion: "10"), "parameter");
+            await VerifyItemExistsAsync(MakeMarkup(source, languageVersion: "10"), "parameter");
         }
 
         [Fact]
@@ -12154,7 +12154,7 @@ class C
             // Tracked by https://github.com/dotnet/roslyn/issues/60801
             await VerifyItemExistsAsync(MakeMarkup(source), "parameter", skipSpeculation: true);
 
-            await VerifyItemIsAbsentAsync(MakeMarkup(source, languageVersion: "10"), "parameter");
+            await VerifyItemExistsAsync(MakeMarkup(source, languageVersion: "10"), "parameter", skipSpeculation: true);
         }
 
         [Fact]
@@ -12173,7 +12173,7 @@ class C
             // Tracked by https://github.com/dotnet/roslyn/issues/60801
             await VerifyItemExistsAsync(MakeMarkup(source), "parameter", skipSpeculation: true);
 
-            await VerifyItemIsAbsentAsync(MakeMarkup(source, languageVersion: "10"), "parameter");
+            await VerifyItemExistsAsync(MakeMarkup(source, languageVersion: "10"), "parameter", skipSpeculation: true);
         }
 
         [Fact]
@@ -12192,7 +12192,7 @@ class C
             // Tracked by https://github.com/dotnet/roslyn/issues/60801
             await VerifyItemExistsAsync(MakeMarkup(source), "parameter", skipSpeculation: true);
 
-            await VerifyItemIsAbsentAsync(MakeMarkup(source, languageVersion: "10"), "parameter");
+            await VerifyItemExistsAsync(MakeMarkup(source, languageVersion: "10"), "parameter", skipSpeculation: true);
         }
 
         [Fact]
@@ -12211,7 +12211,7 @@ class C
             // Tracked by https://github.com/dotnet/roslyn/issues/60801
             await VerifyItemExistsAsync(MakeMarkup(source), "parameter", skipSpeculation: true);
 
-            await VerifyItemIsAbsentAsync(MakeMarkup(source, languageVersion: "10"), "parameter");
+            await VerifyItemExistsAsync(MakeMarkup(source, languageVersion: "10"), "parameter", skipSpeculation: true);
         }
 
         [Fact]
@@ -12223,7 +12223,7 @@ delegate void MyDelegate(int parameter);
 ";
             await VerifyItemExistsAsync(MakeMarkup(source), "parameter");
 
-            await VerifyItemIsAbsentAsync(MakeMarkup(source, languageVersion: "10"), "parameter");
+            await VerifyItemExistsAsync(MakeMarkup(source, languageVersion: "10"), "parameter");
         }
 
         [Fact]
@@ -12236,7 +12236,7 @@ delegate void MyDelegate([Some(nameof(p$$))] int parameter);
             // Tracked by https://github.com/dotnet/roslyn/issues/60801
             await VerifyItemExistsAsync(MakeMarkup(source), "parameter", skipSpeculation: true);
 
-            await VerifyItemIsAbsentAsync(MakeMarkup(source, languageVersion: "10"), "parameter");
+            await VerifyItemExistsAsync(MakeMarkup(source, languageVersion: "10"), "parameter", skipSpeculation: true);
         }
 
         private static string MakeMarkup(string source, string languageVersion = "Preview")

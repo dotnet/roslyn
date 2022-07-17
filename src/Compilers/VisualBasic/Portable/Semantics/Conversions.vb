@@ -231,7 +231,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Operator
 
         ''' <summary>
-        ''' Creates a <seealso cref="CommonConversion"/> from this Visual Basic conversion.
+        ''' Creates a <see cref="CommonConversion"/> from this Visual Basic conversion.
         ''' </summary>
         ''' <returns>The <see cref="CommonConversion"/> that represents this conversion.</returns>
         ''' <remarks>
@@ -239,7 +239,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' from the <see cref="CommonConversion"/> struct.
         ''' </remarks>
         Public Function ToCommonConversion() As CommonConversion Implements IConvertibleConversion.ToCommonConversion
-            Return New CommonConversion(Exists, IsIdentity, IsNumeric, IsReference, IsWidening, IsNullableValueType, MethodSymbol)
+            Return New CommonConversion(Exists, IsIdentity, IsNumeric, IsReference, IsWidening, IsNullableValueType, MethodSymbol, constrainedToType:=Nothing)
         End Function
 
         ''' <summary>
