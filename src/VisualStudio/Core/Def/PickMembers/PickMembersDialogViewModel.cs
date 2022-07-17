@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
@@ -175,13 +176,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
             list.Insert(index + delta, param);
 
             SelectedIndex += delta;
-        }
-
-        internal class MemberSymbolViewModel : SymbolViewModel<ISymbol>
-        {
-            public MemberSymbolViewModel(ISymbol symbol, IGlyphService glyphService) : base(symbol, glyphService)
-            {
-            }
         }
 
         internal class OptionViewModel : AbstractNotifyPropertyChanged

@@ -247,7 +247,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // Switch to a background thread to avoid loading option providers on UI thread (telemetry is reading options).
             await TaskScheduler.Default;
 
-            var logDelta = _globalOptions.GetOption(DiagnosticOptions.LogTelemetryForBackgroundAnalyzerExecution);
+            var logDelta = _globalOptions.GetOption(DiagnosticOptionsStorage.LogTelemetryForBackgroundAnalyzerExecution);
             var telemetryService = (VisualStudioWorkspaceTelemetryService)Services.GetRequiredService<IWorkspaceTelemetryService>();
             telemetryService.InitializeTelemetrySession(telemetrySession, logDelta);
 
@@ -303,13 +303,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 return GetProjectTrackerAndInitializeIfNecessary();
             }
-        }
-
-        internal ContainedDocument? TryGetContainedDocument(DocumentId documentId)
-        {
-            // TODO: move everybody off of this instance method and replace them with calls to
-            // ContainedDocument.TryGetContainedDocument
-            return ContainedDocument.TryGetContainedDocument(documentId);
         }
 
         internal VisualStudioProject? GetProjectWithHierarchyAndName(IVsHierarchy hierarchy, string projectName)
@@ -1205,7 +1198,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private void ApplyTextDocumentChange(DocumentId documentId, SourceText newText)
         {
-            var containedDocument = TryGetContainedDocument(documentId);
+            var containedDocument = ContainedDocument.TryGetContainedDocument(documentId);
 
             if (containedDocument != null)
             {

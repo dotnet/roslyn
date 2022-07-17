@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 using Microsoft.CodeAnalysis.InlineRename;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.PlatformUI.OleComponentSupport;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
@@ -25,12 +26,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private bool _isReplacementTextValid = true;
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        public RenameFlyoutViewModel(InlineRenameSession session, bool registerOleComponent)
+        public RenameFlyoutViewModel(InlineRenameSession session, TextSpan selectionSpan, bool registerOleComponent)
         {
             _session = session;
             _registerOleComponent = registerOleComponent;
             _session.ReplacementTextChanged += OnReplacementTextChanged;
             _session.ReplacementsComputed += OnReplacementsComputed;
+            StartingSelection = selectionSpan;
+
             ComputeRenameFile();
             RegisterOleComponent();
         }
@@ -134,6 +137,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         public bool IsRenameOverloadsVisible
             => _session.HasRenameOverloads;
+
+        public TextSpan StartingSelection { get; }
 
         public void Submit()
         {

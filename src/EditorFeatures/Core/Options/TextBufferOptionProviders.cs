@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Formatting;
@@ -66,14 +65,6 @@ internal static class TextBufferOptionProviders
             // TODO: Call editorOptions.GetIndentStyle() instead (see https://github.com/dotnet/roslyn/issues/62204):
             IndentStyle = optionsProvider.GlobalOptions.GetOption(IndentationOptionsStorage.SmartIndent, languageServices.Language)
         };
-    }
-
-    public static AddImportPlacementOptions GetAddImportPlacementOptions(this ITextBuffer textBuffer, EditorOptionsService optionsProvider, HostLanguageServices languageServices, bool allowInHiddenRegions)
-    {
-        var editorOptions = optionsProvider.Factory.GetOptions(textBuffer);
-        var configOptions = new EditorAnalyzerConfigOptions(editorOptions);
-        var fallbackOptions = optionsProvider.GlobalOptions.GetAddImportPlacementOptions(languageServices);
-        return configOptions.GetAddImportPlacementOptions(allowInHiddenRegions, fallbackOptions, languageServices);
     }
 
     public static IndentingStyle ToEditorIndentStyle(this FormattingOptions2.IndentStyle value)

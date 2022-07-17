@@ -11,13 +11,13 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PullMemberUp;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog;
+using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
@@ -45,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
                 WhereAsArray(MemberAndDestinationValidator.IsMemberValid);
             var memberViewModels = membersInType
                 .SelectAsArray(member =>
-                    new PullMemberUpSymbolViewModel(member, _glyphService)
+                    new MemberSymbolViewModel(member, _glyphService)
                     {
                         // The member user selected will be checked at the beginning.
                         IsChecked = selectedMembers.Any(SymbolEquivalenceComparer.Instance.Equals, member),
