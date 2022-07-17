@@ -630,7 +630,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     return null;
 
                 // never show light bulb if solution is not fully loaded yet
-                if (!await workspace.Services.GetRequiredService<IWorkspaceStatusService>().IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false))
+                if (!workspace.Services.GetRequiredService<IWorkspaceStatusService>().IsFullyLoaded)
                     return null;
 
                 cancellationToken.ThrowIfCancellationRequested();

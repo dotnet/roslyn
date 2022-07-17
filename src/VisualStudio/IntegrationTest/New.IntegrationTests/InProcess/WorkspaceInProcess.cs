@@ -101,17 +101,17 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             if (featureNames.Contains(FeatureAttribute.NavigateTo))
             {
                 var statusService = workspace.Services.GetRequiredService<IWorkspaceStatusService>();
-                Contract.ThrowIfFalse(await statusService.IsFullyLoadedAsync(cancellationToken));
+                Contract.ThrowIfFalse(statusService.IsFullyLoaded);
 
                 // Make sure the "priming" operation has started for Nav To
                 var threadingContext = await GetComponentModelServiceAsync<IThreadingContext>(cancellationToken);
                 var asyncListener = listenerProvider.GetListener(FeatureAttribute.NavigateTo);
                 var searchHost = new DefaultNavigateToSearchHost(workspace.CurrentSolution, asyncListener, threadingContext.DisposalToken);
 
-                // Calling DefaultNavigateToSearchHost.IsFullyLoadedAsync starts the fire-and-forget asynchronous
+                // Calling DefaultNavigateToSearchHost.IsFullyLoaded starts the fire-and-forget asynchronous
                 // operation to populate the remote host. The call to WaitAllAsync below will wait for that operation to
                 // complete.
-                await searchHost.IsFullyLoadedAsync(cancellationToken);
+                _ = searchHost.IsFullyLoaded();
             }
 
             await listenerProvider.WaitAllAsync(workspace, featureNames).WithCancellation(cancellationToken);

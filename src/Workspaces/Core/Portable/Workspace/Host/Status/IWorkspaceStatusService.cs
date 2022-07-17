@@ -41,6 +41,6 @@ namespace Microsoft.CodeAnalysis.Host
         /// what that means is that this method should only be used with either await or JTF.Run, it should be never used with Task.Wait otherwise, it can
         /// deadlock
         /// </summary>
-        Task<bool> IsFullyLoadedAsync(CancellationToken cancellationToken);
+        bool IsFullyLoaded { get; }
     }
 }

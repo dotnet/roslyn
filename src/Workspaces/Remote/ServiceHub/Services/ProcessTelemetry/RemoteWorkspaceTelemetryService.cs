@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.Telemetry;
 
 namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 {
-    [ExportWorkspaceService(typeof(IWorkspaceTelemetryService)), Shared]
+    [ExportWorkspaceService(typeof(IWorkspaceTelemetryService), ServiceLayer.Host), Shared]
     internal sealed class RemoteWorkspaceTelemetryService : AbstractWorkspaceTelemetryService
     {
         [ImportingConstructor]

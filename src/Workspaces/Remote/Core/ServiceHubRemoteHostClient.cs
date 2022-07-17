@@ -2,9 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Globalization;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -18,21 +15,18 @@ using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.ServiceHub.Client;
 using Microsoft.ServiceHub.Framework;
-using Microsoft.VisualStudio.Threading;
-using Roslyn.Utilities;
-using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
     internal sealed partial class ServiceHubRemoteHostClient : RemoteHostClient
     {
-        private readonly HostWorkspaceServices _services;
         private readonly SolutionAssetStorage _assetStorage;
         private readonly HubClient _hubClient;
         private readonly ServiceBrokerClient _serviceBrokerClient;
         private readonly IErrorReportingService? _errorReportingService;
         private readonly IRemoteHostClientShutdownCancellationService? _shutdownCancellationService;
         private readonly IRemoteServiceCallbackDispatcherProvider _callbackDispatcherProvider;
+        private readonly IWorkspaceTelemetryService _workspaceTelemetryService;
 
         public readonly RemoteProcessConfiguration Configuration;
 
@@ -44,9 +38,9 @@ namespace Microsoft.CodeAnalysis.Remote
             IRemoteServiceCallbackDispatcherProvider callbackDispatcherProvider)
         {
             // use the hub client logger for unexpected exceptions from devenv as well, so we have complete information in the log:
-            services.GetService<IWorkspaceTelemetryService>()?.RegisterUnexpectedExceptionLogger(hubClient.Logger);
+            _workspaceTelemetryService = services.GetRequiredService<IWorkspaceTelemetryService>();
+            _workspaceTelemetryService.RegisterUnexpectedExceptionLogger(hubClient.Logger);
 
-            _services = services;
             _serviceBrokerClient = serviceBrokerClient;
             _hubClient = hubClient;
             _callbackDispatcherProvider = callbackDispatcherProvider;
@@ -126,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public override void Dispose()
         {
-            _services.GetService<IWorkspaceTelemetryService>()?.UnregisterUnexpectedExceptionLogger(_hubClient.Logger);
+            _workspaceTelemetryService.UnregisterUnexpectedExceptionLogger(_hubClient.Logger);
             _hubClient.Dispose();
 
             _serviceBrokerClient.Dispose();

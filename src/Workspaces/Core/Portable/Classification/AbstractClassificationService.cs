@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 // of classifications from the server.  Note: this must be a separate call (instead of being part of
                 // service.GetSemanticClassificationsAsync below) as we want to try to read in the cached
                 // classifications without doing any syncing to the OOP process.
-                var isFullyLoaded = IsFullyLoaded(document, cancellationToken);
+                var isFullyLoaded = IsFullyLoaded(document);
                 if (await TryGetCachedClassificationsAsync(document, textSpan, type, client, isFullyLoaded, result, cancellationToken).ConfigureAwait(false))
                     return;
 
@@ -94,17 +94,10 @@ namespace Microsoft.CodeAnalysis.Classification
             }
         }
 
-        private static bool IsFullyLoaded(Document document, CancellationToken cancellationToken)
+        private static bool IsFullyLoaded(Document document)
         {
             var workspaceStatusService = document.Project.Solution.Workspace.Services.GetRequiredService<IWorkspaceStatusService>();
-
-            // Importantly, we do not await/wait on the fullyLoadedStateTask.  We do not want to ever be waiting on work
-            // that may end up touching the UI thread (As we can deadlock if GetTagsSynchronous waits on us).  Instead,
-            // we only check if the Task is completed.  Prior to that we will assume we are still loading.  Once this
-            // task is completed, we know that the WaitUntilFullyLoadedAsync call will have actually finished and we're
-            // fully loaded.
-            var isFullyLoadedTask = workspaceStatusService.IsFullyLoadedAsync(cancellationToken);
-            var isFullyLoaded = isFullyLoadedTask.IsCompleted && isFullyLoadedTask.GetAwaiter().GetResult();
+            var isFullyLoaded = workspaceStatusService.IsFullyLoaded;
             return isFullyLoaded;
         }
 

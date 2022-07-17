@@ -90,8 +90,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        private static ValueTask<bool> IsFullyLoadedAsync(bool projectSystem, bool remoteHost)
-            => new(projectSystem && remoteHost);
+        private static bool IsFullyLoaded(bool projectSystem, bool remoteHost)
+            => projectSystem && remoteHost;
 
         [Fact]
         public async Task NotFullyLoadedOnlyMakesOneSearchProjectCallIfValueReturned()
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
 
             // Simulate a host that says the solution isn't fully loaded.
             var hostMock = new Mock<INavigateToSearcherHost>(MockBehavior.Strict);
-            hostMock.Setup(h => h.IsFullyLoadedAsync(It.IsAny<CancellationToken>())).Returns(() => IsFullyLoadedAsync(projectSystem: false, remoteHost: false));
+            hostMock.Setup(h => h.IsFullyLoaded()).Returns(() => IsFullyLoaded(projectSystem: false, remoteHost: false));
             hostMock.Setup(h => h.GetNavigateToSearchService(It.IsAny<Project>())).Returns(searchService.Object);
 
             var callbackMock = new Mock<INavigateToSearchCallback>(MockBehavior.Strict);
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
 
             // Simulate a host that says the solution isn't fully loaded.
             var hostMock = new Mock<INavigateToSearcherHost>(MockBehavior.Strict);
-            hostMock.Setup(h => h.IsFullyLoadedAsync(It.IsAny<CancellationToken>())).Returns(() => IsFullyLoadedAsync(projectSystemFullyLoaded, remoteHost: false));
+            hostMock.Setup(h => h.IsFullyLoaded()).Returns(() => IsFullyLoaded(projectSystemFullyLoaded, remoteHost: false));
             hostMock.Setup(h => h.GetNavigateToSearchService(It.IsAny<Project>())).Returns(searchService.Object);
 
             var callbackMock = new Mock<INavigateToSearchCallback>(MockBehavior.Strict);
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
 
             // Simulate a host that says the solution isn't fully loaded.
             var hostMock = new Mock<INavigateToSearcherHost>(MockBehavior.Strict);
-            hostMock.Setup(h => h.IsFullyLoadedAsync(It.IsAny<CancellationToken>())).Returns(() => IsFullyLoadedAsync(projectIsFullyLoaded, remoteHost: false));
+            hostMock.Setup(h => h.IsFullyLoaded()).Returns(() => IsFullyLoaded(projectIsFullyLoaded, remoteHost: false));
             hostMock.Setup(h => h.GetNavigateToSearchService(It.IsAny<Project>())).Returns(searchService.Object);
 
             var callbackMock = new Mock<INavigateToSearchCallback>(MockBehavior.Strict);
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
 
             // Simulate a host that says the solution is fully loaded.
             var hostMock = new Mock<INavigateToSearcherHost>(MockBehavior.Strict);
-            hostMock.Setup(h => h.IsFullyLoadedAsync(It.IsAny<CancellationToken>())).Returns(() => IsFullyLoadedAsync(projectSystem: true, remoteHost: true));
+            hostMock.Setup(h => h.IsFullyLoaded()).Returns(() => IsFullyLoaded(projectSystem: true, remoteHost: true));
             hostMock.Setup(h => h.GetNavigateToSearchService(It.IsAny<Project>())).Returns(searchService.Object);
 
             var callbackMock = new Mock<INavigateToSearchCallback>(MockBehavior.Strict);

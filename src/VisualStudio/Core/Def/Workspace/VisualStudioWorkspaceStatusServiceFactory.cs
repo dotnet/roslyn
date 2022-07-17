@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Options.Providers;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
+using Roslyn.Utilities;
 using Task = System.Threading.Tasks.Task;
 
 using IAsyncServiceProvider2 = Microsoft.VisualStudio.Shell.IAsyncServiceProvider2;
@@ -86,8 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             /// <summary>
             /// A task providing the result of asynchronous computation of
-            /// <see cref="IVsOperationProgressStatusService.GetStageStatusForSolutionLoad"/>. The result of this
-            /// operation is accessed through <see cref="GetProgressStageStatusAsync"/>.
+            /// <see cref="IVsOperationProgressStatusService.GetStageStatusForSolutionLoad"/>.
             /// </summary>
             private readonly JoinableTask<IVsOperationProgressStageStatusForSolutionLoad?> _progressStageStatus;
 
@@ -139,7 +139,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 using (Logger.LogBlock(FunctionId.PartialLoad_FullyLoaded, KeyValueLogMessage.NoProperty, cancellationToken))
                 {
-                    var status = await GetProgressStageStatusAsync(cancellationToken).ConfigureAwait(false);
+                    var status = await _progressStageStatus.JoinAsync(cancellationToken).ConfigureAwait(false);
                     if (status == null)
                     {
                         return;
@@ -156,30 +156,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 }
             }
 
-            // unfortunately, IVsOperationProgressStatusService requires UI thread to let project system to proceed to next stages.
-            // this method should only be used with either await or JTF.Run, it should be never used with Task.Wait otherwise, it can
-            // deadlock
-            public async Task<bool> IsFullyLoadedAsync(CancellationToken cancellationToken)
+            public bool IsFullyLoaded
             {
-                var status = await GetProgressStageStatusAsync(cancellationToken).ConfigureAwait(false);
-                if (status == null)
+                get
                 {
-                    return false;
+                    if (!_progressStageStatus.IsCompleted)
+                        return false;
+
+                    var status = _progressStageStatus.Task.GetCompletedResult();
+                    if (status is null)
+                        return false;
+
+                    return !status.IsInProgress;
                 }
-
-                return !status.IsInProgress;
-            }
-
-            private async ValueTask<IVsOperationProgressStageStatusForSolutionLoad?> GetProgressStageStatusAsync(CancellationToken cancellationToken)
-            {
-                // Workaround for lack of fast path in JoinAsync; avoid calling when already completed
-                // https://github.com/microsoft/vs-threading/pull/696
-                if (_progressStageStatus.Task.IsCompleted)
-                {
-                    return await _progressStageStatus.Task.ConfigureAwait(false);
-                }
-
-                return await _progressStageStatus.JoinAsync(cancellationToken).ConfigureAwait(false);
             }
         }
 

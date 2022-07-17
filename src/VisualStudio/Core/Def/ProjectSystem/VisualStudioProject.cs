@@ -245,15 +245,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                         // We only log telemetry during solution open
 
-                        // Importantly, we do not await/wait on the fullyLoadedStateTask.  We do not want to ever be waiting on work
-                        // that may end up touching the UI thread (As we can deadlock if GetTagsSynchronous waits on us).  Instead,
-                        // we only check if the Task is completed.  Prior to that we will assume we are still loading.  Once this
-                        // task is completed, we know that the WaitUntilFullyLoadedAsync call will have actually finished and we're
-                        // fully loaded.
-                        var isFullyLoadedTask = workspaceStatusService?.IsFullyLoadedAsync(CancellationToken.None);
-                        var isFullyLoaded = isFullyLoadedTask is { IsCompleted: true } && isFullyLoadedTask.GetAwaiter().GetResult();
-
-                        if (!isFullyLoaded)
+                        if (!workspaceStatusService.IsFullyLoaded)
                         {
                             TryReportCompilationThrownAway(_workspace.CurrentSolution.State, Id);
                         }

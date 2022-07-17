@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         /// <summary>
         /// Returns the fully loaded state for both the project system and the remote host.
         /// </summary>
-        ValueTask<bool> IsFullyLoadedAsync(CancellationToken cancellationToken);
+        bool IsFullyLoaded();
     }
 
     internal class DefaultNavigateToSearchHost : INavigateToSearcherHost
@@ -54,14 +54,14 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         public INavigateToSearchService? GetNavigateToSearchService(Project project)
             => project.GetLanguageService<INavigateToSearchService>();
 
-        public async ValueTask<bool> IsFullyLoadedAsync(CancellationToken cancellationToken)
+        public bool IsFullyLoaded()
         {
             var service = _solution.Workspace.Services.GetRequiredService<IWorkspaceStatusService>();
 
             // We consider ourselves fully loaded when both the project system has completed loaded
             // us, and we've totally hydrated the oop side.  Until that happens, we'll attempt to
             // return cached data from languages that support that.
-            var isProjectSystemFullyLoaded = await service.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
+            var isProjectSystemFullyLoaded = service.IsFullyLoaded;
             if (!isProjectSystemFullyLoaded)
                 return false;
 

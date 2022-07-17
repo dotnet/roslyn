@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     // We consider ourselves fully loaded when both the project system has completed loaded us, and we've
                     // totally hydrated the oop side.  Until that happens, we'll attempt to return cached data from languages
                     // that support that.
-                    isFullyLoaded = await _host.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
+                    isFullyLoaded = _host.IsFullyLoaded();
                     await SearchAllProjectsAsync(isFullyLoaded, scope, cancellationToken).ConfigureAwait(false);
                 }
             }
