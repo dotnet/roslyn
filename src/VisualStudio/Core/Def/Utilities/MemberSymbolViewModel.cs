@@ -9,9 +9,9 @@ using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog
+namespace Microsoft.VisualStudio.LanguageServices.Utilities
 {
-    internal class PullMemberUpSymbolViewModel : SymbolViewModel<ISymbol>
+    internal class MemberSymbolViewModel : SymbolViewModel<ISymbol>
     {
         private bool _isCheckable;
         private bool _makeAbstract;
@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
         /// </summary>
         public string Accessibility => Symbol.DeclaredAccessibility.ToString();
 
-        public PullMemberUpSymbolViewModel(ISymbol symbol, IGlyphService glyphService) : base(symbol, glyphService)
+        public MemberSymbolViewModel(ISymbol symbol, IGlyphService glyphService) : base(symbol, glyphService)
         {
         }
     }

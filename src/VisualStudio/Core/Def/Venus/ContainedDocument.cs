@@ -37,7 +37,6 @@ using IVsTextBufferCoordinator = Microsoft.VisualStudio.TextManager.Interop.IVsT
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 {
-
 #pragma warning disable CS0618 // Type or member is obsolete
     internal sealed partial class ContainedDocument : ForegroundThreadAffinitizedObject, IVisualStudioHostDocument
 #pragma warning restore CS0618 // Type or member is obsolete
@@ -871,10 +870,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         private int GetBaseIndentation(SyntaxNode root, SourceText text, TextSpan span)
         {
-            // Is this right?  We should probably get this from the IVsContainedLanguageHost instead.
             var editorOptions = _editorOptionsService.Factory.GetOptions(DataBuffer);
-
-            var additionalIndentation = GetAdditionalIndentation(root, text, span);
+            var additionalIndentation = GetAdditionalIndentation(root, text, span, hostIndentationSize: editorOptions.GetIndentSize());
 
             // Skip over the first line, since it's in "Venus space" anyway.
             var startingLine = text.Lines.GetLineFromPosition(span.Start);
@@ -936,11 +933,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             return (start <= end) ? TextSpan.FromBounds(start, end + 1) : default;
         }
 
-        private int GetAdditionalIndentation(SyntaxNode root, SourceText text, TextSpan span)
+        private int GetAdditionalIndentation(SyntaxNode root, SourceText text, TextSpan span, int hostIndentationSize)
         {
             if (_hostType == HostType.HTML)
             {
-                return _workspace.Options.GetOption(FormattingOptions.IndentationSize, _project.Language);
+                return hostIndentationSize;
             }
 
             if (_hostType == HostType.Razor)
@@ -997,7 +994,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                         }
                     }
 
-                    return _workspace.Options.GetOption(FormattingOptions.IndentationSize, _project.Language);
+                    return hostIndentationSize;
                 }
             }
 

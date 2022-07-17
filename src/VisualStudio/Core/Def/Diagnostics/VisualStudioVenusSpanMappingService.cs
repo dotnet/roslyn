@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 {
@@ -83,11 +84,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 // but for typescript and other, we don't have the tree, so adding this as
                 // sanity check. later we could convert this to Contract to crash VS and
                 // know about the issue.
-                var documentIds = _workspace.CurrentSolution.GetDocumentIdsWithFilePath(filePath);
+                var solution = _workspace.CurrentSolution;
+                var documentIds = solution.GetDocumentIdsWithFilePath(filePath);
                 if (documentIds.Contains(currentDocumentId))
                 {
                     // text most likely already read in
-                    return _workspace.CurrentSolution.GetDocument(currentDocumentId).State.GetTextSynchronously(CancellationToken.None).Lines;
+                    return solution.GetDocument(currentDocumentId).State.GetTextSynchronously(CancellationToken.None).Lines;
                 }
             }
 
@@ -95,18 +97,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             return null;
         }
 
-        private bool TryAdjustSpanIfNeededForVenus(
+        private static bool TryAdjustSpanIfNeededForVenus(
             DocumentId documentId, FileLinePositionSpan originalLineInfo, FileLinePositionSpan mappedLineInfo, out LinePositionSpan originalSpan, out LinePositionSpan mappedSpan)
         {
             var startChanged = true;
-            if (!TryAdjustSpanIfNeededForVenus(_workspace, documentId, originalLineInfo.StartLinePosition.Line, originalLineInfo.StartLinePosition.Character, out var startLineColumn))
+            if (!TryAdjustSpanIfNeededForVenus(documentId, originalLineInfo.StartLinePosition.Line, originalLineInfo.StartLinePosition.Character, out var startLineColumn))
             {
                 startChanged = false;
                 startLineColumn = new MappedSpan(originalLineInfo.StartLinePosition.Line, originalLineInfo.StartLinePosition.Character, mappedLineInfo.StartLinePosition.Line, mappedLineInfo.StartLinePosition.Character);
             }
 
             var endChanged = true;
-            if (!TryAdjustSpanIfNeededForVenus(_workspace, documentId, originalLineInfo.EndLinePosition.Line, originalLineInfo.EndLinePosition.Character, out var endLineColumn))
+            if (!TryAdjustSpanIfNeededForVenus(documentId, originalLineInfo.EndLinePosition.Line, originalLineInfo.EndLinePosition.Character, out var endLineColumn))
             {
                 endChanged = false;
                 endLineColumn = new MappedSpan(originalLineInfo.EndLinePosition.Line, originalLineInfo.EndLinePosition.Character, mappedLineInfo.EndLinePosition.Line, mappedLineInfo.EndLinePosition.Character);
@@ -130,14 +132,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             return new LinePositionSpan(position2, position1);
         }
 
-        public static LinePosition GetAdjustedLineColumn(Workspace workspace, DocumentId documentId, int originalLine, int originalColumn, int mappedLine, int mappedColumn)
+        public static LinePosition GetAdjustedLineColumn(DocumentId documentId, int originalLine, int originalColumn, int mappedLine, int mappedColumn)
         {
-            if (workspace is not VisualStudioWorkspaceImpl vsWorkspace)
-            {
-                return new LinePosition(mappedLine, mappedColumn);
-            }
-
-            if (TryAdjustSpanIfNeededForVenus(vsWorkspace, documentId, originalLine, originalColumn, out var span))
+            if (TryAdjustSpanIfNeededForVenus(documentId, originalLine, originalColumn, out var span))
             {
                 return span.MappedLinePosition;
             }
@@ -145,7 +142,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             return new LinePosition(mappedLine, mappedColumn);
         }
 
-        private static bool TryAdjustSpanIfNeededForVenus(VisualStudioWorkspaceImpl workspace, DocumentId documentId, int originalLine, int originalColumn, out MappedSpan mappedSpan)
+        private static bool TryAdjustSpanIfNeededForVenus(DocumentId documentId, int originalLine, int originalColumn, out MappedSpan mappedSpan)
         {
             mappedSpan = default;
 
@@ -154,7 +151,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 return false;
             }
 
-            var containedDocument = workspace.TryGetContainedDocument(documentId);
+            var containedDocument = ContainedDocument.TryGetContainedDocument(documentId);
             if (containedDocument == null)
             {
                 return false;
@@ -218,7 +215,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             if (TryFixUpNearestVisibleSpan(bufferCoordinator, nearestVisibleSpanOnSecondaryBuffer.iStartLine, nearestVisibleSpanOnSecondaryBuffer.iStartIndex, out var adjustedPosition))
             {
                 // span has changed yet again, re-calculate span
-                return TryAdjustSpanIfNeededForVenus(workspace, documentId, adjustedPosition.Line, adjustedPosition.Character, out mappedSpan);
+                return TryAdjustSpanIfNeededForVenus(documentId, adjustedPosition.Line, adjustedPosition.Character, out mappedSpan);
             }
 
             mappedSpan = new MappedSpan(nearestVisibleSpanOnSecondaryBuffer.iStartLine, nearestVisibleSpanOnSecondaryBuffer.iStartIndex, nearestVisibleSpanOnPrimaryBuffer.iStartLine, nearestVisibleSpanOnPrimaryBuffer.iStartIndex);

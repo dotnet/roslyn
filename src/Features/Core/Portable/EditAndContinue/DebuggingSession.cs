@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         /// <summary>
         /// MVIDs read from the assembly built for given project id.
+        /// Only contains ids for projects that support EnC.
         /// </summary>
         private readonly Dictionary<ProjectId, (Guid Mvid, Diagnostic Error)> _projectModuleIds = new();
         private readonly Dictionary<Guid, ProjectId> _moduleIds = new();
@@ -241,10 +242,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </summary>
         /// <returns>
         /// An MVID and an error message to report, in case an IO exception occurred while reading the binary.
-        /// The MVID is default if either project not built, or an it can't be read from the module binary.
+        /// The MVID is <see cref="Guid.Empty"/> if either the project is not built, or the MVID can't be read from the module binary.
         /// </returns>
         internal async Task<(Guid Mvid, Diagnostic? Error)> GetProjectModuleIdAsync(Project project, CancellationToken cancellationToken)
         {
+            Debug.Assert(project.SupportsEditAndContinue());
+
             lock (_projectModuleIdsGuard)
             {
                 if (_projectModuleIds.TryGetValue(project.Id, out var id))
@@ -281,8 +284,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return id;
                 }
 
-                _moduleIds[newId.Mvid] = project.Id;
-                return _projectModuleIds[project.Id] = newId;
+                // Do not cache failures. The error might be intermittent and might be corrected next time we attempt to read the MVID.
+                if (newId.Mvid != Guid.Empty)
+                {
+                    _moduleIds[newId.Mvid] = project.Id;
+                    _projectModuleIds[project.Id] = newId;
+                }
+
+                return newId;
             }
         }
 
@@ -650,6 +659,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }
 
                     var newProject = solution.GetRequiredProject(projectId);
+
+                    Debug.Assert(oldProject.SupportsEditAndContinue());
+                    Debug.Assert(newProject.SupportsEditAndContinue());
+
                     var analyzer = newProject.LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
 
                     await foreach (var documentId in EditSession.GetChangedDocumentsAsync(oldProject, newProject, cancellationToken).ConfigureAwait(false))
@@ -745,7 +758,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             try
             {
-                if (_isDisposed || !EditSession.InBreakState || !mappedDocument.State.SupportsEditAndContinue())
+                if (_isDisposed || !EditSession.InBreakState || !mappedDocument.State.SupportsEditAndContinue() || !mappedDocument.Project.SupportsEditAndContinue())
                 {
                     return ImmutableArray<ActiveStatementSpan>.Empty;
                 }
@@ -965,6 +978,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         return null;
                     }
 
+                    // We only maintain module ids for projects that support EnC:
+                    Debug.Assert(oldProject.SupportsEditAndContinue());
+                    Debug.Assert(newProject.SupportsEditAndContinue());
+
                     documentId = await GetChangedDocumentContainingUnmappedActiveStatementAsync(activeStatementsMap, LastCommittedSolution, oldProject, newProject, baseActiveStatement, cancellationToken).ConfigureAwait(false);
                 }
                 else
@@ -982,8 +999,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         // TODO: https://github.com/dotnet/roslyn/issues/1204
                         // oldProject == null ==> project has been added - it may have active statements if the project was unloaded when debugging session started but the sources 
                         // correspond to the PDB.
-                        var id = (oldProject != null) ? await GetChangedDocumentContainingUnmappedActiveStatementAsync(
-                        activeStatementsMap, LastCommittedSolution, oldProject, newProject, baseActiveStatement, linkedTokenSource.Token).ConfigureAwait(false) : null;
+                        var id = (oldProject?.SupportsEditAndContinue() == true) ?
+                            await GetChangedDocumentContainingUnmappedActiveStatementAsync(
+                                activeStatementsMap, LastCommittedSolution, oldProject, newProject, baseActiveStatement, linkedTokenSource.Token).ConfigureAwait(false) :
+                            null;
 
                         Interlocked.CompareExchange(ref documentId, id, null);
                         if (id != null)
@@ -1017,6 +1036,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private static async ValueTask<DocumentId?> GetChangedDocumentContainingUnmappedActiveStatementAsync(ActiveStatementsMap baseActiveStatements, CommittedSolution oldSolution, Project oldProject, Project newProject, ActiveStatement activeStatement, CancellationToken cancellationToken)
         {
             Debug.Assert(oldProject.Id == newProject.Id);
+            Debug.Assert(oldProject.SupportsEditAndContinue());
+            Debug.Assert(newProject.SupportsEditAndContinue());
+
             var analyzer = newProject.LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
 
             await foreach (var documentId in EditSession.GetChangedDocumentsAsync(oldProject, newProject, cancellationToken).ConfigureAwait(false))
@@ -1044,7 +1066,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private static void ReportTelemetry(DebuggingSessionTelemetry.Data data)
         {
             // report telemetry (fire and forget):
-            _ = Task.Run(() => DebuggingSessionTelemetry.Log(data, Logger.Log, LogAggregator.GetNextId));
+            _ = Task.Run(() => DebuggingSessionTelemetry.Log(data, Logger.Log, CorrelationIdFactory.GetNextId));
         }
 
         internal TestAccessor GetTestAccessor()

@@ -1046,7 +1046,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Creates a <seealso cref="CommonConversion"/> from this C# conversion.
+        /// Creates a <see cref="CommonConversion"/> from this C# conversion.
         /// </summary>
         /// <returns>The <see cref="CommonConversion"/> that represents this conversion.</returns>
         /// <remarks>

@@ -47,7 +47,7 @@ class C
 }";
             await new VerifyCS.Test
             {
-                LanguageVersion = LanguageVersionExtensions.CSharpNext,
+                LanguageVersion = LanguageVersion.CSharp11,
                 TestCode = testCode,
                 FixedCode = testCode
             }.RunAsync();
@@ -231,7 +231,7 @@ class C
 
         [Theory]
         [Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
-        [InlineData(LanguageVersionExtensions.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         [InlineData(LanguageVersion.CSharp8)]
         public async Task TestNotOnPartialMethodDefinition1(LanguageVersion languageVersion)
         {
@@ -278,7 +278,7 @@ partial class C
 
         [Theory]
         [Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
-        [InlineData(LanguageVersionExtensions.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         [InlineData(LanguageVersion.CSharp8)]
         public async Task TestNotOnPartialMethodDefinition2(LanguageVersion languageVersion)
         {
@@ -1560,7 +1560,7 @@ class C
         {
             await new VerifyCS.Test
             {
-                LanguageVersion = LanguageVersionExtensions.CSharpNext,
+                LanguageVersion = LanguageVersion.CSharp11,
                 TestCode = @"
 using System;
 
@@ -1608,7 +1608,7 @@ class C
 }";
             await new VerifyCS.Test
             {
-                LanguageVersion = LanguageVersionExtensions.CSharpNext,
+                LanguageVersion = LanguageVersion.CSharp11,
                 TestCode = testCode,
                 FixedCode = testCode
             }.RunAsync();
