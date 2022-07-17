@@ -58,6 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
                 "CS8880", // warning CS8880: Auto-implemented property 'S.Test1' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the property.
                 "CS8881", // warning CS8881: Field 'S.Test1' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
                 "CS8885", // warning CS8885: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version 'preview' to auto-default the unassigned fields.
+                "CS9058", // error CS9058: Feature '{0}' is not available in C# 11.0. Please use language version {1} or greater.
             });
 
         public override string UpgradeThisProjectResource => CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0;

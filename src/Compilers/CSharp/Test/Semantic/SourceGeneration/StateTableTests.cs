@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             Assert.True(didRemoveEntries);
         }
 
-        private IEnumerable<int> YieldItems(OneOrMany<int> items)
+        private static IEnumerable<int> YieldItems(OneOrMany<int> items)
         {
             foreach (var value in items)
                 yield return value;

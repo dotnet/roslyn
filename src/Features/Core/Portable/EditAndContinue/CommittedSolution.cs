@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var (project, documentStates) = projectDocumentStates;
 
                 // Skip projects that do not support Roslyn EnC (e.g. F#, etc).
-                // Source files of these do not even need to be captured in the solution snapshot.
+                // Source files of these may not even be captured in the solution snapshot.
                 if (!project.SupportsEditAndContinue())
                 {
                     return Array.Empty<DocumentId?>();

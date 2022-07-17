@@ -1216,7 +1216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private ReadOnly Property INamedTypeSymbol_IsFile As Boolean Implements INamedTypeSymbol.IsFile
+        Private ReadOnly Property INamedTypeSymbol_IsFileLocal As Boolean Implements INamedTypeSymbol.IsFileLocal
             Get
                 Return False
             End Get
