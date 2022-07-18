@@ -38,7 +38,7 @@ variables:
   # Get $AccessToken-dotnet-build-bot-public-repo from DotNet-GitHub-Versions-Repo-Write
   - group: DotNet-GitHub-Versions-Repo-Write
   - name: _DevDivDropAccessToken
-    value: $(System.AccessToken)
+    value: ''
 
 stages:
 - stage: build
