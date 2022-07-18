@@ -12399,16 +12399,16 @@ class C
             // 1. Compiler warning `CS0282` is suppressed with diagnostic suppressor,
             // 2. Info diagnostic for the suppression is logged with programmatic suppression information,
             // 3. Compiler error `CS0180` is reported.
-            var suppressor = new DiagnosticSuppressorForId("CS0282");
+            var partialStructWarningSuppressor = new DiagnosticSuppressorForId("CS0282");
 
             // Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'
             var suppressionMessage =
                 string.Format(
                     CodeAnalysisResources.SuppressionDiagnosticDescriptorMessage,
-                    suppressor.SuppressionDescriptor.SuppressedDiagnosticId,
+                    partialStructWarningSuppressor.SuppressionDescriptor.SuppressedDiagnosticId,
                     new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.WRN_SequentialOnPartialClass, "MyPartialStruct"), Location.None).GetMessage(CultureInfo.InvariantCulture),
-                    suppressor.SuppressionDescriptor.Id,
-                    suppressor.SuppressionDescriptor.Justification);
+                    partialStructWarningSuppressor.SuppressionDescriptor.Id,
+                    partialStructWarningSuppressor.SuppressionDescriptor.Justification);
 
             var output =
                 VerifyOutput(
@@ -12420,7 +12420,7 @@ class C
                     includeCurrentAssemblyAsAnalyzerReference: false,
                     skipAnalyzers: skipAnalyzers,
                     generators: new[] { partialStructGenerator },
-                    analyzers: new[] { suppressor },
+                    analyzers: new[] { partialStructWarningSuppressor },
                     errorlog: true);
 
             Assert.DoesNotContain("warning CS0282", output, StringComparison.Ordinal);
@@ -12445,7 +12445,7 @@ class C
                     skipAnalyzers: skipAnalyzers,
                     generators: new[] { partialStructGenerator },
                     errorlog: true,
-                    analyzers: new[] { suppressor });
+                    analyzers: new[] { partialStructWarningSuppressor });
 
             Assert.DoesNotContain($"error CS0282", output, StringComparison.Ordinal);
             Assert.DoesNotContain($"warning CS0282", output, StringComparison.Ordinal);
@@ -12509,16 +12509,16 @@ class C
             // 1. Compiler warning `CS0282` is suppressed with diagnostic suppressor,
             // 2. Info diagnostic for the suppression is logged with programmatic suppression information,
             // 3. Compiler error `CS1001` is reported.
-            var suppressor = new DiagnosticSuppressorForId("CS0282");
+            var partialStructWarningSuppressor = new DiagnosticSuppressorForId("CS0282");
 
             // Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'
             var suppressionMessage =
                 string.Format(
                     CodeAnalysisResources.SuppressionDiagnosticDescriptorMessage,
-                    suppressor.SuppressionDescriptor.SuppressedDiagnosticId,
+                    partialStructWarningSuppressor.SuppressionDescriptor.SuppressedDiagnosticId,
                     new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.WRN_SequentialOnPartialClass, "MyPartialStruct"), Location.None).GetMessage(CultureInfo.InvariantCulture),
-                    suppressor.SuppressionDescriptor.Id,
-                    suppressor.SuppressionDescriptor.Justification);
+                    partialStructWarningSuppressor.SuppressionDescriptor.Id,
+                    partialStructWarningSuppressor.SuppressionDescriptor.Justification);
 
             var output =
                 VerifyOutput(
@@ -12530,7 +12530,7 @@ class C
                     includeCurrentAssemblyAsAnalyzerReference: false,
                     skipAnalyzers: skipAnalyzers,
                     generators: new[] { partialStructGenerator },
-                    analyzers: new[] { suppressor },
+                    analyzers: new[] { partialStructWarningSuppressor },
                     errorlog: true);
 
 
@@ -12556,7 +12556,7 @@ class C
                     skipAnalyzers: skipAnalyzers,
                     errorlog: true,
                     generators: new[] { partialStructGenerator },
-                    analyzers: new[] { suppressor });
+                    analyzers: new[] { partialStructWarningSuppressor });
 
             Assert.DoesNotContain($"error CS0282", output, StringComparison.Ordinal);
             Assert.DoesNotContain($"warning CS0282", output, StringComparison.Ordinal);
