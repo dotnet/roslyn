@@ -31,6 +31,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         public override Option2<CodeStyleOption2<ExpressionBodyPreference>> Option { get; }
         public override LocalizableString UseExpressionBodyTitle { get; }
         public override LocalizableString UseBlockBodyTitle { get; }
+        public override string UseExpressionBodyEquivalenceKey { get; }
+        public override string UseBlockBodyEquivalenceKey { get; }
         public override string DiagnosticId { get; }
         public override EnforceOnBuild EnforceOnBuild { get; }
         public override ImmutableArray<SyntaxKind> SyntaxKinds { get; }
@@ -40,14 +42,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             EnforceOnBuild enforceOnBuild,
             LocalizableString useExpressionBodyTitle,
             LocalizableString useBlockBodyTitle,
+            string useExpressionBodyEquivalenceKey,
+            string useBlockBodyEquivalenceKey,
             Option2<CodeStyleOption2<ExpressionBodyPreference>> option,
             ImmutableArray<SyntaxKind> syntaxKinds)
         {
+            Contract.ThrowIfTrue(useExpressionBodyEquivalenceKey == useBlockBodyEquivalenceKey);
+
             DiagnosticId = diagnosticId;
             EnforceOnBuild = enforceOnBuild;
             Option = option;
             UseExpressionBodyTitle = useExpressionBodyTitle;
             UseBlockBodyTitle = useBlockBodyTitle;
+            UseExpressionBodyEquivalenceKey = useExpressionBodyEquivalenceKey;
+            UseBlockBodyEquivalenceKey = useBlockBodyEquivalenceKey;
             SyntaxKinds = syntaxKinds;
         }
 

@@ -24,6 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                    EnforceOnBuildValues.UseExpressionBodyForLocalFunctions,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_expression_body_for_local_functions), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_block_body_for_local_functions), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
+                   nameof(CSharpAnalyzersResources.Use_expression_body_for_local_functions),
+                   nameof(CSharpAnalyzersResources.Use_block_body_for_local_functions),
                    CSharpCodeStyleOptions.PreferExpressionBodiedLocalFunctions,
                    ImmutableArray.Create(SyntaxKind.LocalFunctionStatement))
         {
