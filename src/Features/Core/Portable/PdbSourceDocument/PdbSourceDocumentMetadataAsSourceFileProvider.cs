@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
@@ -16,6 +17,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Structure;
@@ -95,7 +97,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                     // If the original assembly was a reference assembly, we can't trust that the implementation assembly
                     // we found actually contains the types, so we need to find it, following any type forwards.
 
-                    dllPath = _implementationAssemblyLookupService.FollowTypeForwards(symbolToFind, dllPath, _logger, out var visitedAssemblies);
+                    dllPath = _implementationAssemblyLookupService.FollowTypeForwards(symbolToFind, dllPath, _logger);
                     if (dllPath is null)
                     {
                         _logger?.Log(FeaturesResources.Could_not_find_implementation_of_symbol_0, symbolToFind.MetadataName);
@@ -113,13 +115,9 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                         return null;
                     }
 
-                    // For symbol key resolution to work from our temp compilation we need to reference everything
-                    // the project is referencing, and the DLL where we found the implementation, and also
-                    // and DLL we found on the way, that forwards types
                     var tmpCompilation = compilationFactory
                         .CreateCompilation("tmp", compilationFactory.GetDefaultCompilationOptions())
                         .AddReferences(project.MetadataReferences)
-                        .AddReferences(visitedAssemblies.Select(p => IOUtilities.PerformIO(() => MetadataReference.CreateFromFile(p))).WhereNotNull())
                         .AddReferences(dllReference);
 
                     var key = SymbolKey.Create(symbolToFind, cancellationToken);

@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -14,7 +13,6 @@ using System.Reflection.PortableExecutable;
 using System.Xml;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MetadataAsSource;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.PdbSourceDocument
@@ -48,10 +46,8 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             return false;
         }
 
-        public string? FollowTypeForwards(ISymbol symbol, string dllPath, IPdbSourceDocumentLogger? logger, out ImmutableArray<string> visitedAssemblies)
+        public string? FollowTypeForwards(ISymbol symbol, string dllPath, IPdbSourceDocumentLogger? logger)
         {
-            visitedAssemblies = ImmutableArray<string>.Empty;
-
             // If we find any type forwards we'll assume they're in the same directory
             var basePath = Path.GetDirectoryName(dllPath);
             if (basePath is null)
@@ -66,8 +62,6 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces));
 
-            using var _ = ArrayBuilder<string>.GetInstance(out var visitedAssembliesBuilder);
-
             try
             {
                 while (File.Exists(dllPath))
@@ -79,11 +73,9 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                         // we've found the right DLL
                         if (typeForwards?.TryGetValue((namespaceName, typeSymbol.MetadataName), out var assemblyName) != true)
                         {
-                            visitedAssemblies = visitedAssembliesBuilder.ToImmutable();
                             return dllPath;
                         }
 
-                        visitedAssembliesBuilder.Add(dllPath);
                         dllPath = Path.Combine(basePath, $"{assemblyName}.dll");
                         logger?.Log(FeaturesResources.Symbol_found_in_assembly_path_0, dllPath);
 
