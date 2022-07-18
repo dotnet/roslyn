@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
     void M()
     {
         var c = [|new|] C();
-        c.i = 1;
+        [|c.|]i = 1;
     }
 }",
 @"class C
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
     void M()
     {
         var c = [|new|] C();
-        c.i = 1;
+        [|c.|]i = 1;
         c.i = c.i + 1;
     }
 }",
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
     {
         C c;
         c = [|new|] C();
-        c.i = 1;
+        [|c.|]i = 1;
         c.i = c.i + 1;
     }
 }",
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
     {
         C c = null;
         c = [|new|] C();
-        c.i = 1;
+        [|c.|]i = 1;
     }
 }",
 @"class C
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
     void M()
     {
         var c = [|new|] C();
-        c.i = 1;
+        [|c.|]i = 1;
         c.i = 2;
     }
 }",
@@ -238,8 +238,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
     void M(C[] array)
     {
         array[0] = [|new|] C();
-        array[0].i = 1;
-        array[0].j = 2;
+        [|array[0].|]i = 1;
+        [|array[0].|]j = 2;
     }
 }",
 @"class C
@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
     void M()
     {
         var c = [|new|] C();
-        c.i = 1;
+        [|c.|]i = 1;
         c.j += 1;
     }
 }",
@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
     void M()
     {
         var c = [|new|] C() { i = 1 };
-        c.j = 1;
+        [|c.|]j = 1;
     }
 }",
 @"class C
@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
         {
             i = 1,
         };
-        c.j = 1;
+        [|c.|]j = 1;
     }
 }",
 @"class C
@@ -373,7 +373,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
         {
             i = 1,
         };
-        c.j = 1;
+        [|c.|]j = 1;
         c.i = 2;
     }
 }",
@@ -427,9 +427,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
     {
         var v = [|new|] C(() => {
             var v2 = [|new|] C();
-            v2.i = 1;
+            [|v2.|]i = 1;
         });
-        v.j = 2;
+        [|v.|]j = 2;
     }
 }",
 @"class C
@@ -468,9 +468,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
     void M()
     {
         var v = [|new|] C();
-        v.j = () => {
+        [|v.|]j = () => {
             var v2 = [|new|] C();
-            v2.i = 1;
+            [|v2.|]i = 1;
         };
     }
 }",
@@ -507,11 +507,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
     void M(C[] array)
     {
         array[0] = [|new|] C();
-        array[0].i = 1;
-        array[0].j = 2;
+        [|array[0].|]i = 1;
+        [|array[0].|]j = 2;
         array[1] = [|new|] C();
-        array[1].i = 3;
-        array[1].j = 4;
+        [|array[1].|]i = 3;
+        [|array[1].|]j = 4;
     }
 }",
 @"class C
@@ -547,8 +547,8 @@ class C
     void M()
     {
         var c = [|new|] C();
-        c.i = 1; // Goo
-        c.j = 2; // Bar
+        [|c.|]i = 1; // Goo
+        [|c.|]j = 2; // Bar
     }
 }",
 @"
@@ -582,10 +582,10 @@ class C
         var c = [|new|] C();
 
         //Goo
-        c.i = 1;
+        [|c.|]i = 1;
 
         //Bar
-        c.j = 2;
+        [|c.|]j = 2;
     }
 }",
 @"
@@ -671,7 +671,7 @@ public class Goo
     {
 #if true
         var goo = [|new|] Goo();
-        goo.Value = """";
+        [|goo.|]Value = """";
 #endif
     }
 
@@ -710,7 +710,7 @@ class MyClass
     public void Main()
     {
         var goo = [|new|] Goo();
-        goo.Bar = 1;
+        [|goo.|]Bar = 1;
 
         int horse = 1;
     }
@@ -807,7 +807,7 @@ class MyClass
     public void Main()
     {
         IExample e = [|new|] C();
-        e.LastName = string.Empty;
+        [|e.|]LastName = string.Empty;
         e.Name = string.Empty;
     }
 }",
@@ -867,7 +867,7 @@ class MyClass
     void M()
     {
         C c = [|new|]();
-        c.i = 1;
+        [|c.|]i = 1;
     }
 }",
 @"class C
@@ -890,7 +890,7 @@ class MyClass
         {
             await TestInRegularAndScriptAsync(
 @"MyClass cl = [|new|]();
-cl.MyProperty = 5;
+[|cl.|]MyProperty = 5;
 
 class MyClass
 {

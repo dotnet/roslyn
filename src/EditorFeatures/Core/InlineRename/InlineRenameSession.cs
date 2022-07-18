@@ -46,7 +46,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private readonly IAsynchronousOperationListener _asyncListener;
         private readonly Solution _baseSolution;
         private readonly Document _triggerDocument;
-        private readonly SnapshotSpan _triggerSpan;
         private readonly ITextView _triggerView;
         private readonly IDisposable _inlineRenameSessionDurationLogBlock;
         private readonly IThreadingContext _threadingContext;
@@ -58,6 +57,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private SymbolRenameOptions _options;
         private bool _previewChanges;
         private readonly Dictionary<ITextBuffer, OpenTextBufferManager> _openTextBuffers = new Dictionary<ITextBuffer, OpenTextBufferManager>();
+
+        /// <summary>
+        /// The original <see cref="SnapshotSpan"/> for the identifier that rename was triggered on
+        /// </summary>
+        public SnapshotSpan TriggerSpan { get; }
 
         /// <summary>
         /// If non-null, the current text of the replacement. Linked spans added will automatically be updated with this
@@ -131,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _threadingContext = threadingContext;
             _renameInfo = renameInfo;
 
-            _triggerSpan = triggerSpan;
+            TriggerSpan = triggerSpan;
             _triggerDocument = triggerSpan.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (_triggerDocument == null)
             {
@@ -758,7 +762,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     // and applying the desired edits ourselves.
                     var factory = _workspace.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
                     using var context = factory.Create(
-                        _triggerView, _triggerSpan, EditorFeaturesResources.Computing_Rename_information,
+                        _triggerView, TriggerSpan, EditorFeaturesResources.Computing_Rename_information,
                         cancelOnEdit: false, cancelOnFocusLost: false);
 
                     await CommitCoreAsync(context, previewChanges).ConfigureAwait(false);

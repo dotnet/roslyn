@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             bool isRemote,
             CancellationToken cancellationToken)
         {
-            var ticks = Environment.TickCount;
+            var stopwatch = SharedStopwatch.StartNew();
 
             // First find symbols of all applicable extension methods.
             // Workspace's syntax/symbol index is used to avoid iterating every method symbols in the solution.
@@ -98,15 +98,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 document, position, receiverTypeSymbol, namespaceInScope, cancellationToken).ConfigureAwait(false);
             var (extentsionMethodSymbols, isPartialResult) = await symbolComputer.GetExtensionMethodSymbolsAsync(forceCacheCreation, hideAdvancedMembers, cancellationToken).ConfigureAwait(false);
 
-            var getSymbolsTicks = Environment.TickCount - ticks;
-            ticks = Environment.TickCount;
+            var getSymbolsTime = stopwatch.Elapsed;
+            stopwatch = SharedStopwatch.StartNew();
 
             var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var items = ConvertSymbolsToCompletionItems(compilation, extentsionMethodSymbols, targetTypes, cancellationToken);
 
-            var createItemsTicks = Environment.TickCount - ticks;
+            var createItemsTime = stopwatch.Elapsed;
 
-            return new SerializableUnimportedExtensionMethods(items, isPartialResult, getSymbolsTicks, createItemsTicks, isRemote);
+            return new SerializableUnimportedExtensionMethods(items, isPartialResult, getSymbolsTime, createItemsTime, isRemote);
         }
 
         public static async ValueTask BatchUpdateCacheAsync(ImmutableSegmentedList<Project> projects, CancellationToken cancellationToken)
