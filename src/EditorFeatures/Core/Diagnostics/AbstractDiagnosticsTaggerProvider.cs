@@ -25,6 +25,8 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 
+#if false
+
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     /// <summary>
@@ -274,3 +276,5 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             => suppressedSpans != null && suppressedSpans.IntersectsWith(span);
     }
 }
+
+#endif

@@ -62,21 +62,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 
             serverCapabilities.ProjectContextProvider = true;
 
-            var isPullDiagnostics = GlobalOptions.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode);
-            if (isPullDiagnostics)
-            {
-                serverCapabilities.SupportsDiagnosticRequests = true;
-            }
-
+            serverCapabilities.SupportsDiagnosticRequests = true;
             return serverCapabilities;
         }
 
-        /// <summary>
-        /// When pull diagnostics is enabled, ensure that initialization failures are displayed to the user as
-        /// they will get no diagnostics.  When not enabled we don't show the failure box (failure will still be recorded in the task status center)
-        /// as the failure is not catastrophic.
-        /// </summary>
-        public override bool ShowNotificationOnInitializeFailed => GlobalOptions.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode);
+        public override bool ShowNotificationOnInitializeFailed => true;
 
         public override WellKnownLspServerKinds ServerKind => WellKnownLspServerKinds.RoslynTypeScriptLspServer;
 

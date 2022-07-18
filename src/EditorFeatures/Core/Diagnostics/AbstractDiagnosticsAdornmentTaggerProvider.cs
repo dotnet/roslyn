@@ -13,6 +13,8 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Tagging;
 
+#if false
+
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal abstract class AbstractDiagnosticsAdornmentTaggerProvider<TTag> :
@@ -98,3 +100,5 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         protected abstract TTag? CreateTag(Workspace workspace, DiagnosticData diagnostic);
     }
 }
+
+#endif

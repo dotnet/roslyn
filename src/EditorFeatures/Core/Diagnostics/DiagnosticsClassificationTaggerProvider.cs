@@ -24,6 +24,8 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 
+#if false
+
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     [Export(typeof(ITaggerProvider))]
@@ -132,3 +134,5 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
     }
 }
+
+#endif
