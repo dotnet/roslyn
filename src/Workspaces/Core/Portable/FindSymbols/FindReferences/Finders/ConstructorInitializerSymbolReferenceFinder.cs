@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -62,7 +63,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     state, "New", cancellationToken).ConfigureAwait(false)).Distinct();
             }
 
-            var totalTokens = tokens.Where(t => TokensMatch(state, t, methodSymbol.ContainingType.Name, cancellationToken)).ToImmutableArray();
+            var totalTokens = tokens.WhereAsArray(
+                static (token, tuple) => TokensMatch(tuple.state, token, tuple.methodSymbol.ContainingType.Name, tuple.cancellationToken),
+                (state, methodSymbol, cancellationToken));
 
             return await FindReferencesInTokensAsync(
                  methodSymbol, state, totalTokens, cancellationToken).ConfigureAwait(false);

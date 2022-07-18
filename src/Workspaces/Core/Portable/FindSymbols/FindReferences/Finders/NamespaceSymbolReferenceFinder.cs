@@ -121,8 +121,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             var tokens = state.Root
                 .DescendantTokens()
-                .Where(state.SyntaxFacts.IsGlobalNamespaceKeyword)
-                .ToImmutableArray();
+                .WhereAsArray(
+                    static (token, state) => state.SyntaxFacts.IsGlobalNamespaceKeyword(token),
+                    state);
 
             initialReferences.AddRange(await FindReferencesInTokensAsync(
                 symbol, state, tokens, cancellationToken).ConfigureAwait(false));

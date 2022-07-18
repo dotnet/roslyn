@@ -54,8 +54,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var op = symbol.GetPredefinedOperator();
             var tokens = state.Root
                 .DescendantTokens(descendIntoTrivia: true)
-                .Where(t => IsPotentialReference(state.SyntaxFacts, op, t))
-                .ToImmutableArray();
+                .WhereAsArray(
+                    static (token, tuple) => IsPotentialReference(tuple.state.SyntaxFacts, tuple.op, token),
+                    (state, op));
 
             var opReferences = await FindReferencesInTokensAsync(
                 symbol, state, tokens, cancellationToken).ConfigureAwait(false);

@@ -67,8 +67,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             var tokens = state.Root
                 .DescendantTokens(descendIntoTrivia: true)
-                .Where(t => IsPotentialReference(state.SyntaxFacts, t))
-                .ToImmutableArray();
+                .WhereAsArray(
+                    static (token, state) => IsPotentialReference(state.SyntaxFacts, token),
+                    state);
 
             return FindReferencesInTokensAsync(
                 symbol, state, tokens, cancellationToken);

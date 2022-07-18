@@ -181,8 +181,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             var tokens = state.Root
                 .DescendantTokens(descendIntoTrivia: true)
-                .Where(t => IsPotentialReference(predefinedType, state.SyntaxFacts, t))
-                .ToImmutableArray();
+                .WhereAsArray(
+                    static (token, tuple) => IsPotentialReference(tuple.predefinedType, tuple.state.SyntaxFacts, token),
+                    (state, predefinedType));
 
             return FindReferencesInTokensAsync(
                 symbol, state, tokens, cancellationToken);
