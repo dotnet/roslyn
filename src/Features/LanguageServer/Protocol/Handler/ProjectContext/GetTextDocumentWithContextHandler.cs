@@ -15,9 +15,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(GetTextDocumentWithContextHandler)), Shared]
+    [ExportCSharpVisualBasicStatelessLspService(typeof(GetTextDocumentWithContextHandler)), Shared]
     [Method(VSMethods.GetProjectContextsName)]
-    internal class GetTextDocumentWithContextHandler : AbstractStatelessRequestHandler<VSGetProjectContextsParams, VSProjectContextList?>
+    internal class GetTextDocumentWithContextHandler : IRequestHandler<VSGetProjectContextsParams, VSProjectContextList?>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -25,12 +25,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
-        public override bool MutatesSolutionState => false;
-        public override bool RequiresLSPSolution => true;
+        public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
 
-        public override TextDocumentIdentifier? GetTextDocumentIdentifier(VSGetProjectContextsParams request) => new TextDocumentIdentifier { Uri = request.TextDocument.Uri };
+        public TextDocumentIdentifier? GetTextDocumentIdentifier(VSGetProjectContextsParams request) => new TextDocumentIdentifier { Uri = request.TextDocument.Uri };
 
-        public override Task<VSProjectContextList?> HandleRequestAsync(VSGetProjectContextsParams request, RequestContext context, CancellationToken cancellationToken)
+        public Task<VSProjectContextList?> HandleRequestAsync(VSGetProjectContextsParams request, RequestContext context, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(context.Solution);
 

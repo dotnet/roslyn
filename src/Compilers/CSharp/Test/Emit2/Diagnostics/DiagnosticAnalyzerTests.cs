@@ -715,8 +715,6 @@ public class B
             var analyzer = new CSharpCompilerDiagnosticAnalyzer();
             foreach (var descriptor in analyzer.SupportedDiagnostics)
             {
-                Assert.True(descriptor.IsEnabledByDefault);
-
                 if (descriptor.IsNotConfigurable())
                 {
                     continue;

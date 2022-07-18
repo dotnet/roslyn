@@ -1215,10 +1215,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                         return parentDepth;
                     }
 
-                    if (node.Parent is BlockSyntax ||
-                        (node is StatementSyntax && !(node is BlockSyntax)))
+                    if (node.Parent is BlockSyntax)
                     {
-                        // all nested statements are indented one level
+                        return parentDepth + 1;
+                    }
+
+                    if (node is StatementSyntax && node is not BlockSyntax)
+                    {
+                        // Nested statements are normally indented one level.
+                        //
+                        // However, for chains of using-statements or fixed-statements, we'd like to follow the
+                        // idiomatic pattern of:
+                        //
+                        //      using ...
+                        //      using ...
+                        //          .. embedded statement ..
+                        if (node is UsingStatementSyntax { Parent: UsingStatementSyntax })
+                            return parentDepth;
+
+                        if (node is FixedStatementSyntax { Parent: FixedStatementSyntax })
+                            return parentDepth;
+
                         return parentDepth + 1;
                     }
 
@@ -1264,6 +1281,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
 
             return base.VisitInterpolatedStringExpression(node);
+        }
+
+        public override SyntaxNode? VisitXmlTextAttribute(XmlTextAttributeSyntax node)
+        {
+            var attribute = (XmlTextAttributeSyntax?)base.VisitXmlTextAttribute(node);
+
+            if (attribute is null or { HasTrailingTrivia: true })
+            {
+                return attribute;
+            }
+
+            SyntaxKind nextTokenKind = GetNextRelevantToken(node.EndQuoteToken).Kind();
+            return nextTokenKind != SyntaxKind.GreaterThanToken && nextTokenKind != SyntaxKind.SlashGreaterThanToken
+                ? attribute.WithTrailingTrivia(GetSpace())
+                : attribute;
         }
     }
 }

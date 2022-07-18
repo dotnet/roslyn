@@ -9,11 +9,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Completion.Providers.Snippets;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -28,7 +29,7 @@ using VSCompletionItem = Microsoft.VisualStudio.Language.Intellisense.AsyncCompl
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 {
-    internal sealed class CommitManager : ForegroundThreadAffinitizedObject, IAsyncCompletionCommitManager
+    internal sealed class CommitManager : IAsyncCompletionCommitManager
     {
         private static readonly AsyncCompletionData.CommitResult CommitResultUnhandled =
             new(isHandled: false, AsyncCompletionData.CommitBehavior.None);
@@ -36,6 +37,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         private readonly RecentItemsManager _recentItemsManager;
         private readonly ITextView _textView;
         private readonly IGlobalOptionService _globalOptions;
+        private readonly IThreadingContext _threadingContext;
+        private readonly ILanguageServerSnippetExpander? _languageServerSnippetExpander;
 
         public IEnumerable<char> PotentialCommitCharacters
         {
@@ -53,12 +56,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
         }
 
-        internal CommitManager(ITextView textView, RecentItemsManager recentItemsManager, IGlobalOptionService globalOptions, IThreadingContext threadingContext)
-            : base(threadingContext)
+        internal CommitManager(
+            ITextView textView,
+            RecentItemsManager recentItemsManager,
+            IGlobalOptionService globalOptions,
+            IThreadingContext threadingContext,
+            ILanguageServerSnippetExpander? languageServerSnippetExpander)
         {
             _globalOptions = globalOptions;
+            _threadingContext = threadingContext;
             _recentItemsManager = recentItemsManager;
             _textView = textView;
+            _languageServerSnippetExpander = languageServerSnippetExpander;
         }
 
         /// <summary>
@@ -91,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             CancellationToken cancellationToken)
         {
             // We can make changes to buffers. We would like to be sure nobody can change them at the same time.
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
 
             var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
@@ -151,18 +160,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return CommitResultUnhandled;
             }
 
-            // Telemetry
-            if (sessionData.TargetTypeFilterExperimentEnabled)
-            {
-                // Capture the % of committed completion items that would have appeared in the "Target type matches" filter
-                // (regardless of whether that filter button was active at the time of commit).
-                AsyncCompletionLogger.LogCommitWithTargetTypeCompletionExperimentEnabled();
-                if (item.Filters.Any(f => f.DisplayText == FeaturesResources.Target_type_matches))
-                {
-                    AsyncCompletionLogger.LogCommitItemWithTargetTypeFilter();
-                }
-            }
-
             // Commit with completion service assumes that null is provided is case of invoke. VS provides '\0' in the case.
             var commitChar = typeChar == '\0' ? null : (char?)typeChar;
             return Commit(
@@ -184,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             string filterText,
             CancellationToken cancellationToken)
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
 
             bool includesCommitCharacter;
             if (!subjectBuffer.CheckEditAccess())
@@ -224,7 +221,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             var view = session.TextView;
 
-            var provider = GetCompletionProvider(completionService, roslynItem);
+            var provider = completionService.GetProvider(roslynItem);
             if (provider is ICustomCommitCompletionProvider customCommitProvider)
             {
                 customCommitProvider.Commit(roslynItem, view, subjectBuffer, triggerSnapshot, commitCharacter);
@@ -234,6 +231,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var textChange = change.TextChange;
             var triggerSnapshotSpan = new SnapshotSpan(triggerSnapshot, textChange.Span.ToSpan());
             var mappedSpan = triggerSnapshotSpan.TranslateTo(subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
+
+            // Specifically for snippets, we check to see if the associated completion item is a snippet,
+            // and if so, we call upon the LanguageServerSnippetExpander's TryExpand to insert the snippet.
+            if (SnippetCompletionItem.IsSnippet(roslynItem))
+            {
+                Contract.ThrowIfNull(_languageServerSnippetExpander);
+
+                var lspSnippetText = change.Properties[SnippetCompletionItem.LSPSnippetKey];
+
+                Contract.ThrowIfNull(lspSnippetText);
+                if (!_languageServerSnippetExpander.TryExpand(lspSnippetText, mappedSpan, _textView))
+                {
+                    FatalError.ReportAndCatch(new InvalidOperationException("The invoked LSP snippet expander came back as false."), ErrorSeverity.Critical);
+                }
+
+                return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.None);
+            }
 
             using (var edit = subjectBuffer.CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber: null, editTag: null))
             {
@@ -282,9 +296,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     if (currentDocument != null && formattingService != null)
                     {
                         var spanToFormat = triggerSnapshotSpan.TranslateTo(subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
-                        var changes = formattingService.GetFormattingChangesAsync(
-                            currentDocument, spanToFormat.Span.ToTextSpan(), documentOptions: null, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
-                        currentDocument.Project.Solution.Workspace.ApplyTextChanges(currentDocument.Id, changes, CancellationToken.None);
+
+                        // Note: C# always completes synchronously, TypeScript is async
+                        var changes = formattingService.GetFormattingChangesAsync(currentDocument, subjectBuffer, spanToFormat.Span.ToTextSpan(), cancellationToken).WaitAndGetResult(cancellationToken);
+                        currentDocument.Project.Solution.Workspace.ApplyTextChanges(currentDocument.Id, changes, cancellationToken);
                     }
                 }
             }
@@ -293,7 +308,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             if (provider is INotifyCommittingItemCompletionProvider notifyProvider)
             {
-                _ = ThreadingContext.JoinableTaskFactory.RunAsync(async () =>
+                _ = _threadingContext.JoinableTaskFactory.RunAsync(async () =>
                 {
                     // Make sure the notification isn't sent on UI thread.
                     await TaskScheduler.Default;
@@ -373,16 +388,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
                     return item.GetEntireDisplayText() == textTypedSoFar;
             }
-        }
-
-        private static CompletionProvider? GetCompletionProvider(CompletionService completionService, CompletionItem item)
-        {
-            if (completionService is CompletionServiceWithProviders completionServiceWithProviders)
-            {
-                return completionServiceWithProviders.GetProvider(item);
-            }
-
-            return null;
         }
     }
 }

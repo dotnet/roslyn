@@ -29,14 +29,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         protected sealed override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol symbol,
-            HashSet<string>? globalAliases,
-            Document document,
-            SemanticModel semanticModel,
+            FindReferencesDocumentState state,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             // An explicit method can't be referenced anywhere.
-            return new ValueTask<ImmutableArray<FinderLocation>>(ImmutableArray<FinderLocation>.Empty);
+            return new(ImmutableArray<FinderLocation>.Empty);
         }
     }
 }

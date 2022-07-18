@@ -35,13 +35,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
             int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
             string displayTextPrefix, string inlineDescription = null, bool? isComplexTextEdit = null,
-            List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null)
+            List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null, CompletionOptions options = null, bool skipSpeculation = false)
         {
             return BaseVerifyWorkerAsync(
                 code, position, expectedItemOrNull, expectedDescriptionOrNull,
                 sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence,
                 glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
-                displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, flags);
+                displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, flags, options);
         }
 
         [Fact]

@@ -14,7 +14,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertConditional
 {
-    public partial class InvertConditionalTests : AbstractCSharpCodeActionTest
+    public class InvertConditionalTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpInvertConditionalCodeRefactoringProvider();

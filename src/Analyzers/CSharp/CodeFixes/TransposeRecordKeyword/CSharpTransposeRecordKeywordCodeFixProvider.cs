@@ -32,9 +32,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.TransposeRecordKeyword
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(CS9012);
 
-        internal override CodeFixCategory CodeFixCategory
-            => CodeFixCategory.Compile;
-
         private static bool TryGetRecordDeclaration(
             Diagnostic diagnostic, CancellationToken cancellationToken, [NotNullWhen(true)] out RecordDeclarationSyntax? recordDeclaration)
         {
@@ -89,16 +86,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.TransposeRecordKeyword
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var document = context.Document;
             var cancellationToken = context.CancellationToken;
 
             var diagnostic = context.Diagnostics.First();
             if (TryGetRecordDeclaration(diagnostic, cancellationToken, out var recordDeclaration) &&
                 TryGetTokens(recordDeclaration, out _, out _))
             {
-                context.RegisterCodeFix(
-                    new MyCodeAction(c => this.FixAsync(document, diagnostic, c)),
-                    diagnostic);
+                RegisterCodeFix(context, CSharpCodeFixesResources.Fix_record_declaration, nameof(CSharpCodeFixesResources.Fix_record_declaration));
             }
 
             return Task.CompletedTask;
@@ -106,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.TransposeRecordKeyword
 
         protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             foreach (var diagnostic in diagnostics)
             {
@@ -128,15 +122,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.TransposeRecordKeyword
             }
 
             return Task.CompletedTask;
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(
-                Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpCodeFixesResources.Fix_record_declaration, createChangedDocument, nameof(CSharpTransposeRecordKeywordCodeFixProvider))
-            {
-            }
         }
     }
 }

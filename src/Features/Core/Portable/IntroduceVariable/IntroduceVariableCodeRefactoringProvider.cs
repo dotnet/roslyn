@@ -7,6 +7,8 @@
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -35,7 +37,8 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             }
 
             var service = document.GetLanguageService<IIntroduceVariableService>();
-            var action = await service.IntroduceVariableAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+            var cleanupOptions = await document.GetCodeCleanupOptionsAsync(context.Options, context.CancellationToken).ConfigureAwait(false);
+            var action = await service.IntroduceVariableAsync(document, textSpan, cleanupOptions, cancellationToken).ConfigureAwait(false);
             if (action != null)
             {
                 context.RegisterRefactoring(action, textSpan);

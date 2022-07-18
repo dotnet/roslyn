@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 DkmClrCompilationResultFlags flags;
                 CompilationTestData testData;
                 CompileDeclaration(context, "int z = 1, F = 2;", out flags, out testData);
-                Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+                Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, flags);
                 testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
     @"{
   // Code size       85 (0x55)
@@ -255,7 +255,7 @@ class C
                 DkmClrCompilationResultFlags flags;
                 CompilationTestData testData;
                 CompileDeclaration(context, "Test(x, out var z);", out flags, out testData);
-                Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+                Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, flags);
                 testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
     @"{
   // Code size       47 (0x2f)
@@ -311,7 +311,7 @@ class C
                 DkmClrCompilationResultFlags flags;
                 CompilationTestData testData;
                 CompileDeclaration(context, "Test(x is int z);", out flags, out testData);
-                Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+                Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, flags);
                 testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
     @"{
   // Code size       69 (0x45)
@@ -436,7 +436,7 @@ class C
                 DkmClrCompilationResultFlags flags;
                 CompilationTestData testData;
                 CompileDeclaration(context, "int z = Test(x, out var F);", out flags, out testData);
-                Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+                Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, flags);
                 testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
     @"{
   // Code size       88 (0x58)
@@ -720,7 +720,7 @@ class C
                 DkmClrCompilationResultFlags flags;
                 CompilationTestData testData;
                 CompileDeclaration(context, "var x = 1;", out flags, out testData);
-                Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+                Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, flags);
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
     @"{
   // Code size       43 (0x2b)
@@ -765,7 +765,7 @@ class C
                 DkmClrCompilationResultFlags flags;
                 CompilationTestData testData;
                 CompileDeclaration(context, "dynamic d = 1;", out flags, out testData);
-                Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+                Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, flags);
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       62 (0x3e)
@@ -1469,7 +1469,7 @@ class Generic<T>
                 DkmClrCompilationResultFlags flags;
                 CompilationTestData testData;
                 CompileDeclaration(context, "Generic<C> g = null;", out flags, out testData);
-                Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+                Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, flags);
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
     @"{
   // Code size       43 (0x2b)
@@ -1515,7 +1515,7 @@ class Generic<T>
                 DkmClrCompilationResultFlags flags;
                 CompilationTestData testData;
                 CompileDeclaration(context, "Generic<int> g = null;", out flags, out testData);
-                Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+                Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, flags);
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
     @"{
   // Code size       43 (0x2b)
@@ -1561,7 +1561,7 @@ struct S
                 DkmClrCompilationResultFlags flags;
                 CompilationTestData testData;
                 CompileDeclaration(context, "S* s = null;", out flags, out testData);
-                Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+                Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, flags);
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
     @"{
   // Code size       44 (0x2c)
@@ -1604,7 +1604,7 @@ class C
                 DkmClrCompilationResultFlags flags;
                 CompilationTestData testData;
                 CompileDeclaration(context, "int* p = null;", out flags, out testData);
-                Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+                Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, flags);
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
     @"{
   // Code size       44 (0x2c)
@@ -1651,7 +1651,7 @@ struct S
                 DkmClrCompilationResultFlags flags;
                 CompilationTestData testData;
                 CompileDeclaration(context, "S? s = null;", out flags, out testData);
-                Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+                Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, flags);
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
     @"{
   // Code size       55 (0x37)
@@ -1696,7 +1696,7 @@ class C
                 DkmClrCompilationResultFlags flags;
                 CompilationTestData testData;
                 CompileDeclaration(context, "int? n = null;", out flags, out testData);
-                Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+                Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, flags);
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
     @"{
   // Code size       55 (0x37)
@@ -2107,7 +2107,7 @@ class C
                 DkmClrCompilationResultFlags flags;
                 CompilationTestData testData;
                 CompileDeclaration(context, "int z = Test(x is int i);", out flags, out testData);
-                Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+                Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, flags);
                 testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
     @"{
   // Code size      110 (0x6e)

@@ -134,6 +134,11 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// Represents the VB 'Like' operator.
         /// </summary>
-        Like = 0x18
+        Like = 0x18,
+
+        /// <summary>
+        /// Represents the <![CDATA['>>>']]> operator.
+        /// </summary>
+        UnsignedRightShift = 0x19,
     }
 }

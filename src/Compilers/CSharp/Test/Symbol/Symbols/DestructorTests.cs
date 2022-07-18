@@ -74,10 +74,15 @@ interface I
     ~I();
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                //  error CS0575: Only class types can contain destructors
-                Diagnostic(ErrorCode.ERR_OnlyClassesCanContainDestructors, "S").WithArguments("S.~S()"),
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "I").WithArguments("I.~I()"),
-                Diagnostic(ErrorCode.ERR_OnlyClassesCanContainDestructors, "I"));
+                // (4,6): error CS0575: Only class types can contain destructors
+                //     ~S() { }
+                Diagnostic(ErrorCode.ERR_OnlyClassesCanContainDestructors, "S").WithLocation(4, 6),
+                // (9,6): error CS0501: 'I.~I()' must declare a body because it is not marked abstract, extern, or partial
+                //     ~I();
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "I").WithArguments("I.~I()").WithLocation(9, 6),
+                // (9,6): error CS0575: Only class types can contain destructors
+                //     ~I();
+                Diagnostic(ErrorCode.ERR_OnlyClassesCanContainDestructors, "I").WithLocation(9, 6));
         }
 
         [Fact]

@@ -44,6 +44,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
+        internal override SyntaxTree AssociatedSyntaxTree => null;
+
         public override ImmutableArray<TypeParameterSymbol> TypeParameters
         {
             get
@@ -88,6 +90,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 throw new NotImplementedException();
             }
         }
+
+        internal override bool HasDeclaredRequiredMembers => throw new NotImplementedException();
 
         public override ImmutableArray<Symbol> GetMembers()
         {

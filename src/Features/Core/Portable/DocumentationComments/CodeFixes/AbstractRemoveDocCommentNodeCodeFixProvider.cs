@@ -39,8 +39,10 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
             if (GetParamNode(root, context.Span) != null)
             {
                 context.RegisterCodeFix(
-                    new MyCodeAction(
-                        c => RemoveDuplicateParamTagAsync(context.Document, context.Span, c)),
+                    CodeAction.Create(
+                        FeaturesResources.Remove_tag,
+                        c => RemoveDuplicateParamTagAsync(context.Document, context.Span, c),
+                        nameof(FeaturesResources.Remove_tag)),
                     context.Diagnostics);
             }
         }
@@ -121,14 +123,6 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
             }
 
             return false;
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Remove_tag, createChangedDocument, nameof(FeaturesResources.Remove_tag))
-            {
-            }
         }
     }
 }

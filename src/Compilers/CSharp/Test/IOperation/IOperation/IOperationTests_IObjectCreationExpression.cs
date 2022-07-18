@@ -5189,13 +5189,13 @@ class C3
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "{").WithLocation(8, 70),
                 // CS1003: Syntax error, ':' expected
                 //         var x = new C1 { C2 = { C31 = { P1 = 1, P2 = 2 }, C32 = b ? ({ P1 = 3, P2 = 4 }) : ({ P1 = 3, P2 = 4 })
-                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(":", "{").WithLocation(8, 70),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(":").WithLocation(8, 70),
                 // CS1525: Invalid expression term '{'
                 //         var x = new C1 { C2 = { C31 = { P1 = 1, P2 = 2 }, C32 = b ? ({ P1 = 3, P2 = 4 }) : ({ P1 = 3, P2 = 4 })
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "{").WithArguments("{").WithLocation(8, 70),
                 // CS1003: Syntax error, ',' expected
                 //         var x = new C1 { C2 = { C31 = { P1 = 1, P2 = 2 }, C32 = b ? ({ P1 = 3, P2 = 4 }) : ({ P1 = 3, P2 = 4 })
-                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(8, 70),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(8, 70),
                 // CS1513: } expected
                 //         var x = new C1 { C2 = { C31 = { P1 = 1, P2 = 2 }, C32 = b ? ({ P1 = 3, P2 = 4 }) : ({ P1 = 3, P2 = 4 })
                 Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(8, 88),

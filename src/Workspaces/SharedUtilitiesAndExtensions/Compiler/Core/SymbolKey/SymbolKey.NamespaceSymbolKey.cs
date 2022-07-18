@@ -4,13 +4,16 @@
 
 using System;
 using System.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
     internal partial struct SymbolKey
     {
-        private static class NamespaceSymbolKey
+        private sealed class NamespaceSymbolKey : AbstractSymbolKey<INamespaceSymbol>
         {
+            public static readonly NamespaceSymbolKey Instance = new();
+
             // The containing symbol can be one of many things. 
             // 1) Null when this is the global namespace for a compilation.  
             // 2) The SymbolId for an assembly symbol if this is the global namespace for an
@@ -19,13 +22,13 @@ namespace Microsoft.CodeAnalysis
             // 4) The SymbolId for the containing namespace symbol if this is not a global
             //    namespace.
 
-            public static void Create(INamespaceSymbol symbol, SymbolKeyWriter visitor)
+            public sealed override void Create(INamespaceSymbol symbol, SymbolKeyWriter visitor)
             {
                 visitor.WriteString(symbol.MetadataName);
 
                 if (symbol.ContainingNamespace != null)
                 {
-                    visitor.WriteBoolean(false);
+                    visitor.WriteInteger(0);
                     visitor.WriteSymbolKey(symbol.ContainingNamespace);
                 }
                 else
@@ -35,15 +38,15 @@ namespace Microsoft.CodeAnalysis
                     switch (symbol.NamespaceKind)
                     {
                         case NamespaceKind.Module:
-                            visitor.WriteBoolean(false);
+                            visitor.WriteInteger(1);
                             visitor.WriteSymbolKey(symbol.ContainingModule);
                             break;
                         case NamespaceKind.Assembly:
-                            visitor.WriteBoolean(false);
+                            visitor.WriteInteger(2);
                             visitor.WriteSymbolKey(symbol.ContainingAssembly);
                             break;
                         case NamespaceKind.Compilation:
-                            visitor.WriteBoolean(true);
+                            visitor.WriteInteger(3);
                             visitor.WriteSymbolKey(null);
                             break;
                         default:
@@ -52,11 +55,24 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
+            protected sealed override SymbolKeyResolution Resolve(
+                SymbolKeyReader reader, INamespaceSymbol? contextualSymbol, out string? failureReason)
             {
-                var metadataName = reader.ReadString()!;
-                var isCompilationGlobalNamespace = reader.ReadBoolean();
-                var containingSymbolResolution = reader.ReadSymbolKey(out var containingSymbolFailureReason);
+                var metadataName = reader.ReadRequiredString();
+                var containerKind = reader.ReadInteger();
+
+                var containingContextualSymbol = containerKind switch
+                {
+                    0 => contextualSymbol?.ContainingNamespace,
+                    1 => contextualSymbol?.ContainingModule,
+                    2 => contextualSymbol?.ContainingAssembly,
+                    3 => (ISymbol?)null,
+                    _ => throw ExceptionUtilities.UnexpectedValue(containerKind),
+                };
+
+                // Namespaces are never parented by types, so there can be no contextual type to resolve our container.
+                var containingSymbolResolution = reader.ReadSymbolKey(
+                    containingContextualSymbol, out var containingSymbolFailureReason);
 
                 if (containingSymbolFailureReason != null)
                 {
@@ -64,7 +80,7 @@ namespace Microsoft.CodeAnalysis
                     return default;
                 }
 
-                if (isCompilationGlobalNamespace)
+                if (containerKind == 3)
                 {
                     failureReason = null;
                     return new SymbolKeyResolution(reader.Compilation.GlobalNamespace);

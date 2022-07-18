@@ -39,22 +39,18 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseObjectInitializerDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
             => !diagnostic.Descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.Unnecessary);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(
-                new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics.First(), c)),
-                context.Diagnostics);
+            RegisterCodeFix(context, AnalyzersResources.Object_initialization_can_be_simplified, nameof(AnalyzersResources.Object_initialization_can_be_simplified));
             return Task.CompletedTask;
         }
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             // Fix-All for this feature is somewhat complicated.  As Object-Initializers 
             // could be arbitrarily nested, we have to make sure that any edits we make
@@ -121,13 +117,5 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         protected abstract TStatementSyntax GetNewStatement(
             TStatementSyntax statement, TObjectCreationExpressionSyntax objectCreation,
             ImmutableArray<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> matches);
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Object_initialization_can_be_simplified, createChangedDocument, nameof(AnalyzersResources.Object_initialization_can_be_simplified))
-            {
-            }
-        }
     }
 }

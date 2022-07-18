@@ -7751,6 +7751,9 @@ class C
           <slot kind=""0"" offset=""64"" />
           <slot kind=""0"" offset=""158"" />
         </encLocalSlotMap>
+        <encStateMachineStateMap>
+          <state number=""1"" offset=""222"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
     <method containingType=""C+&lt;F&gt;d__1"" name=""MoveNext"">

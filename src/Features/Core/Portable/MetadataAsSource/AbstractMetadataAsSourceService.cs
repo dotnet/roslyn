@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImport;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Formatting;
@@ -24,49 +24,56 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 {
     internal abstract partial class AbstractMetadataAsSourceService : IMetadataAsSourceService
     {
-        public async Task<Document> AddSourceToAsync(Document document, Compilation symbolCompilation, ISymbol symbol, CancellationToken cancellationToken)
+        public async Task<Document> AddSourceToAsync(
+            Document document,
+            Compilation symbolCompilation,
+            ISymbol symbol,
+            CleanCodeGenerationOptions options,
+            CancellationToken cancellationToken)
         {
             if (document == null)
             {
                 throw new ArgumentNullException(nameof(document));
             }
 
-            var newSemanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var rootNamespace = newSemanticModel.GetEnclosingNamespace(0, cancellationToken);
+            var newSemanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var rootNamespace = newSemanticModel.GetEnclosingNamespace(position: 0, cancellationToken);
+            Contract.ThrowIfNull(rootNamespace);
 
-            var context = new CodeGenerationContext(
-                contextLocation: newSemanticModel.SyntaxTree.GetLocation(new TextSpan()),
-                generateMethodBodies: false,
-                generateDocumentationComments: true,
-                mergeAttributes: false,
-                autoInsertionLocation: false);
+            var context = new CodeGenerationSolutionContext(
+                document.Project.Solution,
+                new CodeGenerationContext(
+                    contextLocation: newSemanticModel.SyntaxTree.GetLocation(new TextSpan()),
+                    generateMethodBodies: false,
+                    generateDocumentationComments: true,
+                    mergeAttributes: false,
+                    autoInsertionLocation: false),
+                new CodeAndImportGenerationOptions(options.GenerationOptions, options.CleanupOptions.AddImportOptions).CreateProvider());
 
             // Add the interface of the symbol to the top of the root namespace
             document = await CodeGenerator.AddNamespaceOrTypeDeclarationAsync(
-                document.Project.Solution,
+                context,
                 rootNamespace,
                 CreateCodeGenerationSymbol(document, symbol),
-                context,
                 cancellationToken).ConfigureAwait(false);
 
             document = await AddNullableRegionsAsync(document, cancellationToken).ConfigureAwait(false);
 
-            var docCommentFormattingService = document.GetLanguageService<IDocumentationCommentFormattingService>();
+            var docCommentFormattingService = document.GetRequiredLanguageService<IDocumentationCommentFormattingService>();
             var docWithDocComments = await ConvertDocCommentsToRegularCommentsAsync(document, docCommentFormattingService, cancellationToken).ConfigureAwait(false);
 
             var docWithAssemblyInfo = await AddAssemblyInfoRegionAsync(docWithDocComments, symbolCompilation, symbol.GetOriginalUnreducedDefinition(), cancellationToken).ConfigureAwait(false);
-            var node = await docWithAssemblyInfo.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var options = await SyntaxFormattingOptions.FromDocumentAsync(docWithAssemblyInfo, cancellationToken).ConfigureAwait(false);
+            var node = await docWithAssemblyInfo.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var formattedDoc = await Formatter.FormatAsync(
                 docWithAssemblyInfo,
                 SpecializedCollections.SingletonEnumerable(node.FullSpan),
-                options,
+                options.CleanupOptions.FormattingOptions,
                 GetFormattingRules(docWithAssemblyInfo),
                 cancellationToken).ConfigureAwait(false);
 
             var reducers = GetReducers();
-            return await Simplifier.ReduceAsync(formattedDoc, reducers, null, cancellationToken).ConfigureAwait(false);
+            return await Simplifier.ReduceAsync(formattedDoc, reducers, options.CleanupOptions.SimplifierOptions, cancellationToken).ConfigureAwait(false);
         }
 
         protected abstract Task<Document> AddNullableRegionsAsync(Document document, CancellationToken cancellationToken);
@@ -100,7 +107,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             var topLevelNamespaceSymbol = symbol.ContainingNamespace;
             var topLevelNamedType = MetadataAsSourceHelpers.GetTopLevelContainingNamedType(symbol);
 
-            var canImplementImplicitly = document.GetLanguageService<ISemanticFactsService>().SupportsImplicitInterfaceImplementation;
+            var canImplementImplicitly = document.GetRequiredLanguageService<ISemanticFactsService>().SupportsImplicitInterfaceImplementation;
             var docCommentFormattingService = document.GetLanguageService<IDocumentationCommentFormattingService>();
 
             INamespaceOrTypeSymbol wrappedType = new WrappedNamedTypeSymbol(topLevelNamedType, canImplementImplicitly, docCommentFormattingService);

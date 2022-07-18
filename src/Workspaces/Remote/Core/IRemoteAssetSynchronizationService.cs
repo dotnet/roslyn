@@ -12,10 +12,10 @@ namespace Microsoft.CodeAnalysis.Remote
     internal interface IRemoteAssetSynchronizationService
     {
         /// <summary>
-        /// Synchronize data to OOP proactively without anyone asking for it to make most of operation
-        /// faster
+        /// Synchronize data to OOP proactively so that the corresponding solution is often already available when
+        /// features call into it.
         /// </summary>
-        ValueTask SynchronizePrimaryWorkspaceAsync(PinnedSolutionInfo solutionInfo, Checksum checksum, int workspaceVersion, CancellationToken cancellationToken);
+        ValueTask SynchronizePrimaryWorkspaceAsync(Checksum solutionChecksum, int workspaceVersion, CancellationToken cancellationToken);
         ValueTask SynchronizeTextAsync(DocumentId documentId, Checksum baseTextChecksum, IEnumerable<TextChange> textChanges, CancellationToken cancellationToken);
     }
 }

@@ -12,6 +12,7 @@ Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog
+Imports Microsoft.VisualStudio.LanguageServices.Utilities
 Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.PullMemberUp
@@ -225,7 +226,7 @@ class MyClass : Level1BaseClass, Level1Interface
             Next
         End Function
 
-        Private Shared Function FindMemberByName(name As String, memberArray As ImmutableArray(Of PullMemberUpSymbolViewModel)) As PullMemberUpSymbolViewModel
+        Private Shared Function FindMemberByName(name As String, memberArray As ImmutableArray(Of MemberSymbolViewModel)) As MemberSymbolViewModel
             Dim member = memberArray.FirstOrDefault(Function(memberViewModel) memberViewModel.SymbolName.Equals(name))
             If (member Is Nothing) Then
                 Assert.True(False, $"No member called {name} found")
@@ -255,7 +256,7 @@ class MyClass : Level1BaseClass, Level1Interface
                 Dim baseTypeTree = BaseTypeTreeNodeViewModel.CreateBaseTypeTree(glyphService:=Nothing, workspaceDoc.Project.Solution, memberSymbol.ContainingType, CancellationToken.None)
                 Dim membersInType = memberSymbol.ContainingType.GetMembers().WhereAsArray(Function(member) MemberAndDestinationValidator.IsMemberValid(member))
                 Dim membersViewModel = membersInType.SelectAsArray(
-                    Function(member) New PullMemberUpSymbolViewModel(member, glyphService:=Nothing) With {.IsChecked = member.Equals(memberSymbol), .IsCheckable = True, .MakeAbstract = False})
+                    Function(member) New MemberSymbolViewModel(member, glyphService:=Nothing) With {.IsChecked = member.Equals(memberSymbol), .IsCheckable = True, .MakeAbstract = False})
                 Dim memberToDependents = SymbolDependentsBuilder.FindMemberToDependentsMap(membersInType, workspaceDoc.Project, CancellationToken.None)
                 Return New PullMemberUpDialogViewModel(
                     workspace.GetService(Of IUIThreadOperationExecutor),

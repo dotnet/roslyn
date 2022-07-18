@@ -57,14 +57,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
             private readonly ISemanticFactsService _semanticFacts;
             private readonly CancellationToken _cancellationToken;
             private readonly QueryExpressionSyntax _source;
-            private readonly List<string> _introducedLocalNames;
+            private readonly List<string> _introducedLocalNames = new();
 
             public Converter(SemanticModel semanticModel, ISemanticFactsService semanticFacts, QueryExpressionSyntax source, CancellationToken cancellationToken)
             {
                 _semanticModel = semanticModel;
                 _semanticFacts = semanticFacts;
                 _source = source;
-                _introducedLocalNames = new List<string>();
                 _cancellationToken = cancellationToken;
             }
 
@@ -96,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 // https://github.com/dotnet/roslyn/issues/25639
                 if ((TryConvertInternal(queryExpressionProcessingInfo, out documentUpdateInfo) ||
                     TryReplaceWithLocalFunction(queryExpressionProcessingInfo, out documentUpdateInfo)) &&  // second attempt: at least to a local function
-                    !_semanticModel.GetDiagnostics(_source.Span, _cancellationToken).Any(diagnostic => diagnostic.DefaultSeverity == DiagnosticSeverity.Error))
+                    !_semanticModel.GetDiagnostics(_source.Span, _cancellationToken).Any(static diagnostic => diagnostic.DefaultSeverity == DiagnosticSeverity.Error))
                 {
                     if (!documentUpdateInfo.Source.IsParentKind(SyntaxKind.Block) &&
                         documentUpdateInfo.Destinations.Length > 1)

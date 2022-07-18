@@ -30,16 +30,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryCast
         Public NotOverridable Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String) =
             ImmutableArray.Create(IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId)
 
-        Friend NotOverridable Overrides ReadOnly Property CodeFixCategory As CodeFixCategory
-            Get
-                Return CodeFixCategory.CodeStyle
-            End Get
-        End Property
-
         Public Overrides Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
-            context.RegisterCodeFix(New MyCodeAction(
-                Function(c) FixAsync(context.Document, context.Diagnostics.First(), c)),
-                context.Diagnostics)
+            RegisterCodeFix(context, AnalyzersResources.Remove_Unnecessary_Cast, NameOf(AnalyzersResources.Remove_Unnecessary_Cast))
             Return Task.CompletedTask
         End Function
 
@@ -58,8 +50,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryCast
         End Function
 
         Protected Overrides Async Function FixAllAsync(
-            document As Document, diagnostics As ImmutableArray(Of Diagnostic),
-            editor As SyntaxEditor, cancellationToken As CancellationToken) As Task
+            document As Document,
+            diagnostics As ImmutableArray(Of Diagnostic),
+            editor As SyntaxEditor,
+            fallbackOptions As CodeActionOptionsProvider,
+            cancellationToken As CancellationToken) As Task
 
             ' VB parsing is extremely hairy.  Unlike C#, it can be very dangerous to go and remove a
             ' cast.  For example, if the cast is at the statement level, it may contain an
@@ -164,13 +159,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryCast
 
             Throw ExceptionUtilities.UnexpectedValue(old)
         End Function
-
-        Private Class MyCodeAction
-            Inherits CustomCodeActions.DocumentChangeAction
-
-            Public Sub New(createChangedDocument As Func(Of CancellationToken, Task(Of Document)))
-                MyBase.New(AnalyzersResources.Remove_Unnecessary_Cast, createChangedDocument, NameOf(AnalyzersResources.Remove_Unnecessary_Cast))
-            End Sub
-        End Class
     End Class
 End Namespace

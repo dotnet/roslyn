@@ -13,7 +13,7 @@
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
     <ProjectReference Include="..\..\..\Test\Utilities\CSharp\Microsoft.CodeAnalysis.CSharp.Test.Utilities.csproj" />
-    <ProjectReference Include="..\..\csc\csc.csproj" ReferenceOutputAssembly="false" OutputItemType="RoslynReferenceToDependencyDirectory" />
+    <ProjectReference Include="..\..\csc\AnyCpu\csc.csproj" ReferenceOutputAssembly="false" OutputItemType="RoslynReferenceToDependencyDirectory" />
     <ProjectReference Include="..\..\..\..\Interactive\csi\csi.csproj" ReferenceOutputAssembly="false" OutputItemType="CsiReferenceToDependencyDirectory" />
     <ProjectReference Include="..\..\..\Core\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\..\Test\Resources\Core\Microsoft.CodeAnalysis.Compiler.Test.Resources.csproj" />

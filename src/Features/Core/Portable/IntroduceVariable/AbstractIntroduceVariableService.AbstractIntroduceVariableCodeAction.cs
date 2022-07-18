@@ -7,6 +7,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -25,9 +26,12 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             private readonly SemanticDocument _semanticDocument;
             private readonly TService _service;
 
+            public readonly CodeCleanupOptions Options;
+
             internal AbstractIntroduceVariableCodeAction(
                 TService service,
                 SemanticDocument document,
+                CodeCleanupOptions options,
                 TExpressionSyntax expression,
                 bool allOccurrences,
                 bool isConstant,
@@ -36,6 +40,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             {
                 _service = service;
                 _semanticDocument = document;
+                Options = options;
                 _expression = expression;
                 _allOccurrences = allOccurrences;
                 _isConstant = isConstant;
@@ -49,7 +54,8 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
                 var changedDocument = await GetChangedDocumentCoreAsync(cancellationToken).ConfigureAwait(false);
-                return await Simplifier.ReduceAsync(changedDocument, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var simplifierOptions = await changedDocument.GetSimplifierOptionsAsync(Options.SimplifierOptions, cancellationToken).ConfigureAwait(false);
+                return await Simplifier.ReduceAsync(changedDocument, simplifierOptions, cancellationToken).ConfigureAwait(false);
             }
 
             private async Task<Document> GetChangedDocumentCoreAsync(CancellationToken cancellationToken)

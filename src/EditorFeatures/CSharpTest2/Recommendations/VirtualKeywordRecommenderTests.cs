@@ -242,10 +242,18 @@ $$");
         public async Task TestNotAfterStatic()
             => await VerifyAbsenceAsync(@"static $$");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterNestedStatic()
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [CombinatorialData]
+        public async Task TestNotAfterNestedStatic([CombinatorialValues("class", "struct", "record", "record struct", "record class")] string declarationKind)
         {
-            await VerifyAbsenceAsync(@"class C {
+            await VerifyAbsenceAsync(declarationKind + @" C {
+    static $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterNestedStaticInInterface()
+        {
+            await VerifyKeywordAsync(@"interface C {
     static $$");
         }
 

@@ -471,7 +471,7 @@ function TestUsingRunTests() {
       }
 
       if ($lspEditor) {
-        $lspLogs = Join-Path $TempDir "VisualStudio\LSP"
+        $lspLogs = Join-Path $TempDir "VSLogs"
         $telemetryLog = Join-Path $TempDir "VSTelemetryLog"
         if (Test-Path $lspLogs) {
           Write-Host "Copying LSP logs to $LogDir"

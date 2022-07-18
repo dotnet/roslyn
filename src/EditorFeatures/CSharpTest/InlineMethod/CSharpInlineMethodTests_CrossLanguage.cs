@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineMethod
 
         private async Task TestNoActionIsProvided(string initialMarkup)
         {
-            var workspace = CreateWorkspaceFromOptions(initialMarkup, default);
-            var (actions, _) = await GetCodeActionsAsync(workspace, default).ConfigureAwait(false);
+            var workspace = CreateWorkspaceFromOptions(initialMarkup);
+            var (actions, _) = await GetCodeActionsAsync(workspace).ConfigureAwait(false);
             Assert.True(actions.IsEmpty);
         }
 

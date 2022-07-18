@@ -311,14 +311,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int Formatting_TriggerOnStatementCompletion
         {
-            get { return GetBooleanOption(AutoFormattingOptions.Metadata.AutoFormattingOnSemicolon); }
-            set { SetBooleanOption(AutoFormattingOptions.Metadata.AutoFormattingOnSemicolon, value); }
+            get { return GetBooleanOption(AutoFormattingOptionsStorage.FormatOnSemicolon); }
+            set { SetBooleanOption(AutoFormattingOptionsStorage.FormatOnSemicolon, value); }
         }
 
         public int AutoFormattingOnTyping
         {
-            get { return GetBooleanOption(AutoFormattingOptions.Metadata.AutoFormattingOnTyping); }
-            set { SetBooleanOption(AutoFormattingOptions.Metadata.AutoFormattingOnTyping, value); }
+            get { return GetBooleanOption(AutoFormattingOptionsStorage.FormatOnTyping); }
+            set { SetBooleanOption(AutoFormattingOptionsStorage.FormatOnTyping, value); }
         }
     }
 }

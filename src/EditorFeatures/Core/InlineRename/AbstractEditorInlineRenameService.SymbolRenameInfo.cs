@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
@@ -30,6 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             private const string AttributeSuffix = "Attribute";
 
             private readonly Document _document;
+            private readonly CodeCleanupOptionsProvider _fallbackOptions;
             private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
 
             /// <summary>
@@ -59,12 +61,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 ISymbol renameSymbol,
                 bool forceRenameOverloads,
                 ImmutableArray<DocumentSpan> definitionLocations,
+                CodeCleanupOptionsProvider fallbackOptions,
                 CancellationToken cancellationToken)
             {
                 this.CanRename = true;
 
                 _refactorNotifyServices = refactorNotifyServices;
                 _document = document;
+                _fallbackOptions = fallbackOptions;
                 this.RenameSymbol = renameSymbol;
 
                 this.HasOverloads = RenameLocations.GetOverloadedSymbols(this.RenameSymbol).Any();
@@ -187,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 var solution = _document.Project.Solution;
                 var locations = await Renamer.FindRenameLocationsAsync(
-                    solution, this.RenameSymbol, options, cancellationToken).ConfigureAwait(false);
+                    solution, this.RenameSymbol, options, _fallbackOptions, cancellationToken).ConfigureAwait(false);
 
                 return new InlineRenameLocationSet(this, locations);
             }

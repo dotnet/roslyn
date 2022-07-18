@@ -12,6 +12,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -959,7 +960,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _fileChangesToProcess.AddWork(fullFilePath);
         }
 
-        private async ValueTask ProcessFileChangesAsync(ImmutableArray<string> filePaths, CancellationToken cancellationToken)
+        private async ValueTask ProcessFileChangesAsync(ImmutableSegmentedList<string> filePaths, CancellationToken cancellationToken)
         {
             await _sourceFiles.ProcessRegularFileChangesAsync(filePaths).ConfigureAwait(false);
             await _additionalFiles.ProcessRegularFileChangesAsync(filePaths).ConfigureAwait(false);
@@ -1230,7 +1231,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // references being converted to metadata references (or vice versa) and we might either
                 // miss stopping a file watcher or might end up double-stopping a file watcher.
                 remainingMetadataReferences = w.CurrentSolution.GetRequiredProject(Id).MetadataReferences;
-                w.OnProjectRemoved(Id);
+                _workspace.RemoveProjectFromTrackingMaps_NoLock(Id);
+
+                // If this is our last project, clear the entire solution.
+                if (w.CurrentSolution.ProjectIds.Count == 1)
+                {
+                    _workspace.RemoveSolution_NoLock();
+                }
+                else
+                {
+                    _workspace.OnProjectRemoved(Id);
+                }
             });
 
             Contract.ThrowIfNull(remainingMetadataReferences);

@@ -17,9 +17,24 @@
         <target state="translated">Varsayılan durum ekle</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_explicit_cast">
+        <source>Add explicit cast</source>
+        <target state="translated">Açık tür dönüştürme ekle</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_file_header">
         <source>Add file header</source>
         <target state="translated">Dosya üst bilgisi ekle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Alias_ambiguous_type_0">
+        <source>Alias ambiguous type '{0}'</source>
+        <target state="translated">Diğer ad belirsiz '{0}' türünde</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_type_to_0">
+        <source>Convert type to '{0}'</source>
+        <target state="translated">Türü '{0}' olarak dönüştür</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_Name_Violation_colon_0">
@@ -30,6 +45,16 @@
       <trans-unit id="Fix_all_occurrences_in">
         <source>Fix all occurrences in</source>
         <target state="translated">Tüm oluşumları şurada düzelt:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_class_abstract">
+        <source>Make class 'abstract'</source>
+        <target state="translated">Sınıfı 'abstract' yap</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_member_static">
+        <source>Make static</source>
+        <target state="translated">Statik yap</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_extra_blank_lines">

@@ -150,10 +150,10 @@ class C
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(() => 0)").WithArguments("T", "2").WithLocation(8, 18),
                 // (8,22): error CS1003: Syntax error, ',' expected
                 //             case (() => 0):
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(8, 22),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(8, 22),
                 // (8,25): error CS1003: Syntax error, ',' expected
                 //             case (() => 0):
-                Diagnostic(ErrorCode.ERR_SyntaxError, "0").WithArguments(",", "").WithLocation(8, 25),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "0").WithArguments(",").WithLocation(8, 25),
                 // (10,18): error CS0518: Predefined type 'System.Span`1' is not defined or imported
                 //             case stackalloc int[1] { 0 }:
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "stackalloc int[1] { 0 }").WithArguments("System.Span`1").WithLocation(10, 18),
@@ -1511,7 +1511,7 @@ class _
             compilation.VerifyDiagnostics(
                 // (9,20): error CS1003: Syntax error, ':' expected
                 //             case _ x: break;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(":", "").WithLocation(9, 20),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(":").WithLocation(9, 20),
                 // (9,20): warning CS0164: This label has not been referenced
                 //             case _ x: break;
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "x").WithLocation(9, 20)
@@ -1597,7 +1597,7 @@ class _
                 Diagnostic(ErrorCode.WRN_IsTypeNamedUnderscore, "_").WithArguments("_").WithLocation(9, 32),
                 // (9,34): error CS1003: Syntax error, ',' expected
                 //             Console.Write(e is _ x);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",", "").WithLocation(9, 34),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",").WithLocation(9, 34),
                 // (9,34): error CS0103: The name 'x' does not exist in the current context
                 //             Console.Write(e is _ x);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(9, 34)
@@ -1718,7 +1718,7 @@ class _
                 Diagnostic(ErrorCode.ERR_WrongNumberOfSubpatterns, "(_ x, _)").WithArguments("(object, object)", "2", "3").WithLocation(10, 22),
                 // (10,25): error CS1003: Syntax error, ',' expected
                 //             if (e is (_ x, _))
-                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",", "").WithLocation(10, 25),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",").WithLocation(10, 25),
                 // (10,25): error CS0103: The name 'x' does not exist in the current context
                 //             if (e is (_ x, _))
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(10, 25)
@@ -3718,37 +3718,37 @@ public class A
                 Diagnostic(ErrorCode.ERR_IsNullableType, "A?").WithArguments("A").WithLocation(7, 18),
                 // (8,23): error CS1003: Syntax error, ':' expected
                 //         if (o is A? b1) { }           // error 2 (missing :)
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":", ")").WithLocation(8, 23),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":").WithLocation(8, 23),
                 // (8,23): error CS1525: Invalid expression term ')'
                 //         if (o is A? b1) { }           // error 2 (missing :)
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(8, 23),
                 // (9,28): error CS1003: Syntax error, ':' expected
                 //         if (o is A? b2 && c) { }      // error 3 (missing :)
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":", ")").WithLocation(9, 28),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":").WithLocation(9, 28),
                 // (9,28): error CS1525: Invalid expression term ')'
                 //         if (o is A? b2 && c) { }      // error 3 (missing :)
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(9, 28),
                 // (10,25): error CS1003: Syntax error, ':' expected
                 //         if (o is A[]? b5) { }         // error 4 (missing :)
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":", ")").WithLocation(10, 25),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":").WithLocation(10, 25),
                 // (10,25): error CS1525: Invalid expression term ')'
                 //         if (o is A[]? b5) { }         // error 4 (missing :)
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(10, 25),
                 // (11,30): error CS1003: Syntax error, ':' expected
                 //         if (o is A[]? b6 && c) { }    // error 5 (missing :)
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":", ")").WithLocation(11, 30),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":").WithLocation(11, 30),
                 // (11,30): error CS1525: Invalid expression term ')'
                 //         if (o is A[]? b6 && c) { }    // error 5 (missing :)
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(11, 30),
                 // (12,27): error CS1003: Syntax error, ':' expected
                 //         if (o is A[][]? b7) { }       // error 6 (missing :)
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":", ")").WithLocation(12, 27),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":").WithLocation(12, 27),
                 // (12,27): error CS1525: Invalid expression term ')'
                 //         if (o is A[][]? b7) { }       // error 6 (missing :)
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(12, 27),
                 // (13,32): error CS1003: Syntax error, ':' expected
                 //         if (o is A[][]? b8 && c) { }  // error 7 (missing :)
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":", ")").WithLocation(13, 32),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":").WithLocation(13, 32),
                 // (13,32): error CS1525: Invalid expression term ')'
                 //         if (o is A[][]? b8 && c) { }  // error 7 (missing :)
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(13, 32),
@@ -4239,6 +4239,513 @@ class C
 [10]: leaf <arm> `bool => 3`
 [11]: leaf <arm> `_ => 4`
 ", boundSwitch.ReachabilityDecisionDag.Dump());
+        }
+
+        [Fact, WorkItem(62241, "https://github.com/dotnet/roslyn/issues/62241")]
+        public void DisableBalancedSwitchDispatchOptimization_Double()
+        {
+            var source = """
+C.M(double.NaN);
+
+public class C
+{
+    public static void M(double x)
+    {
+        string msg = x switch
+        {
+            < -40.0 => "Too low",
+            >= -40.0 and < 0 => "Low",
+            >= 0 and < 10.0 => "Acceptable",
+            >= 10.0 => "High",
+            double.NaN => "NaN",
+        };
+        System.Console.Write(msg);
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "NaN");
+
+            var tree = comp.SyntaxTrees.First();
+            var @switch = tree.GetRoot().DescendantNodes().OfType<SwitchExpressionSyntax>().Single();
+            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
+            var binder = model.GetEnclosingBinder(@switch.SpanStart);
+            var boundSwitch = (BoundSwitchExpression)binder.BindExpression(@switch, BindingDiagnosticBag.Discarded);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("""
+[0]: t0 < -40 ? [1] : [2]
+[1]: leaf <arm> `< -40.0 => "Too low"`
+[2]: t0 >= -40 ? [3] : [8]
+[3]: t0 < 0 ? [4] : [5]
+[4]: leaf <arm> `>= -40.0 and < 0 => "Low"`
+[5]: t0 < 10 ? [6] : [7]
+[6]: leaf <arm> `>= 0 and < 10.0 => "Acceptable"`
+[7]: leaf <arm> `>= 10.0 => "High"`
+[8]: leaf <arm> `double.NaN => "NaN"`
+""", boundSwitch.ReachabilityDecisionDag.Dump());
+
+            verifier.VerifyIL("C.M", """
+{
+  // Code size       95 (0x5f)
+  .maxstack  2
+  .locals init (string V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.r8     -40
+  IL_000a:  blt.s      IL_0032
+  IL_000c:  ldarg.0
+  IL_000d:  ldc.r8     -40
+  IL_0016:  blt.un.s   IL_0052
+  IL_0018:  ldarg.0
+  IL_0019:  ldc.r8     0
+  IL_0022:  blt.s      IL_003a
+  IL_0024:  ldarg.0
+  IL_0025:  ldc.r8     10
+  IL_002e:  blt.s      IL_0042
+  IL_0030:  br.s       IL_004a
+  IL_0032:  ldstr      "Too low"
+  IL_0037:  stloc.0
+  IL_0038:  br.s       IL_0058
+  IL_003a:  ldstr      "Low"
+  IL_003f:  stloc.0
+  IL_0040:  br.s       IL_0058
+  IL_0042:  ldstr      "Acceptable"
+  IL_0047:  stloc.0
+  IL_0048:  br.s       IL_0058
+  IL_004a:  ldstr      "High"
+  IL_004f:  stloc.0
+  IL_0050:  br.s       IL_0058
+  IL_0052:  ldstr      "NaN"
+  IL_0057:  stloc.0
+  IL_0058:  ldloc.0
+  IL_0059:  call       "void System.Console.Write(string)"
+  IL_005e:  ret
+}
+""");
+        }
+
+        [Fact, WorkItem(62241, "https://github.com/dotnet/roslyn/issues/62241")]
+        public void DisableBalancedSwitchDispatchOptimization_Single()
+        {
+            var source = """
+C.M(float.NaN);
+
+public class C
+{
+    public static void M(float x)
+    {
+        string msg = x switch
+        {
+            < -40.0f => "Too low",
+            >= -40.0f and < 0f => "Low",
+            >= 0f and < 10.0f => "Acceptable",
+            >= 10.0f => "High",
+            float.NaN => "NaN",
+        };
+        System.Console.Write(msg);
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "NaN");
+
+            var tree = comp.SyntaxTrees.First();
+            var @switch = tree.GetRoot().DescendantNodes().OfType<SwitchExpressionSyntax>().Single();
+            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
+            var binder = model.GetEnclosingBinder(@switch.SpanStart);
+            var boundSwitch = (BoundSwitchExpression)binder.BindExpression(@switch, BindingDiagnosticBag.Discarded);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("""
+[0]: t0 < -40 ? [1] : [2]
+[1]: leaf <arm> `< -40.0f => "Too low"`
+[2]: t0 >= -40 ? [3] : [8]
+[3]: t0 < 0 ? [4] : [5]
+[4]: leaf <arm> `>= -40.0f and < 0f => "Low"`
+[5]: t0 < 10 ? [6] : [7]
+[6]: leaf <arm> `>= 0f and < 10.0f => "Acceptable"`
+[7]: leaf <arm> `>= 10.0f => "High"`
+[8]: leaf <arm> `float.NaN => "NaN"`
+""", boundSwitch.ReachabilityDecisionDag.Dump());
+
+            verifier.VerifyIL("C.M", """
+{
+  // Code size       79 (0x4f)
+  .maxstack  2
+  .locals init (string V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.r4     -40
+  IL_0006:  blt.s      IL_0022
+  IL_0008:  ldarg.0
+  IL_0009:  ldc.r4     -40
+  IL_000e:  blt.un.s   IL_0042
+  IL_0010:  ldarg.0
+  IL_0011:  ldc.r4     0
+  IL_0016:  blt.s      IL_002a
+  IL_0018:  ldarg.0
+  IL_0019:  ldc.r4     10
+  IL_001e:  blt.s      IL_0032
+  IL_0020:  br.s       IL_003a
+  IL_0022:  ldstr      "Too low"
+  IL_0027:  stloc.0
+  IL_0028:  br.s       IL_0048
+  IL_002a:  ldstr      "Low"
+  IL_002f:  stloc.0
+  IL_0030:  br.s       IL_0048
+  IL_0032:  ldstr      "Acceptable"
+  IL_0037:  stloc.0
+  IL_0038:  br.s       IL_0048
+  IL_003a:  ldstr      "High"
+  IL_003f:  stloc.0
+  IL_0040:  br.s       IL_0048
+  IL_0042:  ldstr      "NaN"
+  IL_0047:  stloc.0
+  IL_0048:  ldloc.0
+  IL_0049:  call       "void System.Console.Write(string)"
+  IL_004e:  ret
+}
+""");
+        }
+
+        [Fact, WorkItem(62241, "https://github.com/dotnet/roslyn/issues/62241")]
+        public void DisableBalancedSwitchDispatchOptimization_Double_StartingWithHigh()
+        {
+            var source = """
+C.M(double.NaN);
+
+public class C
+{
+    public static void M(double x)
+    {
+        string msg = x switch
+        {
+            >= 10.0 => "High",
+            >= 0 and < 10.0 => "Acceptable",
+            >= -40.0 and < 0 => "Low",
+            < -40.0 => "Too low",
+            double.NaN => "NaN",
+        };
+        System.Console.Write(msg);
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "NaN");
+
+            var tree = comp.SyntaxTrees.First();
+            var @switch = tree.GetRoot().DescendantNodes().OfType<SwitchExpressionSyntax>().Single();
+            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
+            var binder = model.GetEnclosingBinder(@switch.SpanStart);
+            var boundSwitch = (BoundSwitchExpression)binder.BindExpression(@switch, BindingDiagnosticBag.Discarded);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("""
+[0]: t0 >= 10 ? [1] : [2]
+[1]: leaf <arm> `>= 10.0 => "High"`
+[2]: t0 >= 0 ? [3] : [4]
+[3]: leaf <arm> `>= 0 and < 10.0 => "Acceptable"`
+[4]: t0 >= -40 ? [5] : [6]
+[5]: leaf <arm> `>= -40.0 and < 0 => "Low"`
+[6]: t0 < -40 ? [7] : [8]
+[7]: leaf <arm> `< -40.0 => "Too low"`
+[8]: leaf <arm> `double.NaN => "NaN"`
+""", boundSwitch.ReachabilityDecisionDag.Dump());
+
+            verifier.VerifyIL("C.M", """
+{
+  // Code size       95 (0x5f)
+  .maxstack  2
+  .locals init (string V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.r8     10
+  IL_000a:  bge.s      IL_0032
+  IL_000c:  ldarg.0
+  IL_000d:  ldc.r8     0
+  IL_0016:  bge.s      IL_003a
+  IL_0018:  ldarg.0
+  IL_0019:  ldc.r8     -40
+  IL_0022:  bge.s      IL_0042
+  IL_0024:  ldarg.0
+  IL_0025:  ldc.r8     -40
+  IL_002e:  blt.s      IL_004a
+  IL_0030:  br.s       IL_0052
+  IL_0032:  ldstr      "High"
+  IL_0037:  stloc.0
+  IL_0038:  br.s       IL_0058
+  IL_003a:  ldstr      "Acceptable"
+  IL_003f:  stloc.0
+  IL_0040:  br.s       IL_0058
+  IL_0042:  ldstr      "Low"
+  IL_0047:  stloc.0
+  IL_0048:  br.s       IL_0058
+  IL_004a:  ldstr      "Too low"
+  IL_004f:  stloc.0
+  IL_0050:  br.s       IL_0058
+  IL_0052:  ldstr      "NaN"
+  IL_0057:  stloc.0
+  IL_0058:  ldloc.0
+  IL_0059:  call       "void System.Console.Write(string)"
+  IL_005e:  ret
+}
+""");
+        }
+
+        [Fact, WorkItem(62241, "https://github.com/dotnet/roslyn/issues/62241")]
+        public void DisableBalancedSwitchDispatchOptimization_Double_StartingWithNaN()
+        {
+            var source = """
+C.M(double.NaN);
+
+public class C
+{
+    public static void M(double x)
+    {
+        string msg = x switch
+        {
+            double.NaN => "NaN",
+            < -40.0 => "Too low",
+            >= -40.0 and < 0 => "Low",
+            >= 0 and < 10.0 => "Acceptable",
+            >= 10.0 => "High",
+        };
+        System.Console.Write(msg);
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "NaN");
+
+            var tree = comp.SyntaxTrees.First();
+            var @switch = tree.GetRoot().DescendantNodes().OfType<SwitchExpressionSyntax>().Single();
+            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
+            var binder = model.GetEnclosingBinder(@switch.SpanStart);
+            var boundSwitch = (BoundSwitchExpression)binder.BindExpression(@switch, BindingDiagnosticBag.Discarded);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("""
+[0]: t0 == NaN ? [1] : [2]
+[1]: leaf <arm> `double.NaN => "NaN"`
+[2]: t0 < -40 ? [3] : [4]
+[3]: leaf <arm> `< -40.0 => "Too low"`
+[4]: t0 < 0 ? [5] : [6]
+[5]: leaf <arm> `>= -40.0 and < 0 => "Low"`
+[6]: t0 < 10 ? [7] : [8]
+[7]: leaf <arm> `>= 0 and < 10.0 => "Acceptable"`
+[8]: leaf <arm> `>= 10.0 => "High"`
+""", boundSwitch.ReachabilityDecisionDag.Dump());
+
+            verifier.VerifyIL("C.M", """
+{
+  // Code size       91 (0x5b)
+  .maxstack  2
+  .locals init (string V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       "bool double.IsNaN(double)"
+  IL_0006:  brtrue.s   IL_002e
+  IL_0008:  ldarg.0
+  IL_0009:  ldc.r8     -40
+  IL_0012:  blt.s      IL_0036
+  IL_0014:  ldarg.0
+  IL_0015:  ldc.r8     0
+  IL_001e:  blt.s      IL_003e
+  IL_0020:  ldarg.0
+  IL_0021:  ldc.r8     10
+  IL_002a:  blt.s      IL_0046
+  IL_002c:  br.s       IL_004e
+  IL_002e:  ldstr      "NaN"
+  IL_0033:  stloc.0
+  IL_0034:  br.s       IL_0054
+  IL_0036:  ldstr      "Too low"
+  IL_003b:  stloc.0
+  IL_003c:  br.s       IL_0054
+  IL_003e:  ldstr      "Low"
+  IL_0043:  stloc.0
+  IL_0044:  br.s       IL_0054
+  IL_0046:  ldstr      "Acceptable"
+  IL_004b:  stloc.0
+  IL_004c:  br.s       IL_0054
+  IL_004e:  ldstr      "High"
+  IL_0053:  stloc.0
+  IL_0054:  ldloc.0
+  IL_0055:  call       "void System.Console.Write(string)"
+  IL_005a:  ret
+}
+""");
+        }
+
+        [Fact, WorkItem(62241, "https://github.com/dotnet/roslyn/issues/62241")]
+        public void DisableBalancedSwitchDispatchOptimization_Double_DefaultCase()
+        {
+            var source = """
+C.M(double.NaN);
+
+public class C
+{
+    public static void M(double x)
+    {
+        string msg = x switch
+        {
+            < -40.0 => "Too low",
+            >= -40.0 and < 0 => "Low",
+            >= 0 and < 10.0 => "Acceptable",
+            >= 10.0 => "High",
+            _ => "NaN",
+        };
+        System.Console.Write(msg);
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "NaN");
+
+            var tree = comp.SyntaxTrees.First();
+            var @switch = tree.GetRoot().DescendantNodes().OfType<SwitchExpressionSyntax>().Single();
+            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
+            var binder = model.GetEnclosingBinder(@switch.SpanStart);
+            var boundSwitch = (BoundSwitchExpression)binder.BindExpression(@switch, BindingDiagnosticBag.Discarded);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("""
+[0]: t0 < -40 ? [1] : [2]
+[1]: leaf <arm> `< -40.0 => "Too low"`
+[2]: t0 >= -40 ? [3] : [8]
+[3]: t0 < 0 ? [4] : [5]
+[4]: leaf <arm> `>= -40.0 and < 0 => "Low"`
+[5]: t0 < 10 ? [6] : [7]
+[6]: leaf <arm> `>= 0 and < 10.0 => "Acceptable"`
+[7]: leaf <arm> `>= 10.0 => "High"`
+[8]: leaf <arm> `_ => "NaN"`
+""", boundSwitch.ReachabilityDecisionDag.Dump());
+
+            verifier.VerifyIL("C.M", """
+{
+  // Code size       95 (0x5f)
+  .maxstack  2
+  .locals init (string V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.r8     -40
+  IL_000a:  blt.s      IL_0032
+  IL_000c:  ldarg.0
+  IL_000d:  ldc.r8     -40
+  IL_0016:  blt.un.s   IL_0052
+  IL_0018:  ldarg.0
+  IL_0019:  ldc.r8     0
+  IL_0022:  blt.s      IL_003a
+  IL_0024:  ldarg.0
+  IL_0025:  ldc.r8     10
+  IL_002e:  blt.s      IL_0042
+  IL_0030:  br.s       IL_004a
+  IL_0032:  ldstr      "Too low"
+  IL_0037:  stloc.0
+  IL_0038:  br.s       IL_0058
+  IL_003a:  ldstr      "Low"
+  IL_003f:  stloc.0
+  IL_0040:  br.s       IL_0058
+  IL_0042:  ldstr      "Acceptable"
+  IL_0047:  stloc.0
+  IL_0048:  br.s       IL_0058
+  IL_004a:  ldstr      "High"
+  IL_004f:  stloc.0
+  IL_0050:  br.s       IL_0058
+  IL_0052:  ldstr      "NaN"
+  IL_0057:  stloc.0
+  IL_0058:  ldloc.0
+  IL_0059:  call       "void System.Console.Write(string)"
+  IL_005e:  ret
+}
+""");
+        }
+
+        [Fact, WorkItem(62241, "https://github.com/dotnet/roslyn/issues/62241")]
+        public void DisableBalancedSwitchDispatchOptimization_Double_WhenClause()
+        {
+            var source = """
+C.M(double.NaN);
+
+public class C
+{
+    public static void M(double x)
+    {
+        bool b = true;
+        string msg = x switch
+        {
+            < -40.0 => "Too low",
+            >= -40.0 and < 0 => "Low",
+            >= 0 and < 10.0 => "Acceptable",
+            >= 10.0 => "High",
+            double.NaN when b => "NaN",
+            _ => "Other",
+        };
+        System.Console.Write(msg);
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "NaN");
+
+            var tree = comp.SyntaxTrees.First();
+            var @switch = tree.GetRoot().DescendantNodes().OfType<SwitchExpressionSyntax>().Single();
+            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
+            var binder = model.GetEnclosingBinder(@switch.SpanStart);
+            var boundSwitch = (BoundSwitchExpression)binder.BindExpression(@switch, BindingDiagnosticBag.Discarded);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("""
+[0]: t0 < -40 ? [1] : [2]
+[1]: leaf <arm> `< -40.0 => "Too low"`
+[2]: t0 >= -40 ? [3] : [8]
+[3]: t0 < 0 ? [4] : [5]
+[4]: leaf <arm> `>= -40.0 and < 0 => "Low"`
+[5]: t0 < 10 ? [6] : [7]
+[6]: leaf <arm> `>= 0 and < 10.0 => "Acceptable"`
+[7]: leaf <arm> `>= 10.0 => "High"`
+[8]: when (b) ? [10] : [9]
+[9]: leaf <arm> `_ => "Other"`
+[10]: leaf <arm> `double.NaN when b => "NaN"`
+""", boundSwitch.ReachabilityDecisionDag.Dump());
+
+            verifier.VerifyIL("C.M", """
+{
+  // Code size      110 (0x6e)
+  .maxstack  2
+  .locals init (bool V_0, //b
+                string V_1,
+                double V_2)
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldarg.0
+  IL_0003:  stloc.2
+  IL_0004:  ldloc.2
+  IL_0005:  ldc.r8     -40
+  IL_000e:  blt.s      IL_0036
+  IL_0010:  ldloc.2
+  IL_0011:  ldc.r8     -40
+  IL_001a:  blt.un.s   IL_0056
+  IL_001c:  ldloc.2
+  IL_001d:  ldc.r8     0
+  IL_0026:  blt.s      IL_003e
+  IL_0028:  ldloc.2
+  IL_0029:  ldc.r8     10
+  IL_0032:  blt.s      IL_0046
+  IL_0034:  br.s       IL_004e
+  IL_0036:  ldstr      "Too low"
+  IL_003b:  stloc.1
+  IL_003c:  br.s       IL_0067
+  IL_003e:  ldstr      "Low"
+  IL_0043:  stloc.1
+  IL_0044:  br.s       IL_0067
+  IL_0046:  ldstr      "Acceptable"
+  IL_004b:  stloc.1
+  IL_004c:  br.s       IL_0067
+  IL_004e:  ldstr      "High"
+  IL_0053:  stloc.1
+  IL_0054:  br.s       IL_0067
+  IL_0056:  ldloc.0
+  IL_0057:  brfalse.s  IL_0061
+  IL_0059:  ldstr      "NaN"
+  IL_005e:  stloc.1
+  IL_005f:  br.s       IL_0067
+  IL_0061:  ldstr      "Other"
+  IL_0066:  stloc.1
+  IL_0067:  ldloc.1
+  IL_0068:  call       "void System.Console.Write(string)"
+  IL_006d:  ret
+}
+""");
         }
 #endif
     }

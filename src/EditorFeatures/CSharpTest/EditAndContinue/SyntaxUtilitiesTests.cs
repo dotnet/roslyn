@@ -260,7 +260,6 @@ class C
             AssertEx.Equal(new[]
             {
                 "yield return 1;",
-                "yield break;",
                 "await Task.FromResult(1)",
                 "await foreach (var x in F()) { }",
                 "await foreach (var (x, y) in F()) { }",

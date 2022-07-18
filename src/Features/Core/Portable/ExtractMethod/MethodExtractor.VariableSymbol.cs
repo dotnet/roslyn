@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
         protected class LocalVariableSymbol<T> : VariableSymbol, IComparable<LocalVariableSymbol<T>> where T : SyntaxNode
         {
-            private readonly SyntaxAnnotation _annotation;
+            private readonly SyntaxAnnotation _annotation = new();
             private readonly ILocalSymbol _localSymbol;
             private readonly HashSet<int> _nonNoisySet;
 
@@ -191,7 +191,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 Contract.ThrowIfNull(localSymbol);
                 Contract.ThrowIfNull(nonNoisySet);
 
-                _annotation = new SyntaxAnnotation();
                 _localSymbol = localSymbol;
                 _nonNoisySet = nonNoisySet;
             }

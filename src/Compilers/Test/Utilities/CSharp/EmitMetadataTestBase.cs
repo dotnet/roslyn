@@ -156,44 +156,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        private static TypeDefinitionHandle GetTokenForType(MetadataReader metadataReader, string typeName)
-        {
-            Assert.NotNull(typeName);
-            Assert.NotEmpty(typeName);
-
-            foreach (var typeDef in metadataReader.TypeDefinitions)
-            {
-                string name = metadataReader.GetString(metadataReader.GetTypeDefinition(typeDef).Name);
-
-                if (typeName.Equals(name))
-                {
-                    return typeDef;
-                }
-            }
-
-            AssertEx.Fail("Unable to find type:" + typeName);
-            return default(TypeDefinitionHandle);
-        }
-
-        private static MethodDefinitionHandle GetTokenForMethod(MetadataReader metadataReader, string methodName)
-        {
-            Assert.NotNull(methodName);
-            Assert.NotEmpty(methodName);
-
-            foreach (var methodDef in metadataReader.MethodDefinitions)
-            {
-                string name = metadataReader.GetString(metadataReader.GetMethodDefinition(methodDef).Name);
-
-                if (methodName.Equals(name))
-                {
-                    return methodDef;
-                }
-            }
-
-            AssertEx.Fail("Unable to find method:" + methodName);
-            return default(MethodDefinitionHandle);
-        }
-
         internal struct DeclSecurityEntry
         {
             public DeclarativeSecurityAction ActionFlags;

@@ -28,15 +28,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return syntaxTree.IsInNonUserCode(position, cancellationToken)
             End Function
 
-            Public Function IsPossibleTupleContext(
-                syntaxTree As SyntaxTree,
-                position As Integer,
-                cancellationToken As CancellationToken) As Boolean Implements ISyntaxFactsService.IsPossibleTupleContext
-
-                Dim token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
-                Return syntaxTree.IsPossibleTupleContext(token, position)
-            End Function
-
             Public Sub AddFirstMissingCloseBrace(Of TContextNode As SyntaxNode)(
                     root As SyntaxNode, contextNode As TContextNode,
                     ByRef newRoot As SyntaxNode, ByRef newContextNode As TContextNode) Implements ISyntaxFactsService.AddFirstMissingCloseBrace

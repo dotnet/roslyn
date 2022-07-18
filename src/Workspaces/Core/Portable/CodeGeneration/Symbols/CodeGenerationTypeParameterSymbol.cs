@@ -64,6 +64,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
             => visitor.VisitTypeParameter(this);
 
+        public override TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
+            => visitor.VisitTypeParameter(this, argument);
+
         public override TypeKind TypeKind => TypeKind.TypeParameter;
 
         public TypeParameterKind TypeParameterKind

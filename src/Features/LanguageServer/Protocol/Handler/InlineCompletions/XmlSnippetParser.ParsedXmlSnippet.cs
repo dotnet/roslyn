@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions;
@@ -40,7 +41,7 @@ internal partial class XmlSnippetParser
     internal record SnippetFunctionPart(string FieldName, string DefaultText, int? EditIndex, string FunctionName, string? FunctionParam)
         : SnippetFieldPart(FieldName, DefaultText, EditIndex)
     {
-        public async Task<SnippetFunctionPart> WithSnippetFunctionResultAsync(Document documentWithSnippet, TextSpan fieldSpan, CancellationToken cancellationToken)
+        public async Task<SnippetFunctionPart> WithSnippetFunctionResultAsync(Document documentWithSnippet, TextSpan fieldSpan, SimplifierOptions simplifierOptions, CancellationToken cancellationToken)
         {
             var snippetFunctionService = documentWithSnippet.Project.GetRequiredLanguageService<SnippetFunctionService>();
             switch (FunctionName)
@@ -51,7 +52,7 @@ internal partial class XmlSnippetParser
                         return this;
                     }
 
-                    var simplifiedTypeName = await SnippetFunctionService.GetSimplifiedTypeNameAsync(documentWithSnippet, fieldSpan, FunctionParam, cancellationToken).ConfigureAwait(false);
+                    var simplifiedTypeName = await SnippetFunctionService.GetSimplifiedTypeNameAsync(documentWithSnippet, fieldSpan, FunctionParam, simplifierOptions, cancellationToken).ConfigureAwait(false);
                     if (simplifiedTypeName == null)
                     {
                         return this;

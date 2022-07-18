@@ -5,7 +5,7 @@
 #nullable disable
 
 using System.Threading;
-using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -17,16 +17,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
         Document GetDocument(ITextSnapshot snapshot, CancellationToken cancellationToken);
     }
 
-    internal class DocumentProvider : ForegroundThreadAffinitizedObject, IDocumentProvider
+    internal class DocumentProvider : IDocumentProvider
     {
+        private readonly IThreadingContext _threadingContext;
+
         public DocumentProvider(IThreadingContext threadingContext)
-            : base(threadingContext)
         {
+            _threadingContext = threadingContext;
         }
 
         public Document GetDocument(ITextSnapshot snapshot, CancellationToken cancellationToken)
         {
-            AssertIsBackground();
+            _threadingContext.ThrowIfNotOnBackgroundThread();
             return snapshot.AsText().GetDocumentWithFrozenPartialSemantics(cancellationToken);
         }
     }

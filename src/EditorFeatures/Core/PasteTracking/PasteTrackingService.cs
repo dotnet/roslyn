@@ -6,6 +6,7 @@
 
 using System;
 using System.Composition;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.PasteTracking
 
         internal void RegisterPastedTextSpan(ITextBuffer textBuffer, TextSpan textSpan)
         {
-            Contract.ThrowIfFalse(_threadingContext.HasMainThread);
+            _threadingContext.ThrowIfNotOnUIThread();
 
             // Use the TextBuffer properties to store the pasted text span. 
             // The `PropertiesCollection` is thread-safe and will be cleared

@@ -952,10 +952,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
             writer.WriteValue(Double.MaxValue);
             writer.WriteValue(Single.MaxValue);
             writer.WriteValue('X');
-            writer.WriteValue("YYY");
-            writer.WriteValue("\uD800\uDC00"); // valid surrogate pair
-            writer.WriteValue("\uDC00\uD800"); // invalid surrogate pair
-            writer.WriteValue("\uD800"); // incomplete surrogate pair
+
+            writer.WriteValue((object)"YYY");
+
+            writer.WriteValue((object)"\uD800\uDC00"); // valid surrogate pair
+
+            writer.WriteValue((object)"\uDC00\uD800"); // invalid surrogate pair
+
+            writer.WriteValue((object)"\uD800"); // incomplete surrogate pair
+
             writer.WriteValue((object)null);
             writer.WriteValue((IObjectWritable)null);
             unchecked
@@ -1135,7 +1140,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         [Theory]
         [CombinatorialData]
-        public void Encoding_UTF8(bool byteOrderMark)
+        public void Encoding_Utf8(bool byteOrderMark)
         {
             TestRoundtripEncoding(new UTF8Encoding(byteOrderMark));
         }

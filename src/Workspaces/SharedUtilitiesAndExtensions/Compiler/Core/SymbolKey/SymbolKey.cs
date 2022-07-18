@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis
         /// out a SymbolKey from a previous version of Roslyn and then attempt to use it in a 
         /// newer version where the encoding has changed.
         /// </summary>
-        internal const int FormatVersion = 1;
+        internal const int FormatVersion = 4;
 
         [DataMember(Order = 0)]
         private readonly string _symbolKeyData;
@@ -188,7 +188,8 @@ namespace Microsoft.CodeAnalysis
                 return default;
             }
 
-            var result = reader.ReadSymbolKey(out failureReason);
+            // Initial entrypoint.  No contextual symbol to pass along.
+            var result = reader.ReadSymbolKey(contextualSymbol: null, out failureReason);
             Debug.Assert(reader.Position == symbolKey.Length);
             return result;
         }
@@ -250,19 +251,14 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        private static T? SafeGet<T>(ImmutableArray<T> values, int index) where T : class
+            => index < values.Length ? values[index] : null;
+
         private static bool Equals(Compilation compilation, string? name1, string? name2)
             => Equals(compilation.IsCaseSensitive, name1, name2);
 
         private static bool Equals(bool isCaseSensitive, string? name1, string? name2)
             => string.Equals(name1, name2, isCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase);
-
-        private static string GetName(string metadataName)
-        {
-            var index = metadataName.IndexOf('`');
-            return index > 0
-                ? metadataName.Substring(0, index)
-                : metadataName;
-        }
 
         private static bool ParameterRefKindsMatch(
             ImmutableArray<IParameterSymbol> parameters,

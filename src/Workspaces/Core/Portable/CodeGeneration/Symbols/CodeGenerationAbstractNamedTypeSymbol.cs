@@ -47,6 +47,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
             => visitor.VisitNamedType(this);
 
+        public override TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
+            => visitor.VisitNamedType(this, argument);
+
         public INamedTypeSymbol Construct(params ITypeSymbol[] typeArguments)
         {
             if (typeArguments.Length == 0)
@@ -118,5 +121,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public INamedTypeSymbol TupleUnderlyingType => null;
 
         public bool IsSerializable => false;
+
+        public bool IsFileLocal => Modifiers.IsFile;
     }
 }

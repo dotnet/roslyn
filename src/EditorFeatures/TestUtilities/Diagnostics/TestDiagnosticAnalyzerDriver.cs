@@ -18,6 +18,8 @@ using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.CodeActions;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 {
@@ -26,11 +28,20 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         private readonly DiagnosticAnalyzerService _diagnosticAnalyzerService;
         private readonly bool _includeSuppressedDiagnostics;
 
-        public TestDiagnosticAnalyzerDriver(Workspace workspace, Project project, bool includeSuppressedDiagnostics = false)
+        internal readonly IGlobalOptionService GlobalOptions;
+        internal readonly CodeActionOptionsProvider FallbackOptions;
+
+        public TestDiagnosticAnalyzerDriver(Workspace workspace, bool includeSuppressedDiagnostics = false)
         {
-            Assert.IsType<MockDiagnosticUpdateSourceRegistrationService>(((IMefHostExportProvider)workspace.Services.HostServices).GetExportedValue<IDiagnosticUpdateSourceRegistrationService>());
-            _diagnosticAnalyzerService = Assert.IsType<DiagnosticAnalyzerService>(((IMefHostExportProvider)workspace.Services.HostServices).GetExportedValue<IDiagnosticAnalyzerService>());
-            _diagnosticAnalyzerService.CreateIncrementalAnalyzer(project.Solution.Workspace);
+            var mefServices = (IMefHostExportProvider)workspace.Services.HostServices;
+
+            Assert.IsType<MockDiagnosticUpdateSourceRegistrationService>(mefServices.GetExportedValue<IDiagnosticUpdateSourceRegistrationService>());
+            _diagnosticAnalyzerService = Assert.IsType<DiagnosticAnalyzerService>(mefServices.GetExportedValue<IDiagnosticAnalyzerService>());
+
+            GlobalOptions = mefServices.GetExportedValue<IGlobalOptionService>();
+            FallbackOptions = GlobalOptions.CreateProvider();
+
+            _diagnosticAnalyzerService.CreateIncrementalAnalyzer(workspace);
             _includeSuppressedDiagnostics = includeSuppressedDiagnostics;
         }
 

@@ -34,20 +34,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseDeconstructionDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(
-                new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics[0], c)),
-                context.Diagnostics);
-
+            RegisterCodeFix(context, CSharpAnalyzersResources.Deconstruct_variable_declaration, nameof(CSharpAnalyzersResources.Deconstruct_variable_declaration));
             return Task.CompletedTask;
         }
 
         protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var nodesToProcess = diagnostics.SelectAsArray(d => d.Location.FindToken(cancellationToken).Parent);
 
@@ -187,14 +182,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
                 SyntaxFactory.DeclarationExpression(
                     node.Type,
                     SyntaxFactory.SingleVariableDesignation(node.Identifier)));
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Deconstruct_variable_declaration, createChangedDocument, CSharpAnalyzersResources.Deconstruct_variable_declaration)
-            {
-            }
         }
     }
 }

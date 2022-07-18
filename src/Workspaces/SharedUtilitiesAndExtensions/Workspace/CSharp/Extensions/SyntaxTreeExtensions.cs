@@ -110,13 +110,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                             break;
                         }
 
-                    case SyntaxKind.GreaterThanGreaterThanToken:
-                        stack++;
-                        goto case SyntaxKind.GreaterThanToken;
-
                     // fall through
                     case SyntaxKind.GreaterThanToken:
-                        stack++;
+                    case SyntaxKind.GreaterThanGreaterThanToken:
+                    case SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
+
+                        // FindTokenOnLeftOfPosition returns the token that we are contained in. This means in cases like
+                        // G<G<G<int>>$$> the compiler might have parsed that final >> as a shift operator. We want to only count the
+                        // number of >s to the left of where we actually are.
+                        if (token.Span.End <= position)
+                            stack += token.Span.Length;
+                        else
+                            stack += (position - token.Span.Start);
+
                         break;
 
                     case SyntaxKind.AsteriskToken:      // for int*

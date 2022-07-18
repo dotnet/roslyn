@@ -301,26 +301,10 @@ namespace RunTests
             foreach (var project in Directory.EnumerateDirectories(binDirectory, "*", SearchOption.TopDirectoryOnly))
             {
                 var name = Path.GetFileName(project);
-                var include = false;
-                foreach (var pattern in options.IncludeFilter)
-                {
-                    if (Regex.IsMatch(name, pattern.Trim('\'', '"')))
-                    {
-                        include = true;
-                    }
-                }
 
-                if (!include)
+                if (!shouldInclude(name, options) || shouldExclude(name, options))
                 {
                     continue;
-                }
-
-                foreach (var pattern in options.ExcludeFilter)
-                {
-                    if (Regex.IsMatch(name, pattern.Trim('\'', '"')))
-                    {
-                        continue;
-                    }
                 }
 
                 var fileName = $"{name}.dll";
@@ -348,6 +332,32 @@ namespace RunTests
             }
 
             return list;
+
+            static bool shouldInclude(string name, Options options)
+            {
+                foreach (var pattern in options.IncludeFilter)
+                {
+                    if (Regex.IsMatch(name, pattern.Trim('\'', '"')))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            static bool shouldExclude(string name, Options options)
+            {
+                foreach (var pattern in options.ExcludeFilter)
+                {
+                    if (Regex.IsMatch(name, pattern.Trim('\'', '"')))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
         }
 
         private static void DisplayResults(Display display, ImmutableArray<TestResult> testResults)
@@ -386,7 +396,8 @@ namespace RunTests
                 testResultsDirectory: options.TestResultsDirectory,
                 testFilter: options.TestFilter,
                 includeHtml: options.IncludeHtml,
-                retry: options.Retry);
+                retry: options.Retry,
+                collectDumps: options.CollectDumps);
             return new ProcessTestExecutor(testExecutionOptions);
         }
 

@@ -29,8 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         public CSharpSelectionValidator(
             SemanticDocument document,
             TextSpan textSpan,
-            bool localFunction,
-            ExtractMethodOptions options)
+            ExtractMethodOptions options,
+            bool localFunction)
             : base(document, textSpan, options)
         {
             _localFunction = localFunction;

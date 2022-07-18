@@ -56,6 +56,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             HasReturnWithExpression = 1 << 8,
 
             IsSimpleProgram = 1 << 9,
+
+            HasRequiredMembers = 1 << 10,
         }
 
         internal SingleTypeDeclaration(
@@ -189,6 +191,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public bool HasRequiredMembers => (_flags & TypeDeclarationFlags.HasRequiredMembers) != 0;
+
         protected override ImmutableArray<SingleNamespaceOrTypeDeclaration> GetNamespaceOrTypeDeclarationChildren()
         {
             return StaticCast<SingleNamespaceOrTypeDeclaration>.From(_children);
@@ -234,6 +238,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (thisDecl._kind != otherDecl._kind) ||
                     (thisDecl.name != otherDecl.name))
                 {
+                    return false;
+                }
+
+                if ((object)thisDecl.Location.SourceTree != otherDecl.Location.SourceTree
+                    && ((thisDecl.Modifiers & DeclarationModifiers.File) != 0
+                        || (otherDecl.Modifiers & DeclarationModifiers.File) != 0))
+                {
+                    // declarations of 'file' types are only the same type if they are in the same file
                     return false;
                 }
 

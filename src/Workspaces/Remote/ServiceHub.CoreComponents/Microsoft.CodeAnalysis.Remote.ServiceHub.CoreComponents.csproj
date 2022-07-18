@@ -4,6 +4,8 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
+    <MicrosoftNETCoreAppRuntimewinx64Version>$(MicrosoftNetCoreAppPackagesVersion)</MicrosoftNETCoreAppRuntimewinx64Version>
+    <MicrosoftWindowsDesktopAppRuntimewinx64Version>$(MicrosoftNetCoreAppPackagesVersion)</MicrosoftWindowsDesktopAppRuntimewinx64Version>
     <!--
     The purpose of this project is to include all dependecies of Microsoft.CodeAnalysis.Remote.ServiceHub and C# and VB features layer targeting .Net Core.
     -->
@@ -18,21 +20,27 @@
     <!-- These references need to be deployed to the vsix subfolder containing servicehub bits for .Net Core -->
     <PackageReference Include="Microsoft.VisualStudio.Telemetry" Version="$(MicrosoftVisualStudioTelemetryVersion)" />
     <PackageReference Include="SQLitePCLRaw.bundle_green" Version="$(SQLitePCLRawbundle_greenVersion)" />
+    <!-- We use the content of these two runtime pacakges to exclude BCL library from the dependencies we need to deploy as part of Roslyn vsix. -->
+    <PackageReference Include="Microsoft.NETCore.App.Runtime.win-x64" Version="$(MicrosoftNETCoreAppRuntimewinx64Version)" ExcludeAssets="all" PrivateAssets="all" GeneratePathProperty="true" />
+    <PackageReference Include="Microsoft.WindowsDesktop.App.Runtime.win-x64" Version="$(MicrosoftWindowsDesktopAppRuntimewinx64Version)" ExcludeAssets="all" PrivateAssets="all" GeneratePathProperty="true" />
   </ItemGroup>
 
   <Target Name="PublishProjectOutputGroup" DependsOnTargets="Publish" Returns="@(_PublishedFiles)">
+    <ItemGroup>
+      <_RuntimeLibraries Include="$(PkgMicrosoft_NETCore_App_Runtime_win-x64)\runtimes\win-x64\**\*.dll" />
+      <_RuntimeLibraries Include="$(PkgMicrosoft_WindowsDesktop_App_Runtime_win-x64)\runtimes\win-x64\**\*.dll" />
+    </ItemGroup>
     <ItemGroup>
       <_ExcludedFiles Include="$(PublishDir)**\Microsoft.CodeAnalysis.Remote.ServiceHub.CoreComponents.*" />
       <_ExcludedFiles Include="$(PublishDir)**\*.pdb" />
       <!-- the only assembly we need under runtime folder (runtimes\win-x64\native\e_sqlite3.dll) is handled by the vsix project directly -->
       <_ExcludedFiles Include="$(PublishDir)\runtimes\**\*.*" />
-      <!-- For binaries below, we want to use the version provided by the runtime, not the ones from the NuGet packages -->
-      <_ExcludedFiles Include="$(PublishDir)\Microsoft.Win32.Registry.dll'" />
-      <_ExcludedFiles Include="$(PublishDir)\System.Diagnostics.DiagnosticSource.dll'" />
-      <_ExcludedFiles Include="$(PublishDir)\System.Runtime.CompilerServices.Unsafe.dll'" />
-      <_ExcludedFiles Include="$(PublishDir)\System.Security.AccessControl.dll'" />
-      <_ExcludedFiles Include="$(PublishDir)\System.Security.Principal.Windows.dll'" />
-      <_ExcludedFiles Include="$(PublishDir)\System.Threading.Tasks.Dataflow.dll'" />
+      <!-- 
+        For BCL, we want to use the version provided by the runtime in VS, not the ones from the NuGet packages. 
+        However, we can't safely exclude shared dependencies from ServiceHub host folder: we might be referencing
+        a higher version, or back-compat might not be guaranteed in the version shipped by host.
+      -->
+      <_ExcludedFiles Include="@(_RuntimeLibraries->'$(PublishDir)\%(FileName)%(Extension)')" />
     </ItemGroup>
     <ItemGroup>
       <!-- Need to include and then update items (https://github.com/microsoft/msbuild/issues/1053) -->

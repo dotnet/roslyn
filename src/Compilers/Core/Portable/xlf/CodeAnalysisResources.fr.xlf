@@ -39,6 +39,26 @@
         <target state="translated">Supprimez les diagnostics suivants pour désactiver cet analyseur : {0}</target>
         <note>{0}: Comma-separated list of diagnostic IDs</note>
       </trans-unit>
+      <trans-unit id="EncCannotResumeSuspendedAsyncMethod">
+        <source>Edit and Continue can't resume suspended asynchronous method since the corresponding await expression has been deleted</source>
+        <target state="translated">Modifier et continuer ne peut pas reprendre la méthode asynchrone suspendue, car l’expression await correspondante a été supprimée</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EncCannotResumeSuspendedIteratorMethod">
+        <source>Edit and Continue can't resume suspended iterator since the corresponding yield return statement has been deleted</source>
+        <target state="translated">Modifier et continuer ne peut pas reprendre l’itérateur suspendu, car l’instruction yield return correspondante a été supprimée</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GeneratorNameColumnHeader">
+        <source>Generator</source>
+        <target state="new">Generator</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GeneratorTotalExecutionTime">
+        <source>Total generator execution time: {0} seconds.</source>
+        <target state="new">Total generator execution time: {0} seconds.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="HintNameInvalidChar">
         <source>The hintName '{0}' contains an invalid character '{1}' at position {2}.</source>
         <target state="translated">Le hintName « {0} » contient un caractère non valide « {1} » à la position {2}.</target>

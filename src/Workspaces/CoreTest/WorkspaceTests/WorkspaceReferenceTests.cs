@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceTests
+namespace Microsoft.CodeAnalysis.UnitTests
 {
     [UseExportProvider]
     public class WorkspaceReferenceTests

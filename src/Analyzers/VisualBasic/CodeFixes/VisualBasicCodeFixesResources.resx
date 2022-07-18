@@ -129,4 +129,16 @@
   <data name="Simplify_object_creation" xml:space="preserve">
     <value>Simplify object creation</value>
   </data>
+  <data name="Add_Obsolete" xml:space="preserve">
+    <value>Add &lt;Obsolete&gt;</value>
+  </data>
+  <data name="Convert_0_to_Iterator" xml:space="preserve">
+    <value>Convert {0} to Iterator</value>
+  </data>
+  <data name="Make_0_inheritable" xml:space="preserve">
+    <value>Make '{0}' inheritable</value>
+  </data>
+  <data name="Replace_Return_with_Yield" xml:space="preserve">
+    <value>Replace 'Return' with 'Yield</value>
+  </data>
 </root>

@@ -14,15 +14,12 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.LanguageServices;
-
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using Microsoft.CodeAnalysis.Options;
-#endif
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 {
+    // TODO: AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer should sub-type AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    // Tracked with https://github.com/dotnet/roslyn/issues/62638
     internal abstract class AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer
         : DiagnosticAnalyzer, IBuiltInAnalyzer
     {
@@ -42,9 +39,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
                                      customTags: DiagnosticCustomTags.NotConfigurable);
 #pragma warning restore RS0030 // Do not used banned APIs
 
-        private readonly DiagnosticDescriptor _unnecessaryClassificationIdDescriptor;
         private readonly DiagnosticDescriptor _classificationIdDescriptor;
-        private readonly DiagnosticDescriptor _unnecessaryGeneratedCodeClassificationIdDescriptor;
         private readonly DiagnosticDescriptor _generatedCodeClassificationIdDescriptor;
 
         protected AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer()
@@ -52,7 +47,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
             var titleAndMessageFormat = GetTitleAndMessageFormatForClassificationIdDescriptor();
 
 #pragma warning disable RS0030 // Do not used banned APIs
-            _unnecessaryClassificationIdDescriptor =
+            _classificationIdDescriptor =
                 new DiagnosticDescriptor(IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId,
                                          titleAndMessageFormat,
                                          titleAndMessageFormat,
@@ -62,26 +57,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
                                          helpLinkUri: DiagnosticHelper.GetHelpLinkForDiagnosticId(IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId),
                                          customTags: DiagnosticCustomTags.Unnecessary.Concat(EnforceOnBuildValues.RemoveUnnecessaryImports.ToCustomTag()).ToArray());
 
-            _classificationIdDescriptor =
-                new DiagnosticDescriptor(IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId,
-                                         titleAndMessageFormat,
-                                         titleAndMessageFormat,
-                                         DiagnosticCategory.Style,
-                                         DiagnosticSeverity.Hidden,
-                                         isEnabledByDefault: true,
-                                         helpLinkUri: DiagnosticHelper.GetHelpLinkForDiagnosticId(IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId),
-                                         customTags: EnforceOnBuildValues.RemoveUnnecessaryImports.ToCustomTag());
-
-            _unnecessaryGeneratedCodeClassificationIdDescriptor =
-                new DiagnosticDescriptor(IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId + "_gen",
-                                         titleAndMessageFormat,
-                                         titleAndMessageFormat,
-                                         DiagnosticCategory.Style,
-                                         DiagnosticSeverity.Hidden,
-                                         isEnabledByDefault: true,
-                                         helpLinkUri: DiagnosticHelper.GetHelpLinkForDiagnosticId(IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId),
-                                         customTags: DiagnosticCustomTags.UnnecessaryAndNotConfigurable);
-
             _generatedCodeClassificationIdDescriptor =
                 new DiagnosticDescriptor(IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId + "_gen",
                                          titleAndMessageFormat,
@@ -90,8 +65,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
                                          DiagnosticSeverity.Hidden,
                                          isEnabledByDefault: true,
                                          helpLinkUri: DiagnosticHelper.GetHelpLinkForDiagnosticId(IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId),
-                                         customTags: DiagnosticCustomTags.NotConfigurable);
+                                         customTags: DiagnosticCustomTags.UnnecessaryAndNotConfigurable);
 #pragma warning restore RS0030 // Do not used banned APIs
+
+            // TODO: Remove the below calls once https://github.com/dotnet/roslyn/issues/62638 is addressed.
+            IDEDiagnosticIdToOptionMappingHelper.AddFadingOptionMapping(_classificationIdDescriptor.Id, FadingOptions.FadeOutUnusedImports);
+            IDEDiagnosticIdToOptionMappingHelper.AddFadingOptionMapping(_generatedCodeClassificationIdDescriptor.Id, FadingOptions.FadeOutUnusedImports);
         }
 
         protected abstract ISyntaxFacts SyntaxFacts { get; }
@@ -108,15 +87,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
             {
                 return ImmutableArray.Create(
                     s_fixableIdDescriptor,
-                    _unnecessaryClassificationIdDescriptor,
                     _classificationIdDescriptor,
-                    _unnecessaryGeneratedCodeClassificationIdDescriptor,
                     _generatedCodeClassificationIdDescriptor);
             }
         }
 
         public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
-        public bool OpenFileOnly(OptionSet options) => false;
+        public bool OpenFileOnly(SimplifierOptions? options) => false;
 
         public override void Initialize(AnalysisContext context)
         {
@@ -142,18 +119,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
                 // for us appropriately.
                 unnecessaryImports = MergeImports(unnecessaryImports);
 
-                var fadeOut = context.Options.GetIdeOptions().FadeOutUnusedImports;
-
-                DiagnosticDescriptor descriptor;
-                if (GeneratedCodeUtilities.IsGeneratedCode(tree, IsRegularCommentOrDocComment, cancellationToken))
-                {
-                    descriptor = fadeOut ? _unnecessaryGeneratedCodeClassificationIdDescriptor : _generatedCodeClassificationIdDescriptor;
-                }
-                else
-                {
-                    descriptor = fadeOut ? _unnecessaryClassificationIdDescriptor : _classificationIdDescriptor;
-                }
-
+                var descriptor = GeneratedCodeUtilities.IsGeneratedCode(tree, IsRegularCommentOrDocComment, cancellationToken)
+                    ? _generatedCodeClassificationIdDescriptor
+                    : _classificationIdDescriptor;
                 var contiguousSpans = GetContiguousSpans(unnecessaryImports);
                 var diagnostics =
                     CreateClassificationDiagnostics(contiguousSpans, tree, descriptor, cancellationToken).Concat(

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Wrapping
@@ -44,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
             var token = root.FindToken(position);
 
             var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var options = GetWrappingOptions(configOptions, context.Options);
+            var options = GetWrappingOptions(configOptions, context.Options.GetOptions(document.Project.LanguageServices));
 
             foreach (var node in token.GetRequiredParent().AncestorsAndSelf())
             {

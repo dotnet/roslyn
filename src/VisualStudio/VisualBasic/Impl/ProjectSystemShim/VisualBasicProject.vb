@@ -210,8 +210,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                                                ByVal pcActualItems As IntPtr,
                                                findFormsOnly As Boolean)
 
+            Dim entryPoints = EntryPointFinder.FindEntryPoints(compilation.SourceModule.GlobalNamespace, findFormsOnly:=findFormsOnly)
+
             ' If called with cItems = 0 and pcActualItems != NULL, GetEntryPointsList returns in pcActualItems the number of items available.
-            Dim entryPoints = EntryPointFinder.FindEntryPoints(compilation.Assembly.GlobalNamespace, findFormsOnly:=findFormsOnly)
             If cItems = 0 AndAlso pcActualItems <> Nothing Then
                 Marshal.WriteInt32(pcActualItems, entryPoints.Count())
                 Exit Sub

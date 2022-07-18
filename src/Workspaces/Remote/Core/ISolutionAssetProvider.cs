@@ -18,6 +18,6 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Streams serialized assets into the given stream.
         /// </summary>
-        ValueTask GetAssetsAsync(PipeWriter pipeWriter, int scopeId, Checksum[] checksums, CancellationToken cancellationToken);
+        ValueTask GetAssetsAsync(PipeWriter pipeWriter, Checksum solutionChecksum, Checksum[] checksums, CancellationToken cancellationToken);
     }
 }

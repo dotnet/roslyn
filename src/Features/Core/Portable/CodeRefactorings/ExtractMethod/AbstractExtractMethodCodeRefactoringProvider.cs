@@ -11,6 +11,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -56,34 +57,37 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
                 return;
             }
 
-            var options = context.Options.ExtractMethodOptions;
-            var actions = await GetCodeActionsAsync(document, textSpan, options, cancellationToken).ConfigureAwait(false);
+            var extractOptions = await document.GetExtractMethodGenerationOptionsAsync(context.Options, cancellationToken).ConfigureAwait(false);
+            var cleanupOptions = await document.GetCodeCleanupOptionsAsync(context.Options, cancellationToken).ConfigureAwait(false);
+
+            var actions = await GetCodeActionsAsync(document, textSpan, extractOptions, cleanupOptions, cancellationToken).ConfigureAwait(false);
             context.RegisterRefactorings(actions);
         }
 
         private static async Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
             Document document,
             TextSpan textSpan,
-            ExtractMethodOptions options,
+            ExtractMethodGenerationOptions extractOptions,
+            CodeCleanupOptions cleanupOptions,
             CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<CodeAction>.GetInstance(out var actions);
-            var methodAction = await ExtractMethodAsync(document, textSpan, options, cancellationToken).ConfigureAwait(false);
+            var methodAction = await ExtractMethodAsync(document, textSpan, extractOptions, cleanupOptions, cancellationToken).ConfigureAwait(false);
             actions.AddIfNotNull(methodAction);
 
-            var localFunctionAction = await ExtractLocalFunctionAsync(document, textSpan, options, cancellationToken).ConfigureAwait(false);
+            var localFunctionAction = await ExtractLocalFunctionAsync(document, textSpan, extractOptions, cleanupOptions, cancellationToken).ConfigureAwait(false);
             actions.AddIfNotNull(localFunctionAction);
 
             return actions.ToImmutable();
         }
 
-        private static async Task<CodeAction> ExtractMethodAsync(Document document, TextSpan textSpan, ExtractMethodOptions options, CancellationToken cancellationToken)
+        private static async Task<CodeAction> ExtractMethodAsync(Document document, TextSpan textSpan, ExtractMethodGenerationOptions extractOptions, CodeCleanupOptions cleanupOptions, CancellationToken cancellationToken)
         {
             var result = await ExtractMethodService.ExtractMethodAsync(
                 document,
                 textSpan,
                 localFunction: false,
-                options,
+                extractOptions,
                 cancellationToken).ConfigureAwait(false);
 
             Contract.ThrowIfNull(result);
@@ -91,17 +95,17 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
             if (!result.Succeeded && !result.SucceededWithSuggestion)
                 return null;
 
-            return new MyCodeAction(
+            return CodeAction.Create(
                 FeaturesResources.Extract_method,
                 async c =>
                 {
-                    var (document, invocationNameToken) = await result.GetFormattedDocumentAsync(c).ConfigureAwait(false);
+                    var (document, invocationNameToken) = await result.GetFormattedDocumentAsync(cleanupOptions, c).ConfigureAwait(false);
                     return await AddRenameAnnotationAsync(document, invocationNameToken, c).ConfigureAwait(false);
                 },
                 nameof(FeaturesResources.Extract_method));
         }
 
-        private static async Task<CodeAction> ExtractLocalFunctionAsync(Document document, TextSpan textSpan, ExtractMethodOptions options, CancellationToken cancellationToken)
+        private static async Task<CodeAction> ExtractLocalFunctionAsync(Document document, TextSpan textSpan, ExtractMethodGenerationOptions extractOptions, CodeCleanupOptions cleanupOptions, CancellationToken cancellationToken)
         {
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
@@ -114,17 +118,17 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
                 document,
                 textSpan,
                 localFunction: true,
-                options,
+                extractOptions,
                 cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfNull(localFunctionResult);
 
             if (localFunctionResult.Succeeded || localFunctionResult.SucceededWithSuggestion)
             {
-                var codeAction = new MyCodeAction(
+                var codeAction = CodeAction.Create(
                     FeaturesResources.Extract_local_function,
                     async c =>
                     {
-                        var (document, invocationNameToken) = await localFunctionResult.GetFormattedDocumentAsync(c).ConfigureAwait(false);
+                        var (document, invocationNameToken) = await localFunctionResult.GetFormattedDocumentAsync(cleanupOptions, c).ConfigureAwait(false);
                         return await AddRenameAnnotationAsync(document, invocationNameToken, c).ConfigureAwait(false);
                     },
                     nameof(FeaturesResources.Extract_local_function));
@@ -143,14 +147,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
                 invocationNameToken.WithAdditionalAnnotations(RenameAnnotation.Create()));
 
             return document.WithSyntaxRoot(finalRoot);
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
-                : base(title, createChangedDocument, equivalenceKey)
-            {
-            }
         }
     }
 }

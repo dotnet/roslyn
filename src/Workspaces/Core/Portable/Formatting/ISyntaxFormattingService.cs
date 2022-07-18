@@ -2,36 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Options;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Indentation;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
     internal interface ISyntaxFormattingService : ISyntaxFormatting, ILanguageService
     {
-    }
-
-    internal abstract partial class SyntaxFormattingOptions
-    {
-        public static SyntaxFormattingOptions Create(OptionSet options, HostWorkspaceServices services, string language)
-        {
-            var formattingService = services.GetRequiredLanguageService<ISyntaxFormattingService>(language);
-            var configOptions = options.AsAnalyzerConfigOptions(services.GetRequiredService<IOptionService>(), language);
-            return formattingService.GetFormattingOptions(configOptions);
-        }
-
-        public static async Task<SyntaxFormattingOptions> FromDocumentAsync(Document document, CancellationToken cancellationToken)
-        {
-            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            return Create(documentOptions, document.Project.Solution.Workspace.Services, document.Project.Language);
-        }
+        bool ShouldFormatOnTypedCharacter(ParsedDocument document, char typedChar, int caretPosition, CancellationToken cancellationToken);
+        ImmutableArray<TextChange> GetFormattingChangesOnTypedCharacter(ParsedDocument document, int caretPosition, IndentationOptions indentationOptions, CancellationToken cancellationToken);
+        ImmutableArray<TextChange> GetFormattingChangesOnPaste(ParsedDocument document, TextSpan textSpan, SyntaxFormattingOptions options, CancellationToken cancellationToken);
     }
 }

@@ -104,6 +104,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool IsInterpolatedStringHandlerType => false;
 
+        internal sealed override bool HasDeclaredRequiredMembers => false;
+
         public override ImmutableArray<Symbol> GetMembers()
         {
             Symbol constructor = this.Constructor;
@@ -162,6 +164,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override int Arity => TypeParameters.Length;
 
         internal override bool MangleName => Arity > 0;
+
+#nullable enable
+        internal sealed override SyntaxTree? AssociatedSyntaxTree => null;
+#nullable disable
 
         public override bool IsImplicitlyDeclared => true;
 

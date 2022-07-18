@@ -2,31 +2,24 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Threading;
-using System.Threading.Tasks;
+using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Indentation
 {
+    [DataContract]
     internal readonly record struct IndentationOptions(
-        SyntaxFormattingOptions FormattingOptions,
-        AutoFormattingOptions AutoFormattingOptions,
-        FormattingOptions2.IndentStyle IndentStyle)
+        [property: DataMember(Order = 0)] SyntaxFormattingOptions FormattingOptions)
     {
-#if !CODE_STYLE
-        public static async Task<IndentationOptions> FromDocumentAsync(Document document, CancellationToken cancellationToken)
-        {
-            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            return From(documentOptions, document.Project.Solution.Workspace.Services, document.Project.Language);
-        }
+        [DataMember(Order = 1)] public AutoFormattingOptions AutoFormattingOptions { get; init; } = AutoFormattingOptions.Default;
+        [DataMember(Order = 2)] public FormattingOptions2.IndentStyle IndentStyle { get; init; } = DefaultIndentStyle;
 
-        public static IndentationOptions From(OptionSet options, HostWorkspaceServices services, string language)
-            => new(
-                SyntaxFormattingOptions.Create(options, services, language),
-                AutoFormattingOptions.From(options, language),
-                options.GetOption(FormattingOptions2.SmartIndent, language));
+        public const FormattingOptions2.IndentStyle DefaultIndentStyle = FormattingOptions2.IndentStyle.Smart;
+
+#if !CODE_STYLE
+        public static IndentationOptions GetDefault(HostLanguageServices languageServices)
+            => new(SyntaxFormattingOptions.GetDefault(languageServices));
 #endif
     }
 }

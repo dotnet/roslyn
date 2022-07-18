@@ -24,6 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static readonly CSharpSemanticFactsService Instance = new();
 
         public override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
+        public override IBlockFacts BlockFacts => CSharpBlockFacts.Instance;
+
         protected override ISemanticFacts SemanticFacts => CSharpSemanticFacts.Instance;
 
         private CSharpSemanticFactsService()

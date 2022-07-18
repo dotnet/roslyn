@@ -204,6 +204,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return OriginalDefinition.GetTypeMembers(name, arity).SelectAsArray((t, self) => t.AsMember(self), this);
         }
 
+        internal sealed override bool HasDeclaredRequiredMembers => OriginalDefinition.HasDeclaredRequiredMembers;
+
         public sealed override ImmutableArray<Symbol> GetMembers()
         {
             var builder = ArrayBuilder<Symbol>.GetInstance();

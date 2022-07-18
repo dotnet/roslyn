@@ -82,21 +82,32 @@ namespace Microsoft.CodeAnalysis.Completion
 
         // This comparison is used in the deletion/backspace scenario for selecting best elements.
         public int CompareTo(MatchResult<TEditorCompletionItem> other, string filterText)
-            => ComparerWithState.CompareTo(this, other, filterText, s_comparers);
+        {
+            var thisItem = this.RoslynCompletionItem;
+            var otherItem = other.RoslynCompletionItem;
 
-        private static readonly ImmutableArray<Func<MatchResult<TEditorCompletionItem>, string, IComparable>> s_comparers =
-            ImmutableArray.Create<Func<MatchResult<TEditorCompletionItem>, string, IComparable>>(
-                // Prefer the item that matches a longer prefix of the filter text.
-                (f, s) => f.RoslynCompletionItem.FilterText.GetCaseInsensitivePrefixLength(s),
-                // If there are "Abc" vs "abc", we should prefer the case typed by user.
-                (f, s) => f.RoslynCompletionItem.FilterText.GetCaseSensitivePrefixLength(s),
-                // If the lengths are the same, prefer the one with the higher match priority.
-                // But only if it's an item that would have been hard selected.  We don't want
-                // to aggressively select an item that was only going to be softly offered.
-                (f, s) => f.RoslynCompletionItem.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection
-                    ? f.RoslynCompletionItem.Rules.MatchPriority
-                    : MatchPriority.Default,
-                // Prefer Intellicode items.
-                (f, s) => f.RoslynCompletionItem.IsPreferredItem());
+            // Prefer the item that matches a longer prefix of the filter text.
+            var comparison = thisItem.FilterText.GetCaseInsensitivePrefixLength(filterText).CompareTo(otherItem.FilterText.GetCaseInsensitivePrefixLength(filterText));
+            if (comparison != 0)
+                return comparison;
+
+            // If there are "Abc" vs "abc", we should prefer the case typed by user.
+            comparison = thisItem.FilterText.GetCaseSensitivePrefixLength(filterText).CompareTo(otherItem.FilterText.GetCaseSensitivePrefixLength(filterText));
+            if (comparison != 0)
+                return comparison;
+
+            // If the lengths are the same, prefer the one with the higher match priority.
+            // But only if it's an item that would have been hard selected.  We don't want
+            // to aggressively select an item that was only going to be softly offered.
+            comparison = GetPriority(thisItem).CompareTo(GetPriority(otherItem));
+            if (comparison != 0)
+                return comparison;
+
+            // Prefer Intellicode items.
+            return thisItem.IsPreferredItem().CompareTo(otherItem.IsPreferredItem());
+
+            static int GetPriority(RoslynCompletionItem item)
+                => item.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection ? item.Rules.MatchPriority : MatchPriority.Default;
+        }
     }
 }

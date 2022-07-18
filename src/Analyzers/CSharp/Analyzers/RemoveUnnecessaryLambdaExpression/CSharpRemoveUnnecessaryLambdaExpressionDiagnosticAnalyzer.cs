@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -26,16 +27,16 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
     /// time.
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class CSharpRemoveUnnecessaryLambdaExpressionDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    internal sealed class CSharpRemoveUnnecessaryLambdaExpressionDiagnosticAnalyzer : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer
     {
         public CSharpRemoveUnnecessaryLambdaExpressionDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.RemoveUnnecessaryLambdaExpressionDiagnosticId,
                    EnforceOnBuildValues.RemoveUnnecessaryLambdaExpression,
                    CSharpCodeStyleOptions.PreferMethodGroupConversion,
+                   fadingOption: null,
                    LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Remove_unnecessary_lambda_expression), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
-                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Lambda_expression_can_be_removed), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
-                   isUnnecessary: true)
+                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Lambda_expression_can_be_removed), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
         }
 
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
             var semanticModel = context.SemanticModel;
             var syntaxTree = semanticModel.SyntaxTree;
 
-            var preference = context.GetOption(CSharpCodeStyleOptions.PreferMethodGroupConversion);
+            var preference = context.GetCSharpAnalyzerOptions().PreferMethodGroupConversion;
             if (preference.Notification.Severity == ReportDiagnostic.Suppress)
             {
                 // User doesn't care about this rule.

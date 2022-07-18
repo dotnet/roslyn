@@ -37,6 +37,11 @@
         <target state="translated">Napraw interpolowany ciąg dosłowny wyrażenia</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fixing_string_literal_after_paste">
+        <source>Fixing string literal after paste</source>
+        <target state="translated">Naprawianie literału ciągu po wklejeniu</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Found_0_assemblies_for_1">
         <source>Found '{0}' assemblies for '{1}':</source>
         <target state="translated">Znaleziono zestawy („{0}”) dla elementu „{1}”:</target>
@@ -64,7 +69,7 @@
       </trans-unit>
       <trans-unit id="Grow_raw_string">
         <source>Grow raw string</source>
-        <target state="new">Grow raw string</target>
+        <target state="translated">Zwiększ nieprzetworzony ciąg</target>
         <note />
       </trans-unit>
       <trans-unit id="Load_from_0">
@@ -104,7 +109,7 @@
       </trans-unit>
       <trans-unit id="Split_raw_string">
         <source>Split raw string</source>
-        <target state="new">Split raw string</target>
+        <target state="translated">Podziel nieprzetworzony ciąg</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_string">

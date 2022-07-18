@@ -22,15 +22,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public readonly RefKind RefKind;
 
+        public readonly DeclarationScope Scope;
+
         /// <summary>Anonymous type field type</summary>
         public TypeSymbol Type => TypeWithAnnotations.Type;
 
-        public AnonymousTypeField(string name, Location location, TypeWithAnnotations typeWithAnnotations, RefKind refKind)
+        public AnonymousTypeField(string name, Location location, TypeWithAnnotations typeWithAnnotations, RefKind refKind, DeclarationScope scope)
         {
             this.Name = name;
             this.Location = location;
             this.TypeWithAnnotations = typeWithAnnotations;
             this.RefKind = refKind;
+            this.Scope = scope;
         }
 
         [Conditional("DEBUG")]

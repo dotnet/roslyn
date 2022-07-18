@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
@@ -187,7 +188,7 @@ class C
         {
             public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
 
-            public bool OpenFileOnly(OptionSet options) => false;
+            public bool OpenFileOnly(SimplifierOptions? options) => false;
 
             public DiagnosticAnalyzerCategory GetAnalyzerCategory()
                 => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis | DiagnosticAnalyzerCategory.SemanticDocumentAnalysis | DiagnosticAnalyzerCategory.ProjectAnalysis;

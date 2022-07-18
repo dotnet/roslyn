@@ -99,10 +99,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression(@"c is [ 1, prop: 0 ]",
                 // (1,15): error CS1003: Syntax error, ',' expected
                 // c is [ 1, prop: 0 ]
-                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",", ":").WithLocation(1, 15),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(1, 15),
                 // (1,17): error CS1003: Syntax error, ',' expected
                 // c is [ 1, prop: 0 ]
-                Diagnostic(ErrorCode.ERR_SyntaxError, "0").WithArguments(",", "").WithLocation(1, 17));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "0").WithArguments(",").WithLocation(1, 17));
 
 
             N(SyntaxKind.IsPatternExpression);
@@ -769,7 +769,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression(@"c is [var x ..]",
                     // (1,13): error CS1003: Syntax error, ',' expected
                     // c is {var x ..}
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "..").WithArguments(",", "..").WithLocation(1, 13));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "..").WithArguments(",").WithLocation(1, 13));
 
             N(SyntaxKind.IsPatternExpression);
             {
@@ -837,7 +837,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression(@"c is [[]..]",
                 // (1,9): error CS1003: Syntax error, ',' expected
                 // c is {{}..}
-                Diagnostic(ErrorCode.ERR_SyntaxError, "..").WithArguments(",", "..").WithLocation(1, 9));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "..").WithArguments(",").WithLocation(1, 9));
 
             N(SyntaxKind.IsPatternExpression);
             {

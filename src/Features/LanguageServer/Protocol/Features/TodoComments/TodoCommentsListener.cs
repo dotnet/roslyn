@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
@@ -36,7 +37,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
         /// <summary>
         /// Queue where we enqueue the information we get from OOP to process in batch in the future.
         /// </summary>
-        private readonly TaskCompletionSource<AsyncBatchingWorkQueue<DocumentAndComments>> _workQueueSource = new();
+        private readonly AsyncBatchingWorkQueue<DocumentAndComments> _workQueue;
 
         public TodoCommentsListener(
             IGlobalOptionService globalOptions,
@@ -50,6 +51,12 @@ namespace Microsoft.CodeAnalysis.TodoComments
             _asyncListener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.TodoCommentList);
             _onTodoCommentsUpdated = onTodoCommentsUpdated;
             _disposalToken = disposalToken;
+
+            _workQueue = new AsyncBatchingWorkQueue<DocumentAndComments>(
+                TimeSpan.FromSeconds(1),
+                ProcessTodoCommentInfosAsync,
+                _asyncListener,
+                _disposalToken);
         }
 
         public void Dispose()
@@ -64,14 +71,10 @@ namespace Microsoft.CodeAnalysis.TodoComments
 
         public async ValueTask StartAsync()
         {
-            var cancellationToken = _disposalToken;
+            // Should only be started once.
+            Contract.ThrowIfTrue(_lazyConnection != null);
 
-            _workQueueSource.SetResult(
-                new AsyncBatchingWorkQueue<DocumentAndComments>(
-                TimeSpan.FromSeconds(1),
-                ProcessTodoCommentInfosAsync,
-                _asyncListener,
-                cancellationToken));
+            var cancellationToken = _disposalToken;
 
             var client = await RemoteHostClient.TryGetClientAsync(_services, cancellationToken).ConfigureAwait(false);
             if (client == null)
@@ -120,12 +123,12 @@ namespace Microsoft.CodeAnalysis.TodoComments
         /// <summary>
         /// Callback from the OOP service back into us.
         /// </summary>
-        public async ValueTask ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> infos, CancellationToken cancellationToken)
+        public ValueTask ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> infos, CancellationToken cancellationToken)
         {
             try
             {
-                var workQueue = await _workQueueSource.Task.ConfigureAwait(false);
-                workQueue.AddWork(new DocumentAndComments(documentId, infos));
+                _workQueue.AddWork(new DocumentAndComments(documentId, infos));
+                return ValueTaskFactory.CompletedTask;
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
@@ -141,7 +144,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
             => ValueTaskFactory.FromResult(_globalOptions.GetTodoCommentOptions());
 
         private ValueTask ProcessTodoCommentInfosAsync(
-            ImmutableArray<DocumentAndComments> docAndCommentsArray, CancellationToken cancellationToken)
+            ImmutableSegmentedList<DocumentAndComments> docAndCommentsArray, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -177,7 +180,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
         }
 
         private static void AddFilteredInfos(
-            ImmutableArray<DocumentAndComments> array,
+            ImmutableSegmentedList<DocumentAndComments> array,
             ArrayBuilder<DocumentAndComments> filteredArray)
         {
             using var _ = PooledHashSet<DocumentId>.GetInstance(out var seenDocumentIds);
@@ -185,7 +188,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
             // Walk the list of todo comments in reverse, and skip any items for a document once
             // we've already seen it once.  That way, we're only reporting the most up to date
             // information for a document, and we're skipping the stale information.
-            for (var i = array.Length - 1; i >= 0; i--)
+            for (var i = array.Count - 1; i >= 0; i--)
             {
                 var info = array[i];
                 if (seenDocumentIds.Add(info.DocumentId))

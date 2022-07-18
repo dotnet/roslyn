@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                     return;
                 }
 
-                var hideAdvancedMembers = context.Options.HideAdvancedMembers;
+                var hideAdvancedMembers = context.Options.GetOptions(document.Project.LanguageServices).HideAdvancedMembers;
                 var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
                 var matchingTypes = await GetMatchingTypesAsync(document, semanticModel, node, hideAdvancedMembers, cancellationToken).ConfigureAwait(false);
@@ -122,9 +122,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                     memberName = name;
                 }
 
-                var codeAction = new MyCodeAction(
-                    $"{containerName}.{memberName}",
-                    c => ProcessNodeAsync(document, node, containerName, symbolResult.OriginalSymbol, c));
+                var title = $"{containerName}.{memberName}";
+                var codeAction = CodeAction.Create(
+                    title,
+                    c => ProcessNodeAsync(document, node, containerName, symbolResult.OriginalSymbol, c),
+                    title);
 
                 yield return codeAction;
             }
@@ -334,14 +336,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             => symbols.Distinct()
                .Where(n => n.Symbol is INamedTypeSymbol || !((INamespaceSymbol)n.Symbol).IsGlobalNamespace)
                .Order();
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, equivalenceKey: title)
-            {
-            }
-        }
 
         private class GroupingCodeAction : CodeAction.CodeActionWithNestedActions
         {

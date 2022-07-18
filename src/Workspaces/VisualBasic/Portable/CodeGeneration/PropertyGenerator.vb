@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Friend Function AddPropertyTo(destination As CompilationUnitSyntax,
                             [property] As IPropertySymbol,
-                            options As CodeGenerationOptions,
+                            options As CodeGenerationContextInfo,
                             availableIndices As IList(Of Boolean)) As CompilationUnitSyntax
             Dim propertyDeclaration = GeneratePropertyDeclaration([property], CodeGenerationDestination.CompilationUnit, options)
 
@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Friend Function AddPropertyTo(destination As TypeBlockSyntax,
                                     [property] As IPropertySymbol,
-                                    options As CodeGenerationOptions,
+                                    options As CodeGenerationContextInfo,
                                     availableIndices As IList(Of Boolean)) As TypeBlockSyntax
             Dim propertyDeclaration = GeneratePropertyDeclaration([property], GetDestination(destination), options)
 
@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Function GeneratePropertyDeclaration([property] As IPropertySymbol,
                                                            destination As CodeGenerationDestination,
-                                                           options As CodeGenerationOptions) As StatementSyntax
+                                                           options As CodeGenerationContextInfo) As StatementSyntax
             Dim reusableSyntax = GetReuseableSyntaxNodeForSymbol(Of DeclarationStatementSyntax)([property], options)
             If reusableSyntax IsNot Nothing Then
                 Return reusableSyntax
@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Private Function GeneratePropertyDeclarationWorker([property] As IPropertySymbol,
                                                                   destination As CodeGenerationDestination,
-                                                                  options As CodeGenerationOptions) As StatementSyntax
+                                                                  options As CodeGenerationContextInfo) As StatementSyntax
 
             Dim implementsClauseOpt = GenerateImplementsClause([property].ExplicitInterfaceImplementations.FirstOrDefault())
 
@@ -97,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 endPropertyStatement:=SyntaxFactory.EndPropertyStatement())
         End Function
 
-        Private Function GeneratePropertyParameterList([property] As IPropertySymbol, options As CodeGenerationOptions) As ParameterListSyntax
+        Private Function GeneratePropertyParameterList([property] As IPropertySymbol, options As CodeGenerationContextInfo) As ParameterListSyntax
             If [property].Parameters.IsDefault OrElse [property].Parameters.Length = 0 Then
                 Return Nothing
             End If
@@ -107,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Private Function GenerateAccessorList([property] As IPropertySymbol,
                                                      destination As CodeGenerationDestination,
-                                                     options As CodeGenerationOptions) As SyntaxList(Of AccessorBlockSyntax)
+                                                     options As CodeGenerationContextInfo) As SyntaxList(Of AccessorBlockSyntax)
             Dim accessors = New List(Of AccessorBlockSyntax) From {
                 GenerateAccessor([property], [property].GetMethod, isGetter:=True, destination:=destination, options:=options),
                 GenerateAccessor([property], [property].SetMethod, isGetter:=False, destination:=destination, options:=options)
@@ -120,7 +120,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                                                  accessor As IMethodSymbol,
                                                  isGetter As Boolean,
                                                  destination As CodeGenerationDestination,
-                                                 options As CodeGenerationOptions) As AccessorBlockSyntax
+                                                 options As CodeGenerationContextInfo) As AccessorBlockSyntax
             If accessor Is Nothing Then
                 Return Nothing
             End If
@@ -156,7 +156,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Private Function GenerateAccessorModifiers([property] As IPropertySymbol,
                                                            accessor As IMethodSymbol,
                                                            destination As CodeGenerationDestination,
-                                                           options As CodeGenerationOptions) As SyntaxTokenList
+                                                           options As CodeGenerationContextInfo) As SyntaxTokenList
             If accessor.DeclaredAccessibility = Accessibility.NotApplicable OrElse
                accessor.DeclaredAccessibility = [property].DeclaredAccessibility Then
                 Return New SyntaxTokenList()
@@ -173,7 +173,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Private Function GenerateModifiers(
                 [property] As IPropertySymbol,
                 destination As CodeGenerationDestination,
-                options As CodeGenerationOptions,
+                options As CodeGenerationContextInfo,
                 parameterList As ParameterListSyntax) As SyntaxTokenList
             Dim tokens As ArrayBuilder(Of SyntaxToken) = Nothing
             Using x = ArrayBuilder(Of SyntaxToken).GetInstance(tokens)
@@ -233,7 +233,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 parameter.Modifiers.Any(SyntaxKind.ByRefKeyword)
         End Function
 
-        Private Function GenerateAsClause([property] As IPropertySymbol, options As CodeGenerationOptions) As AsClauseSyntax
+        Private Function GenerateAsClause([property] As IPropertySymbol, options As CodeGenerationContextInfo) As AsClauseSyntax
             Dim attributes = If([property].GetMethod IsNot Nothing,
                                 AttributeGenerator.GenerateAttributeBlocks([property].GetMethod.GetReturnTypeAttributes(), options),
                                 Nothing)

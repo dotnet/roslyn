@@ -74,23 +74,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             });
         }
 
-        private void AnalyzeInvocation(
-            OperationAnalysisContext context, InfoCache infoCache)
+        private void AnalyzeInvocation(OperationAnalysisContext context, InfoCache infoCache)
         {
-            var operation = context.Operation;
-            var syntaxTree = operation.SemanticModel!.SyntaxTree;
-            var cancellationToken = context.CancellationToken;
-
             // Check if the user wants these operators.
-            var option = context.Options.GetOption(CSharpCodeStyleOptions.PreferRangeOperator, syntaxTree, cancellationToken);
+            var option = context.GetCSharpAnalyzerOptions().PreferRangeOperator;
             if (!option.Value)
                 return;
 
+            var operation = context.Operation;
             var result = AnalyzeInvocation((IInvocationOperation)operation, infoCache);
             if (result == null)
                 return;
 
-            if (CSharpSemanticFacts.Instance.IsInExpressionTree(operation.SemanticModel, operation.Syntax, infoCache.ExpressionOfTType, cancellationToken))
+            if (CSharpSemanticFacts.Instance.IsInExpressionTree(operation.SemanticModel, operation.Syntax, infoCache.ExpressionOfTType, context.CancellationToken))
                 return;
 
             context.ReportDiagnostic(CreateDiagnostic(result.Value, option.Notification.Severity));

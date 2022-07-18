@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -552,6 +550,23 @@ public enum Goo
     First,
     Second
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterParenthesizedPattern1()
+        {
+            await VerifyKeywordAsync(
+@"
+expr is (not []) $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterParenthesizedPattern2()
+        {
+            // expr is (not []) and var x
+            await VerifyKeywordAsync(
+@"
+expr is (not []) $$ var x");
         }
     }
 }

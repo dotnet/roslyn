@@ -225,7 +225,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
             await LoadAnalyzerNodeComponentsAsync(cancellationToken).ConfigureAwait(false);
 
-            LoadComponentsBackgroundAsync(cancellationToken).Forget();
+            LoadComponentsBackgroundAsync(cancellationToken).ReportNonFatalErrorUnlessCancelledAsync(cancellationToken).Forget();
         }
 
         // Overrides for VSSDK003 fix 
@@ -256,7 +256,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             await TaskScheduler.Default;
 
             await LoadInteractiveMenusAsync(cancellationToken).ConfigureAwait(true);
-            await LoadCallstackExplorerMenusAsync(cancellationToken).ConfigureAwait(true);
+            await LoadStackTraceExplorerMenusAsync(cancellationToken).ConfigureAwait(true);
 
             // Initialize keybinding reset detector
             await ComponentModel.DefaultExportProvider.GetExportedValue<KeybindingReset.KeybindingResetDetector>().InitializeAsync().ConfigureAwait(true);
@@ -284,7 +284,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
                 .ConfigureAwait(true);
         }
 
-        private async Task LoadCallstackExplorerMenusAsync(CancellationToken cancellationToken)
+        private async Task LoadStackTraceExplorerMenusAsync(CancellationToken cancellationToken)
         {
             // Obtain services and QueryInterface from the main thread
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -322,10 +322,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
         private void DisposeVisualStudioServices()
         {
-            if (_workspace != null)
-            {
-                _workspace.Services.GetRequiredService<VisualStudioMetadataReferenceManager>().DisconnectFromVisualStudioNativeServices();
-            }
+            _workspace?.Services.GetRequiredService<VisualStudioMetadataReferenceManager>().DisconnectFromVisualStudioNativeServices();
         }
 
         private async Task LoadAnalyzerNodeComponentsAsync(CancellationToken cancellationToken)
@@ -364,17 +361,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             // BulkFileOperation can't have nested events. there will be ever only 1 events (Begin/End)
             // so we only need simple tracking.
             var gate = new object();
-            GlobalOperationRegistration? localRegistration = null;
+            IDisposable? localRegistration = null;
 
-            BulkFileOperation.End += (s, a) =>
-            {
-                StopBulkFileOperationNotification();
-            };
+            BulkFileOperation.Begin += (s, a) => StartBulkFileOperationNotification();
+            BulkFileOperation.End += (s, a) => StopBulkFileOperationNotification();
 
-            BulkFileOperation.Begin += (s, a) =>
-            {
-                StartBulkFileOperationNotification();
-            };
+            return;
 
             void StartBulkFileOperationNotification()
             {

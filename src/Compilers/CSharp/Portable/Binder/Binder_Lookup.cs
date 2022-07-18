@@ -1306,12 +1306,44 @@ symIsHidden:;
             }
         }
 
+        private bool IsInScopeOfAssociatedSyntaxTree(Symbol symbol)
+        {
+            while (symbol is not null and not SourceMemberContainerTypeSymbol { IsFileLocal: true })
+            {
+                symbol = symbol.ContainingType;
+            }
+
+            if (symbol is null)
+            {
+                // the passed-in symbol was not contained in a file-local type.
+                return true;
+            }
+
+            var tree = getSyntaxTreeForFileTypes();
+            return symbol.IsDefinedInSourceTree(tree, definedWithinSpan: null);
+
+            SyntaxTree getSyntaxTreeForFileTypes()
+            {
+                for (var binder = this; binder != null; binder = binder.Next)
+                {
+                    if (binder is BuckStopsHereBinder lastBinder)
+                    {
+                        Debug.Assert(lastBinder.AssociatedSyntaxTree is not null);
+                        return lastBinder.AssociatedSyntaxTree;
+                    }
+                }
+
+                Debug.Assert(false);
+                return null;
+            }
+        }
+
         /// <remarks>
         /// Distinguish from <see cref="CanAddLookupSymbolInfo"/>, which performs an analogous task for Add*LookupSymbolsInfo*.
         /// </remarks>
         internal SingleLookupResult CheckViability(Symbol symbol, int arity, LookupOptions options, TypeSymbol accessThroughType, bool diagnose, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, ConsList<TypeSymbol> basesBeingResolved = null)
         {
-            Debug.Assert((options & LookupOptions.MustBeAbstract) == 0 || (options & LookupOptions.MustNotBeInstance) != 0);
+            Debug.Assert((options & LookupOptions.MustBeAbstractOrVirtual) == 0 || (options & LookupOptions.MustNotBeInstance) != 0);
             bool inaccessibleViaQualifier;
             DiagnosticInfo diagInfo;
 
@@ -1322,13 +1354,17 @@ symIsHidden:;
                 ? ((AliasSymbol)symbol).GetAliasTarget(basesBeingResolved)
                 : symbol;
 
-            // Check for symbols marked with 'Microsoft.CodeAnalysis.Embedded' attribute
-            if (!this.Compilation.SourceModule.Equals(unwrappedSymbol.ContainingModule) && unwrappedSymbol.IsHiddenByCodeAnalysisEmbeddedAttribute())
+            if (!IsInScopeOfAssociatedSyntaxTree(unwrappedSymbol))
             {
                 return LookupResult.Empty();
             }
-            else if ((options & (LookupOptions.MustNotBeInstance | LookupOptions.MustBeAbstract)) == (LookupOptions.MustNotBeInstance | LookupOptions.MustBeAbstract) &&
-                (unwrappedSymbol is not TypeSymbol && IsInstance(unwrappedSymbol) || !unwrappedSymbol.IsAbstract))
+            // Check for symbols marked with 'Microsoft.CodeAnalysis.Embedded' attribute
+            else if (!this.Compilation.SourceModule.Equals(unwrappedSymbol.ContainingModule) && unwrappedSymbol.IsHiddenByCodeAnalysisEmbeddedAttribute())
+            {
+                return LookupResult.Empty();
+            }
+            else if ((options & (LookupOptions.MustNotBeInstance | LookupOptions.MustBeAbstractOrVirtual)) == (LookupOptions.MustNotBeInstance | LookupOptions.MustBeAbstractOrVirtual) &&
+                (unwrappedSymbol is not TypeSymbol && IsInstance(unwrappedSymbol) || !(unwrappedSymbol.IsAbstract || unwrappedSymbol.IsVirtual)))
             {
                 return LookupResult.Empty();
             }
@@ -1488,15 +1524,6 @@ symIsHidden:;
                 new CSDiagnosticInfo(ErrorCode.ERR_BindToBogusProp1, symbol, method1 ?? method2);
         }
 
-        internal void CheckViability<TSymbol>(LookupResult result, ImmutableArray<TSymbol> symbols, int arity, LookupOptions options, TypeSymbol accessThroughType, bool diagnose, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, ConsList<TypeSymbol> basesBeingResolved) where TSymbol : Symbol
-        {
-            foreach (var symbol in symbols)
-            {
-                var res = this.CheckViability(symbol, arity, options, accessThroughType, diagnose, ref useSiteInfo, basesBeingResolved);
-                result.MergeEqual(res);
-            }
-        }
-
         /// <summary>
         /// Used by Add*LookupSymbolsInfo* to determine whether the symbol is of interest.
         /// Distinguish from <see cref="CheckViability"/>, which performs an analogous task for LookupSymbols*.
@@ -1528,6 +1555,10 @@ symIsHidden:;
             }
             else if (InCref ? !this.IsCrefAccessible(symbol)
                             : !this.IsAccessible(symbol, ref discardedUseSiteInfo, RefineAccessThroughType(options, accessThroughType)))
+            {
+                return false;
+            }
+            else if (!IsInScopeOfAssociatedSyntaxTree(symbol))
             {
                 return false;
             }
@@ -1764,7 +1795,7 @@ symIsHidden:;
             }
         }
 
-        protected virtual void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo info, LookupOptions options, Binder originalBinder)
+        internal virtual void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo info, LookupOptions options, Binder originalBinder)
         {
             // overridden in other binders
         }

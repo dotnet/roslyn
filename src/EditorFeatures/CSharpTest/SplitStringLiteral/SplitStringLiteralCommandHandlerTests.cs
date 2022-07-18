@@ -14,6 +14,8 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Indentation;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -47,22 +49,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         {
             using var workspace = TestWorkspace.CreateCSharp(inputMarkup);
 
-            // TODO: set SmartIndent to textView.Options (https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1412138)
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(FormattingOptions2.SmartIndent, LanguageNames.CSharp, indentStyle)));
-
             if (useTabs && expectedOutputMarkup != null)
             {
                 Assert.Contains("\t", expectedOutputMarkup);
             }
 
+            var editorOptionsFactory = workspace.GetService<IEditorOptionsFactoryService>();
+
             var document = workspace.Documents.Single();
             var view = document.GetTextView();
+            var textBuffer = view.TextBuffer;
+            var options = editorOptionsFactory.GetOptions(textBuffer);
 
-            view.Options.SetOptionValue(DefaultOptions.ConvertTabsToSpacesOptionId, !useTabs);
-            view.Options.SetOptionValue(DefaultOptions.TabSizeOptionId, 4);
+            options.SetOptionValue(DefaultOptions.ConvertTabsToSpacesOptionId, !useTabs);
+            options.SetOptionValue(DefaultOptions.TabSizeOptionId, 4);
+            options.SetOptionValue(DefaultOptions.IndentStyleId, indentStyle.ToEditorIndentStyle());
 
-            var originalSnapshot = view.TextBuffer.CurrentSnapshot;
+            // Remove once https://github.com/dotnet/roslyn/issues/62204 is fixed:
+            workspace.GlobalOptions.SetGlobalOption(new OptionKey(IndentationOptionsStorage.SmartIndent, document.Project.Language), indentStyle);
+
+            var originalSnapshot = textBuffer.CurrentSnapshot;
             var originalSelections = document.SelectedSpans;
 
             var snapshotSpans = new List<SnapshotSpan>();
@@ -76,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             var undoHistoryRegistry = workspace.GetService<ITextUndoHistoryRegistry>();
             var commandHandler = workspace.ExportProvider.GetCommandHandler<SplitStringLiteralCommandHandler>(nameof(SplitStringLiteralCommandHandler));
 
-            if (!commandHandler.ExecuteCommand(new ReturnKeyCommandArgs(view, view.TextBuffer), TestCommandExecutionContext.Create()))
+            if (!commandHandler.ExecuteCommand(new ReturnKeyCommandArgs(view, textBuffer), TestCommandExecutionContext.Create()))
             {
                 callback();
             }
@@ -86,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
                 MarkupTestFile.GetSpans(expectedOutputMarkup,
                     out var expectedOutput, out ImmutableArray<TextSpan> expectedSpans);
 
-                Assert.Equal(expectedOutput, view.TextBuffer.CurrentSnapshot.AsText().ToString());
+                Assert.Equal(expectedOutput, textBuffer.CurrentSnapshot.AsText().ToString());
                 Assert.Equal(expectedSpans.First().Start, view.Caret.Position.BufferPosition.Position);
 
                 if (verifyUndo)
@@ -144,6 +150,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
     void M()
     {
         var v = [||]"""";
+    }
+}");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestMissingBeforeUtf8String()
+        {
+            TestNotHandled(
+@"class C
+{
+    void M()
+    {
+        var v = [||]""""u8;
     }
 }");
         }
@@ -266,6 +285,71 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestMissingAfterUtf8String_1()
+        {
+            TestNotHandled(
+@"class C
+{
+    void M()
+    {
+        var v = """"[||]u8;
+    }
+}");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestMissingAfterUtf8String_2()
+        {
+            TestNotHandled(
+@"class C
+{
+    void M()
+    {
+        var v = """"u8[||];
+    }
+}");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestMissingAfterUtf8String_3()
+        {
+            TestNotHandled(
+@"class C
+{
+    void M()
+    {
+        var v = """"u8[||]
+    }
+}");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestMissingAfterUtf8String_4()
+        {
+            TestNotHandled(
+@"class C
+{
+    void M()
+    {
+        var v = $""""u8 [||]
+    }
+}");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestMissingAfterUtf8String_5()
+        {
+            TestNotHandled(
+@"class C
+{
+    void M()
+    {
+        var v = """"u[||]8;
+    }
+}");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
         public void TestMissingInVerbatimString()
         {
             TestNotHandled(
@@ -274,6 +358,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
     void M()
     {
         var v = @""a[||]b"";
+    }
+}");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestMissingInUtf8VerbatimString()
+        {
+            TestNotHandled(
+@"class C
+{
+    void M()
+    {
+        var v = @""a[||]b""u8;
     }
 }");
         }
@@ -445,6 +542,48 @@ $""[||]"";
     {
         var v = ""now is "" +
             ""[||]the time"";
+    }
+}");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestUtf8String_1()
+        {
+            TestHandled(
+@"class C
+{
+    void M()
+    {
+        var v = ""now is [||]the time""u8;
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        var v = ""now is ""u8 +
+            ""[||]the time""u8;
+    }
+}");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestUtf8String_2()
+        {
+            TestHandled(
+@"class C
+{
+    void M()
+    {
+        var v = ""now is [||]the time""U8;
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        var v = ""now is ""U8 +
+            ""[||]the time""U8;
     }
 }");
         }
@@ -942,6 +1081,21 @@ world
         var v = ${|#0:|}$""""""Hello[||]there
 world
 """""";
+    }
+}");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestMissingInRawUtf8StringLiteral()
+        {
+            TestNotHandled(
+@"class C
+{
+    void M()
+    {
+        var v = """"""Hello[||]there
+world
+""""""u8;
     }
 }");
         }

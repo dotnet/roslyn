@@ -36,8 +36,6 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
     internal abstract class AbstractUseThrowExpressionDiagnosticAnalyzer :
         AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        private readonly Option2<CodeStyleOption2<bool>> _preferThrowExpressionOption;
-
         protected AbstractUseThrowExpressionDiagnosticAnalyzer(Option2<CodeStyleOption2<bool>> preferThrowExpressionOption, string language)
             : base(IDEDiagnosticIds.UseThrowExpressionDiagnosticId,
                    EnforceOnBuildValues.UseThrowExpression,
@@ -46,8 +44,9 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                    new LocalizableResourceString(nameof(AnalyzersResources.Use_throw_expression), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                    new LocalizableResourceString(nameof(AnalyzersResources.Null_check_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
-            _preferThrowExpressionOption = preferThrowExpressionOption;
         }
+
+        protected abstract CodeStyleOption2<bool> PreferThrowExpressionStyle(OperationAnalysisContext context);
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
@@ -95,7 +94,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                 return;
             }
 
-            var option = context.GetOption(_preferThrowExpressionOption);
+            var option = PreferThrowExpressionStyle(context);
             if (!option.Value)
                 return;
 

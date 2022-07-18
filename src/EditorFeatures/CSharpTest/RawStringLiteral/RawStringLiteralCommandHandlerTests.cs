@@ -34,12 +34,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RawStringLiteral
                 => new(GetWorkspaceXml(markup));
 
             public static XElement GetWorkspaceXml(string markup)
-                => XElement.Parse(string.Format(@"
+                => XElement.Parse($@"
 <Workspace>
     <Project Language=""C#"" CommonReferences=""true"">
-        <Document>{0}</Document>
+        <Document>{markup}</Document>
     </Project>
-</Workspace>", markup));
+</Workspace>");
 
             internal void AssertCodeIs(string expectedCode)
             {

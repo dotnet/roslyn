@@ -27,6 +27,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
         // Note: Dev11 uses the source method token as the prefix, rather than a fixed token
         // value, and data field offsets are unique within the method, not across all methods.
         internal const string SynthesizedStringHashFunctionName = "ComputeStringHash";
+        internal const string SynthesizedReadOnlySpanHashFunctionName = "ComputeReadOnlySpanHash";
+        internal const string SynthesizedSpanHashFunctionName = "ComputeSpanHash";
 
         internal const string SynthesizedThrowIfNullFunctionName = "ThrowIfNull";
         internal const string SynthesizedThrowFunctionName = "Throw";
@@ -430,6 +432,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public Cci.ITypeReference GetType(EmitContext context) => _type;
 
+        public ImmutableArray<Cci.ICustomModifier> RefCustomModifiers => ImmutableArray<Cci.ICustomModifier>.Empty;
+
+        public bool IsByReference => false;
+
         internal Cci.ITypeReference Type => _type;
 
         public Cci.IFieldDefinition GetResolvedField(EmitContext context) => this;
@@ -589,6 +595,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public Cci.ITypeDefinition AsTypeDefinition(EmitContext context) => this;
 
         public bool MangleName => false;
+
+        public string? AssociatedFileIdentifier => null;
 
         public virtual ushort Alignment => 0;
 

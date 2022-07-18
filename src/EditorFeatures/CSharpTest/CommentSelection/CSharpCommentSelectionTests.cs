@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CommentSelection;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -117,8 +118,10 @@ class C
             SetupSelection(doc.GetTextView(), doc.SelectedSpans.Select(s => Span.FromBounds(s.Start, s.End)));
 
             var commandHandler = new CommentUncommentSelectionCommandHandler(
-                workspace.ExportProvider.GetExportedValue<ITextUndoHistoryRegistry>(),
-                workspace.ExportProvider.GetExportedValue<IEditorOperationsFactoryService>());
+                workspace.GetService<ITextUndoHistoryRegistry>(),
+                workspace.GetService<IEditorOperationsFactoryService>(),
+                workspace.GetService<EditorOptionsService>());
+
             var textView = doc.GetTextView();
             var textBuffer = doc.GetTextBuffer();
             commandHandler.ExecuteCommand(textView, textBuffer, Operation.Uncomment, TestCommandExecutionContext.Create());

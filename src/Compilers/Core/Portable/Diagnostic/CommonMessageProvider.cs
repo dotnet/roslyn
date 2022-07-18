@@ -103,6 +103,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public abstract string GetErrorDisplayString(ISymbol symbol);
 
+        public abstract bool GetIsEnabledByDefault(int code);
+
         /// <summary>
         /// Given an error code (like 1234) return the identifier (CS1234 or BC1234).
         /// </summary>
@@ -147,6 +149,10 @@ namespace Microsoft.CodeAnalysis
                     return diagnosticInfo;
             }
         }
+
+#if DEBUG
+        internal abstract bool ShouldAssertExpectedMessageArgumentsLength(int errorCode);
+#endif
 
         // Common error messages 
 

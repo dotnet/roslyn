@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api;
@@ -74,9 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 ? filePath
                 : null;
 
-            // After the call to EnsureDocumentOptionProvidersInitializedAsync, everything can be off the UI thread.
-            // Thus, we have a ConfigureAwait(false) on the call and switch explicitly after.
-            await _visualStudioWorkspaceImpl.EnsureDocumentOptionProvidersInitializedAsync(cancellationToken).ConfigureAwait(false);
+            // Following can be off the UI thread.
             await TaskScheduler.Default;
 
             // From this point on, we start mutating the solution.  So make us non cancellable.
@@ -117,6 +116,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     .WithTelemetryId(creationInfo.ProjectGuid);
 
                 // If we don't have any projects and this is our first project being added, then we'll create a new SolutionId
+                // and count this as the solution being added so that event is raised.
                 if (w.CurrentSolution.ProjectIds.Count == 0)
                 {
                     var solutionSessionId = GetSolutionSessionId();

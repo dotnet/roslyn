@@ -6,6 +6,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConsecutiveBracePlacement
 
         private void AnalyzeTree(SyntaxTreeAnalysisContext context)
         {
-            var option = context.GetOption(CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces);
+            var option = context.GetCSharpAnalyzerOptions().AllowBlankLinesBetweenConsecutiveBraces;
             if (option.Value)
                 return;
 

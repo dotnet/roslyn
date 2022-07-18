@@ -7,6 +7,8 @@
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
@@ -36,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             }
 
             var service = document.GetLanguageService<IMoveTypeService>();
-            var actions = await service.GetRefactoringAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+            var actions = await service.GetRefactoringAsync(document, textSpan, context.Options, cancellationToken).ConfigureAwait(false);
             context.RegisterRefactorings(actions);
         }
     }

@@ -747,7 +747,6 @@ namespace N
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifySemanticDiagnostics(active,
-                Diagnostic(RudeEditKind.Delete, null, FeaturesResources.namespace_),
                 Diagnostic(RudeEditKind.Delete, null, DeletedSymbolDisplay(FeaturesResources.class_, "N.C")));
         }
 
@@ -2443,8 +2442,14 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifySemanticDiagnostics(active,
-                Diagnostic(RudeEditKind.Delete, "class C", DeletedSymbolDisplay(FeaturesResources.auto_property, "a")));
+            edits.VerifySemantics(
+                new[]
+                {
+                    SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.a")),
+                    SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_a"), deletedSymbolContainerProvider: c => c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C..ctor"), preserveLocalVariables: true),
+                },
+                capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 
         #endregion
@@ -9419,7 +9424,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifySemanticDiagnostics(active,
-                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "yield return 1;", CSharpFeaturesResources.yield_return_statement));
+                Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "static IEnumerable<int> F()"));
         }
 
         [Fact]
@@ -9513,7 +9518,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifySemanticDiagnostics(active,
-                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "await", CSharpFeaturesResources.await_expression));
+                Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "static async Task<int> F()"));
         }
 
         [Fact]
@@ -9545,7 +9550,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifySemanticDiagnostics(active,
-                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "await foreach (var x in AsyncIter())", CSharpFeaturesResources.asynchronous_foreach_statement));
+                Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "static async Task<int> F()"));
         }
 
         [Fact]
@@ -9577,8 +9582,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifySemanticDiagnostics(active,
-                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "x = new AsyncDisposable()", CSharpFeaturesResources.asynchronous_using_declaration),
-                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "y = new AsyncDisposable()", CSharpFeaturesResources.asynchronous_using_declaration));
+                Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "static async Task<int> F()"));
         }
 
         [Fact]
@@ -9826,7 +9830,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifySemanticDiagnostics(active,
-                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "await", CSharpFeaturesResources.await_expression));
+                Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "()"));
         }
 
         [Fact]
@@ -9923,7 +9927,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifySemanticDiagnostics(active,
-                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "await", CSharpFeaturesResources.await_expression));
+                Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "f"));
         }
 
         [Fact]
@@ -9952,7 +9956,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifySemanticDiagnostics(active,
-                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "await", CSharpFeaturesResources.await_expression));
+                Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "f"));
         }
 
         [Fact]
@@ -10679,13 +10683,13 @@ class C
                 new[]
                 {
                     DocumentResults(
-                        activeStatements: GetActiveStatements(srcA1, srcA2, path: "0"),
+                        activeStatements: GetActiveStatements(srcA1, srcA2, documentIndex: 0),
                         semanticEdits: new[]
                         {
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember("F2")),
                         }),
                     DocumentResults(
-                        activeStatements: GetActiveStatements(srcB1, srcB2, path: "1"))
+                        activeStatements: GetActiveStatements(srcB1, srcB2, documentIndex: 1))
                 });
         }
 
@@ -10703,17 +10707,17 @@ class C
             var srcB2 = "<AS:0>partial class C</AS:0> { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2, documentIndex: 0), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(
-                        activeStatements: GetActiveStatements(srcA1, srcA2, path: "0"),
+                        activeStatements: GetActiveStatements(srcA1, srcA2, documentIndex: 0),
                         semanticEdits: new[]
                         {
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember("F")),
                         }),
                     DocumentResults(
-                        activeStatements: GetActiveStatements(srcB1, srcB2, path: "1"),
+                        activeStatements: GetActiveStatements(srcB1, srcB2, documentIndex: 1),
                         // TODO: this is odd AS location https://github.com/dotnet/roslyn/issues/54758
                         diagnostics: new[] { Diagnostic(RudeEditKind.DeleteActiveStatement, "      partial c", DeletedSymbolDisplay(FeaturesResources.method, "F()")) })
                 });

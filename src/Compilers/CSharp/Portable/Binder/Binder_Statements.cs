@@ -694,6 +694,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             var typeSyntax = node.Declaration.Type.SkipRef(out _);
             bool isConst = node.IsConst;
 
+            foreach (var modifier in node.Modifiers)
+            {
+                // Check for support for 'scoped'. Duplicate modifiers are reported
+                // as errors in parsing rather than here.
+                if (modifier.Kind() == SyntaxKind.ScopedKeyword)
+                {
+                    ModifierUtils.CheckScopedModifierAvailability(node, modifier, diagnostics);
+                }
+            }
+
+            if (node.Declaration.Type is RefTypeSyntax { ScopedKeyword: var scopedKeyword } &&
+                scopedKeyword.Kind() == SyntaxKind.ScopedKeyword)
+            {
+                ModifierUtils.CheckScopedModifierAvailability(typeSyntax, scopedKeyword, diagnostics);
+            }
+
             bool isVar;
             AliasSymbol alias;
             TypeWithAnnotations declType = BindVariableTypeWithAnnotations(node.Declaration, diagnostics, typeSyntax, ref isConst, isVar: out isVar, alias: out alias);
@@ -1078,17 +1094,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
+            if (localSymbol.Scope == DeclarationScope.ValueScoped && !declTypeOpt.Type.IsErrorTypeOrRefLikeType())
+            {
+                localDiagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, typeSyntax.Location);
+            }
+
             localSymbol.SetTypeWithAnnotations(declTypeOpt);
 
             if (initializerOpt != null)
             {
-                var currentScope = LocalScopeDepth;
-
-                localSymbol.SetValEscape(GetValEscape(initializerOpt, currentScope));
-
-                if (localSymbol.RefKind != RefKind.None)
+                if (UseUpdatedEscapeRules && localSymbol.Scope != DeclarationScope.Unscoped)
                 {
-                    localSymbol.SetRefEscape(GetRefEscape(initializerOpt, currentScope));
+                    // If the local has a scoped modifier, then the lifetime is not inferred from
+                    // the initializer. Validate the escape values for the initializer instead.
+
+                    Debug.Assert(localSymbol.RefKind == RefKind.None ||
+                        localSymbol.RefEscapeScope >= GetRefEscape(initializerOpt, LocalScopeDepth));
+
+                    if (declTypeOpt.Type.IsRefLikeType)
+                    {
+                        initializerOpt = ValidateEscape(initializerOpt, localSymbol.ValEscapeScope, isByRef: false, diagnostics);
+                    }
+                }
+                else
+                {
+                    var currentScope = LocalScopeDepth;
+
+                    localSymbol.SetValEscape(GetValEscape(initializerOpt, currentScope));
+
+                    if (localSymbol.RefKind != RefKind.None)
+                    {
+                        localSymbol.SetRefEscape(GetRefEscape(initializerOpt, currentScope));
+                    }
                 }
             }
 
@@ -1203,11 +1240,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 localSymbol = SourceLocalSymbol.MakeLocal(
                     ContainingMemberOrLambda,
                     this,
-                    false, // do not allow ref
+                    allowRefKind: false, // do not allow ref
                     typeSyntax,
                     identifier,
                     kind,
-                    equalsValue);
+                    equalsValue,
+                    hasScopedModifier: false);
             }
 
             return localSymbol;
@@ -1358,7 +1396,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol pointerType = new PointerTypeSymbol(TypeWithAnnotations.Create(elementType));
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            Conversion elementConversionClassification = this.Conversions.ClassifyConversionFromType(pointerType, declType, ref useSiteInfo);
+            Conversion elementConversionClassification = this.Conversions.ClassifyConversionFromType(pointerType, declType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
             diagnostics.Add(initializerSyntax, useSiteInfo);
 
             BoundValuePlaceholder elementPlaceholder;
@@ -1852,8 +1890,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
 
             var conversion = (flags & ConversionForAssignmentFlags.IncrementAssignment) == 0 ?
-                                 this.Conversions.ClassifyConversionFromExpression(expression, targetType, ref useSiteInfo) :
-                                 this.Conversions.ClassifyConversionFromType(expression.Type, targetType, ref useSiteInfo);
+                                 this.Conversions.ClassifyConversionFromExpression(expression, targetType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo) :
+                                 this.Conversions.ClassifyConversionFromType(expression.Type, targetType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
 
             diagnostics.Add(expression.Syntax, useSiteInfo);
 
@@ -2492,7 +2530,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Is the operand implicitly convertible to bool?
 
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            var conversion = this.Conversions.ClassifyConversionFromExpression(expr, boolean, ref useSiteInfo);
+            var conversion = this.Conversions.ClassifyConversionFromExpression(expr, boolean, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
             diagnostics.Add(expr.Syntax, useSiteInfo);
 
             if (conversion.IsImplicit)
@@ -2547,7 +2585,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 destination: best.Signature.OperandType,
                 diagnostics: diagnostics);
 
-            CheckConstraintLanguageVersionAndRuntimeSupportForOperator(node, signature.Method, signature.ConstrainedToTypeOpt, diagnostics);
+            CheckConstraintLanguageVersionAndRuntimeSupportForOperator(node, signature.Method, isUnsignedRightShift: false, signature.ConstrainedToTypeOpt, diagnostics);
 
             // Consider op_true to be compiler-generated so that it doesn't appear in the semantic model.
             // UNDONE: If we decide to expose the operator in the semantic model, we'll have to remove the
@@ -2856,7 +2894,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (hasErrors)
             {
-                return new BoundReturnStatement(syntax, refKind, BindToTypeForErrorRecovery(arg), hasErrors: true);
+                return new BoundReturnStatement(syntax, refKind, BindToTypeForErrorRecovery(arg), @checked: CheckOverflowAtRuntime, hasErrors: true);
             }
 
             // The return type could be null; we might be attempting to infer the return type either
@@ -2955,12 +2993,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     returnType = returnType.GetMemberTypeArgumentsNoUseSiteDiagnostics().Single();
-                    conversion = this.Conversions.ClassifyConversionFromExpression(argument, returnType, ref useSiteInfo);
+                    conversion = this.Conversions.ClassifyConversionFromExpression(argument, returnType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
                 }
             }
             else
             {
-                conversion = this.Conversions.ClassifyConversionFromExpression(argument, returnType, ref useSiteInfo);
+                conversion = this.Conversions.ClassifyConversionFromExpression(argument, returnType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
             }
 
             diagnostics.Add(syntax, useSiteInfo);
@@ -3261,7 +3299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // This can happen if we are binding an async anonymous method to a delegate type.
                 Error(diagnostics, ErrorCode.ERR_MustNotHaveRefReturn, syntax);
                 expression = BindToTypeForErrorRecovery(expression);
-                statement = new BoundReturnStatement(syntax, refKind, expression) { WasCompilerGenerated = true };
+                statement = new BoundReturnStatement(syntax, refKind, expression, @checked: CheckOverflowAtRuntime) { WasCompilerGenerated = true };
             }
             else if ((object)returnType != null)
             {
@@ -3272,7 +3310,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         : ErrorCode.ERR_MustHaveRefReturn;
                     Error(diagnostics, errorCode, syntax);
                     expression = BindToTypeForErrorRecovery(expression);
-                    statement = new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
+                    statement = new BoundReturnStatement(syntax, RefKind.None, expression, @checked: CheckOverflowAtRuntime) { WasCompilerGenerated = true };
                 }
                 else if (returnType.IsVoidType() || IsEffectivelyTaskReturningAsyncMethod())
                 {
@@ -3303,14 +3341,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Error(diagnostics, ErrorCode.ERR_ReturnInIterator, syntax);
                     expression = BindToTypeForErrorRecovery(expression);
-                    statement = new BoundReturnStatement(syntax, returnRefKind, expression) { WasCompilerGenerated = true };
+                    statement = new BoundReturnStatement(syntax, returnRefKind, expression, @checked: CheckOverflowAtRuntime) { WasCompilerGenerated = true };
                 }
                 else
                 {
                     expression = returnType.IsErrorType()
                         ? BindToTypeForErrorRecovery(expression)
                         : CreateReturnConversion(syntax, diagnostics, expression, refKind, returnType);
-                    statement = new BoundReturnStatement(syntax, returnRefKind, expression) { WasCompilerGenerated = true };
+                    statement = new BoundReturnStatement(syntax, returnRefKind, expression, @checked: CheckOverflowAtRuntime) { WasCompilerGenerated = true };
                 }
             }
             else if (expression.Type?.SpecialType == SpecialType.System_Void)
@@ -3326,7 +3364,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     expression = BindToNaturalType(expression, diagnostics);
                 }
-                statement = new BoundReturnStatement(syntax, refKind, expression) { WasCompilerGenerated = true };
+                statement = new BoundReturnStatement(syntax, refKind, expression, @checked: CheckOverflowAtRuntime) { WasCompilerGenerated = true };
             }
 
             // Need to attach the tree for when we generate sequence points.
@@ -3402,7 +3440,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return requiredValueKind;
         }
 
-        public virtual BoundNode BindMethodBody(CSharpSyntaxNode syntax, BindingDiagnosticBag diagnostics, bool includesFieldInitializers = false)
+        public virtual BoundNode BindMethodBody(CSharpSyntaxNode syntax, BindingDiagnosticBag diagnostics)
         {
             switch (syntax)
             {
@@ -3412,7 +3450,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BaseMethodDeclarationSyntax method:
                     if (method.Kind() == SyntaxKind.ConstructorDeclaration)
                     {
-                        return BindConstructorBody((ConstructorDeclarationSyntax)method, diagnostics, includesFieldInitializers);
+                        return BindConstructorBody((ConstructorDeclarationSyntax)method, diagnostics);
                     }
 
                     return BindMethodBody(method, method.Body, method.ExpressionBody, diagnostics);
@@ -3484,7 +3522,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return constructorInitializer;
         }
 
-        private BoundNode BindConstructorBody(ConstructorDeclarationSyntax constructor, BindingDiagnosticBag diagnostics, bool includesFieldInitializers)
+        private BoundNode BindConstructorBody(ConstructorDeclarationSyntax constructor, BindingDiagnosticBag diagnostics)
         {
             ConstructorInitializerSyntax initializer = constructor.Initializer;
             if (initializer == null && constructor.Body == null && constructor.ExpressionBody == null)
@@ -3517,16 +3555,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, initializer.ThisOrBaseKeyword);
             }
 
-            // The `: this()` initializer is ignored when it is a default value type constructor
-            // and we need to include field initializers into the constructor.
-            bool skipInitializer = includesFieldInitializers
-                && isDefaultValueTypeInitializer;
-
             // Using BindStatement to bind block to make sure we are reusing results of partial binding in SemanticModel
             return new BoundConstructorMethodBody(constructor,
                                                   bodyBinder.GetDeclaredLocalsForScope(constructor),
-                                                  skipInitializer ? new BoundNoOpStatement(constructor, NoOpStatementFlavor.Default)
-                                                      : initializer == null ? null : bodyBinder.BindConstructorInitializer(initializer, diagnostics),
+                                                  initializer == null ? null : bodyBinder.BindConstructorInitializer(initializer, diagnostics),
                                                   constructor.Body == null ? null : (BoundBlock)bodyBinder.BindStatement(constructor.Body, diagnostics),
                                                   constructor.ExpressionBody == null ?
                                                       null :

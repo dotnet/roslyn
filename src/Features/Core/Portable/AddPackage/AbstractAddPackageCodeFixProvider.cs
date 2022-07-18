@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
             var codeActions = ArrayBuilder<CodeAction>.GetInstance();
             if (symbolSearchService != null &&
                 installerService != null &&
-                context.Options.SearchOptions.SearchNuGetPackages &&
+                context.Options.GetOptions(document.Project.LanguageServices).SearchOptions.SearchNuGetPackages &&
                 installerService.IsEnabled(document.Project.Id))
             {
                 var packageSources = PackageSourceHelper.GetPackageSources(installerService.TryGetPackageSources());

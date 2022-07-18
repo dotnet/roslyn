@@ -37,11 +37,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         public bool TryOnAfterGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, ISymbol symbol, string newName, bool throwOnFailure)
         {
-            if (workspace is VisualStudioWorkspaceImpl visualStudioWorkspace)
+            if (workspace is VisualStudioWorkspaceImpl)
             {
                 foreach (var documentId in changedDocumentIDs)
                 {
-                    var containedDocument = visualStudioWorkspace.TryGetContainedDocument(documentId);
+                    var containedDocument = ContainedDocument.TryGetContainedDocument(documentId);
                     if (containedDocument != null)
                     {
                         var containedLanguageHost = containedDocument.ContainedLanguageHost;

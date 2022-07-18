@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Indentation;
 
 #if CODE_STYLE
 using WorkspacesResources = Microsoft.CodeAnalysis.CodeStyleResources;
@@ -37,24 +38,25 @@ namespace Microsoft.CodeAnalysis.Formatting
         private const string FeatureName = "FormattingOptions";
 
         public static PerLanguageOption2<bool> UseTabs =
-            new(FeatureName, FormattingOptionGroups.IndentationAndSpacing, nameof(UseTabs), defaultValue: false,
-            storageLocation: new EditorConfigStorageLocation<bool>(
-                "indent_style",
-                s => s == "tab",
-                isSet => isSet ? "tab" : "space"));
+            new(FeatureName, FormattingOptionGroups.IndentationAndSpacing, nameof(UseTabs), LineFormattingOptions.Default.UseTabs,
+            storageLocations: ImmutableArray.Create<OptionStorageLocation2>(
+                new EditorConfigStorageLocation<bool>("indent_style", s => s == "tab", isSet => isSet ? "tab" : "space"),
+                new LocalClientSettingsStorageLocation("TextEditor.%LANGUAGE%.Insert Tabs")));
 
-        // This is also serialized by the Visual Studio-specific LanguageSettingsPersister
         public static PerLanguageOption2<int> TabSize =
-            new(FeatureName, FormattingOptionGroups.IndentationAndSpacing, nameof(TabSize), defaultValue: 4,
-            storageLocation: EditorConfigStorageLocation.ForInt32Option("tab_width"));
+            new(FeatureName, FormattingOptionGroups.IndentationAndSpacing, nameof(TabSize), LineFormattingOptions.Default.TabSize,
+            storageLocations: ImmutableArray.Create<OptionStorageLocation2>(
+                EditorConfigStorageLocation.ForInt32Option("tab_width"),
+                new LocalClientSettingsStorageLocation("TextEditor.%LANGUAGE%.Tab Size")));
 
-        // This is also serialized by the Visual Studio-specific LanguageSettingsPersister
         public static PerLanguageOption2<int> IndentationSize =
-            new(FeatureName, FormattingOptionGroups.IndentationAndSpacing, nameof(IndentationSize), defaultValue: 4,
-            storageLocation: EditorConfigStorageLocation.ForInt32Option("indent_size"));
+            new(FeatureName, FormattingOptionGroups.IndentationAndSpacing, nameof(IndentationSize), LineFormattingOptions.Default.IndentationSize,
+            storageLocations: ImmutableArray.Create<OptionStorageLocation2>(
+                EditorConfigStorageLocation.ForInt32Option("indent_size"),
+                new LocalClientSettingsStorageLocation("TextEditor.%LANGUAGE%.Indent Size")));
 
         public static PerLanguageOption2<string> NewLine =
-            new(FeatureName, FormattingOptionGroups.NewLine, nameof(NewLine), defaultValue: Environment.NewLine,
+            new(FeatureName, FormattingOptionGroups.NewLine, nameof(NewLine), LineFormattingOptions.Default.NewLine,
             storageLocation: new EditorConfigStorageLocation<string>(
                 "end_of_line",
                 parseValue: value => value.Trim() switch
@@ -73,12 +75,11 @@ namespace Microsoft.CodeAnalysis.Formatting
                 }));
 
         internal static Option2<bool> InsertFinalNewLine =
-            new(FeatureName, FormattingOptionGroups.NewLine, nameof(InsertFinalNewLine), defaultValue: false,
+            new(FeatureName, FormattingOptionGroups.NewLine, nameof(InsertFinalNewLine), DocumentFormattingOptions.Default.InsertFinalNewLine,
             storageLocation: EditorConfigStorageLocation.ForBoolOption("insert_final_newline"));
 
-        // Suppression due to https://github.com/dotnet/roslyn/issues/42614
-        public static PerLanguageOption2<IndentStyle> SmartIndent { get; } =
-            new(FeatureName, FormattingOptionGroups.IndentationAndSpacing, nameof(SmartIndent), defaultValue: IndentStyle.Smart);
+        public static PerLanguageOption2<FormattingOptions2.IndentStyle> SmartIndent { get; } =
+            new(FeatureName, FormattingOptionGroups.IndentationAndSpacing, nameof(SmartIndent), defaultValue: IndentationOptions.DefaultIndentStyle);
 
 #if !CODE_STYLE
         internal static readonly ImmutableArray<IOption> Options = ImmutableArray.Create<IOption>(
@@ -86,8 +87,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             TabSize,
             IndentationSize,
             NewLine,
-            InsertFinalNewLine,
-            SmartIndent);
+            InsertFinalNewLine);
 #endif
     }
 

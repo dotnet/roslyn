@@ -33,10 +33,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 
             await DidOpen(testLspServer, caretLocation.Uri);
 
-            var trackedDocuments = testLspServer.GetQueueAccessor().GetTrackedTexts();
+            var trackedDocuments = testLspServer.GetTrackedTexts();
             Assert.Equal(1, trackedDocuments.Length);
 
-            var solution = GetLSPSolution(testLspServer, caretLocation.Uri);
+            var solution = await GetLSPSolutionAsync(testLspServer, caretLocation.Uri).ConfigureAwait(false);
 
             foreach (var document in solution.Projects.First().Documents)
             {
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 
             await DidClose(testLspServer, caretLocation.Uri);
 
-            Assert.Empty(testLspServer.GetQueueAccessor().GetTrackedTexts());
+            Assert.Empty(testLspServer.GetTrackedTexts());
         }
 
         [Fact]
@@ -83,11 +83,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 
             await DidOpen(testLspServer, caretLocation.Uri);
 
-            Assert.Equal(1, testLspServer.GetQueueAccessor().GetTrackedTexts().Length);
+            Assert.Equal(1, testLspServer.GetTrackedTexts().Length);
 
             await DidChange(testLspServer, caretLocation.Uri, (4, 8, "// hi there"));
 
-            var solution = GetLSPSolution(testLspServer, caretLocation.Uri);
+            var solution = await GetLSPSolutionAsync(testLspServer, caretLocation.Uri).ConfigureAwait(false);
 
             foreach (var document in solution.Projects.First().Documents)
             {
@@ -96,12 +96,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 
             await DidClose(testLspServer, caretLocation.Uri);
 
-            Assert.Empty(testLspServer.GetQueueAccessor().GetTrackedTexts());
+            Assert.Empty(testLspServer.GetTrackedTexts());
         }
 
-        private static Solution GetLSPSolution(TestLspServer testLspServer, Uri uri)
+        private static async Task<Solution> GetLSPSolutionAsync(TestLspServer testLspServer, Uri uri)
         {
-            var lspDocument = testLspServer.GetManager().GetLspDocument(new TextDocumentIdentifier { Uri = uri });
+            var lspDocument = await testLspServer.GetManager().GetLspDocumentAsync(new TextDocumentIdentifier { Uri = uri }, CancellationToken.None).ConfigureAwait(false);
             Contract.ThrowIfNull(lspDocument);
             return lspDocument.Project.Solution;
         }

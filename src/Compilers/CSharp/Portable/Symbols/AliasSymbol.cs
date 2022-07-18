@@ -127,7 +127,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return GetDeclaringSyntaxReferenceHelper<UsingDirectiveSyntax>(_locations);
+                return _isExtern
+                    ? GetDeclaringSyntaxReferenceHelper<ExternAliasDirectiveSyntax>(_locations)
+                    : GetDeclaringSyntaxReferenceHelper<UsingDirectiveSyntax>(_locations);
             }
         }
 

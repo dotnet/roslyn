@@ -502,6 +502,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #If DEBUG Then
         ' Compile time asserts.
+#Disable Warning IDE0051 ' Remove unused private members
         Private Const s_delegateRelaxationLevelMask_AssertZero = SmallFieldMask.DelegateRelaxationLevelMask - ConversionKind.DelegateRelaxationLevelMask
         Private ReadOnly _delegateRelaxationLevelMask_Assert1(s_delegateRelaxationLevelMask_AssertZero) As Boolean
         Private ReadOnly _delegateRelaxationLevelMask_Assert2(-s_delegateRelaxationLevelMask_AssertZero) As Boolean
@@ -509,6 +510,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Const s_inferenceLevelMask_AssertZero = CByte((SmallFieldMask.InferenceLevelMask >> SmallFieldMask.InferenceLevelShift) <> ((TypeArgumentInference.InferenceLevel.Invalid << 1) - 1))
         Private ReadOnly _inferenceLevelMask_Assert1(s_inferenceLevelMask_AssertZero) As Boolean
         Private ReadOnly _inferenceLevelMask_Assert2(-s_inferenceLevelMask_AssertZero) As Boolean
+#Enable Warning IDE0051 ' Remove unused private members
 #End If
         Public Structure OptionalArgument
             Public ReadOnly DefaultValue As BoundExpression

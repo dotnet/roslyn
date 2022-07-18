@@ -466,7 +466,7 @@ public class Point
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(26, 20),
                 // (26,28): error CS1003: Syntax error, ',' expected
                 //         if (i is ((default)!)) {} // error 17
-                Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",", "!").WithLocation(26, 28),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",").WithLocation(26, 28),
                 // (26,29): error CS1525: Invalid expression term ')'
                 //         if (i is ((default)!)) {} // error 17
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(26, 29)
@@ -538,13 +538,13 @@ public class Point
             CreatePatternCompilation(source).VerifyDiagnostics(
                 // (6,34): error CS1003: Syntax error, '=>' expected
                 //         var r1 = b switch { true ? true : true => true, false => false };
-                Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments("=>", "?").WithLocation(6, 34),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments("=>").WithLocation(6, 34),
                 // (6,34): error CS1525: Invalid expression term '?'
                 //         var r1 = b switch { true ? true : true => true, false => false };
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "?").WithArguments("?").WithLocation(6, 34),
                 // (6,48): error CS1003: Syntax error, ',' expected
                 //         var r1 = b switch { true ? true : true => true, false => false };
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(6, 48),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(6, 48),
                 // (6,48): error CS8504: Pattern missing
                 //         var r1 = b switch { true ? true : true => true, false => false };
                 Diagnostic(ErrorCode.ERR_MissingPattern, "=>").WithLocation(6, 48)
@@ -2714,7 +2714,7 @@ public class C {
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(13, 30),
                 // (13,31): error CS1003: Syntax error, ':' expected
                 //         var t = o is string? _;
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(":", ";").WithLocation(13, 31),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(":").WithLocation(13, 31),
                 // (13,31): error CS1525: Invalid expression term ';'
                 //         var t = o is string? _;
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(13, 31),
@@ -2723,10 +2723,10 @@ public class C {
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(string? _)").WithArguments("object", "2").WithLocation(16, 22),
                 // (16,29): error CS1003: Syntax error, ',' expected
                 //         var t = o is (string? _);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments(",", "?").WithLocation(16, 29),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments(",").WithLocation(16, 29),
                 // (16,31): error CS1003: Syntax error, ',' expected
                 //         var t = o is (string? _);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "_").WithArguments(",", "").WithLocation(16, 31)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "_").WithArguments(",").WithLocation(16, 31)
                 );
         }
 

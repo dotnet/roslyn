@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.SourceGeneration;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -158,6 +159,12 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        public GeneratorDriverTimingInfo GetTimingInfo()
+        {
+            var generatorTimings = _state.Generators.ZipAsArray(_state.GeneratorStates, (generator, generatorState) => new GeneratorTimingInfo(generator, generatorState.ElapsedTime));
+            return new GeneratorDriverTimingInfo(_state.RunTime, generatorTimings);
+        }
+
         internal GeneratorDriverState RunGeneratorsCore(Compilation compilation, DiagnosticBag? diagnosticsBag, CancellationToken cancellationToken = default)
         {
             // with no generators, there is no work to do
@@ -185,7 +192,8 @@ namespace Microsoft.CodeAnalysis
                     var outputBuilder = ArrayBuilder<IIncrementalGeneratorOutputNode>.GetInstance();
                     var inputBuilder = ArrayBuilder<SyntaxInputNode>.GetInstance();
                     var postInitSources = ImmutableArray<GeneratedSyntaxTree>.Empty;
-                    var pipelineContext = new IncrementalGeneratorInitializationContext(inputBuilder, outputBuilder, SourceExtension);
+                    var pipelineContext = new IncrementalGeneratorInitializationContext(
+                        inputBuilder, outputBuilder, this.SyntaxHelper, this.SourceExtension);
 
                     Exception? ex = null;
                     try
@@ -252,7 +260,7 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                using var generatorTimer = CodeAnalysisEventSource.Log.CreateSingleGeneratorRunTimer(state.Generators[i]);
+                using var generatorTimer = CodeAnalysisEventSource.Log.CreateSingleGeneratorRunTimer(state.Generators[i], (t) => t.Add(syntaxStoreBuilder.GetRuntimeAdjustment(stateBuilder[i].InputNodes)));
                 try
                 {
                     // We do not support incremental step tracking for v1 generators, as the pipeline is implicitly defined.
@@ -365,5 +373,7 @@ namespace Microsoft.CodeAnalysis
         internal abstract SyntaxTree ParseGeneratedSourceText(GeneratedSourceText input, string fileName, CancellationToken cancellationToken);
 
         internal abstract string SourceExtension { get; }
+
+        internal abstract ISyntaxHelper SyntaxHelper { get; }
     }
 }

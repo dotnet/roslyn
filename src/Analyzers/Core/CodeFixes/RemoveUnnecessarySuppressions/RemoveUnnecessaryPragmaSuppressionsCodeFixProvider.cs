@@ -33,9 +33,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.RemoveUnnecessarySuppressionDiagnosticId);
 
-        internal override CodeFixCategory CodeFixCategory
-            => CodeFixCategory.CodeQuality;
-
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var root = await context.Document.GetRequiredSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
@@ -46,14 +43,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
                 if (root.FindNode(diagnostic.Location.SourceSpan) is { } node && syntaxFacts.IsAttribute(node) ||
                     root.FindTrivia(diagnostic.Location.SourceSpan.Start).HasStructure)
                 {
-                    context.RegisterCodeFix(
-                        new MyCodeAction(c => FixAsync(context.Document, diagnostic, c)),
-                        diagnostic);
+                    RegisterCodeFix(context, AnalyzersResources.Remove_unnecessary_suppression, nameof(AnalyzersResources.Remove_unnecessary_suppression));
                 }
             }
         }
 
-        protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
+        protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             // We need to track unique set of processed nodes when removing the nodes.
             // This is because we generate an unnecessary pragma suppression diagnostic at both the pragma disable and matching pragma restore location
@@ -98,14 +93,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
                 {
                     editor.RemoveNode(node, options);
                 }
-            }
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Remove_unnecessary_suppression, createChangedDocument, nameof(RemoveUnnecessaryInlineSuppressionsCodeFixProvider))
-            {
             }
         }
     }

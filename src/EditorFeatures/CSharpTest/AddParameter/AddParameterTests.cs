@@ -2928,5 +2928,112 @@ record struct Test();
 record struct Test(string V);
 ");
         }
+
+        [WorkItem(61715, "https://github.com/dotnet/roslyn/issues/61715")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestMethodGroup1()
+        {
+            await TestInRegularAndScript1Async(@"public class Example
+{
+    public void Add(int x)
+    {
+    }
+
+    public void DoSomething()
+    {
+    }
+
+    public void Main()
+    {
+        [|DoSomething|](Add);
+    }
+}", @"public class Example
+{
+    public void Add(int x)
+    {
+    }
+
+    public void DoSomething(System.Action<int> add)
+    {
+    }
+
+    public void Main()
+    {
+        DoSomething(Add);
+    }
+}");
+        }
+
+        [WorkItem(61715, "https://github.com/dotnet/roslyn/issues/61715")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestMethodGroup2()
+        {
+            await TestInRegularAndScript1Async(@"public class Example
+{
+    public void Add(int x, string y)
+    {
+    }
+
+    public void DoSomething()
+    {
+    }
+
+    public void Main()
+    {
+        [|DoSomething|](Add);
+    }
+}", @"public class Example
+{
+    public void Add(int x, string y)
+    {
+    }
+
+    public void DoSomething(System.Action<int, string> add)
+    {
+    }
+
+    public void Main()
+    {
+        DoSomething(Add);
+    }
+}");
+        }
+
+        [WorkItem(61715, "https://github.com/dotnet/roslyn/issues/61715")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestMethodGroup3()
+        {
+            await TestInRegularAndScript1Async(@"public class Example
+{
+    public int Add(int x, string y)
+    {
+        return 0;
+    }
+
+    public void DoSomething()
+    {
+    }
+
+    public void Main()
+    {
+        [|DoSomething|](Add);
+    }
+}", @"public class Example
+{
+    public int Add(int x, string y)
+    {
+        return 0;
+    }
+
+    public void DoSomething(System.Func<int, string, int> add)
+    {
+    }
+
+    public void Main()
+    {
+        DoSomething(Add);
+    }
+}");
+        }
     }
 }

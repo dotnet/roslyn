@@ -786,6 +786,10 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
             VerifySyntax<FieldDeclarationSyntax>(
                 Generator.FieldDeclaration("fld", Generator.TypeExpression(SpecialType.System_Int32), accessibility: Accessibility.NotApplicable, modifiers: DeclarationModifiers.Static | DeclarationModifiers.ReadOnly),
                 "static readonly int fld;");
+
+            VerifySyntax<FieldDeclarationSyntax>(
+                Generator.FieldDeclaration("fld", Generator.TypeExpression(SpecialType.System_Int32), accessibility: Accessibility.NotApplicable, modifiers: DeclarationModifiers.Required),
+                "required int fld;");
         }
 
         [Fact]
@@ -924,6 +928,10 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                 "bool operator >>(global::System.Int32 p0, global::System.String p1)\r\n{\r\n}");
 
             VerifySyntax<OperatorDeclarationSyntax>(
+                Generator.OperatorDeclaration(OperatorKind.UnsignedRightShift, parameters, returnType),
+                "bool operator >>>(global::System.Int32 p0, global::System.String p1)\r\n{\r\n}");
+
+            VerifySyntax<OperatorDeclarationSyntax>(
                 Generator.OperatorDeclaration(OperatorKind.Subtraction, parameters, returnType),
                 "bool operator -(global::System.Int32 p0, global::System.String p1)\r\n{\r\n}");
 
@@ -1006,6 +1014,10 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
             VerifySyntax<PropertyDeclarationSyntax>(
                 Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), modifiers: DeclarationModifiers.Abstract),
                 "abstract x p { get; set; }");
+
+            VerifySyntax<PropertyDeclarationSyntax>(
+                Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), modifiers: DeclarationModifiers.Required),
+                "required x p { get; set; }");
 
             VerifySyntax<PropertyDeclarationSyntax>(
                 Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), modifiers: DeclarationModifiers.ReadOnly, getAccessorStatements: new[] { Generator.IdentifierName("y") }),
@@ -2270,6 +2282,74 @@ public class C
             Assert.Equal(
                 DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Virtual,
                 Generator.GetModifiers(Generator.WithModifiers(SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration), allModifiers)));
+        }
+
+        [Fact]
+        public void TestAddPublicToStaticConstructor()
+        {
+            var ctor = Generator.ConstructorDeclaration("C", modifiers: DeclarationModifiers.Static);
+            VerifySyntax<ConstructorDeclarationSyntax>(ctor, @"static C()
+{
+}");
+
+            var publicCtor = Generator.WithAccessibility(ctor, Accessibility.Public);
+            VerifySyntax<ConstructorDeclarationSyntax>(publicCtor, @"public C()
+{
+}");
+        }
+
+        [Fact]
+        public void TestAddStaticToPublicConstructor()
+        {
+            var ctor = Generator.ConstructorDeclaration("C", accessibility: Accessibility.Public);
+            VerifySyntax<ConstructorDeclarationSyntax>(ctor, @"public C()
+{
+}");
+
+            var staticCtor = Generator.WithModifiers(ctor, DeclarationModifiers.Static);
+            VerifySyntax<ConstructorDeclarationSyntax>(staticCtor, @"static C()
+{
+}");
+        }
+
+        [Fact]
+        public void TestAddAbstractToFileClass()
+        {
+            var fileClass = (ClassDeclarationSyntax)SyntaxFactory.ParseMemberDeclaration("file class C { }");
+            var fileAbstractClass = Generator.WithModifiers(fileClass, Generator.GetModifiers(fileClass).WithIsAbstract(true));
+            VerifySyntax<ClassDeclarationSyntax>(fileAbstractClass, @"file abstract class C
+{
+}");
+        }
+
+        [Fact]
+        public void TestAddPublicToFileClass()
+        {
+            var fileClass = (ClassDeclarationSyntax)SyntaxFactory.ParseMemberDeclaration("file class C { }");
+            var filePublicClass = Generator.WithAccessibility(fileClass, Accessibility.Public);
+            VerifySyntax<ClassDeclarationSyntax>(filePublicClass, @"public class C
+{
+}");
+        }
+
+        [Fact]
+        public void TestAddFileModifierToAbstractClass()
+        {
+            var abstractClass = (ClassDeclarationSyntax)SyntaxFactory.ParseMemberDeclaration("abstract class C { }");
+            var fileAbstractClass = Generator.WithModifiers(abstractClass, Generator.GetModifiers(abstractClass).WithIsFile(true));
+            VerifySyntax<ClassDeclarationSyntax>(fileAbstractClass, @"file abstract class C
+{
+}");
+        }
+
+        [Fact]
+        public void TestAddFileModifierToPublicClass()
+        {
+            var publicClass = (ClassDeclarationSyntax)SyntaxFactory.ParseMemberDeclaration("public class C { }");
+            var filePublicClass = Generator.WithModifiers(publicClass, Generator.GetModifiers(publicClass).WithIsFile(true));
+            VerifySyntax<ClassDeclarationSyntax>(filePublicClass, @"file class C
+{
+}");
         }
 
         [Fact]
@@ -3617,6 +3697,17 @@ class C
 }");
         }
 
+        [Fact]
+        public void TestPropertyModifiers2()
+        {
+            TestModifiersAsync(DeclarationModifiers.ReadOnly | DeclarationModifiers.Required,
+                @"
+class C
+{
+    [|public required int X => 0;|]
+}");
+        }
+
         [Fact, WorkItem(1084965, " https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
         public void TestFieldModifiers1()
         {
@@ -3625,6 +3716,17 @@ class C
 class C
 {
     public static int [|X|];
+}");
+        }
+
+        [Fact]
+        public void TestFieldModifiers2()
+        {
+            TestModifiersAsync(DeclarationModifiers.Required,
+                @"
+class C
+{
+    public required int [|X|];
 }");
         }
 

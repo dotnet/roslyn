@@ -37,5 +37,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         protected override void Accept(SymbolVisitor visitor) => visitor.VisitDiscard(this);
         protected override TResult? Accept<TResult>(SymbolVisitor<TResult> visitor) where TResult : default => visitor.VisitDiscard(this);
+        protected override TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitDiscard(this, argument);
     }
 }

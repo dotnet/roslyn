@@ -50,10 +50,12 @@ namespace Microsoft.CodeAnalysis.ConvertCast
             var type = semanticModel.GetTypeInfo(typeNode, cancellationToken).Type;
             if (type is { TypeKind: not TypeKind.Error, IsReferenceType: true })
             {
+                var title = GetTitle();
                 context.RegisterRefactoring(
-                    new MyCodeAction(
-                        GetTitle(),
-                        c => ConvertAsync(document, from, cancellationToken)),
+                    CodeAction.Create(
+                        title,
+                        c => ConvertAsync(document, from, cancellationToken),
+                        title),
                     from.Span);
             }
         }
@@ -66,14 +68,6 @@ namespace Microsoft.CodeAnalysis.ConvertCast
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var newRoot = root.ReplaceNode(from, ConvertExpression(from));
             return document.WithSyntaxRoot(newRoot);
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, title)
-            {
-            }
         }
     }
 }
