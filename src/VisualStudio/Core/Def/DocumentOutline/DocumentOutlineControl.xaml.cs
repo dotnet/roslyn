@@ -11,8 +11,9 @@ using System.Windows;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Elfie.Model;
+using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
@@ -35,6 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
         private readonly IVsCodeWindow _codeWindow;
         private readonly ComEventSink _codeWindowEventsSink;
+        private readonly CompilationAvailableTaggerEventSource _textViewEventSource;
         private readonly CancellationTokenSource _cancellationTokenSource;
         private readonly CancellationToken _cancellationToken;
 
@@ -134,13 +136,30 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                     Debug.Fail("StartTrackingView failed during DocumentOutlineControl initialization.");
             }
 
+            var subjectBuffer = _trackedTextViews[primaryTextView].TextBuffer;
+            _textViewEventSource = new CompilationAvailableTaggerEventSource(
+                subjectBuffer,
+                _asyncListener,
+                // Any time an edit happens, recompute as the document symbols may have changed.
+                TaggerEventSources.OnTextChanged(subjectBuffer),
+                // Switching what is the active context may change the document symbols.
+                TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer),
+                // Many workspace changes may need us to change the document symbols (like options changing, or project renaming).
+                TaggerEventSources.OnWorkspaceChanged(subjectBuffer, _asyncListener),
+                // Once we hook this buffer up to the workspace, then we can start computing the document symbols.
+                TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer));
+
+            _textViewEventSource.Changed += OnEventSourceChanged;
             _codeWindowEventsSink = ComEventSink.Advise<IVsCodeWindowEvents>(codeWindow, this);
+            _textViewEventSource.Connect();
             StartComputeDataModelTask();
         }
 
         public void Dispose()
         {
             _codeWindowEventsSink.Unadvise();
+            _textViewEventSource.Changed -= OnEventSourceChanged;
+            _textViewEventSource.Disconnect();
             _cancellationTokenSource.Cancel();
             _cancellationTokenSource.Dispose();
         }
@@ -165,10 +184,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             // Subscribe to caret position changes once per view.
             wpfTextView.Caret.PositionChanged += Caret_PositionChanged;
 
-            // Subscribe to text buffer changes once per code window.
-            if (_trackedTextViews.Count == 1)
-                wpfTextView.TextBuffer.Changed += TextBuffer_Changed;
-
             return VSConstants.S_OK;
         }
 
@@ -182,20 +197,13 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 // Unsubscribe to caret position changes once per view.
                 view.Caret.PositionChanged -= Caret_PositionChanged;
 
-                // Unsubscribe to text buffer changes once per code window.
-                if (_trackedTextViews.Count == 1)
-                    view.TextBuffer.Changed -= TextBuffer_Changed;
-
                 _trackedTextViews.Remove(pView);
             }
 
             return VSConstants.S_OK;
         }
 
-        /// <summary>
-        /// On text buffer change, start computing the data model.
-        /// </summary>
-        private void TextBuffer_Changed(object sender, TextContentChangedEventArgs e)
+        private void OnEventSourceChanged(object sender, TaggerEventArgs e)
             => StartComputeDataModelTask();
 
         /// <summary>
