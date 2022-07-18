@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
                 foreach (var token in objectCreationTokens)
                 {
-                    Contract.ThrowIfNull(token.Parent.Parent);
+                    Contract.ThrowIfNull(token.Parent?.Parent);
                     var typeInfo = state.SemanticModel.GetTypeInfo(token.Parent.Parent, cancellationToken);
                     if (symbol.Equals(typeInfo.Type, SymbolEqualityComparer.Default))
                         result.Add(CreateFinderLocation(state, token, CandidateReason.None, cancellationToken));
