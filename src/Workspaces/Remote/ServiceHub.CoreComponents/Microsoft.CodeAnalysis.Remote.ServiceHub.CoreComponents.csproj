@@ -49,7 +49,7 @@
       <_R2RAssemblies Include="StreamJsonRpc.dll" />
 
       <!-- Find all assemblies (including Roslyn and all dependencies) from the actual published location -->
-      <_AllPublishedAssemblyPaths Include="$(PublishDir)\**\*.dll" Exclude="$(PublishDir)\**\*.resources.dll" />
+      <_AllPublishedAssemblyPaths Include="$(PublishDir)**\*.dll" Exclude="$(PublishDir)**\*.resources.dll" />
       <_AllPublishedAssemblies Include="@(_AllPublishedAssemblyPaths->'%(FileName)%(Extension)')" >
         <_FullFilePath>%(FullPath)</_FullFilePath>
       </_AllPublishedAssemblies>
@@ -65,7 +65,7 @@
     </ItemGroup>
     
     <PropertyGroup>
-      <CrossgenWorkDir>$(PublishDir)\CrossGen\</CrossgenWorkDir>
+      <CrossgenWorkDir>$(PublishDir)CrossGen\</CrossgenWorkDir>
       <OriginalAssemblyDir>$(CrossgenWorkDir)OriginalAssemblies\</OriginalAssemblyDir>
     </PropertyGroup>   
   </Target>
@@ -75,17 +75,23 @@
       <Output TaskParameter="DestinationFiles" ItemName="_FilesWritten" />
     </Move>
     <ItemGroup>
-      <_CrossgenTargetPaths Include="$(OriginalAssemblyDir)*.dll" />
-      <_CrossgenTargetsAsDependencies Include="@(_CrossgenTargetPaths)" />
-      <_NonCrossgenTargetsAsDependencies Include="@(_NonRuntimeAssembliesInPublishDir)" Exclude="@(_R2RAssemblyPaths)" />
+      <_CrossgenTargetsAsDependencies Include="$(OriginalAssemblyDir)*.dll" />
+      <_NonCrossgenTargetsAsDependencies Include="@(_NonRuntimeAssembliesInPublishDir)" Exclude="@(_R2RAssemblyPaths)" />      
+      <_CrossgenTargetPaths Include="@(_CrossgenTargetsAsDependencies)">      
+        <OutputPath>$(PublishDir)%(_CrossgenTargetsAsDependencies.Filename)%(_CrossgenTargetsAsDependencies.Extension)</OutputPath>
+      </_CrossgenTargetPaths>
     </ItemGroup>
   </Target>
 
-  <Target Name="CompileReadyToRun" DependsOnTargets="LocateDependencies;PrepareCrossgenTargets"  Condition="'$(GenerateReadyToRun)' == 'true'" Outputs="%(_CrossgenTargetPaths.FullPath)">    
+  <Target Name="CompileReadyToRun"
+          DependsOnTargets="LocateDependencies;PrepareCrossgenTargets"
+          Condition="'$(GenerateReadyToRun)' == 'true'"
+          Inputs="%(_CrossgenTargetPaths.FullPath)"
+          Outputs="%(_CrossgenTargetPaths.OutputPath)">    
     <PropertyGroup>    
       <_Crossgen2Path>$(PkgMicrosoft_NETCore_App_crossgen2_win-x64)\tools\crossgen2.dll</_Crossgen2Path>
       <_R2ROptimizeAssemblyPath>%(_CrossgenTargetPaths.FullPath)</_R2ROptimizeAssemblyPath>
-      <_R2ROptimizeAssemblyOutputPath>$(PublishDir)\%(_CrossgenTargetPaths.Filename)%(_CrossgenTargetPaths.Extension)</_R2ROptimizeAssemblyOutputPath>      
+      <_R2ROptimizeAssemblyOutputPath>$(PublishDir)%(_CrossgenTargetPaths.Filename)%(_CrossgenTargetPaths.Extension)</_R2ROptimizeAssemblyOutputPath>      
       <_RspFilePath>$(CrossgenWorkDir)%(_CrossgenTargetPaths.Filename).CrossgenArgs.rsp</_RspFilePath>
     </PropertyGroup>
     <ItemGroup>
@@ -114,10 +120,10 @@
       <_RuntimeLibraries Include="$(PkgMicrosoft_NETCore_App_Runtime_win-x64)\runtimes\win-x64\**\*.dll" />
       <_WinRuntimeLibraries Include="$(PkgMicrosoft_WindowsDesktop_App_Runtime_win-x64)\runtimes\win-x64\**\*.dll" />
 
-      <_RuntimeLibrariesInPublishDir Include="@(_RuntimeLibraries->'$(PublishDir)\%(FileName)%(Extension)')" />
-      <_RuntimeLibrariesInPublishDir Include="@(_WinRuntimeLibraries->'$(PublishDir)\%(FileName)%(Extension)')" />
+      <_RuntimeLibrariesInPublishDir Include="@(_RuntimeLibraries->'$(PublishDir)%(FileName)%(Extension)')" />
+      <_RuntimeLibrariesInPublishDir Include="@(_WinRuntimeLibraries->'$(PublishDir)%(FileName)%(Extension)')" />
 
-      <_NonRuntimeAssembliesInPublishDir Include="$(PublishDir)\*.dll" Exclude="@(_RuntimeLibrariesInPublishDir)" />
+      <_NonRuntimeAssembliesInPublishDir Include="$(PublishDir)*.dll" Exclude="@(_RuntimeLibrariesInPublishDir)" />
     </ItemGroup>
   </Target>
 
@@ -130,7 +136,7 @@
       <_ExcludedFiles Include="$(CrossgenWorkDir)**\*" />
 
       <!-- the only assembly we need under runtime folder (runtimes\win-x64\native\e_sqlite3.dll) is handled by the vsix project directly -->
-      <_ExcludedFiles Include="$(PublishDir)\runtimes\**\*.*" />
+      <_ExcludedFiles Include="$(PublishDir)runtimes\**\*.*" />
       <!-- 
         For BCL, we want to use the version provided by the runtime in VS, not the ones from the NuGet packages. 
         However, we can't safely exclude shared dependencies from ServiceHub host folder: we might be referencing
