@@ -75,7 +75,7 @@ class C
         [Fact]
         public void TestSuppression_CompilerSyntaxBindingError_AndSuppressibleWarning()
         {
-            const string sourceCode = @"
+            const string SourceCode = @"
                 public class MyClass
                 {
                     void MyPrivateMethod(int i)
@@ -96,7 +96,7 @@ class C
                     }
                 }";
 
-            var compilation = CreateCompilation(sourceCode);
+            var compilation = CreateCompilation(SourceCode);
 
             // Verify that suppression takes place even there are declaration errors
             var analyzers = new DiagnosticAnalyzer[] { new DiagnosticSuppressorForId("CS1522") };
@@ -108,7 +108,7 @@ class C
         [Fact]
         public void TestSuppression_CompilerSyntaxDeclarationError_AndSuppressibleWarning()
         {
-            const string sourceCode = @"
+            const string SourceCode = @"
                 // warning CS1522: Empty switch block
                 // NOTE: Empty switch block warning is reported by the C# language parser
                 class C
@@ -129,7 +129,7 @@ class C
                     }
                 }";
 
-            var compilation = CreateCompilation(sourceCode);
+            var compilation = CreateCompilation(SourceCode);
 
             // Verify that suppression takes place even there are declaration errors
             var analyzers = new DiagnosticAnalyzer[] { new DiagnosticSuppressorForId("CS1522") };

@@ -12461,7 +12461,7 @@ class C
         [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData]
         public void TestSuppression_CompilerSyntaxBindingError_SuppressWarningTriggeredByGenerator(bool skipAnalyzers)
         {
-            const string sourceCode = @"
+            const string SourceCode = @"
                 // warning CS0282: Partial struct warning
                 partial struct MyPartialStruct
                 {
@@ -12490,9 +12490,9 @@ class C
 
             var sourceDir = Temp.CreateDirectory();
             var sourceFile = sourceDir.CreateFile("NotGenerated.cs");
-            sourceFile.WriteAllText(sourceCode);
+            sourceFile.WriteAllText(SourceCode);
 
-            var generatedSource =
+            const string GeneratedSource =
                 @"// warning CS0282: Partial struct warning
                 partial struct MyPartialStruct
                 {
@@ -12503,7 +12503,7 @@ class C
                         MyBoolean = value;
                     }
                 }";
-            var partialStructGenerator = new SingleFileTestGenerator(generatedSource, "Generated.cs");
+            var partialStructGenerator = new SingleFileTestGenerator(GeneratedSource, "Generated.cs");
 
             // The generated code will trigger `CS0282`. This test verifies 3 things:
             // 1. Compiler warning `CS0282` is suppressed with diagnostic suppressor,
