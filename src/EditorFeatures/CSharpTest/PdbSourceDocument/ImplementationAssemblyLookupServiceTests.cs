@@ -243,9 +243,8 @@ namespace A
 
                 var service = workspace.GetService<IImplementationAssemblyLookupService>();
 
-                var foundImplementationFilePath = service.FollowTypeForwards(symbol, typeForwardDllFilePath, new NoDuplicatesLogger(), out var visitedAssemblies);
+                var foundImplementationFilePath = service.FollowTypeForwards(symbol, typeForwardDllFilePath, new NoDuplicatesLogger());
                 Assert.Equal(dllFilePath, foundImplementationFilePath);
-                Assert.Equal(new[] { "typeforward.dll" }, visitedAssemblies.Select(Path.GetFileName));
             });
         }
 
@@ -304,9 +303,8 @@ namespace A
 
                 var service = workspace.GetService<IImplementationAssemblyLookupService>();
 
-                var foundImplementationFilePath = service.FollowTypeForwards(symbol, typeForwardDllFilePath, new NoDuplicatesLogger(), out var visitedAssemblies);
+                var foundImplementationFilePath = service.FollowTypeForwards(symbol, typeForwardDllFilePath, new NoDuplicatesLogger());
                 Assert.Equal(dllFilePath, foundImplementationFilePath);
-                Assert.Equal(new[] { "typeforward.dll" }, visitedAssemblies.Select(Path.GetFileName));
             });
         }
 
@@ -543,9 +541,8 @@ public class C
 
                 var service = workspace.GetService<IImplementationAssemblyLookupService>();
 
-                var foundImplementationFilePath = service.FollowTypeForwards(symbol, typeForwardDllFilePath, new NoDuplicatesLogger(), out var visitedAssemblies);
+                var foundImplementationFilePath = service.FollowTypeForwards(symbol, typeForwardDllFilePath, new NoDuplicatesLogger());
                 Assert.Equal(realImplementationDllFilePath, foundImplementationFilePath);
-                Assert.Equal(new[] { "typeforward.dll", "implementation.dll" }, visitedAssemblies.Select(Path.GetFileName));
 
                 // We need the DLLs to exist, in order for some checks to pass correct, but to ensure
                 // that the file isn't read, we just zero it out.
@@ -553,9 +550,8 @@ public class C
                 File.WriteAllBytes(realImplementationDllFilePath, Array.Empty<byte>());
                 File.WriteAllBytes(dllFilePath, Array.Empty<byte>());
 
-                foundImplementationFilePath = service.FollowTypeForwards(symbol, typeForwardDllFilePath, new NoDuplicatesLogger(), out visitedAssemblies);
+                foundImplementationFilePath = service.FollowTypeForwards(symbol, typeForwardDllFilePath, new NoDuplicatesLogger());
                 Assert.Equal(realImplementationDllFilePath, foundImplementationFilePath);
-                Assert.Equal(new[] { "typeforward.dll", "implementation.dll" }, visitedAssemblies.Select(Path.GetFileName));
             });
         }
 
