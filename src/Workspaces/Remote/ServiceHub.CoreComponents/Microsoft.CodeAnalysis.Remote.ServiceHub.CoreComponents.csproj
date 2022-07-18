@@ -38,6 +38,7 @@
       <_R2RAssemblies Include="@(ReferencePath->'%(FileName)%(Extension)')" Condition="'%(ReferenceSourceTarget)' == 'ProjectReference'" />
 
       <!-- Also crossgen a few assemblies we don't own but insert into VS -->
+      <_R2RAssemblies Include="Microsoft.CodeAnalysis.Elfie.dll" />
       <_R2RAssemblies Include="Microsoft.ServiceHub.Framework.dll" />
       <_R2RAssemblies Include="Microsoft.VisualStudio.Composition.dll" />
       <_R2RAssemblies Include="Microsoft.VisualStudio.Telemetry.dll" />
@@ -47,6 +48,7 @@
       <_R2RAssemblies Include="Newtonsoft.Json.dll" />
       <_R2RAssemblies Include="SQLitePCLRaw.batteries_v2.dll" />
       <_R2RAssemblies Include="StreamJsonRpc.dll" />
+      <_R2RAssemblies Include="System.IO.Pipelines.dll" />
 
       <!-- Find all assemblies (including Roslyn and all dependencies) from the actual published location -->
       <_AllPublishedAssemblyPaths Include="$(PublishDir)**\*.dll" Exclude="$(PublishDir)**\*.resources.dll" />
