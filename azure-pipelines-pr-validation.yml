@@ -1,6 +1,7 @@
 resources:
-- repo: self
-  clean: true
+  repositories:
+  - repository: VS
+    type: git
 
 # Variables defined in yml cannot be overridden at queue time instead overrideable variables must be defined in the web gui.
 # Commenting out until AzDO supports something like the runtime parameters outlined here: https://github.com/Microsoft/azure-pipelines-yaml/pull/129
@@ -57,6 +58,7 @@ stages:
       - DotNetFramework
 
     steps:
+    - checkout: self
     - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
       displayName: Setting SourceBranchName variable
       condition: succeeded()
