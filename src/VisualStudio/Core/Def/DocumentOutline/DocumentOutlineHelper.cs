@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -228,13 +229,13 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// <summary>
         /// Converts an immutable array of DocumentSymbolData to an immutable array of DocumentSymbolUIItems.
         /// </summary>
-        public static ImmutableArray<DocumentSymbolUIItem> GetDocumentSymbolUIItems(ImmutableArray<DocumentSymbolData> documentSymbolData)
+        public static ImmutableArray<DocumentSymbolUIItem> GetDocumentSymbolUIItems(ImmutableArray<DocumentSymbolData> documentSymbolData, IThreadingContext threadingContext)
         {
             using var _ = ArrayBuilder<DocumentSymbolUIItem>.GetInstance(out var documentSymbolItems);
             foreach (var documentSymbol in documentSymbolData)
             {
-                var children = documentSymbol.Children.IsEmpty ? ImmutableArray<DocumentSymbolUIItem>.Empty : GetDocumentSymbolUIItems(documentSymbol.Children);
-                var documentSymbolItem = new DocumentSymbolUIItem(documentSymbol, children);
+                var children = documentSymbol.Children.IsEmpty ? ImmutableArray<DocumentSymbolUIItem>.Empty : GetDocumentSymbolUIItems(documentSymbol.Children, threadingContext);
+                var documentSymbolItem = new DocumentSymbolUIItem(documentSymbol, children, threadingContext);
                 documentSymbolItems.Add(documentSymbolItem);
             }
 

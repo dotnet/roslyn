@@ -5,9 +5,10 @@
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
@@ -16,8 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
     internal sealed class DocumentSymbolUIItem : INotifyPropertyChanged
     {
-        private bool _isSelected;
-        private bool _isExpanded;
+        private readonly IThreadingContext _threadingContext;
 
         public string Name { get; }
 
@@ -29,11 +29,20 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         public SymbolKind SymbolKind { get; }
         public ImageMoniker ImageMoniker { get; }
 
+        // These values should only be mutated/read from the UI thread.
+        private bool _isSelected;
+        private bool _isExpanded;
+
         public bool IsExpanded
         {
-            get => _isExpanded;
+            get
+            {
+                _threadingContext.ThrowIfNotOnUIThread();
+                return _isExpanded;
+            }
             set
             {
+                _threadingContext.ThrowIfNotOnUIThread();
                 if (_isExpanded != value)
                 {
                     _isExpanded = value;
@@ -43,9 +52,14 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         }
         public bool IsSelected
         {
-            get => _isSelected;
+            get
+            {
+                _threadingContext.ThrowIfNotOnUIThread();
+                return _isSelected;
+            }
             set
             {
+                _threadingContext.ThrowIfNotOnUIThread();
                 if (_isSelected != value)
                 {
                     _isSelected = value;
@@ -54,8 +68,9 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             }
         }
 
-        public DocumentSymbolUIItem(DocumentSymbolData documentSymbolData, ImmutableArray<DocumentSymbolUIItem> children)
+        public DocumentSymbolUIItem(DocumentSymbolData documentSymbolData, ImmutableArray<DocumentSymbolUIItem> children, IThreadingContext threadingContext)
         {
+            _threadingContext = threadingContext;
             Name = documentSymbolData.Name;
             Children = children;
             SymbolKind = documentSymbolData.SymbolKind;

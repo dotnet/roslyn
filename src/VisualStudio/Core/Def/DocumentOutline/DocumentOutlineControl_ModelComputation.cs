@@ -160,7 +160,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             if (model is null)
                 return;
 
-            // Switch to the UI thread to get the current caret point and latest active text view.
+            // Switch to the UI thread to get the current caret point and latest active text view then generate the UI model.
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var activeTextView = GetLastActiveIWpfTextView();
@@ -171,10 +171,11 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             if (!caretPoint.HasValue)
                 return;
 
-            // Switch to the threadpool to generate the UI model and determine which node to select (if it exists).
+            var documentSymbolUIItems = DocumentOutlineHelper.GetDocumentSymbolUIItems(model.DocumentSymbolData, _threadingContext);
+
+            // Switch to the threadpool to determine which node to select (if it exists).
             await TaskScheduler.Default;
 
-            var documentSymbolUIItems = DocumentOutlineHelper.GetDocumentSymbolUIItems(model.DocumentSymbolData);
             var symbolToSelect = DocumentOutlineHelper.GetDocumentNodeToSelect(documentSymbolUIItems, model.OriginalSnapshot, caretPoint.Value);
 
             // Switch to the UI thread to update the view.
