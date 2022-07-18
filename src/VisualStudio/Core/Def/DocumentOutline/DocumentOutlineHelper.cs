@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -17,10 +19,11 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageServiceBrokerShim;
 using Microsoft.VisualStudio.Text;
 using Newtonsoft.Json.Linq;
-using LspDocumentSymbol = Microsoft.VisualStudio.LanguageServer.Protocol.DocumentSymbol;
 
 namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
+    using LspDocumentSymbol = DocumentSymbol;
+
     internal static class DocumentOutlineHelper
     {
         public static async Task<JToken?> DocumentSymbolsRequestAsync(
@@ -226,14 +229,10 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         public static ImmutableArray<DocumentSymbolUIItem> GetDocumentSymbolUIItems(ImmutableArray<DocumentSymbolData> documentSymbolData)
         {
             using var _ = ArrayBuilder<DocumentSymbolUIItem>.GetInstance(out var documentSymbolItems);
-
             foreach (var documentSymbol in documentSymbolData)
             {
-                var documentSymbolItem = new DocumentSymbolUIItem(documentSymbol);
-
-                if (!documentSymbol.Children.IsEmpty)
-                    documentSymbolItem.Children = GetDocumentSymbolUIItems(documentSymbol.Children);
-
+                var children = documentSymbol.Children.IsEmpty ? ImmutableArray<DocumentSymbolUIItem>.Empty : GetDocumentSymbolUIItems(documentSymbol.Children);
+                var documentSymbolItem = new DocumentSymbolUIItem(documentSymbol, children);
                 documentSymbolItems.Add(documentSymbolItem);
             }
 
@@ -298,6 +297,15 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                     return selectedChild;
             }
             return null;
+        }
+
+        internal static void UnselectAll(IEnumerable<DocumentSymbolUIItem> documentSymbolItems)
+        {
+            foreach (var documentSymbolItem in documentSymbolItems)
+            {
+                documentSymbolItem.IsSelected = false;
+                UnselectAll(documentSymbolItem.Children);
+            }
         }
     }
 }

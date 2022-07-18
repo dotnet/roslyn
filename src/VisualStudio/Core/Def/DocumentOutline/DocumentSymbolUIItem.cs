@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
         public string Name { get; }
 
-        public ImmutableArray<DocumentSymbolUIItem> Children { get; set; }
+        public ImmutableArray<DocumentSymbolUIItem> Children { get; }
 
         public SnapshotSpan RangeSpan { get; }
         public SnapshotSpan SelectionRangeSpan { get; }
@@ -54,16 +54,16 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             }
         }
 
-        public DocumentSymbolUIItem(DocumentSymbolData documentSymbolData)
+        public DocumentSymbolUIItem(DocumentSymbolData documentSymbolData, ImmutableArray<DocumentSymbolUIItem> children)
         {
-            this.Name = documentSymbolData.Name;
-            this.Children = ImmutableArray<DocumentSymbolUIItem>.Empty;
-            this.SymbolKind = documentSymbolData.SymbolKind;
-            this.ImageMoniker = GetImageMoniker(documentSymbolData.SymbolKind);
-            this.IsExpanded = true;
-            this.IsSelected = false;
-            this.RangeSpan = documentSymbolData.RangeSpan;
-            this.SelectionRangeSpan = documentSymbolData.SelectionRangeSpan;
+            Name = documentSymbolData.Name;
+            Children = children;
+            SymbolKind = documentSymbolData.SymbolKind;
+            ImageMoniker = GetImageMoniker(documentSymbolData.SymbolKind);
+            IsExpanded = true;
+            IsSelected = false;
+            RangeSpan = documentSymbolData.RangeSpan;
+            SelectionRangeSpan = documentSymbolData.SelectionRangeSpan;
         }
 
         private void NotifyPropertyChanged([CallerMemberName] string? propertyName = null)
