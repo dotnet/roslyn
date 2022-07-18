@@ -67,8 +67,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 static (token, tuple) => TokensMatch(tuple.state, token, tuple.methodSymbol.ContainingType.Name, tuple.cancellationToken),
                 (state, methodSymbol, cancellationToken));
 
-            return await FindReferencesInTokensAsync(
-                 methodSymbol, state, totalTokens, cancellationToken).ConfigureAwait(false);
+            return await FindReferencesInTokensAsync(methodSymbol, state, totalTokens, cancellationToken).ConfigureAwait(false);
 
             // local functions
             static bool TokensMatch(
