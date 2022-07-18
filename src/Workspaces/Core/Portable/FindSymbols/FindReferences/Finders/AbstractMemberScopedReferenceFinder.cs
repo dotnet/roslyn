@@ -93,21 +93,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return null;
         }
 
-        //protected static ValueTask<ImmutableArray<FinderLocation>> FindReferencesInTokensWithSymbolNameAsync(
-        //    TSymbol symbol,
-        //    FindReferencesDocumentState state,
-        //    IEnumerable<SyntaxToken> tokens,
-        //    CancellationToken cancellationToken)
-        //{
-        //    return FindReferencesInTokensAsync(
-        //        symbol,
-        //        state,
-        //        tokens,
-        //        static (state, token, name, _) => IdentifiersMatch(state.SyntaxFacts, name, token),
-        //        symbol.Name,
-        //        cancellationToken);
-        //}
-
         private ValueTask<ImmutableArray<FinderLocation>> FindReferencesInContainerAsync(
             TSymbol symbol,
             ISymbol container,

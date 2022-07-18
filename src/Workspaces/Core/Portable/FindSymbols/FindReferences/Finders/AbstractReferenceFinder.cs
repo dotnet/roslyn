@@ -204,17 +204,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return locations.ToImmutable();
         }
 
-        //protected static ValueTask<ImmutableArray<FinderLocation>> FindReferencesInTokensAsync(
-        //    ISymbol symbol,
-        //    FindReferencesDocumentState state,
-        //    IEnumerable<SyntaxToken> tokens,
-        //    Func<FindReferencesDocumentState, SyntaxToken, CancellationToken, bool> tokensMatch,
-        //    CancellationToken cancellationToken)
-        //{
-        //    return FindReferencesInTokensAsync(
-        //        symbol, state, tokens, static (state, token, tokensMatch, cancellationToken) => tokensMatch(state, token, cancellationToken), tokensMatch, cancellationToken);
-        //}
-
         private static IAliasSymbol? GetAliasSymbol(
             FindReferencesDocumentState state,
             SyntaxNode node,
@@ -833,28 +822,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return FindReferencesInDocumentUsingIdentifierAsync(
                 symbol, symbol.Name, state, cancellationToken);
         }
-
-        //protected static ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync<T>(
-        //    TSymbol symbol,
-        //    FindReferencesDocumentState state,
-        //    Func<FindReferencesDocumentState, SyntaxToken, T, CancellationToken, bool> tokensMatch,
-        //    T value,
-        //    CancellationToken cancellationToken)
-        //{
-        //    var tokens = state.Root.DescendantTokens(descendIntoTrivia: true);
-        //    return FindReferencesInTokensAsync(
-        //        symbol, state, tokens, tokensMatch, value, cancellationToken);
-        //}
-
-        //protected static ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
-        //    TSymbol symbol,
-        //    FindReferencesDocumentState state,
-        //    Func<FindReferencesDocumentState, SyntaxToken, CancellationToken, bool> tokensMatch,
-        //    CancellationToken cancellationToken)
-        //{
-        //    return FindReferencesInDocumentAsync(
-        //        symbol, state, static (state, token, tokensMatch, cancellationToken) => tokensMatch(state, token, cancellationToken), tokensMatch, cancellationToken);
-        //}
 
         protected static async Task<ImmutableArray<string>> GetAllMatchingGlobalAliasNamesAsync(
             Project project, string name, int arity, CancellationToken cancellationToken)
