@@ -12395,7 +12395,7 @@ class C
                 }";
             var partialStructGenerator = new SingleFileTestGenerator(GeneratedCode, "Generated.cs");
 
-            // The generated code will trigger `CS0282`. This tests verifies 3 things:
+            // The generated code will trigger `CS0282`. This test verifies 3 things:
             // 1. Compiler warning `CS0282` is suppressed with diagnostic suppressor,
             // 2. Info diagnostic for the suppression is logged with programmatic suppression information,
             // 3. Compiler error `CS0180` is reported.
@@ -12429,7 +12429,7 @@ class C
             Assert.Contains("info SP0001", output, StringComparison.Ordinal);
             Assert.Contains("error CS0180", output, StringComparison.Ordinal);
 
-            // The generated code will trigger `CS0282`. This tests verifies 3 things:
+            // The generated code will trigger `CS0282`. This test verifies 3 things:
             // 1. Compiler warning `CS0282` is suppressed with diagnostic suppressor even when elevated as an error (using `/warnaserror`),
             // 2. Info diagnostic for the suppression is logged with programmatic suppression information,
             // 3. Compiler error `CS0180` is reported.
@@ -12505,7 +12505,7 @@ class C
                 }";
             var partialStructGenerator = new SingleFileTestGenerator(generatedSource, "Generated.cs");
 
-            // The generated code will trigger `CS0282`. This tests verifies 3 things:
+            // The generated code will trigger `CS0282`. This test verifies 3 things:
             // 1. Compiler warning `CS0282` is suppressed with diagnostic suppressor,
             // 2. Info diagnostic for the suppression is logged with programmatic suppression information,
             // 3. Compiler error `CS1001` is reported.
@@ -12540,7 +12540,7 @@ class C
             Assert.Contains("info SP0001", output, StringComparison.Ordinal);
             Assert.Contains("error CS0122", output, StringComparison.Ordinal);
 
-            // The generated code will trigger `CS0282`. This tests verifies 3 things:
+            // The generated code will trigger `CS0282`. This test verifies 3 things:
             // 1. Compiler warning `CS0282` is suppressed with diagnostic suppressor even when elevated as an error (using `/warnaserror`),
             // 2. Info diagnostic for the suppression is logged with programmatic suppression information,
             // 3. Compiler error `CS1001` is reported.
