@@ -213,13 +213,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         [Obsolete]
         ImmutableArray<DiagnosticData> IDiagnosticService.GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
-            => GetPushDiagnosticsAsync(workspace, projectId, documentId, id, includeSuppressedDiagnostics, GlobalOptions.GetDiagnosticMode(InternalDiagnosticsOptions.NormalDiagnosticMode), cancellationToken).AsTask().WaitAndGetResult_CanCallOnBackground(cancellationToken);
+            => GetPullDiagnosticsAsync(workspace, projectId, documentId, id, includeSuppressedDiagnostics, cancellationToken).AsTask().WaitAndGetResult_CanCallOnBackground(cancellationToken);
 
-        public ValueTask<ImmutableArray<DiagnosticData>> GetPullDiagnosticsAsync(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, DiagnosticMode diagnosticMode, CancellationToken cancellationToken)
-            => GetDiagnosticsAsync(workspace, projectId, documentId, id, includeSuppressedDiagnostics, forPullDiagnostics: true, diagnosticMode, cancellationToken);
-
-        public ValueTask<ImmutableArray<DiagnosticData>> GetPushDiagnosticsAsync(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, DiagnosticMode diagnosticMode, CancellationToken cancellationToken)
-            => GetDiagnosticsAsync(workspace, projectId, documentId, id, includeSuppressedDiagnostics, forPullDiagnostics: false, diagnosticMode, cancellationToken);
+        public ValueTask<ImmutableArray<DiagnosticData>> GetPullDiagnosticsAsync(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
+            => GetDiagnosticsAsync(workspace, projectId, documentId, id, includeSuppressedDiagnostics, cancellationToken);
 
         private ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
             Workspace workspace,
@@ -227,15 +224,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DocumentId documentId,
             object id,
             bool includeSuppressedDiagnostics,
-            bool forPullDiagnostics,
-            DiagnosticMode diagnosticMode,
             CancellationToken cancellationToken)
         {
-            // If this is a pull client, but pull diagnostics is not on, then they get nothing.  Similarly, if this is a
-            // push client and pull diagnostics are on, they get nothing.
-            if (forPullDiagnostics != (diagnosticMode == DiagnosticMode.Pull))
-                return new ValueTask<ImmutableArray<DiagnosticData>>(ImmutableArray<DiagnosticData>.Empty);
-
             if (id != null)
             {
                 // get specific one
@@ -312,25 +302,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return result.ToImmutable();
         }
 
-        public ImmutableArray<DiagnosticBucket> GetPullDiagnosticBuckets(Workspace workspace, ProjectId projectId, DocumentId documentId, DiagnosticMode diagnosticMode, CancellationToken cancellationToken)
-            => GetDiagnosticBuckets(workspace, projectId, documentId, forPullDiagnostics: true, diagnosticMode, cancellationToken);
-
-        public ImmutableArray<DiagnosticBucket> GetPushDiagnosticBuckets(Workspace workspace, ProjectId projectId, DocumentId documentId, DiagnosticMode diagnosticMode, CancellationToken cancellationToken)
-            => GetDiagnosticBuckets(workspace, projectId, documentId, forPullDiagnostics: false, diagnosticMode, cancellationToken);
+        public ImmutableArray<DiagnosticBucket> GetPullDiagnosticBuckets(Workspace workspace, ProjectId projectId, DocumentId documentId, CancellationToken cancellationToken)
+            => GetDiagnosticBuckets(workspace, projectId, documentId, cancellationToken);
 
         private ImmutableArray<DiagnosticBucket> GetDiagnosticBuckets(
             Workspace workspace,
             ProjectId projectId,
             DocumentId documentId,
-            bool forPullDiagnostics,
-            DiagnosticMode diagnosticMode,
             CancellationToken cancellationToken)
         {
-            // If this is a pull client, but pull diagnostics is not on, then they get nothing.  Similarly, if this is a
-            // push client and pull diagnostics are on, they get nothing.
-            if (forPullDiagnostics != (diagnosticMode == DiagnosticMode.Pull))
-                return ImmutableArray<DiagnosticBucket>.Empty;
-
             using var _1 = ArrayBuilder<DiagnosticBucket>.GetInstance(out var result);
             using var _2 = ArrayBuilder<Data>.GetInstance(out var buffer);
 

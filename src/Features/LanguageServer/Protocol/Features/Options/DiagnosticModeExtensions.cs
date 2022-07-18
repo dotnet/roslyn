@@ -9,44 +9,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal static class DiagnosticModeExtensions
     {
-        public static DiagnosticMode GetDiagnosticMode(this IGlobalOptionService globalOptions, Option2<DiagnosticMode> option)
-        {
-            return DiagnosticMode.Pull;
-        }
-
-        public static bool IsPullDiagnostics(this IGlobalOptionService globalOptions, Option2<DiagnosticMode> option)
-            => true;
-
-        public static bool IsPushDiagnostics(this IGlobalOptionService globalOptions, Option2<DiagnosticMode> option)
-            => false;
-
         /// <summary>
         /// Gets all the diagnostics for this event, respecting the callers setting on if they're getting it for pull
         /// diagnostics or push diagnostics.  Most clients should use this to ensure they see the proper set of
         /// diagnostics in their scenario (or an empty array if not in their scenario).
         /// </summary>
         public static ImmutableArray<DiagnosticData> GetPullDiagnostics(
-            this DiagnosticsUpdatedArgs args, IGlobalOptionService globalOptions, Option2<DiagnosticMode> diagnosticMode)
+            this DiagnosticsUpdatedArgs args, IGlobalOptionService globalOptions)
         {
-            // If push diagnostics are on, they get nothing since they're asking for pull diagnostics.
-            if (globalOptions.IsPushDiagnostics(diagnosticMode))
-                return ImmutableArray<DiagnosticData>.Empty;
-
-            return args.GetAllDiagnosticsRegardlessOfPushPullSetting();
-        }
-
-        /// <summary>
-        /// Gets all the diagnostics for this event, respecting the callers setting on if they're getting it for pull
-        /// diagnostics or push diagnostics.  Most clients should use this to ensure they see the proper set of
-        /// diagnostics in their scenario (or an empty array if not in their scenario).
-        /// </summary>
-        public static ImmutableArray<DiagnosticData> GetPushDiagnostics(
-            this DiagnosticsUpdatedArgs args, IGlobalOptionService globalOptions, Option2<DiagnosticMode> diagnosticMode)
-        {
-            // If pull diagnostics are on, they get nothing since they're asking for push diagnostics.
-            if (globalOptions.IsPullDiagnostics(diagnosticMode))
-                return ImmutableArray<DiagnosticData>.Empty;
-
             return args.GetAllDiagnosticsRegardlessOfPushPullSetting();
         }
     }

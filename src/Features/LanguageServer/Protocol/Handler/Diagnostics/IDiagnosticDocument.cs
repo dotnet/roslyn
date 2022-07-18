@@ -25,6 +25,5 @@ internal interface IDiagnosticSource
     Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
         IDiagnosticAnalyzerService diagnosticAnalyzerService,
         RequestContext context,
-        DiagnosticMode diagnosticMode,
         CancellationToken cancellationToken);
 }

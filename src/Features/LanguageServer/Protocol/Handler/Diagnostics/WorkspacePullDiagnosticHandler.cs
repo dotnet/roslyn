@@ -182,7 +182,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
                 IDiagnosticAnalyzerService diagnosticAnalyzerService,
                 RequestContext context,
-                DiagnosticMode diagnosticMode,
                 CancellationToken cancellationToken)
             {
                 // Directly use the IDiagnosticAnalyzerService.  This will use the actual snapshots
@@ -205,7 +204,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
                 IDiagnosticAnalyzerService diagnosticAnalyzerService,
                 RequestContext context,
-                DiagnosticMode diagnosticMode,
                 CancellationToken cancellationToken)
             {
                 if (Document is SourceGeneratedDocument sourceGeneratedDocument)

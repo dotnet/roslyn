@@ -35,47 +35,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Get current diagnostics stored in IDiagnosticUpdateSource.
         /// </summary>
-        /// <param name="diagnosticMode">Option controlling if pull diagnostics are allowed for the client.  The
-        /// <see cref="IDiagnosticService"/> only provides diagnostics for either push or pull purposes (but not both).
-        /// If the caller's desired purpose doesn't match the option value, then this will return nothing, otherwise it
-        /// will return the requested diagnostics.</param>
         ValueTask<ImmutableArray<DiagnosticData>> GetPullDiagnosticsAsync(
-            Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics,
-            DiagnosticMode diagnosticMode, CancellationToken cancellationToken);
-
-        /// <summary>
-        /// Get current diagnostics stored in IDiagnosticUpdateSource.
-        /// </summary>
-        /// <param name="diagnosticMode">Option controlling if pull diagnostics are allowed for the client.  The
-        /// <see cref="IDiagnosticService"/> only provides diagnostics for either push or pull purposes (but not both).
-        /// If the caller's desired purpose doesn't match the option value, then this will return nothing, otherwise it
-        /// will return the requested diagnostics.</param>
-        ValueTask<ImmutableArray<DiagnosticData>> GetPushDiagnosticsAsync(
-            Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics,
-            DiagnosticMode diagnosticMode, CancellationToken cancellationToken);
+            Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken);
 
         /// <summary>
         /// Get current buckets storing our grouped diagnostics.  Specific buckets can be retrieved by calling <see
-        /// cref="IDiagnosticServiceExtensions.GetPullDiagnosticsAsync(IDiagnosticService, DiagnosticBucket, bool, DiagnosticMode, CancellationToken)"/>.
+        /// cref="IDiagnosticServiceExtensions.GetPullDiagnosticsAsync(IDiagnosticService, DiagnosticBucket, bool, CancellationToken)"/>.
         /// </summary>
-        /// <param name="diagnosticMode">Option controlling if pull diagnostics are allowed for the client.  The
-        /// <see cref="IDiagnosticService"/> only provides diagnostics for either push or pull purposes (but not both).
-        /// If the caller's desired purpose doesn't match the option value, then this will return nothing, otherwise it
-        /// will return the requested buckets.</param>
         ImmutableArray<DiagnosticBucket> GetPullDiagnosticBuckets(
-            Workspace workspace, ProjectId? projectId, DocumentId? documentId,
-            DiagnosticMode diagnosticMode, CancellationToken cancellationToken);
-
-        /// <summary>
-        /// Get current buckets storing our grouped diagnostics.  Specific buckets can be retrieved by calling <see
-        /// cref="IDiagnosticServiceExtensions.GetPushDiagnosticsAsync(IDiagnosticService, DiagnosticBucket, bool, DiagnosticMode, CancellationToken)"/>.
-        /// </summary>
-        /// <param name="diagnosticMode">Option controlling if pull diagnostics are allowed for the client.  The <see
-        /// cref="IDiagnosticService"/> only provides diagnostics for either push or pull purposes (but not both).  If
-        /// the caller's desired purpose doesn't match the option value, then this will return nothing, otherwise it
-        /// will return the requested buckets.</param>
-        ImmutableArray<DiagnosticBucket> GetPushDiagnosticBuckets(
-            Workspace workspace, ProjectId? projectId, DocumentId? documentId,
-            DiagnosticMode diagnosticMode, CancellationToken cancellationToken);
+            Workspace workspace, ProjectId? projectId, DocumentId? documentId, CancellationToken cancellationToken);
     }
 }

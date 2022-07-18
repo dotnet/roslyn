@@ -17,6 +17,8 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
+#if false
+
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     [Shared]
@@ -290,3 +292,5 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
     }
 }
+
+#endif
