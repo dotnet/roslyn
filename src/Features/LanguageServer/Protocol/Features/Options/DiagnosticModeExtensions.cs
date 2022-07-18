@@ -11,23 +11,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         public static DiagnosticMode GetDiagnosticMode(this IGlobalOptionService globalOptions, Option2<DiagnosticMode> option)
         {
-            var diagnosticModeOption = globalOptions.GetOption(option);
-
-            // If the workspace diagnostic mode is set to Default, defer to the feature flag service.
-            if (diagnosticModeOption == DiagnosticMode.Default)
-            {
-                return globalOptions.GetOption(DiagnosticOptionsStorage.LspPullDiagnosticsFeatureFlag) ? DiagnosticMode.Pull : DiagnosticMode.Push;
-            }
-
-            // Otherwise, defer to the workspace+option to determine what mode we're in.
-            return diagnosticModeOption;
+            return DiagnosticMode.Pull;
         }
 
         public static bool IsPullDiagnostics(this IGlobalOptionService globalOptions, Option2<DiagnosticMode> option)
-            => GetDiagnosticMode(globalOptions, option) == DiagnosticMode.Pull;
+            => true;
 
         public static bool IsPushDiagnostics(this IGlobalOptionService globalOptions, Option2<DiagnosticMode> option)
-            => GetDiagnosticMode(globalOptions, option) == DiagnosticMode.Push;
+            => false;
 
         /// <summary>
         /// Gets all the diagnostics for this event, respecting the callers setting on if they're getting it for pull

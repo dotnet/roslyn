@@ -195,11 +195,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             Customized_Theme_Warning.Visibility = isSupportedTheme && isThemeCustomized ? Visibility.Visible : Visibility.Collapsed;
             Custom_VS_Theme_Warning.Visibility = isSupportedTheme ? Visibility.Collapsed : Visibility.Visible;
 
-            UpdatePullDiagnosticsOptions();
+            // UpdatePullDiagnosticsOptions();
             UpdateInlineHintsOptions();
 
             base.OnLoad();
         }
+
+#if false
 
         private void UpdatePullDiagnosticsOptions()
         {
@@ -253,6 +255,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             this.OptionStore.SetOption(InternalDiagnosticsOptions.NormalDiagnosticMode, DiagnosticMode.Default);
             UpdatePullDiagnosticsOptions();
         }
+
+#endif
 
         private void UpdateInlineHintsOptions()
         {
