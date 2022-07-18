@@ -15,6 +15,8 @@ using Microsoft.VisualStudio.Shell.TableManager;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
+#if false
+
     [ExportEventListener(WellKnownEventListeners.DiagnosticService, WorkspaceKind.MiscellaneousFiles), Shared]
     internal sealed class MiscellaneousDiagnosticListTableWorkspaceEventListener : IEventListener<IDiagnosticService>
     {
@@ -73,4 +75,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 => _source.Shutdown();
         }
     }
+
+#endif
 }

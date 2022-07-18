@@ -24,6 +24,8 @@ Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
+#If False Then
+
     <[UseExportProvider]>
     Public Class DiagnosticTableDataSourceTests
         <Fact>
@@ -937,4 +939,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Class
         End Class
     End Class
+
+#End If
 End Namespace

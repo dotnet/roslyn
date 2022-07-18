@@ -17,6 +17,8 @@ using Microsoft.VisualStudio.Shell.TableManager;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 {
+#if false
+
     /// <summary>
     /// An error list provider that gets diagnostics from the Roslyn diagnostics service.
     /// </summary>
@@ -80,4 +82,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         protected override void ShutdownSource()
             => _source.Shutdown();
     }
+
+#endif
 }

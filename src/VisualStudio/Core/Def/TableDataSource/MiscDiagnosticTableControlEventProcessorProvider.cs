@@ -11,6 +11,8 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
+#if false
+
     [Export(typeof(ITableControlEventProcessorProvider))]
     [DataSourceType(StandardTableDataSources.ErrorTableDataSource)]
     [DataSource(MiscellaneousDiagnosticListTableWorkspaceEventListener.IdentifierString)]
@@ -26,4 +28,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
         }
     }
+
+#endif
 }

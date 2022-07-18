@@ -30,6 +30,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
+#if false
+
     internal abstract partial class VisualStudioBaseDiagnosticListTable
     {
         /// <summary>
@@ -602,4 +604,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
         }
     }
+
+#endif
 }

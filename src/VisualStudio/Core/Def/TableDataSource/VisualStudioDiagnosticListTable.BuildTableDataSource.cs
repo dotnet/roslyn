@@ -21,6 +21,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
+#if false
+
     internal partial class VisualStudioDiagnosticListTableWorkspaceEventListener
     {
         internal partial class VisualStudioDiagnosticListTable : VisualStudioBaseDiagnosticListTable
@@ -281,4 +283,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
         }
     }
+
+#endif
 }

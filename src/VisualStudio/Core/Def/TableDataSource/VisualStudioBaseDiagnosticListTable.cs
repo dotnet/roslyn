@@ -13,6 +13,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
+#if false
+
     internal abstract partial class VisualStudioBaseDiagnosticListTable : AbstractTable
     {
         protected VisualStudioBaseDiagnosticListTable(Workspace workspace, ITableManagerProvider provider)
@@ -80,4 +82,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 => Hash.Combine(Analyzer.GetHashCode(), Hash.Combine(DocumentIds.GetHashCode(), (int)Kind));
         }
     }
+
+#endif
 }

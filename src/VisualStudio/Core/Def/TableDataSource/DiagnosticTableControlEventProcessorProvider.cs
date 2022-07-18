@@ -11,6 +11,8 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
+#if false
+
     [Export(typeof(ITableControlEventProcessorProvider))]
     [DataSourceType(StandardTableDataSources.ErrorTableDataSource)]
     [DataSource(VisualStudioDiagnosticListTableWorkspaceEventListener.IdentifierString)]
@@ -35,4 +37,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             return new AggregateDiagnosticTableControlEventProcessor(additionalEventProcessors: suppressionStateEventProcessor);
         }
     }
+
+#endif
 }
