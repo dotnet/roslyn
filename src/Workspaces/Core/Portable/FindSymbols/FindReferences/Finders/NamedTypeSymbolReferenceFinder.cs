@@ -202,12 +202,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             if (predefinedType == PredefinedType.None)
                 return new(ImmutableArray<FinderLocation>.Empty);
 
-            return FindReferencesInDocumentAsync(
-                symbol,
-                state,
-                static (state, token, predefinedType, _) => IsPotentialReference(predefinedType, state.SyntaxFacts, token),
-                predefinedType,
-                cancellationToken);
+            var tokens = state.Root
+                .DescendantTokens(descendIntoTrivia: true)
+                .Where(t => IsPotentialReference(predefinedType, state.SyntaxFacts, t))
+                .ToImmutableArray();
+
+            return FindReferencesInTokensAsync(
+                symbol, state, tokens, cancellationToken);
         }
 
         private static ValueTask<ImmutableArray<FinderLocation>> FindAttributeReferencesAsync(

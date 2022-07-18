@@ -62,8 +62,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     state, "New", cancellationToken).ConfigureAwait(false)).Distinct();
             }
 
+            var totalTokens = tokens.Where(t => TokensMatch(state, t, methodSymbol.ContainingType.Name, cancellationToken)).ToImmutableArray();
+
             return await FindReferencesInTokensAsync(
-                 methodSymbol, state, tokens, TokensMatch, methodSymbol.ContainingType.Name, cancellationToken).ConfigureAwait(false);
+                 methodSymbol, state, totalTokens, cancellationToken).ConfigureAwait(false);
 
             // local functions
             static bool TokensMatch(

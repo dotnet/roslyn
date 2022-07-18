@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return Task.FromResult(ImmutableArray.Create(document));
         }
 
-        protected sealed override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+        protected sealed override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             TSymbol symbol,
             FindReferencesDocumentState state,
             FindReferencesSearchOptions options,
@@ -53,15 +53,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             var container = GetContainer(symbol);
             if (container != null)
-                return FindReferencesInContainerAsync(symbol, container, state, cancellationToken);
+                return await FindReferencesInContainerAsync(symbol, container, state, cancellationToken).ConfigureAwait(false);
 
             if (symbol.ContainingType != null && symbol.ContainingType.IsScriptClass)
             {
-                var tokens = state.Root.DescendantTokens();
-                return FindReferencesInTokensWithSymbolNameAsync(symbol, state, tokens, cancellationToken);
+                var tokens = await FindMatchingIdentifierTokensAsync(state, symbol.Name, cancellationToken).ConfigureAwait(false);
+                return await FindReferencesInTokensAsync(symbol, state, tokens, cancellationToken).ConfigureAwait(false);
             }
 
-            return new(ImmutableArray<FinderLocation>.Empty);
+            return ImmutableArray<FinderLocation>.Empty;
         }
 
         private static ISymbol? GetContainer(ISymbol symbol)
@@ -93,20 +93,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return null;
         }
 
-        protected static ValueTask<ImmutableArray<FinderLocation>> FindReferencesInTokensWithSymbolNameAsync(
-            TSymbol symbol,
-            FindReferencesDocumentState state,
-            IEnumerable<SyntaxToken> tokens,
-            CancellationToken cancellationToken)
-        {
-            return FindReferencesInTokensAsync(
-                symbol,
-                state,
-                tokens,
-                static (state, token, name, _) => IdentifiersMatch(state.SyntaxFacts, name, token),
-                symbol.Name,
-                cancellationToken);
-        }
+        //protected static ValueTask<ImmutableArray<FinderLocation>> FindReferencesInTokensWithSymbolNameAsync(
+        //    TSymbol symbol,
+        //    FindReferencesDocumentState state,
+        //    IEnumerable<SyntaxToken> tokens,
+        //    CancellationToken cancellationToken)
+        //{
+        //    return FindReferencesInTokensAsync(
+        //        symbol,
+        //        state,
+        //        tokens,
+        //        static (state, token, name, _) => IdentifiersMatch(state.SyntaxFacts, name, token),
+        //        symbol.Name,
+        //        cancellationToken);
+        //}
 
         private ValueTask<ImmutableArray<FinderLocation>> FindReferencesInContainerAsync(
             TSymbol symbol,
@@ -115,16 +115,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CancellationToken cancellationToken)
         {
             var service = state.Document.GetRequiredLanguageService<ISymbolDeclarationService>();
-            var declarations = service.GetDeclarations(container);
-            var tokens = declarations.SelectMany(r => r.GetSyntax(cancellationToken).DescendantTokens());
+            var tokens = service.GetDeclarations(container)
+                .SelectMany(r => r.GetSyntax(cancellationToken)
+                    .DescendantTokens()
+                    .Where(t => TokensMatch(state, t, symbol.Name)))
+                .ToImmutableArray();
 
             return FindReferencesInTokensAsync(
-                symbol,
-                state,
-                tokens,
-                static (state, token, tuple, _) => tuple.self.TokensMatch(state, token, tuple.name),
-                (self: this, name: symbol.Name),
-                cancellationToken);
+                symbol, state, tokens, cancellationToken);
         }
     }
 }
