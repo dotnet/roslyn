@@ -19,6 +19,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageServiceBrokerShim;
 using Microsoft.VisualStudio.Text;
 using Newtonsoft.Json.Linq;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
@@ -179,6 +180,9 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
                             return x.SymbolKind - y.SymbolKind;
                         });
+                        break;
+                    default:
+                        ExceptionUtilities.UnexpectedValue(sortOption);
                         break;
                 }
 
