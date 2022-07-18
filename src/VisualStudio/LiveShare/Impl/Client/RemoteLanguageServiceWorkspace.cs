@@ -81,14 +81,14 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
             IVsFolderWorkspaceService vsFolderWorkspaceService,
             SVsServiceProvider serviceProvider,
-            IDiagnosticService diagnosticService,
+            IGlobalOptionService globalOptions,
             ITableManagerProvider tableManagerProvider,
             IThreadingContext threadingContext)
             : base(VisualStudioMefHostServices.Create(exportProvider), WorkspaceKind.CloudEnvironmentClientWorkspace)
         {
             _serviceProvider = serviceProvider;
 
-            GlobalOptions = diagnosticService.GlobalOptions;
+            GlobalOptions = globalOptions;
 
             var runningDocumentTable = (IVsRunningDocumentTable)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
             _runningDocumentTableEventTracker = new RunningDocumentTableEventTracker(threadingContext, editorAdaptersFactoryService, runningDocumentTable, this);
