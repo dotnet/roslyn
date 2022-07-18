@@ -54,8 +54,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             // queue to serialize events.
             _eventQueue = new TaskQueue(listenerProvider.GetListener(FeatureAttribute.DiagnosticService), TaskScheduler.Default);
-
-            _eventListenerTracker = new EventListenerTracker<IDiagnosticService>(eventListeners, WellKnownEventListeners.DiagnosticService);
         }
 
         public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated
@@ -73,8 +71,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private void RaiseDiagnosticsUpdated(IDiagnosticUpdateSource source, DiagnosticsUpdatedArgs args)
         {
-            _eventListenerTracker.EnsureEventListener(args.Workspace, this);
-
             var ev = _eventMap.GetEventHandlers<EventHandler<DiagnosticsUpdatedArgs>>(DiagnosticsUpdatedEventName);
 
             _eventQueue.ScheduleTask(DiagnosticsUpdatedEventName, () =>
@@ -442,20 +438,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 Id = args.Id;
                 Diagnostics = diagnostics;
             }
-        }
-
-        internal TestAccessor GetTestAccessor()
-            => new(this);
-
-        internal readonly struct TestAccessor
-        {
-            private readonly DiagnosticService _diagnosticService;
-
-            internal TestAccessor(DiagnosticService diagnosticService)
-                => _diagnosticService = diagnosticService;
-
-            internal ref readonly EventListenerTracker<IDiagnosticService> EventListenerTracker
-                => ref _diagnosticService._eventListenerTracker;
         }
     }
 }
