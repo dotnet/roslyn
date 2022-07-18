@@ -184,9 +184,7 @@ public class C
 
                 var service = workspace.GetService<IImplementationAssemblyLookupService>();
 
-                var foundImplementationFilePath = service.FollowTypeForwards(symbol, typeForwardDllFilePath, new NoDuplicatesLogger(), out var visitedAssemblies);
-                Assert.Equal(dllFilePath, foundImplementationFilePath);
-                Assert.Equal(new[] { "typeforward.dll" }, visitedAssemblies.Select(Path.GetFileName));
+                Assert.Equal(dllFilePath, service.FollowTypeForwards(symbol, typeForwardDllFilePath, new NoDuplicatesLogger()));
             });
         }
 
@@ -361,9 +359,7 @@ public class C
 
                 var service = workspace.GetService<IImplementationAssemblyLookupService>();
 
-                var foundImplementationFilePath = service.FollowTypeForwards(symbol, typeForwardDllFilePath, new NoDuplicatesLogger(), out var visitedAssemblies);
-                Assert.Equal(dllFilePath, foundImplementationFilePath);
-                Assert.Equal(new[] { "typeforward.dll" }, visitedAssemblies.Select(Path.GetFileName));
+                Assert.Equal(dllFilePath, service.FollowTypeForwards(symbol, typeForwardDllFilePath, new NoDuplicatesLogger()));
             });
         }
 
@@ -413,18 +409,14 @@ public class C
 
                 var service = workspace.GetService<IImplementationAssemblyLookupService>();
 
-                var foundImplementationFilePath = service.FollowTypeForwards(symbol, typeForwardDllFilePath, new NoDuplicatesLogger(), out var visitedAssemblies);
-                Assert.Equal(dllFilePath, foundImplementationFilePath);
-                Assert.Equal(new[] { "typeforward.dll" }, visitedAssemblies.Select(Path.GetFileName));
+                Assert.Equal(dllFilePath, service.FollowTypeForwards(symbol, typeForwardDllFilePath, new NoDuplicatesLogger()));
 
                 // We need the DLLs to exist, in order for some checks to pass correct, but to ensure
                 // that the file isn't read, we just zero it out.
                 File.WriteAllBytes(typeForwardDllFilePath, Array.Empty<byte>());
                 File.WriteAllBytes(dllFilePath, Array.Empty<byte>());
 
-                foundImplementationFilePath = service.FollowTypeForwards(symbol, typeForwardDllFilePath, new NoDuplicatesLogger(), out visitedAssemblies);
-                Assert.Equal(dllFilePath, foundImplementationFilePath);
-                Assert.Equal(new[] { "typeforward.dll" }, visitedAssemblies.Select(Path.GetFileName));
+                Assert.Equal(dllFilePath, service.FollowTypeForwards(symbol, typeForwardDllFilePath, new NoDuplicatesLogger()));
             });
         }
 
@@ -481,18 +473,14 @@ public class F { }";
 
                 var service = workspace.GetService<IImplementationAssemblyLookupService>();
 
-                var foundImplementationFilePath = service.FollowTypeForwards(symbol, typeForwardDllFilePath, new NoDuplicatesLogger(), out var visitedAssemblies);
-                Assert.Equal(dllFilePath, foundImplementationFilePath);
-                Assert.Equal(new[] { "typeforward.dll" }, visitedAssemblies.Select(Path.GetFileName));
+                Assert.Equal(dllFilePath, service.FollowTypeForwards(symbol, typeForwardDllFilePath, new NoDuplicatesLogger()));
 
                 // We need the DLLs to exist, in order for some checks to pass correct, but to ensure
                 // that the file isn't read, we just zero it out.
                 File.WriteAllBytes(typeForwardDllFilePath, Array.Empty<byte>());
                 File.WriteAllBytes(dllFilePath, Array.Empty<byte>());
 
-                foundImplementationFilePath = service.FollowTypeForwards(symbol, typeForwardDllFilePath, new NoDuplicatesLogger(), out visitedAssemblies);
-                Assert.Equal(dllFilePath, foundImplementationFilePath);
-                Assert.Equal(new[] { "typeforward.dll" }, visitedAssemblies.Select(Path.GetFileName));
+                Assert.Equal(dllFilePath, service.FollowTypeForwards(symbol, typeForwardDllFilePath, new NoDuplicatesLogger()));
             });
         }
 
