@@ -44,7 +44,9 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// </summary>
         private async ValueTask<DocumentSymbolDataModel?> ComputeDataModelAsync(ImmutableSegmentedList<bool> _, CancellationToken cancellationToken)
         {
-            // Jump to the UI thread to get the currently active text view.
+            // Jump to the UI thread to get the currently active text view. This cancellation token controls the entire DocumentOutlineControl
+            // so if we are closed/cancelled on the UI thread, when this jumps back to the UI thread, it will auto-cancel and won't continue
+            // further. We only get to the code below if the control is still in an active state.
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var activeTextView = GetLastActiveIWpfTextView();
