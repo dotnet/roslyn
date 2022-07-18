@@ -10,7 +10,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
-
     internal sealed class MethodTypeParameterSymbolReferenceFinder : AbstractTypeParameterSymbolReferenceFinder
     {
         protected override bool CanFind(ITypeParameterSymbol symbol)
