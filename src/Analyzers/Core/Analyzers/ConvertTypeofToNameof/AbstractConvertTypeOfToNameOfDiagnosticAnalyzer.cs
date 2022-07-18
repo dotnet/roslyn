@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
             : base(diagnosticId: IDEDiagnosticIds.ConvertTypeOfToNameOfDiagnosticId,
                   EnforceOnBuildValues.ConvertTypeOfToNameOf,
                   option: null,
-                  language: language,
                   title: title)
         {
         }

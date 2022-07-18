@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis.FileHeaders
                 IDEDiagnosticIds.FileHeaderMismatch,
                 EnforceOnBuildValues.FileHeaderMismatch,
                 CodeStyleOptions2.FileHeaderTemplate,
-                language,
                 new LocalizableResourceString(nameof(AnalyzersResources.The_file_header_is_missing_or_not_located_at_the_top_of_the_file), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                 new LocalizableResourceString(nameof(AnalyzersResources.A_source_file_is_missing_a_required_header), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {

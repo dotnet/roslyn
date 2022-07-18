@@ -394,7 +394,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
             Diagnostic diagnostic,
             Project project)
         {
-            if (IDEDiagnosticIdToOptionMappingHelper.TryGetMappedOptions(diagnostic.Id, project.Language, out var options))
+            if (IDEDiagnosticIdToOptionMappingHelper.TryGetMappedOptions(diagnostic.Id, out var options))
             {
                 var optionSet = project.Solution.Workspace.Options;
                 using var _ = ArrayBuilder<(OptionKey, ICodeStyleOption, IEditorConfigStorageLocation2, bool)>.GetInstance(out var builder);

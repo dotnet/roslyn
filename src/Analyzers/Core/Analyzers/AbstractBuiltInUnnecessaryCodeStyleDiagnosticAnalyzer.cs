@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     {
         /// <summary>
         /// Constructor for an unnecessary code style analyzer with a single diagnostic descriptor and
-        /// unique <see cref="IPerLanguageOption"/> code style option.
+        /// unique code style option.
         /// </summary>
         /// <param name="diagnosticId">Diagnostic ID reported by this analyzer</param>
         /// <param name="enforceOnBuild">Build enforcement recommendation for this analyzer</param>
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         protected AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer(
             string diagnosticId,
             EnforceOnBuild enforceOnBuild,
-            IPerLanguageOption? option,
+            IOption2? option,
             PerLanguageOption2<bool>? fadingOption,
             LocalizableString title,
             LocalizableString? messageFormat = null,
@@ -52,42 +52,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         /// <summary>
         /// Constructor for an unnecessary code style analyzer with a single diagnostic descriptor and
-        /// unique <see cref="ILanguageSpecificOption"/> code style option for the given language.
-        /// </summary>
-        /// <param name="diagnosticId">Diagnostic ID reported by this analyzer</param>
-        /// <param name="enforceOnBuild">Build enforcement recommendation for this analyzer</param>
-        /// <param name="option">
-        /// Language specific option that can be used to configure the given <paramref name="diagnosticId"/>.
-        /// <see langword="null"/>, if there is no such unique option.
-        /// </param>
-        /// <param name="fadingOption">
-        /// Per-language fading option that can be used to configure if the diagnostic should be faded in the IDE or not.
-        /// <see langword="null"/>, if there is no such unique fading option.
-        /// </param>
-        /// <param name="language">Language for the given language-specific <paramref name="option"/>.</param>
-        /// <param name="title">Title for the diagnostic descriptor</param>
-        /// <param name="messageFormat">
-        /// Message for the diagnostic descriptor.
-        /// <see langword="null"/> if the message is identical to the title.
-        /// </param>
-        /// <param name="configurable">Flag indicating if the reported diagnostics are configurable by the end users</param>
-        protected AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer(
-            string diagnosticId,
-            EnforceOnBuild enforceOnBuild,
-            ILanguageSpecificOption? option,
-            PerLanguageOption2<bool>? fadingOption,
-            string language,
-            LocalizableString title,
-            LocalizableString? messageFormat = null,
-            bool configurable = true)
-            : base(diagnosticId, enforceOnBuild, option, language, title, messageFormat, isUnnecessary: true, configurable)
-        {
-            AddDiagnosticIdToFadingOptionMapping(diagnosticId, fadingOption);
-        }
-
-        /// <summary>
-        /// Constructor for an unnecessary code style analyzer with a single diagnostic descriptor and
-        /// two or more <see cref="IPerLanguageOption"/> code style options.
+        /// two or more code style options.
         /// </summary>
         /// <param name="diagnosticId">Diagnostic ID reported by this analyzer</param>
         /// <param name="enforceOnBuild">Build enforcement recommendation for this analyzer</param>
@@ -107,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         protected AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer(
             string diagnosticId,
             EnforceOnBuild enforceOnBuild,
-            ImmutableHashSet<IPerLanguageOption> options,
+            ImmutableHashSet<IOption2> options,
             PerLanguageOption2<bool>? fadingOption,
             LocalizableString title,
             LocalizableString? messageFormat = null,
