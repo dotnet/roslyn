@@ -32,8 +32,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
     {
         private static readonly ImmutableArray<UseExpressionBodyHelper> _helpers = UseExpressionBodyHelper.Helpers;
 
-        private static readonly ImmutableDictionary<string, (UseExpressionBodyHelper helper, bool useExpressionBody)> s_equivalenceKeyToHelperMap
-            = CreateHelperMap(UseExpressionBodyHelper.Helpers);
+        private static readonly BidirectionalMap<(UseExpressionBodyHelper helper, bool useExpressionBody), string> s_equivalenceKeyMap
+            = CreateEquivalanceKeyMap(UseExpressionBodyHelper.Helpers);
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -41,18 +41,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         {
         }
 
-        private static ImmutableDictionary<string, (UseExpressionBodyHelper helper, bool useExpressionBody)> CreateHelperMap(
+        private static BidirectionalMap<(UseExpressionBodyHelper helper, bool useExpressionBody), string> CreateEquivalanceKeyMap(
             ImmutableArray<UseExpressionBodyHelper> helpers)
         {
-            return ImmutableDictionary.CreateRange(GetKeyValuePairs(helpers));
+            return new BidirectionalMap<(UseExpressionBodyHelper helper, bool useExpressionBody), string>(GetKeyValuePairs(helpers));
 
-            static IEnumerable<KeyValuePair<string, (UseExpressionBodyHelper helper, bool useExpressionBody)>> GetKeyValuePairs(
+            static IEnumerable<KeyValuePair<(UseExpressionBodyHelper helper, bool useExpressionBody), string>> GetKeyValuePairs(
                 ImmutableArray<UseExpressionBodyHelper> helpers)
             {
                 foreach (var helper in helpers)
                 {
-                    yield return KeyValuePairUtil.Create(helper.UseExpressionBodyEquivalenceKey, (helper, useExpressionBody: true));
-                    yield return KeyValuePairUtil.Create(helper.UseBlockBodyEquivalenceKey, (helper, useExpressionBody: false));
+                    yield return KeyValuePairUtil.Create((helper, useExpressionBody: true), helper.GetType().Name + "_UseExpressionBody");
+                    yield return KeyValuePairUtil.Create((helper, useExpressionBody: false), helper.GetType().Name + "_UseBlockBody");
                 }
             }
         }
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                         c => UpdateDocumentAsync(
                             document, root, declaration, helper,
                             useExpressionBody: true, cancellationToken: c),
-                        helper.UseExpressionBodyEquivalenceKey),
+                        s_equivalenceKeyMap[(helper, useExpressionBody: true)]),
                     declaration.Span);
                 succeeded = true;
             }
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                         c => UpdateDocumentAsync(
                             document, root, declaration, helper,
                             useExpressionBody: false, cancellationToken: c),
-                        helper.UseBlockBodyEquivalenceKey),
+                        s_equivalenceKeyMap[(helper, useExpressionBody: false)]),
                     declaration.Span);
                 succeeded = true;
             }
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             CancellationToken cancellationToken)
         {
             Debug.Assert(equivalenceKey != null);
-            var (helper, useExpressionBody) = s_equivalenceKeyToHelperMap[equivalenceKey];
+            var (helper, useExpressionBody) = s_equivalenceKeyMap[equivalenceKey];
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var options = (CSharpCodeGenerationOptions)await document.GetCodeGenerationOptionsAsync(optionsProvider, cancellationToken).ConfigureAwait(false);

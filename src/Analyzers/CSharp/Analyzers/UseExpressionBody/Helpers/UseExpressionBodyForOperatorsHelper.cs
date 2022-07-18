@@ -23,8 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                    EnforceOnBuildValues.UseExpressionBodyForOperators,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_expression_body_for_operators), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_block_body_for_operators), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
-                   nameof(CSharpAnalyzersResources.Use_expression_body_for_operators),
-                   nameof(CSharpAnalyzersResources.Use_block_body_for_operators),
                    CSharpCodeStyleOptions.PreferExpressionBodiedOperators,
                    ImmutableArray.Create(SyntaxKind.OperatorDeclaration))
         {

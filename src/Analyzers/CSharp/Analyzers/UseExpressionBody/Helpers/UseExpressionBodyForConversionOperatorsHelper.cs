@@ -21,8 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                    EnforceOnBuildValues.UseExpressionBodyForConversionOperators,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_expression_body_for_conversion_operators), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_block_body_for_conversion_operators), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
-                   nameof(CSharpAnalyzersResources.Use_expression_body_for_conversion_operators),
-                   nameof(CSharpAnalyzersResources.Use_block_body_for_conversion_operators),
                    CSharpCodeStyleOptions.PreferExpressionBodiedOperators,
                    ImmutableArray.Create(SyntaxKind.ConversionOperatorDeclaration))
         {

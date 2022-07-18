@@ -21,8 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                    EnforceOnBuildValues.UseExpressionBodyForAccessors,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_expression_body_for_accessors), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_block_body_for_accessors), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
-                   nameof(CSharpAnalyzersResources.Use_expression_body_for_accessors),
-                   nameof(CSharpAnalyzersResources.Use_block_body_for_accessors),
                    CSharpCodeStyleOptions.PreferExpressionBodiedAccessors,
                    ImmutableArray.Create(SyntaxKind.GetAccessorDeclaration, SyntaxKind.SetAccessorDeclaration, SyntaxKind.InitAccessorDeclaration, SyntaxKind.AddAccessorDeclaration, SyntaxKind.RemoveAccessorDeclaration))
         {

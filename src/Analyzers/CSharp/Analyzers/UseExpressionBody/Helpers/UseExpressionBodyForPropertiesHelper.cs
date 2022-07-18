@@ -24,8 +24,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                    EnforceOnBuildValues.UseExpressionBodyForProperties,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_expression_body_for_properties), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_block_body_for_properties), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
-                   nameof(CSharpAnalyzersResources.Use_expression_body_for_properties),
-                   nameof(CSharpAnalyzersResources.Use_block_body_for_properties),
                    CSharpCodeStyleOptions.PreferExpressionBodiedProperties,
                    ImmutableArray.Create(SyntaxKind.PropertyDeclaration))
         {
