@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// If this type is a file type, returns the syntax tree where this type is visible. Otherwise, returns null.
+        /// If this type is a file-local type, returns the syntax tree where this type is visible. Otherwise, returns null.
         /// </summary>
         internal abstract SyntaxTree? AssociatedSyntaxTree { get; }
 #nullable disable

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void Method_01(LanguageVersion langVersion)
         {
             string source = "void F(scoped x, ref scoped y) { }";
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void Method_02(LanguageVersion langVersion)
         {
             string source = "void F(scoped int a, scoped ref int b, scoped in int c, scoped out int d) { }";
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void Method_03(LanguageVersion langVersion)
         {
             string source = "void F(ref scoped int b, in scoped int c, out scoped int d) { }";
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void Method_04()
         {
             string source = "scoped R F() => default;";
-            UsingDeclaration(source, TestOptions.RegularNext);
+            UsingDeclaration(source, TestOptions.Regular11);
 
             N(SyntaxKind.MethodDeclaration);
             {
@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void Method_05()
         {
             string source = "ref scoped R F() => default;";
-            UsingDeclaration(source, TestOptions.RegularNext);
+            UsingDeclaration(source, TestOptions.Regular11);
 
             N(SyntaxKind.MethodDeclaration);
             {
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void Method_06(LanguageVersion langVersion)
         {
             string source =
@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 ref scoped F2() => default;
 scoped F3() { }
 ref scoped F4() { }";
-            UsingCompilationRoot(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -384,7 +384,7 @@ ref scoped F4() { }";
         public void Method_07()
         {
             string source = "void F(scoped scoped ref int i) { }";
-            UsingDeclaration(source, TestOptions.RegularNext);
+            UsingDeclaration(source, TestOptions.Regular11);
 
             N(SyntaxKind.MethodDeclaration);
             {
@@ -422,7 +422,7 @@ ref scoped F4() { }";
         public void Method_08()
         {
             string source = "void F(ref scoped scoped R r) { }";
-            UsingDeclaration(source, TestOptions.RegularNext);
+            UsingDeclaration(source, TestOptions.Regular11);
 
             N(SyntaxKind.MethodDeclaration);
             {
@@ -458,7 +458,7 @@ ref scoped F4() { }";
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void Method_09(LanguageVersion langVersion)
         {
             string source = "void F(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }";
@@ -528,7 +528,7 @@ ref scoped F4() { }";
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void Method_10(LanguageVersion langVersion)
         {
             string source = "void F(scoped.nested x, ref scoped.nested y) { }";
@@ -591,7 +591,7 @@ ref scoped F4() { }";
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void Lambda_01(LanguageVersion langVersion)
         {
             string source = "(scoped x, ref scoped y) => null";
@@ -633,7 +633,7 @@ ref scoped F4() { }";
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void Lambda_02(LanguageVersion langVersion)
         {
             string source = "(scoped int a, scoped ref int b, scoped in int c, scoped out int d) => null";
@@ -699,7 +699,7 @@ ref scoped F4() { }";
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void Lambda_03(LanguageVersion langVersion)
         {
             string source = "(ref scoped int a, out scoped int b, in scoped int c) => null";
@@ -755,7 +755,7 @@ ref scoped F4() { }";
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void Lambda_04(LanguageVersion langVersion)
         {
             string source = "(scoped R a, scoped ref R b, ref scoped R c) => null";
@@ -812,7 +812,7 @@ ref scoped F4() { }";
         public void Lambda_05()
         {
             string source = "(scoped scoped ref int i) => null";
-            UsingExpression(source, TestOptions.RegularNext);
+            UsingExpression(source, TestOptions.Regular11);
 
             N(SyntaxKind.ParenthesizedLambdaExpression);
             {
@@ -845,7 +845,7 @@ ref scoped F4() { }";
         public void Lambda_06()
         {
             string source = "(ref scoped scoped R r) => { }";
-            UsingExpression(source, TestOptions.RegularNext);
+            UsingExpression(source, TestOptions.Regular11);
 
             N(SyntaxKind.ParenthesizedLambdaExpression);
             {
@@ -877,7 +877,7 @@ ref scoped F4() { }";
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void Lambda_07(LanguageVersion langVersion)
         {
             string source = "([A] scoped R a, [B] scoped ref R b, [C] ref scoped R c) => null";
@@ -968,7 +968,7 @@ ref scoped F4() { }";
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void Lambda_08(LanguageVersion langVersion)
         {
             string source = $"scoped () => t";
@@ -998,7 +998,7 @@ ref scoped F4() { }";
         public void Params_01()
         {
             string source = "void F(scoped params object[] args);";
-            UsingDeclaration(source, TestOptions.RegularNext);
+            UsingDeclaration(source, TestOptions.Regular11);
 
             N(SyntaxKind.MethodDeclaration);
             {
@@ -1043,7 +1043,7 @@ ref scoped F4() { }";
         public void Params_02()
         {
             string source = "void F(params scoped object[] args);";
-            UsingDeclaration(source, TestOptions.RegularNext);
+            UsingDeclaration(source, TestOptions.Regular11);
 
             N(SyntaxKind.MethodDeclaration);
             {
@@ -1086,7 +1086,7 @@ ref scoped F4() { }";
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void Local_01(LanguageVersion langVersion)
         {
             string source =
@@ -1099,7 +1099,7 @@ ref scoped F4() { }";
         ref readonly scoped c;
     }
 }";
-            UsingCompilationRoot(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1190,7 +1190,7 @@ ref scoped F4() { }";
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void Local_02(LanguageVersion langVersion)
         {
             string source =
@@ -1206,7 +1206,7 @@ ref scoped F4() { }";
     }}
 }}
 ";
-            UsingCompilationRoot(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1341,7 +1341,7 @@ ref scoped F4() { }";
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void Local_03(LanguageVersion langVersion)
         {
             string source =
@@ -1349,7 +1349,7 @@ ref scoped F4() { }";
 scoped ref int b;
 ref scoped int c;
 ";
-            UsingCompilationRoot(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1425,7 +1425,7 @@ ref scoped int c;
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void Local_04(LanguageVersion langVersion)
         {
             string source =
@@ -1433,7 +1433,7 @@ ref scoped int c;
 ref readonly scoped S b;
 scoped ref readonly scoped S c;
 ";
-            UsingCompilationRoot(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1517,14 +1517,14 @@ scoped ref readonly scoped S c;
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void Local_05(LanguageVersion langVersion)
         {
             string source =
 @"scoped a;
 ref scoped b;
 ";
-            UsingCompilationRoot(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1575,7 +1575,7 @@ ref scoped b;
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void Local_06(LanguageVersion langVersion)
         {
             string source =
@@ -1583,7 +1583,7 @@ ref scoped b;
 ref scoped.nested b;
 ref readonly scoped.nested c;
 ";
-            UsingCompilationRoot(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1681,7 +1681,7 @@ ref readonly scoped.nested c;
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void Local_07(LanguageVersion langVersion)
         {
             string source =
@@ -1691,7 +1691,7 @@ scoped ref readonly scoped c;
 ref scoped scoped d;
 ref readonly scoped scoped e;
 ";
-            UsingCompilationRoot(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1815,7 +1815,7 @@ ref readonly scoped scoped e;
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void Local_08(LanguageVersion langVersion)
         {
             string source =
@@ -1823,7 +1823,7 @@ ref readonly scoped scoped e;
 scoped ref var b;
 ref scoped var c;
 ";
-            UsingCompilationRoot(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1899,7 +1899,7 @@ ref scoped var c;
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void Local_09(LanguageVersion langVersion)
         {
             string source =
@@ -1907,7 +1907,7 @@ ref scoped var c;
 ref readonly scoped var b;
 scoped ref readonly scoped var c;
 ";
-            UsingCompilationRoot(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1991,14 +1991,14 @@ scoped ref readonly scoped var c;
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void Local_10(LanguageVersion langVersion)
         {
             string source =
 @"scoped var;
 ref scoped var;
 ";
-            UsingCompilationRoot(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2053,7 +2053,7 @@ ref scoped var;
             string source =
 @"ref scoped readonly S a;
 ";
-            UsingCompilationRoot(source, TestOptions.RegularNext,
+            UsingTree(source, TestOptions.Regular11,
                 // (1,12): error CS1585: Member modifier 'readonly' must precede the member type and name
                 // ref scoped readonly S a;
                 Diagnostic(ErrorCode.ERR_BadModifierLocation, "readonly").WithArguments("readonly").WithLocation(1, 12),
@@ -2105,7 +2105,7 @@ ref scoped var;
 @"scoped scoped int a;
 scoped scoped var b;
 ";
-            UsingCompilationRoot(source, TestOptions.RegularNext,
+            UsingTree(source, TestOptions.Regular11,
                 // (1,15): error CS1003: Syntax error, ',' expected
                 // scoped scoped int a;
                 Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(",").WithLocation(1, 15),
@@ -2160,7 +2160,7 @@ scoped scoped var b;
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void FunctionPointer_01(LanguageVersion langVersion)
         {
             string source = @"delegate*<scoped, ref scoped> f;";
@@ -2208,7 +2208,7 @@ scoped scoped var b;
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void FunctionPointer_02(LanguageVersion langVersion)
         {
             string source = @"delegate*<scoped R, ref scoped R, scoped ref int, void> f;";
@@ -2276,14 +2276,14 @@ scoped scoped var b;
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void Type_01(LanguageVersion langVersion)
         {
             string source =
 @"scoped struct A { }
 scoped ref struct B { }
 ";
-            UsingCompilationRoot(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2317,7 +2317,7 @@ scoped ref struct B { }
 scoped readonly record struct B;
 readonly scoped record struct C();
 ";
-            UsingCompilationRoot(source, TestOptions.RegularNext);
+            UsingTree(source, TestOptions.Regular11);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2363,7 +2363,7 @@ readonly scoped record struct C();
             string source =
 @"delegate scoped int A();
 ";
-            UsingCompilationRoot(source, TestOptions.RegularNext,
+            UsingTree(source, TestOptions.Regular11,
                 // (1,17): error CS1001: Identifier expected
                 // delegate scoped int A();
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "int").WithLocation(1, 17),
@@ -2440,13 +2440,13 @@ readonly scoped record struct C();
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void Type_04(LanguageVersion langVersion)
         {
             string source =
 @"delegate scoped A();
 ";
-            UsingCompilationRoot(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2472,13 +2472,13 @@ readonly scoped record struct C();
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void Type_05(LanguageVersion langVersion)
         {
             string source =
 @"delegate ref scoped int B();
 ";
-            UsingCompilationRoot(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2509,13 +2509,13 @@ readonly scoped record struct C();
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void Type_06(LanguageVersion langVersion)
         {
             string source =
 @"delegate ref scoped B();
 ";
-            UsingCompilationRoot(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2545,14 +2545,14 @@ readonly scoped record struct C();
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void Type_07(LanguageVersion langVersion)
         {
             string source =
 @"[A] scoped struct A { }
 [A, B] scoped ref struct B { }
 ";
-            UsingCompilationRoot(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2612,7 +2612,7 @@ readonly scoped record struct C();
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void LocalAssignment_01(LanguageVersion langVersion)
         {
             string source =
@@ -2624,7 +2624,7 @@ readonly scoped record struct C();
         scoped = true;
     }
 }";
-            UsingCompilationRoot(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2692,14 +2692,14 @@ readonly scoped record struct C();
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void LocalAssignment_02(LanguageVersion langVersion)
         {
             string source =
 @"bool scoped;
 scoped = true;
 ";
-            UsingCompilationRoot(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2747,7 +2747,7 @@ scoped = true;
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void Using_01(LanguageVersion langVersion)
         {
             string source =
@@ -2807,7 +2807,7 @@ using ref scoped r;
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void Using_02(LanguageVersion langVersion)
         {
             string source =
@@ -2869,7 +2869,7 @@ using ref scoped R r2;
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void Using_03(LanguageVersion langVersion)
         {
             string source =
@@ -2931,7 +2931,7 @@ await using ref scoped r;
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void Using_04(LanguageVersion langVersion)
         {
             string source =

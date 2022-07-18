@@ -189,6 +189,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\AddImportPlacement.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\CodeStyleHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\CodeStyleOption2`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\FadingOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\CodeStyleOptions2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\EditorConfigSeverityStrings.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\ExpressionBodyPreference.cs" />
@@ -249,7 +250,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Indentation\IndentationOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Indentation\IndentationResult.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Indentation\ISmartTokenFormatter.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Options\FeatureFlagStorageLocation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\BlockFacts\AbstractBlockFacts.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\BlockFacts\IBlockFacts.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\BlockFacts\IBlockFactsExtensions.cs" />
@@ -389,6 +389,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Options\IOption2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\IOptionWithGroup.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\LocalUserProfileStorageLocation.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\ClientSettingsStorageLocation.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\LocalClientSettingsStorageLocation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\OptionGroup.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\OptionDefinition.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\OptionKey2.cs" />
@@ -420,6 +422,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Simplification\SimplifierOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Simplification\SpecialTypeAnnotation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Simplification\SymbolAnnotation.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SymbolKey\SymbolKey.AbstractSymbolKey.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SymbolKey\SymbolKey.AliasSymbolKey.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SymbolKey\SymbolKey.AnonymousFunctionOrDelegateSymbolKey.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SymbolKey\SymbolKey.AnonymousTypeSymbolKey.cs" />

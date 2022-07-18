@@ -587,7 +587,7 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       </trans-unit>
       <trans-unit id="Could_not_find_implementation_of_symbol_0">
         <source>Could not find implementation of symbol '{0}'</source>
-        <target state="new">Could not find implementation of symbol '{0}'</target>
+        <target state="translated">Nie można odnaleźć implementacji symbolu „{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Create_and_assign_field_0">
@@ -737,7 +737,7 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       </trans-unit>
       <trans-unit id="Fixing_0">
         <source>Fixing '{0}'</source>
-        <target state="new">Fixing '{0}'</target>
+        <target state="translated">Naprawianie „{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_document">
@@ -2537,7 +2537,7 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
       </trans-unit>
       <trans-unit id="Replace_conditional_expression_with_statements">
         <source>Replace conditional expression with statements</source>
-        <target state="new">Replace conditional expression with statements</target>
+        <target state="translated">Zamień wyrażenie warunkowe na instrukcje</target>
         <note />
       </trans-unit>
       <trans-unit id="Required">
