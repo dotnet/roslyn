@@ -129,10 +129,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             await UpdatePathsToRemoteFilesAsync(session).ConfigureAwait(false);
 
             _vsFolderWorkspaceService.OnActiveWorkspaceChanged += OnActiveWorkspaceChangedAsync;
-            //session.RemoteServicesChanged += (object sender, RemoteServicesChangedEventArgs e) =>
-            //{
-            //    _remoteDiagnosticListTable.UpdateWorkspaceDiagnosticsPresent(_session.RemoteServiceNames.Contains("workspaceDiagnostics"));
-            //};
         }
 
         public string? GetRemoteExternalRoot(string filePath)
