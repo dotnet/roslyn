@@ -211,19 +211,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             }
         }
 
-        private protected Task<TestLspServer> CreateTestWorkspaceWithDiagnosticsAsync(string markup, BackgroundAnalysisScope scope, bool useVSDiagnostics, bool pullDiagnostics = true)
-            => CreateTestLspServerAsync(markup, GetInitializationOptions(scope, useVSDiagnostics, DiagnosticMode.Pull));
+        private protected Task<TestLspServer> CreateTestWorkspaceWithDiagnosticsAsync(string markup, BackgroundAnalysisScope scope, bool useVSDiagnostics)
+            => CreateTestLspServerAsync(markup, GetInitializationOptions(scope, useVSDiagnostics));
 
-        private protected Task<TestLspServer> CreateTestWorkspaceWithDiagnosticsAsync(string[] markups, BackgroundAnalysisScope scope, bool useVSDiagnostics, bool pullDiagnostics = true)
-            => CreateTestLspServerAsync(markups, GetInitializationOptions(scope, useVSDiagnostics, DiagnosticMode.Pull));
+        private protected Task<TestLspServer> CreateTestWorkspaceWithDiagnosticsAsync(string[] markups, BackgroundAnalysisScope scope, bool useVSDiagnostics)
+            => CreateTestLspServerAsync(markups, GetInitializationOptions(scope, useVSDiagnostics));
 
-        private protected Task<TestLspServer> CreateTestWorkspaceFromXmlAsync(string xmlMarkup, BackgroundAnalysisScope scope, bool useVSDiagnostics, bool pullDiagnostics = true)
-            => CreateXmlTestLspServerAsync(xmlMarkup, initializationOptions: GetInitializationOptions(scope, useVSDiagnostics, DiagnosticMode.Pull));
+        private protected Task<TestLspServer> CreateTestWorkspaceFromXmlAsync(string xmlMarkup, BackgroundAnalysisScope scope, bool useVSDiagnostics)
+            => CreateXmlTestLspServerAsync(xmlMarkup, initializationOptions: GetInitializationOptions(scope, useVSDiagnostics));
 
         private protected static InitializationOptions GetInitializationOptions(
             BackgroundAnalysisScope scope,
             bool useVSDiagnostics,
-            DiagnosticMode mode,
             WellKnownLspServerKinds serverKind = WellKnownLspServerKinds.AlwaysActiveVSLspServer,
             string[]? sourceGeneratedMarkups = null)
         {
@@ -235,7 +234,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
                     globalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp), scope);
                     globalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic), scope);
                     globalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, InternalLanguageNames.TypeScript), scope);
-                    globalOptions.SetGlobalOption(new OptionKey(InternalDiagnosticsOptions.NormalDiagnosticMode), mode);
                 },
                 ServerKind = serverKind,
                 SourceGeneratedMarkups = sourceGeneratedMarkups ?? Array.Empty<string>()

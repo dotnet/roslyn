@@ -26,8 +26,6 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Utilities;
 
-#if false
-
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     /// <summary>
@@ -69,7 +67,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         protected internal abstract bool IsEnabled { get; }
-        protected internal abstract bool SupportsDignosticMode(DiagnosticMode mode);
         protected internal abstract bool IncludeDiagnostic(DiagnosticData data);
         protected internal abstract ITagSpan<TTag>? CreateTagSpan(Workspace workspace, bool isLiveUpdate, SnapshotSpan span, DiagnosticData data);
 
@@ -153,10 +150,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (!this.IsEnabled)
                 return;
 
-            var diagnosticMode = GlobalOptions.GetDiagnosticMode(InternalDiagnosticsOptions.NormalDiagnosticMode);
-            if (!SupportsDignosticMode(diagnosticMode))
-                return;
-
             var document = spanToTag.Document;
             if (document == null)
                 return;
@@ -172,13 +165,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var suppressedDiagnosticsSpans = (NormalizedSnapshotSpanCollection?)null;
             buffer?.Properties.TryGetProperty(PredefinedPreviewTaggerKeys.SuppressDiagnosticsSpansKey, out suppressedDiagnosticsSpans);
 
-            var buckets = diagnosticMode switch
-            {
-                DiagnosticMode.Pull => _diagnosticService.GetPullDiagnosticBuckets(workspace, document.Project.Id, document.Id, diagnosticMode, cancellationToken),
-                DiagnosticMode.Push => _diagnosticService.GetPushDiagnosticBuckets(workspace, document.Project.Id, document.Id, diagnosticMode, cancellationToken),
-                _ => throw ExceptionUtilities.UnexpectedValue(diagnosticMode),
-            };
-
+            var buckets = _diagnosticService.GetPullDiagnosticBuckets(workspace, document.Project.Id, document.Id, cancellationToken);
             foreach (var bucket in buckets)
             {
                 await ProduceTagsAsync(
@@ -195,13 +182,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             try
             {
-                var diagnosticMode = GlobalOptions.GetDiagnosticMode(InternalDiagnosticsOptions.NormalDiagnosticMode);
-
                 var id = bucket.Id;
-                var diagnostics = await _diagnosticService.GetPushDiagnosticsAsync(
+                var diagnostics = await _diagnosticService.GetPullDiagnosticsAsync(
                     workspace, document.Project.Id, document.Id, id,
                     includeSuppressedDiagnostics: false,
-                    diagnosticMode,
                     cancellationToken).ConfigureAwait(false);
 
                 var isLiveUpdate = id is ISupportLiveUpdate;
@@ -279,5 +263,3 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             => suppressedSpans != null && suppressedSpans.IntersectsWith(span);
     }
 }
-
-#endif

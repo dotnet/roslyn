@@ -80,10 +80,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 {
                     WpfTestRunner.RequireWpfFact($"{nameof(DiagnosticTaggerWrapper<TProvider, TTag>)}.{nameof(TaggerProvider)} creates asynchronous taggers");
 
+#if false
                     if (typeof(TProvider) == typeof(DiagnosticsSquiggleTaggerProvider)
                         || typeof(TProvider) == typeof(DiagnosticsSuggestionTaggerProvider)
                         || typeof(TProvider) == typeof(DiagnosticsClassificationTaggerProvider)
                         || typeof(TProvider) == typeof(InlineDiagnosticsTaggerProvider))
+                    {
+#endif
+                    if (typeof(TProvider) == typeof(InlineDiagnosticsTaggerProvider))
                     {
                         _taggerProvider = _workspace.ExportProvider.GetExportedValues<ITaggerProvider>()
                             .OfType<TProvider>()

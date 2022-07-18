@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
 
             public void RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs args)
             {
-                _diagnostics = args.GetPushDiagnostics(_globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode);
+                _diagnostics = args.GetPullDiagnostics(_globalOptions);
                 DiagnosticsUpdated?.Invoke(this, args);
             }
 

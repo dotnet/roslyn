@@ -54,12 +54,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             _classificationTypeRegistryService = classificationTypeRegistryService;
         }
 
-        protected internal override bool SupportsDignosticMode(DiagnosticMode mode)
-        {
-            // We support inline diagnostics in both push and pull (since lsp doesn't support inline diagnostics yet).
-            return true;
-        }
-
         // Need to override this from AbstractDiagnosticsTaggerProvider because the location option needs to be added
         // to the TaggerEventSource, otherwise it does not get updated until there is a change in the editor.
         protected override ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer subjectBuffer)

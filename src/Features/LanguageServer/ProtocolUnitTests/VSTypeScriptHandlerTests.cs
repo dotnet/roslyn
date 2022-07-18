@@ -62,7 +62,6 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
 </Workspace>";
 
         using var testLspServer = await CreateTsTestLspServerAsync(workspaceXml);
-        testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(new OptionKey(InternalDiagnosticsOptions.NormalDiagnosticMode), DiagnosticMode.Pull);
 
         var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
         var documentPullRequest = new VSInternalDocumentDiagnosticsParams
