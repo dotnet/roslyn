@@ -12356,8 +12356,8 @@ class C
         }
 
         [WorkItem(62540, "https://github.com/dotnet/roslyn/issues/62540")]
-        [Fact]
-        public void TestSuppression_CompilerSyntaxDeclarationError_AndWarningElevatedAsSuppressibleError()
+        [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData]
+        public void TestSuppression_CompilerSyntaxDeclarationError_AndWarningElevatedAsSuppressibleError(bool skipAnalyzers)
         {
             const string sourceCode = @"
                 // warning CS1522: Empty switch block
@@ -12407,6 +12407,7 @@ class C
                     expectedInfoCount: 1,
                     expectedWarningCount: 0,
                     includeCurrentAssemblyAsAnalyzerReference: false,
+                    skipAnalyzers: skipAnalyzers,
                     analyzers: new[] { suppressor },
                     errorlog: true);
 
@@ -12429,6 +12430,7 @@ class C
                     expectedWarningCount: 0,
                     additionalFlags: new[] { "/warnaserror" },
                     includeCurrentAssemblyAsAnalyzerReference: false,
+                    skipAnalyzers: skipAnalyzers,
                     errorlog: true,
                     analyzers: new[] { suppressor });
 
@@ -12443,8 +12445,8 @@ class C
         }
 
         [WorkItem(62540, "https://github.com/dotnet/roslyn/issues/62540")]
-        [Fact]
-        public void TestSuppression_CompilerSyntaxBindingError_AndSuppressibleWarning()
+        [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData]
+        public void TestSuppression_CompilerSyntaxBindingError_AndSuppressibleWarning(bool skipAnalyzers)
         {
             const string sourceCode = @"
                 public class MyClass
@@ -12494,6 +12496,7 @@ class C
                     expectedInfoCount: 1,
                     expectedWarningCount: 0,
                     includeCurrentAssemblyAsAnalyzerReference: false,
+                    skipAnalyzers: skipAnalyzers,
                     analyzers: new[] { suppressor },
                     errorlog: true);
 
@@ -12516,6 +12519,7 @@ class C
                     expectedWarningCount: 0,
                     additionalFlags: new[] { "/warnaserror" },
                     includeCurrentAssemblyAsAnalyzerReference: false,
+                    skipAnalyzers: skipAnalyzers,
                     errorlog: true,
                     analyzers: new[] { suppressor });
 
