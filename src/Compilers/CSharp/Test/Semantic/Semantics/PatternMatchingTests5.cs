@@ -2126,7 +2126,7 @@ _ = x is { Length.Error: > 0 };
                 public struct UInt64 : INumberBase<UInt64> {}
                 public struct Single : INumberBase<Single> {}
                 public struct Double : INumberBase<Double> {}
-                public struct Decimal : INumberBase<Decimal> {}
+                public struct Decimal : INumberBase<Decimal> { public Decimal(int value) {} }
                 public struct IntPtr : INumberBase<IntPtr> {}
                 public struct UIntPtr : INumberBase<UIntPtr> {}
             }
