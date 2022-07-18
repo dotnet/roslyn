@@ -20,9 +20,9 @@ using Roslyn.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
     /// <summary>
-    /// Serializes settings marked with <see cref="ClientSettingsStorageLocation"/> to and from VS Settings storage.
+    /// Serializes settings marked with <see cref="RoamingProfileStorageLocation"/> to and from the user's roaming profile.
     /// </summary>
-    internal sealed class VisualStudioSettingsOptionPersister : IOptionPersister
+    internal sealed class RoamingVisualStudioProfileOptionPersister : IOptionPersister
     {
         // NOTE: This service is not public or intended for use by teams/individuals outside of Microsoft. Any data stored is subject to deletion without warning.
         [Guid("9B164E40-C3A2-4363-9BC5-EB4039DEF653")]
@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         /// <remarks>
         /// We make sure this code is from the UI by asking for all <see cref="IOptionPersister"/> in <see cref="RoslynPackage.InitializeAsync"/>
         /// </remarks>
-        public VisualStudioSettingsOptionPersister(IGlobalOptionService globalOptionService, ISettingsManager? settingsManager)
+        public RoamingVisualStudioProfileOptionPersister(IGlobalOptionService globalOptionService, ISettingsManager? settingsManager)
         {
             Contract.ThrowIfNull(globalOptionService);
 
@@ -91,21 +91,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             return System.Threading.Tasks.Task.CompletedTask;
         }
 
-        private object? GetFirstOrDefaultValue(OptionKey optionKey, IEnumerable<ClientSettingsStorageLocation> storageLocations)
+        private object? GetFirstOrDefaultValue(OptionKey optionKey, IEnumerable<RoamingProfileStorageLocation> roamingSerializations)
         {
             Contract.ThrowIfNull(_settingManager);
 
-            // There can be more than 1 storage location in the order of their priority.
+            // There can be more than 1 roaming location in the order of their priority.
             // When fetching a value, we iterate all of them until we find the first one that exists.
             // When persisting a value, we always use the first location.
-            // This functionality exists to accomodate breaking changes to persistence of some options. In such a case, there
+            // This functionality exists for breaking changes to persistence of some options. In such a case, there
             // will be a new location added to the beginning with a new name. When fetching a value, we might find the old
             // location (and can upgrade the value accordingly) but we only write to the new location so that
             // we don't interfere with older versions. This will essentially "fork" the user's options at the time of upgrade.
 
-            foreach (var storageLocation in storageLocations)
+            foreach (var roamingSerialization in roamingSerializations)
             {
-                var storageKey = storageLocation.GetKeyNameForLanguage(optionKey.Language);
+                var storageKey = roamingSerialization.GetKeyNameForLanguage(optionKey.Language);
 
                 RecordObservedValueToWatchForChanges(optionKey, storageKey);
 
@@ -127,14 +127,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 return false;
             }
 
-            var storageLocations = optionKey.Option.StorageLocations.OfType<ClientSettingsStorageLocation>();
-            if (!storageLocations.Any())
+            // Do we roam this at all?
+            var roamingSerializations = optionKey.Option.StorageLocations.OfType<RoamingProfileStorageLocation>();
+
+            if (!roamingSerializations.Any())
             {
                 value = null;
                 return false;
             }
 
-            value = GetFirstOrDefaultValue(optionKey, storageLocations);
+            value = GetFirstOrDefaultValue(optionKey, roamingSerializations);
 
             // VS's ISettingsManager has some quirks around storing enums.  Specifically,
             // it *can* persist and retrieve enums, but only if you properly call 
@@ -248,13 +250,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             }
 
             // Do we roam this at all?
-            var storageLocation = optionKey.Option.StorageLocations.OfType<ClientSettingsStorageLocation>().FirstOrDefault();
-            if (storageLocation == null)
+            var roamingSerialization = optionKey.Option.StorageLocations.OfType<RoamingProfileStorageLocation>().FirstOrDefault();
+
+            if (roamingSerialization == null)
             {
                 return false;
             }
 
-            var storageKey = storageLocation.GetKeyNameForLanguage(optionKey.Language);
+            var storageKey = roamingSerialization.GetKeyNameForLanguage(optionKey.Language);
 
             RecordObservedValueToWatchForChanges(optionKey, storageKey);
 
@@ -272,7 +275,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 }
             }
 
-            _settingManager.SetValueAsync(storageKey, value, storageLocation.IsMachineLocal);
+            _settingManager.SetValueAsync(storageKey, value, isMachineLocal: false);
             return true;
         }
     }
