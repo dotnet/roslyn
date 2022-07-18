@@ -39,21 +39,20 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public static PerLanguageOption2<bool> UseTabs =
             new(FeatureName, FormattingOptionGroups.IndentationAndSpacing, nameof(UseTabs), LineFormattingOptions.Default.UseTabs,
-            storageLocations: ImmutableArray.Create<OptionStorageLocation2>(
-                new EditorConfigStorageLocation<bool>("indent_style", s => s == "tab", isSet => isSet ? "tab" : "space"),
-                new LocalClientSettingsStorageLocation("TextEditor.%LANGUAGE%.Insert Tabs")));
+            storageLocation: new EditorConfigStorageLocation<bool>(
+                "indent_style",
+                s => s == "tab",
+                isSet => isSet ? "tab" : "space"));
 
+        // This is also serialized by the Visual Studio-specific LanguageSettingsPersister
         public static PerLanguageOption2<int> TabSize =
             new(FeatureName, FormattingOptionGroups.IndentationAndSpacing, nameof(TabSize), LineFormattingOptions.Default.TabSize,
-            storageLocations: ImmutableArray.Create<OptionStorageLocation2>(
-                EditorConfigStorageLocation.ForInt32Option("tab_width"),
-                new LocalClientSettingsStorageLocation("TextEditor.%LANGUAGE%.Tab Size")));
+            storageLocation: EditorConfigStorageLocation.ForInt32Option("tab_width"));
 
+        // This is also serialized by the Visual Studio-specific LanguageSettingsPersister
         public static PerLanguageOption2<int> IndentationSize =
             new(FeatureName, FormattingOptionGroups.IndentationAndSpacing, nameof(IndentationSize), LineFormattingOptions.Default.IndentationSize,
-            storageLocations: ImmutableArray.Create<OptionStorageLocation2>(
-                EditorConfigStorageLocation.ForInt32Option("indent_size"),
-                new LocalClientSettingsStorageLocation("TextEditor.%LANGUAGE%.Indent Size")));
+            storageLocation: EditorConfigStorageLocation.ForInt32Option("indent_size"));
 
         public static PerLanguageOption2<string> NewLine =
             new(FeatureName, FormattingOptionGroups.NewLine, nameof(NewLine), LineFormattingOptions.Default.NewLine,
