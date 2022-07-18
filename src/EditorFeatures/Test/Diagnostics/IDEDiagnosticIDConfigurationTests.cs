@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityL
                             continue;
                         }
 
-                        if (!IDEDiagnosticIdToOptionMappingHelper.TryGetMappedOptions(diagnosticId, languageName, out var options))
+                        if (!IDEDiagnosticIdToOptionMappingHelper.TryGetMappedOptions(diagnosticId, out var options))
                         {
                             options = ImmutableHashSet<IOption2>.Empty;
                         }
