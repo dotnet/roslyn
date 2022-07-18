@@ -32,12 +32,12 @@ variables:
   - group: DotNet-Roslyn-SDLValidation-Params
   - group: DotNet-Roslyn-Insertion-Variables
 
-  # To retrieve OptProf data we need to authenticate to the VS drop storage.
-  # If the pipeline is running in DevDiv, the account has access to the VS drop storage.
   # Get $AccessToken-dotnet-build-bot-public-repo from DotNet-GitHub-Versions-Repo-Write
   - group: DotNet-GitHub-Versions-Repo-Write
+  # To retrieve OptProf data we need to authenticate to the VS drop storage.
+  # If the pipeline is running in DevDiv, the account has access to the VS drop storage.
   - name: _DevDivDropAccessToken
-    value: $(System.AccessToken)
+    value: ''
 
 stages:
 - stage: build
