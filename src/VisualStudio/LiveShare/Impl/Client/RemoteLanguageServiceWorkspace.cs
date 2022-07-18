@@ -69,8 +69,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         /// </summary>
         private ImmutableHashSet<string> _registeredExternalPaths;
 
-        // private readonly RemoteDiagnosticListTable _remoteDiagnosticListTable;
-
         public bool IsRemoteSession => _session != null;
 
         /// <summary>
@@ -91,7 +89,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             _serviceProvider = serviceProvider;
 
             GlobalOptions = diagnosticService.GlobalOptions;
-            // _remoteDiagnosticListTable = new RemoteDiagnosticListTable(threadingContext, serviceProvider, this, diagnosticService, tableManagerProvider);
 
             var runningDocumentTable = (IVsRunningDocumentTable)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
             _runningDocumentTableEventTracker = new RunningDocumentTableEventTracker(threadingContext, editorAdaptersFactoryService, runningDocumentTable, this);
