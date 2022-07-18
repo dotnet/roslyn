@@ -20,7 +20,6 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -33,8 +32,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
     {
         private static readonly ImmutableArray<UseExpressionBodyHelper> _helpers = UseExpressionBodyHelper.Helpers;
 
-        private static readonly BidirectionalMap<(UseExpressionBodyHelper helper, bool useExpressionBody), string> s_helperToEquivalenceKeyMap
-            = CreateHelperToEquivalenceKeyMap(UseExpressionBodyHelper.Helpers);
+        private static readonly ImmutableDictionary<string, (UseExpressionBodyHelper helper, bool useExpressionBody)> s_equivalenceKeyToHelperMap
+            = CreateHelperMap(UseExpressionBodyHelper.Helpers);
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -42,18 +41,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         {
         }
 
-        private static BidirectionalMap<(UseExpressionBodyHelper helper, bool useExpressionBody), string> CreateHelperToEquivalenceKeyMap(
+        private static ImmutableDictionary<string, (UseExpressionBodyHelper helper, bool useExpressionBody)> CreateHelperMap(
             ImmutableArray<UseExpressionBodyHelper> helpers)
         {
-            return new BidirectionalMap<(UseExpressionBodyHelper helper, bool useExpressionBody), string>(GetKeyValuePairs(helpers));
+            return ImmutableDictionary.CreateRange(GetKeyValuePairs(helpers));
 
-            static IEnumerable<KeyValuePair<(UseExpressionBodyHelper helper, bool useExpressionBody), string>> GetKeyValuePairs(
+            static IEnumerable<KeyValuePair<string, (UseExpressionBodyHelper helper, bool useExpressionBody)>> GetKeyValuePairs(
                 ImmutableArray<UseExpressionBodyHelper> helpers)
             {
                 foreach (var helper in helpers)
                 {
-                    yield return KeyValuePairUtil.Create((helper, useExpressionBody: true), helper.UseExpressionBodyEquivalenceKey);
-                    yield return KeyValuePairUtil.Create((helper, useExpressionBody: false), helper.UseBlockBodyEquivalenceKey);
+                    yield return KeyValuePairUtil.Create(helper.UseExpressionBodyEquivalenceKey, (helper, useExpressionBody: true));
+                    yield return KeyValuePairUtil.Create(helper.UseBlockBodyEquivalenceKey, (helper, useExpressionBody: false));
                 }
             }
         }
@@ -131,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                         c => UpdateDocumentAsync(
                             document, root, declaration, helper,
                             useExpressionBody: true, cancellationToken: c),
-                        s_helperToEquivalenceKeyMap[(helper, useExpressionBody: true)]),
+                        helper.UseExpressionBodyEquivalenceKey),
                     declaration.Span);
                 succeeded = true;
             }
@@ -144,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                         c => UpdateDocumentAsync(
                             document, root, declaration, helper,
                             useExpressionBody: false, cancellationToken: c),
-                        s_helperToEquivalenceKeyMap[(helper, useExpressionBody: false)]),
+                        helper.UseBlockBodyEquivalenceKey),
                     declaration.Span);
                 succeeded = true;
             }
@@ -198,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             CancellationToken cancellationToken)
         {
             Debug.Assert(equivalenceKey != null);
-            var (helper, useExpressionBody) = s_helperToEquivalenceKeyMap[equivalenceKey];
+            var (helper, useExpressionBody) = s_equivalenceKeyToHelperMap[equivalenceKey];
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var options = (CSharpCodeGenerationOptions)await document.GetCodeGenerationOptionsAsync(optionsProvider, cancellationToken).ConfigureAwait(false);
