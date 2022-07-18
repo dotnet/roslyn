@@ -618,6 +618,18 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
+        internal static bool HasSuppressableWarningsOrErrors(DiagnosticBag diagnostics)
+        {
+            foreach (var diag in diagnostics.AsEnumerable())
+            {
+                if (!diag.IsUnsuppressableError())
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         /// <summary>
         /// Returns true if the bag has any diagnostics with effective Severity=Error. Also returns true for warnings or informationals
         /// or warnings promoted to error via /warnaserror which are not suppressed.
@@ -1119,10 +1131,10 @@ namespace Microsoft.CodeAnalysis
             compilation.GetDiagnostics(CompilationStage.Declare, includeEarlierStages: false, diagnostics, cancellationToken);
 
             // If there are unsuppressable declaration errors, we want to exit early from this method.
-            // But before we do so, we need to run diagnostic suppressors (if any).
+            // But before we do so, we need to run diagnostic suppressors (if any) on all suppressable warnings/errors (if any).
             if (HasUnsuppressableErrors(diagnostics))
             {
-                if (analyzerDriver == null || !analyzerDriver.HasDiagnosticSuppressors)
+                if (analyzerDriver == null || !analyzerDriver.HasDiagnosticSuppressors || !HasSuppressableWarningsOrErrors(diagnostics))
                 {
                     return;
                 }
@@ -1145,7 +1157,19 @@ namespace Microsoft.CodeAnalysis
 
             try
             {
-                EmitOptions emitOptions = GetEmitOptions(compilation, cancellationToken);
+                // NOTE: Unlike the PDB path, the XML doc path is not embedded in the assembly, so we don't need to pass it to emit.
+                var emitOptions =
+                    Arguments.EmitOptions.
+                        WithOutputNameOverride(outputName).
+                        WithPdbFilePath(PathUtilities.NormalizePathPrefix(finalPdbFilePath, Arguments.PathMap));
+
+                // TODO(https://github.com/dotnet/roslyn/issues/19592):
+                // This feature flag is being maintained until our next major release to avoid unnecessary 
+                // compat breaks with customers.
+                if (Arguments.ParseOptions.Features.ContainsKey("pdb-path-determinism") && !string.IsNullOrEmpty(emitOptions.PdbFilePath))
+                {
+                    emitOptions = emitOptions.WithPdbFilePath(Path.GetFileName(emitOptions.PdbFilePath));
+                }
 
                 if (Arguments.ParseOptions.Features.ContainsKey("debug-determinism"))
                 {
@@ -1391,27 +1415,6 @@ namespace Microsoft.CodeAnalysis
             {
                 return;
             }
-        }
-
-        private EmitOptions GetEmitOptions(Compilation compilation, CancellationToken cancellationToken)
-        {
-            string outputFileName = GetOutputFileName(compilation, cancellationToken);
-            string pdbFilePath = Arguments.GetPdbFilePath(outputFileName);
-
-            // NOTE: Unlike the PDB path, the XML doc path is not embedded in the assembly, so we don't need to pass it to emit.
-            var emitOptions =
-                Arguments.EmitOptions.
-                    WithOutputNameOverride(outputFileName).
-                    WithPdbFilePath(PathUtilities.NormalizePathPrefix(pdbFilePath, Arguments.PathMap));
-
-            // TODO(https://github.com/dotnet/roslyn/issues/19592):
-            // This feature flag is being maintained until our next major release to avoid unnecessary 
-            // compat breaks with customers.
-            if (Arguments.ParseOptions.Features.ContainsKey("pdb-path-determinism") && !string.IsNullOrEmpty(emitOptions.PdbFilePath))
-            {
-                emitOptions = emitOptions.WithPdbFilePath(Path.GetFileName(emitOptions.PdbFilePath));
-            }
-            return emitOptions;
         }
 
         // virtual for testing
