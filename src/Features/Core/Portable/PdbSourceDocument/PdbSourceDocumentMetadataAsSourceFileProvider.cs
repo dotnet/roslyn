@@ -122,21 +122,6 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                     var key = SymbolKey.Create(symbolToFind, cancellationToken);
                     var resolution = key.Resolve(tmpCompilation, ignoreAssemblyKey: true, cancellationToken);
                     var newSymbol = resolution.Symbol;
-                    if (newSymbol is null && resolution.CandidateReason == CandidateReason.Ambiguous)
-                    {
-                        // If we followed a type forward then there will be an ambiguous resolution between the reference assembly
-                        // and the implementation assembly, which could have a different name, so we need to make sure we use the
-                        // symbol from the assembly that actually has metadata we can use.
-                        foreach (var candidateSymbol in resolution.CandidateSymbols)
-                        {
-                            if (tmpCompilation.GetMetadataReference(candidateSymbol.ContainingAssembly)?.Equals(dllReference) == true)
-                            {
-                                newSymbol = candidateSymbol;
-                                break;
-                            }
-                        }
-                    }
-
                     if (newSymbol is null)
                     {
                         _logger?.Log(FeaturesResources.Could_not_find_implementation_of_symbol_0, symbolToFind.MetadataName);
