@@ -11,11 +11,11 @@ Imports Microsoft.CodeAnalysis.Rename
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     <[UseExportProvider]>
-    Public Class DashboardTests
+    Public Class RenameViewModelTests
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function RenameWithNoOverload(host As RenameTestHost) As Task
-            Await VerifyDashboard(
+            Await VerifyViewModels(
                     (<Workspace>
                          <Project Language="C#" CommonReferences="true">
                              <Document>
@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function RenameWithOverload(host As RenameTestHost) As Task
-            Await VerifyDashboard(
+            Await VerifyViewModels(
                     (<Workspace>
                          <Project Language="C#" CommonReferences="true">
                              <Document>
@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         <WorkItem(883263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/883263")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function RenameWithInvalidOverload(host As RenameTestHost) As Task
-            Await VerifyDashboard(
+            Await VerifyViewModels(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -103,7 +103,7 @@ class Program
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(853839, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/853839")>
         Public Async Function RenameAttributeAlias(host As RenameTestHost) As Task
-            Await VerifyDashboard(
+            Await VerifyViewModels(
                     (<Workspace>
                          <Project Language="C#" CommonReferences="true">
                              <Document>
@@ -123,7 +123,7 @@ class AttributeAttribute : System.Attribute { }
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
         Public Async Function RenameWithOverloadAndInStringsAndComments(host As RenameTestHost) As Task
-            Await VerifyDashboard(
+            Await VerifyViewModels(
                     (<Workspace>
                          <Project Language="C#" CommonReferences="true">
                              <Document>
@@ -160,7 +160,7 @@ class AttributeAttribute : System.Attribute { }
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
         Public Async Function RenameInComments(host As RenameTestHost) As Task
-            Await VerifyDashboard(
+            Await VerifyViewModels(
                     (<Workspace>
                          <Project Language="C#" CommonReferences="true">
                              <Document>
@@ -198,7 +198,7 @@ class $$Program
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
         Public Async Function RenameInStrings(host As RenameTestHost) As Task
-            Await VerifyDashboard(
+            Await VerifyViewModels(
                     (<Workspace>
                          <Project Language="C#" CommonReferences="true">
                              <Document>
@@ -236,7 +236,7 @@ class $$Program
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
         Public Async Function RenameInCommentsAndStrings(host As RenameTestHost) As Task
-            Await VerifyDashboard(
+            Await VerifyViewModels(
                     (<Workspace>
                          <Project Language="C#" CommonReferences="true">
                              <Document>
@@ -274,7 +274,7 @@ class $$Program
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function NonConflictingEditWithMultipleLocations(host As RenameTestHost) As Task
-            Await VerifyDashboard(
+            Await VerifyViewModels(
                     (<Workspace>
                          <Project Language="C#" CommonReferences="true">
                              <Document>
@@ -295,7 +295,7 @@ class $$Program
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function NonConflictingEditWithSingleLocation(host As RenameTestHost) As Task
-            Await VerifyDashboard(
+            Await VerifyViewModels(
                     (<Workspace>
                          <Project Language="C#" CommonReferences="true">
                              <Document>
@@ -316,7 +316,7 @@ class $$Program
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function ParameterConflictingWithInstanceField(host As RenameTestHost) As Task
-            Await VerifyDashboard(
+            Await VerifyViewModels(
                 (<Workspace>
                      <Project Language="C#">
                          <Document>
@@ -341,7 +341,7 @@ class $$Program
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function ParameterConflictingWithInstanceFieldMoreThanOnce(host As RenameTestHost) As Task
-            Await VerifyDashboard(
+            Await VerifyViewModels(
                 (<Workspace>
                      <Project Language="C#">
                          <Document>
@@ -365,7 +365,7 @@ class $$Program
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function ParameterConflictingWithLocal_Unresolvable(host As RenameTestHost) As Task
-            Await VerifyDashboard(
+            Await VerifyViewModels(
                 (<Workspace>
                      <Project Language="C#">
                          <Document>
@@ -388,7 +388,7 @@ class $$Program
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function MoreThanOneUnresolvableConflicts(host As RenameTestHost) As Task
-            Await VerifyDashboard(
+            Await VerifyViewModels(
                 (<Workspace>
                      <Project Language="C#">
                          <Document>
@@ -413,7 +413,7 @@ class $$Program
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function ConflictsAcrossLanguages_Resolvable(host As RenameTestHost) As Task
-            Await VerifyDashboard(
+            Await VerifyViewModels(
                 (<Workspace>
                      <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
                          <Document>
@@ -450,7 +450,7 @@ class $$Program
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function RenameWithNameof_FromDefinition_DoesNotForceRenameOverloadsOption(host As RenameTestHost) As Task
-            Await VerifyDashboard(
+            Await VerifyViewModels(
                 (<Workspace>
                      <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
                          <Document>
@@ -474,7 +474,7 @@ class C
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function RenameWithNameof_FromReference_DoesForceRenameOverloadsOption(host As RenameTestHost) As Task
-            Await VerifyDashboard(
+            Await VerifyViewModels(
                 (<Workspace>
                      <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
                          <Document>
@@ -498,7 +498,7 @@ class C
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function RenameWithNameof_FromDefinition_WithRenameOverloads_Cascading(host As RenameTestHost) As Task
-            Await VerifyDashboard(
+            Await VerifyViewModels(
                 (<Workspace>
                      <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
                          <Document>
@@ -530,7 +530,7 @@ class D : B
                    hasRenameOverload:=True)
         End Function
 
-        Friend Shared Async Function VerifyDashboard(
+        Friend Shared Async Function VerifyViewModels(
             test As XElement,
             newName As String,
             searchResultText As String,
@@ -613,6 +613,22 @@ class D : B
                     Assert.Equal(severity, model.Severity)
                 End Using
 
+                Using flyout = New RenameFlyout(
+                    New RenameFlyoutViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), selectionSpan:=Nothing, registerOleComponent:=False), ' Don't registerOleComponent in tests, it requires OleComponentManagers that don't exist in our host
+                    textView:=cursorDocument.GetTextView())
+
+                    Await WaitForRename(workspace)
+
+                    Dim model = DirectCast(flyout.DataContext, RenameFlyoutViewModel)
+
+                    Assert.Equal(hasRenameOverload, model.Session.HasRenameOverloads)
+                    Assert.Equal(hasRenameOverload, model.IsRenameOverloadsVisible)
+                    Assert.Equal(isRenameOverloadsEditable, model.IsRenameOverloadsEditable)
+                    If Not isRenameOverloadsEditable Then
+                        Assert.True(model.RenameOverloadsFlag)
+                    End If
+                End Using
+
                 sessionInfo.Session.Cancel()
             End Using
         End Function
@@ -620,7 +636,7 @@ class D : B
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function RenameWithReferenceInUnchangeableDocument(host As RenameTestHost) As Task
-            Await VerifyDashboard(
+            Await VerifyViewModels(
                     (<Workspace>
                          <Project Language="C#">
                              <Document>
