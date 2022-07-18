@@ -326,6 +326,8 @@ namespace Microsoft.CodeAnalysis
 
         System_MissingMethodException,
 
+        System_GC,
+
         System_Numerics_INumberBase_T,
 
         NextAvailable,
@@ -643,6 +645,7 @@ namespace Microsoft.CodeAnalysis
             "System.MemoryExtensions",
             "System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute",
             "System.MissingMethodException",
+            "System.GC",
 
             "System.Numerics.INumberBase`1",
         };

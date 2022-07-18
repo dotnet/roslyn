@@ -28,6 +28,8 @@ using System.Text.RegularExpressions;
 
 namespace Microsoft.CodeAnalysis.SimplifyTypeNames
 {
+    // TODO: SimplifyTypeNamesDiagnosticAnalyzerBase should sub-type AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    // Tracked with https://github.com/dotnet/roslyn/issues/62639
     internal abstract class SimplifyTypeNamesDiagnosticAnalyzerBase<TLanguageKindEnum, TSimplifierOptions>
         : DiagnosticAnalyzer, IBuiltInAnalyzer
         where TLanguageKindEnum : struct
