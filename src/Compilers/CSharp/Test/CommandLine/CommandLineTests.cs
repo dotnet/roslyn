@@ -12357,18 +12357,17 @@ class C
 
         [WorkItem(62540, "https://github.com/dotnet/roslyn/issues/62540")]
         [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData]
-        public void TestSuppression_CompilerSyntaxDeclarationError_AndWarningElevatedAsSuppressibleError(bool skipAnalyzers)
+        public void TestSuppression_CompilerSyntaxDeclarationError_AndSuppressibleWarning_RunWithGenerator(bool skipAnalyzers)
         {
             const string sourceCode = @"
-                // warning CS1522: Empty switch block
-                // NOTE: Empty switch block warning is reported by the C# language parser
-                class C
+                // warning CS0282: Partial struct warning
+                partial struct MyPartialStruct
                 {
-                    void M(int i)
+                    public int MyInt;
+
+                    public void SetMyInt(int value)
                     {
-                        switch (i)
-                        {
-                        }
+                        MyInt = value;
                     }
                 }
 
@@ -12381,21 +12380,33 @@ class C
                 }";
 
             var sourceDir = Temp.CreateDirectory();
-            var sourceFile = sourceDir.CreateFile("a.cs");
+            var sourceFile = sourceDir.CreateFile("NotGenerated.cs");
             sourceFile.WriteAllText(sourceCode);
+
+            var generatedSource =
+                @"partial struct MyPartialStruct
+                {
+                    public bool MyBoolean;
+
+                    public void SetMyBoolean(bool value)
+                    {
+                        MyBoolean = value;
+                    }
+                }";
+            var generator = new SingleFileTestGenerator(generatedSource, "Generated.cs");
 
             // Verify 3 things:
             // 1. Compiler warning CS1522 is suppressed with diagnostic suppressor,
             // 2. Info diagnostic for the suppression is logged with programmatic suppression information,
             // 3. Compiler error CS1001 is reported.
-            var suppressor = new DiagnosticSuppressorForId("CS1522");
+            var suppressor = new DiagnosticSuppressorForId("CS0282");
 
             // Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'
             var suppressionMessage =
                 string.Format(
                     CodeAnalysisResources.SuppressionDiagnosticDescriptorMessage,
                     suppressor.SuppressionDescriptor.SuppressedDiagnosticId,
-                    new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.WRN_EmptySwitch), Location.None).GetMessage(CultureInfo.InvariantCulture),
+                    new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.WRN_SequentialOnPartialClass, "MyPartialStruct"), Location.None).GetMessage(CultureInfo.InvariantCulture),
                     suppressor.SuppressionDescriptor.Id,
                     suppressor.SuppressionDescriptor.Justification);
 
@@ -12408,10 +12419,11 @@ class C
                     expectedWarningCount: 0,
                     includeCurrentAssemblyAsAnalyzerReference: false,
                     skipAnalyzers: skipAnalyzers,
+                    generators: new[] { generator },
                     analyzers: new[] { suppressor },
                     errorlog: true);
 
-            Assert.DoesNotContain("warning CS1522", output, StringComparison.Ordinal);
+            Assert.DoesNotContain("warning CS0282", output, StringComparison.Ordinal);
 
             Assert.Contains(suppressionMessage, output, StringComparison.Ordinal);
             Assert.Contains("info SP0001", output, StringComparison.Ordinal);
@@ -12431,11 +12443,12 @@ class C
                     additionalFlags: new[] { "/warnaserror" },
                     includeCurrentAssemblyAsAnalyzerReference: false,
                     skipAnalyzers: skipAnalyzers,
+                    generators: new[] { generator },
                     errorlog: true,
                     analyzers: new[] { suppressor });
 
-            Assert.DoesNotContain($"error CS1522", output, StringComparison.Ordinal);
-            Assert.DoesNotContain($"warning CS1522", output, StringComparison.Ordinal);
+            Assert.DoesNotContain($"error CS0282", output, StringComparison.Ordinal);
+            Assert.DoesNotContain($"warning CS0282", output, StringComparison.Ordinal);
 
             Assert.Contains(suppressionMessage, output, StringComparison.Ordinal);
             Assert.Contains("info SP0001", output, StringComparison.Ordinal);
@@ -12446,18 +12459,24 @@ class C
 
         [WorkItem(62540, "https://github.com/dotnet/roslyn/issues/62540")]
         [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData]
-        public void TestSuppression_CompilerSyntaxBindingError_AndSuppressibleWarning(bool skipAnalyzers)
+        public void TestSuppression_CompilerSyntaxBindingError_AndSuppressibleWarning_RunWithGenerator(bool skipAnalyzers)
         {
             const string sourceCode = @"
+                // warning CS0282: Partial struct warning
+                partial struct MyPartialStruct
+                {
+                    public int MyInt;
+
+                    public void SetMyInt(int value)
+                    {
+                        MyInt = value;
+                    }
+                }
+
                 public class MyClass
                 {
-                    void MyPrivateMethod(int i)
+                    void MyPrivateMethod()
                     {
-                        // warning CS1522: Empty switch block
-                        // NOTE: Empty switch block warning is reported by the C# language parser
-                        switch (i)
-                        {
-                        }
                     }
                 }
                 public class YourClass
@@ -12470,21 +12489,33 @@ class C
                 }";
 
             var sourceDir = Temp.CreateDirectory();
-            var sourceFile = sourceDir.CreateFile("a.cs");
+            var sourceFile = sourceDir.CreateFile("NotGenerated.cs");
             sourceFile.WriteAllText(sourceCode);
+
+            var generatedSource =
+                @"partial struct MyPartialStruct
+                {
+                    public bool MyBoolean;
+
+                    public void SetMyBoolean(bool value)
+                    {
+                        MyBoolean = value;
+                    }
+                }";
+            var generator = new SingleFileTestGenerator(generatedSource, "Generated.cs");
 
             // Verify 3 things:
             // 1. Compiler warning CS1522 is suppressed with diagnostic suppressor,
             // 2. Info diagnostic for the suppression is logged with programmatic suppression information,
             // 3. Compiler error CS1001 is reported.
-            var suppressor = new DiagnosticSuppressorForId("CS1522");
+            var suppressor = new DiagnosticSuppressorForId("CS0282");
 
             // Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'
             var suppressionMessage =
                 string.Format(
                     CodeAnalysisResources.SuppressionDiagnosticDescriptorMessage,
                     suppressor.SuppressionDescriptor.SuppressedDiagnosticId,
-                    new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.WRN_EmptySwitch), Location.None).GetMessage(CultureInfo.InvariantCulture),
+                    new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.WRN_SequentialOnPartialClass, "MyPartialStruct"), Location.None).GetMessage(CultureInfo.InvariantCulture),
                     suppressor.SuppressionDescriptor.Id,
                     suppressor.SuppressionDescriptor.Justification);
 
@@ -12497,10 +12528,12 @@ class C
                     expectedWarningCount: 0,
                     includeCurrentAssemblyAsAnalyzerReference: false,
                     skipAnalyzers: skipAnalyzers,
+                    generators: new[] { generator },
                     analyzers: new[] { suppressor },
                     errorlog: true);
 
-            Assert.DoesNotContain("warning CS1522", output, StringComparison.Ordinal);
+
+            Assert.DoesNotContain("warning CS0282", output, StringComparison.Ordinal);
 
             Assert.Contains(suppressionMessage, output, StringComparison.Ordinal);
             Assert.Contains("info SP0001", output, StringComparison.Ordinal);
@@ -12521,10 +12554,11 @@ class C
                     includeCurrentAssemblyAsAnalyzerReference: false,
                     skipAnalyzers: skipAnalyzers,
                     errorlog: true,
+                    generators: new[] { generator },
                     analyzers: new[] { suppressor });
 
-            Assert.DoesNotContain($"error CS1522", output, StringComparison.Ordinal);
-            Assert.DoesNotContain($"warning CS1522", output, StringComparison.Ordinal);
+            Assert.DoesNotContain($"error CS0282", output, StringComparison.Ordinal);
+            Assert.DoesNotContain($"warning CS0282", output, StringComparison.Ordinal);
 
             Assert.Contains(suppressionMessage, output, StringComparison.Ordinal);
             Assert.Contains("info SP0001", output, StringComparison.Ordinal);

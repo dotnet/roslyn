@@ -1126,43 +1126,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     return;
                 }
-
-                var emitOptions = GetEmitOptions(compilation, cancellationToken);
-
-                diagnostics.Clear();
-                var moduleBuilder =
-                    compilation.CheckOptionsAndCreateModuleBuilder(
-                        diagnostics,
-                        Arguments.ManifestResources,
-                        emitOptions,
-                        debugEntryPoint: null,
-                        sourceLinkStream: null,
-                        embeddedTexts: embeddedTexts,
-                        testData: null,
-                        cancellationToken: cancellationToken);
-
-                if (moduleBuilder != null)
-                {
-                    try
-                    {
-                        compilation.CompileMethods(
-                            moduleBuilder,
-                            Arguments.EmitPdb,
-                            emitOptions.EmitMetadataOnly,
-                            emitOptions.EmitTestCoverageData,
-                            diagnostics,
-                            filterOpt: null,
-                            cancellationToken: cancellationToken);
-
-                        // Apply programmatic suppressions
-                        analyzerDriver.ApplyProgrammaticSuppressions(diagnostics, compilation);
-                        compilation.CompleteTrees(null);
-                    }
-                    finally
-                    {
-                        moduleBuilder.CompilationFinished();
-                    }
-                }
+                analyzerDriver.ApplyProgrammaticSuppressions(diagnostics, compilation);
                 return;
             }
 
