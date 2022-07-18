@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
 {
     internal abstract class AbstractFileHeaderDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        protected AbstractFileHeaderDiagnosticAnalyzer(string language)
+        protected AbstractFileHeaderDiagnosticAnalyzer()
             : base(
                 IDEDiagnosticIds.FileHeaderMismatch,
                 EnforceOnBuildValues.FileHeaderMismatch,
