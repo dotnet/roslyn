@@ -12357,10 +12357,9 @@ class C
 
         [WorkItem(62540, "https://github.com/dotnet/roslyn/issues/62540")]
         [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData]
-        public void TestSuppression_CompilerSyntaxDeclarationError_AndSuppressibleWarning_RunWithGenerator(bool skipAnalyzers)
+        public void TestSuppression_CompilerSyntaxDeclarationError_SuppressWarningTriggeredByGenerator(bool skipAnalyzers)
         {
-            const string sourceCode = @"
-                // warning CS0282: Partial struct warning
+            const string SourceCode = @"
                 partial struct MyPartialStruct
                 {
                     public int MyInt;
@@ -12379,12 +12378,13 @@ class C
                     }
                 }";
 
-            var sourceDir = Temp.CreateDirectory();
-            var sourceFile = sourceDir.CreateFile("NotGenerated.cs");
-            sourceFile.WriteAllText(sourceCode);
+            var sourceDirectory = Temp.CreateDirectory();
+            var sourceFile = sourceDirectory.CreateFile("NotGenerated.cs");
+            sourceFile.WriteAllText(SourceCode);
 
-            var generatedSource =
-                @"partial struct MyPartialStruct
+            const string GeneratedCode =
+                @"// warning CS0282: Partial struct warning
+                partial struct MyPartialStruct
                 {
                     public bool MyBoolean;
 
@@ -12393,12 +12393,12 @@ class C
                         MyBoolean = value;
                     }
                 }";
-            var generator = new SingleFileTestGenerator(generatedSource, "Generated.cs");
+            var partialStructGenerator = new SingleFileTestGenerator(GeneratedCode, "Generated.cs");
 
-            // Verify 3 things:
-            // 1. Compiler warning CS1522 is suppressed with diagnostic suppressor,
+            // The generated code will trigger `CS0282`. This tests verifies 3 things:
+            // 1. Compiler warning `CS0282` is suppressed with diagnostic suppressor,
             // 2. Info diagnostic for the suppression is logged with programmatic suppression information,
-            // 3. Compiler error CS1001 is reported.
+            // 3. Compiler error `CS0180` is reported.
             var suppressor = new DiagnosticSuppressorForId("CS0282");
 
             // Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'
@@ -12412,14 +12412,14 @@ class C
 
             var output =
                 VerifyOutput(
-                    sourceDir,
+                    sourceDirectory,
                     sourceFile,
                     expectedErrorCount: 1,
                     expectedInfoCount: 1,
                     expectedWarningCount: 0,
                     includeCurrentAssemblyAsAnalyzerReference: false,
                     skipAnalyzers: skipAnalyzers,
-                    generators: new[] { generator },
+                    generators: new[] { partialStructGenerator },
                     analyzers: new[] { suppressor },
                     errorlog: true);
 
@@ -12429,13 +12429,13 @@ class C
             Assert.Contains("info SP0001", output, StringComparison.Ordinal);
             Assert.Contains("error CS0180", output, StringComparison.Ordinal);
 
-            // Verify 3 things:
-            // 1. Compiler warning CS1522 is suppressed with diagnostic suppressor even when elevated as an error (using `/warnaserror`),
+            // The generated code will trigger `CS0282`. This tests verifies 3 things:
+            // 1. Compiler warning `CS0282` is suppressed with diagnostic suppressor even when elevated as an error (using `/warnaserror`),
             // 2. Info diagnostic for the suppression is logged with programmatic suppression information,
-            // 3. Compiler error CS1001 is reported.
+            // 3. Compiler error `CS0180` is reported.
             output =
                 VerifyOutput(
-                    sourceDir,
+                    sourceDirectory,
                     sourceFile,
                     expectedErrorCount: 1,
                     expectedInfoCount: 1,
@@ -12443,7 +12443,7 @@ class C
                     additionalFlags: new[] { "/warnaserror" },
                     includeCurrentAssemblyAsAnalyzerReference: false,
                     skipAnalyzers: skipAnalyzers,
-                    generators: new[] { generator },
+                    generators: new[] { partialStructGenerator },
                     errorlog: true,
                     analyzers: new[] { suppressor });
 
@@ -12459,7 +12459,7 @@ class C
 
         [WorkItem(62540, "https://github.com/dotnet/roslyn/issues/62540")]
         [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData]
-        public void TestSuppression_CompilerSyntaxBindingError_AndSuppressibleWarning_RunWithGenerator(bool skipAnalyzers)
+        public void TestSuppression_CompilerSyntaxBindingError_SuppressWarningTriggeredByGenerator(bool skipAnalyzers)
         {
             const string sourceCode = @"
                 // warning CS0282: Partial struct warning
@@ -12493,7 +12493,8 @@ class C
             sourceFile.WriteAllText(sourceCode);
 
             var generatedSource =
-                @"partial struct MyPartialStruct
+                @"// warning CS0282: Partial struct warning
+                partial struct MyPartialStruct
                 {
                     public bool MyBoolean;
 
@@ -12502,12 +12503,12 @@ class C
                         MyBoolean = value;
                     }
                 }";
-            var generator = new SingleFileTestGenerator(generatedSource, "Generated.cs");
+            var partialStructGenerator = new SingleFileTestGenerator(generatedSource, "Generated.cs");
 
-            // Verify 3 things:
-            // 1. Compiler warning CS1522 is suppressed with diagnostic suppressor,
+            // The generated code will trigger `CS0282`. This tests verifies 3 things:
+            // 1. Compiler warning `CS0282` is suppressed with diagnostic suppressor,
             // 2. Info diagnostic for the suppression is logged with programmatic suppression information,
-            // 3. Compiler error CS1001 is reported.
+            // 3. Compiler error `CS1001` is reported.
             var suppressor = new DiagnosticSuppressorForId("CS0282");
 
             // Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'
@@ -12528,7 +12529,7 @@ class C
                     expectedWarningCount: 0,
                     includeCurrentAssemblyAsAnalyzerReference: false,
                     skipAnalyzers: skipAnalyzers,
-                    generators: new[] { generator },
+                    generators: new[] { partialStructGenerator },
                     analyzers: new[] { suppressor },
                     errorlog: true);
 
@@ -12539,10 +12540,10 @@ class C
             Assert.Contains("info SP0001", output, StringComparison.Ordinal);
             Assert.Contains("error CS0122", output, StringComparison.Ordinal);
 
-            // Verify 3 things:
-            // 1. Compiler warning CS1522 is suppressed with diagnostic suppressor even when elevated as an error (using `/warnaserror`),
+            // The generated code will trigger `CS0282`. This tests verifies 3 things:
+            // 1. Compiler warning `CS0282` is suppressed with diagnostic suppressor even when elevated as an error (using `/warnaserror`),
             // 2. Info diagnostic for the suppression is logged with programmatic suppression information,
-            // 3. Compiler error CS1001 is reported.
+            // 3. Compiler error `CS1001` is reported.
             output =
                 VerifyOutput(
                     sourceDir,
@@ -12554,7 +12555,7 @@ class C
                     includeCurrentAssemblyAsAnalyzerReference: false,
                     skipAnalyzers: skipAnalyzers,
                     errorlog: true,
-                    generators: new[] { generator },
+                    generators: new[] { partialStructGenerator },
                     analyzers: new[] { suppressor });
 
             Assert.DoesNotContain($"error CS0282", output, StringComparison.Ordinal);
