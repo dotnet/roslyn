@@ -2,19 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
@@ -137,11 +133,11 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             var updatedDocumentSymbolData = model.DocumentSymbolData;
 
             if (!string.IsNullOrWhiteSpace(searchQuery))
-                updatedDocumentSymbolData = DocumentOutlineHelper.Search(updatedDocumentSymbolData, searchQuery, cancellationToken);
+                updatedDocumentSymbolData = DocumentOutlineHelper.SearchDocumentSymbolData(updatedDocumentSymbolData, searchQuery, cancellationToken);
 
-            updatedDocumentSymbolData = DocumentOutlineHelper.Sort(updatedDocumentSymbolData, sortOption, cancellationToken);
+            updatedDocumentSymbolData = DocumentOutlineHelper.SortDocumentSymbolData(updatedDocumentSymbolData, sortOption, cancellationToken);
 
-            StartDetermineHighlightedItemAndPresentItemsTask(ExpansionOption.NoChange);
+            StartHighlightExpandAndPresentItemsTask(ExpansionOption.NoChange);
 
             return new DocumentSymbolDataModel(updatedDocumentSymbolData, model.OriginalSnapshot);
         }
@@ -150,15 +146,15 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// Starts a new task to highlight the symbol node corresponding to the current caret position in the editor, expand/collapse
         /// nodes (if applicable), and updates the UI.
         /// </summary>
-        private void StartDetermineHighlightedItemAndPresentItemsTask(ExpansionOption expansionOption)
+        private void StartHighlightExpandAndPresentItemsTask(ExpansionOption expansionOption)
         {
-            _determineHighlightAndPresentItemsQueue.AddWork(expansionOption);
+            _highlightExpandAndPresentItemsQueue.AddWork(expansionOption);
         }
 
         /// <summary>
         /// Highlights the symbol node corresponding to the current caret position in the editor, expands/collapses nodes, then updates the UI.
         /// </summary>
-        private async ValueTask DetermineHighlightedItemAndPresentItemsAsync(ImmutableSegmentedList<ExpansionOption> expansionOption, CancellationToken cancellationToken)
+        private async ValueTask HighlightExpandAndPresentItemsAsync(ImmutableSegmentedList<ExpansionOption> expansionOption, CancellationToken cancellationToken)
         {
             var model = await _filterAndSortDataModelQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
             if (model is null)
@@ -175,30 +171,31 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             if (!caretPoint.HasValue)
                 return;
 
-            // Switch to the threadpool to determine which node is currently selected and which node to select (if they exist).
+            // Switch to the threadpool to generate the UI model and determine which node to select (if it exists).
             await TaskScheduler.Default;
 
             var documentSymbolUIItems = DocumentOutlineHelper.GetDocumentSymbolUIItems(model.DocumentSymbolData);
-
-            //var currentlySelectedSymbol = DocumentOutlineHelper.GetCurrentlySelectedNode(documentSymbolUIItems);
             var symbolToSelect = DocumentOutlineHelper.GetDocumentNodeToSelect(documentSymbolUIItems, model.OriginalSnapshot, caretPoint.Value);
 
             // Switch to the UI thread to update the view.
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            // Unselects the currently selected symbol. This is required in case the current caret position is not in range of any symbols
-            // (symbolToSelect will be null) so that no symbols in the tree are highlighted.
-            /*if (currentlySelectedSymbol is not null)
-                currentlySelectedSymbol.IsSelected = false;*/
-
-            if (symbolToSelect is not null)
-                symbolToSelect.IsSelected = true;
-            else
-                DocumentOutlineHelper.UnselectAll((IEnumerable<DocumentSymbolUIItem>)SymbolTree.ItemsSource);
-
+            // Expand/collapse nodes based on the given Expansion Option.
             var expansion = expansionOption.First();
             if (expansion is not ExpansionOption.NoChange)
-                DocumentOutlineHelper.SetIsExpanded(documentSymbolUIItems, expansion);
+                DocumentOutlineHelper.SetIsExpanded(documentSymbolUIItems, (IEnumerable<DocumentSymbolUIItem>)SymbolTree.ItemsSource, expansion);
+
+            // Hightlight the selected node if it exists, otherwise unselect all nodes (required so that the view does not select a node by default).
+            if (symbolToSelect is not null)
+            {
+                // Expand all ancestors first to ensure the selected node will be visible.
+                DocumentOutlineHelper.ExpandAncestors(documentSymbolUIItems, symbolToSelect.RangeSpan);
+                symbolToSelect.IsSelected = true;
+            }
+            else
+            {
+                DocumentOutlineHelper.UnselectAll((IEnumerable<DocumentSymbolUIItem>)SymbolTree.ItemsSource);
+            }
 
             SymbolTree.ItemsSource = documentSymbolUIItems;
         }

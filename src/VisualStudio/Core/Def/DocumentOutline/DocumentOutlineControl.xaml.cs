@@ -77,7 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// Queue to batch up work to do to highlight the currently selected symbol node, expand/collapse nodes,
         /// then update the UI.
         /// </summary>
-        private readonly AsyncBatchingWorkQueue<ExpansionOption> _determineHighlightAndPresentItemsQueue;
+        private readonly AsyncBatchingWorkQueue<ExpansionOption> _highlightExpandAndPresentItemsQueue;
 
         /// <summary>
         /// Keeps track of the current primary and secondary text views. Should only be accessed by the UI thread.
@@ -116,9 +116,9 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 asyncListener,
                 _cancellationToken);
 
-            _determineHighlightAndPresentItemsQueue = new AsyncBatchingWorkQueue<ExpansionOption>(
+            _highlightExpandAndPresentItemsQueue = new AsyncBatchingWorkQueue<ExpansionOption>(
                 DelayTimeSpan.NearImmediate,
-                DetermineHighlightedItemAndPresentItemsAsync,
+                HighlightExpandAndPresentItemsAsync,
                 asyncListener,
                 _cancellationToken);
 
@@ -212,14 +212,14 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         private void Caret_PositionChanged(object sender, CaretPositionChangedEventArgs e)
         {
             if (!e.NewPosition.Equals(e.OldPosition))
-                StartDetermineHighlightedItemAndPresentItemsTask(ExpansionOption.NoChange);
+                StartHighlightExpandAndPresentItemsTask(ExpansionOption.CurrentExpansion);
         }
 
         private void ExpandAll(object sender, RoutedEventArgs e)
-            => StartDetermineHighlightedItemAndPresentItemsTask(ExpansionOption.Expand);
+            => StartHighlightExpandAndPresentItemsTask(ExpansionOption.Expand);
 
         private void CollapseAll(object sender, RoutedEventArgs e)
-            => StartDetermineHighlightedItemAndPresentItemsTask(ExpansionOption.Collapse);
+            => StartHighlightExpandAndPresentItemsTask(ExpansionOption.Collapse);
 
         private void SearchBox_TextChanged(object sender, EventArgs e)
             => StartFilterAndSortDataModelTask();

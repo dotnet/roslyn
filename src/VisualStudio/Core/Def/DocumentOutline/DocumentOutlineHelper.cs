@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -129,9 +128,9 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         }
 
         /// <summary>
-        /// Sorts and returns an immutable array of DocumentSymbolItem based on a SortOption.
+        /// Sorts and returns an immutable array of DocumentSymbolData based on a SortOption.
         /// </summary>
-        public static ImmutableArray<DocumentSymbolData> Sort(
+        public static ImmutableArray<DocumentSymbolData> SortDocumentSymbolData(
             ImmutableArray<DocumentSymbolData> documentSymbolData,
             SortOption sortOption,
             CancellationToken cancellationToken)
@@ -147,9 +146,9 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 _ => throw new NotImplementedException(),
             });
 
-            return SortDocumentSymbolData(documentSymbolData, sortOption, cancellationToken);
+            return SortDocumentSymbols(documentSymbolData, sortOption, cancellationToken);
 
-            static ImmutableArray<DocumentSymbolData> SortDocumentSymbolData(
+            static ImmutableArray<DocumentSymbolData> SortDocumentSymbols(
                 ImmutableArray<DocumentSymbolData> documentSymbolData,
                 SortOption sortOption,
                 CancellationToken cancellationToken)
@@ -159,7 +158,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 using var _ = ArrayBuilder<DocumentSymbolData>.GetInstance(out var sortedDocumentSymbols);
                 foreach (var documentSymbol in documentSymbolData)
                 {
-                    var sortedChildren = SortDocumentSymbolData(documentSymbol.Children, sortOption, cancellationToken);
+                    var sortedChildren = SortDocumentSymbols(documentSymbol.Children, sortOption, cancellationToken);
                     sortedDocumentSymbols.Add(new DocumentSymbolData(documentSymbol, sortedChildren));
                 }
 
@@ -187,26 +186,26 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         }
 
         /// <summary>
-        /// Returns an immutable array of DocumentSymbolItem such that each node or one of its descendants matches the given pattern.
+        /// Returns an immutable array of DocumentSymbolData such that each node matches the given pattern.
         /// </summary>
-        public static ImmutableArray<DocumentSymbolData> Search(
-            ImmutableArray<DocumentSymbolData> documentSymbolItems,
+        public static ImmutableArray<DocumentSymbolData> SearchDocumentSymbolData(
+            ImmutableArray<DocumentSymbolData> documentSymbolData,
             string pattern,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            using var _ = ArrayBuilder<DocumentSymbolData>.GetInstance(out var documentSymbols);
+            using var _ = ArrayBuilder<DocumentSymbolData>.GetInstance(out var filteredDocumentSymbols);
             var patternMatcher = PatternMatcher.CreatePatternMatcher(pattern, includeMatchedSpans: false, allowFuzzyMatching: true);
 
-            foreach (var documentSymbol in documentSymbolItems)
+            foreach (var documentSymbol in documentSymbolData)
             {
-                var filteredChildren = Search(documentSymbol.Children, pattern, cancellationToken);
+                var filteredChildren = SearchDocumentSymbolData(documentSymbol.Children, pattern, cancellationToken);
                 if (SearchNodeTree(documentSymbol, patternMatcher, cancellationToken))
-                    documentSymbols.Add(new DocumentSymbolData(documentSymbol, filteredChildren));
+                    filteredDocumentSymbols.Add(new DocumentSymbolData(documentSymbol, filteredChildren));
             }
 
-            return documentSymbols.ToImmutable();
+            return filteredDocumentSymbols.ToImmutable();
 
             // Returns true if the name of one of the tree nodes results in a pattern match.
             static bool SearchNodeTree(DocumentSymbolData tree, PatternMatcher patternMatcher, CancellationToken cancellationToken)
@@ -226,6 +225,9 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             }
         }
 
+        /// <summary>
+        /// Converts an immutable array of DocumentSymbolData to an immutable array of DocumentSymbolUIItems.
+        /// </summary>
         public static ImmutableArray<DocumentSymbolUIItem> GetDocumentSymbolUIItems(ImmutableArray<DocumentSymbolData> documentSymbolData)
         {
             using var _ = ArrayBuilder<DocumentSymbolUIItem>.GetInstance(out var documentSymbolItems);
@@ -237,15 +239,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             }
 
             return documentSymbolItems.ToImmutable();
-        }
-
-        public static void SetIsExpanded(ImmutableArray<DocumentSymbolUIItem> documentSymbolItems, ExpansionOption expansionOption)
-        {
-            foreach (var documentSymbolItem in documentSymbolItems)
-            {
-                documentSymbolItem.IsExpanded = expansionOption is ExpansionOption.Expand;
-                SetIsExpanded(documentSymbolItem.Children, expansionOption);
-            }
         }
 
         /// <summary>
@@ -283,20 +276,47 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         }
 
         /// <summary>
-        /// Returns the Document Symbol node that is currently selected in the Document Outline window if it exists.
+        /// Updates the IsExpanded property for the Document Symbol UI representation based on the given Expansion Option. The parameter
+        /// <param name="currentDocumentSymbolItems"/> is used to reference the current node expansion in the view.
         /// </summary>
-        public static DocumentSymbolUIItem? GetCurrentlySelectedNode(ImmutableArray<DocumentSymbolUIItem> documentSymbolItems)
+        public static void SetIsExpanded(
+            ImmutableArray<DocumentSymbolUIItem> documentSymbolItems,
+            IEnumerable<DocumentSymbolUIItem> currentDocumentSymbolItems,
+            ExpansionOption expansionOption)
         {
-            foreach (var item in documentSymbolItems)
+            for (var i = 0; i < documentSymbolItems.Length; i++)
             {
-                if (item.IsSelected)
-                    return item;
+                if (expansionOption is ExpansionOption.CurrentExpansion)
+                    documentSymbolItems[i].IsExpanded = currentDocumentSymbolItems.ElementAt(i).IsExpanded;
+                else
+                    documentSymbolItems[i].IsExpanded = expansionOption is ExpansionOption.Expand;
 
-                var selectedChild = GetCurrentlySelectedNode(item.Children);
-                if (selectedChild != null)
-                    return selectedChild;
+                SetIsExpanded(documentSymbolItems[i].Children, currentDocumentSymbolItems.ElementAt(i).Children, expansionOption);
             }
-            return null;
+        }
+
+        /// <summary>
+        /// Expands all the ancestors of a DocumentSymbolUIItem.
+        /// </summary>
+        public static void ExpandAncestors(ImmutableArray<DocumentSymbolUIItem> documentSymbolItems, SnapshotSpan documentSymbolRangeSpan)
+        {
+            var symbol = GetSymbolInRange(documentSymbolItems, documentSymbolRangeSpan);
+            if (symbol is not null)
+            {
+                symbol.IsExpanded = true;
+                ExpandAncestors(symbol.Children, documentSymbolRangeSpan);
+            }
+
+            static DocumentSymbolUIItem? GetSymbolInRange(ImmutableArray<DocumentSymbolUIItem> documentSymbolItems, SnapshotSpan rangeSpan)
+            {
+                foreach (var symbol in documentSymbolItems)
+                {
+                    if (symbol.RangeSpan.Contains(rangeSpan))
+                        return symbol;
+                }
+
+                return null;
+            }
         }
 
         internal static void UnselectAll(IEnumerable<DocumentSymbolUIItem> documentSymbolItems)
