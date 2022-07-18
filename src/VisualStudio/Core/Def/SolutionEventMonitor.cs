@@ -23,6 +23,8 @@ namespace Microsoft.VisualStudio.LanguageServices
         private readonly IGlobalOperationNotificationService _notificationService;
         private readonly Dictionary<string, IDisposable> _operations = new();
 
+        public event EventHandler? SolutionClosed;
+
         public SolutionEventMonitor(VisualStudioWorkspace workspace)
         {
             _notificationService = workspace.Services.GetRequiredService<IGlobalOperationNotificationService>();
@@ -60,7 +62,10 @@ namespace Microsoft.VisualStudio.LanguageServices
             => ContextChanged(e.Activated, SolutionOpening);
 
         private void SolutionClosingContextChanged(object? sender, UIContextChangedEventArgs e)
-            => ContextChanged(e.Activated, SolutionClosing);
+        {
+            ContextChanged(e.Activated, SolutionClosing);
+            SolutionClosed?.Invoke(this, EventArgs.Empty);
+        }
 
         private void ContextChanged(bool active, string operation)
         {

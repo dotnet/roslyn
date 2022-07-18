@@ -295,12 +295,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
         protected override void Dispose(bool disposing)
         {
+            ReportSessionWideTelemetry();
+
             DisposeVisualStudioServices();
 
             UnregisterAnalyzerTracker();
             UnregisterRuleSetEventHandler();
-
-            ReportSessionWideTelemetry();
 
             if (_solutionEventMonitor != null)
             {
@@ -311,13 +311,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             base.Dispose(disposing);
         }
 
-        private static void ReportSessionWideTelemetry()
+        private void ReportSessionWideTelemetry()
         {
             SolutionLogger.ReportTelemetry();
             AsyncCompletionLogger.ReportTelemetry();
             CompletionProvidersLogger.ReportTelemetry();
             ChangeSignatureLogger.ReportTelemetry();
             InheritanceMarginLogger.ReportTelemetry();
+            OptionsLogger.ReportTelemetry(_workspace!, CancellationToken.None);
         }
 
         private void DisposeVisualStudioServices()
