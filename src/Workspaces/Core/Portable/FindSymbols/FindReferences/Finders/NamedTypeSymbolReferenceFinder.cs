@@ -208,8 +208,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     static (token, tuple) => IsPotentialReference(tuple.predefinedType, tuple.state.SyntaxFacts, token),
                     (state, predefinedType));
 
-            return FindReferencesInTokensAsync(
-                symbol, state, tokens, cancellationToken);
+            return FindReferencesInTokensAsync(symbol, state, tokens, cancellationToken);
         }
 
         private static ValueTask<ImmutableArray<FinderLocation>> FindAttributeReferencesAsync(

@@ -106,8 +106,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     .Where(t => TokensMatch(state, t, symbol.Name)))
                 .ToImmutableArray();
 
-            return FindReferencesInTokensAsync(
-                symbol, state, tokens, cancellationToken);
+            return FindReferencesInTokensAsync(symbol, state, tokens, cancellationToken);
         }
     }
 }

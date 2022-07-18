@@ -71,8 +71,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     static (token, state) => IsPotentialReference(state.SyntaxFacts, token),
                     state);
 
-            return FindReferencesInTokensAsync(
-                symbol, state, tokens, cancellationToken);
+            return FindReferencesInTokensAsync(symbol, state, tokens, cancellationToken);
         }
 
         private static bool IsPotentialReference(
