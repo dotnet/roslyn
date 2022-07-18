@@ -4,10 +4,17 @@
 
 namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
+    /// <summary>
+    /// The Sort Option to be applied to the document symbol data model.
+    /// </summary>
     internal enum SortOption
     {
+        // Sort by Document Symbol name.
         Name,
+        // Sort by Document Symbol location in a document (by comparing each symbol's range start position).
         Location,
+        // Sort by Document Symbol Microsoft.VisualStudio.LanguageServer.Protocol.SymbolKind.
+        // At the moment, we order the symbols by the SymbolKind enum values.
         Type
     }
 }
