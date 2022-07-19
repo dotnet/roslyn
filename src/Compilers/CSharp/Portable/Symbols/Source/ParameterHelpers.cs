@@ -145,10 +145,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     diagnostics.Add(ErrorCode.ERR_ThisInBadContext, thisKeyword.GetLocation());
                 }
-                if (refKind == RefKind.Out && scope == DeclarationScope.Unscoped)
-                {
-                    scope = DeclarationScope.RefScoped;
-                }
 
                 if (parameterSyntax is ParameterSyntax concreteParam)
                 {
@@ -190,6 +186,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     // error CS0631: ref and out are not valid in this context
                     diagnostics.Add(ErrorCode.ERR_IllegalRefParam, refnessKeyword.GetLocation());
+                }
+
+                if (scope == DeclarationScope.Unscoped &&
+                    IsRefScopedByDefault(refKind, parameterType))
+                {
+                    scope = DeclarationScope.RefScoped;
                 }
 
                 TParameterSymbol parameter = parameterCreationFunc(withTypeParametersBinder, owner, parameterType, parameterSyntax, refKind, parameterIndex, paramsKeyword, thisKeyword, addRefReadOnlyModifier, scope, diagnostics);
@@ -315,11 +317,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return false;
             }
-            if (parameter.RefKind == RefKind.Out)
+            if (IsRefScopedByDefault(parameter))
             {
                 return scope == DeclarationScope.ValueScoped;
             }
             return true;
+        }
+
+        internal static bool IsRefScopedByDefault(ParameterSymbol parameter)
+        {
+            return IsRefScopedByDefault(parameter.RefKind, parameter.TypeWithAnnotations);
+        }
+
+        internal static bool IsRefScopedByDefault(RefKind refKind, TypeWithAnnotations parameterType)
+        {
+            if (refKind == RefKind.Out)
+            {
+                return true;
+            }
+            return refKind == RefKind.Ref &&
+                parameterType.IsResolved &&
+                parameterType.Type?.IsRefLikeType == true;
         }
 
         internal static void EnsureScopedRefAttributeExists(PEModuleBuilder moduleBuilder, ImmutableArray<ParameterSymbol> parameters)
