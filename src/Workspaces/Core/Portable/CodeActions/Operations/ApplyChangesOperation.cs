@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                     }
 
                     // If the document has gone away, we definitely cannot apply a text change to it.
-                    var currentDocument = currentSolution.GetDocument(documentId);
+                    var currentDocument = currentSolution.GetTextDocument(documentId);
                     if (currentDocument is null)
                     {
                         Logger.Log(FunctionId.ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_DocumentRemoved, logLevel: LogLevel.Information);
