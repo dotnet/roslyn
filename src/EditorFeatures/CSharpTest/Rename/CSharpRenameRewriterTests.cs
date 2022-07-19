@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Rename
     public class CSharpRenameRewriterTests : RenameRewriterTests
     {
         [Fact]
-        public async Task VerifyRenameMultipleSymbolsInSingleDocument()
+        public async Task TestRenameMultipleSymbolsInSingleDocument()
         {
             var cancellationToken = CancellationToken.None;
             using var verifier = new Verifier(@"
@@ -65,6 +65,62 @@ public class {|Rename1:Apple|}
 
             await verifier.VerifyAsync(documentFilePath: "test.cs", "Rename3", "Orange2", cancellationToken);
             await verifier.VerifyAsync(documentFilePath: "test.cs", "propertyRef", "Orange2", cancellationToken);
+        }
+
+        [Fact]
+        public async Task TestRenameInCommentsAndStrings()
+        {
+            var cancellationToken = CancellationToken.None;
+            using var verifier = new Verifier(@"
+                   <Workspace>
+                       <Project Language=""C#"" CommonReferences=""true"">
+                           <Document FilePath=""test1.cs"">
+<![CDATA[
+/// <summary>
+/// <see cref=""Apple""/> Apple is not Lemon. Lemon is not banana
+/// </summary>
+/// <Lemon>
+/// </Lemon>
+public class {|Rename1:Apple|}
+{
+    // banana is not Apple
+    public void {|Rename2:Lemon|}(int {|Rename3:banana|})
+    {
+        string Apple = ""Apple, Lemon and banana are fruit"";
+        string Lemon = $""Apple, Lemon and {banana} are fruit"";
+    }
+}]]>
+                           </Document>
+                    </Project>
+                </Workspace>
+");
+
+            var renameOption = new SymbolRenameOptions() { RenameInComments = true, RenameInStrings = true };
+
+            await verifier.RenameAndAnnotatedDocumentAsync(
+                documentFilePath: "test1.cs",
+                new()
+                {
+                    { "Rename1", ("Apple2", renameOption) },
+                    { "Rename2", ("Lemon2", renameOption) },
+                    { "Rename3", ("banana2", renameOption) },
+                }, cancellationToken);
+            await verifier.VerifyDocumentAsync("test1.cs",
+@"
+/// <summary>
+/// <see cref=""Apple2""/> Apple2 is not Lemon2. Lemon2 is not banana2
+/// </summary>
+/// <Lemon2>
+/// </Lemon2>
+public class Apple2
+{
+    // banana2 is not Apple2
+    public void Lemon2(int banana2)
+    {
+        string Apple = ""Apple2, Lemon2 and banana2 are fruit"";
+        string Lemon = $""Apple2, Lemon2 and {banana2} are fruit"";
+    }
+}", cancellationToken);
         }
     }
 }

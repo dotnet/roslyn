@@ -38,8 +38,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Rename
         {
             private readonly TestWorkspace _testWorkspace;
             private readonly RenamedSpansTracker _renamedSpansTracker = new();
-            private readonly Dictionary<DocumentId, HashSet<RenameSymbolContext>> _documentToRenameSymbolContextsMap = new();
-            private readonly AnnotationTable<RenameAnnotation> _annotationTable = new(RenameAnnotation.Kind);
             private Solution _currentSolution;
 
             public Verifier(string workspaceXml)
@@ -89,27 +87,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Rename
                 }
             }
 
-            public async Task SimplifyAsync(
+            public async Task VerifyDocumentAsync(
                 string documentFilePath,
+                string expectedDocumentContent,
                 CancellationToken cancellationToken)
             {
                 var documentId = _testWorkspace.Documents.Single(doc => doc.FilePath == documentFilePath).Id;
-                var replacementTextValid = _documentToRenameSymbolContextsMap[documentId].All(context => context.ReplacementTextValid);
-                _currentSolution = await _renamedSpansTracker.SimplifyAsync(
-                    _currentSolution,
-                    SpecializedCollections.SingletonEnumerable(documentId),
-                    replacementTextValid,
-                    _annotationTable,
-                    CodeActionOptions.DefaultProvider,
-                    cancellationToken).ConfigureAwait(false);
-            }
-
-            public void VerifyDocument(
-                string documentFilePath,
-                string expectedDocumentContent)
-            {
-                var actualDocumentContext = _testWorkspace.Documents.Single(doc => doc.FilePath == documentFilePath).GetTextView().TextBuffer.ToString();
-                Assert.Equal(expectedDocumentContent, actualDocumentContext);
+                var sourceText = await _currentSolution.GetRequiredDocument(documentId).GetTextAsync(cancellationToken).ConfigureAwait(false);
+                Assert.Equal(expectedDocumentContent, sourceText.ToString());
             }
 
             private async Task<SyntaxNode?> RenameDocumentAsync(
@@ -122,11 +107,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Rename
                 var renameRewriterService = document.GetRequiredLanguageService<IRenameRewriterLanguageService>();
                 var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
                 var annotatedSpans = testHostDocument.AnnotatedSpans;
-
-                if (!_documentToRenameSymbolContextsMap.ContainsKey(document.Id))
-                {
-                    _documentToRenameSymbolContextsMap[document.Id] = new HashSet<RenameSymbolContext>();
-                }
 
                 using var _1 = PooledHashSet<TextSpan>.GetInstance(out var conflictLocationSetBuilder);
                 using var _2 = ArrayBuilder<RenameSymbolContext>.GetInstance(out var symbolContextsBuilder);
@@ -172,7 +152,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Rename
                                     options.RenameInStrings,
                                     options.RenameInComments);
 
-                            _documentToRenameSymbolContextsMap[document.Id].Add(symbolContext);
                             symbolContextsBuilder.Add(symbolContext);
 
                             var renameLocationsSet = await Renamer.FindRenameLocationsAsync(
@@ -189,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Rename
                             tokenTextSpanRenameContextsBuilder.AddRange(textSpanRenameContexts);
 
                             var stringAndCommentsRenameContexts = locationsInDocument
-                                .WhereAsArray(location => RenameUtilities.ShouldIncludeLocation(renameLocationsSet.Locations, location))
+                                .WhereAsArray(location => location.IsRenameInStringOrComment)
                                 .SelectAsArray(location => new TextSpanRenameContext(location, symbolContext));
                             stringAndCommentsContextsBuilder.AddRange(stringAndCommentsRenameContexts);
                         }
